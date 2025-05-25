@@ -1,0 +1,8 @@
+{
+  "extends": "@naturalcycles/dev-lib/scripts/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "../dist",
+  },
+  "exclude": ["**/__exclude"],
+}
