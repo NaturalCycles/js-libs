@@ -1,4 +1,9 @@
-import type { AnySchema, ArraySchema, JoiValidationError } from '@naturalcycles/nodejs-lib'
+import type {
+  AnySchema,
+  ArraySchema,
+  JoiValidationError,
+  ObjectSchema,
+} from '@naturalcycles/nodejs-lib'
 import {
   arraySchema,
   integerSchema,
@@ -61,11 +66,12 @@ export interface AirtableThumbnail {
   url: string
 }
 
-export const airtableThumbnailSchema = objectSchema<AirtableThumbnail>({
-  width: integerSchema.min(0),
-  height: integerSchema.min(0),
-  url: urlSchema(),
-})
+export const airtableThumbnailSchema: ObjectSchema<AirtableThumbnail> =
+  objectSchema<AirtableThumbnail>({
+    width: integerSchema.min(0),
+    height: integerSchema.min(0),
+    url: urlSchema(),
+  })
 
 export interface AirtableAttachment {
   id: string
@@ -81,20 +87,21 @@ export interface AirtableAttachmentUpload {
   filename?: string
 }
 
-export const airtableAttachmentSchema = objectSchema<AirtableAttachment>({
-  id: stringSchema,
-  url: urlSchema(),
-  filename: stringSchema,
-  size: integerSchema.optional(),
-  type: stringSchema.optional(),
-  thumbnails: objectSchema({
-    full: airtableThumbnailSchema,
-    large: airtableThumbnailSchema,
-    small: airtableThumbnailSchema,
-  })
-    .options({ stripUnknown: false })
-    .optional(),
-}).options({ stripUnknown: false })
+export const airtableAttachmentSchema: ObjectSchema<AirtableAttachment> =
+  objectSchema<AirtableAttachment>({
+    id: stringSchema,
+    url: urlSchema(),
+    filename: stringSchema,
+    size: integerSchema.optional(),
+    type: stringSchema.optional(),
+    thumbnails: objectSchema({
+      full: airtableThumbnailSchema,
+      large: airtableThumbnailSchema,
+      small: airtableThumbnailSchema,
+    })
+      .options({ stripUnknown: false })
+      .optional(),
+  }).options({ stripUnknown: false })
 
 export const airtableAttachmentsSchema = arraySchema<AirtableAttachment>(airtableAttachmentSchema)
   .optional()
@@ -118,7 +125,7 @@ export interface AirtableRecord {
   // id: string
 }
 
-export const airtableRecordSchema = objectSchema<AirtableRecord>({
+export const airtableRecordSchema: ObjectSchema<AirtableRecord> = objectSchema<AirtableRecord>({
   airtableId: airtableIdSchema,
   // id: stringSchema,
 })
