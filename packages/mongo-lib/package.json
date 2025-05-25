@@ -1,5 +1,5 @@
 {
-  "name": "@naturalcycles/firestore-lib",
+  "name": "@naturalcycles/mongo-lib",
   "type": "module",
   "scripts": {
     "build": "dev-lib build",
@@ -10,17 +10,16 @@
     "check": "dev-lib lbt"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^7",
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^14",
+    "mongodb": "^6",
     "tslib": "^2"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",
     "@types/node": "^22",
-    "dotenv": "^16",
-    "firebase-admin": "^13"
+    "dotenv": "^16"
   },
   "files": [
     "dist",
@@ -38,13 +37,13 @@
   "repository": {
     "type": "git",
     "url": "git@github.com:NaturalCycles/js-libs.git",
-    "directory": "packages/firestore-lib"
+    "directory": "packages/mongo-lib"
   },
   "engines": {
     "node": ">=22.12.0"
   },
-  "version": "1.1.9",
-  "description": "Firestore implementation of CommonDB interface",
+  "version": "3.4.16",
+  "description": "MongoDB implementation of CommonDB interface",
   "author": "Natural Cycles Team",
   "license": "MIT"
 }
