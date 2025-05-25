@@ -16,6 +16,7 @@
     "redis-lib:check": "pnpm --filter @naturalcycles/redis-lib run check",
     "sqlite-lib:check": "pnpm --filter @naturalcycles/sqlite-lib run check",
     "mysql-lib:check": "pnpm --filter @naturalcycles/mysql-lib run check",
+    "airtable-lib:check": "pnpm --filter @naturalcycles/mysql-lib run check",
     "root:prettier": "prettier --write './*.{js,ts,json,yaml,md}'",
     "release": "pnpm -r --workspace-concurrency=1 exec -- semantic-release -e semantic-release-monorepo",
     "release:dry": "pnpm -r --workspace-concurrency=1 exec -- semantic-release -e semantic-release-monorepo --dry-run",
