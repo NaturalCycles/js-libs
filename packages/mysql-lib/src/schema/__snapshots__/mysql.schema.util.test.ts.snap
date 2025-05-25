@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`commonSchemaToMySQLDDL 1`] = `
+"CREATE TABLE \`TEST_TABLE\` (
+id VARCHAR(255) NOT NULL,
+\`k1\` LONGTEXT DEFAULT NULL,
+\`k2\` LONGTEXT DEFAULT NULL,
+\`k3\` FLOAT(11) DEFAULT NULL,
+\`even\` TINYINT(1) DEFAULT NULL,
+\`nested\` LONGTEXT DEFAULT NULL,
+\`created\` FLOAT(11) DEFAULT NULL,
+\`updated\` FLOAT(11) DEFAULT NULL,
+PRIMARY KEY (id)
+) ENGINE=InnoDB"
+`;

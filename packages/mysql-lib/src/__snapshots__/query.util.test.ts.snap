@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`dbQueryToSQLDelete 1`] = `"DELETE FROM \`TBL1\`"`;
+
+exports[`dbQueryToSQLDelete 2`] = `"DELETE FROM \`TBL1\` WHERE \`a\` IS NOT NULL"`;
+
+exports[`dbQueryToSQLSelect 1`] = `"SELECT * FROM \`TBL1\`"`;
+
+exports[`dbQueryToSQLSelect 2`] = `"SELECT * FROM \`TBL1\` WHERE \`a\` = 'b' AND \`c\` > '2019' ORDER BY \`aaa\` ASC, \`bbb\` DESC LIMIT 15"`;
+
+exports[`dbQueryToSQLSelect 3`] = `"SELECT * FROM \`TBL1\` WHERE \`num\` > 15"`;
+
+exports[`dbQueryToSQLSelect 4`] = `"SELECT * FROM \`TBL1\` WHERE \`a\` IS NULL AND \`a2\` IS NULL AND \`a3\` IS NOT NULL"`;
+
+exports[`dbQueryToSQLSelect 5`] = `"SELECT * FROM \`TBL1\` WHERE \`a\` IN ('a1', 'a2', 'a3')"`;
+
+exports[`dbQueryToSQLUpdate 1`] = `"UPDATE \`TEST_TABLE\` SET \`id\` = 'id1', \`k1\` = 'v1', \`k2\` = 'v2', \`k3\` = 1, \`even\` = false, \`nested\` = \`foo\` = 1, \`created\` = 1529539200, \`updated\` = 1529539200"`;
+
+exports[`dbQueryToSQLUpdate 2`] = `"UPDATE \`TEST_TABLE\` SET \`id\` = 'id1', \`k1\` = 'v1', \`k2\` = 'v2', \`k3\` = 1, \`even\` = false, \`nested\` = \`foo\` = 1, \`created\` = 1529539200, \`updated\` = 1529539200 WHERE \`a\` > 5"`;
+
+exports[`insertSQL 1`] = `
+"INSERT INTO \`TEST_TABLE\` (\`id\`,\`k1\`,\`k2\`,\`k3\`,\`even\`,\`nested\`,\`created\`,\`updated\`) VALUES
+('id1','v1','v2',1,false,\`foo\` = 1,1529539200,1529539200),
+('id2','v2','v4',2,true,\`foo\` = 2,1529539200,1529539200),
+('id3','v3','v6',3,false,\`foo\` = 3,1529539200,1529539200)"
+`;
