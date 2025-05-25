@@ -160,6 +160,55 @@ importers:
         specifier: ^5
         version: 5.3.3
 
+  packages/bench-lib:
+    dependencies:
+      '@naturalcycles/js-lib':
+        specifier: workspace:^15
+        version: link:../js-lib
+      '@naturalcycles/nodejs-lib':
+        specifier: workspace:^14
+        version: link:../nodejs-lib
+      autocannon:
+        specifier: ^8
+        version: 8.0.0
+      benchmark:
+        specifier: ^2
+        version: 2.1.4
+      hdr-histogram-js:
+        specifier: ^3
+        version: 3.0.0
+      tslib:
+        specifier: ^2
+        version: 2.8.1
+    devDependencies:
+      '@naturalcycles/dev-lib':
+        specifier: '*'
+        version: 19.0.2(@biomejs/biome@1.9.4)(eslint@9.27.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.5.3)(stylelint-config-standard-scss@15.0.1(postcss@8.5.3)(stylelint@16.19.1(typescript@5.8.3)))(stylelint@16.19.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.1.4(@types/node@22.15.21)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.8.0))
+      '@types/benchmark':
+        specifier: ^2
+        version: 2.1.5
+      '@types/cors':
+        specifier: ^2
+        version: 2.8.18
+      '@types/express':
+        specifier: ^5
+        version: 5.0.2
+      '@types/node':
+        specifier: ^22
+        version: 22.15.21
+      express:
+        specifier: ^5
+        version: 5.1.0
+      fastify:
+        specifier: ^5
+        version: 5.3.3
+      helmet:
+        specifier: ^8
+        version: 8.1.0
+      nanoid:
+        specifier: ^5
+        version: 5.1.5
+
   packages/datastore-lib:
     dependencies:
       '@google-cloud/datastore':
@@ -2010,6 +2059,9 @@ packages:
 
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
+
+  '@types/benchmark@2.1.5':
+    resolution: {integrity: sha512-cKio2eFB3v7qmKcvIHLUMw/dIx/8bhWPuzpzRT4unCPRTD8VdA9Zb0afxpcxOqR4PixRS7yT42FqGS8BYL8g1w==}
 
   '@types/better-sqlite3@7.6.13':
     resolution: {integrity: sha512-NMv9ASNARoKksWtsq/SHakpYAYnhBrQgGD8zkLYk/jaK8jUGn08CfEdTRgYhMypUQAfzSP8W6gNLe0q19/t4VA==}
@@ -4573,6 +4625,11 @@ packages:
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+
+  nanoid@5.1.5:
+    resolution: {integrity: sha512-Ir/+ZpE9fDsNH0hQ3C68uyThDXzYcim2EqcZ8zn8Chtt1iylPT9xXJB0kPCnqzgcEGikO9RxSrh63MsmVCU7Fw==}
+    engines: {node: ^18 || >=20}
     hasBin: true
 
   napi-build-utils@2.0.0:
@@ -7985,6 +8042,8 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
+  '@types/benchmark@2.1.5': {}
+
   '@types/better-sqlite3@7.6.13':
     dependencies:
       '@types/node': 22.15.21
@@ -10868,6 +10927,8 @@ snapshots:
   nano-spawn@1.0.2: {}
 
   nanoid@3.3.11: {}
+
+  nanoid@5.1.5: {}
 
   napi-build-utils@2.0.0: {}
 

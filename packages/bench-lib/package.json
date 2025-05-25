@@ -1,0 +1,51 @@
+{
+  "name": "@naturalcycles/bench-lib",
+  "type": "module",
+  "scripts": {
+    "build": "dev-lib build",
+    "test": "dev-lib test",
+    "lint": "dev-lib lint",
+    "bt": "dev-lib bt",
+    "lbt": "dev-lib lbt",
+    "check": "dev-lib lbt"
+  },
+  "dependencies": {
+    "@naturalcycles/js-lib": "workspace:^15",
+    "@naturalcycles/nodejs-lib": "workspace:^14",
+    "autocannon": "^8",
+    "benchmark": "^2",
+    "hdr-histogram-js": "^3",
+    "tslib": "^2"
+  },
+  "devDependencies": {
+    "@naturalcycles/dev-lib": "*",
+    "@types/benchmark": "^2",
+    "@types/cors": "^2",
+    "@types/express": "^5",
+    "@types/node": "^22",
+    "express": "^5",
+    "fastify": "^5",
+    "helmet": "^8",
+    "nanoid": "^5"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:NaturalCycles/js-libs.git",
+    "directory": "packages/bench-lib"
+  },
+  "engines": {
+    "node": ">=22.10.0"
+  },
+  "version": "1.6.1",
+  "description": "Benchmarking library, based on Benchmark.js and Autocannon",
+  "author": "Natural Cycles Team",
+  "license": "MIT"
+}

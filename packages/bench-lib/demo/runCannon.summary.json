@@ -1,0 +1,32 @@
+[
+  {
+    "name": "noop",
+    "rpsAvg": 10084,
+    "latencyAvg": 97.82,
+    "throughputAvg": 1.66,
+    "errors": 0,
+    "timeouts": 0,
+    "non2xx": 0,
+    "2xx": 20172
+  },
+  {
+    "name": "async",
+    "rpsAvg": 11320,
+    "latencyAvg": 89.2,
+    "throughputAvg": 1.87,
+    "errors": 0,
+    "timeouts": 0,
+    "non2xx": 0,
+    "2xx": 22636
+  },
+  {
+    "name": "random",
+    "rpsAvg": 11100,
+    "latencyAvg": 90.01,
+    "throughputAvg": 1.8,
+    "errors": 0,
+    "timeouts": 0,
+    "non2xx": 0,
+    "2xx": 22192
+  }
+]

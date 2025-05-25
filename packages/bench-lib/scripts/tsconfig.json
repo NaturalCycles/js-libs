@@ -1,0 +1,10 @@
+{
+  "extends": "@naturalcycles/dev-lib/scripts/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "../dist",
+    "lib": ["es2023", "dom"],
+    // "skipLibCheck": true,
+  },
+  "exclude": ["**/__exclude"],
+}
