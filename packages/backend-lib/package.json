@@ -9,8 +9,6 @@
     "bt": "dev-lib bt",
     "lbt": "dev-lib lbt",
     "dev": "APP_ENV=dev tsx watch src/test/server/server.ts",
-    "docs-serve": "NODE_OPTIONS=--openssl-legacy-provider vuepress dev docs",
-    "docs-build": "NODE_OPTIONS=--openssl-legacy-provider vuepress build docs",
     "deploy-gae": "tsx src/bin/deploy-gae.ts",
     "deploy-prepare": "tsx src/bin/deploy-prepare.ts",
     "deploy-prepare-debug": "AA=AA1 BB=BB1 tsx src/bin/deploy-prepare.ts --projectDir ./src/test/project",
