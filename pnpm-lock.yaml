@@ -567,6 +567,28 @@ importers:
         specifier: ^22
         version: 22.15.21
 
+  packages/scrubber-lib:
+    dependencies:
+      '@naturalcycles/js-lib':
+        specifier: workspace:^15
+        version: link:../js-lib
+      '@naturalcycles/nodejs-lib':
+        specifier: workspace:^14
+        version: link:../nodejs-lib
+      tslib:
+        specifier: ^2
+        version: 2.8.1
+    devDependencies:
+      '@naturalcycles/dev-lib':
+        specifier: '*'
+        version: 19.0.2(@biomejs/biome@1.9.4)(eslint@9.27.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.5.3)(stylelint-config-standard-scss@15.0.1(postcss@8.5.3)(stylelint@16.19.1(typescript@5.8.3)))(stylelint@16.19.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.1.4(@types/node@22.15.21)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.8.0))
+      '@types/node':
+        specifier: ^22
+        version: 22.15.21
+      dotenv:
+        specifier: ^16
+        version: 16.5.0
+
   packages/sqlite-lib:
     dependencies:
       '@naturalcycles/db-lib':

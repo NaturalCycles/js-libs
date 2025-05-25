@@ -1,0 +1,54 @@
+{
+  "name": "@naturalcycles/scrubber-lib",
+  "type": "module",
+  "scripts": {
+    "build": "dev-lib build",
+    "test": "dev-lib test",
+    "lint": "dev-lib lint",
+    "bt": "dev-lib bt",
+    "lbt": "dev-lib lbt",
+    "check": "dev-lib lbt"
+  },
+  "dependencies": {
+    "@naturalcycles/js-lib": "workspace:^15",
+    "@naturalcycles/nodejs-lib": "workspace:^14",
+    "tslib": "^2"
+  },
+  "devDependencies": {
+    "@naturalcycles/dev-lib": "*",
+    "@types/node": "^22",
+    "dotenv": "^16"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/test",
+    "!src/**/*.test.ts",
+    "!src/**/__snapshots__",
+    "!src/**/__exclude"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:NaturalCycles/js-libs.git",
+    "directory": "packages/scrubber-lib"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "version": "2.7.2",
+  "description": "Scrub data in JavaScript plain objects by using rules defined in a configuration object",
+  "keywords": [
+    "scrub",
+    "scrubber",
+    "sensitive",
+    "password",
+    "gdpr"
+  ],
+  "author": "Natural Cycles Team",
+  "license": "MIT"
+}

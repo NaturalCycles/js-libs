@@ -19,6 +19,7 @@
     "airtable-lib:check": "pnpm --filter @naturalcycles/airtable-lib run check",
     "bench-lib:check": "pnpm --filter @naturalcycles/bench-lib run check",
     "cloud-storage-lib:check": "pnpm --filter @naturalcycles/cloud-storage-lib run check",
+    "scrubber-lib:check": "pnpm --filter @naturalcycles/scrubber-lib run check",
     "root:prettier": "prettier --write './*.{js,ts,json,yaml,md}'",
     "release": "pnpm -r --workspace-concurrency=1 exec -- semantic-release -e semantic-release-monorepo",
     "release:dry": "pnpm -r --workspace-concurrency=1 exec -- semantic-release -e semantic-release-monorepo --dry-run",

@@ -1,4 +1,3 @@
-/pnpm-lock.yaml
-/pnpm-workspace.yaml
+/pnpm-*.yaml
 
 /**/__exclude/**/*

@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`bcryptStringScrubberSQL 1`] = `
+"CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
+          THEN
+              CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' -- this is the prefix
+                  WHEN FALSE THEN ''
+                  ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(RANDOM()))
+              END
+          ELSE '$2a$12$' || RANDSTR(53, HASH(RANDOM()))
+          END"
+`;
+
+exports[`bcryptStringScrubberSQL 2`] = `
+"CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
+          THEN
+              CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' -- this is the prefix
+                  WHEN FALSE THEN ''
+                  WHEN '$2a$10$' THEN '$2a$10$456'
+                  WHEN '$2a$12$' THEN '$2a$12$123'
+                  ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(RANDOM()))
+              END
+          ELSE '$2a$12$' || RANDSTR(53, HASH(RANDOM()))
+          END"
+`;
+
+exports[`saltedHashEmailScrubber > generates hash using initializationVector and suffixes domain 1`] = `"7ecc1443f9a0c0c795069118020ac1f11dcba568bc9dfaf01433fff8b6b42de2@naturalcycles.com"`;

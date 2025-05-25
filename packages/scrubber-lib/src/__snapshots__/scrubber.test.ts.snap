@@ -1,0 +1,67 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`error handling > logs errors by default 1`] = `
+[MockFunction log] {
+  "calls": [
+    [
+      "Error when applying scrubber 'faultyScrubber' to field 'target'",
+      [Error: ops],
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`scrubs different types of data 1`] = `
+[
+  {
+    "array": [
+      1,
+      2,
+      {
+        "pw": "notsecret",
+      },
+    ],
+    "buffer": {
+      "data": [
+        100,
+        97,
+        116,
+        97,
+      ],
+      "type": "Buffer",
+    },
+    "date": {},
+    "function": [Function],
+    "map": Map {
+      "b" => "c",
+    },
+    "null": null,
+    "set": Set {
+      1,
+      2,
+      3,
+      4,
+    },
+    "symbol": Symbol(42),
+    "undefined": undefined,
+  },
+]
+`;
+
+exports[`supplying an initializationVector in config of saltedHashEmailScrubber should produce consistent results 1`] = `
+{
+  "email": "67a830fc650cb5c7f643db46c275f73f3c892d705be571e982826296b1c34019@example.com.br",
+}
+`;
+
+exports[`supplying an initializationVector in config should take precedence 1`] = `
+{
+  "id": "56f968eb428383c987ee241cb9b84ee9e1c131b9c4e5370e38cce6f399d4cecd",
+}
+`;
