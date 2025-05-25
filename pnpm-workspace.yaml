@@ -5,7 +5,9 @@ ignoredBuiltDependencies:
   - protobufjs
 onlyBuiltDependencies:
   - '@biomejs/biome'
+  - better-sqlite3
   - esbuild
+  - sqlite3
   - unrs-resolver
 patchedDependencies:
   semantic-release-pnpm: patches/semantic-release-pnpm.patch
