@@ -1,0 +1,53 @@
+#
+# DO NOT MODIFY, WILL BE OVERWRITTEN BY @naturalcycles/dev-lib
+#
+# You can put more .gitignore files in your respective subfolders (e.g `src`) to ignore additional things.
+# Or PR to @naturalcycles/dev-lib if you want to ignore something generic.
+#
+
+#
+# Global (all dirs)
+#
+*.iml
+.idea
+.DS_Store
+node_modules
+.env
+.npmrc
+.classpath
+.project
+.settings
+.externalToolBuilders
+.cache
+.gitconfig
+
+#
+# Root dir
+#
+/target
+/*.log
+/log.txt
+/.sass-cache
+/.sourcemaps
+
+/coverage
+/report
+
+/dist
+/dist-cjs
+/dist-esm
+/tmp
+/deploy
+/build/deploy
+
+# All secrets are ignored, except encrypted
+/secret/**/*.*
+!/secret/**/*.enc
+
+/src/@linked
+/scripts/try.*
+/logs
+/platforms
+/plugins
+/www/*
+!/www/.gitkeep
