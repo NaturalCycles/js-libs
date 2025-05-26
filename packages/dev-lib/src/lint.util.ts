@@ -344,7 +344,7 @@ function gitStatus(): string | undefined {
 
 const require = createRequire(import.meta.url)
 
-function findPackageBinPath(pkg: string, cmd: string): string {
+export function findPackageBinPath(pkg: string, cmd: string): string {
   const packageJsonPath = require.resolve(`${pkg}/package.json`)
   const { bin } = fs2.readJson<any>(packageJsonPath)
 

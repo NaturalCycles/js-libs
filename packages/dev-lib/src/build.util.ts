@@ -1,4 +1,5 @@
 import { exec2, fs2, kpySync } from '@naturalcycles/nodejs-lib'
+import { findPackageBinPath } from './lint.util.js'
 
 export async function buildProd(): Promise<void> {
   fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
@@ -32,7 +33,9 @@ export async function runTSCInFolder(tsconfigPath: string, args: string[] = []):
     return
   }
 
-  await exec2.spawnAsync(`tsc`, {
+  const tscPath = findPackageBinPath('typescript', 'tsc')
+
+  await exec2.spawnAsync(tscPath, {
     args: ['-P', tsconfigPath, ...args],
     shell: false,
   })
@@ -41,7 +44,9 @@ export async function runTSCInFolder(tsconfigPath: string, args: string[] = []):
 export async function runTSCProd(args: string[] = []): Promise<void> {
   const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
 
-  await exec2.spawnAsync(`tsc`, {
+  const tscPath = findPackageBinPath('typescript', 'tsc')
+
+  await exec2.spawnAsync(tscPath, {
     args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', ...args],
     shell: false,
   })
