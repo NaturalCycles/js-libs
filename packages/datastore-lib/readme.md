@@ -17,9 +17,3 @@
 - Anonymization hook to be able to plug your implementation (privacy by design)
 - ...
 
-# Packaging
-
-- `engines.node >= 10.13`: Latest Node.js LTS
-- `main: dist/index.js`: commonjs, es2018
-- `types: dist/index.d.ts`: typescript types
-- `/src` folder with source `*.ts` files included

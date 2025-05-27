@@ -63,7 +63,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:NaturalCycles/js-libs.git",
+    "url": "git+ssh://git@github.com/NaturalCycles/js-libs.git",
     "directory": "packages/nodejs-lib"
   },
   "engines": {
