@@ -10,6 +10,8 @@
     "build": "pnpm --filter '@naturalcycles/*' run build",
     "test": "pnpm --filter '@naturalcycles/*' run test",
     "js-lib:check": "pnpm --filter @naturalcycles/js-lib run check",
+    "js-lib:build": "pnpm --filter @naturalcycles/js-lib run build",
+    "js-lib:test": "pnpm --filter @naturalcycles/js-lib run test",
     "datastore-lib:check": "pnpm --filter @naturalcycles/datastore-lib run check",
     "firestore-lib:check": "pnpm --filter @naturalcycles/firestore-lib run check",
     "mongo-lib:check": "pnpm --filter @naturalcycles/mongo-lib run check",

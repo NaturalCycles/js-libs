@@ -351,6 +351,8 @@ export class AppError<DATA_TYPE extends ErrorData = ErrorData> extends Error {
         configurable: true,
         enumerable: true, // unlike standard - setting it to true for "visibility"
       })
+    } else {
+      delete this.cause // otherwise it's printed as `cause: undefined`
     }
 
     // this is to allow changing this.constuctor.name to a non-minified version
