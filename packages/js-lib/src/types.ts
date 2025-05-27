@@ -298,6 +298,13 @@ export type PositiveNumber = number
 export type NonNegativeNumber = number
 
 /**
+ * Same as `number`, but with semantic meaning that it's a Float.
+ */
+export type Float = number
+export type PositiveFloat = number
+export type NonNegativeFloat = number
+
+/**
  * Convenience type alias, that allows to write this:
  *
  * data: NullableNumber[]
