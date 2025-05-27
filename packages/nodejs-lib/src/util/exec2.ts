@@ -167,6 +167,12 @@ class Exec2 {
         }
         resolve()
       })
+
+      // Important to have this error listener.
+      // Without it - the process hangs, and `close` is never emitted
+      p.on('error', err => {
+        console.error(err)
+      })
     })
   }
 
@@ -251,6 +257,12 @@ class Exec2 {
           return reject(new SpawnError(`spawnAsyncAndReturn exited with code ${code}: ${cmd}`, o))
         }
         resolve(o)
+      })
+
+      // Important to have this error listener.
+      // Without it - the process hangs, and `close` is never emitted
+      p.on('error', err => {
+        console.error(err)
       })
     })
   }
