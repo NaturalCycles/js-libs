@@ -5,6 +5,7 @@
   "scripts": {
     "prepare": "husky",
     "upd": "pnpm -r up --no-save",
+    "out": "pnpm -r outdated",
     "check": "pnpm build && pnpm lint && pnpm test",
     "lint": "pnpm --filter '@naturalcycles/*' run lint",
     "build": "pnpm --filter '@naturalcycles/*' run build",

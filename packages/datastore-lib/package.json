@@ -2,7 +2,7 @@
   "name": "@naturalcycles/datastore-lib",
   "type": "module",
   "version": "3.16.4",
-  "description": "Opinionated library to work with Google Datastore",
+  "description": "Opinionated library to work with Google Datastore, implements CommonDB",
   "scripts": {
     "build": "dev-lib build",
     "test": "dev-lib test",
