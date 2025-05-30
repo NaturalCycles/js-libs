@@ -1,10 +1,9 @@
 import type { AppError, BackendErrorResponseObject, ErrorObject } from '@naturalcycles/js-lib'
 import { _anyToError, _errorLikeToErrorObject, _filterUndefinedValues } from '@naturalcycles/js-lib'
-import type { SentrySharedService } from '../sentry/sentry.shared.service.js'
 import type { BackendErrorRequestHandler, BackendRequest, BackendResponse } from './server.model.js'
 
 export interface GenericErrorMiddlewareCfg {
-  sentryService?: SentrySharedService
+  errorService?: ErrorReportingService
 
   /**
    * Defaults to false.
@@ -19,11 +18,16 @@ export interface GenericErrorMiddlewareCfg {
   formatError?: (err: ErrorObject) => void
 }
 
+export interface ErrorReportingService {
+  // biome-ignore lint/suspicious/noExplicitAny: it is expected of the `captureException` to be tolerant of any argument
+  captureException: (err: any) => string | undefined
+}
+
 const { APP_ENV } = process.env
 const includeErrorStack = APP_ENV === 'dev'
 
 // Hacky way to store the sentryService, so it's available to `respondWithError` function
-let sentryService: SentrySharedService | undefined
+let errorService: ErrorReportingService | undefined
 let reportOnly5xx = false
 let formatError: GenericErrorMiddlewareCfg['formatError']
 
@@ -35,7 +39,7 @@ let formatError: GenericErrorMiddlewareCfg['formatError']
 export function genericErrorMiddleware(
   cfg: GenericErrorMiddlewareCfg = {},
 ): BackendErrorRequestHandler {
-  sentryService ||= cfg.sentryService
+  errorService ||= cfg.errorService
   reportOnly5xx = cfg.reportOnly5xx || false
   formatError = cfg.formatError
 
@@ -56,21 +60,24 @@ export function genericErrorMiddleware(
   }
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: the function is expected to handle any type for the `err` argument
 export function respondWithError(req: BackendRequest, res: BackendResponse, err: any): void {
   const { headersSent } = res
-
-  if (headersSent) {
-    req.error(`error after headersSent:`, err)
-  } else {
-    req.error(err)
-  }
 
   const originalError = _anyToError(err)
 
   let errorId: string | undefined
 
-  if (sentryService && shouldReportToSentry(originalError)) {
-    errorId = sentryService.captureException(originalError, false)
+  const shouldReport = errorService && shouldReportToSentry(originalError)
+  if (shouldReport) {
+    errorId = errorService?.captureException(originalError)
+  }
+
+  const shouldLog = !shouldReport
+  if (shouldLog && headersSent) {
+    req.error(`error after headersSent:`, err)
+  } else if (shouldLog) {
+    req.error(err)
   }
 
   if (headersSent) return
