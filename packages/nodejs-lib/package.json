@@ -33,7 +33,7 @@
     "lru-cache": "^11",
     "through2-concurrent": "^2",
     "tinyglobby": "^0.2",
-    "yargs": "^17"
+    "yargs": "^18"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",
