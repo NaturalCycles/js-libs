@@ -262,9 +262,9 @@ export function runCommitlintCommand(): void {
 
 async function runKTLint(): Promise<void> {
   if (!existsSync(`node_modules/@naturalcycles/ktlint`)) return
-  // @ts-expect-error ktlint is not installed, but it's ok
-  const { default: ktlintLib } = await import('@naturalcycles/ktlint')
-  await ktlintLib.ktlintAll()
+  // @ts-expect-error ktlint is not installed (due to size in node_modules), but it's ok
+  const { ktlintAll } = await import('@naturalcycles/ktlint')
+  await ktlintAll()
 }
 
 function runActionLint(): void {
