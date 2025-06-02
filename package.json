@@ -6,7 +6,7 @@
     "prepare": "husky",
     "upd": "pnpm -r up --no-save",
     "out": "pnpm -r outdated",
-    "clean": "pnpm --filter '@naturalcycles/*' run clean",
+    "clean": "pnpm -r exec rm -rf dist",
     "check": "pnpm build && pnpm lint && pnpm typecheck && pnpm test",
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
     "lint": "pnpm --filter '@naturalcycles/*' run lint",
