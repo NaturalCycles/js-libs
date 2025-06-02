@@ -8,7 +8,7 @@ export async function buildProd(): Promise<void> {
 }
 
 /**
- * Use '.' to indicate root.
+ * Use 'tsconfig.json' to indicate root.
  */
 export async function runTSCInFolders(
   tsconfigPaths: string[],
@@ -25,7 +25,7 @@ export async function runTSCInFolders(
 }
 
 /**
- * Pass '.' to run in root.
+ * Pass 'tsconfig.json' to run in root.
  */
 export async function runTSCInFolder(tsconfigPath: string, args: string[] = []): Promise<void> {
   if (!fs2.pathExists(tsconfigPath)) {

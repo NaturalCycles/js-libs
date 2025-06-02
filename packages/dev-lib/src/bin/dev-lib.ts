@@ -170,7 +170,10 @@ async function bt(): Promise<void> {
 }
 
 async function typecheck(): Promise<void> {
-  await runTSCInFolders(['.', 'scripts', 'e2e'], ['--noEmit'])
+  await runTSCInFolders(
+    ['tsconfig.json', 'scripts/tsconfig.json', 'e2e/tsconfig.json'],
+    ['--noEmit'],
+  )
 }
 
 async function tscAll(): Promise<void> {
