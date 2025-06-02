@@ -14,7 +14,6 @@ import {
   stylelintAll,
 } from '../lint.util.js'
 import { runTest } from '../test.util.js'
-import { up, upnc } from '../yarn.util.js'
 
 interface Command {
   name: string
@@ -110,13 +109,6 @@ const commands: (Command | Separator)[] = [
   { name: 'prettier', fn: runPrettier, desc: 'Run prettier on all files.' },
   { name: 'stylelint', fn: stylelintAll, desc: 'Run stylelint on all files.' },
   { name: 'commitlint', fn: runCommitlintCommand, desc: 'Run commitlint.', cliOnly: true },
-  new Separator(), // yarn
-  { name: 'up', fn: up, desc: 'Shortcut for "yarn upgrade". Also runs yarn-deduplicate.' },
-  {
-    name: 'upnc',
-    fn: upnc,
-    desc: 'Shortcut for "yarn upgrade --pattern @naturalcycles". Also runs yarn-deduplicate.',
-  },
   new Separator(), // interactive-only
   {
     name: 'exit',

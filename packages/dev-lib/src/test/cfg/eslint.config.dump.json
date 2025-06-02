@@ -8,7 +8,7 @@
         "0": ".vue",
         "1": ".html"
       },
-      "parser": "typescript-eslint/parser@8.31.0",
+      "parser": "typescript-eslint/parser@8.33.1",
       "project": "tsconfig.json"
     },
     "sourceType": "module"
@@ -18,11 +18,11 @@
   },
   "plugins": [
     "@",
-    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.31.0",
-    "unicorn:eslint-plugin-unicorn@59.0.0",
-    "vue:eslint-plugin-vue@10.0.0",
-    "vitest:vitest@1.1.43",
-    "import-x:eslint-plugin-import-x@4.11.0",
+    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.33.1",
+    "unicorn:eslint-plugin-unicorn@59.0.1",
+    "vue:eslint-plugin-vue@10.1.0",
+    "vitest:vitest@1.2.1",
+    "import-x:eslint-plugin-import-x@4.15.0",
     "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1",
     "jsdoc",
     "@stylistic"
@@ -1153,11 +1153,16 @@
         "allow": [],
         "builtinGlobals": false,
         "hoist": "functions",
-        "ignoreOnInitialization": false
+        "ignoreFunctionTypeParameterNameValueShadow": true,
+        "ignoreOnInitialization": false,
+        "ignoreTypeValueShadow": true
       }
     ],
     "no-shadow-restricted-names": [
-      0
+      0,
+      {
+        "reportGlobalThis": false
+      }
     ],
     "no-sparse-array": [
       0
@@ -1233,7 +1238,8 @@
         "allowShortCircuit": false,
         "allowTaggedTemplates": false,
         "allowTernary": false,
-        "enforceForJSX": false
+        "enforceForJSX": false,
+        "ignoreDirectives": false
       }
     ],
     "no-unused-labels": [
@@ -1250,7 +1256,10 @@
       {
         "allowNamedExports": false,
         "classes": true,
+        "enums": true,
         "functions": true,
+        "ignoreTypeReferences": true,
+        "typedefs": true,
         "variables": true
       }
     ],
@@ -1276,7 +1285,10 @@
       0
     ],
     "no-useless-escape": [
-      2
+      2,
+      {
+        "allowRegexCharacters": []
+      }
     ],
     "no-useless-rename": [
       0,

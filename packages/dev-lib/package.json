@@ -15,9 +15,7 @@
     "test-integration": "tsx ./src/bin/dev-lib.ts test-integration",
     "test-manual": "tsx ./src/bin/dev-lib.ts test-manual",
     "lint": "tsx ./src/bin/dev-lib.ts lint",
-    "lint-staged-debug": "tsx ./src/bin/dev-lib.ts lint-staged",
-    "up": "tsx ./src/bin/up.ts",
-    "upnc": "tsx ./src/bin/upnc.ts"
+    "lint-staged-debug": "tsx ./src/bin/dev-lib.ts lint-staged"
   },
   "dependencies": {
     "@commitlint/cli": "^19",
@@ -72,9 +70,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "dev-lib": "dist/bin/dev-lib.js",
-    "up": "dist/bin/up.js",
-    "upnc": "dist/bin/upnc.js"
+    "dev-lib": "dist/bin/dev-lib.js"
   },
   "engines": {
     "node": ">=22.12.0"
