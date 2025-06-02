@@ -6,8 +6,9 @@
     "test": "dev-lib test",
     "lint": "dev-lib lint",
     "bt": "dev-lib bt",
-    "lbt": "dev-lib lbt",
-    "check": "dev-lib lbt"
+    "clean": "dev-lib clean",
+    "typecheck": "dev-lib typecheck",
+    "check": "dev-lib check"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7",

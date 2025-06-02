@@ -7,8 +7,9 @@
     "test": "dev-lib test",
     "lint": "dev-lib lint",
     "bt": "dev-lib bt",
-    "lbt": "dev-lib lbt",
-    "check": "dev-lib lbt",
+    "typecheck": "dev-lib typecheck",
+    "check": "dev-lib check",
+    "clean": "dev-lib clean",
     "test-tz1": "TZ=Europe/Stockholm yarn test local",
     "test-tz2": "TZ=JST-9 yarn test local",
     "test-ny": "TZ=GMT-0500 yarn test localTime"

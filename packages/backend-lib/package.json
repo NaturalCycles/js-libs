@@ -7,7 +7,8 @@
     "test": "dev-lib test",
     "lint": "dev-lib lint",
     "bt": "dev-lib bt",
-    "lbt": "dev-lib lbt",
+    "clean": "dev-lib clean",
+    "typecheck": "dev-lib typecheck",
     "dev": "APP_ENV=dev tsx watch src/test/server/server.ts",
     "deploy-gae": "tsx src/bin/deploy-gae.ts",
     "deploy-prepare": "tsx src/bin/deploy-prepare.ts",
@@ -22,6 +23,7 @@
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^14",
+    "@types/body-parser": "^1",
     "@types/cookie-parser": "^1",
     "@types/cors": "^2",
     "@types/express": "^5",
@@ -34,7 +36,8 @@
     "firebase-admin": "^13",
     "helmet": "^8",
     "on-finished": "^2",
-    "simple-git": "^3"
+    "simple-git": "^3",
+    "tslib": "^2"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",

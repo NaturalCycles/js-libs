@@ -2,7 +2,7 @@
 import { select, Separator } from '@inquirer/prompts'
 import type { PromisableFunction } from '@naturalcycles/js-lib'
 import { _assert, _by } from '@naturalcycles/js-lib'
-import { runScript } from '@naturalcycles/nodejs-lib'
+import { fs2, runScript } from '@naturalcycles/nodejs-lib'
 import { buildCopy, buildProd, runTSCInFolders } from '../build.util.js'
 import {
   eslintAll,
@@ -55,6 +55,11 @@ const commands: (Command | Separator)[] = [
     name: 'build-copy',
     fn: buildCopy,
     desc: 'Copy the non-ts files from ./src to ./dist',
+  },
+  {
+    name: 'clean',
+    fn: cleanDist,
+    desc: 'Clean ./dist',
   },
   new Separator(), // test
   { name: 'test', fn: runTest, desc: 'Run vitest for *.test.ts files.' },
@@ -184,4 +189,8 @@ async function tscAll(): Promise<void> {
 async function lbtDeprecated(): Promise<void> {
   console.log(`"dev-lib lbt" is deprecated, use "dev-lib check" instead`)
   await lbt()
+}
+
+async function cleanDist(): Promise<void> {
+  fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
 }

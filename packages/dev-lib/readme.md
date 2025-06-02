@@ -87,10 +87,8 @@ These commands are available to be called as `yarn dev-lib <command>`.
 
 - `build`: "Production build". Does `del ./dist && build-copy && tsc-prod`
 - `bt`: "Build & Test". Does `del ./dist && tsc && tsc-scripts && test`
-- `lbt`: "Lint, Build & Test". Does `lint && tsc && test`
-- `build-esm-cjs`: "Production build" for browser-lib, will produce CJS output in `./dist` and ESM
-  output in `./dist-esm`. Will use `./tsconfig.{cjs|esm}.prod.json` if exists, otherwise
-  `tsconfig.prod.json`, which allows to override e.g compilation target.
+- `typecheck`: Runs `tsc` in all folders (src, scripts, e2e).
+- `check`: "Lint, Build & Test". Does `lint && typecheck && test`
 
 #### Test commands
 

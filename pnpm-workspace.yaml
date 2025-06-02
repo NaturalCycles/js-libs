@@ -12,3 +12,4 @@ onlyBuiltDependencies:
 patchedDependencies:
   semantic-release-pnpm: patches/semantic-release-pnpm.patch
   '@vitest/expect': patches/@vitest__expect.patch
+  '@types/pg': patches/@types__pg.patch

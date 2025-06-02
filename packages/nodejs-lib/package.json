@@ -7,7 +7,9 @@
     "test": "dev-lib test",
     "lint": "dev-lib lint",
     "bt": "dev-lib bt",
-    "lbt": "dev-lib lbt",
+    "clean": "dev-lib clean",
+    "check": "dev-lib check",
+    "typecheck": "dev-lib typecheck",
     "slack-this-debug": "tsx ./src/bin/slack-this.ts --channel test --msg 'Hello slack!'",
     "secrets-gen-key-debug": "tsx ./src/bin/secrets-gen-key.ts",
     "secrets-encrypt-debug": "tsx ./src/bin/secrets-encrypt.ts",
@@ -33,6 +35,7 @@
     "lru-cache": "^11",
     "through2-concurrent": "^2",
     "tinyglobby": "^0.2",
+    "tslib": "^2",
     "yargs": "^18"
   },
   "devDependencies": {

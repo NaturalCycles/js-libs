@@ -7,14 +7,16 @@
     "test": "dev-lib test",
     "lint": "dev-lib lint",
     "bt": "dev-lib bt",
-    "lbt": "dev-lib lbt"
+    "clean": "dev-lib clean",
+    "typecheck": "dev-lib typecheck",
+    "check": "dev-lib check"
   },
   "dependencies": {
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^14"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "*"
+    "@naturalcycles/dev-lib": "workspace:*"
   },
   "files": [
     "dist",
