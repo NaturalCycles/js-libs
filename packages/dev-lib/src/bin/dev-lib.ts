@@ -19,6 +19,7 @@ import { up, upnc } from '../yarn.util.js'
 interface Command {
   name: string
   desc?: string
+  deprecated?: boolean // if true, will not be shown in interactive mode
   fn: PromisableFunction
   cliOnly?: boolean
   interactiveOnly?: boolean
@@ -27,12 +28,24 @@ interface Command {
 const commands: (Command | Separator)[] = [
   new Separator(), // build
   {
+    name: 'typecheck',
+    fn: typecheck,
+    desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present',
+  },
+  {
     name: 'tsc',
     fn: tscAll,
     desc: 'Run tsc in folders (src, scripts, e2e) if there is tsconfig.json present',
+    deprecated: true,
   },
-  { name: 'bt', fn: bt, desc: 'Build & Test: run "tsc" and then "test".' },
-  { name: 'lbt', fn: lbt, desc: 'Lint/Build/Test: run "lint", then "tsc", then "test".' },
+  { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (tsc) and then "test".' },
+  { name: 'check', fn: lbt, desc: '"Run all possible checks": lint, typecheck, then test.' },
+  {
+    name: 'lbt',
+    fn: lbtDeprecated,
+    desc: 'Lint/Build/Test: run "lint", then "tsc", then "test".',
+    deprecated: true,
+  },
   {
     name: 'build',
     fn: buildProd,
@@ -159,6 +172,16 @@ async function bt(): Promise<void> {
   runTest()
 }
 
-async function tscAll(): Promise<void> {
+async function typecheck(): Promise<void> {
   await runTSCInFolders(['.', 'scripts', 'e2e'], ['--noEmit'])
+}
+
+async function tscAll(): Promise<void> {
+  console.log(`"dev-lib tsc" is deprecated, use "dev-lib typecheck" instead`)
+  await typecheck()
+}
+
+async function lbtDeprecated(): Promise<void> {
+  console.log(`"dev-lib lbt" is deprecated, use "dev-lib check" instead`)
+  await lbt()
 }
