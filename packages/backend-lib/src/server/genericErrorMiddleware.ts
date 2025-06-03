@@ -19,7 +19,6 @@ export interface GenericErrorMiddlewareCfg {
 }
 
 export interface ErrorReportingService {
-  // biome-ignore lint/suspicious/noExplicitAny: it is expected of the `captureException` to be tolerant of any argument
   captureException: (err: any) => string | undefined
 }
 
@@ -60,7 +59,6 @@ export function genericErrorMiddleware(
   }
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: the function is expected to handle any type for the `err` argument
 export function respondWithError(req: BackendRequest, res: BackendResponse, err: any): void {
   const { headersSent } = res
 
