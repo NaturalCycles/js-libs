@@ -165,7 +165,7 @@ async function lbt(): Promise<void> {
 }
 
 async function bt(): Promise<void> {
-  await tscAll()
+  await typecheck()
   runTest()
 }
 
