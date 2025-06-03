@@ -3,7 +3,7 @@ import { _anyToError, _errorLikeToErrorObject, _filterUndefinedValues } from '@n
 import type { BackendErrorRequestHandler, BackendRequest, BackendResponse } from './server.model.js'
 
 export interface GenericErrorMiddlewareCfg {
-  errorService?: ErrorReportingService
+  errorReportingService?: ErrorReportingService
 
   /**
    * Defaults to false.
@@ -19,6 +19,15 @@ export interface GenericErrorMiddlewareCfg {
 }
 
 export interface ErrorReportingService {
+  /**
+   * Call to report an error.
+   *
+   * It returns an ID for the error (which may be used to reference it later),
+   * and may return undefined if the error is not reported.
+   * Which may happen if the error is not considered reportable,
+   * or if an error reporting rate is configured in the service.
+   *
+   */
   captureException: (err: any) => string | undefined
 }
 
@@ -38,7 +47,7 @@ let formatError: GenericErrorMiddlewareCfg['formatError']
 export function genericErrorMiddleware(
   cfg: GenericErrorMiddlewareCfg = {},
 ): BackendErrorRequestHandler {
-  errorService ||= cfg.errorService
+  errorService ||= cfg.errorReportingService
   reportOnly5xx = cfg.reportOnly5xx || false
   formatError = cfg.formatError
 
@@ -62,6 +71,12 @@ export function genericErrorMiddleware(
 export function respondWithError(req: BackendRequest, res: BackendResponse, err: any): void {
   const { headersSent } = res
 
+  if (headersSent) {
+    req.error(`error after headersSent:`, err)
+  } else {
+    req.error(err)
+  }
+
   const originalError = _anyToError(err)
 
   let errorId: string | undefined
@@ -69,13 +84,6 @@ export function respondWithError(req: BackendRequest, res: BackendResponse, err:
   const shouldReport = errorService && shouldReportToSentry(originalError)
   if (shouldReport) {
     errorId = errorService?.captureException(originalError)
-  }
-
-  const shouldLog = !shouldReport
-  if (shouldLog && headersSent) {
-    req.error(`error after headersSent:`, err)
-  } else if (shouldLog) {
-    req.error(err)
   }
 
   if (headersSent) return
