@@ -121,7 +121,9 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
   // Generic error handler
   // It handles errors, returns proper status, does sentry.captureException(),
   // assigns err.data.errorId from sentry
-  app.use(genericErrorMiddleware({ sentryService, ...cfg.genericErrorMwCfg }))
+  app.use(
+    genericErrorMiddleware({ errorReportingService: sentryService, ...cfg.genericErrorMwCfg }),
+  )
 
   return app
 }
