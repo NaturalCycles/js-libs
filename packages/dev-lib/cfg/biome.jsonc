@@ -1,7 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.3/schema.json",
   "files": {
-    "ignore": ["**/*.html", "**/tsconfig.json", "**/tsconfig.*.json", "**/__exclude", "**/try.ts", "*.compact.json"]
+    "ignore": ["**/*.html", "**/tsconfig.json", "**/tsconfig.*.json", "**/__exclude", "**/try.ts", "*.compact.json", "*.mock.json"]
   },
   "formatter": {
     "enabled": true,
