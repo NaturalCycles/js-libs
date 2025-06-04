@@ -20,18 +20,13 @@ export interface SimpleRequestLoggerMiddlewareCfg {
 }
 
 export function simpleRequestLoggerMiddleware(
-  _cfg: Partial<SimpleRequestLoggerMiddlewareCfg> = {},
+  cfg: Partial<SimpleRequestLoggerMiddlewareCfg> = {},
 ): BackendRequestHandler {
   // Disable logger in AppEngine, as it doesn't make sense there
   // UPD: Only log in dev environment
   if (APP_ENV !== 'dev') return (_req, _res, next) => next()
 
-  const cfg: SimpleRequestLoggerMiddlewareCfg = {
-    logStart: false,
-    logFinish: true,
-    ..._cfg,
-  }
-  const { logStart, logFinish } = cfg
+  const { logStart = false, logFinish = true } = cfg
 
   return (req, res, next) => {
     const started = Date.now() as UnixTimestampMillis

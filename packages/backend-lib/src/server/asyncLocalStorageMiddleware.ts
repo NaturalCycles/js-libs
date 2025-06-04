@@ -1,13 +1,13 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import type { CommonLogger } from '@naturalcycles/js-lib'
 import { _lazyValue } from '@naturalcycles/js-lib'
-import { ciLogger, devLogger, gaeLogger } from './logMiddleware.js'
+import { ciLogger, devLogger, gcpStructuredLogger } from './logMiddleware.js'
 import type { BackendRequest, BackendRequestHandler } from './server.model.js'
 
-const { GAE_INSTANCE, CI } = process.env
+const { GAE_INSTANCE, K_SERVICE, CI } = process.env
 const isGAE = !!GAE_INSTANCE
 const isCI = !!CI
-const isCloudRun = !!CI
+const isCloudRun = !!K_SERVICE
 
 export interface RequestLocalStorage {
   req: BackendRequest
@@ -38,7 +38,8 @@ export function getRequest(): BackendRequest | undefined {
  */
 export function getRequestLogger(): CommonLogger {
   return (
-    storage().getStore()?.req || (isGAE ? gaeLogger : isCI || isCloudRun ? ciLogger : devLogger)
+    storage().getStore()?.req ||
+    (isGAE || isCloudRun ? gcpStructuredLogger : isCI ? ciLogger : devLogger)
   )
 }
 

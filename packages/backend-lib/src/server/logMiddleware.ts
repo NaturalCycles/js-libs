@@ -1,11 +1,11 @@
 import { inspect } from 'node:util'
-import type { AnyObject, CommonLogger } from '@naturalcycles/js-lib'
+import type { AnyObject, CommonLogger, StringMap } from '@naturalcycles/js-lib'
 import { _inspect, dimGrey } from '@naturalcycles/nodejs-lib'
 import type { BackendRequestHandler } from './server.model.js'
 
-const { GOOGLE_CLOUD_PROJECT, GAE_INSTANCE, APP_ENV } = process.env
+const { GOOGLE_CLOUD_PROJECT, GAE_INSTANCE, K_SERVICE, APP_ENV } = process.env
 const isGAE = !!GAE_INSTANCE
-// const isCloudRun = !!K_SERVICE
+const isCloudRun = !!K_SERVICE
 // const isTest = APP_ENV === 'test'
 const isDev = APP_ENV === 'dev'
 
@@ -13,13 +13,13 @@ const isDev = APP_ENV === 'dev'
 let reqCounter = 0
 
 /**
- * Logger that logs in AppEngine format.
+ * Logger that logs in "GCP structured log" format.
  * To be used in outside-of-request situations (otherwise req.log should be used).
  */
-export const gaeLogger: CommonLogger = {
-  log: (...args) => logToAppEngine({}, args),
-  warn: (...args) => logToAppEngine({ severity: 'WARNING' }, args),
-  error: (...args) => logToAppEngine({ severity: 'ERROR' }, args),
+export const gcpStructuredLogger: CommonLogger = {
+  log: (...args) => writeGCPStructuredLog({}, args),
+  warn: (...args) => writeGCPStructuredLog({ severity: 'WARNING' }, args),
+  error: (...args) => writeGCPStructuredLog({ severity: 'ERROR' }, args),
 }
 
 /**
@@ -42,7 +42,8 @@ export const ciLogger: CommonLogger = {
 }
 
 // Documented here: https://cloud.google.com/logging/docs/structured-logging
-function logToAppEngine(meta: AnyObject, args: any[]): void {
+// Cloud Run logging: https://cloud.google.com/run/docs/logging
+function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
   console.log(
     JSON.stringify({
       message: args.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
@@ -70,32 +71,32 @@ function logToCI(args: any[]): void {
 }
 
 export function logMiddleware(): BackendRequestHandler {
-  if (isGAE) {
-    if (GOOGLE_CLOUD_PROJECT) {
-      return function appEngineLogHandler(req, _res, next) {
+  if (isGAE || isCloudRun) {
+    return function gcpStructuredLogHandler(req, _res, next) {
+      const meta: StringMap = {}
+
+      // CloudRun does NOT have this env variable set,
+      // so you have to set it manually on deployment, like this:
+      // gcloud run deploy my-service \
+      //   --update-env-vars=GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project)
+      if (GOOGLE_CLOUD_PROJECT) {
         const traceHeader = req.header('x-cloud-trace-context')
         if (traceHeader) {
           const [trace] = traceHeader.split('/')
-          const meta = {
-            'logging.googleapis.com/trace': `projects/${GOOGLE_CLOUD_PROJECT}/traces/${trace}`,
-            'appengine.googleapis.com/request_id': req.header('x-appengine-request-log-id'),
-          }
-          Object.assign(req, {
-            log: (...args: any[]) => logToAppEngine({ ...meta, severity: 'INFO' }, args),
-            warn: (...args: any[]) => logToAppEngine({ ...meta, severity: 'WARNING' }, args),
-            error: (...args: any[]) => logToAppEngine({ ...meta, severity: 'ERROR' }, args),
-          })
+          meta['logging.googleapis.com/trace'] = `projects/${GOOGLE_CLOUD_PROJECT}/traces/${trace}`
           req.requestId = trace
-        } else {
-          Object.assign(req, gaeLogger)
         }
-
-        next()
       }
-    }
+      if (isGAE) {
+        meta['appengine.googleapis.com/request_id'] = req.header('x-appengine-request-log-id')
+      }
 
-    return function appEngineLogHandler(req, _res, next) {
-      Object.assign(req, gaeLogger)
+      Object.assign(req, {
+        log: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'INFO' }, args),
+        warn: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'WARNING' }, args),
+        error: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'ERROR' }, args),
+      })
+
       next()
     }
   }
@@ -111,7 +112,7 @@ export function logMiddleware(): BackendRequestHandler {
   }
 
   // Otherwise, return "simple" logger
-  // This includes: unit tests, CloudRun, CI environments
+  // This includes: unit tests, CI environments
   return function simpleLogHandler(req, _res, next) {
     req.log = req.warn = req.error = (...args: any[]) => logToCI(args)
     next()
