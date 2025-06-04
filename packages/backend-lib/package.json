@@ -8,6 +8,7 @@
     "lint": "dev-lib lint",
     "bt": "dev-lib bt",
     "clean": "dev-lib clean",
+    "check": "dev-lib check",
     "typecheck": "dev-lib typecheck",
     "dev": "APP_ENV=dev tsx watch src/test/server/server.ts",
     "deploy-gae": "tsx src/bin/deploy-gae.ts",

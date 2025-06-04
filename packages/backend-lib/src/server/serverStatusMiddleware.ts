@@ -4,8 +4,16 @@ import { getDeployInfo } from './deployInfo.util.js'
 import type { BackendRequestHandler } from './server.model.js'
 
 const { versions, arch, platform } = process
-const { GAE_APPLICATION, GAE_SERVICE, GAE_VERSION, K_SERVICE, K_REVISION, APP_ENV, NODE_OPTIONS } =
-  process.env
+const {
+  GAE_APPLICATION,
+  GAE_SERVICE,
+  GAE_VERSION,
+  GOOGLE_CLOUD_PROJECT,
+  K_SERVICE,
+  K_REVISION,
+  APP_ENV,
+  NODE_OPTIONS,
+} = process.env
 
 export function serverStatusMiddleware(projectDir?: string, extra?: any): BackendRequestHandler {
   return async (_req, res) => {
@@ -27,6 +35,7 @@ export function getServerStatusData(
     deployBuildTime,
     APP_ENV,
     buildInfo,
+    GOOGLE_CLOUD_PROJECT,
     GAE_APPLICATION,
     GAE_SERVICE,
     GAE_VERSION,
