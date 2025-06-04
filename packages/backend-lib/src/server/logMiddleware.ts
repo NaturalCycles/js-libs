@@ -73,7 +73,11 @@ function logToCI(args: any[]): void {
 export function logMiddleware(): BackendRequestHandler {
   if (isGAE || isCloudRun) {
     return function gcpStructuredLogHandler(req, _res, next) {
-      const meta: StringMap = {}
+      const meta: StringMap = {
+        // Experimental!
+        // Testing to include userId in metadata (not message payload) to see if it's searchable
+        userId: req.userId,
+      }
 
       // CloudRun does NOT have this env variable set,
       // so you have to set it manually on deployment, like this:

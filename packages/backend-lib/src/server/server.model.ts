@@ -14,6 +14,10 @@ export interface BackendRequest extends Request {
   error: CommonLogFunction
 
   requestId?: string
+  /**
+   * Only used for request logging purposes.
+   */
+  userId?: string
 
   /**
    * Set by requestTimeoutMiddleware.

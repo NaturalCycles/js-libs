@@ -1,15 +1,13 @@
-import type { AppError, BackendErrorResponseObject, ErrorObject } from '@naturalcycles/js-lib'
-import { _anyToError, _errorLikeToErrorObject, _filterUndefinedValues } from '@naturalcycles/js-lib'
+import {
+  _objectAssign,
+  type BackendErrorResponseObject,
+  type ErrorObject,
+} from '@naturalcycles/js-lib'
+import { _anyToError, _errorLikeToErrorObject } from '@naturalcycles/js-lib'
 import type { BackendErrorRequestHandler, BackendRequest, BackendResponse } from './server.model.js'
 
 export interface GenericErrorMiddlewareCfg {
   errorReportingService?: ErrorReportingService
-
-  /**
-   * Defaults to false.
-   * So, by default, it will report ALL errors, not only 5xx.
-   */
-  reportOnly5xx?: boolean
 
   /**
    * Generic hook that can be used to **mutate** errors before they are returned to client.
@@ -34,9 +32,8 @@ export interface ErrorReportingService {
 const { APP_ENV } = process.env
 const includeErrorStack = APP_ENV === 'dev'
 
-// Hacky way to store the sentryService, so it's available to `respondWithError` function
+// Hacky way to store the errorService, so it's available to `respondWithError` function
 let errorService: ErrorReportingService | undefined
-let reportOnly5xx = false
 let formatError: GenericErrorMiddlewareCfg['formatError']
 
 /**
@@ -48,7 +45,6 @@ export function genericErrorMiddleware(
   cfg: GenericErrorMiddlewareCfg = {},
 ): BackendErrorRequestHandler {
   errorService ||= cfg.errorReportingService
-  reportOnly5xx = cfg.reportOnly5xx || false
   formatError = cfg.formatError
 
   return (err, req, res, _next) => {
@@ -71,6 +67,8 @@ export function genericErrorMiddleware(
 export function respondWithError(req: BackendRequest, res: BackendResponse, err: any): void {
   const { headersSent } = res
 
+  // todo: add endpoint to the log
+  // todo: add userId from the "Context" (or, just req.userId?) to the log
   if (headersSent) {
     req.error(`error after headersSent:`, err)
   } else {
@@ -79,45 +77,22 @@ export function respondWithError(req: BackendRequest, res: BackendResponse, err:
 
   const originalError = _anyToError(err)
 
-  let errorId: string | undefined
-
-  const shouldReport = errorService && shouldReportToSentry(originalError)
-  if (shouldReport) {
-    errorId = errorService?.captureException(originalError)
-  }
+  const errorId = errorService?.captureException(originalError)
 
   if (headersSent) return
 
   const httpError = _errorLikeToErrorObject(originalError)
   if (!includeErrorStack) delete httpError.stack
 
-  httpError.data.errorId = errorId
   httpError.data.backendResponseStatusCode ||= 500 // default to 500
-  httpError.data.headersSent = headersSent || undefined
-  _filterUndefinedValues(httpError.data, true)
+  _objectAssign(httpError.data, {
+    errorId,
+    headersSent: headersSent || undefined,
+  })
 
   formatError?.(httpError) // Mutates
 
   res.status(httpError.data.backendResponseStatusCode).json({
     error: httpError,
   } satisfies BackendErrorResponseObject)
-}
-
-function shouldReportToSentry(err: Error): boolean {
-  const e = err as AppError
-
-  // By default - report
-  if (!e?.data) return true
-
-  // If `report` is set - do as it says
-  if (e.data.report === true) return true
-  if (e.data.report === false) return false
-
-  // Report if http 5xx, otherwise not
-  // If no httpCode - report
-  // if httpCode >= 500 - report
-  // Otherwise - report, unless !reportOnly5xx is set
-  return (
-    !reportOnly5xx || !e.data.backendResponseStatusCode || e.data.backendResponseStatusCode >= 500
-  )
 }

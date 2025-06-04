@@ -1,7 +1,6 @@
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
-import { isCloudRun, isGAE } from '../util.js'
 import { asyncLocalStorageMiddleware } from './asyncLocalStorageMiddleware.js'
 import type {
   BackendRequestHandlerCfg,
@@ -17,6 +16,7 @@ import type { BackendApplication } from './server.model.js'
 import { simpleRequestLoggerMiddleware } from './simpleRequestLoggerMiddleware.js'
 
 const isTest = process.env['APP_ENV'] === 'test'
+const isDev = process.env['APP_ENV'] === 'dev'
 
 export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendApplication> {
   const { sentryService } = cfg
@@ -41,7 +41,7 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
   // app.use(serverStatsMiddleware()) // disabled by default
   // app.use(bodyParserTimeout()) // removed by default
 
-  if (!isGAE() && !isCloudRun() && !isTest) {
+  if (isDev) {
     app.use(simpleRequestLoggerMiddleware())
   }
 
