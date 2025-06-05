@@ -176,7 +176,7 @@ export interface CommonDaoCfg<
   logger?: CommonLogger
 
   /**
-   * @default OPERATIONS
+   * @default NONE
    */
   logLevel?: CommonDaoLogLevel
 

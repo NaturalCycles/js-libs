@@ -68,9 +68,6 @@ import type {
 } from './common.dao.model.js'
 import { CommonDaoLogLevel } from './common.dao.model.js'
 
-const isGAE = !!process.env['GAE_INSTANCE']
-const isCI = !!process.env['CI']
-
 /**
  * Lowest common denominator API between supported Databases.
  *
@@ -81,10 +78,7 @@ const isCI = !!process.env['CI']
 export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, ID = BM['id']> {
   constructor(public cfg: CommonDaoCfg<BM, DBM, ID>) {
     this.cfg = {
-      // Default is to NOT log in AppEngine and in CI,
-      // otherwise to log Operations
-      // e.g in Dev (local machine), Test - it will log operations (useful for debugging)
-      logLevel: isGAE || isCI ? CommonDaoLogLevel.NONE : CommonDaoLogLevel.OPERATIONS,
+      logLevel: CommonDaoLogLevel.NONE,
       generateId: true,
       assignGeneratedIds: false,
       useCreatedProperty: true,
