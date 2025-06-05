@@ -19,13 +19,19 @@ export class BackendServer {
     // 1. Register error handlers, etc.
     if (registerUncaughtExceptionHandlers) {
       process.on('uncaughtException', err => {
-        console.error('BackendServer uncaughtException:', err)
-        this.cfg.sentryService?.captureException(err, false)
+        if (this.cfg.sentryService) {
+          this.cfg.sentryService.captureException(err)
+        } else {
+          console.error('BackendServer uncaughtException:', err)
+        }
       })
 
       process.on('unhandledRejection', err => {
-        console.error('BackendServer unhandledRejection:', err)
-        this.cfg.sentryService?.captureException(err, false)
+        if (this.cfg.sentryService) {
+          this.cfg.sentryService.captureException(err)
+        } else {
+          console.error('BackendServer unhandledRejection:', err)
+        }
       })
     }
 

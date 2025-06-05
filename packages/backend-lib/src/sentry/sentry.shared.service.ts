@@ -70,16 +70,14 @@ export class SentrySharedService {
    * Does console.log(err)
    * Returns "eventId" or undefined (if error was not reported).
    */
-  captureException(err_: any, logError = true): string | undefined {
+  captureException(err_: any): string | undefined {
     // normalize the error
     const err = _anyToError(err_)
     const data = _isErrorObject(err) ? err.data : undefined
 
     // Using request-aware logger here
-    if (logError) {
-      // Log both the error and attached ErrorData (if any)
-      getRequestLogger().error('captureException:', ...[err_, data].filter(Boolean))
-    }
+    // Log both the error and attached ErrorData (if any)
+    getRequestLogger().error('captureException:', ...[err_, data].filter(Boolean))
 
     if (data?.report === false) {
       // Skip reporting the error

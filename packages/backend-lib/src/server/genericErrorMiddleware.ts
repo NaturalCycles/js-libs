@@ -67,17 +67,25 @@ export function genericErrorMiddleware(
 export function respondWithError(req: BackendRequest, res: BackendResponse, err: any): void {
   const { headersSent } = res
 
-  // todo: add endpoint to the log
-  // todo: add userId from the "Context" (or, just req.userId?) to the log
-  if (headersSent) {
-    req.error(`error after headersSent:`, err)
-  } else {
-    req.error(err)
-  }
-
   const originalError = _anyToError(err)
 
-  const errorId = errorService?.captureException(originalError)
+  let errorId: string | undefined
+  if (errorService) {
+    // captureException logs the error,
+    // so we don't need to log it here
+    errorId = errorService.captureException(originalError)
+  } else {
+    // because errorService was not provided - we are going to log the error here
+
+    if (headersSent) {
+      req.error(`error after headersSent:`, err)
+    } else {
+      req.error(err)
+    }
+
+    // todo: add endpoint to the log
+    // todo: add userId from the "Context" (or, just req.userId?) to the log
+  }
 
   if (headersSent) return
 
