@@ -77,7 +77,7 @@ export class SentrySharedService {
 
     // Using request-aware logger here
     // Log both the error and attached ErrorData (if any)
-    getRequestLogger().error('captureException:', ...[err_, data].filter(Boolean))
+    getRequestLogger().error(...[err_, data].filter(Boolean))
 
     if (data?.report === false) {
       // Skip reporting the error
