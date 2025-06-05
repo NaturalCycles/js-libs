@@ -1,5 +1,5 @@
 import { inspect } from 'node:util'
-import type { AnyObject, CommonLogger, StringMap } from '@naturalcycles/js-lib'
+import type { AnyObject, CommonLogger } from '@naturalcycles/js-lib'
 import { _inspect, dimGrey } from '@naturalcycles/nodejs-lib'
 import type { BackendRequestHandler } from './server.model.js'
 
@@ -73,10 +73,12 @@ function logToCI(args: any[]): void {
 export function logMiddleware(): BackendRequestHandler {
   if (isGAE || isCloudRun) {
     return function gcpStructuredLogHandler(req, _res, next) {
-      const meta: StringMap = {
+      const meta: AnyObject = {
         // Experimental!
         // Testing to include userId in metadata (not message payload) to see if it's searchable
-        userId: req.userId,
+        labels: {
+          userId: req.userId,
+        },
       }
 
       // CloudRun does NOT have this env variable set,

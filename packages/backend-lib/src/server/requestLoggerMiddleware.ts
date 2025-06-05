@@ -12,14 +12,19 @@ export function requestLoggerMiddleware(): BackendRequestHandler {
   return (req, res, next) => {
     const started = Date.now() as UnixTimestampMillis
 
-    req.log([req.method, req.originalUrl, req.userId].filter(Boolean).join(' '))
+    // todo: include requestId (3-character hash of it?)
+    req.log(['>>', req.method, req.originalUrl, req.userId].filter(Boolean).join(' '))
 
     onFinished(res, () => {
-      req.log(
-        [res.statusCode || '0', _since(started), req.method, req.originalUrl, req.userId]
-          .filter(Boolean)
-          .join(' '),
-      )
+      const str = ['<<', res.statusCode, _since(started), req.method, req.originalUrl, req.userId]
+        .filter(Boolean)
+        .join(' ')
+
+      if (res.statusCode && res.statusCode >= 400) {
+        req.error(str)
+      } else {
+        req.log(str)
+      }
     })
 
     next()
