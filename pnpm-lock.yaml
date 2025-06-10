@@ -71,6 +71,31 @@ importers:
         specifier: ^3
         version: 3.5.16(typescript@5.8.3)
 
+  packages/abba:
+    dependencies:
+      '@naturalcycles/db-lib':
+        specifier: workspace:^10
+        version: link:../db-lib
+      '@naturalcycles/js-lib':
+        specifier: workspace:^15
+        version: link:../js-lib
+      '@naturalcycles/nodejs-lib':
+        specifier: workspace:^14
+        version: link:../nodejs-lib
+      semver:
+        specifier: ^7
+        version: 7.7.2
+      tslib:
+        specifier: ^2
+        version: 2.8.1
+    devDependencies:
+      '@naturalcycles/dev-lib':
+        specifier: '*'
+        version: 19.2.4(@biomejs/biome@1.9.4)(@typescript-eslint/utils@8.34.0(eslint@9.28.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.28.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.5.3)(stylelint-config-standard-scss@15.0.1(postcss@8.5.4)(stylelint@16.20.0(typescript@5.8.3)))(stylelint@16.20.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.3(@types/node@24.0.0)(jiti@2.4.2)(tsx@4.19.4)(yaml@2.8.0))
+      '@types/semver':
+        specifier: ^7
+        version: 7.7.0
+
   packages/airtable-lib:
     dependencies:
       '@naturalcycles/db-lib':

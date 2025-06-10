@@ -1,0 +1,50 @@
+{
+  "name": "@naturalcycles/abba",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "prepare": "husky",
+    "build": "dev-lib build",
+    "test": "dev-lib test",
+    "lint": "dev-lib lint",
+    "bt": "dev-lib bt",
+    "clean": "dev-lib clean",
+    "typecheck": "dev-lib typecheck",
+    "check": "dev-lib check"
+  },
+  "dependencies": {
+    "@naturalcycles/db-lib": "workspace:^10",
+    "@naturalcycles/js-lib": "workspace:^15",
+    "@naturalcycles/nodejs-lib": "workspace:^14",
+    "semver": "^7",
+    "tslib": "^2"
+  },
+  "devDependencies": {
+    "@naturalcycles/dev-lib": "*",
+    "@types/semver": "^7"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/test",
+    "!src/**/*.test.ts",
+    "!src/**/__snapshots__",
+    "!src/**/__exclude"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:NaturalCycles/js-libs.git",
+    "directory": "packages/abba"
+  },
+  "engines": {
+    "node": ">=22.10.0"
+  },
+  "description": "AB test assignment configuration tool for Node.js",
+  "author": "Natural Cycles Team",
+  "license": "MIT"
+}
