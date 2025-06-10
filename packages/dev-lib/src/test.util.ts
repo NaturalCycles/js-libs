@@ -1,6 +1,7 @@
 import type { AnyObject } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib'
 import { dimGrey, exec2, fs2 } from '@naturalcycles/nodejs-lib'
+import { findPackageBinPath } from './lint.util.js'
 
 interface RunTestOptions {
   integration?: boolean
@@ -33,7 +34,9 @@ function runVitest(opt: RunTestOptions): void {
     })
   }
 
-  exec2.spawn('vitest', {
+  const vitestPath = findPackageBinPath('vitest', 'vitest')
+
+  exec2.spawn(vitestPath, {
     args: _uniq(args),
     logFinish: false,
     shell: false,
