@@ -1,9 +1,0 @@
-diff --git a/index.d.ts b/index.d.ts
-index 3b82ac4009099eb50b45e97d7407b4bdfe777fb9..9fcad3a0d75cddd1854e306b5680934dadd3ac60 100644
---- a/index.d.ts
-+++ b/index.d.ts
-@@ -1,3 +1,3 @@
--import './dist/chai.cjs'
-+// import './dist/chai.cjs'
- 
- export * from './dist/index.js'

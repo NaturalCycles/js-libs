@@ -12,6 +12,7 @@
     "lint": "pnpm --filter '@naturalcycles/*' run lint",
     "build": "pnpm --filter '@naturalcycles/*' run build",
     "test": "pnpm --filter '@naturalcycles/*' run test",
+    "dev-lib:build": "pnpm --filter @naturalcycles/dev-lib run build",
     "dev-lib:check": "pnpm --filter @naturalcycles/dev-lib run check",
     "js-lib:check": "pnpm --filter @naturalcycles/js-lib run check",
     "js-lib:build": "pnpm --filter @naturalcycles/js-lib run build",
@@ -19,6 +20,7 @@
     "nodejs-lib:check": "pnpm --filter @naturalcycles/nodejs-lib run check",
     "backend-lib:check": "pnpm --filter @naturalcycles/backend-lib run check",
     "db-lib:check": "pnpm --filter @naturalcycles/db-lib run check",
+    "db-lib:test": "pnpm --filter @naturalcycles/db-lib run test",
     "datastore-lib:check": "pnpm --filter @naturalcycles/datastore-lib run check",
     "firestore-lib:check": "pnpm --filter @naturalcycles/firestore-lib run check",
     "mongo-lib:check": "pnpm --filter @naturalcycles/mongo-lib run check",
@@ -49,7 +51,7 @@
     "@naturalcycles/dev-lib": "*",
     "@naturalcycles/nodejs-lib": "^14",
     "@semantic-release/git": "^10",
-    "@types/node": "^22",
+    "@types/node": "^24",
     "@vitest/coverage-v8": "^3",
     "dotenv": "^16",
     "eslint": "^9",
@@ -64,8 +66,7 @@
     "vue": "^3"
   },
   "engines": {
-    "node": ">=22.12.0",
-    "pnpm": ">=10"
+    "node": ">=22.12.0"
   },
-  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
+  "packageManager": "pnpm@10.12.1"
 }

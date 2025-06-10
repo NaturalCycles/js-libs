@@ -126,7 +126,12 @@ test('pRetry should time out and keep stack', async () => {
   expect(err.stack).toContain('at myFunction')
   const stackLines = normalizeStack(err.stack!)
     .split('\n')
-    .filter(line => !line.includes('processTicks') && !line.includes('Object.worker'))
+    .filter(
+      line =>
+        !line.includes('processTicks') &&
+        !line.includes('Object.worker') &&
+        !line.includes('node:internal'),
+    )
 
   expect(stackLines.join('\n')).toMatchInlineSnapshot(`
     "TimeoutError: "pRetry function" timed out after 10 ms
