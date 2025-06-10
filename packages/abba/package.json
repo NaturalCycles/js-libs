@@ -3,7 +3,6 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "prepare": "husky",
     "build": "dev-lib build",
     "test": "dev-lib test",
     "lint": "dev-lib lint",
