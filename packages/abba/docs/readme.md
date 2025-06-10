@@ -84,7 +84,7 @@ This template doesn't rely on any external dependencies or services._
    ```
 
 2. Install the schema into your MySQL db instance using the migration script found
-   [here](https://github.com/NaturalCycles/abba/blob/master/src/migrations/init.sql).
+   [here](https://github.com/NaturalCycles/js-libs/blob/main/packages/abba/src/migrations/init.sql).
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
