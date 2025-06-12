@@ -1,0 +1,1 @@
+import{_ as i,c as a,o as t,ae as n}from"./chunks/framework.C1g9Be6u.js";const o=JSON.parse('{"title":"Promise","description":"","frontmatter":{},"headers":[],"relativePath":"promise.md","filePath":"promise.md"}'),e={name:"promise.md"};function h(p,s,l,k,r,d){return t(),a("div",null,s[0]||(s[0]=[n("",60)]))}const g=i(e,[["render",h]]);export{o as __pageData,g as default};
