@@ -10,7 +10,7 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/c2dc8d53bd79f79b1d8b/test_coverage)](https://codeclimate.com/github/NaturalCycles/js-lib/test_coverage)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-# [Documentation](https://naturalcycles.github.io/js-lib/)
+# [Documentation](https://naturalcycles.github.io/js-libs/)
 
 # Packaging
 
