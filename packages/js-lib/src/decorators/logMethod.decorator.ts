@@ -71,7 +71,7 @@ export interface LogMethodOptions {
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export function _LogMethod(opt: LogMethodOptions = {}): MethodDecorator {
-  return (target, key, descriptor) => {
+  return (_target, key, descriptor) => {
     _assert(typeof descriptor.value === 'function', '@_LogMethod can be applied only to methods')
 
     const originalFn = descriptor.value
@@ -97,7 +97,7 @@ export function _LogMethod(opt: LogMethodOptions = {}): MethodDecorator {
     const sma = avg ? new SimpleMovingAverage(avg) : undefined
     let count = 0
 
-    descriptor.value = function (this: typeof target, ...args: any[]) {
+    descriptor.value = function (this: typeof _target, ...args: any[]) {
       const started = Date.now()
       const ctx = this
 

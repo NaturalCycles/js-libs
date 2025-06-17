@@ -41,7 +41,6 @@ export function _slugify(s: string, opt: SlugifyOptions = {}): string {
   // based on https://stackoverflow.com/a/23633850/4919972
   // Combining Diacritical Marks
   // https://www.unicode.org/charts/PDF/U0300.pdf
-  // biome-ignore lint/suspicious/noMisleadingCharacterClass: ok
   s = s.normalize('NFKD').replaceAll(/[\u0300-\u036F]/g, '')
 
   // Detect contractions/possessives by looking for any word followed by a `'t`

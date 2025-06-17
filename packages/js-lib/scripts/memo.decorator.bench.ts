@@ -11,8 +11,6 @@ import { _Memo } from '../src/index.js'
 let _c = 0
 
 class C0 {
-  constructor(private inc?: number) {}
-
   work(): void {
     // c += this.inc
     _c++

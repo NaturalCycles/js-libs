@@ -298,7 +298,7 @@ export class RedisClient implements CommonClient {
    * Like scanStream, but flattens the stream of keys.
    */
   scanStreamFlat(opt: ScanStreamOptions): ReadableTyped<string> {
-    // biome-ignore lint/correctness/noFlatMapIdentity: ok
+    // biome-ignore lint/complexity/noFlatMapIdentity: ok
     return this.scanStream(opt).flatMap(keys => keys)
   }
 

@@ -353,7 +353,7 @@ test.skip('ensureUniqueId', async () => {
   await dao.save(item1!, opt)
 
   // Mock generator to make it generate same id as id1
-  // biome-ignore lint/nursery/noCommonJs: it's ok
+  // biome-ignore lint/style/noCommonJs: it's ok
   vi.spyOn(require('@naturalcycles/nodejs-lib'), 'stringId').mockImplementationOnce(() => {
     return id1
   })
