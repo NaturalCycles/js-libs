@@ -1,4 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.3/schema.json",
+  "root": true,
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
   "extends": ["node_modules/@naturalcycles/dev-lib/cfg/biome.jsonc"]
 }

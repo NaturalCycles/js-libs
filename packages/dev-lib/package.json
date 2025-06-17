@@ -41,7 +41,7 @@
     "vue-eslint-parser": "^10"
   },
   "peerDependencies": {
-    "@biomejs/biome": "^1",
+    "@biomejs/biome": "^2",
     "eslint": "^9",
     "husky": "^9",
     "prettier": "^3",

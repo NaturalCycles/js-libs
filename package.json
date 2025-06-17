@@ -46,7 +46,7 @@
     "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1",
+    "@biomejs/biome": "^2",
     "@naturalcycles/bench-lib": "^4",
     "@naturalcycles/dev-lib": "*",
     "@naturalcycles/nodejs-lib": "^14",
