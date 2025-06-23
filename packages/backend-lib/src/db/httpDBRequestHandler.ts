@@ -4,7 +4,7 @@ import {
   commonDBOptionsSchema,
   commonDBSaveOptionsSchema,
   dbQuerySchema,
-} from '@naturalcycles/db-lib/dist/validation/index.js'
+} from '@naturalcycles/db-lib/validation'
 import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { anyObjectSchema, arraySchema, objectSchema, stringSchema } from '@naturalcycles/nodejs-lib'
 import { getDefaultRouter } from '../server/getDefaultRouter.js'

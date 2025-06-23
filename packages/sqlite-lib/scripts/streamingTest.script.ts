@@ -4,7 +4,7 @@ yarn tsx scripts/streamingTest.script.ts
 
  */
 
-import { TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import {
   _pipeline,
   runScript,

@@ -2,10 +2,10 @@ import { Transform } from 'node:stream'
 import type {
   CommonDBCreateOptions,
   CommonKeyValueDB,
+  IncrementTuple,
   KeyValueDBTuple,
 } from '@naturalcycles/db-lib'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
-import type { IncrementTuple } from '@naturalcycles/db-lib/dist/kv/commonKeyValueDB.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { AppError, pMap } from '@naturalcycles/js-lib'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib'

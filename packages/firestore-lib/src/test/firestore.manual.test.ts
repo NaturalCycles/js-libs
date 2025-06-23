@@ -1,10 +1,6 @@
 import { createdUpdatedFields } from '@naturalcycles/db-lib'
-import type { TestItemDBM } from '@naturalcycles/db-lib/dist/testing/index.js'
-import {
-  runCommonDaoTest,
-  runCommonDBTest,
-  TEST_TABLE,
-} from '@naturalcycles/db-lib/dist/testing/index.js'
+import type { TestItemDBM } from '@naturalcycles/db-lib/testing'
+import { runCommonDaoTest, runCommonDBTest, TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { describe, test } from 'vitest'
 import { firestoreDB } from './firestore.mock.js'
 

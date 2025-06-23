@@ -1,4 +1,4 @@
-import { runCommonKeyValueDBTest } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { runCommonKeyValueDBTest } from '@naturalcycles/db-lib/testing'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { describe } from 'vitest'
 import { CloudStorage } from '../cloudStorage.js'

@@ -6,7 +6,7 @@ import type {
   Promisable,
   UnixTimestamp,
 } from '@naturalcycles/js-lib'
-import type { ZodError, ZodSchema } from '@naturalcycles/js-lib/dist/zod/index.js'
+import type { ZodError, ZodSchema } from '@naturalcycles/js-lib/zod'
 import type {
   AjvSchema,
   AjvValidationError,

@@ -1,4 +1,4 @@
-import { mockTime } from '@naturalcycles/dev-lib/dist/testing/time.js'
+import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { BaseAdminService, FirebaseSharedService, getDefaultRouter } from '../index.js'
 import { expressTestService } from '../testing/index.js'

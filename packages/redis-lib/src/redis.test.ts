@@ -1,4 +1,4 @@
-import { TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { pDelay } from '@naturalcycles/js-lib'
 import { expect, test } from 'vitest'
 import { RedisClient } from './redisClient.js'

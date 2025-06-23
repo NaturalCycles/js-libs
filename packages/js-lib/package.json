@@ -26,6 +26,11 @@
     "crypto-js": "^4",
     "dayjs": "^1"
   },
+  "exports": {
+    "./cfg/frontend/tsconfig.json": "./cfg/frontend/tsconfig.json",
+    ".": "./dist/index.js",
+    "./zod": "./dist/zod/index.js"
+  },
   "files": [
     "dist",
     "cfg",

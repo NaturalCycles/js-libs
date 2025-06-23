@@ -28,8 +28,8 @@ import {
   pMap,
   SKIP,
 } from '@naturalcycles/js-lib'
-import type { ZodValidationError } from '@naturalcycles/js-lib/dist/zod/index.js'
-import { ZodSchema, zSafeValidate } from '@naturalcycles/js-lib/dist/zod/index.js'
+import type { ZodValidationError } from '@naturalcycles/js-lib/zod'
+import { ZodSchema, zSafeValidate } from '@naturalcycles/js-lib/zod'
 import type {
   AjvValidationError,
   JoiValidationError,

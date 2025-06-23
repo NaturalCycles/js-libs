@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { DBQuery } from '@naturalcycles/db-lib'
-import type { TestItemDBM } from '@naturalcycles/db-lib/dist/testing/index.js'
+import type { TestItemDBM } from '@naturalcycles/db-lib/testing'
 import {
   createTestItemDBM,
   createTestItemsDBM,
@@ -8,7 +8,7 @@ import {
   runCommonDBTest,
   TEST_TABLE,
   testItemBMJsonSchema,
-} from '@naturalcycles/db-lib/dist/testing/index.js'
+} from '@naturalcycles/db-lib/testing'
 import { deflateString, inflateToString, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { MysqlDB } from '../mysql.db.js'

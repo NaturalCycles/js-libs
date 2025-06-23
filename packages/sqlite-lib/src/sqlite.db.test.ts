@@ -1,8 +1,4 @@
-import {
-  createTestItemsDBM,
-  TEST_TABLE,
-  testItemBMJsonSchema,
-} from '@naturalcycles/db-lib/dist/testing/index.js'
+import { createTestItemsDBM, TEST_TABLE, testItemBMJsonSchema } from '@naturalcycles/db-lib/testing'
 import { _omit } from '@naturalcycles/js-lib'
 import { test } from 'vitest'
 import { SQLiteDB } from './sqlite.db.js'

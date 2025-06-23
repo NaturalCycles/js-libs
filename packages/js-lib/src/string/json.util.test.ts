@@ -1,4 +1,4 @@
-import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/dist/testing/mockAllKindsOfThings.js'
+import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
 import { expect, test } from 'vitest'
 import { JsonParseError } from '../error/error.util.js'
 import { _expectedError } from '../error/try.js'

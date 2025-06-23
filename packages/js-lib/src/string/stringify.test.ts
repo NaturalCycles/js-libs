@@ -1,4 +1,4 @@
-import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/dist/testing/mockAllKindsOfThings.js'
+import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
 import { inspectStringifyFn } from '@naturalcycles/nodejs-lib'
 import { expect, test } from 'vitest'
 import type { BackendErrorResponseObject } from '../error/error.model.js'

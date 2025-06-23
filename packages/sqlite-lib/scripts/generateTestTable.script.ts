@@ -9,7 +9,7 @@ Not gzipped (to better test streaming)
  */
 
 import { Readable } from 'node:stream'
-import { TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { _range } from '@naturalcycles/js-lib'
 import {
   _pipeline,

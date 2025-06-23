@@ -1,7 +1,10 @@
+import type { KeyValueDBTuple } from '@naturalcycles/db-lib'
 import { CommonKeyValueDao, CommonKeyValueDaoMemoCache } from '@naturalcycles/db-lib'
-import type { KeyValueDBTuple } from '@naturalcycles/db-lib/dist/kv/commonKeyValueDB.js'
-import { runCommonKeyValueDBTest, TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
-import { runCommonKeyValueDaoTest } from '@naturalcycles/db-lib/dist/testing/keyValueDaoTest.js'
+import {
+  runCommonKeyValueDaoTest,
+  runCommonKeyValueDBTest,
+  TEST_TABLE,
+} from '@naturalcycles/db-lib/testing'
 import { _AsyncMemo, _range, localTime, pDelay } from '@naturalcycles/js-lib'
 import { afterAll, describe, expect, test } from 'vitest'
 import { RedisClient } from '../redisClient.js'

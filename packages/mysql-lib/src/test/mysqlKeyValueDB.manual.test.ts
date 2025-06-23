@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { runCommonKeyValueDBTest, TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { runCommonKeyValueDBTest, TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { MySQLKeyValueDB } from '../mysqlKeyValueDB.js'

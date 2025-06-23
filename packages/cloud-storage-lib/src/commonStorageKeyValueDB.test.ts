@@ -1,4 +1,4 @@
-import { runCommonKeyValueDBTest } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { runCommonKeyValueDBTest } from '@naturalcycles/db-lib/testing'
 import { describe } from 'vitest'
 import { CommonStorageKeyValueDB } from './commonStorageKeyValueDB.js'
 import { InMemoryCommonStorage } from './inMemoryCommonStorage.js'

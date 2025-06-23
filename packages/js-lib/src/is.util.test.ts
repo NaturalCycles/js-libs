@@ -1,4 +1,4 @@
-import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/dist/testing/mockAllKindsOfThings.js'
+import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
 import { expect, expectTypeOf, test } from 'vitest'
 import { _sum } from './array/array.util.js'
 import {

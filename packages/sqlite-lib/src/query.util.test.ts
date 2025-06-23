@@ -1,4 +1,4 @@
-import { createTestItemsDBM, TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { createTestItemsDBM, TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { test } from 'vitest'
 import { insertSQL } from './query.util.js'
 

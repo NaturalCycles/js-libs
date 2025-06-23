@@ -1,4 +1,4 @@
-import { mockTime } from '@naturalcycles/dev-lib/dist/testing/time.js'
+import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import { _stringify, commonLoggerNoop, Fetcher, pExpectedError } from '@naturalcycles/js-lib'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { slackDefaultMessagePrefixHook, SlackService } from './slack.service.js'

@@ -1,9 +1,5 @@
 import { DBQuery } from '@naturalcycles/db-lib'
-import {
-  createTestItemDBM,
-  createTestItemsDBM,
-  TEST_TABLE,
-} from '@naturalcycles/db-lib/dist/testing/index.js'
+import { createTestItemDBM, createTestItemsDBM, TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { expect, test } from 'vitest'
 import {
   dbQueryToSQLDelete,

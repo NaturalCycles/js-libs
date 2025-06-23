@@ -1,5 +1,5 @@
 import { InMemoryDB } from '@naturalcycles/db-lib'
-import { runCommonDaoTest, runCommonDBTest } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { runCommonDaoTest, runCommonDBTest } from '@naturalcycles/db-lib/testing'
 import { afterAll, describe } from 'vitest'
 import { expressTestService } from '../testing/index.js'
 import { HttpDB } from './httpDB.js'

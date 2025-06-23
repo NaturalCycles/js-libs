@@ -1,4 +1,4 @@
-import { mockTime } from '@naturalcycles/dev-lib/dist/testing/time.js'
+import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import { beforeEach, expect, test } from 'vitest'
 import { generateBuildInfoDev } from './buildInfo.js'
 

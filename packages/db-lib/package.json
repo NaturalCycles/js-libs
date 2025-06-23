@@ -28,12 +28,12 @@
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "__exports": {
-    "./": "dist/index.js",
-    "./testing": "dist/testing/index.js",
-    "./validation": "dist/validation/index.js",
-    "./adapter/cachedb": "dist/adapter/cachedb/index.js",
-    "./adapter/noop": "dist/adapter/noop/index.js"
+  "exports": {
+    ".": "./dist/index.js",
+    "./testing": "./dist/testing/index.js",
+    "./validation": "./dist/validation/index.js",
+    "./adapter/cachedb": "./dist/adapter/cachedb/index.js",
+    "./adapter/file": "./dist/adapter/file/index.js"
   },
   "publishConfig": {
     "access": "public"

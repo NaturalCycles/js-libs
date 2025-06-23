@@ -24,7 +24,7 @@ importers:
         version: 4.0.2
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@naturalcycles/nodejs-lib':
         specifier: ^14
         version: 14.4.0
@@ -91,7 +91,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/semver':
         specifier: ^7
         version: 7.7.0
@@ -116,7 +116,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -183,7 +183,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@sentry/node':
         specifier: ^9
         version: 9.30.0
@@ -217,7 +217,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/benchmark':
         specifier: ^2
         version: 2.1.5
@@ -263,7 +263,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -288,7 +288,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -420,7 +420,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -442,7 +442,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/crypto-js':
         specifier: ^4
         version: 4.2.2
@@ -479,7 +479,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -510,7 +510,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -574,7 +574,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/through2-concurrent':
         specifier: ^2
         version: 2.0.4
@@ -599,7 +599,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -618,7 +618,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -658,7 +658,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.3
@@ -1603,8 +1603,8 @@ packages:
     resolution: {integrity: sha512-zJO0DHCB7XreWp76vCwwZNxbKt6JqK5v47gO1RsUtYu0S3rz3HGDM+XfDZjWzyeTqBm31EYqZtNu0wF3YfAQkg==}
     engines: {node: '>=22.10.0'}
 
-  '@naturalcycles/dev-lib@19.3.2':
-    resolution: {integrity: sha512-/Vgzl6U/IVPnCcsw089RpP3L5EvQuKRbjCKrkk3FCILVBiIK1NCF2oB4Ggx64fnR6QbR7/97ScbVgJ+TLuzdug==}
+  '@naturalcycles/dev-lib@19.4.2':
+    resolution: {integrity: sha512-wgSDxS3VcAWGwvLxydXXOld4+U8nJFAZPoLlXzbsZgxYADW6DPXuJcIpplNEFJiUEQLp0bW78KIpZ01yQJ0uhg==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -2141,12 +2141,6 @@ packages:
   '@sindresorhus/merge-streams@4.0.0':
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
-
-  '@stylistic/eslint-plugin@4.4.1':
-    resolution: {integrity: sha512-CEigAk7eOLyHvdgmpZsKFwtiqS2wFwI1fn4j09IU9GmD4euFM4jEBAViWeCqaNLlbX2k2+A/Fq9cje4HQBXuJQ==}
-    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-    peerDependencies:
-      eslint: '>=9.0.0'
 
   '@stylistic/eslint-plugin@5.0.0':
     resolution: {integrity: sha512-nVV2FSzeTJ3oFKw+3t9gQYQcrgbopgCASSY27QOtkhEGgSfdQQjDmzZd41NeT1myQ8Wc6l+pZllST9qIu4NKzg==}
@@ -7523,7 +7517,7 @@ snapshots:
       hdr-histogram-js: 3.0.1
       tslib: 2.8.1
 
-  '@naturalcycles/dev-lib@19.3.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))':
+  '@naturalcycles/dev-lib@19.4.2(@biomejs/biome@2.0.4)(@types/node@24.0.3)(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.29.0(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.0)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.0(typescript@5.8.3)))(stylelint@16.21.0(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
       '@biomejs/biome': 2.0.4
       '@commitlint/cli': 19.8.1(@types/node@24.0.3)(typescript@5.8.3)
@@ -7532,7 +7526,7 @@ snapshots:
       '@inquirer/prompts': 7.5.3(@types/node@24.0.3)
       '@naturalcycles/js-lib': 15.2.0
       '@naturalcycles/nodejs-lib': 14.4.0
-      '@stylistic/eslint-plugin': 4.4.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3)
+      '@stylistic/eslint-plugin': 5.0.0(eslint@9.29.0(jiti@2.4.2))
       '@vitest/coverage-v8': 3.2.4(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@vitest/eslint-plugin': 1.2.7(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.3)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       eslint: 9.29.0(jiti@2.4.2)
@@ -8209,18 +8203,6 @@ snapshots:
   '@sindresorhus/merge-streams@2.3.0': {}
 
   '@sindresorhus/merge-streams@4.0.0': {}
-
-  '@stylistic/eslint-plugin@4.4.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3)':
-    dependencies:
-      '@typescript-eslint/utils': 8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3)
-      eslint: 9.29.0(jiti@2.4.2)
-      eslint-visitor-keys: 4.2.1
-      espree: 10.4.0
-      estraverse: 5.3.0
-      picomatch: 4.0.2
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
 
   '@stylistic/eslint-plugin@5.0.0(eslint@9.29.0(jiti@2.4.2))':
     dependencies:

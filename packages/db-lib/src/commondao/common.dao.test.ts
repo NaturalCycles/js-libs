@@ -1,4 +1,4 @@
-import { MOCK_TS_2018_06_21, mockTime } from '@naturalcycles/dev-lib/dist/testing/time.js'
+import { MOCK_TS_2018_06_21, mockTime } from '@naturalcycles/dev-lib/testing/time'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib'
 import {
   _deepFreeze,

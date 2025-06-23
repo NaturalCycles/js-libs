@@ -1,4 +1,4 @@
-import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/dist/testing/mockAllKindsOfThings.js'
+import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
 import { _range } from '@naturalcycles/js-lib'
 import type { Assertion } from 'vitest'
 import { expect, test } from 'vitest'

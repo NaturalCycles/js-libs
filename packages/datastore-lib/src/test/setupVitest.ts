@@ -1,2 +1,2 @@
-import { testOffline } from '@naturalcycles/dev-lib/dist/testing/testOffline.js'
+import { testOffline } from '@naturalcycles/dev-lib/testing/testOffline'
 testOffline()

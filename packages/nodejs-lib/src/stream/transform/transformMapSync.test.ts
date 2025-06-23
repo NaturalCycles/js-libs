@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream'
-import { mockTime } from '@naturalcycles/dev-lib/dist/testing/time.js'
+import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import { _range, AppError, ErrorMode, pTry } from '@naturalcycles/js-lib'
 import { beforeAll, expect, test } from 'vitest'
 import type { TransformMapStats } from '../../index.js'

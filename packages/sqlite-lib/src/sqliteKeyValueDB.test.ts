@@ -1,4 +1,4 @@
-import { runCommonKeyValueDBTest, TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { runCommonKeyValueDBTest, TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { SqliteKeyValueDB } from './sqliteKeyValueDB.js'
 

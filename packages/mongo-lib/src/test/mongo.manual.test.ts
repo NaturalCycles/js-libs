@@ -1,11 +1,12 @@
 import 'dotenv/config'
 import { CommonDao, CommonDaoLogLevel } from '@naturalcycles/db-lib'
-import { runCommonDaoTest, runCommonDBTest } from '@naturalcycles/db-lib/dist/testing/index.js'
 import {
   createTestItemsBM,
+  runCommonDaoTest,
+  runCommonDBTest,
   TEST_TABLE,
   testItemBMSchema,
-} from '@naturalcycles/db-lib/dist/testing/test.model.js'
+} from '@naturalcycles/db-lib/testing'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { afterAll, describe, test } from 'vitest'
 import { MongoDB } from '../mongo.db.js'

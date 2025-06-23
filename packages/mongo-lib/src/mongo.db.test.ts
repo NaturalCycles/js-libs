@@ -1,4 +1,4 @@
-import { TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { expect, test } from 'vitest'
 import { MongoDB } from './mongo.db.js'
 

@@ -1,5 +1,5 @@
 import { InMemoryDB } from '@naturalcycles/db-lib'
-import { createTestItemsBM, TEST_TABLE } from '@naturalcycles/db-lib/dist/testing/index.js'
+import { createTestItemsBM, TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { expect, test } from 'vitest'
 import { jsonSchemaToMySQLDDL } from './mysql.schema.util.js'
 

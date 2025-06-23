@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream'
-import { mockTime } from '@naturalcycles/dev-lib/dist/testing/time.js'
+import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import type { AsyncMapper } from '@naturalcycles/js-lib'
 import { _range, _stringify, ErrorMode, pExpectedError } from '@naturalcycles/js-lib'
 import { beforeAll, expect, test } from 'vitest'

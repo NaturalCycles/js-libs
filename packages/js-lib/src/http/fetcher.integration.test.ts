@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { Readable } from 'node:stream'
-import { testOnline } from '@naturalcycles/dev-lib/dist/testing/testOffline.js'
+import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
 import { _pipeline } from '@naturalcycles/nodejs-lib'
 import { expect, expectTypeOf, test } from 'vitest'
 import { HttpRequestError, TimeoutError } from '../error/error.util.js'
