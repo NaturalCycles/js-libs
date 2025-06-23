@@ -138,7 +138,6 @@ For manual tests:
 #### Lint commands
 
 - `lint`: runs Biome, ESLint, Stylelint, Prettier, actionlint, ktlint in the right order.
-
   - `--commitOnChanges` will commit lint-modified changes and push them
   - `--failOnChanges` will exit with status 1 in the end (will fail the command)
 
