@@ -64,6 +64,11 @@
     "@types/node": "^24",
     "@types/mitm": "^1"
   },
+  "exports": {
+    "./testing": "./dist/testing/index.js",
+    "./testing/time": "./dist/testing/time.js",
+    "./testing/testOffline": "./dist/testing/testOffline.js"
+  },
   "files": [
     "dist",
     "scripts/tsconfig.json",
