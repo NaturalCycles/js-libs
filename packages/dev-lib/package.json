@@ -65,6 +65,8 @@
     "@types/mitm": "^1"
   },
   "exports": {
+    ".": "./dist/index.js",
+    "./cfg/": "./cfg/",
     "./testing": "./dist/testing/index.js",
     "./testing/time": "./dist/testing/time.js",
     "./testing/testOffline": "./dist/testing/testOffline.js"
