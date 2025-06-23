@@ -65,8 +65,16 @@
     "@types/mitm": "^1"
   },
   "exports": {
-    ".": "./dist/index.js",
     "./cfg/": "./cfg/",
+    "./cfg/biome.jsonc": "./cfg/biome.jsonc",
+    "./cfg/commitlint.config.js": "./cfg/commitlint.config.js",
+    "./cfg/eslint.config.js": "./cfg/eslint.config.js",
+    "./cfg/prettier.config.js": "./cfg/prettier.config.js",
+    "./cfg/stylelint.config.js": "./cfg/stylelint.config.js",
+    "./cfg/tsconfig.json": "./cfg/tsconfig.json",
+    "./cfg/vitest.config.js": "./cfg/vitest.config.js",
+    "./scripts/tsconfig.json": "./scripts/tsconfig.json",
+    ".": "./dist/index.js",
     "./testing": "./dist/testing/index.js",
     "./testing/time": "./dist/testing/time.js",
     "./testing/testOffline": "./dist/testing/testOffline.js"
