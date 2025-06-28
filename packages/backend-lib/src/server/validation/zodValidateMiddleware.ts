@@ -1,5 +1,5 @@
 import { _get, AppError } from '@naturalcycles/js-lib'
-import type { ZodSchema, ZodValidationError } from '@naturalcycles/js-lib/zod'
+import type { ZodType, ZodValidationError } from '@naturalcycles/js-lib/zod'
 import { zSafeValidate } from '@naturalcycles/js-lib/zod'
 import type { BackendRequestHandler } from '../server.model.js'
 import type { ReqValidationOptions } from './validateRequest.js'
@@ -14,8 +14,8 @@ const REDACTED = 'REDACTED'
  */
 export function zodReqValidate(
   prop: 'body' | 'params' | 'query',
-  schema: ZodSchema,
-  opt: ReqValidationOptions<ZodValidationError<any>> = {},
+  schema: ZodType,
+  opt: ReqValidationOptions<ZodValidationError> = {},
 ): BackendRequestHandler {
   const reportPredicate =
     typeof opt.report === 'function' ? opt.report : () => opt.report as boolean | undefined

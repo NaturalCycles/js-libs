@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 export const TS_2500 = 16725225600 // 2500-01-01
 export const TS_2000 = 946684800 // 2000-01-01
@@ -43,7 +43,7 @@ export const zIsoDateString = z
 export const zEmail = z
   .string()
   .trim()
-  .email()
+  .email() // keeping as-is, so trim happens before email validation
   .transform(s => s.toLowerCase())
   .describe('Email')
 

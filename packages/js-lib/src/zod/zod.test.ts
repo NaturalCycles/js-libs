@@ -7,18 +7,20 @@ test('basic', () => {
   const err = _expectedError(() => zValidate({} as any, zBaseDBEntity), ZodValidationError)
   expect(err).toBeInstanceOf(Error)
   expect(err).toBeInstanceOf(ZodValidationError)
-  expect(err.name).toBe('ZodError')
-  expect(err.annotate()).toBe(err.message)
-  expect(err.toString()).toBe(err.message)
-  expect(err.stack!.split('\n')[0]).toMatchInlineSnapshot(`"ZodError: Invalid BaseDBEntity"`)
+  expect(err.name).toBe('ZodValidationError')
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  expect(err.toString()).toBe('ZodValidationError: ' + err.message)
+  expect(err.stack!.split('\n')[0]).toMatchInlineSnapshot(
+    `"ZodValidationError: Invalid BaseDBEntity"`,
+  )
   expect(err.message).toMatchInlineSnapshot(`
-"Invalid BaseDBEntity
+    "Invalid BaseDBEntity
 
-Input:
-{}
+    Input:
+    {}
 
-id: Required"
-`)
+    id: Invalid input: expected string, received undefined"
+  `)
 
   expect(zSafeValidate(' a' as any, zBaseDBEntity).error!.message).toMatchInlineSnapshot(`
     "Invalid BaseDBEntity
@@ -26,7 +28,7 @@ id: Required"
     Input:
     a
 
-    Expected object, received string"
+    Invalid input: expected object, received string"
   `)
 })
 
@@ -38,7 +40,7 @@ test('email should lowercase and trim', () => {
     Input:
     asd
 
-    Invalid email"
+    Invalid email address"
   `)
 })
 

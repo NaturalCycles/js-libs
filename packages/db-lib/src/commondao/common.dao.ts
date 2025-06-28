@@ -29,7 +29,7 @@ import {
   SKIP,
 } from '@naturalcycles/js-lib'
 import type { ZodValidationError } from '@naturalcycles/js-lib/zod'
-import { ZodSchema, zSafeValidate } from '@naturalcycles/js-lib/zod'
+import { ZodType, zSafeValidate } from '@naturalcycles/js-lib/zod'
 import type {
   AjvValidationError,
   JoiValidationError,
@@ -1216,7 +1216,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
    */
   validateAndConvert<T>(
     obj: Partial<T>,
-    schema: ObjectSchema<T> | AjvSchema<T> | ZodSchema<T> | undefined,
+    schema: ObjectSchema<T> | AjvSchema<T> | ZodType<T> | undefined,
     op?: 'load' | 'save', // this is to skip validation if validateOnLoad/Save is false
     opt: CommonDaoOptions = {},
   ): any {
@@ -1245,10 +1245,10 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     const table = opt.table || this.cfg.table
     const objectName = table
 
-    let error: JoiValidationError | AjvValidationError | ZodValidationError<T> | undefined
+    let error: JoiValidationError | AjvValidationError | ZodValidationError | undefined
     let convertedValue: any
 
-    if (schema instanceof ZodSchema) {
+    if (schema instanceof ZodType) {
       // Zod schema
       const vr = zSafeValidate(obj as T, schema)
       error = vr.error

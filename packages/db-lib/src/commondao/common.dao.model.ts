@@ -6,7 +6,7 @@ import type {
   Promisable,
   UnixTimestamp,
 } from '@naturalcycles/js-lib'
-import type { ZodError, ZodSchema } from '@naturalcycles/js-lib/zod'
+import type { ZodType, ZodValidationError } from '@naturalcycles/js-lib/zod'
 import type {
   AjvSchema,
   AjvValidationError,
@@ -97,7 +97,9 @@ export interface CommonDaoHooks<BM extends BaseDBEntity, DBM extends BaseDBEntit
    * Return original `err` to pass the error through (will be thrown in CommonDao).
    * Return modified/new `Error` if needed.
    */
-  onValidationError: (err: JoiValidationError | AjvValidationError | ZodError) => Error | false
+  onValidationError: (
+    err: JoiValidationError | AjvValidationError | ZodValidationError,
+  ) => Error | false
 }
 
 export enum CommonDaoLogLevel {
@@ -130,7 +132,7 @@ export interface CommonDaoCfg<
   /**
    * Joi, AjvSchema or ZodSchema is supported.
    */
-  bmSchema?: ObjectSchema<BM> | AjvSchema<BM> | ZodSchema<BM>
+  bmSchema?: ObjectSchema<BM> | AjvSchema<BM> | ZodType<BM>
 
   excludeFromIndexes?: (keyof DBM)[]
 
