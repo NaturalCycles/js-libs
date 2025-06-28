@@ -28,7 +28,7 @@
     "ajv-formats": "^3",
     "ajv-keywords": "^5",
     "chalk": "^5",
-    "dotenv": "^16",
+    "dotenv": "^17",
     "joi": "^17",
     "js-yaml": "^4",
     "jsonwebtoken": "^9",

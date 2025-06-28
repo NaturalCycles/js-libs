@@ -31,7 +31,7 @@
     "@types/on-finished": "^2",
     "cookie-parser": "^1",
     "cors": "^2",
-    "dotenv": "^16",
+    "dotenv": "^17",
     "ejs": "^3",
     "express": "^5",
     "firebase-admin": "^13",

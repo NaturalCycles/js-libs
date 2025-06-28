@@ -53,7 +53,7 @@
     "@semantic-release/git": "^10",
     "@types/node": "^24",
     "@vitest/coverage-v8": "^3",
-    "dotenv": "^16",
+    "dotenv": "^17",
     "eslint": "^9",
     "husky": "^9",
     "prettier": "^3",
