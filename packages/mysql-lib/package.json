@@ -21,7 +21,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",
     "@types/node": "^24",
-    "dotenv": "^16"
+    "dotenv": "^17"
   },
   "files": [
     "dist",
