@@ -5,7 +5,6 @@ import {
   _substringBefore,
   JsonSchemaAnyBuilder,
 } from '@naturalcycles/js-lib'
-import type { ZodJSONSchema } from '@naturalcycles/js-lib/zod'
 import type { Ajv, ValidateFunction } from 'ajv'
 import { fs2 } from '../../fs/fs2.js'
 import { _inspect } from '../../string/inspect.js'
@@ -83,7 +82,7 @@ export class AjvSchema<T = unknown> {
    * correctly for some reason.
    */
   static create<T>(
-    schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T> | ZodJSONSchema,
+    schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T>,
     cfg: Partial<AjvSchemaCfg> = {},
   ): AjvSchema<T> {
     if (schema instanceof AjvSchema) return schema
