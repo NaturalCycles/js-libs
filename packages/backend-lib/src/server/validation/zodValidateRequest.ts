@@ -1,56 +1,35 @@
 import { _get, AppError } from '@naturalcycles/js-lib'
-import type { AnySchema, JoiValidationError } from '@naturalcycles/nodejs-lib'
-import { getValidationResult } from '@naturalcycles/nodejs-lib'
+import { type ZodType, type ZodValidationError, zSafeValidate } from '@naturalcycles/js-lib/zod'
 import type { BackendRequest } from '../server.model.js'
+import type { ReqValidationOptions } from './validateRequest.js'
 
-export interface ReqValidationOptions<ERR extends Error> {
-  /**
-   * Pass a 'dot-paths' (e.g `pw`, or `input.pw`) that needs to be redacted from the output, in case of error.
-   * Useful e.g to redact (prevent leaking) plaintext passwords in error messages.
-   */
-  redactPaths?: string[]
-
-  /**
-   * Set to true, or a function that returns true/false based on the error generated.
-   * If true - `genericErrorHandler` will report it to errorReporter (aka Sentry).
-   */
-  report?: boolean | ((err: ERR) => boolean)
-
-  /**
-   * When set to true, the validated object will not be replaced with the Joi-converted value.
-   *
-   * The general default is `false`, with the excepction of `headers` validation, where the default is `true`.
-   */
-  keepOriginal?: boolean
-}
-
-class ValidateRequest {
+class ZodValidateRequest {
   body<T>(
     req: BackendRequest,
-    schema: AnySchema<T>,
-    opt: ReqValidationOptions<JoiValidationError> = {},
+    schema: ZodType<T>,
+    opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
     return this.validate(req, 'body', schema, opt)
   }
 
   query<T>(
     req: BackendRequest,
-    schema: AnySchema<T>,
-    opt: ReqValidationOptions<JoiValidationError> = {},
+    schema: ZodType<T>,
+    opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
     return this.validate(req, 'query', schema, opt)
   }
 
   params<T>(
     req: BackendRequest,
-    schema: AnySchema<T>,
-    opt: ReqValidationOptions<JoiValidationError> = {},
+    schema: ZodType<T>,
+    opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
     return this.validate(req, 'params', schema, opt)
   }
 
   /**
-   * Validates `req.headers` against the provided Joi schema.
+   * Validates `req.headers` against the provided schema.
    *
    * Note: as opposed to other methods, this method does not mutate `req.headers` in case of success,
    * i.e. schemas that cast values will not have any effect.
@@ -60,10 +39,10 @@ class ValidateRequest {
    */
   headers<T>(
     req: BackendRequest,
-    schema: AnySchema<T>,
-    opt: ReqValidationOptions<JoiValidationError> = {},
+    schema: ZodType<T>,
+    opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
-    const options: ReqValidationOptions<JoiValidationError> = {
+    const options: ReqValidationOptions<ZodValidationError> = {
       keepOriginal: true,
       ...opt,
     }
@@ -73,14 +52,15 @@ class ValidateRequest {
   private validate<T>(
     req: BackendRequest,
     reqProperty: 'body' | 'params' | 'query' | 'headers',
-    schema: AnySchema<T>,
-    opt: ReqValidationOptions<JoiValidationError> = {},
+    schema: ZodType<T>,
+    opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
-    const { value, error } = getValidationResult(
+    const { data, error } = zSafeValidate(
       req[reqProperty] || {},
       schema,
-      `request ${reqProperty}`,
+      // `request ${reqProperty}`,
     )
+
     if (error) {
       let report: boolean | undefined
       if (typeof opt.report === 'boolean') {
@@ -91,8 +71,6 @@ class ValidateRequest {
 
       if (opt.redactPaths) {
         redact(opt.redactPaths, req[reqProperty], error)
-        error.data.joiValidationErrorItems.length = 0 // clears the array
-        delete error.data.annotation
       }
 
       throw new AppError(error.message, {
@@ -105,14 +83,14 @@ class ValidateRequest {
     // mutate req to replace the property with the value, converted by Joi
     if (!opt.keepOriginal && reqProperty !== 'query') {
       // query is read-only in Express 5
-      req[reqProperty] = value
+      req[reqProperty] = data
     }
 
-    return value
+    return data
   }
 }
 
-export const validateRequest = new ValidateRequest()
+export const zodValidateRequest = new ZodValidateRequest()
 
 const REDACTED = 'REDACTED'
 

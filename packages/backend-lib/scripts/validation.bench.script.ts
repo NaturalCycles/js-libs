@@ -7,10 +7,10 @@ pn tsx scripts/validation.bench.script.ts
 import http from 'node:http'
 import { runCannon } from '@naturalcycles/bench-lib'
 import { jsonSchema } from '@naturalcycles/js-lib'
-import { objectSchema, runScript, stringSchema } from '@naturalcycles/nodejs-lib'
+import { AjvSchema, objectSchema, runScript, stringSchema } from '@naturalcycles/nodejs-lib'
 import express from 'express'
-import type { BackendApplication } from '../src/index.js'
-import { validateBody, validateRequest } from '../src/index.js'
+import { ajvValidateRequest, type BackendApplication } from '../src/index.js'
+import { validateRequest } from '../src/index.js'
 
 interface PwInput {
   pw: string
@@ -19,6 +19,12 @@ interface PwInput {
 const pwInputSchema = objectSchema<PwInput>({
   pw: stringSchema.min(6),
 })
+
+const pwInputSchemaAjv = AjvSchema.create<PwInput>(
+  jsonSchema.object<PwInput>({
+    pw: jsonSchema.string().min(6),
+  }),
+)
 
 function createApp(): BackendApplication {
   const app = express()
@@ -40,17 +46,11 @@ runScript(async () => {
       },
       '02-ajv': async () => {
         const app = createApp()
-        app.post(
-          '/',
-          validateBody(
-            jsonSchema.object<PwInput>({
-              pw: jsonSchema.string().min(6),
-            }),
-          ),
-          (_req, res) => {
-            res.json({ hello: 'world' })
-          },
-        )
+        app.post('/', (req, res) => {
+          ajvValidateRequest.body(req, pwInputSchemaAjv)
+
+          res.json({ hello: 'world' })
+        })
         return http.createServer(app)
       },
       '03-joi': async () => {

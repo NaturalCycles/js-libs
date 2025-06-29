@@ -18,6 +18,7 @@
     "js-lib:build": "pnpm --filter @naturalcycles/js-lib run build",
     "js-lib:test": "pnpm --filter @naturalcycles/js-lib run test",
     "nodejs-lib:check": "pnpm --filter @naturalcycles/nodejs-lib run check",
+    "nodejs-lib:build": "pnpm --filter @naturalcycles/nodejs-lib run build",
     "backend-lib:check": "pnpm --filter @naturalcycles/backend-lib run check",
     "db-lib:check": "pnpm --filter @naturalcycles/db-lib run check",
     "db-lib:test": "pnpm --filter @naturalcycles/db-lib run test",

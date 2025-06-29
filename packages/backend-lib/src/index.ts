@@ -28,9 +28,9 @@ export * from './server/serverStatusMiddleware.js'
 export * from './server/simpleRequestLoggerMiddleware.js'
 export * from './server/startServer.js'
 export * from './server/startServer.model.js'
-export * from './server/validation/validateMiddleware.js'
+export * from './server/validation/ajvValidateRequest.js'
 export * from './server/validation/validateRequest.js'
-export * from './server/validation/zodValidateMiddleware.js'
+export * from './server/validation/zodValidateRequest.js'
 export * from './util.js'
 
 export { onFinished }
