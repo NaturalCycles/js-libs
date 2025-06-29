@@ -1,10 +1,11 @@
-import type { CommonLogger, JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib'
+import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib'
 import {
   _filterNullishValues,
   _isObject,
   _substringBefore,
   JsonSchemaAnyBuilder,
 } from '@naturalcycles/js-lib'
+import type { ZodJSONSchema } from '@naturalcycles/js-lib/zod'
 import type { Ajv, ValidateFunction } from 'ajv'
 import { fs2 } from '../../fs/fs2.js'
 import { _inspect } from '../../string/inspect.js'
@@ -14,18 +15,6 @@ import { getAjv } from './getAjv.js'
 export interface AjvValidationOptions {
   objectName?: string
   objectId?: string
-
-  /**
-   * @default to cfg.logErrors, which defaults to true
-   */
-  logErrors?: boolean
-
-  /**
-   * Used to separate multiple validation errors.
-   *
-   * @default cfg.separator || '\n'
-   */
-  separator?: string
 }
 
 export interface AjvSchemaCfg {
@@ -42,23 +31,6 @@ export interface AjvSchemaCfg {
   schemas?: (JsonSchema | JsonSchemaBuilder | AjvSchema)[]
 
   objectName?: string
-
-  /**
-   * Used to separate multiple validation errors.
-   *
-   * @default '\n'
-   */
-  separator: string
-
-  /**
-   * @default true
-   */
-  logErrors: boolean
-
-  /**
-   * Default to `console`
-   */
-  logger: CommonLogger
 
   /**
    * Option of Ajv.
@@ -82,9 +54,6 @@ export class AjvSchema<T = unknown> {
     cfg: Partial<AjvSchemaCfg> = {},
   ) {
     this.cfg = {
-      logErrors: true,
-      logger: console,
-      separator: '\n',
       ...cfg,
       ajv:
         cfg.ajv ||
@@ -114,7 +83,7 @@ export class AjvSchema<T = unknown> {
    * correctly for some reason.
    */
   static create<T>(
-    schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T>,
+    schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T> | ZodJSONSchema,
     cfg: Partial<AjvSchemaCfg> = {},
   ): AjvSchema<T> {
     if (schema instanceof AjvSchema) return schema
@@ -154,6 +123,10 @@ export class AjvSchema<T = unknown> {
     return obj
   }
 
+  isValid(obj: T): boolean {
+    return this.validateFunction(obj)
+  }
+
   getValidationError(obj: T, opt: AjvValidationOptions = {}): AjvValidationError | undefined {
     if (this.isValid(obj)) return
 
@@ -162,8 +135,6 @@ export class AjvSchema<T = unknown> {
     const {
       objectId = _isObject(obj) ? (obj['id' as keyof T] as any) : undefined,
       objectName = this.cfg.objectName,
-      logErrors = this.cfg.logErrors,
-      separator = this.cfg.separator,
     } = opt
     const name = [objectName || 'Object', objectId].filter(Boolean).join('.')
 
@@ -175,22 +146,15 @@ export class AjvSchema<T = unknown> {
     const strValue = _inspect(obj, { maxLen: 1000 })
     message = [message, 'Input: ' + strValue].join(separator)
 
-    if (logErrors) {
-      this.cfg.logger.error(errors)
-    }
-
     return new AjvValidationError(
       message,
       _filterNullishValues({
         errors,
-        userFriendly: true,
         objectName,
         objectId,
       }),
     )
   }
-
-  isValid(obj: T): boolean {
-    return this.validateFunction(obj)
-  }
 }
+
+const separator = '\n'

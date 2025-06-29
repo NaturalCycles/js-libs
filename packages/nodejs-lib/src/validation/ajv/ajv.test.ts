@@ -57,7 +57,6 @@ test('simple', () => {
         },
       ],
       "objectName": "simple",
-      "userFriendly": true,
     }
   `)
 
@@ -80,9 +79,6 @@ test('simple', () => {
     [AjvValidationError: simple.id2 must have required property 's'
     Input: { id: 'id2' }]
   `)
-
-  // logErrors
-  _try(() => schema.validate(missing, { logErrors: true }))
 })
 
 test('TestType', () => {

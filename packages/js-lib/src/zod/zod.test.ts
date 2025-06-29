@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { _expectedError } from '../error/try.js'
-import { zBaseDBEntity, zEmail, zIsoDateString } from './zod.shared.schemas.js'
+import { zBaseDBEntity, zEmail, zIsoDate } from './zod.shared.schemas.js'
 import { ZodValidationError, zSafeValidate, zValidate } from './zod.util.js'
 
 test('basic', () => {
@@ -45,8 +45,8 @@ test('email should lowercase and trim', () => {
 })
 
 test('isoDateString', () => {
-  zValidate('2022-04-16', zIsoDateString)
-  expect(zSafeValidate('2022-04-1', zIsoDateString).error!.message).toMatchInlineSnapshot(`
+  zValidate('2022-04-16', zIsoDate)
+  expect(zSafeValidate('2022-04-1', zIsoDate).error!.message).toMatchInlineSnapshot(`
     "Invalid IsoDateString
 
     Input:
