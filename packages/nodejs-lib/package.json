@@ -42,6 +42,17 @@
     "@naturalcycles/dev-lib": "*",
     "@types/through2-concurrent": "^2"
   },
+  "exports": {
+    ".": "./dist/index.js",
+    "./csv": "./dist/csv/index.js",
+    "./fs": "./dist/fs/index.js",
+    "./glob": "./dist/glob/index.js",
+    "./jwt": "./dist/jwt/index.js",
+    "./stream": "./dist/stream/index.js",
+    "./yargs": "./dist/yargs/index.js",
+    "./ajv": "./dist/validation/ajv/index.js",
+    "./joi": "./dist/validation/joi/index.js"
+  },
   "bin": {
     "kpy": "dist/bin/kpy.js",
     "json2env": "dist/bin/json2env.js",

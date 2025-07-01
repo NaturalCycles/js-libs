@@ -1,7 +1,7 @@
 import type { AsyncMapper, Mapper } from '@naturalcycles/js-lib'
 import { _passNothingPredicate } from '@naturalcycles/js-lib'
-import type { TransformMapOptions } from '../../index.js'
-import { transformMap, transformMapSync } from '../../index.js'
+import type { TransformMapOptions } from '../index.js'
+import { transformMap, transformMapSync } from '../index.js'
 import type { WritableTyped } from '../stream.model.js'
 
 /**

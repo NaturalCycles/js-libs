@@ -2,7 +2,7 @@ import { Readable, Transform } from 'node:stream'
 import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { _range, pExpectedErrorString } from '@naturalcycles/js-lib'
 import { expect, test } from 'vitest'
-import { _pipeline, writablePushToArray } from '../index.js'
+import { _pipeline, writablePushToArray } from './index.js'
 
 function errorTransformUnhandled(): Transform {
   return new Transform({

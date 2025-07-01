@@ -6,7 +6,7 @@ import type { UnixTimestamp } from '@naturalcycles/js-lib'
 import { appendToBashEnv, appendToGithubEnv, appendToGithubOutput } from '../fs/json2env.js'
 import { runScript } from '../script/runScript.js'
 import { generateBuildInfo } from '../util/buildInfo.util.js'
-import { _yargs } from '../yargs.util.js'
+import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(async () => {
   const { dir, overrideTimestamp } = _yargs().options({

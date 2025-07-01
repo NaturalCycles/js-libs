@@ -1,7 +1,7 @@
 import { _range } from '@naturalcycles/js-lib'
 import { expect, test } from 'vitest'
-import { _pipelineToArray, readableFromArray } from '../../../index.js'
 import { testDir } from '../../../test/paths.cnst.js'
+import { _pipelineToArray, readableFromArray } from '../../index.js'
 import { transformMultiThreaded } from './transformMultiThreaded.js'
 
 test('transformMultiThreaded', async () => {

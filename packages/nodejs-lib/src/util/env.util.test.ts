@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
-import { fs2, requireEnvKeys } from '../index.js'
+import { fs2 } from '../fs/index.js'
+import { requireEnvKeys } from '../index.js'
 import { srcDir } from '../test/paths.cnst.js'
 
 test('requireEnvKeys', () => {

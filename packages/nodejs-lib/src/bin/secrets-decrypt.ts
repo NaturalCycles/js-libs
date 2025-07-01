@@ -5,7 +5,7 @@ import { dimGrey } from '../colors/colors.js'
 import { runScript } from '../script/runScript.js'
 import type { DecryptCLIOptions } from '../secret/secrets-decrypt.util.js'
 import { secretsDecrypt } from '../secret/secrets-decrypt.util.js'
-import { _yargs } from '../yargs.util.js'
+import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(() => {
   const { dir, file, encKeyBuffer, del, jsonMode } = getDecryptCLIOptions()

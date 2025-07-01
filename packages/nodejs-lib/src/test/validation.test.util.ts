@@ -1,5 +1,5 @@
 import type { AnySchema } from 'joi'
-import { validate } from '../index.js'
+import { validate } from '../validation/joi/index.js'
 
 export function testValidation(schema: AnySchema, valid: any[], invalid: any[]): void {
   valid.forEach(v => {

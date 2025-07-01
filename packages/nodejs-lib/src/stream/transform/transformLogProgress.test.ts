@@ -1,8 +1,8 @@
 import { Readable } from 'node:stream'
 import { pDelay } from '@naturalcycles/js-lib'
 import { expect, test } from 'vitest'
-import type { ProgressLogItem } from '../../index.js'
-import { _pipeline, progressReadableMapper, readableFrom, writableVoid } from '../../index.js'
+import type { ProgressLogItem } from '../index.js'
+import { _pipeline, progressReadableMapper, readableFrom, writableVoid } from '../index.js'
 import { transformLogProgress } from './transformLogProgress.js'
 
 // todo: AsyncIterable2 (or Iterable2.mapAsync) should be implemented in js-lib

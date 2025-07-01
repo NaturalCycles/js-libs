@@ -1,19 +1,21 @@
 import { _range } from '@naturalcycles/js-lib'
 import { describe, expect, test } from 'vitest'
 import {
+  stringId,
+  stringIdBase62,
+  stringIdBase64,
+  stringIdBase64Url,
+  stringIdNonAmbiguous,
+} from '../index.js'
+import {
   base62Schema,
   base64Schema,
   base64UrlSchema,
   idBase62Schema,
   idBase64Schema,
   idBase64UrlSchema,
-  stringId,
-  stringIdBase62,
-  stringIdBase64,
-  stringIdBase64Url,
-  stringIdNonAmbiguous,
   validate,
-} from '../index.js'
+} from '../validation/joi/index.js'
 
 const stringIdRegex = /^[a-z0-9]*$/
 const base62regex = /^[a-zA-Z0-9]*$/
