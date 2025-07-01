@@ -1,9 +1,8 @@
 import { AjvSchema } from '@naturalcycles/nodejs-lib'
 import { expect, test } from 'vitest'
-import { z } from 'zod/v4'
 import { _stringify } from '../string/stringify.js'
 import type { UnixTimestamp } from '../types.js'
-import { zEmailNoLowercase, zId, zUnixTimestamp2000 } from './zod.shared.schemas.js'
+import { z, type zInfer } from './index.js'
 import { zValidate } from './zod.util.js'
 
 enum Goal {
@@ -33,9 +32,9 @@ const zOnboardingData = z.object({
 // type AccountOnboardingData = z.infer<typeof zOnboardingData>
 
 const zAccount = z.object({
-  id: zId,
-  created: zUnixTimestamp2000.optional(),
-  email: zEmailNoLowercase,
+  id: z.base64Url,
+  created: z.unixTimestamp2000.optional(),
+  email: z.email,
   age: z.number().min(18).max(150).optional(),
   completed: z.boolean().optional(),
   onboardingData: zOnboardingData.optional(),
@@ -48,7 +47,7 @@ const accountJsonSchema = z.toJSONSchema(zAccount, {
 
 const accountAjvSchema = AjvSchema.create<Account>(accountJsonSchema as any)
 
-type Account = z.infer<typeof zAccount>
+type Account = zInfer<typeof zAccount>
 // interface Account extends z.infer<typeof zAccount> {}
 
 function getMockAccount(patch?: Partial<Account>): Account {
@@ -99,14 +98,22 @@ test('account json schema', () => {
           "type": "integer",
         },
         "email": {
+          "allOf": [
+            {
+              "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+              "type": "string",
+            },
+            {
+              "pattern": "^[^A-Z]+$",
+              "type": "string",
+            },
+          ],
           "description": "Email",
-          "format": "email",
-          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
           "type": "string",
         },
         "id": {
-          "description": "IdString",
-          "pattern": "^[a-zA-Z0-9_]{6,64}$",
+          "description": "Base64UrlString",
+          "pattern": "^[\\w\\-/]+$",
           "type": "string",
         },
         "onboardingData": {
@@ -152,7 +159,6 @@ test('email invalid', () => {
   const err = accountAjvSchema.getValidationError(account)
   expect(_stringify(err)).toMatchInlineSnapshot(`
     "AjvValidationError: Object.12345678/email must match pattern "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
-    Object.12345678/email must match format "email"
     Input: {
       id: '12345678',
       created: 1609459200,
