@@ -1,4 +1,4 @@
-import { email, z } from 'zod/v4'
+import { z } from 'zod/v4'
 
 export const TS_2500 = 16725225600 // 2500-01-01
 export const TS_2000 = 946684800 // 2000-01-01
