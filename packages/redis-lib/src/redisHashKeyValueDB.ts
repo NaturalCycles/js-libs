@@ -6,7 +6,7 @@ import type {
   KeyValueDBTuple,
 } from '@naturalcycles/db-lib'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { RedisKeyValueDBCfg } from './redisKeyValueDB.js'
 
 /**

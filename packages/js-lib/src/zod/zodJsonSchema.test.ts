@@ -1,4 +1,4 @@
-import { AjvSchema } from '@naturalcycles/nodejs-lib'
+import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { expect, test } from 'vitest'
 import { z } from 'zod/v4'
 import { _stringify } from '../string/stringify.js'

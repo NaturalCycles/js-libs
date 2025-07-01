@@ -7,8 +7,8 @@ import type {
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
 import type { CommonLogger } from '@naturalcycles/js-lib'
 import { AppError } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
-import { boldWhite, readableCreate } from '@naturalcycles/nodejs-lib'
+import { boldWhite } from '@naturalcycles/nodejs-lib'
+import { readableCreate, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { Database, Options } from 'better-sqlite3'
 import BetterSqlite3 from 'better-sqlite3'
 

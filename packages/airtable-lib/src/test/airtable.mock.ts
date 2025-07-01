@@ -5,7 +5,7 @@ import {
   emailSchema,
   objectSchema,
   stringSchema,
-} from '@naturalcycles/nodejs-lib'
+} from '@naturalcycles/nodejs-lib/joi'
 import type { AirtableApi } from '../airtable.api.js'
 import type { AirtableAttachment, AirtableRecord } from '../airtable.model.js'
 import {

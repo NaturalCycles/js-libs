@@ -10,12 +10,8 @@ import {
   pExpectedErrorString,
   pTry,
 } from '@naturalcycles/js-lib'
-import {
-  AjvSchema,
-  AjvValidationError,
-  deflateString,
-  inflateToString,
-} from '@naturalcycles/nodejs-lib'
+import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib'
+import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { InMemoryDB } from '../adapter/inmemory/inMemory.db.js'
 import { DBLibError } from '../cnst.js'

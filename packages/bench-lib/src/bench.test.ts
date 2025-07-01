@@ -1,4 +1,4 @@
-import { fs2 } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
 import { expect, test } from 'vitest'
 import { runBench } from './bench.util.js'
 import { tmpDir } from './test/paths.cnst.js'

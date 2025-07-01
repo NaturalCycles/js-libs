@@ -16,7 +16,7 @@ import {
   _omit,
   commonLoggerPrefix,
 } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommandOperationOptions, Filter, MongoClient, MongoClientOptions } from 'mongodb'
 import { dbQueryToMongoQuery } from './query.util.js'
 

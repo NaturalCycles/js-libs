@@ -13,13 +13,16 @@
   "dependencies": {
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
-    "@naturalcycles/nodejs-lib": "workspace:^14",
+    "@naturalcycles/nodejs-lib": "workspace:^15",
     "ioredis": "^5",
     "tslib": "^2"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",
     "@types/node": "^24"
+  },
+  "exports": {
+    ".": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -41,7 +44,7 @@
     "directory": "packages/redis-lib"
   },
   "engines": {
-    "node": ">=22.10"
+    "node": ">=22.12.0"
   },
   "version": "2.0.0",
   "description": "Redis implementation of CommonKeyValueDB interface",

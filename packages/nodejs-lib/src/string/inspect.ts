@@ -50,8 +50,3 @@ export function _inspect(obj: any, opt: InspectAnyOptions = {}): string {
       }),
   })
 }
-
-/**
- * @deprecated renamed to _inspect
- */
-export const inspectAny = _inspect

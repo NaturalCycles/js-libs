@@ -7,7 +7,7 @@ import type {
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
 import type { StringMap } from '@naturalcycles/js-lib'
 import { AppError, pMap } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage } from './commonStorage.js'
 
 export interface CommonStorageKeyValueDBCfg {

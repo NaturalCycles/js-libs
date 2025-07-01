@@ -1,5 +1,6 @@
 import { _assert, _mapValues, _merge, _truncate, localTime } from '@naturalcycles/js-lib'
-import { dimGrey, fs2, sha256, white } from '@naturalcycles/nodejs-lib'
+import { dimGrey, sha256, white } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
 import type { BackendCfg } from './backend.cfg.util.js'
 import type { AppYaml, DeployInfo } from './deploy.model.js'
 

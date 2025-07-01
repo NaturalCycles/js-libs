@@ -6,7 +6,8 @@ import {
   HttpRequestError,
   pExpectedError,
 } from '@naturalcycles/js-lib'
-import { arraySchema, deflateString, objectSchema } from '@naturalcycles/nodejs-lib'
+import { deflateString } from '@naturalcycles/nodejs-lib'
+import { arraySchema, objectSchema } from '@naturalcycles/nodejs-lib/joi'
 import { afterAll, expect, test } from 'vitest'
 import { getDefaultRouter, validateRequest } from './index.js'
 import { safeJsonMiddleware } from './server/safeJsonMiddleware.js'

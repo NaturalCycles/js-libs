@@ -1,4 +1,4 @@
-import { AjvSchema } from '@naturalcycles/nodejs-lib'
+import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { expect, test } from 'vitest'
 import { _range } from '../../index.js'
 import { generateJsonSchemaFromData } from './generateJsonSchemaFromData.js'

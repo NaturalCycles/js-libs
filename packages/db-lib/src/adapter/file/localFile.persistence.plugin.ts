@@ -1,7 +1,8 @@
 import { Readable } from 'node:stream'
 import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { pMap } from '@naturalcycles/js-lib'
-import { _pipeline, fs2 } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { DBSaveBatchOperation } from '../../db.model.js'
 import type { FileDBPersistencePlugin } from './file.db.model.js'
 

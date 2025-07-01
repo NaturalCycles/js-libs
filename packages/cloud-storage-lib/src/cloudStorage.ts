@@ -9,7 +9,11 @@ import {
   pMap,
   SKIP,
 } from '@naturalcycles/js-lib'
-import type { ReadableBinary, ReadableTyped, WritableBinary } from '@naturalcycles/nodejs-lib'
+import type {
+  ReadableBinary,
+  ReadableTyped,
+  WritableBinary,
+} from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
 import type { GCPServiceAccount } from './model.js'
 

@@ -1,5 +1,6 @@
 import { _range, pDefer } from '@naturalcycles/js-lib'
-import { dimGrey, fs2, runScript, yellow } from '@naturalcycles/nodejs-lib'
+import { dimGrey, runScript, yellow } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
 import type { Event, Suite } from 'benchmark'
 import Benchmark from 'benchmark'
 import { plotAsciiChart } from './asciiChart.util.js'

@@ -2,7 +2,7 @@ import type { CommonKeyValueDB, IncrementTuple, KeyValueDBTuple } from '@natural
 import { commonKeyValueDBFullSupport, DBQuery } from '@naturalcycles/db-lib'
 import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { AppError } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { DatastoreDB } from './datastore.db.js'
 import type { DatastoreDBCfg } from './datastore.model.js'
 

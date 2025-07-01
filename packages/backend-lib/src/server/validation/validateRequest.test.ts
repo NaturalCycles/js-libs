@@ -1,5 +1,6 @@
 import type { StringMap } from '@naturalcycles/js-lib'
-import { _inspect, numberSchema, objectSchema, stringSchema } from '@naturalcycles/nodejs-lib'
+import { _inspect } from '@naturalcycles/nodejs-lib'
+import { numberSchema, objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { debugResource } from '../../test/debug.resource.js'
 import type { ExpressApp } from '../../testing/index.js'

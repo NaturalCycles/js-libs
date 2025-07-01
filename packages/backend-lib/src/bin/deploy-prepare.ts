@@ -6,7 +6,8 @@ yarn deploy-prepare
 
  */
 
-import { _yargs, runScript } from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib'
+import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
 import { deployPrepare, deployPrepareYargsOptions } from '../deploy/deployPrepare.js'
 
 runScript(async () => {

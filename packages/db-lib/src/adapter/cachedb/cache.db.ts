@@ -6,7 +6,7 @@ import type {
   StringMap,
 } from '@naturalcycles/js-lib'
 import { _isTruthy } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { BaseCommonDB } from '../../base.common.db.js'
 import type { CommonDB, CommonDBSupport } from '../../common.db.js'
 import { commonDBFullSupport } from '../../common.db.js'

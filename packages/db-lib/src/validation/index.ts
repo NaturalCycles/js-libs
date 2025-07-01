@@ -8,7 +8,7 @@ import {
   objectSchema,
   type StringSchema,
   stringSchema,
-} from '@naturalcycles/nodejs-lib'
+} from '@naturalcycles/nodejs-lib/joi'
 import type { CommonDBOptions, CommonDBSaveOptions } from '../db.model.js'
 import type {
   DBQuery,

@@ -8,7 +8,7 @@ import type {
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
 import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { AppError, pMap } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { QueryOptions } from 'mysql'
 import type { MysqlDBCfg } from './mysql.db.js'
 import { MysqlDB } from './mysql.db.js'

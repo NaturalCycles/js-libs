@@ -20,8 +20,9 @@ import {
   localTime,
   pMap,
 } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
-import { _pipeline, bufferReviver, dimGrey, fs2, yellow } from '@naturalcycles/nodejs-lib'
+import { dimGrey, yellow } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { _pipeline, bufferReviver, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB, CommonDBSupport } from '../../common.db.js'
 import { commonDBFullSupport, CommonDBType } from '../../common.db.js'
 import type {

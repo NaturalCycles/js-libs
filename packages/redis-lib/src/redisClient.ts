@@ -10,7 +10,7 @@ import type {
   UnixTimestamp,
 } from '@naturalcycles/js-lib'
 import { _stringMapEntries } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { Redis, RedisOptions } from 'ioredis'
 import type { ScanStreamOptions } from 'ioredis/built/types.js'
 import type { ChainableCommander } from 'ioredis/built/utils/RedisCommander.js'

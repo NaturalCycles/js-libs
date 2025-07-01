@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@naturalcycles/js-lib": "workspace:^15",
-    "@naturalcycles/nodejs-lib": "workspace:^14",
+    "@naturalcycles/nodejs-lib": "workspace:^15",
     "autocannon": "^8",
     "benchmark": "^2",
     "hdr-histogram-js": "^3",
@@ -29,6 +29,9 @@
     "helmet": "^8",
     "nanoid": "^5"
   },
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "files": [
     "dist"
   ],
@@ -43,7 +46,7 @@
     "directory": "packages/bench-lib"
   },
   "engines": {
-    "node": ">=22.10.0"
+    "node": ">=22.12.0"
   },
   "version": "1.6.1",
   "description": "Benchmarking library, based on Benchmark.js and Autocannon",

@@ -13,13 +13,16 @@
   "dependencies": {
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
-    "@naturalcycles/nodejs-lib": "workspace:^14",
+    "@naturalcycles/nodejs-lib": "workspace:^15",
     "@types/better-sqlite3": "^7",
     "better-sqlite3": "^12",
     "sql-template-strings": "^2",
     "sqlite": "^5",
     "sqlite3": "^5",
     "tslib": "^2"
+  },
+  "exports": {
+    ".": "./dist/index.js"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",

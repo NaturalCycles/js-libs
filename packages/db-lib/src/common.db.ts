@@ -4,7 +4,7 @@ import type {
   ObjectWithId,
   StringMap,
 } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {
   CommonDBCreateOptions,
   CommonDBOptions,

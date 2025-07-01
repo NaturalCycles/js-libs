@@ -1,6 +1,7 @@
 import { AppError, jsonSchema } from '@naturalcycles/js-lib'
 import { z } from '@naturalcycles/js-lib/zod'
-import { AjvSchema, objectSchema, stringSchema } from '@naturalcycles/nodejs-lib'
+import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
 import { getDefaultRouter } from '../server/getDefaultRouter.js'
 import { ajvValidateRequest } from '../server/validation/ajvValidateRequest.js'
 import { validateRequest } from '../server/validation/validateRequest.js'

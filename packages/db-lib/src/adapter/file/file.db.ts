@@ -11,8 +11,9 @@ import {
   generateJsonSchemaFromData,
   localTime,
 } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
-import { dimGrey, readableCreate } from '@naturalcycles/nodejs-lib'
+import { dimGrey } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { readableCreate } from '@naturalcycles/nodejs-lib/stream'
 import { BaseCommonDB } from '../../base.common.db.js'
 import type { CommonDB, CommonDBSupport } from '../../common.db.js'
 import { commonDBFullSupport } from '../../common.db.js'

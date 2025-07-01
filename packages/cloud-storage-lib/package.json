@@ -14,13 +14,16 @@
     "@google-cloud/storage": "^7",
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
-    "@naturalcycles/nodejs-lib": "workspace:^14",
+    "@naturalcycles/nodejs-lib": "workspace:^15",
     "tslib": "^2"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",
     "@types/node": "^24",
     "firebase-admin": "^13"
+  },
+  "exports": {
+    ".": "./dist/index.js"
   },
   "files": [
     "dist",

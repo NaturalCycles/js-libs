@@ -5,12 +5,8 @@ yarn tsx scripts/streamingTest.script.ts
  */
 
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import {
-  _pipeline,
-  runScript,
-  transformLogProgress,
-  writableForEach,
-} from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib'
+import { _pipeline, transformLogProgress, writableForEach } from '@naturalcycles/nodejs-lib/stream'
 import { SqliteKeyValueDB } from '../src/index.js'
 import { tmpDir } from '../src/test/paths.cnst.js'
 

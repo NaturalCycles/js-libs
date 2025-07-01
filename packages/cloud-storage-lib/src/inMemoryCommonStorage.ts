@@ -6,8 +6,14 @@ import {
   _substringAfterLast,
   localTime,
 } from '@naturalcycles/js-lib'
-import type { ReadableBinary, ReadableTyped, WritableBinary } from '@naturalcycles/nodejs-lib'
-import { fs2, md5, readableFrom } from '@naturalcycles/nodejs-lib'
+import { md5 } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import {
+  type ReadableBinary,
+  readableFrom,
+  type ReadableTyped,
+  type WritableBinary,
+} from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
 
 export class InMemoryCommonStorage implements CommonStorage {

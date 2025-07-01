@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@naturalcycles/js-lib": "workspace:^15",
-    "@naturalcycles/nodejs-lib": "workspace:^14"
+    "@naturalcycles/nodejs-lib": "workspace:^15"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*"

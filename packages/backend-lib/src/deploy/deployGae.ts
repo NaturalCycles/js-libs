@@ -1,5 +1,6 @@
 import { _anyToError, _objectAssign, pRetry } from '@naturalcycles/js-lib'
-import { appendToGithubSummary, exec2, fs2 } from '@naturalcycles/nodejs-lib'
+import { exec2 } from '@naturalcycles/nodejs-lib'
+import { appendToGithubSummary, fs2 } from '@naturalcycles/nodejs-lib/fs'
 import { getBackendCfg } from './backend.cfg.util.js'
 import { createDeployInfo } from './deploy.util.js'
 import type { DeployHealthCheckOptions } from './deployHealthCheck.js'

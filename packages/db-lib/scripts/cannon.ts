@@ -6,7 +6,8 @@ pn tsx scripts/cannon.ts
 
 import { expressFunctionFactory, runCannon } from '@naturalcycles/bench-lib'
 import { _omit } from '@naturalcycles/js-lib'
-import { getValidationResult, runScript, stringId } from '@naturalcycles/nodejs-lib'
+import { runScript, stringId } from '@naturalcycles/nodejs-lib'
+import { getValidationResult } from '@naturalcycles/nodejs-lib/joi'
 import { CommonDao, InMemoryDB } from '../src/index.js'
 import { createTestItemsBM, TEST_TABLE, testItemBMSchema } from '../src/testing/index.js'
 

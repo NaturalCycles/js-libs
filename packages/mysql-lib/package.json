@@ -13,7 +13,7 @@
   "dependencies": {
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
-    "@naturalcycles/nodejs-lib": "workspace:^14",
+    "@naturalcycles/nodejs-lib": "workspace:^15",
     "@types/mysql": "^2",
     "mysql": "^2",
     "tslib": "^2"
@@ -22,6 +22,9 @@
     "@naturalcycles/dev-lib": "*",
     "@types/node": "^24",
     "dotenv": "^17"
+  },
+  "exports": {
+    ".": "./dist/index.js"
   },
   "files": [
     "dist",

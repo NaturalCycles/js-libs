@@ -8,7 +8,7 @@ import {
   type ObjectSchema,
   objectSchema,
   stringSchema,
-} from '@naturalcycles/nodejs-lib'
+} from '@naturalcycles/nodejs-lib/joi'
 
 const MOCK_TS_2018_06_21 = 1529539200 as UnixTimestamp
 
