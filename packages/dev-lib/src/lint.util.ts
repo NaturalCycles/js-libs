@@ -4,7 +4,9 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib'
 import { _assert, _isTruthy, _since, _truncate, semver2 } from '@naturalcycles/js-lib'
-import { _yargs, boldGrey, dimGrey, exec2, fs2, git2 } from '@naturalcycles/nodejs-lib'
+import { boldGrey, dimGrey, exec2, git2 } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
 import {
   eslintExtensions,
   lintExclude,

@@ -1,6 +1,7 @@
 import type { AnyObject } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib'
-import { dimGrey, exec2, fs2 } from '@naturalcycles/nodejs-lib'
+import { dimGrey, exec2 } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
 import { findPackageBinPath } from './lint.util.js'
 
 interface RunTestOptions {
