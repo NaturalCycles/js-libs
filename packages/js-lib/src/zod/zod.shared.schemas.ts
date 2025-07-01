@@ -113,3 +113,10 @@ export const zBaseDBEntity = z
   .describe('BaseDBEntity')
 
 // export const zSavedDBEntity = zBaseDBEntity.required().describe('SavedDBEntity')
+
+export const customZodSchemas = {
+  unixTimestamp: zUnixTimestamp,
+  unixTimestamp2000: zUnixTimestamp2000,
+}
+
+export type ExtendedZod = typeof z & typeof customZodSchemas
