@@ -41,7 +41,7 @@
     "tslib": "^2"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "19.4.2",
+    "@naturalcycles/dev-lib": "*",
     "@sentry/node": "^9",
     "@types/ejs": "^3",
     "fastify": "^5"

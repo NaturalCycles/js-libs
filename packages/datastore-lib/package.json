@@ -19,7 +19,7 @@
     "@naturalcycles/nodejs-lib": "workspace:^14"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "19.4.2",
+    "@naturalcycles/dev-lib": "*",
     "@types/node": "^24"
   },
   "files": [

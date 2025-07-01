@@ -53,7 +53,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2",
     "@naturalcycles/bench-lib": "*",
-    "@naturalcycles/dev-lib": "19.4.2",
+    "@naturalcycles/dev-lib": "*",
     "@naturalcycles/nodejs-lib": "*",
     "@semantic-release/git": "^10",
     "@types/node": "^24",
