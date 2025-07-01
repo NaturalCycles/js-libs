@@ -12,12 +12,16 @@
     "lint": "pnpm --filter '@naturalcycles/*' run lint",
     "build": "pnpm --filter '@naturalcycles/*' run build",
     "test": "pnpm --filter '@naturalcycles/*' run test",
+    "bt": "pnpm --filter '@naturalcycles/*' run bt",
     "dev-lib:build": "pnpm --filter @naturalcycles/dev-lib run build",
     "dev-lib:check": "pnpm --filter @naturalcycles/dev-lib run check",
+    "dev-lib:bt": "pnpm --filter @naturalcycles/dev-lib run bt",
     "js-lib:check": "pnpm --filter @naturalcycles/js-lib run check",
     "js-lib:build": "pnpm --filter @naturalcycles/js-lib run build",
+    "js-lib:bt": "pnpm --filter @naturalcycles/js-lib run bt",
     "js-lib:test": "pnpm --filter @naturalcycles/js-lib run test",
     "nodejs-lib:check": "pnpm --filter @naturalcycles/nodejs-lib run check",
+    "nodejs-lib:bt": "pnpm --filter @naturalcycles/nodejs-lib run bt",
     "nodejs-lib:build": "pnpm --filter @naturalcycles/nodejs-lib run build",
     "backend-lib:check": "pnpm --filter @naturalcycles/backend-lib run check",
     "db-lib:check": "pnpm --filter @naturalcycles/db-lib run check",
@@ -48,9 +52,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2",
-    "@naturalcycles/bench-lib": "^4",
+    "@naturalcycles/bench-lib": "*",
     "@naturalcycles/dev-lib": "*",
-    "@naturalcycles/nodejs-lib": "^14",
+    "@naturalcycles/nodejs-lib": "*",
     "@semantic-release/git": "^10",
     "@types/node": "^24",
     "@vitest/coverage-v8": "^3",
@@ -69,5 +73,5 @@
   "engines": {
     "node": ">=22.12.0"
   },
-  "packageManager": "pnpm@10.12.2"
+  "packageManager": "pnpm@10.12.4"
 }
