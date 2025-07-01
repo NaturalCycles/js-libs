@@ -18,7 +18,7 @@
     "tslib": "^2"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "*",
+    "@naturalcycles/dev-lib": "19.4.2",
     "@types/node": "^24"
   },
   "files": [
