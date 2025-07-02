@@ -4,14 +4,9 @@ pn tsx scripts/ndjsonParseSpeed
 
  */
 
-import {
-  _pipeline,
-  fs2,
-  requireEnvKeys,
-  runScript,
-  transformLogProgress,
-  transformMap,
-} from '../src/index.js'
+import { fs2 } from '../src/fs/index.js'
+import { requireEnvKeys, runScript } from '../src/index.js'
+import { _pipeline, transformLogProgress, transformMap } from '../src/stream/index.js'
 
 const { SNAPSHOTS_DIR, SNAPSHOT_ID } = requireEnvKeys('SNAPSHOTS_DIR', 'SNAPSHOT_ID')
 

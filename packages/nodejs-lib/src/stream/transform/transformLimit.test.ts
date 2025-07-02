@@ -1,6 +1,6 @@
 import { _range } from '@naturalcycles/js-lib'
 import { expect, test } from 'vitest'
-import { readableFrom, readableFromArray } from '../../index.js'
+import { readableFrom, readableFromArray } from '../index.js'
 import { _pipelineToArray } from '../pipeline/pipeline.js'
 import { transformLimit } from './transformLimit.js'
 

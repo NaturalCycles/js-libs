@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
 import { _deepCopy, _filterObject, _omit, _pick, _sortBy, localTime } from '@naturalcycles/js-lib'
-import { _pipeline } from '@naturalcycles/nodejs-lib'
+import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../common.db.js'
 import { CommonDao } from '../commondao/common.dao.js'
 import { CommonDaoLogLevel } from '../commondao/common.dao.model.js'

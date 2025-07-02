@@ -1,4 +1,4 @@
-import { AjvSchema } from '@naturalcycles/nodejs-lib'
+import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { expect, test } from 'vitest'
 import { _stringify } from '../string/stringify.js'
 import type { UnixTimestamp } from '../types.js'

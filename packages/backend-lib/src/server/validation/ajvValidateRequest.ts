@@ -1,5 +1,5 @@
 import { _get, AppError } from '@naturalcycles/js-lib'
-import type { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib'
+import type { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../server.model.js'
 import type { ReqValidationOptions } from './validateRequest.js'
 

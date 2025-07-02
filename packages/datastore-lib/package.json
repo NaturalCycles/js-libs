@@ -16,11 +16,14 @@
     "@google-cloud/datastore": "^10",
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
-    "@naturalcycles/nodejs-lib": "workspace:^14"
+    "@naturalcycles/nodejs-lib": "workspace:^15"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",
     "@types/node": "^24"
+  },
+  "exports": {
+    ".": "./dist/index.js"
   },
   "files": [
     "dist",

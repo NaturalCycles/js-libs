@@ -4,8 +4,8 @@ pn tsx scripts/ndjsonForEach.script
 
  */
 
-import { ndjsonStreamForEach } from '../src/index.js'
 import { runScript } from '../src/script/runScript.js'
+import { ndjsonStreamForEach } from '../src/stream/index.js'
 import { tmpDir } from '../src/test/paths.cnst.js'
 
 runScript(async () => {

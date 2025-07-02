@@ -30,23 +30,22 @@ import {
 } from '@naturalcycles/js-lib'
 import type { ZodValidationError } from '@naturalcycles/js-lib/zod'
 import { ZodType, zSafeValidate } from '@naturalcycles/js-lib/zod'
-import type {
-  AjvValidationError,
-  JoiValidationError,
-  ObjectSchema,
-  ReadableTyped,
-} from '@naturalcycles/nodejs-lib'
+import { stringId } from '@naturalcycles/nodejs-lib'
+import { AjvSchema, type AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
+import {
+  getValidationResult,
+  type JoiValidationError,
+  type ObjectSchema,
+} from '@naturalcycles/nodejs-lib/joi'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import {
   _pipeline,
-  AjvSchema,
-  getValidationResult,
-  stringId,
   transformChunk,
   transformLogProgress,
   transformMap,
   transformNoOp,
   writableVoid,
-} from '@naturalcycles/nodejs-lib'
+} from '@naturalcycles/nodejs-lib/stream'
 import { DBLibError } from '../cnst.js'
 import type { CommonDBTransactionOptions, DBTransaction, RunQueryResult } from '../db.model.js'
 import type { DBQuery } from '../query/dbQuery.js'

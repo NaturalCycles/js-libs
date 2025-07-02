@@ -1,6 +1,6 @@
 import { _get, AppError } from '@naturalcycles/js-lib'
-import type { AnySchema, JoiValidationError } from '@naturalcycles/nodejs-lib'
-import { getValidationResult } from '@naturalcycles/nodejs-lib'
+import type { AnySchema, JoiValidationError } from '@naturalcycles/nodejs-lib/joi'
+import { getValidationResult } from '@naturalcycles/nodejs-lib/joi'
 import type { BackendRequest } from '../server.model.js'
 
 export interface ReqValidationOptions<ERR extends Error> {

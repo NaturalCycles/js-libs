@@ -2,7 +2,7 @@
 
 import { json2env } from '../fs/json2env.js'
 import { runScript } from '../script/runScript.js'
-import { _yargs } from '../yargs.util.js'
+import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(() => {
   const { argv } = _yargs()

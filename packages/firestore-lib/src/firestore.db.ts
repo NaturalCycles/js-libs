@@ -30,7 +30,7 @@ import {
   _stringMapEntries,
   pMap,
 } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { escapeDocId, unescapeDocId } from './firestore.util.js'
 import { dbQueryToFirestoreQuery } from './query.util.js'
 

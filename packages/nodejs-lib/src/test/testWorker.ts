@@ -1,5 +1,5 @@
 import { pDelay } from '@naturalcycles/js-lib'
-import { BaseWorkerClass } from '../index.js'
+import { BaseWorkerClass } from '../stream/index.js'
 
 export class WorkerClass extends BaseWorkerClass<any, any> {
   async process(msg: any, index: number): Promise<any> {

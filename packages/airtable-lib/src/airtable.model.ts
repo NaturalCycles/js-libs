@@ -3,14 +3,14 @@ import type {
   ArraySchema,
   JoiValidationError,
   ObjectSchema,
-} from '@naturalcycles/nodejs-lib'
+} from '@naturalcycles/nodejs-lib/joi'
 import {
   arraySchema,
   integerSchema,
   objectSchema,
   stringSchema,
   urlSchema,
-} from '@naturalcycles/nodejs-lib'
+} from '@naturalcycles/nodejs-lib/joi'
 import type { AirtableApiSort } from './airtable.api.js'
 
 export enum AirtableErrorCode {

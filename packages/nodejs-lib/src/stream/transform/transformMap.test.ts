@@ -3,14 +3,14 @@ import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import type { AsyncMapper } from '@naturalcycles/js-lib'
 import { _range, _stringify, ErrorMode, pExpectedError } from '@naturalcycles/js-lib'
 import { beforeAll, expect, test } from 'vitest'
-import type { TransformMapStats } from '../../index.js'
+import type { TransformMapStats } from '../index.js'
 import {
   _pipeline,
   _pipelineToArray,
   readableFromArray,
   transformMap,
   transformMapStatsSummary,
-} from '../../index.js'
+} from '../index.js'
 
 beforeAll(() => {
   mockTime()

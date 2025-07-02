@@ -1,7 +1,8 @@
 import type { AbortableAsyncMapper } from '@naturalcycles/js-lib'
 import { ErrorMode } from '@naturalcycles/js-lib'
-import type { TransformLogProgressOptions, TransformMapOptions } from '../../index.js'
-import { _pipeline, fs2, transformLogProgress, transformMap, writableVoid } from '../../index.js'
+import { fs2 } from '../../fs/index.js'
+import type { TransformLogProgressOptions, TransformMapOptions } from '../index.js'
+import { _pipeline, transformLogProgress, transformMap, writableVoid } from '../index.js'
 
 export interface NDJSONStreamForEachOptions<IN = any>
   extends TransformMapOptions<IN, void>,

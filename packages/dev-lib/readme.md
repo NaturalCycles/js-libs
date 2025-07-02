@@ -60,8 +60,6 @@ All files are linted and _prettified_ upon commit (using `husky`, `lint-staged` 
 ### Folder structure
 
 - `/dist` target dir to put compiled files into (`*.js` and additional files like `*.json`)
-- `/dist-cjs` target for CommonJS files
-- `/dist-esm` target for ES Modules
 - `/src` for all source files
 - `/scripts` for all non-production source files / scripts.
 - `/src/test` for generic test-related files and utilities, integration tests.

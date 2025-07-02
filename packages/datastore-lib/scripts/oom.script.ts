@@ -6,12 +6,8 @@ yarn tsx scripts/oom.script.ts
 
 import { Transform, Writable } from 'node:stream'
 import { DBQuery } from '@naturalcycles/db-lib'
-import {
-  _pipeline,
-  requireEnvKeys,
-  runScript,
-  transformLogProgress,
-} from '@naturalcycles/nodejs-lib'
+import { requireEnvKeys, runScript } from '@naturalcycles/nodejs-lib'
+import { _pipeline, transformLogProgress } from '@naturalcycles/nodejs-lib/stream'
 import { DatastoreDB } from '../src/index.js'
 
 const { SECRET_GCP_SERVICE_ACCOUNT } = requireEnvKeys('SECRET_GCP_SERVICE_ACCOUNT')

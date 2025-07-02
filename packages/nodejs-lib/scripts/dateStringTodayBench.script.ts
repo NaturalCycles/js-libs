@@ -7,7 +7,7 @@ pn tsx scripts/dateStringTodayBench
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import type { IsoDate } from '@naturalcycles/js-lib'
 import { localDate } from '@naturalcycles/js-lib'
-import { isValid, objectSchema, stringSchema } from '../src/index.js'
+import { isValid, objectSchema, stringSchema } from '../src/validation/joi/index.js'
 
 const entries = localDate
   .range(localDate.today().minus(50, 'day'), localDate.today().plus(50, 'day'))

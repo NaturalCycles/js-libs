@@ -1,5 +1,9 @@
 import type { LocalTimeInput } from '@naturalcycles/js-lib'
-import type { ReadableBinary, ReadableTyped, WritableBinary } from '@naturalcycles/nodejs-lib'
+import type {
+  ReadableBinary,
+  ReadableTyped,
+  WritableBinary,
+} from '@naturalcycles/nodejs-lib/stream'
 
 export interface FileEntry {
   filePath: string

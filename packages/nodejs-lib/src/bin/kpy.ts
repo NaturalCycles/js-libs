@@ -2,7 +2,7 @@
 
 import { kpySync } from '../fs/kpy.js'
 import { runScript } from '../script/runScript.js'
-import { _yargs } from '../yargs.util.js'
+import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(() => {
   const {

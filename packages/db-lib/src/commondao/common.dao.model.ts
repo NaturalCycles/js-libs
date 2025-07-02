@@ -7,14 +7,12 @@ import type {
   UnixTimestamp,
 } from '@naturalcycles/js-lib'
 import type { ZodType, ZodValidationError } from '@naturalcycles/js-lib/zod'
+import type { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
+import type { JoiValidationError, ObjectSchema } from '@naturalcycles/nodejs-lib/joi'
 import type {
-  AjvSchema,
-  AjvValidationError,
-  JoiValidationError,
-  ObjectSchema,
   TransformLogProgressOptions,
   TransformMapOptions,
-} from '@naturalcycles/nodejs-lib'
+} from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../common.db.js'
 import type { CommonDBCreateOptions, CommonDBOptions, CommonDBSaveOptions } from '../db.model.js'
 

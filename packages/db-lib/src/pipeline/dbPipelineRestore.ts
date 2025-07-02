@@ -12,13 +12,14 @@ import {
   localTime,
   pMap,
 } from '@naturalcycles/js-lib'
-import type { TransformLogProgressOptions, TransformMapOptions } from '@naturalcycles/nodejs-lib'
+import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import type {
+  TransformLogProgressOptions,
+  TransformMapOptions,
+} from '@naturalcycles/nodejs-lib/stream'
 import {
   _pipeline,
-  boldWhite,
-  dimWhite,
-  fs2,
-  grey,
   NDJsonStats,
   transformChunk,
   transformFilterSync,
@@ -26,8 +27,7 @@ import {
   transformMap,
   transformTap,
   writableForEach,
-  yellow,
-} from '@naturalcycles/nodejs-lib'
+} from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../common.db.js'
 import type { CommonDBSaveOptions } from '../db.model.js'
 

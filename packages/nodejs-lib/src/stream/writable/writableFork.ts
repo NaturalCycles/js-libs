@@ -1,6 +1,6 @@
 import { Writable } from 'node:stream'
-import type { ReadableTyped } from '../../index.js'
-import { _pipeline, readableCreate } from '../../index.js'
+import type { ReadableTyped } from '../index.js'
+import { _pipeline, readableCreate } from '../index.js'
 import type { TransformOptions, WritableTyped } from '../stream.model.js'
 
 /**

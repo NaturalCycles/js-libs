@@ -3,7 +3,7 @@ import type { Query } from '@google-cloud/datastore'
 import type { RunQueryInfo, RunQueryOptions } from '@google-cloud/datastore/build/src/query.js'
 import type { CommonLogger, UnixTimestampMillis } from '@naturalcycles/js-lib'
 import { _ms, pRetry } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { DatastoreDBStreamOptions } from './datastore.model.js'
 
 export class DatastoreStreamReadable<T = any> extends Readable implements ReadableTyped<T> {

@@ -7,7 +7,7 @@ import type {
 } from '@naturalcycles/db-lib'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
 import { _isTruthy, _zip } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { RedisClient } from './redisClient.js'
 
 export interface RedisKeyValueDBCfg {

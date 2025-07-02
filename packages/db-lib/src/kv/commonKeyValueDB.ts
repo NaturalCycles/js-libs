@@ -1,5 +1,5 @@
 import type { Integer, UnixTimestamp } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDBCreateOptions } from '../db.model.js'
 
 /**

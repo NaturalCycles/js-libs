@@ -11,12 +11,8 @@ Not gzipped (to better test streaming)
 import { Readable } from 'node:stream'
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { _range } from '@naturalcycles/js-lib'
-import {
-  _pipeline,
-  runScript,
-  transformLogProgress,
-  writableForEach,
-} from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib'
+import { _pipeline, transformLogProgress, writableForEach } from '@naturalcycles/nodejs-lib/stream'
 import { SqliteKeyValueDB } from '../src/index.js'
 import { tmpDir } from '../src/test/paths.cnst.js'
 import type { TestItem } from '../src/test/test.model.js'

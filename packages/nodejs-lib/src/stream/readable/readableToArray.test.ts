@@ -1,6 +1,6 @@
 import { _range } from '@naturalcycles/js-lib'
 import { expect, test } from 'vitest'
-import { readableFrom } from '../../index.js'
+import { readableFrom } from '../index.js'
 import { readableToArray } from './readableToArray.js'
 
 test('readableToArray', async () => {

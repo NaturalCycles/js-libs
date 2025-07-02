@@ -8,16 +8,15 @@ import fs from 'node:fs'
 import { Readable, Writable } from 'node:stream'
 import { createUnzip } from 'node:zlib'
 import { pDelay } from '@naturalcycles/js-lib'
+import { requireEnvKeys, runScript } from '../src/index.js'
 import {
   _pipeline,
-  requireEnvKeys,
-  runScript,
   transformJsonParse,
   transformLimit,
   transformMap,
   transformSplit,
   writableVoid,
-} from '../src/index.js'
+} from '../src/stream/index.js'
 
 /* eslint-disable */
 

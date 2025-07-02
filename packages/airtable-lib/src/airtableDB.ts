@@ -16,8 +16,8 @@ import {
 } from '@naturalcycles/db-lib'
 import { _Memo, type AnyObject, type ObjectWithId } from '@naturalcycles/js-lib'
 import { _by, _mapValues, _omit, AppError, pMap } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
 import { _inspect } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {
   AirtableApi,
   AirtableApiRecord,

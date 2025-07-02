@@ -16,7 +16,7 @@ import type {
   ObjectWithId,
 } from '@naturalcycles/js-lib'
 import { getFetcher } from '@naturalcycles/js-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 
 export interface HttpDBCfg extends FetcherOptions {
   baseUrl: string
