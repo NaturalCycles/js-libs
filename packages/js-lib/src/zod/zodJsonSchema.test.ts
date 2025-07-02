@@ -98,17 +98,9 @@ test('account json schema', () => {
           "type": "integer",
         },
         "email": {
-          "allOf": [
-            {
-              "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
-              "type": "string",
-            },
-            {
-              "pattern": "^[^A-Z]+$",
-              "type": "string",
-            },
-          ],
           "description": "Email",
+          "format": "email",
+          "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
           "type": "string",
         },
         "id": {
@@ -159,6 +151,7 @@ test('email invalid', () => {
   const err = accountAjvSchema.getValidationError(account)
   expect(_stringify(err)).toMatchInlineSnapshot(`
     "AjvValidationError: Object.12345678/email must match pattern "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+    Object.12345678/email must match format "email"
     Input: {
       id: '12345678',
       created: 1609459200,

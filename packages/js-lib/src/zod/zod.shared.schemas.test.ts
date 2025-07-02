@@ -21,10 +21,10 @@ describe('z.email', () => {
     expect(result).toBe(email)
   })
 
-  test('should reject an email with a capital letter', () => {
+  test('should not reject an email with a capital letter', () => {
     const email = 'Test@example.com'
     const result = z.email().safeParse(email)
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 
   test('should not trim before validation', () => {

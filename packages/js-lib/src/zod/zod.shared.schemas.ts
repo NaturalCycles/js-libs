@@ -53,11 +53,7 @@ export const zIsoDate = (): z.ZodString =>
     }, 'Must be an IsoDateString')
     .describe('IsoDateString')
 
-export const zEmail = (): z.ZodEmail =>
-  z
-    .email()
-    .regex(/^[^A-Z]+$/, 'Email must be lowercase')
-    .describe('Email')
+export const zEmail = (): z.ZodEmail => z.email().describe('Email')
 
 export const BASE62_REGEX = /^[a-zA-Z0-9]+$/
 export const BASE64_REGEX = /^[A-Za-z0-9+/]+={0,2}$/
