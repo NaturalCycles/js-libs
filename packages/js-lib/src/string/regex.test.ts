@@ -8,7 +8,7 @@ test.each(['a@b.cc', 'kirill@naturalcycles.com', 'kirill@naturalcycles.co.uk'])(
   s => {
     expect(s).toMatch(SIMPLE_EMAIL_REGEX)
     // cross-check with Zod
-    expect(zIsValid(s, zEmail)).toBe(true)
+    expect(zIsValid(s, zEmail())).toBe(true)
   },
 )
 
@@ -22,5 +22,5 @@ test.each([
 ])('email invalid %', s => {
   expect(s).not.toMatch(SIMPLE_EMAIL_REGEX)
   // cross-check with Zod
-  expect(zIsValid(s, zEmail)).toBe(false)
+  expect(zIsValid(s, zEmail())).toBe(false)
 })
