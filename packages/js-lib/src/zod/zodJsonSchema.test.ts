@@ -32,9 +32,9 @@ const zOnboardingData = z.object({
 // type AccountOnboardingData = z.infer<typeof zOnboardingData>
 
 const zAccount = z.object({
-  id: z.base64Url,
-  created: z.unixTimestamp2000.optional(),
-  email: z.email,
+  id: z.base64Url(),
+  created: z.unixTimestamp2000().optional(),
+  email: z.email(),
   age: z.number().min(18).max(150).optional(),
   completed: z.boolean().optional(),
   onboardingData: zOnboardingData.optional(),
