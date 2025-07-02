@@ -1,4 +1,4 @@
-import { getAjv } from '@naturalcycles/nodejs-lib'
+import { getAjv } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, test } from 'vitest'
 import { customZodSchemas, z } from './index.js'
 
@@ -21,10 +21,11 @@ describe('z.email', () => {
     expect(result).toBe(email)
   })
 
-  test('should not reject an email with a capital letter', () => {
+  test('should not lowercase an email', () => {
     const email = 'Test@example.com'
     const result = z.email().safeParse(email)
     expect(result.success).toBe(true)
+    expect(result.data).toBe(email)
   })
 
   test('should not trim before validation', () => {
