@@ -2,28 +2,25 @@ import { isServerSide } from '../index.js'
 import { loadScript } from './script.util.js'
 
 declare global {
-  interface Window {
-    dataLayer: any[]
-    gtag: (...args: any[]) => void
-  }
+  var dataLayer: any[]
+  var gtag: (...args: any[]) => void
+  var hj: (...args: any[]) => void
 }
 
-/* eslint-disable unicorn/prefer-global-this */
-
 /**
- * Pass enabled = false to only init window.gtag, but not load actual gtag script (e.g in dev mode).
+ * Pass enabled = false to only init globalThis.gtag, but not load actual gtag script (e.g in dev mode).
  */
 export async function loadGTag(gtagId: string, enabled = true): Promise<void> {
   if (isServerSide()) return
 
-  window.dataLayer ||= []
-  window.gtag ||= function gtag() {
+  globalThis.dataLayer ||= []
+  globalThis.gtag ||= function gtag() {
     // biome-ignore lint/complexity/useArrowFunction: ok
     // biome-ignore lint/complexity/noArguments: ok
-    window.dataLayer.push(arguments)
+    globalThis.dataLayer.push(arguments)
   }
-  window.gtag('js', new Date())
-  window.gtag('config', gtagId)
+  globalThis.gtag('js', new Date())
+  globalThis.gtag('config', gtagId)
 
   if (!enabled) return
 
@@ -33,8 +30,8 @@ export async function loadGTag(gtagId: string, enabled = true): Promise<void> {
 export async function loadGTM(gtmId: string, enabled = true): Promise<void> {
   if (isServerSide()) return
 
-  window.dataLayer ||= []
-  window.dataLayer.push({
+  globalThis.dataLayer ||= []
+  globalThis.dataLayer.push({
     'gtm.start': Date.now(),
     event: 'gtm.js',
   })
@@ -63,6 +60,6 @@ export function loadHotjar(hjid: number): void {
     r.async = 1
     r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv
     a.append(r)
-  })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=')
+  })(globalThis, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=')
   /* eslint-enable */
 }
