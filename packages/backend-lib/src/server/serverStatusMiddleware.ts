@@ -1,44 +1,23 @@
 import { _filterNullishValues, localTime } from '@naturalcycles/js-lib'
 import { memoryUsageFull, processSharedUtil } from '@naturalcycles/nodejs-lib'
-import { getDeployInfo } from './deployInfo.util.js'
 import type { BackendRequestHandler } from './server.model.js'
 
 const { versions, arch, platform } = process
-const {
-  GAE_APPLICATION,
-  GAE_SERVICE,
-  GAE_VERSION,
-  GOOGLE_CLOUD_PROJECT,
-  K_SERVICE,
-  K_REVISION,
-  APP_ENV,
-  NODE_OPTIONS,
-} = process.env
+const { GOOGLE_CLOUD_PROJECT, K_SERVICE, K_REVISION, APP_ENV, NODE_OPTIONS, DEPLOY_BUILD_TIME } =
+  process.env
 
-export function serverStatusMiddleware(projectDir?: string, extra?: any): BackendRequestHandler {
+export function serverStatusMiddleware(extra?: any): BackendRequestHandler {
   return async (_req, res) => {
-    res.json(getServerStatusData(projectDir, extra))
+    res.json(getServerStatusData(extra))
   }
 }
 
-export function getServerStatusData(
-  projectDir: string = process.cwd(),
-  extra?: any,
-): Record<string, any> {
-  const { gitRev, gitBranch, ts } = getDeployInfo(projectDir)
-  const t = localTime(ts)
-  const deployBuildTime = t.toPretty()
-  const buildInfo = [t.toStringCompact(), gitBranch, gitRev].filter(Boolean).join('_')
-
+export function getServerStatusData(extra?: any): Record<string, any> {
   return _filterNullishValues({
-    started: getStartedStr(),
-    deployBuildTime,
+    nodeProcessStarted: getStartedStr(),
+    DEPLOY_BUILD_TIME,
     APP_ENV,
-    buildInfo,
     GOOGLE_CLOUD_PROJECT,
-    GAE_APPLICATION,
-    GAE_SERVICE,
-    GAE_VERSION,
     K_SERVICE,
     K_REVISION,
     processInfo: {
