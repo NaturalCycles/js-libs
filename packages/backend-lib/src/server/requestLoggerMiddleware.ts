@@ -1,6 +1,6 @@
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib'
-import type { BackendRequestHandler } from '../index.js'
+import type { BackendRequest, BackendRequestHandler } from '../index.js'
 import { onFinished } from '../index.js'
 
 export interface RequestLoggerMiddlewareCfg {
@@ -8,6 +8,12 @@ export interface RequestLoggerMiddlewareCfg {
    * If set - this prefix will be removed from the request url before logging.
    */
   removeUrlPrefix?: string
+
+  /**
+   * If set - will be run to determine whether to log the request or not.
+   * Predicate should return true to log the request.
+   */
+  predicate?: (req: BackendRequest) => boolean
 }
 
 /**
@@ -18,10 +24,14 @@ export interface RequestLoggerMiddlewareCfg {
 export function requestLoggerMiddleware(
   cfg: RequestLoggerMiddlewareCfg = {},
 ): BackendRequestHandler {
-  const { removeUrlPrefix } = cfg
+  const { removeUrlPrefix, predicate } = cfg
   const removeUrlPrefixLength = removeUrlPrefix?.length
 
   return (req, res, next) => {
+    if (predicate && !predicate(req)) {
+      return next()
+    }
+
     const started = Date.now() as UnixTimestampMillis
 
     let url = req.originalUrl.split('?')[0]!
