@@ -1,3 +1,4 @@
+import type { MutateOptions, SortOptions } from '../array/array.util.js'
 import { _assert } from '../error/assert.js'
 import { Iterable2 } from '../iter/iterable2.js'
 import type {
@@ -5,7 +6,6 @@ import type {
   IsoDate,
   IsoDateTime,
   MonthId,
-  SortDirection,
   UnixTimestamp,
   UnixTimestampMillis,
 } from '../types.js'
@@ -41,8 +41,8 @@ export class LocalDate {
     return unit === 'year' ? this.year : unit === 'month' ? this.month : this.day
   }
 
-  set(unit: LocalDateUnitStrict, v: number, mutate = false): LocalDate {
-    const t = mutate ? this : this.clone()
+  set(unit: LocalDateUnitStrict, v: number, opt: MutateOptions = {}): LocalDate {
+    const t = opt.mutate ? this : this.clone()
 
     if (unit === 'year') {
       t.year = v
@@ -325,7 +325,7 @@ export class LocalDate {
     return this.plus(-num, 'year')
   }
 
-  plus(num: number, unit: LocalDateUnit, mutate = false): LocalDate {
+  plus(num: number, unit: LocalDateUnit, opt: MutateOptions = {}): LocalDate {
     num = Math.floor(num) // if a fractional number like 0.5 is passed - it will be floored, as LocalDate only deals with "whole days" as minimal unit
     let { day, month, year } = this
 
@@ -386,7 +386,7 @@ export class LocalDate {
       }
     }
 
-    if (mutate) {
+    if (opt.mutate) {
       this.year = year
       this.month = month
       this.day = day
@@ -396,8 +396,8 @@ export class LocalDate {
     return new LocalDate(year, month, day)
   }
 
-  minus(num: number, unit: LocalDateUnit, mutate = false): LocalDate {
-    return this.plus(-num, unit, mutate)
+  minus(num: number, unit: LocalDateUnit, opt: MutateOptions = {}): LocalDate {
+    return this.plus(-num, unit, opt)
   }
 
   startOf(unit: LocalDateUnitStrict): LocalDate {
@@ -716,9 +716,9 @@ class LocalDateFactory {
   /**
    * Sorts an array of LocalDates in `dir` order (ascending by default).
    */
-  sort(items: LocalDate[], dir: SortDirection = 'asc', mutate = false): LocalDate[] {
-    const mod = dir === 'desc' ? -1 : 1
-    return (mutate ? items : [...items]).sort((a, b) => a.compare(b) * mod)
+  sort(items: LocalDate[], opt: SortOptions = {}): LocalDate[] {
+    const mod = opt.dir === 'desc' ? -1 : 1
+    return (opt.mutate ? items : [...items]).sort((a, b) => a.compare(b) * mod)
   }
 
   /**
@@ -809,7 +809,7 @@ class LocalDateFactory {
     if (value.isSameOrAfter($min)) {
       // ok
     } else {
-      value.plus(1, stepUnit, true)
+      value.plus(1, stepUnit, { mutate: true })
     }
 
     const rightInclusive = incl[1] === ']'

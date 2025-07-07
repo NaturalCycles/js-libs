@@ -181,7 +181,7 @@ export interface MutateOptions {
   mutate?: boolean
 }
 
-export interface SortByOptions extends MutateOptions {
+export interface SortOptions extends MutateOptions {
   /**
    * Defaults to 'asc'.
    */
@@ -198,7 +198,7 @@ export interface SortByOptions extends MutateOptions {
 export function _sortBy<T, COMPARE_TYPE extends string | number>(
   items: T[],
   mapper: Mapper<T, COMPARE_TYPE>,
-  opt: SortByOptions = {},
+  opt: SortOptions = {},
 ): T[] {
   const mod = opt.dir === 'desc' ? -1 : 1
 

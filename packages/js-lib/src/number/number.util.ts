@@ -1,4 +1,5 @@
-import type { Inclusiveness, SortDirection } from '../types.js'
+import type { SortOptions } from '../array/array.util.js'
+import type { Inclusiveness } from '../types.js'
 
 export function _randomInt(minIncl: number, maxIncl: number): number {
   return Math.floor(Math.random() * (maxIncl - minIncl + 1) + minIncl)
@@ -63,13 +64,9 @@ export function _clamp(x: number, minIncl: number, maxIncl: number): number {
  * _sortNumbers([1, 3, 2])
  * // [1, 2, 3]
  */
-export function _sortNumbers(
-  numbers: number[],
-  mutate = false,
-  dir: SortDirection = 'asc',
-): number[] {
-  const mod = dir === 'desc' ? -1 : 1
-  return (mutate ? numbers : [...numbers]).sort((a, b) => (a - b) * mod)
+export function _sortNumbers(numbers: number[], opt: SortOptions = {}): number[] {
+  const mod = opt.dir === 'desc' ? -1 : 1
+  return (opt.mutate ? numbers : [...numbers]).sort((a, b) => (a - b) * mod)
 }
 
 /**

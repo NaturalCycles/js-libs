@@ -1,4 +1,6 @@
 // copy-pasted to avoid weird circular dependency
+import type { MutateOptions } from '../array/array.util.js'
+
 const _noop = (..._args: any[]): undefined => undefined
 
 /**
@@ -57,10 +59,10 @@ export const commonLoggerNoop: CommonLogger = {
 export function commonLoggerMinLevel(
   logger: CommonLogger,
   minLevel: CommonLogLevel,
-  mutate = false,
+  opt: MutateOptions = {},
 ): CommonLogger {
   const level = commonLogLevelNumber[minLevel]
-  if (mutate) {
+  if (opt.mutate) {
     if (level > commonLogLevelNumber['log']) {
       logger.log = _noop
       if (level > commonLogLevelNumber['warn']) {

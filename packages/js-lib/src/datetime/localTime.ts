@@ -1,3 +1,4 @@
+import type { MutateOptions } from '../array/array.util.js'
 import { _assert } from '../error/assert.js'
 import { _ms } from '../time/time.util.js'
 import type {
@@ -189,8 +190,8 @@ export class LocalTime {
     return this.$date.getSeconds()
   }
 
-  set(unit: LocalTimeUnit, v: number, mutate = false): LocalTime {
-    const t = mutate ? this : this.clone()
+  set(unit: LocalTimeUnit, v: number, opt: MutateOptions = {}): LocalTime {
+    const t = opt.mutate ? this : this.clone()
 
     if (unit === 'year') {
       t.$date.setFullYear(v)
@@ -205,7 +206,7 @@ export class LocalTime {
     } else if (unit === 'second') {
       t.$date.setSeconds(v)
     } else if (unit === 'week') {
-      setWeek(t.$date, v, true)
+      setWeek(t.$date, v, { mutate: true })
     }
 
     return t
@@ -297,8 +298,8 @@ export class LocalTime {
     return this.plus(delta, 'day')
   }
 
-  setComponents(c: Partial<DateTimeObject>, mutate = false): LocalTime {
-    const d = mutate ? this.$date : new Date(this.$date)
+  setComponents(c: Partial<DateTimeObject>, opt: MutateOptions = {}): LocalTime {
+    const d = opt.mutate ? this.$date : new Date(this.$date)
 
     // Year, month and day set all-at-once, to avoid 30/31 (and 28/29) mishap
     if (c.day || c.month !== undefined || c.year !== undefined) {
@@ -319,7 +320,7 @@ export class LocalTime {
       d.setSeconds(c.second)
     }
 
-    return mutate ? this : new LocalTime(d)
+    return opt.mutate ? this : new LocalTime(d)
   }
 
   plusSeconds(num: number): LocalTime {
@@ -378,22 +379,22 @@ export class LocalTime {
     return this.plus(-num, 'year')
   }
 
-  plus(num: number, unit: LocalTimeUnit, mutate = false): LocalTime {
+  plus(num: number, unit: LocalTimeUnit, opt: MutateOptions = {}): LocalTime {
     if (unit === 'week') {
       num *= 7
       unit = 'day'
     }
 
     if (unit === 'year' || unit === 'month') {
-      const d = addMonths(this.$date, unit === 'month' ? num : num * 12, mutate)
-      return mutate ? this : localTime.fromInput(d)
+      const d = addMonths(this.$date, unit === 'month' ? num : num * 12, opt)
+      return opt.mutate ? this : localTime.fromInput(d)
     }
 
-    return this.set(unit, this.get(unit) + num, mutate)
+    return this.set(unit, this.get(unit) + num, opt)
   }
 
-  minus(num: number, unit: LocalTimeUnit, mutate = false): LocalTime {
-    return this.plus(num * -1, unit, mutate)
+  minus(num: number, unit: LocalTimeUnit, opt: MutateOptions = {}): LocalTime {
+    return this.plus(num * -1, unit, opt)
   }
 
   absDiff(other: LocalTimeInput, unit: LocalTimeUnit): number {
@@ -429,9 +430,9 @@ export class LocalTime {
     return Math.trunc(r) || 0
   }
 
-  startOf(unit: LocalTimeUnit, mutate = false): LocalTime {
+  startOf(unit: LocalTimeUnit, opt: MutateOptions = {}): LocalTime {
     if (unit === 'second') return this
-    const d = mutate ? this.$date : new Date(this.$date)
+    const d = opt.mutate ? this.$date : new Date(this.$date)
     d.setSeconds(0, 0)
 
     if (unit !== 'minute') {
@@ -448,18 +449,18 @@ export class LocalTime {
             d.setDate(1)
           } else {
             // week
-            startOfWeek(d, true)
+            startOfWeek(d, { mutate: true })
           }
         }
       }
     }
 
-    return mutate ? this : new LocalTime(d)
+    return opt.mutate ? this : new LocalTime(d)
   }
 
-  endOf(unit: LocalTimeUnit, mutate = false): LocalTime {
+  endOf(unit: LocalTimeUnit, opt: MutateOptions = {}): LocalTime {
     if (unit === 'second') return this
-    const d = mutate ? this.$date : new Date(this.$date)
+    const d = opt.mutate ? this.$date : new Date(this.$date)
     d.setSeconds(59, 0)
 
     if (unit !== 'minute') {
@@ -474,7 +475,7 @@ export class LocalTime {
           }
 
           if (unit === 'week') {
-            endOfWeek(d, true)
+            endOfWeek(d, { mutate: true })
           } else {
             // year or month
             const lastDay = localDate.getMonthLength(d.getFullYear(), d.getMonth() + 1)
@@ -484,7 +485,7 @@ export class LocalTime {
       }
     }
 
-    return mutate ? this : new LocalTime(d)
+    return opt.mutate ? this : new LocalTime(d)
   }
 
   /**
@@ -1003,9 +1004,9 @@ class LocalTimeFactory {
     return Intl.supportedValuesOf('timeZone').includes(tz)
   }
 
-  sort(items: LocalTime[], dir: SortDirection = 'asc', mutate = false): LocalTime[] {
+  sort(items: LocalTime[], dir: SortDirection = 'asc', opt: MutateOptions = {}): LocalTime[] {
     const mod = dir === 'desc' ? -1 : 1
-    return (mutate ? items : [...items]).sort((a, b) => {
+    return (opt.mutate ? items : [...items]).sort((a, b) => {
       const v1 = a.$date.valueOf()
       const v2 = b.$date.valueOf()
       if (v1 === v2) return 0
@@ -1056,8 +1057,8 @@ function getWeek(date: Date): number {
   return Math.round(diff / MILLISECONDS_IN_WEEK) + 1
 }
 
-function setWeek(date: Date, week: number, mutate = false): Date {
-  const d = mutate ? date : new Date(date)
+function setWeek(date: Date, week: number, opt: MutateOptions = {}): Date {
+  const d = opt.mutate ? date : new Date(date)
   const diff = getWeek(d) - week
   d.setDate(d.getDate() - diff * 7)
   return d
@@ -1069,7 +1070,7 @@ function startOfWeekYear(date: Date): Date {
   const fourthOfJanuary = new Date(0)
   fourthOfJanuary.setFullYear(year, 0, 4)
   fourthOfJanuary.setHours(0, 0, 0, 0)
-  return startOfWeek(fourthOfJanuary, true)
+  return startOfWeek(fourthOfJanuary, { mutate: true })
 }
 
 // based on: https://github.com/date-fns/date-fns/blob/fd6bb1a0bab143f2da068c05a9c562b9bee1357d/src/getISOWeekYear/index.ts
@@ -1079,12 +1080,12 @@ function getWeekYear(date: Date): number {
   const fourthOfJanuaryOfNextYear = new Date(0)
   fourthOfJanuaryOfNextYear.setFullYear(year + 1, 0, 4)
   fourthOfJanuaryOfNextYear.setHours(0, 0, 0, 0)
-  const startOfNextYear = startOfWeek(fourthOfJanuaryOfNextYear, true)
+  const startOfNextYear = startOfWeek(fourthOfJanuaryOfNextYear, { mutate: true })
 
   const fourthOfJanuaryOfThisYear = new Date(0)
   fourthOfJanuaryOfThisYear.setFullYear(year, 0, 4)
   fourthOfJanuaryOfThisYear.setHours(0, 0, 0, 0)
-  const startOfThisYear = startOfWeek(fourthOfJanuaryOfThisYear, true)
+  const startOfThisYear = startOfWeek(fourthOfJanuaryOfThisYear, { mutate: true })
 
   if (date.getTime() >= startOfNextYear.getTime()) {
     return year + 1
@@ -1096,8 +1097,8 @@ function getWeekYear(date: Date): number {
 }
 
 // based on: https://github.com/date-fns/date-fns/blob/fd6bb1a0bab143f2da068c05a9c562b9bee1357d/src/startOfWeek/index.ts
-function startOfWeek(date: Date, mutate = false): Date {
-  const d = mutate ? date : new Date(date)
+function startOfWeek(date: Date, opt: MutateOptions = {}): Date {
+  const d = opt.mutate ? date : new Date(date)
 
   const day = d.getDay()
   const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn
@@ -1108,8 +1109,8 @@ function startOfWeek(date: Date, mutate = false): Date {
 }
 
 // based on: https://github.com/date-fns/date-fns/blob/master/src/endOfWeek/index.ts
-function endOfWeek(date: Date, mutate = false): Date {
-  const d = mutate ? date : new Date(date)
+function endOfWeek(date: Date, opt: MutateOptions = {}): Date {
+  const d = opt.mutate ? date : new Date(date)
 
   const day = d.getDay()
   const diff = (day < weekStartsOn ? -7 : 0) + 6 - (day - weekStartsOn)
@@ -1118,8 +1119,8 @@ function endOfWeek(date: Date, mutate = false): Date {
   return d
 }
 
-function addMonths(d: Date, num: number, mutate = false): Date {
-  if (!mutate) d = new Date(d)
+function addMonths(d: Date, num: number, opt: MutateOptions = {}): Date {
+  if (!opt.mutate) d = new Date(d)
 
   let day = d.getDate()
   let month = d.getMonth() + 1 + num

@@ -1,6 +1,6 @@
+import type { SortOptions } from './array/array.util.js'
 import { _range } from './array/range.js'
 import { _assert } from './error/assert.js'
-import type { SortDirection } from './types.js'
 
 export type SemverInput = string | Semver
 export type SemverInputNullable = SemverInput | null | undefined
@@ -134,9 +134,9 @@ class SemverFactory {
   /**
    * Sorts an array of Semvers in `dir` order (ascending by default).
    */
-  sort(items: Semver[], dir: SortDirection = 'asc', mutate = false): Semver[] {
-    const mod = dir === 'desc' ? -1 : 1
-    return (mutate ? items : [...items]).sort((a, b) => a.compare(b) * mod)
+  sort(items: Semver[], opt: SortOptions = {}): Semver[] {
+    const mod = opt.dir === 'desc' ? -1 : 1
+    return (opt.mutate ? items : [...items]).sort((a, b) => a.compare(b) * mod)
   }
 }
 

@@ -114,7 +114,7 @@ test('basic', () => {
       minute: 2,
       second: 3,
     },
-    true,
+    { mutate: true },
   )
   if (isUTC()) {
     expect(lt.startOf('year').toISODateTime()).toBe('2022-01-01T00:00:00')

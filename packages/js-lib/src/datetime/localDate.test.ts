@@ -132,7 +132,7 @@ test('sort', () => {
 test('add basic', () => {
   const ld = localDate('2022-01-01' as IsoDate)
 
-  expect(ld.clone().plus(1, 'day', true).toString()).toBe('2022-01-02')
+  expect(ld.clone().plus(1, 'day', { mutate: true }).toString()).toBe('2022-01-02')
   expect(ld.plus(-1, 'day').toString()).toBe('2021-12-31')
   expect(ld.minus(1, 'day').toString()).toBe('2021-12-31')
   expect(ld.minus(1, 'day').toString()).toBe('2021-12-31')
