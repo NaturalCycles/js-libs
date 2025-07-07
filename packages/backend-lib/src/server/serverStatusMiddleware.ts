@@ -31,7 +31,7 @@ export function getServerStatusData(
   const deployBuildTime = DEPLOY_BUILD_TIME || t.toPretty()
 
   return _filterNullishValues({
-    started: getStartedStr(),
+    nodeProcessStarted: getStartedStr(),
     deployBuildTime,
     APP_ENV,
     GOOGLE_CLOUD_PROJECT,
