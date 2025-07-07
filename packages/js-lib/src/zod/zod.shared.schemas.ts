@@ -1,4 +1,5 @@
 import { z } from 'zod/v4'
+import type { IsoDate } from '../types.js'
 
 export const TS_2500 = 16725225600 // 2500-01-01
 export const TS_2000 = 946684800 // 2000-01-01
@@ -45,13 +46,13 @@ export const zSemVer = (): z.ZodString =>
     .regex(/^[0-9]+\.[0-9]+\.[0-9]+$/, 'Must be a SemVer string')
     .describe('SemVer')
 
-export const zIsoDate = (): z.ZodString =>
+export const zIsoDate = (): z.ZodCustom<IsoDate> =>
   z
     .string()
     .refine(v => {
       return /^\d{4}-\d{2}-\d{2}$/.test(v)
     }, 'Must be an IsoDateString')
-    .describe('IsoDateString')
+    .describe('IsoDateString') as unknown as z.ZodCustom<IsoDate>
 
 export const zEmail = (): z.ZodEmail => z.email().describe('Email')
 
