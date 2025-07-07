@@ -1,8 +1,6 @@
 import { AsyncIterable2 } from '../iter/asyncIterable2.js'
 import { Iterable2 } from '../iter/iterable2.js'
 
-/* eslint-disable unicorn/no-new-array */
-
 /**
  * Returns an array with ranges from `from` up to (but not including) `to`.
  *
@@ -17,13 +15,15 @@ export function _range(toExcl: number): number[]
 export function _range(fromIncl: number, toExcl: number, step?: number): number[]
 export function _range(fromIncl: number, toExcl?: number, step = 1): number[] {
   if (toExcl === undefined) {
-    return Array.from(new Array(fromIncl), (_, i) => i)
+    toExcl = fromIncl
+    fromIncl = 0
   }
 
-  return Array.from(
-    { length: Math.ceil((toExcl - fromIncl) / step) },
-    (_, i) => i * step + fromIncl,
-  )
+  const a: number[] = []
+  for (let i = fromIncl; i < toExcl; i += step) {
+    a.push(i)
+  }
+  return a
 }
 
 /**
