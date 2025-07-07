@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { _range, _rangeFilled } from './range.js'
+import { _range, _arrayFilled } from './range.js'
 
 test('_range', () => {
   expect(_range(3)).toEqual([0, 1, 2])
@@ -10,10 +10,10 @@ test('_range', () => {
   expect(_range(1, 12, 2)).toEqual([1, 3, 5, 7, 9, 11])
 })
 
-test('_rangeFilled', () => {
-  expect(_rangeFilled(0, null)).toEqual([])
-  expect(_rangeFilled(1, null)).toEqual([null])
-  expect(_rangeFilled(2, null)).toEqual([null, null])
-  expect(_rangeFilled(3, 1)).toEqual([1, 1, 1])
-  expect(_rangeFilled(4, 's')).toEqual(['s', 's', 's', 's'])
+test('_arrayFilled', () => {
+  expect(_arrayFilled(0, null)).toEqual([])
+  expect(_arrayFilled(1, null)).toEqual([null])
+  expect(_arrayFilled(2, null)).toEqual([null, null])
+  expect(_arrayFilled(3, 1)).toEqual([1, 1, 1])
+  expect(_arrayFilled(4, 's')).toEqual(['s', 's', 's', 's'])
 })
