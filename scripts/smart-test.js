@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process'
-import { readFileSync, existsSync } from 'fs'
-import { resolve, relative, join } from 'path'
+import { execSync } from 'node:child_process'
+import { readFileSync, existsSync } from 'node:fs'
+import { resolve, relative, join } from 'node:path'
 
 /**
  * Smart test runner that can:
@@ -30,8 +30,8 @@ if (args.length === 0) {
 }
 
 // Parse file paths and determine which package(s) to test
-const testFiles = args.filter(arg => !arg.startsWith('-'))
-const otherArgs = args.filter(arg => arg.startsWith('-'))
+const testFiles = args.filter(arg => arg.includes('/'))
+const otherArgs = args.filter(arg => !arg.includes('/'))
 
 if (testFiles.length === 0) {
   // Only flags provided, run all tests with those flags
