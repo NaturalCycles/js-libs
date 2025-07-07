@@ -1,4 +1,4 @@
-import type { Inclusiveness, UnixTimestamp } from '../types.js'
+import type { UnixTimestamp } from '../types.js'
 import type { LocalTime, LocalTimeInput } from './localTime.js'
 import { localTime } from './localTime.js'
 
@@ -74,11 +74,10 @@ export class TimeInterval {
     return this.cmp(d) >= 0
   }
 
-  includes(d: LocalTimeInput, incl: Inclusiveness = '[)'): boolean {
+  includes(d: LocalTimeInput): boolean {
     d = localTime.fromInput(d).unix
-    // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
-    if (d < this.$start || (d === this.$start && incl[0] === '(')) return false
-    if (d > this.$end || (d === this.$end && incl[1] === ')')) return false
+    if (d < this.$start) return false
+    if (d > this.$end) return false
     return true
   }
 

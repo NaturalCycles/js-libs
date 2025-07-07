@@ -29,7 +29,6 @@ export function _averageOrNull(values: number[] | undefined | null): number | nu
 export function _averageWeighted(values: number[], weights: number[]): number {
   let numerator = 0
   let denominator = 0
-  // eslint-disable-next-line unicorn/no-for-loop
   for (let i = 0; i < values.length; i++) {
     numerator += values[i]! * weights[i]!
     denominator += weights[i]!

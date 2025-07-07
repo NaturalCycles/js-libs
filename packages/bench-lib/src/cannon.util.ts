@@ -73,7 +73,7 @@ export async function runCannon(
     resultByProfile[profileName] = await runCannonProfile(profileName, profiles[profileName]!, opt)
     const summary = toSummary(profileName, resultByProfile[profileName])
     if (!opt.includeLatencyPercentiles) {
-      _omit(summary, ['latency90', 'latency99'], true)
+      _omit(summary, ['latency90', 'latency99'], { mutate: true })
     }
     summaries.push(summary)
   }

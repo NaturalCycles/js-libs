@@ -803,7 +803,7 @@ export class Fetcher {
     }
 
     // Because all header values are stringified, so `a: undefined` becomes `undefined` as a string
-    _filterNullishValues(req.init.headers, true)
+    _filterNullishValues(req.init.headers, { mutate: true })
 
     // setup url
     const baseUrl = opt.baseUrl || this.cfg.baseUrl

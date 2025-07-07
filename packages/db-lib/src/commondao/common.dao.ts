@@ -1,6 +1,6 @@
 import type { Transform } from 'node:stream'
 import type {
-  AsyncMapper,
+  AsyncIndexedMapper,
   BaseDBEntity,
   CommonLogger,
   JsonSchemaObject,
@@ -358,7 +358,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
 
   async streamQueryForEach(
     q: DBQuery<DBM>,
-    mapper: AsyncMapper<BM, void>,
+    mapper: AsyncIndexedMapper<BM, void>,
     opt: CommonDaoStreamForEachOptions<BM> = {},
   ): Promise<void> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
@@ -408,7 +408,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
 
   async streamQueryAsDBMForEach(
     q: DBQuery<DBM>,
-    mapper: AsyncMapper<DBM, void>,
+    mapper: AsyncIndexedMapper<DBM, void>,
     opt: CommonDaoStreamForEachOptions<DBM> = {},
   ): Promise<void> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
@@ -581,7 +581,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
 
   async streamQueryIdsForEach(
     q: DBQuery<DBM>,
-    mapper: AsyncMapper<ID, void>,
+    mapper: AsyncIndexedMapper<ID, void>,
     opt: CommonDaoStreamForEachOptions<ID> = {},
   ): Promise<void> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property

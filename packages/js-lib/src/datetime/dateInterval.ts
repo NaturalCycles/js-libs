@@ -1,4 +1,4 @@
-import type { Inclusiveness, IsoDate } from '../types.js'
+import type { IsoDate } from '../types.js'
 import type { LocalDate, LocalDateInput, LocalDateUnit } from './localDate.js'
 import { localDate } from './localDate.js'
 
@@ -60,16 +60,13 @@ export class DateInterval {
   /**
    * Ranges of DateInterval (start, end) are INCLUSIVE.
    */
-  includes(d: LocalDateInput, incl: Inclusiveness = '[]'): boolean {
-    d = localDate(d)
-    // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
-    return d.isAfter(this.start, incl[0] === '[') && d.isBefore(this.end, incl[1] === ']')
+  includes(d: LocalDateInput): boolean {
+    return localDate(d).isBetween(this.start, this.end, '[]')
   }
 
-  intersects(int: DateIntervalConfig, inclusive = true): boolean {
+  intersects(int: DateIntervalConfig): boolean {
     const $int = DateInterval.parse(int)
-    const incl = inclusive ? '[]' : '()'
-    return this.includes($int.start, incl) || this.includes($int.end, incl)
+    return this.includes($int.start) || this.includes($int.end)
   }
 
   /**
@@ -81,15 +78,15 @@ export class DateInterval {
     return this.start.compare(d.start) || this.end.compare(d.end)
   }
 
-  getDays(incl: Inclusiveness = '[]'): LocalDate[] {
-    return localDate.range(this.start, this.end, incl, 1, 'day')
+  getDays(): LocalDate[] {
+    return localDate.range(this.start, this.end, '[]', 1, 'day')
   }
 
   /**
    * Returns an array of LocalDates that are included in the interval.
    */
-  range(incl: Inclusiveness = '[]', step = 1, stepUnit: LocalDateUnit = 'day'): LocalDate[] {
-    return localDate.range(this.start, this.end, incl, step, stepUnit)
+  range(step = 1, stepUnit: LocalDateUnit = 'day'): LocalDate[] {
+    return localDate.range(this.start, this.end, '[]', step, stepUnit)
   }
 
   toString(): DateIntervalString {

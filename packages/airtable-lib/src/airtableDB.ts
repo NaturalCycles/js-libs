@@ -392,7 +392,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
     }
 
     if (this.cfg.noAttachmentQueryString) {
-      _mapValues(o, (_, v) => stripQueryStringFromAttachments(v), true)
+      _mapValues(o, (_, v) => stripQueryStringFromAttachments(v), { mutate: true })
     }
 
     return o

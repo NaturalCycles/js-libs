@@ -10,7 +10,7 @@ import { localDate } from '@naturalcycles/js-lib'
 import { isValid, objectSchema, stringSchema } from '../src/validation/joi/index.js'
 
 const entries = localDate
-  .range(localDate.today().minus(50, 'day'), localDate.today().plus(50, 'day'))
+  .range(localDate.today().minus(50, 'day'), localDate.today().plus(50, 'day'), '[)')
   .map(d => ({
     date: d.toISODate(),
   }))

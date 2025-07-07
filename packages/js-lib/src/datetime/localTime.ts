@@ -517,10 +517,9 @@ export class LocalTime {
     return this.compare(d) >= 0
   }
 
-  isBetween(min: LocalTimeInput, max: LocalTimeInput, incl: Inclusiveness = '[)'): boolean {
+  isBetween(min: LocalTimeInput, max: LocalTimeInput, incl: Inclusiveness): boolean {
     let r = this.compare(min)
-    // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
-    if (r < 0 || (r === 0 && incl[0] === '(')) return false
+    if (r < 0) return false
     r = this.compare(max)
     if (r > 0 || (r === 0 && incl[1] === ')')) return false
     return true

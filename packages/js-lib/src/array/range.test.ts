@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { _range, _arrayFilled } from './range.js'
+import { _arrayFilled, _range } from './range.js'
 
 test('_range', () => {
   expect(_range(3)).toEqual([0, 1, 2])

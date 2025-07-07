@@ -10,7 +10,7 @@ import type { IsoDate } from '../src/index.js'
 import { localDate } from '../src/index.js'
 
 const strings = localDate
-  .range('2022-01-03' as IsoDate, '2023-01-05' as IsoDate)
+  .range('2022-01-03' as IsoDate, '2023-01-05' as IsoDate, '[)')
   .map(d => d.toString())
 const DATE = /^(\d\d\d\d)-(\d\d)-(\d\d)$/
 

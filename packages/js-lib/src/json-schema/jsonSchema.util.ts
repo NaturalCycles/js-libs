@@ -32,5 +32,5 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
 
   // `additionalProperties` remains the same
 
-  return _filterNullishValues(s1, true) as any
+  return _filterNullishValues(s1, { mutate: true }) as any
 }

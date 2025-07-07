@@ -222,7 +222,10 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
     }
 
     const rows = (await this.runSQL<ROW[]>({ sql })).map(
-      row => _mapKeys(_filterUndefinedValues(row, true), k => mapNameFromMySQL(k as string)) as any,
+      row =>
+        _mapKeys(_filterUndefinedValues(row, { mutate: true }), k =>
+          mapNameFromMySQL(k as string),
+        ) as any,
     )
 
     // edge case where 0 fields are selected
@@ -293,7 +296,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
         new Transform({
           objectMode: true,
           transform(row: ROW, _encoding, cb) {
-            cb(null, _filterUndefinedValues(row, true))
+            cb(null, _filterUndefinedValues(row, { mutate: true }))
           },
         }),
       )

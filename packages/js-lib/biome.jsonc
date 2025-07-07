@@ -1,5 +1,12 @@
 {
   "root": true,
   "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
-  "extends": ["../dev-lib/cfg/biome.jsonc"]
+  "extends": ["../dev-lib/cfg/biome.jsonc"],
+  "linter": {
+    "rules": {
+      "style": {
+        "useForOf": "off"
+      }
+    }
+  }
 }

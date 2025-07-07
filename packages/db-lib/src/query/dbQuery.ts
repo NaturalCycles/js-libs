@@ -1,4 +1,4 @@
-import type { AsyncMapper, BaseDBEntity, ObjectWithId } from '@naturalcycles/js-lib'
+import type { AsyncIndexedMapper, BaseDBEntity, ObjectWithId } from '@naturalcycles/js-lib'
 import { _objectAssign, _truncate } from '@naturalcycles/js-lib'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDao } from '../commondao/common.dao.js'
@@ -276,14 +276,14 @@ export class RunnableDBQuery<
   }
 
   async streamQueryForEach(
-    mapper: AsyncMapper<BM, void>,
+    mapper: AsyncIndexedMapper<BM, void>,
     opt?: CommonDaoStreamForEachOptions<BM>,
   ): Promise<void> {
     await this.dao.streamQueryForEach(this, mapper, opt)
   }
 
   async streamQueryAsDBMForEach(
-    mapper: AsyncMapper<DBM, void>,
+    mapper: AsyncIndexedMapper<DBM, void>,
     opt?: CommonDaoStreamForEachOptions<DBM>,
   ): Promise<void> {
     await this.dao.streamQueryAsDBMForEach(this, mapper, opt)
@@ -306,7 +306,7 @@ export class RunnableDBQuery<
   }
 
   async streamQueryIdsForEach(
-    mapper: AsyncMapper<ID, void>,
+    mapper: AsyncIndexedMapper<ID, void>,
     opt?: CommonDaoStreamForEachOptions<ID>,
   ): Promise<void> {
     await this.dao.streamQueryIdsForEach(this, mapper, opt)

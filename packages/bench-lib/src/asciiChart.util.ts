@@ -1,4 +1,4 @@
-import { _range } from '@naturalcycles/js-lib'
+import { _arrayFilled } from '@naturalcycles/js-lib'
 import { asciiColor, asciiPlot } from './vendor/asciichart.js'
 
 const colors = [
@@ -17,9 +17,9 @@ export function plotAsciiChart(results: Record<string, number>): string {
 
   Object.values(results).forEach((result, i) => {
     series.push([
-      ..._range(5 + 5 * i).map(() => 0),
+      ..._arrayFilled(5 + 5 * i, 0),
       result,
-      ..._range(3 + 5 * (resultsLen - i)).map(() => 0),
+      ..._arrayFilled(3 + 5 * (resultsLen - i), 0),
     ])
   })
 

@@ -51,7 +51,7 @@ export const serverStatsHTMLHandler: BackendRequestHandler = (req, res) => {
   // calc things
   _stringMapValues(serverStatsMap).forEach(s => {
     s.total = s['2xx'] + s['4xx'] + s['5xx']
-    s.pc = _mapValues(s.stack.percentiles(percentiles), (_k, v) => Math.round(v), true)
+    s.pc = _mapValues(s.stack.percentiles(percentiles), (_k, v) => Math.round(v), { mutate: true })
   })
   const allLatencies = _stringMapValues(serverStatsMap).flatMap(s => s.stack.items)
   const all2xx = _sum(_stringMapValues(serverStatsMap).flatMap(s => s['2xx']))
@@ -85,12 +85,9 @@ export const serverStatsHTMLHandler: BackendRequestHandler = (req, res) => {
       pc => `<td align="right"><pre>${Math.round(_percentile(allLatencies, pc))}</pre></td>`,
     ),
     `</tr>`,
-    ..._sortBy(
-      _stringMapEntries(serverStatsMap),
-      ([_, stat]) => _get(stat, sortBy),
-      false,
-      asc ? 'asc' : 'desc',
-    ).map(([endpoint, stat]) => {
+    ..._sortBy(_stringMapEntries(serverStatsMap), ([_, stat]) => _get(stat, sortBy) as string, {
+      dir: asc ? 'asc' : 'desc',
+    }).map(([endpoint, stat]) => {
       return [
         '<tr>',
         `<td><pre>${endpoint}</pre></td>`,

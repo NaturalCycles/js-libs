@@ -1,4 +1,4 @@
-import type { AbortableAsyncMapper, Mapper } from '@naturalcycles/js-lib'
+import type { AbortableAsyncMapper, IndexedMapper } from '@naturalcycles/js-lib'
 import { _passNothingPredicate } from '@naturalcycles/js-lib'
 import type { ReadableTyped } from '../index.js'
 import { _pipeline } from '../index.js'
@@ -32,7 +32,7 @@ export async function readableForEach<T>(
  */
 export async function readableForEachSync<T>(
   readable: ReadableTyped<T>,
-  mapper: Mapper<T, void>,
+  mapper: IndexedMapper<T, void>,
 ): Promise<void> {
   // async iteration
   let index = 0

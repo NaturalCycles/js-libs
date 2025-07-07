@@ -42,18 +42,11 @@ export function _isBetween<T extends number | string>(
   x: T,
   min: T,
   max: T,
-  incl: Inclusiveness = '[)',
+  incl: Inclusiveness,
 ): boolean {
-  if (incl === '[)') {
-    return x >= min && x < max
-  }
-  if (incl === '[]') {
-    return x >= min && x <= max
-  }
-  if (incl === '(]') {
-    return x > min && x <= max
-  }
-  return x > min && x < max
+  if (x < min || x > max) return false
+  if (x === max && incl === '[)') return false
+  return true
 }
 
 export function _clamp(x: number, minIncl: number, maxIncl: number): number {

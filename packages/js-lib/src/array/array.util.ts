@@ -61,9 +61,9 @@ export function _pushUniq<T>(a: T[], ...items: T[]): T[] {
  * Mutates the array (same as normal `push`).
  */
 export function _pushUniqBy<T>(a: T[], mapper: Mapper<T, any>, ...items: T[]): T[] {
-  const mappedSet = new Set(a.map((item, i) => mapper(item, i)))
-  items.forEach((item, i) => {
-    const mapped = mapper(item, i)
+  const mappedSet = new Set(a.map(mapper))
+  items.forEach(item => {
+    const mapped = mapper(item)
     if (!mappedSet.has(mapped)) {
       a.push(item)
       mappedSet.add(mapped)
@@ -91,8 +91,9 @@ export function _pushUniqBy<T>(a: T[], mapper: Mapper<T, any>, ...items: T[]): T
  */
 export function _uniqBy<T>(arr: readonly T[], mapper: Mapper<T, any>): T[] {
   const map = new Map<any, T>()
-  for (const [i, item] of arr.entries()) {
-    const key = item === undefined || item === null ? item : mapper(item, i)
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i]!
+    const key = item === undefined || item === null ? item : mapper(item)
     if (!map.has(key)) map.set(key, item)
   }
   return [...map.values()]
@@ -119,9 +120,16 @@ export function _uniqBy<T>(arr: readonly T[], mapper: Mapper<T, any>): T[] {
  * Returning `undefined` from the Mapper will EXCLUDE the item.
  */
 export function _by<T>(items: readonly T[], mapper: Mapper<T, any>): StringMap<T> {
-  return Object.fromEntries(
-    items.map((item, i) => [mapper(item, i), item]).filter(([k]) => k !== undefined) as [any, T][],
-  )
+  const map: StringMap<T> = {}
+  for (let i = 0; i < items.length; i++) {
+    const v = items[i]!
+    const k = mapper(v)
+    if (k !== undefined) {
+      map[k] = v
+    }
+  }
+
+  return map
 }
 
 /**
@@ -131,12 +139,15 @@ export function _mapBy<ITEM, KEY>(
   items: readonly ITEM[],
   mapper: Mapper<ITEM, KEY>,
 ): Map<KEY, ITEM> {
-  return new Map(
-    items.map((item, i) => [mapper(item, i), item]).filter(([k]) => k !== undefined) as [
-      KEY,
-      ITEM,
-    ][],
-  )
+  const map = new Map<KEY, ITEM>()
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]!
+    const key = mapper(item)
+    if (key !== undefined) {
+      map.set(key, item)
+    }
+  }
+  return map
 }
 
 /**
@@ -152,12 +163,29 @@ export function _mapBy<ITEM, KEY>(
  */
 export function _groupBy<T>(items: readonly T[], mapper: Mapper<T, any>): StringMap<T[]> {
   const map: StringMap<T[]> = {}
-  for (const [i, item] of items.entries()) {
-    const key = mapper(item, i)
-    if (key === undefined) continue
-    ;(map[key] ||= []).push(item)
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]!
+    const key = mapper(item)
+    if (key !== undefined) {
+      ;(map[key] ||= []).push(item)
+    }
   }
   return map
+}
+
+export interface MutateOptions {
+  /**
+   * Defaults to false.
+   */
+  mutate?: boolean
+}
+
+export interface SortByOptions extends MutateOptions {
+  /**
+   * Defaults to 'asc'.
+   */
+  dir?: SortDirection
 }
 
 /**
@@ -167,25 +195,24 @@ export function _groupBy<T>(items: readonly T[], mapper: Mapper<T, any>): String
  * Same:
  * _sortBy([{age: 20}, {age: 10}], o => o.age)
  */
-export function _sortBy<T>(
+export function _sortBy<T, COMPARE_TYPE extends string | number>(
   items: T[],
-  mapper: Mapper<T, any>,
-  mutate = false,
-  dir: SortDirection = 'asc',
+  mapper: Mapper<T, COMPARE_TYPE>,
+  opt: SortByOptions = {},
 ): T[] {
-  const mod = dir === 'desc' ? -1 : 1
-  return (mutate ? items : [...items]).sort((_a, _b) => {
-    const [a, b] = [_a, _b].map(mapper)
-    if (typeof a === 'number' && typeof b === 'number') return (a - b) * mod
-    return String(a).localeCompare(String(b)) * mod
-  })
-}
+  const mod = opt.dir === 'desc' ? -1 : 1
 
-/**
- * Alias for _sortBy with descending order.
- */
-export function _sortDescBy<T>(items: T[], mapper: Mapper<T, any>, mutate = false): T[] {
-  return _sortBy(items, mapper, mutate, 'desc')
+  return (opt.mutate ? items : [...items]).sort((_a, _b) => {
+    // This implementation may call mapper more than once per item,
+    // but the benchmarks show no significant difference in performance.
+    const a = mapper(_a)
+    const b = mapper(_b)
+    // if (typeof a === 'number' && typeof b === 'number') return (a - b) * mod
+    // return String(a).localeCompare(String(b)) * mod
+    if (a > b) return mod
+    if (a < b) return -mod
+    return 0
+  })
 }
 
 /**
@@ -194,7 +221,8 @@ export function _sortDescBy<T>(items: T[], mapper: Mapper<T, any>, mutate = fals
  * Use `Array.find` if you don't need to stop the iteration early.
  */
 export function _find<T>(items: readonly T[], predicate: AbortablePredicate<T>): T | undefined {
-  for (const [i, item] of items.entries()) {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]!
     const result = predicate(item, i)
     if (result === END) return
     if (result) return item
@@ -290,9 +318,8 @@ export function _count<T>(
 export function _countBy<T>(items: Iterable<T>, mapper: Mapper<T, any>): StringMap<number> {
   const map: StringMap<number> = {}
 
-  let i = 0
   for (const item of items) {
-    const key = mapper(item, i++)
+    const key = mapper(item)
     map[key] = (map[key] || 0) + 1
   }
 
@@ -360,10 +387,9 @@ export function _sumBy<T, N extends number>(
   mapper: Mapper<T, N | undefined>,
 ): N {
   let sum = 0 as N
-  let i = 0
 
   for (const n of items) {
-    const v = mapper(n, i++)
+    const v = mapper(n)
     if (typeof v === 'number') {
       // count only numbers, nothing else
       sum = (sum + v) as N
@@ -407,8 +433,8 @@ export function _mapToObject<T, V>(
  * Fisher–Yates algorithm.
  * Based on: https://stackoverflow.com/a/12646864/4919972
  */
-export function _shuffle<T>(array: T[], mutate = false): T[] {
-  const a = mutate ? array : [...array]
+export function _shuffle<T>(array: T[], opt: MutateOptions = {}): T[] {
+  const a = opt.mutate ? array : [...array]
 
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -505,8 +531,9 @@ export function _maxByOrUndefined<T>(
   let maxItem: T | undefined
   let max: number | string | undefined
 
-  for (const [i, item] of array.entries()) {
-    const v = mapper(item, i)
+  for (let i = 0; i < array.length; i++) {
+    const item = array[i]!
+    const v = mapper(item)
     if (v !== undefined && (max === undefined || v > max)) {
       maxItem = item
       max = v
@@ -524,8 +551,9 @@ export function _minByOrUndefined<T>(
   let minItem: T | undefined
   let min: number | string | undefined
 
-  for (const [i, item] of array.entries()) {
-    const v = mapper(item, i)
+  for (let i = 0; i < array.length; i++) {
+    const item = array[i]!
+    const v = mapper(item)
     if (v !== undefined && (min === undefined || v < min)) {
       minItem = item
       min = v

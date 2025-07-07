@@ -97,7 +97,7 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
    */
   protected mapToMongo<ROW extends ObjectWithId>(row: ROW): MongoObject<ROW> {
     const { id: _, ...m } = { ...row, _id: row.id }
-    return _filterUndefinedValues(m as any, true)
+    return _filterUndefinedValues(m as any, { mutate: true })
   }
 
   protected mapFromMongo<ROW extends ObjectWithId>(item: MongoObject<ROW>): ROW {

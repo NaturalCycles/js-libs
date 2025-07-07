@@ -52,7 +52,7 @@ test('_pick', () => {
   expect(r).not.toBe(obj)
 
   // should mutate
-  const obj2 = f(obj, ['a'], true)
+  const obj2 = f(obj, ['a'], { mutate: true })
   expect(obj2).toEqual({
     a: 1,
   })
@@ -86,7 +86,7 @@ test('_pickWithUndefined', () => {
   expect(r).not.toBe(obj)
 
   // should mutate
-  const obj2 = f(obj, ['a'], true)
+  const obj2 = f(obj, ['a'], { mutate: true })
   expect(obj2).toEqual({
     a: 1,
     b: undefined,
@@ -162,7 +162,7 @@ test('_omit mutate', () => {
     e: undefined,
   }
 
-  const obj2 = _omit(obj, ['b', 'c'], true)
+  const obj2 = _omit(obj, ['b', 'c'], { mutate: true })
   expect(obj2).toEqual({
     a: 1,
     d: false,
@@ -180,7 +180,7 @@ test('_omitWithUndefined mutating', () => {
     e: undefined,
   }
 
-  const obj2 = _omitWithUndefined(obj, ['b', 'c'], true)
+  const obj2 = _omitWithUndefined(obj, ['b', 'c'], { mutate: true })
   expect(obj2).toEqual({
     a: 1,
     b: undefined,
@@ -225,7 +225,7 @@ test('_mask with mutation', () => {
       },
     },
   }
-  const r = _mask(o, ['b.c'], true)
+  const r = _mask(o, ['b.c'], { mutate: true })
   expect(r).toMatchInlineSnapshot(`
     {
       "a": "1",
@@ -298,7 +298,7 @@ test('_filterFalsyValues', () => {
 
   // should mutate if needed
   const o2 = { ...o }
-  f(o2, true)
+  f(o2, { mutate: true })
   expect(o2.b).toBeUndefined()
 })
 
@@ -381,7 +381,7 @@ test('_filterObject', () => {
   }
 
   // should mutate
-  f(br, (_k: any, v: any) => v !== null, true)
+  f(br, (_k: any, v: any) => v !== null, { mutate: true })
   expect(br.c).toBeUndefined()
 })
 
@@ -400,7 +400,7 @@ test('_objectNullValuesToUndefined', () => {
   expect(_objectNullValuesToUndefined(o)).toEqual(o2)
 
   // mutate
-  _objectNullValuesToUndefined(o, true)
+  _objectNullValuesToUndefined(o, { mutate: true })
   expect(o).toEqual(o2)
 })
 

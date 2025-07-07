@@ -6,7 +6,7 @@ import { pDelay } from './pDelay.js'
 test('pDelay', async () => {
   const end = timeSpan()
   await pDelay(100)
-  expect(_isBetween(end(), 90, 160)).toBe(true)
+  expect(_isBetween(end(), 90, 160, '[)')).toBe(true)
 })
 
 test('pDelay with return value', async () => {

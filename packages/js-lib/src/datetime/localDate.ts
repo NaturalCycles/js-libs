@@ -117,10 +117,9 @@ export class LocalDate {
     return this.compare(d) >= 0
   }
 
-  isBetween(min: LocalDateInput, max: LocalDateInput, incl: Inclusiveness = '[)'): boolean {
+  isBetween(min: LocalDateInput, max: LocalDateInput, incl: Inclusiveness): boolean {
     let r = this.compare(min)
-    // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
-    if (r < 0 || (r === 0 && incl[0] === '(')) return false
+    if (r < 0) return false
     r = this.compare(max)
     if (r > 0 || (r === 0 && incl[1] === ')')) return false
     return true
@@ -779,7 +778,7 @@ class LocalDateFactory {
   range(
     min: LocalDateInput,
     max: LocalDateInput,
-    incl: Inclusiveness = '[)',
+    incl: Inclusiveness,
     step = 1,
     stepUnit: LocalDateUnit = 'day',
   ): LocalDate[] {
@@ -793,7 +792,7 @@ class LocalDateFactory {
   rangeIterable(
     min: LocalDateInput,
     max: LocalDateInput,
-    incl: Inclusiveness = '[)',
+    incl: Inclusiveness,
     step = 1,
     stepUnit: LocalDateUnit = 'day',
   ): Iterable2<LocalDate> {
@@ -806,8 +805,8 @@ class LocalDateFactory {
     const $max = this.fromInput(max).startOf(stepUnit)
 
     let value = $min
-    // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
-    if (value.isAfter($min, incl[0] === '[')) {
+
+    if (value.isSameOrAfter($min)) {
       // ok
     } else {
       value.plus(1, stepUnit, true)

@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
 import { mockTime } from '@naturalcycles/dev-lib/testing/time'
-import type { AsyncMapper } from '@naturalcycles/js-lib'
+import type { AsyncIndexedMapper } from '@naturalcycles/js-lib'
 import { _range, _stringify, ErrorMode, pExpectedError } from '@naturalcycles/js-lib'
 import { beforeAll, expect, test } from 'vitest'
 import type { TransformMapStats } from '../index.js'
@@ -21,7 +21,7 @@ interface Item {
 }
 
 // Mapper that throws 'my error' on third id
-const mapperError3: AsyncMapper<Item, Item> = (item, _i) => {
+const mapperError3: AsyncIndexedMapper<Item, Item> = item => {
   if (item.id === '3') throw new Error('my error')
   return item
 }

@@ -144,11 +144,16 @@ export const MISS = Symbol('MISS')
 /**
  * Function which is called for every item in `input`. Expected to return a `Promise` or value.
  */
-export type AsyncMapper<IN = any, OUT = any> = (input: IN, index: number) => OUT | PromiseLike<OUT>
-export type Mapper<IN = any, OUT = any> = (input: IN, index: number) => OUT
+export type AsyncMapper<IN = any, OUT = any> = (input: IN) => OUT | PromiseLike<OUT>
+export type AsyncIndexedMapper<IN = any, OUT = any> = (
+  input: IN,
+  index: number,
+) => OUT | PromiseLike<OUT>
+export type Mapper<IN = any, OUT = any> = (input: IN) => OUT
+export type IndexedMapper<IN = any, OUT = any> = (input: IN, index: number) => OUT
 
-export const _passthroughMapper: Mapper = item => item
-export const _passUndefinedMapper: Mapper<any, void> = () => undefined
+export const _passthroughMapper: IndexedMapper = item => item
+export const _passUndefinedMapper: IndexedMapper<any, void> = () => undefined
 
 /**
  * Function that does nothings and returns `undefined`.
@@ -350,7 +355,7 @@ export function _stringMapValuesSorted<T>(
   mapper: Mapper<T, any>,
   dir: SortDirection = 'asc',
 ): T[] {
-  return _sortBy(_stringMapValues(map), mapper, false, dir)
+  return _sortBy(_stringMapValues(map), mapper, { dir })
 }
 
 /**
@@ -419,7 +424,7 @@ export type ErrorDataTuple<T = unknown, ERR = Error> = [err: null, data: T] | [e
 
 export type SortDirection = 'asc' | 'desc'
 
-export type Inclusiveness = '()' | '[]' | '[)' | '(]'
+export type Inclusiveness = '[]' | '[)'
 
 /**
  * @experimental

@@ -1,5 +1,5 @@
 import { Transform } from 'node:stream'
-import type { CommonLogger, Mapper } from '@naturalcycles/js-lib'
+import type { CommonLogger, IndexedMapper } from '@naturalcycles/js-lib'
 import { ErrorMode } from '@naturalcycles/js-lib'
 import type { TransformTyped } from '../stream.model.js'
 
@@ -24,7 +24,7 @@ export interface TransformMapSimpleOptions {
  * Supposedly faster, for cases when async is not needed.
  */
 export function transformMapSimple<IN = any, OUT = IN>(
-  mapper: Mapper<IN, OUT>,
+  mapper: IndexedMapper<IN, OUT>,
   opt: TransformMapSimpleOptions = {},
 ): TransformTyped<IN, OUT> {
   let index = -1

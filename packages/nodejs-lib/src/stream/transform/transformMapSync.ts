@@ -1,4 +1,9 @@
-import type { CommonLogger, Mapper, Predicate, UnixTimestampMillis } from '@naturalcycles/js-lib'
+import type {
+  CommonLogger,
+  IndexedMapper,
+  Predicate,
+  UnixTimestampMillis,
+} from '@naturalcycles/js-lib'
 import { _anyToError, END, ErrorMode, SKIP } from '@naturalcycles/js-lib'
 import { yellow } from '../../colors/colors.js'
 import { AbortableTransform } from '../pipeline/pipeline.js'
@@ -67,7 +72,7 @@ export class TransformMapSync extends AbortableTransform {}
  * Supposedly faster, for cases when async is not needed.
  */
 export function transformMapSync<IN = any, OUT = IN>(
-  mapper: Mapper<IN, OUT | typeof SKIP | typeof END>,
+  mapper: IndexedMapper<IN, OUT | typeof SKIP | typeof END>,
   opt: TransformMapSyncOptions = {},
 ): TransformTyped<IN, OUT> {
   const {

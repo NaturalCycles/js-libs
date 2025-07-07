@@ -54,7 +54,7 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
     await db.saveBatch(TEST_TABLE, testEntries)
 
     const entries = await db.getByIds(TEST_TABLE, testIds)
-    _sortBy(entries, e => e[0], true)
+    _sortBy(entries, e => e[0], { mutate: true })
     expect(entries).toEqual(testEntries)
   })
 

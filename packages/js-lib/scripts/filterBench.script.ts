@@ -35,7 +35,7 @@ runBenchScript({
     // },
     // // mutation should come later
     filterNullishMutate: () => {
-      const _res = objects.map(o => _filterNullishValues(o, true))
+      const _res = objects.map(o => _filterNullishValues(o, { mutate: true }))
       // const res = _filterNullishValues(objects[0]!, true)
     },
   },

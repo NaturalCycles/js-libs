@@ -30,7 +30,7 @@ test.each([
   [2, Number.NEGATIVE_INFINITY, 3, true],
   ['2020-01-03', '2020-01-01', '2020-01-05', true],
 ])('_isBetween(%s, %s, %s) === %s', (n, min, max, result) => {
-  expect(_isBetween(n, min, max)).toBe(result)
+  expect(_isBetween(n, min, max, '[)')).toBe(result)
 })
 
 test.each([

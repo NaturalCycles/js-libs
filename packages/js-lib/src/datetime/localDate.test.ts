@@ -97,22 +97,18 @@ test('constructors', () => {
 
 test('isBetween', () => {
   const ld = localDate.fromInput('1984-06-21' as IsoDate)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate)).toBe(false)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '()')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '(]')).toBe(false)
+  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[]')).toBe(true)
 
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate)).toBe(true)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '()')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '(]')).toBe(false)
+  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[]')).toBe(true)
 
-  expect(ld.isBetween('1984-06-20' as IsoDate, '1984-06-22' as IsoDate)).toBe(true)
+  expect(ld.isBetween('1984-06-20' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
 
   // invalid, max < min
-  expect(ld.isBetween('1984-06-22' as IsoDate, '1984-06-20' as IsoDate)).toBe(false)
+  expect(ld.isBetween('1984-06-22' as IsoDate, '1984-06-20' as IsoDate, '[)')).toBe(false)
 })
 
 test('sort', () => {
@@ -262,7 +258,8 @@ test('toDate', () => {
 })
 
 test('range', () => {
-  expect(localDate.range('2021-12-24' as IsoDate, '2021-12-26' as IsoDate)).toMatchInlineSnapshot(`
+  expect(localDate.range('2021-12-24' as IsoDate, '2021-12-26' as IsoDate, '[)'))
+    .toMatchInlineSnapshot(`
     [
       "2021-12-24",
       "2021-12-25",
@@ -299,7 +296,7 @@ test('range', () => {
 })
 
 test('rangeIterable', () => {
-  expect([...localDate.rangeIterable('2021-12-24' as IsoDate, '2021-12-26' as IsoDate)])
+  expect([...localDate.rangeIterable('2021-12-24' as IsoDate, '2021-12-26' as IsoDate, '[)')])
     .toMatchInlineSnapshot(`
     [
       "2021-12-24",

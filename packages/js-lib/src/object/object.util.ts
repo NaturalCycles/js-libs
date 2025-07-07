@@ -1,3 +1,4 @@
+import type { MutateOptions } from '../array/array.util.js'
 import { _isEmpty, _isObject } from '../is.util.js'
 import type {
   AnyObject,
@@ -16,9 +17,9 @@ import { _objectEntries, SKIP } from '../types.js'
 export function _pick<T extends AnyObject, K extends keyof T>(
   obj: T,
   props: readonly K[],
-  mutate = false,
+  opt: MutateOptions = {},
 ): T {
-  if (mutate) {
+  if (opt.mutate) {
     // Start as original object (mutable), DELETE properties that are not whitelisted
     for (const k of Object.keys(obj)) {
       if (!props.includes(k as K)) delete obj[k]
@@ -40,9 +41,9 @@ export function _pick<T extends AnyObject, K extends keyof T>(
 export function _pickWithUndefined<T extends AnyObject, K extends keyof T>(
   obj: T,
   props: readonly K[],
-  mutate = false,
+  opt: MutateOptions = {},
 ): T {
-  const r: T = mutate ? obj : { ...obj }
+  const r: T = opt.mutate ? obj : { ...obj }
   for (const k of Object.keys(r)) {
     if (!props.includes(k as K)) {
       r[k as K] = undefined as any
@@ -58,9 +59,9 @@ export function _pickWithUndefined<T extends AnyObject, K extends keyof T>(
 export function _omit<T extends AnyObject, K extends keyof T>(
   obj: T,
   props: readonly K[],
-  mutate = false,
+  opt: MutateOptions = {},
 ): T {
-  if (mutate) {
+  if (opt.mutate) {
     for (const k of props) {
       delete obj[k]
     }
@@ -81,9 +82,9 @@ export function _omit<T extends AnyObject, K extends keyof T>(
 export function _omitWithUndefined<T extends AnyObject, K extends keyof T>(
   obj: T,
   props: readonly K[],
-  mutate = false,
+  opt: MutateOptions = {},
 ): T {
-  const r: T = mutate ? obj : { ...obj }
+  const r: T = opt.mutate ? obj : { ...obj }
   for (const k of props) {
     r[k] = undefined as any
   }
@@ -98,8 +99,8 @@ export function _omitWithUndefined<T extends AnyObject, K extends keyof T>(
  *  'account.updated',
  * ])
  */
-export function _mask<T extends AnyObject>(obj: T, props: string[], mutate = false): T {
-  const r = mutate ? obj : _deepCopy(obj)
+export function _mask<T extends AnyObject>(obj: T, props: string[], opt: MutateOptions = {}): T {
+  const r = opt.mutate ? obj : _deepCopy(obj)
   for (const k of props) {
     _unset(r, k)
   }
@@ -109,27 +110,27 @@ export function _mask<T extends AnyObject>(obj: T, props: string[], mutate = fal
 /**
  * Removes "falsy" values from the object.
  */
-export function _filterFalsyValues<T extends AnyObject>(obj: T, mutate = false): T {
-  return _filterObject(obj, (_k, v) => !!v, mutate)
+export function _filterFalsyValues<T extends AnyObject>(obj: T, opt: MutateOptions = {}): T {
+  return _filterObject(obj, (_k, v) => !!v, opt)
 }
 
 /**
  * Removes values from the object that are `null` or `undefined`.
  */
-export function _filterNullishValues<T extends AnyObject>(obj: T, mutate = false): T {
-  return _filterObject(obj, (_k, v) => v !== undefined && v !== null, mutate)
+export function _filterNullishValues<T extends AnyObject>(obj: T, opt: MutateOptions = {}): T {
+  return _filterObject(obj, (_k, v) => v !== undefined && v !== null, opt)
 }
 
 /**
  * Removes values from the object that are `undefined`.
  * Only `undefined` values are removed. `null` values are kept!
  */
-export function _filterUndefinedValues<T extends AnyObject>(obj: T, mutate = false): T {
-  return _filterObject(obj, (_k, v) => v !== undefined, mutate)
+export function _filterUndefinedValues<T extends AnyObject>(obj: T, opt: MutateOptions = {}): T {
+  return _filterObject(obj, (_k, v) => v !== undefined, opt)
 }
 
-export function _filterEmptyArrays<T extends AnyObject>(obj: T, mutate = false): T {
-  return _filterObject(obj, (_k, v) => !Array.isArray(v) || v.length > 0, mutate)
+export function _filterEmptyArrays<T extends AnyObject>(obj: T, opt: MutateOptions = {}): T {
+  return _filterObject(obj, (_k, v) => !Array.isArray(v) || v.length > 0, opt)
 }
 
 /**
@@ -139,9 +140,9 @@ export function _filterEmptyArrays<T extends AnyObject>(obj: T, mutate = false):
 export function _filterObject<T extends AnyObject>(
   obj: T,
   predicate: ObjectPredicate<T>,
-  mutate = false,
+  opt: MutateOptions = {},
 ): T {
-  if (mutate) {
+  if (opt.mutate) {
     for (const [k, v] of _objectEntries(obj)) {
       if (!predicate(k, v, obj)) {
         delete obj[k]
@@ -173,9 +174,9 @@ export function _filterObject<T extends AnyObject>(
 export function _mapValues<OUT = unknown, IN extends AnyObject = AnyObject>(
   obj: IN,
   mapper: ObjectMapper<IN, any>,
-  mutate = false,
+  opt: MutateOptions = {},
 ): OUT {
-  const map: any = mutate ? obj : {}
+  const map: any = opt.mutate ? obj : {}
   for (const [k, v] of Object.entries(obj)) {
     map[k] = mapper(k, v, obj)
   }
@@ -231,8 +232,11 @@ export function _findKeyByValue<T extends AnyObject>(obj: T, v: ValueOf<T>): key
   return Object.entries(obj).find(([_, value]) => value === v)?.[0] as keyof T
 }
 
-export function _objectNullValuesToUndefined<T extends AnyObject>(obj: T, mutate = false): T {
-  return _mapValues(obj, (_k, v) => (v === null ? undefined : v), mutate)
+export function _objectNullValuesToUndefined<T extends AnyObject>(
+  obj: T,
+  opt: MutateOptions = {},
+): T {
+  return _mapValues(obj, (_k, v) => (v === null ? undefined : v), opt)
 }
 
 /**
@@ -253,8 +257,8 @@ export function _undefinedIfEmpty<T>(obj: T | undefined): T | undefined {
 /**
  * Filters the object by removing all key-value pairs where Value is Empty (according to _isEmpty() specification).
  */
-export function _filterEmptyValues<T extends AnyObject>(obj: T, mutate = false): T {
-  return _filterObject(obj, (_k, v) => !_isEmpty(v), mutate)
+export function _filterEmptyValues<T extends AnyObject>(obj: T, opt: MutateOptions = {}): T {
+  return _filterObject(obj, (_k, v) => !_isEmpty(v), opt)
 }
 
 /**

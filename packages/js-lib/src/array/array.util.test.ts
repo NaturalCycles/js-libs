@@ -35,7 +35,6 @@ import {
   _pushUniqBy,
   _shuffle,
   _sortBy,
-  _sortDescBy,
   _sum,
   _sumBy,
   _takeRightWhile,
@@ -151,13 +150,12 @@ test('_sortBy', () => {
   _deepFreeze(a)
   expect(_sortBy(a, r => r.age)).toEqual([{ age: 10 }, { age: 20 }])
   expect(_sortBy(a, o => o.age)).toEqual([{ age: 10 }, { age: 20 }])
-  expect(_sortBy(a, o => o.age, false, 'desc')).toEqual([{ age: 20 }, { age: 10 }])
-  expect(_sortDescBy(a, o => o.age, false)).toEqual([{ age: 20 }, { age: 10 }])
+  expect(_sortBy(a, o => o.age, { dir: 'desc' })).toEqual([{ age: 20 }, { age: 10 }])
 })
 
 test('_sortBy with mutation', () => {
   const a = [{ age: 20 }, { age: 10 }]
-  const r = _sortBy(a, r => r.age, true)
+  const r = _sortBy(a, r => r.age, { mutate: true })
   expect(r).toEqual([{ age: 10 }, { age: 20 }])
   expect(r).toBe(a)
 })
@@ -326,7 +324,7 @@ test('_shuffle', () => {
     ]
   `)
 
-  _shuffle(b, true)
+  _shuffle(b, { mutate: true })
   // should be mutated
   expect(b).toMatchInlineSnapshot(`
     [

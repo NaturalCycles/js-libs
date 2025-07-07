@@ -54,7 +54,7 @@ export async function runCommonKeyValueDaoTest(db: CommonKeyValueDB): Promise<vo
     const entries = await dao.getByIds(testIds)
     // console.log(typeof entries[0]![1], entries[0]![1])
 
-    _sortBy(entries, e => e[0], true)
+    _sortBy(entries, e => e[0], { mutate: true })
     expect(entries).toEqual(testEntries) // Jest doesn't allow to compare Buffers directly
     // expect(entries.map(e => e[0])).toEqual(testEntries.map(e => e[0]))
     // expect(entries.map(e => e[1].toString())).toEqual(testEntries.map(e => e[1].toString()))

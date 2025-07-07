@@ -162,22 +162,18 @@ test('basic', () => {
 
 test('isBetween', () => {
   const ld = localTime('1984-06-21' as IsoDate)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate)).toBe(false)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '()')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '(]')).toBe(false)
+  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[]')).toBe(true)
 
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate)).toBe(true)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '()')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '(]')).toBe(false)
+  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[]')).toBe(true)
 
-  expect(ld.isBetween('1984-06-20' as IsoDate, '1984-06-22' as IsoDate)).toBe(true)
+  expect(ld.isBetween('1984-06-20' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
 
   // invalid, max < min
-  expect(ld.isBetween('1984-06-22' as IsoDate, '1984-06-20' as IsoDate)).toBe(false)
+  expect(ld.isBetween('1984-06-22' as IsoDate, '1984-06-20' as IsoDate, '[)')).toBe(false)
 })
 
 test('fromNow', () => {
