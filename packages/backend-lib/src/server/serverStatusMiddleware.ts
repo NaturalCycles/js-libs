@@ -13,6 +13,7 @@ const {
   K_REVISION,
   APP_ENV,
   NODE_OPTIONS,
+  DEPLOY_BUILD_TIME,
 } = process.env
 
 export function serverStatusMiddleware(projectDir?: string, extra?: any): BackendRequestHandler {
@@ -25,16 +26,14 @@ export function getServerStatusData(
   projectDir: string = process.cwd(),
   extra?: any,
 ): Record<string, any> {
-  const { gitRev, gitBranch, ts } = getDeployInfo(projectDir)
+  const { ts } = getDeployInfo(projectDir)
   const t = localTime(ts)
-  const deployBuildTime = t.toPretty()
-  const buildInfo = [t.toStringCompact(), gitBranch, gitRev].filter(Boolean).join('_')
+  const deployBuildTime = DEPLOY_BUILD_TIME || t.toPretty()
 
   return _filterNullishValues({
     started: getStartedStr(),
     deployBuildTime,
     APP_ENV,
-    buildInfo,
     GOOGLE_CLOUD_PROJECT,
     GAE_APPLICATION,
     GAE_SERVICE,
