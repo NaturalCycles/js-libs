@@ -1,44 +1,40 @@
 import { z } from 'zod/v4'
-import type { IsoDate } from '../types.js'
+import type { IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
 
 export const TS_2500 = 16725225600 // 2500-01-01
 export const TS_2000 = 946684800 // 2000-01-01
 
-export const zUnixTimestamp = (): z.ZodNumber =>
+export const zUnixTimestamp = (): z.ZodCustom<UnixTimestamp> =>
   z
     .number()
     .int()
     .min(0)
     .max(TS_2500, 'Must be a UnixTimestamp number')
-    // .transform(v => v as UnixTimestamp) // breaks jsonSchema
-    .describe('UnixTimestamp')
+    .describe('UnixTimestamp') as unknown as z.ZodCustom<UnixTimestamp>
 
-export const zUnixTimestamp2000 = (): z.ZodNumber =>
+export const zUnixTimestamp2000 = (): z.ZodCustom<UnixTimestamp> =>
   z
     .number()
     .int()
     .min(TS_2000)
     .max(TS_2500, 'Must be a UnixTimestamp number after 2000-01-01')
-    // .transform(v => v as UnixTimestamp)
-    .describe('UnixTimestamp2000')
+    .describe('UnixTimestamp2000') as unknown as z.ZodCustom<UnixTimestamp>
 
-export const zUnixTimestampMillis = (): z.ZodNumber =>
+export const zUnixTimestampMillis = (): z.ZodCustom<UnixTimestampMillis> =>
   z
     .number()
     .int()
     .min(0)
     .max(TS_2500 * 1000, 'Must be a UnixTimestampMillis number')
-    // .transform(v => v as UnixTimestampMillis)
-    .describe('UnixTimestampMillis')
+    .describe('UnixTimestampMillis') as unknown as z.ZodCustom<UnixTimestampMillis>
 
-export const zUnixTimestampMillis2000 = (): z.ZodNumber =>
+export const zUnixTimestampMillis2000 = (): z.ZodCustom<UnixTimestampMillis> =>
   z
     .number()
     .int()
     .min(TS_2000 * 1000)
     .max(TS_2500 * 1000, 'Must be a UnixTimestampMillis number after 2000-01-01')
-    // .transform(v => v as UnixTimestampMillis)
-    .describe('UnixTimestampMillis2000')
+    .describe('UnixTimestampMillis2000') as unknown as z.ZodCustom<UnixTimestampMillis>
 
 export const zSemVer = (): z.ZodString =>
   z
