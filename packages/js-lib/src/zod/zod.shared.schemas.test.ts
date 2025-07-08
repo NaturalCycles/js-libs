@@ -14,6 +14,14 @@ test.each(Object.keys(customZodSchemas))(
   },
 )
 
+test('zod schemas with branded types should still be extensible', () => {
+  const schema = z.object({
+    created: z.unixTimestamp().min(0),
+  })
+
+  expect(schema).toBeDefined()
+})
+
 describe('z.email', () => {
   test('should accept a valid email address', () => {
     const email = 'test@example.com'
