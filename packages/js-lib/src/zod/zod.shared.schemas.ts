@@ -3,26 +3,26 @@ import type { IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
 
 type ZodBranded<T, B> = T & Record<'_zod', Record<'output', number & B>>
 export type ZodBrandedString<B> = ZodBranded<z.ZodString, B>
-export type ZodBrandedNumber<B> = ZodBranded<z.ZodNumber, B>
+export type ZodBrandedInt<B> = ZodBranded<z.ZodInt, B>
 
 export const TS_2500 = 16725225600 // 2500-01-01
 export const TS_2000 = 946684800 // 2000-01-01
 
-export const zUnixTimestamp = (): ZodBranded<z.ZodNumber, UnixTimestamp> =>
+export const zUnixTimestamp = (): ZodBrandedInt<UnixTimestamp> =>
   z
     .number()
     .int()
     .min(0)
     .max(TS_2500, 'Must be a UnixTimestamp number')
-    .describe('UnixTimestamp') as ZodBranded<z.ZodNumber, UnixTimestamp>
+    .describe('UnixTimestamp') as ZodBrandedInt<UnixTimestamp>
 
-export const zUnixTimestamp2000 = (): ZodBranded<z.ZodNumber, UnixTimestamp> =>
+export const zUnixTimestamp2000 = (): ZodBrandedInt<UnixTimestamp> =>
   z
     .number()
     .int()
     .min(TS_2000)
     .max(TS_2500, 'Must be a UnixTimestamp number after 2000-01-01')
-    .describe('UnixTimestamp2000') as ZodBranded<z.ZodNumber, UnixTimestamp>
+    .describe('UnixTimestamp2000') as ZodBrandedInt<UnixTimestamp>
 
 export const zUnixTimestampMillis = (): ZodBranded<z.ZodNumber, UnixTimestampMillis> =>
   z
@@ -30,15 +30,15 @@ export const zUnixTimestampMillis = (): ZodBranded<z.ZodNumber, UnixTimestampMil
     .int()
     .min(0)
     .max(TS_2500 * 1000, 'Must be a UnixTimestampMillis number')
-    .describe('UnixTimestampMillis') as ZodBranded<z.ZodNumber, UnixTimestampMillis>
+    .describe('UnixTimestampMillis') as ZodBrandedInt<UnixTimestampMillis>
 
-export const zUnixTimestampMillis2000 = (): ZodBranded<z.ZodNumber, UnixTimestampMillis> =>
+export const zUnixTimestampMillis2000 = (): ZodBrandedInt<UnixTimestampMillis> =>
   z
     .number()
     .int()
     .min(TS_2000 * 1000)
     .max(TS_2500 * 1000, 'Must be a UnixTimestampMillis number after 2000-01-01')
-    .describe('UnixTimestampMillis2000') as ZodBranded<z.ZodNumber, UnixTimestampMillis>
+    .describe('UnixTimestampMillis2000') as ZodBrandedInt<UnixTimestampMillis>
 
 export const zSemVer = (): z.ZodString =>
   z
@@ -46,13 +46,13 @@ export const zSemVer = (): z.ZodString =>
     .regex(/^[0-9]+\.[0-9]+\.[0-9]+$/, 'Must be a SemVer string')
     .describe('SemVer')
 
-export const zIsoDate = (): ZodBranded<z.ZodString, IsoDate> =>
+export const zIsoDate = (): ZodBrandedString<IsoDate> =>
   z
     .string()
     .refine(v => {
       return /^\d{4}-\d{2}-\d{2}$/.test(v)
     }, 'Must be an IsoDateString')
-    .describe('IsoDateString') as ZodBranded<z.ZodString, IsoDate>
+    .describe('IsoDateString') as ZodBrandedString<IsoDate>
 
 export const zEmail = (): z.ZodEmail => z.email().describe('Email')
 
