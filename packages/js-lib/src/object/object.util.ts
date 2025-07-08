@@ -6,6 +6,7 @@ import type {
   ObjectMapper,
   ObjectPredicate,
   Reviver,
+  StringMap,
   ValueOf,
 } from '../types.js'
 import { _objectEntries, SKIP } from '../types.js'
@@ -244,6 +245,24 @@ export function _objectNullValuesToUndefined<T extends AnyObject>(
  */
 export function _deepCopy<T>(o: T, reviver?: Reviver): T {
   return JSON.parse(JSON.stringify(o), reviver)
+}
+
+/**
+ * Performance-optimized implementation of merging two objects
+ * without mutating any of them.
+ * (if you are allowed to mutate - there can be a faster implementation).
+ *
+ * Gives ~40% speedup with map sizes between 10 and 100k items,
+ * compared to {...obj1, ...obj2} or Object.assign({}, obj1, obj2).
+ *
+ * Only use it in hot paths that are known to be performance bottlenecks,
+ * otherwise it's not worth it (use normal object spread then).
+ */
+export function _mergeObjects<T>(obj1: StringMap<T>, obj2: StringMap<T>): StringMap<T> {
+  const map: StringMap<T> = {}
+  for (const k of Object.keys(obj1)) map[k] = obj1[k]
+  for (const k of Object.keys(obj2)) map[k] = obj2[k]
+  return map
 }
 
 /**

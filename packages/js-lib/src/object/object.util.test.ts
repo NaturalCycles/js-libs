@@ -20,6 +20,7 @@ import {
   _mapValues,
   _mask,
   _merge,
+  _mergeObjects,
   _objectAssignExact,
   _objectNullValuesToUndefined,
   _omit,
@@ -436,6 +437,22 @@ test('_deepCopy', () => {
     },
   }
   expect(_deepCopy(o)).toEqual(o)
+})
+
+test('_mergeObjects', () => {
+  const obj1 = {
+    a: 'a1',
+    b: 'b1',
+  }
+  const obj2 = {
+    b: 'b2',
+    c: 'c2',
+  }
+  expect(_mergeObjects(obj1, obj2)).toEqual({
+    a: 'a1',
+    b: 'b2',
+    c: 'c2',
+  })
 })
 
 test('_merge', () => {
