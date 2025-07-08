@@ -15,7 +15,6 @@ export async function loadGTag(gtagId: string, enabled = true): Promise<void> {
 
   globalThis.dataLayer ||= []
   globalThis.gtag ||= function gtag() {
-    // biome-ignore lint/complexity/useArrowFunction: ok
     // biome-ignore lint/complexity/noArguments: ok
     globalThis.dataLayer.push(arguments)
   }

@@ -29,7 +29,7 @@ test('defaults', () => {
   "init": {
     "credentials": undefined,
     "headers": {
-      "user-agent": "fetcher2",
+      "user-agent": "fetcher/2",
     },
     "method": "GET",
     "redirect": undefined,
@@ -65,40 +65,40 @@ test('defaults', () => {
   req.started = 1234 as UnixTimestampMillis
 
   expect(req).toMatchInlineSnapshot(`
-{
-  "debug": false,
-  "errorData": {},
-  "fullUrl": "some",
-  "init": {
-    "credentials": undefined,
-    "headers": {
-      "accept": "application/json",
-      "user-agent": "fetcher2",
-    },
-    "method": "GET",
-    "redirect": "follow",
-  },
-  "inputUrl": "some",
-  "logRequest": false,
-  "logRequestBody": false,
-  "logResponse": true,
-  "logResponseBody": false,
-  "responseType": "json",
-  "retry": {
-    "count": 2,
-    "timeout": 1000,
-    "timeoutMax": 30000,
-    "timeoutMultiplier": 2,
-  },
-  "retry4xx": false,
-  "retry5xx": true,
-  "retryPost": false,
-  "started": 1234,
-  "throwHttpErrors": true,
-  "timeoutSeconds": 30,
-  "url": "some",
-}
-`)
+    {
+      "debug": false,
+      "errorData": {},
+      "fullUrl": "some",
+      "init": {
+        "credentials": undefined,
+        "headers": {
+          "accept": "application/json",
+          "user-agent": "fetcher/2",
+        },
+        "method": "GET",
+        "redirect": "follow",
+      },
+      "inputUrl": "some",
+      "logRequest": false,
+      "logRequestBody": false,
+      "logResponse": true,
+      "logResponseBody": false,
+      "responseType": "json",
+      "retry": {
+        "count": 2,
+        "timeout": 1000,
+        "timeoutMax": 30000,
+        "timeoutMultiplier": 2,
+      },
+      "retry4xx": false,
+      "retry5xx": true,
+      "retryPost": false,
+      "started": 1234,
+      "throwHttpErrors": true,
+      "timeoutSeconds": 30,
+      "url": "some",
+    }
+  `)
 })
 
 test('should not mutate console', () => {
@@ -420,13 +420,13 @@ test('should not mutate headers', async () => {
     {
       "a": "a",
       "accept": "application/json",
-      "user-agent": "fetcher2",
+      "user-agent": "fetcher/2",
     }
   `)
   expect(a[1]).toMatchInlineSnapshot(`
     {
       "accept": "application/json",
-      "user-agent": "fetcher2",
+      "user-agent": "fetcher/2",
     }
   `)
   expect(a[0]).not.toBe(a[1])

@@ -82,7 +82,7 @@ export class Fetcher {
    * Version is to be incremented every time a difference in behaviour (or a bugfix) is done.
    */
   static readonly VERSION = 2
-  static readonly userAgent = isServerSide() ? `fetcher${this.VERSION}` : undefined
+  static readonly userAgent = isServerSide() ? `fetcher/${this.VERSION}` : undefined
 
   private constructor(cfg: FetcherCfg & FetcherOptions = {}) {
     if (typeof globalThis.fetch !== 'function') {
