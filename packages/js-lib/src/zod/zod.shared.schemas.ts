@@ -4,6 +4,7 @@ import type { IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
 type ZodBranded<T, B> = T & Record<'_zod', Record<'output', number & B>>
 export type ZodBrandedString<B> = ZodBranded<z.ZodString, B>
 export type ZodBrandedInt<B> = ZodBranded<z.ZodInt, B>
+export type ZodBrandedNumber<B> = ZodBranded<z.ZodNumber, B>
 
 export const TS_2500 = 16725225600 // 2500-01-01
 export const TS_2000 = 946684800 // 2000-01-01
