@@ -2,7 +2,6 @@ import { _deepEquals } from '../object/deepEquals.js'
 import { _stringify } from '../string/stringify.js'
 import type { Class } from '../typeFest.js'
 import type { UnixTimestamp } from '../types.js'
-import { TS_2000, TS_2500 } from '../zod/zod.shared.schemas.js'
 import type { BackendErrorResponseObject, ErrorData, ErrorObject } from './error.model.js'
 import { _isBackendErrorResponseObject, _isErrorObject, AssertionError } from './error.util.js'
 
@@ -151,6 +150,9 @@ export function _assertTypeOf<T>(v: any, expectedType: string, message?: string)
 export function asUnixTimestamp(n: number): UnixTimestamp {
   return n as UnixTimestamp
 }
+
+const TS_2500 = 16725225600 // 2500-01-01
+const TS_2000 = 946684800 // 2000-01-01
 
 /**
  * Casts an arbitrary number as UnixTimestamp2000.
