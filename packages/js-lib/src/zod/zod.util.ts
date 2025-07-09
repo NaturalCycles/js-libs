@@ -1,4 +1,4 @@
-import type { ZodError, ZodType } from 'zod/v4'
+import type { ZodError, ZodType } from 'zod'
 import type { ErrorData } from '../error/error.model.js'
 import { AppError } from '../error/error.util.js'
 import { _stringify } from '../string/stringify.js'

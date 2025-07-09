@@ -1,4 +1,4 @@
-import { z as z4, ZodType } from 'zod/v4'
+import { z as z4, ZodType } from 'zod'
 import { customZodSchemas } from './zod.shared.schemas.js'
 
 type ExtendedZod = Omit<typeof z4, keyof typeof customZodSchemas | 'iso'> & typeof customZodSchemas

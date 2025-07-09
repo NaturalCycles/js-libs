@@ -1,4 +1,4 @@
-import { z } from 'zod/v4'
+import { z } from 'zod'
 import type { IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
 
 type ZodBranded<T, B> = T & Record<'_zod', Record<'output', number & B>>

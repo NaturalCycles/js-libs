@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "tslib": "^2",
-    "zod": "^3"
+    "zod": "^4"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "*",
