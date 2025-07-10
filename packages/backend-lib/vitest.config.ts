@@ -1,5 +1,10 @@
-import { defineVitestConfig } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
+import { defineVitestConfig, CollectReporter } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
+
+// pnpm --filter @naturalcycles/backend-lib run test collect.test.ts
 
 export default defineVitestConfig({
-  // override here
+  test: {
+    // reporters: ['default', new CollectReporter()],
+    // deps: { inline: [ /.*/ ] },
+  },
 })
