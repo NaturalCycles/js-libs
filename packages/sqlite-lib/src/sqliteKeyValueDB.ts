@@ -7,7 +7,7 @@ import type {
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
 import type { CommonLogger } from '@naturalcycles/js-lib'
 import { AppError, pMap } from '@naturalcycles/js-lib'
-import { boldWhite } from '@naturalcycles/nodejs-lib'
+import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import { readableCreate, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { Database } from 'sqlite'
 import { open } from 'sqlite'

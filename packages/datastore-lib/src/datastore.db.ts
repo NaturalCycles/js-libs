@@ -39,7 +39,7 @@ import {
   pTimeout,
   TimeoutError,
 } from '@naturalcycles/js-lib'
-import { boldWhite } from '@naturalcycles/nodejs-lib'
+import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {
   DatastoreDBCfg,

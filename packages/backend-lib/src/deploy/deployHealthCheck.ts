@@ -2,7 +2,8 @@ import type { InspectOptions } from 'node:util'
 import { inspect } from 'node:util'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib'
 import { _filterFalsyValues, _ms, _since, getFetcher, pDelay } from '@naturalcycles/js-lib'
-import { dimGrey, exec2, red } from '@naturalcycles/nodejs-lib'
+import { dimGrey, red } from '@naturalcycles/nodejs-lib/colors'
+import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { coloredHttpCode } from '../server/request.log.util.js'
 
 export interface DeployHealthCheckOptions {

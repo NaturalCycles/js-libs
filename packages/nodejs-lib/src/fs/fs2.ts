@@ -18,13 +18,7 @@ import type { RmOptions, Stats } from 'node:fs'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
-import { createGzip, createUnzip } from 'node:zlib'
-import { _isTruthy, _jsonParse } from '@naturalcycles/js-lib'
-import type { DumpOptions } from 'js-yaml'
-import yaml from 'js-yaml'
-import { transformToNDJson } from '../stream/ndjson/transformToNDJson.js'
-import type { ReadableTyped, TransformTyped } from '../stream/stream.model.js'
-import { transformSplitOnNewline } from '../stream/transform/transformSplit.js'
+import { _jsonParse } from '@naturalcycles/js-lib'
 
 /**
  * fs2 conveniently groups filesystem functions together.
@@ -72,14 +66,6 @@ class FS2 {
     return _jsonParse(str)
   }
 
-  readYaml<T = unknown>(filePath: string): T {
-    return yaml.load(fs.readFileSync(filePath, 'utf8')) as T
-  }
-
-  async readYamlAsync<T = unknown>(filePath: string): Promise<T> {
-    return yaml.load(await fsp.readFile(filePath, 'utf8')) as T
-  }
-
   writeFile(filePath: string, data: string | Buffer): void {
     fs.writeFileSync(filePath, data)
   }
@@ -98,16 +84,6 @@ class FS2 {
     await fsp.writeFile(filePath, str)
   }
 
-  writeYaml(filePath: string, data: any, opt?: DumpOptions): void {
-    const str = yaml.dump(data, opt)
-    fs.writeFileSync(filePath, str)
-  }
-
-  async writeYamlAsync(filePath: string, data: any, opt?: DumpOptions): Promise<void> {
-    const str = yaml.dump(data, opt)
-    await fsp.writeFile(filePath, str)
-  }
-
   appendFile(filePath: string, data: string | Buffer): void {
     fs.appendFileSync(filePath, data)
   }
@@ -123,16 +99,6 @@ class FS2 {
 
   async outputJsonAsync(filePath: string, data: any, opt?: JsonOptions): Promise<void> {
     const str = stringify(data, opt)
-    await this.outputFileAsync(filePath, str)
-  }
-
-  outputYaml(filePath: string, data: any, opt?: DumpOptions): void {
-    const str = yaml.dump(data, opt)
-    this.outputFile(filePath, str)
-  }
-
-  async outputYamlAsync(filePath: string, data: any, opt?: DumpOptions): Promise<void> {
-    const str = yaml.dump(data, opt)
     await this.outputFileAsync(filePath, str)
   }
 
@@ -336,72 +302,6 @@ class FS2 {
   readdirAsync = fsp.readdir
   createWriteStream = fs.createWriteStream
   createReadStream = fs.createReadStream
-
-  /*
-  Returns a Readable of [already parsed] NDJSON objects.
-
-  Replaces a list of operations:
-  - requireFileToExist(inputPath)
-  - fs.createReadStream
-  - createUnzip (only if path ends with '.gz')
-  - transformSplitOnNewline
-  - transformJsonParse
-
-  To add a Limit or Offset: just add .take() or .drop(), example:
-
-  _pipeline([
-    fs2.createReadStreamAsNDJSON().take(100),
-    transformX(),
-  ])
-   */
-  createReadStreamAsNDJSON<ROW = any>(inputPath: string): ReadableTyped<ROW> {
-    this.requireFileToExist(inputPath)
-
-    let stream: ReadableTyped<ROW> = fs
-      .createReadStream(inputPath, {
-        highWaterMark: 64 * 1024, // no observed speedup
-      })
-      .on('error', err => stream.emit('error', err))
-
-    if (inputPath.endsWith('.gz')) {
-      stream = stream.pipe(
-        createUnzip({
-          chunkSize: 64 * 1024, // speedup from ~3200 to 3800 rps!
-        }),
-      )
-    }
-
-    return stream.pipe(transformSplitOnNewline()).map(line => JSON.parse(line))
-    // For some crazy reason .map is much faster than transformJsonParse!
-    // ~5000 vs ~4000 rps !!!
-    // .on('error', err => stream.emit('error', err))
-    // .pipe(transformJsonParse<ROW>())
-  }
-
-  /*
-  Returns an array of Transforms, so that you can ...destructure them at
-  the end of the _pipeline.
-
-  Replaces a list of operations:
-  - transformToNDJson
-  - createGzip (only if path ends with '.gz')
-  - fs.createWriteStream
-   */
-  createWriteStreamAsNDJSON(outputPath: string): TransformTyped<any, any>[] {
-    this.ensureFile(outputPath)
-
-    return [
-      transformToNDJson(),
-      outputPath.endsWith('.gz')
-        ? createGzip({
-            // chunkSize: 64 * 1024, // no observed speedup
-          })
-        : undefined,
-      fs.createWriteStream(outputPath, {
-        // highWaterMark: 64 * 1024, // no observed speedup
-      }),
-    ].filter(_isTruthy) as TransformTyped<any, any>[]
-  }
 }
 
 export const fs2 = new FS2()

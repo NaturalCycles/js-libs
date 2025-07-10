@@ -1,8 +1,9 @@
 import type { AddressInfo } from 'node:net'
 import type { StringMap } from '@naturalcycles/js-lib'
 import { _omit, _range, pDefer, pDelay } from '@naturalcycles/js-lib'
-import { boldRed, dimGrey, runScript, yellow } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { runScript } from '@naturalcycles/nodejs-lib'
+import { boldRed, dimGrey, yellow } from '@naturalcycles/nodejs-lib/colors'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import hdr from 'hdr-histogram-js'
 import type {
   AutocannonResult,

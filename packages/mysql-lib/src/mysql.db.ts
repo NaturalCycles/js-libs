@@ -24,7 +24,7 @@ import {
   _omit,
   commonLoggerPrefix,
 } from '@naturalcycles/js-lib'
-import { white } from '@naturalcycles/nodejs-lib'
+import { white } from '@naturalcycles/nodejs-lib/colors'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {
   Connection,

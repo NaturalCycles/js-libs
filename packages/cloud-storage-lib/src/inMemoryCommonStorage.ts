@@ -7,7 +7,7 @@ import {
   localTime,
 } from '@naturalcycles/js-lib'
 import { md5 } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
   type ReadableBinary,
   readableFrom,

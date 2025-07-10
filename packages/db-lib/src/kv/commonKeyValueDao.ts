@@ -1,7 +1,7 @@
 import type { CommonLogger, KeyValueTuple } from '@naturalcycles/js-lib'
 import { AppError, pMap } from '@naturalcycles/js-lib'
-import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import type { CommonDaoLogLevel } from '../commondao/common.dao.model.js'
 import type { CommonDBCreateOptions } from '../db.model.js'
 import type {

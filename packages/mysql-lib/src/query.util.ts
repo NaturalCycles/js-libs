@@ -1,7 +1,7 @@
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import type { AnyObjectWithId, CommonLogger } from '@naturalcycles/js-lib'
 import { _hb } from '@naturalcycles/js-lib'
-import { white, yellow } from '@naturalcycles/nodejs-lib'
+import { white, yellow } from '@naturalcycles/nodejs-lib/colors'
 import type { QueryOptions } from 'mysql'
 import * as mysql from 'mysql'
 import { mapNameToMySQL } from './schema/mysql.schema.util.js'

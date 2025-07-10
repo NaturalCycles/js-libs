@@ -1,5 +1,6 @@
-import { dimGrey } from '@naturalcycles/nodejs-lib'
-import { fs2, kpySync } from '@naturalcycles/nodejs-lib/fs'
+import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
 import { srcDir } from '../paths.cnst.js'
 import { getBackendCfg } from './backend.cfg.util.js'
 import type { DeployInfo } from './deploy.model.js'

@@ -1,5 +1,5 @@
 import { _memoFn, AppError } from '@naturalcycles/js-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { srcDir } from '../paths.cnst.js'
 import type { BackendRequestHandler } from '../server/server.model.js'
 import type { BaseAdminService } from './base.admin.service.js'

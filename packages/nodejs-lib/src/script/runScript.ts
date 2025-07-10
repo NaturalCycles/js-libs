@@ -1,8 +1,6 @@
-import 'dotenv/config'
 import os from 'node:os'
 import type { AnyObject, CommonLogger } from '@naturalcycles/js-lib'
 import { pDelay, setGlobalStringifyFunction } from '@naturalcycles/js-lib'
-import { dimGrey } from '../colors/colors.js'
 import { inspectStringifyFn } from '../string/inspect.js'
 
 export interface RunScriptOptions {
@@ -46,7 +44,6 @@ const { DEBUG_RUN_SCRIPT } = process.env
  * Set env DEBUG_RUN_SCRIPT for extra debugging.
  */
 export function runScript(fn: (...args: any[]) => any, opt: RunScriptOptions = {}): void {
-  checkAndlogEnvironment()
   setGlobalStringifyFunction(inspectStringifyFn)
 
   const { logger = console, noExit, registerUncaughtExceptionHandlers = true } = opt
@@ -70,6 +67,9 @@ export function runScript(fn: (...args: any[]) => any, opt: RunScriptOptions = {
 
   void (async () => {
     try {
+      await import('dotenv/config')
+      await checkAndlogEnvironment()
+
       await fn()
 
       await pDelay() // to ensure all async operations are completed
@@ -91,7 +91,9 @@ export function runScript(fn: (...args: any[]) => any, opt: RunScriptOptions = {
   })()
 }
 
-function checkAndlogEnvironment(): void {
+async function checkAndlogEnvironment(): Promise<void> {
+  const { dimGrey } = await import('../colors/colors.js')
+
   const {
     platform,
     arch,

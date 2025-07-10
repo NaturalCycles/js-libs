@@ -12,11 +12,12 @@ import {
   localTime,
   pMap,
 } from '@naturalcycles/js-lib'
-import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
-import type {
-  TransformLogProgressOptions,
-  TransformMapOptions,
+import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import {
+  createReadStreamAsNDJSON,
+  type TransformLogProgressOptions,
+  type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
 import {
   _pipeline,
@@ -200,7 +201,7 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
       console.log(`<< ${grey(filePath)} ${dimWhite(_hb(sizeBytes))} started...`)
 
       await _pipeline([
-        fs2.createReadStreamAsNDJSON(filePath).take(limit || Number.POSITIVE_INFINITY),
+        createReadStreamAsNDJSON(filePath).take(limit || Number.POSITIVE_INFINITY),
         transformTap(() => rows++),
         transformLogProgress({
           logEvery: 1000,

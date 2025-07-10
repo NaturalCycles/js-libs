@@ -6,7 +6,7 @@ import {
   type UnixTimestampMillis,
 } from '@naturalcycles/js-lib'
 import { _since, AppError } from '@naturalcycles/js-lib'
-import { dimGrey, dimRed, hasColors, white } from '../colors/colors.js'
+import { dimGrey, dimRed, hasColors, white } from './colors/colors.js'
 
 /**
  * Set of utility functions to work with Spawn / Exec.

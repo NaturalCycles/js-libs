@@ -1,6 +1,6 @@
 import type { Unsaved } from '@naturalcycles/js-lib'
 import { _assert, _Memo, _shuffle, localTime, pMap } from '@naturalcycles/js-lib'
-import { LRUMemoCache } from '@naturalcycles/nodejs-lib'
+import { LRUMemoCache } from '@naturalcycles/nodejs-lib/lruMemoCache'
 import { bucketDao } from './dao/bucket.dao.js'
 import { experimentDao, type GetAllExperimentsOpts } from './dao/experiment.dao.js'
 import { userAssignmentDao } from './dao/userAssignment.dao.js'

@@ -3,7 +3,8 @@ import fsp from 'node:fs/promises'
 import { _noop } from '@naturalcycles/js-lib'
 import { beforeEach, test, vi } from 'vitest'
 import { scriptsDir, testDir, tmpDir } from '../test/paths.cnst.js'
-import { json2env, kpy, kpySync } from './index.js'
+import { json2env } from './json2env.js'
+import { kpy, kpySync } from './kpy.js'
 
 beforeEach(() => {
   vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {})

@@ -7,8 +7,6 @@ const inflate = promisify(zlib.inflate.bind(zlib))
 const gzip = promisify(zlib.gzip.bind(zlib))
 const gunzip = promisify(zlib.gunzip.bind(zlib))
 
-// string > compressed buffer
-
 /**
  * deflateBuffer uses `deflate`.
  * It's 9 bytes shorter than `gzip`.

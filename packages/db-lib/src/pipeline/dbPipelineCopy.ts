@@ -1,6 +1,6 @@
 import type { AsyncMapper, BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib'
 import { _passthroughMapper, ErrorMode, localTime, pMap } from '@naturalcycles/js-lib'
-import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib'
+import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import type {
   TransformLogProgressOptions,
   TransformMapOptions,

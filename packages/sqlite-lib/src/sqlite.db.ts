@@ -6,7 +6,7 @@ import type {
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB } from '@naturalcycles/db-lib'
 import type { CommonLogger, JsonSchemaObject, ObjectWithId } from '@naturalcycles/js-lib'
-import { boldWhite } from '@naturalcycles/nodejs-lib'
+import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import type { Database } from 'sqlite'
 import { open } from 'sqlite'
 import { OPEN_CREATE, OPEN_READWRITE } from 'sqlite3'

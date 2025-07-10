@@ -1,8 +1,7 @@
 import { execSync } from 'node:child_process'
 import { basename } from 'node:path'
 import type { UnixTimestamp } from '@naturalcycles/js-lib'
-import { grey } from '../colors/colors.js'
-import { exec2 } from './exec2.js'
+import { exec2 } from '../exec2.js'
 
 /**
  * Set of utility functions to work with git.
@@ -38,7 +37,7 @@ class Git2 {
     const cmd = `git commit -a --no-verify -m "${msg}"`
     // const cmd = `git`
     // const args = ['commit', '-a', '--no-verify', '-m', msg]
-    console.log(grey(cmd))
+    console.log(cmd)
 
     try {
       execSync(cmd, {

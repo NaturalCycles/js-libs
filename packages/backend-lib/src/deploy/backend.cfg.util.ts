@@ -1,6 +1,7 @@
 import type { StringMap } from '@naturalcycles/js-lib'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import { yaml2 } from '@naturalcycles/nodejs-lib/yaml2'
 import { resourcesDir } from '../paths.cnst.js'
 
 export interface BackendCfg {
@@ -50,7 +51,7 @@ export function getBackendCfg(projectDir = '.'): BackendCfg {
   fs2.requireFileToExist(backendCfgYamlPath)
 
   const backendCfg: BackendCfg = {
-    ...fs2.readYaml(backendCfgYamlPath),
+    ...yaml2.readYaml(backendCfgYamlPath),
   }
 
   backendCfgSchema.validate(backendCfg)

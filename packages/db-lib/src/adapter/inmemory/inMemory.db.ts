@@ -20,9 +20,15 @@ import {
   localTime,
   pMap,
 } from '@naturalcycles/js-lib'
-import { dimGrey, yellow } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
-import { _pipeline, bufferReviver, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { dimGrey, yellow } from '@naturalcycles/nodejs-lib/colors'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import {
+  _pipeline,
+  bufferReviver,
+  createReadStreamAsNDJSON,
+  createWriteStreamAsNDJSON,
+  type ReadableTyped,
+} from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB, CommonDBSupport } from '../../common.db.js'
 import { commonDBFullSupport, CommonDBType } from '../../common.db.js'
 import type {
@@ -329,7 +335,7 @@ export class InMemoryDB implements CommonDB {
       tables++
       const fname = `${persistentStoragePath}/${table}.ndjson${persistZip ? '.gz' : ''}`
 
-      await _pipeline([Readable.from(rows), ...fs2.createWriteStreamAsNDJSON(fname)])
+      await _pipeline([Readable.from(rows), ...createWriteStreamAsNDJSON(fname)])
     })
 
     this.cfg.logger!.log(
@@ -357,7 +363,7 @@ export class InMemoryDB implements CommonDB {
       const fname = `${persistentStoragePath}/${file}`
       const table = file.split('.ndjson')[0]!
 
-      const rows = await fs2.createReadStreamAsNDJSON(fname).toArray()
+      const rows = await createReadStreamAsNDJSON(fname).toArray()
 
       this.data[table] = _by(rows, r => r.id)
     })

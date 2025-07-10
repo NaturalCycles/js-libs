@@ -1,3 +1,5 @@
+export * from './ndjson/createReadStreamAsNDJSON.js'
+export * from './ndjson/createWriteStreamAsNDJSON.js'
 export * from './ndjson/ndjson.model.js'
 export * from './ndjson/ndjsonMap.js'
 export * from './ndjson/ndjsonStreamForEach.js'

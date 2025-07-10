@@ -1,8 +1,12 @@
 import { Readable } from 'node:stream'
 import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { pMap } from '@naturalcycles/js-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
-import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import {
+  _pipeline,
+  createReadStreamAsNDJSON,
+  createWriteStreamAsNDJSON,
+} from '@naturalcycles/nodejs-lib/stream'
 import type { DBSaveBatchOperation } from '../../db.model.js'
 import type { FileDBPersistencePlugin } from './file.db.model.js'
 
@@ -47,7 +51,7 @@ export class LocalFilePersistencePlugin implements FileDBPersistencePlugin {
 
     if (!(await fs2.pathExistsAsync(filePath))) return []
 
-    return await fs2.createReadStreamAsNDJSON(filePath).toArray()
+    return await createReadStreamAsNDJSON(filePath).toArray()
   }
 
   async saveFiles(ops: DBSaveBatchOperation<any>[]): Promise<void> {
@@ -59,6 +63,6 @@ export class LocalFilePersistencePlugin implements FileDBPersistencePlugin {
     const ext = `ndjson${this.cfg.gzip ? '.gz' : ''}`
     const filePath = `${this.cfg.storagePath}/${table}.${ext}`
 
-    await _pipeline([Readable.from(rows), ...fs2.createWriteStreamAsNDJSON(filePath)])
+    await _pipeline([Readable.from(rows), ...createWriteStreamAsNDJSON(filePath)])
   }
 }

@@ -1,10 +1,11 @@
 import type { AsyncMapper, StringMap, UnixTimestamp } from '@naturalcycles/js-lib'
 import { _passthroughMapper, AppError, ErrorMode, localTime, pMap } from '@naturalcycles/js-lib'
-import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
-import type {
-  TransformLogProgressOptions,
-  TransformMapOptions,
+import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import {
+  createWriteStreamAsNDJSON,
+  type TransformLogProgressOptions,
+  type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
 import {
   _pipeline,
@@ -223,7 +224,7 @@ export async function dbPipelineBackup(opt: DBPipelineBackupOptions): Promise<ND
         transformTap(() => {
           rows++
         }),
-        ...fs2.createWriteStreamAsNDJSON(filePath),
+        ...createWriteStreamAsNDJSON(filePath),
       ])
 
       const { size: sizeBytes } = await fs2.statAsync(filePath)

@@ -9,7 +9,8 @@ import {
   TEST_TABLE,
   testItemBMJsonSchema,
 } from '@naturalcycles/db-lib/testing'
-import { deflateString, inflateToString, requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { MysqlDB } from '../mysql.db.js'
 

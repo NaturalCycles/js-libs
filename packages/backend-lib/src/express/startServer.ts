@@ -1,7 +1,7 @@
 import type { Server } from 'node:http'
 import os from 'node:os'
 import { _Memo, _ms } from '@naturalcycles/js-lib'
-import { boldGrey, dimGrey, white } from '@naturalcycles/nodejs-lib'
+import { boldGrey, dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import type { SentrySharedService } from '../sentry/sentry.shared.service.js'
 import type { BackendApplication } from '../server/server.model.js'
 import { createDefaultApp, type DefaultAppCfg } from './createDefaultApp.js'

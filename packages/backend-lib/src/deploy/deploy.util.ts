@@ -1,6 +1,8 @@
 import { _assert, _mapValues, _merge, _truncate, localTime } from '@naturalcycles/js-lib'
-import { dimGrey, sha256, white } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { sha256 } from '@naturalcycles/nodejs-lib'
+import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import { yaml2 } from '@naturalcycles/nodejs-lib/yaml2'
 import type { BackendCfg } from './backend.cfg.util.js'
 import type { AppYaml, DeployInfo } from './deploy.model.js'
 
@@ -117,7 +119,7 @@ export function createAndSaveAppYaml(
 ): AppYaml {
   const appYaml = createAppYaml(backendCfg, deployInfo, projectDir, appYamlPassEnv)
   const appYamlPath = `${targetDir}/app.yaml`
-  fs2.writeYaml(appYamlPath, appYaml)
+  yaml2.writeYaml(appYamlPath, appYaml)
   console.log(`saved ${dimGrey(appYamlPath)}`)
   return appYaml
 }
@@ -143,13 +145,13 @@ export function createAppYaml(
   const appYamlPath = `${projectDir}/app.yaml`
   if (fs2.pathExists(appYamlPath)) {
     console.log(`merging-in ${dimGrey(appYamlPath)}`)
-    _merge(appYaml, fs2.readYaml(appYamlPath))
+    _merge(appYaml, yaml2.readYaml(appYamlPath))
   }
 
   const appEnvYamlPath = `${projectDir}/app.${APP_ENV}.yaml`
   if (fs2.pathExists(appEnvYamlPath)) {
     console.log(`merging-in ${dimGrey(appEnvYamlPath)}`)
-    _merge(appYaml, fs2.readYaml(appEnvYamlPath))
+    _merge(appYaml, yaml2.readYaml(appEnvYamlPath))
   }
 
   // appYamlPassEnv

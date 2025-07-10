@@ -44,14 +44,21 @@
   },
   "exports": {
     ".": "./dist/index.js",
+    "./lruMemoCache": "./dist/cache/lruMemoCache.js",
+    "./colors": "./dist/colors/colors.js",
     "./csv": "./dist/csv/index.js",
-    "./fs": "./dist/fs/index.js",
+    "./exec2": "./dist/exec2.js",
+    "./fs2": "./dist/fs/fs2.js",
+    "./env": "./dist/fs/json2env.js",
+    "./kpy": "./dist/fs/kpy.js",
+    "./yaml2": "./dist/fs/yaml2.js",
     "./glob": "./dist/glob/index.js",
-    "./jwt": "./dist/jwt/index.js",
+    "./jwt": "./dist/jwt/jwt.service.js",
     "./stream": "./dist/stream/index.js",
-    "./yargs": "./dist/yargs/index.js",
+    "./yargs": "./dist/yargs/yargs.util.js",
     "./ajv": "./dist/validation/ajv/index.js",
-    "./joi": "./dist/validation/joi/index.js"
+    "./joi": "./dist/validation/joi/index.js",
+    "./zip": "./dist/zip/zip.util.js"
   },
   "bin": {
     "kpy": "dist/bin/kpy.js",

@@ -1,4 +1,4 @@
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import type {
   AirtableBaseDaoCfg,
   AirtableConnector,
