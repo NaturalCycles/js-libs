@@ -5,6 +5,8 @@
   "extends": "@naturalcycles/dev-lib/scripts/tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./",
+    // "target": "es2023",
+    "lib": ["esnext", "dom.iterable"],
     "outDir": "../dist",
   },
   "exclude": ["**/__exclude"],
