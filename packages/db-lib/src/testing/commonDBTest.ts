@@ -1,6 +1,9 @@
-import { _deepFreeze, _filterObject, _pick, _sortBy, localTime, pMap } from '@naturalcycles/js-lib'
-import type { CommonDB } from '../common.db.js'
-import { CommonDBType } from '../common.db.js'
+import { _sortBy } from '@naturalcycles/js-lib'
+import { localTime } from '@naturalcycles/js-lib/datetime'
+import { _deepFreeze, _filterObject, _pick } from '@naturalcycles/js-lib/object'
+import { pMap } from '@naturalcycles/js-lib/promise'
+import type { CommonDB } from '../commondb/common.db.js'
+import { CommonDBType } from '../commondb/common.db.js'
 import { DBQuery } from '../query/dbQuery.js'
 import type { TestItemDBM } from './test.model.js'
 import {

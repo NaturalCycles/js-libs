@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { pDelay } from '../index.js'
+import { pDelay } from '../promise/index.js'
 import { _Retry } from './retry.decorator.js'
 
 class C {

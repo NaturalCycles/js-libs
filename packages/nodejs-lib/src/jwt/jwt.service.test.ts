@@ -1,4 +1,4 @@
-import { _omit } from '@naturalcycles/js-lib'
+import { _omit } from '@naturalcycles/js-lib/object'
 import { expect, test } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
 import { testDir } from '../test/paths.cnst.js'

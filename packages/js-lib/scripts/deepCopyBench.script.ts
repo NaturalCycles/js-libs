@@ -5,7 +5,8 @@ pn tsx scripts/deepCopyBench
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import { _deepCopy, _range } from '../src/index.js'
+import { _range } from '../src/index.js'
+import { _deepCopy } from '../src/object/index.js'
 
 const cases = _range(100).map(n => ({
   id: `id${n}`,

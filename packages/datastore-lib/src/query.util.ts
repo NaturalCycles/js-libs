@@ -1,6 +1,6 @@
 import type { PropertyFilter, Query } from '@google-cloud/datastore'
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
-import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib'
+import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 
 const FNAME_MAP: StringMap = {
   id: '__key__',

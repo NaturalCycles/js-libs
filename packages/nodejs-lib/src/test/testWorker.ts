@@ -1,4 +1,4 @@
-import { pDelay } from '@naturalcycles/js-lib'
+import { pDelay } from '@naturalcycles/js-lib/promise'
 import { BaseWorkerClass } from '../stream/index.js'
 
 export class WorkerClass extends BaseWorkerClass<any, any> {

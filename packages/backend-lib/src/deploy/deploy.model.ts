@@ -1,4 +1,4 @@
-import type { UnixTimestamp } from '@naturalcycles/js-lib'
+import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 
 export interface DeployInfo {
   gaeProject: string

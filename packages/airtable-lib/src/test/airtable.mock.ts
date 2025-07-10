@@ -1,4 +1,5 @@
-import { _filterFalsyValues, _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib'
+import { _filterFalsyValues } from '@naturalcycles/js-lib/object'
 import {
   arraySchema,
   booleanSchema,

@@ -5,7 +5,8 @@ pn tsx scripts/bench/validation.bench.script.ts
  */
 
 import { runBench } from '@naturalcycles/bench-lib'
-import { _range, jsonSchema } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib'
+import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
 import { runScript } from '../../src/index.js'
 import { AjvSchema } from '../../src/validation/ajv/index.js'

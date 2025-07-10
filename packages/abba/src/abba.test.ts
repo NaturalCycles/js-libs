@@ -1,5 +1,5 @@
-import { InMemoryDB } from '@naturalcycles/db-lib'
-import { localTime } from '@naturalcycles/js-lib'
+import { InMemoryDB } from '@naturalcycles/db-lib/inmemory'
+import { localTime } from '@naturalcycles/js-lib/datetime'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { Abba } from './abba.js'
 import { bucketDao } from './dao/bucket.dao.js'

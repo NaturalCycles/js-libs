@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { _omit } from '@naturalcycles/js-lib'
+import { _omit } from '@naturalcycles/js-lib/object'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { expect, test } from 'vitest'
 import { AirtableDB } from '../airtableDB.js'

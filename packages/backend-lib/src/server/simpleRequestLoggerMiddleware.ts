@@ -1,5 +1,5 @@
-import type { UnixTimestampMillis } from '@naturalcycles/js-lib'
-import { _since } from '@naturalcycles/js-lib'
+import { _since } from '@naturalcycles/js-lib/datetime'
+import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { boldGrey, dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { onFinished } from '../onFinished.js'
 import { logRequestWithColors } from './request.log.util.js'

@@ -1,11 +1,11 @@
+import type { CommonDBCreateOptions } from '@naturalcycles/db-lib'
 import type {
-  CommonDBCreateOptions,
   CommonKeyValueDB,
   CommonKeyValueDBSaveBatchOptions,
   IncrementTuple,
   KeyValueDBTuple,
-} from '@naturalcycles/db-lib'
-import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
+} from '@naturalcycles/db-lib/kv'
+import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { RedisKeyValueDBCfg } from './redisKeyValueDB.js'
 

@@ -1,5 +1,5 @@
-import type { IsoDate } from '@naturalcycles/js-lib'
-import { localTime } from '@naturalcycles/js-lib'
+import { localTime } from '@naturalcycles/js-lib/datetime'
+import type { IsoDate } from '@naturalcycles/js-lib/types'
 import { expectTypeOf, test } from 'vitest'
 import { testValidation } from '../../test/validation.test.util.js'
 import { stringSchema } from './joi.shared.schemas.js'

@@ -1,25 +1,22 @@
 import { Readable } from 'node:stream'
-import type {
-  AnyObjectWithId,
-  CommonLogger,
-  JsonSchemaObject,
-  JsonSchemaRootObject,
-  ObjectWithId,
-  StringMap,
-} from '@naturalcycles/js-lib'
+import { _by, _isEmptyObject } from '@naturalcycles/js-lib'
+import { _since, localTime } from '@naturalcycles/js-lib/datetime'
+import { _assert } from '@naturalcycles/js-lib/error'
 import {
-  _assert,
-  _by,
-  _deepCopy,
-  _isEmptyObject,
-  _since,
-  _sortObjectDeep,
+  generateJsonSchemaFromData,
+  type JsonSchemaObject,
+  type JsonSchemaRootObject,
+} from '@naturalcycles/js-lib/json-schema'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { _deepCopy, _sortObjectDeep } from '@naturalcycles/js-lib/object'
+import { pMap } from '@naturalcycles/js-lib/promise'
+import {
   _stringMapEntries,
   _stringMapValues,
-  generateJsonSchemaFromData,
-  localTime,
-  pMap,
-} from '@naturalcycles/js-lib'
+  type AnyObjectWithId,
+  type ObjectWithId,
+  type StringMap,
+} from '@naturalcycles/js-lib/types'
 import { dimGrey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
@@ -29,8 +26,8 @@ import {
   createWriteStreamAsNDJSON,
   type ReadableTyped,
 } from '@naturalcycles/nodejs-lib/stream'
-import type { CommonDB, CommonDBSupport } from '../../common.db.js'
-import { commonDBFullSupport, CommonDBType } from '../../common.db.js'
+import type { CommonDB, CommonDBSupport } from '../commondb/common.db.js'
+import { commonDBFullSupport, CommonDBType } from '../commondb/common.db.js'
 import type {
   CommonDBCreateOptions,
   CommonDBOptions,
@@ -40,8 +37,8 @@ import type {
   DBTransaction,
   DBTransactionFn,
   RunQueryResult,
-} from '../../db.model.js'
-import type { DBQuery } from '../../query/dbQuery.js'
+} from '../db.model.js'
+import type { DBQuery } from '../query/dbQuery.js'
 import { queryInMemory } from './queryInMemory.js'
 
 export interface InMemoryDBCfg {

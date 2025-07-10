@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { _range } from '../array/range.js'
-import { pDelay, pMap } from '../index.js'
+import { pDelay, pMap } from './index.js'
 import { PQueue } from './pQueue.js'
 
 test('PQueue', async () => {

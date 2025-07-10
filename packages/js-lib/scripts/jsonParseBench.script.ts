@@ -6,7 +6,7 @@ pn tsx scripts/jsonParseBench
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
-import { _jsonParseIfPossible } from '../src/index.js'
+import { _jsonParseIfPossible } from '../src/string/index.js'
 
 // mostly not-json
 const data = mockAllKindsOfThings()

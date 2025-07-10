@@ -1,5 +1,5 @@
 import { test } from 'vitest'
-import { InMemoryDB } from '../adapter/inmemory/inMemory.db.js'
+import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import { tmpDir } from '../test/paths.cnst.js'
 import { createTestItemsDBM, TEST_TABLE } from '../testing/index.js'
 import { dbPipelineBackup } from './dbPipelineBackup.js'

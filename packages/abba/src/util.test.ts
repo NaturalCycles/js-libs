@@ -1,4 +1,4 @@
-import { localDate } from '@naturalcycles/js-lib'
+import { localDate } from '@naturalcycles/js-lib/datetime'
 import { describe, expect, test, vi } from 'vitest'
 import {
   mockBucket,

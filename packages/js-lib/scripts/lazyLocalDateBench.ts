@@ -5,9 +5,9 @@ pn tsx scripts/lazyLocalDateBench
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
+import { localDate } from '../src/datetime/index.js'
 // import { LazyLocalDate } from '../src/__exclude/lazyLocalDate'
-import type { IsoDate } from '../src/index.js'
-import { localDate } from '../src/index.js'
+import type { IsoDate } from '../src/types.js'
 
 const str = '1984-06-21' as IsoDate
 

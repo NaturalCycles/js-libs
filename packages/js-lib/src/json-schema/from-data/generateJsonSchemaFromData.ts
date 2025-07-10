@@ -1,5 +1,6 @@
+import { _uniq } from '../../index.js'
+import { _stringMapEntries, type AnyObject, type StringMap } from '../../types.js'
 import type {
-  AnyObject,
   JsonSchema,
   JsonSchemaArray,
   JsonSchemaBoolean,
@@ -8,9 +9,7 @@ import type {
   JsonSchemaObject,
   JsonSchemaOneOf,
   JsonSchemaString,
-  StringMap,
-} from '../../index.js'
-import { _stringMapEntries, _uniq } from '../../index.js'
+} from '../index.js'
 
 type PrimitiveType = 'undefined' | 'null' | 'boolean' | 'string' | 'number'
 type Type = PrimitiveType | 'array' | 'object'

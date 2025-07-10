@@ -1,4 +1,5 @@
-import { _average, _percentile, _percentiles, _range } from '../index.js'
+import { _range } from '../array/range.js'
+import { _average, _percentile, _percentiles } from '../math/index.js'
 
 /**
  * Implements a "round-robin" Stack ("first-in last-out" aka FILO) with a limited size.

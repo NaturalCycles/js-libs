@@ -1,6 +1,5 @@
 import { _stringify } from '../string/stringify.js'
-import type { Class } from '../typeFest.js'
-import type { AnyFunction, ErrorDataTuple } from '../types.js'
+import type { AnyFunction, Class, ErrorDataTuple } from '../types.js'
 import { _assertErrorClassOrRethrow } from './assert.js'
 import { UnexpectedPassError } from './error.util.js'
 

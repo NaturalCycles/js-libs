@@ -1,5 +1,8 @@
-import type { AsyncMapper, StringMap, UnixTimestamp } from '@naturalcycles/js-lib'
-import { _passthroughMapper, AppError, ErrorMode, localTime, pMap } from '@naturalcycles/js-lib'
+import { localTime } from '@naturalcycles/js-lib/datetime'
+import { AppError, ErrorMode } from '@naturalcycles/js-lib/error'
+import { pMap } from '@naturalcycles/js-lib/promise'
+import type { AsyncMapper, StringMap, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import { _passthroughMapper } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
@@ -14,7 +17,7 @@ import {
   transformMap,
   transformTap,
 } from '@naturalcycles/nodejs-lib/stream'
-import type { CommonDB } from '../common.db.js'
+import type { CommonDB } from '../commondb/common.db.js'
 import { DBQuery } from '../query/dbQuery.js'
 
 export interface DBPipelineBackupOptions extends TransformLogProgressOptions {

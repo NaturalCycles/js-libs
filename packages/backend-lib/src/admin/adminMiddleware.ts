@@ -1,4 +1,5 @@
-import { _memoFn, AppError } from '@naturalcycles/js-lib'
+import { _memoFn } from '@naturalcycles/js-lib/decorators'
+import { AppError } from '@naturalcycles/js-lib/error'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { srcDir } from '../paths.cnst.js'
 import type { BackendRequestHandler } from '../server/server.model.js'

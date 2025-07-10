@@ -6,8 +6,8 @@ pn tsx scripts/localDateBench
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import dayjs from 'dayjs'
-import type { IsoDate } from '../src/index.js'
-import { localDate, localTime } from '../src/index.js'
+import { localDate, localTime } from '../src/datetime/index.js'
+import type { IsoDate } from '../src/types.js'
 
 const str = '1984-06-21' as IsoDate
 

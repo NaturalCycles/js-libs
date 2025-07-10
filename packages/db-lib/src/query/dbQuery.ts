@@ -1,5 +1,6 @@
-import type { AsyncIndexedMapper, BaseDBEntity, ObjectWithId } from '@naturalcycles/js-lib'
-import { _objectAssign, _truncate } from '@naturalcycles/js-lib'
+import { _truncate } from '@naturalcycles/js-lib/string'
+import type { AsyncIndexedMapper, BaseDBEntity, ObjectWithId } from '@naturalcycles/js-lib/types'
+import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDao } from '../commondao/common.dao.js'
 import type {

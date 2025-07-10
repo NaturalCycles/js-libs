@@ -1,5 +1,5 @@
 import { Transform } from 'node:stream'
-import type { AnyObject } from '@naturalcycles/js-lib'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import type { TransformTyped } from '../stream/stream.model.js'
 import type { CSVWriterConfig } from './csvWriter.js'
 import { CSVWriter } from './csvWriter.js'

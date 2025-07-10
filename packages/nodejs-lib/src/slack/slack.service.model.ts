@@ -1,4 +1,5 @@
-import type { AnyObject, CommonLogger } from '@naturalcycles/js-lib'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import type { InspectAnyOptions } from '../index.js'
 
 /**

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
-import type { Base64String, StringMap } from '@naturalcycles/js-lib'
-import { _assert, _jsonParseIfPossible } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error'
+import { _jsonParseIfPossible } from '@naturalcycles/js-lib/string'
+import type { Base64String, StringMap } from '@naturalcycles/js-lib/types'
 import { decryptObject, decryptRandomIVBuffer } from './crypto.util.js'
 
 let loaded = false

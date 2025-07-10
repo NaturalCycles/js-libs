@@ -1,5 +1,8 @@
-import type { AnyObject, InstanceId, StringMap, UnixTimestamp } from '@naturalcycles/js-lib'
-import { _assert, _LogMethod, _omit, localTime } from '@naturalcycles/js-lib'
+import { localTime } from '@naturalcycles/js-lib/datetime'
+import { _LogMethod } from '@naturalcycles/js-lib/decorators'
+import { _assert } from '@naturalcycles/js-lib/error'
+import { _omit } from '@naturalcycles/js-lib/object'
+import type { AnyObject, InstanceId, StringMap, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { md5 } from '@naturalcycles/nodejs-lib'
 import type {
   AirtableBaseDaoCfg,

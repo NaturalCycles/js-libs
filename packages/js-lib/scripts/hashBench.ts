@@ -8,7 +8,8 @@ import nodeCrypto from 'node:crypto'
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import { md5 } from '@naturalcycles/nodejs-lib'
 import cryptoJS from 'crypto-js'
-import { _range, hashCode, hashCode64 } from '../src/index.js'
+import { _range } from '../src/index.js'
+import { hashCode, hashCode64 } from '../src/string/index.js'
 const crypto = nodeCrypto.webcrypto
 
 const data = _range(100).map(n => ({

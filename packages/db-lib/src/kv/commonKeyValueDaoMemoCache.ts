@@ -1,5 +1,7 @@
-import type { AsyncMemoCache, NumberOfSeconds, UnixTimestamp } from '@naturalcycles/js-lib'
-import { localTime, MISS } from '@naturalcycles/js-lib'
+import { localTime } from '@naturalcycles/js-lib/datetime'
+import type { AsyncMemoCache } from '@naturalcycles/js-lib/decorators'
+import type { NumberOfSeconds, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import { MISS } from '@naturalcycles/js-lib/types'
 import type { CommonKeyValueDao } from './commonKeyValueDao.js'
 
 export interface CommonKeyValueDaoMemoCacheCfg<VALUE> {

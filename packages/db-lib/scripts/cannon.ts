@@ -5,10 +5,11 @@ pn tsx scripts/cannon.ts
  */
 
 import { expressFunctionFactory, runCannon } from '@naturalcycles/bench-lib'
-import { _omit } from '@naturalcycles/js-lib'
+import { _omit } from '@naturalcycles/js-lib/object'
 import { runScript, stringId } from '@naturalcycles/nodejs-lib'
 import { getValidationResult } from '@naturalcycles/nodejs-lib/joi'
-import { CommonDao, InMemoryDB } from '../src/index.js'
+import { CommonDao } from '../src/commondao/index.js'
+import { InMemoryDB } from '../src/inmemory/index.js'
 import { createTestItemsBM, TEST_TABLE, testItemBMSchema } from '../src/testing/index.js'
 
 runScript(async () => {

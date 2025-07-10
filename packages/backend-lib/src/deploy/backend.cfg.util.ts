@@ -1,4 +1,4 @@
-import type { StringMap } from '@naturalcycles/js-lib'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { yaml2 } from '@naturalcycles/nodejs-lib/yaml2'

@@ -1,4 +1,4 @@
-import { _Memo } from '@naturalcycles/js-lib'
+import { _Memo } from '@naturalcycles/js-lib/decorators'
 import type { AirtableApi } from './airtable.api.js'
 import type { AirtableLibCfg } from './airtable.model.js'
 

@@ -4,7 +4,7 @@ yarn tsx scripts/backup.script.ts
 
  */
 
-import { dbPipelineBackup } from '@naturalcycles/db-lib'
+import { dbPipelineBackup } from '@naturalcycles/db-lib/pipeline'
 import { requireEnvKeys, runScript } from '@naturalcycles/nodejs-lib'
 import { MongoDB } from '../src/index.js'
 import { tmpDir } from '../src/test/paths.cnst.js'

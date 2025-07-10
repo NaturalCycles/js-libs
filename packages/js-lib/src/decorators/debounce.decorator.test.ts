@@ -1,7 +1,7 @@
 import { test } from 'vitest'
-import type { UnixTimestampMillis } from '../index.js'
-import { _since, pDelay } from '../index.js'
-import type { AnyFunction } from '../types.js'
+import { _since } from '../datetime/index.js'
+import { pDelay } from '../promise/index.js'
+import type { AnyFunction, UnixTimestampMillis } from '../types.js'
 import { _Debounce } from './debounce.decorator.js'
 
 class C {

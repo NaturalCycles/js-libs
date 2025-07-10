@@ -1,5 +1,13 @@
-import type { AnyObject, CommonLogger, CommonLogLevel, Fetcher } from '@naturalcycles/js-lib'
-import { _omit, commonLoggerMinLevel, getFetcher, localTime, PQueue } from '@naturalcycles/js-lib'
+import { localTime } from '@naturalcycles/js-lib/datetime'
+import { type Fetcher, getFetcher } from '@naturalcycles/js-lib/http'
+import {
+  type CommonLogger,
+  commonLoggerMinLevel,
+  type CommonLogLevel,
+} from '@naturalcycles/js-lib/log'
+import { _omit } from '@naturalcycles/js-lib/object'
+import { PQueue } from '@naturalcycles/js-lib/promise'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import type { InspectAnyOptions } from '../index.js'
 import { _inspect } from '../index.js'
 import type {

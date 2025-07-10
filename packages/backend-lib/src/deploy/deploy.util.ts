@@ -1,4 +1,7 @@
-import { _assert, _mapValues, _merge, _truncate, localTime } from '@naturalcycles/js-lib'
+import { localTime } from '@naturalcycles/js-lib/datetime'
+import { _assert } from '@naturalcycles/js-lib/error'
+import { _mapValues, _merge } from '@naturalcycles/js-lib/object'
+import { _truncate } from '@naturalcycles/js-lib/string'
 import { sha256 } from '@naturalcycles/nodejs-lib'
 import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'

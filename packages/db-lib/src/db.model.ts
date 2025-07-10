@@ -1,5 +1,5 @@
-import type { ObjectWithId, UnixTimestamp } from '@naturalcycles/js-lib'
-import type { CommonDB } from './common.db.js'
+import type { ObjectWithId, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type { CommonDB } from './commondb/common.db.js'
 
 /**
  * Similar to SQL INSERT, UPDATE.

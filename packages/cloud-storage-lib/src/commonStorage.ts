@@ -1,4 +1,4 @@
-import type { LocalTimeInput } from '@naturalcycles/js-lib'
+import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
 import type {
   ReadableBinary,
   ReadableTyped,

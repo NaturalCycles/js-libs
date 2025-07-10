@@ -1,5 +1,5 @@
 import { test } from 'vitest'
-import { InMemoryDB } from '../adapter/inmemory/inMemory.db.js'
+import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import { createTestTimeSeries } from '../testing/timeSeriesTest.util.js'
 import { CommonTimeSeriesDao } from './commonTimeSeriesDao.js'
 

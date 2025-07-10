@@ -1,5 +1,6 @@
-import type { StringMap } from '@naturalcycles/js-lib'
-import { _assert, _deepEquals } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error'
+import { _deepEquals } from '@naturalcycles/js-lib/object'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import { nanoid } from '@naturalcycles/nodejs-lib'
 import type { ScrubberConfig, ScrubbersMap, ScrubbersSQLMap } from './scrubber.model.js'
 import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers.js'

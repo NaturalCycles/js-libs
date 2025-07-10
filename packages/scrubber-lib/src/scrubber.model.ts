@@ -1,4 +1,4 @@
-import type { AnyObject, StringMap } from '@naturalcycles/js-lib'
+import type { AnyObject, StringMap } from '@naturalcycles/js-lib/types'
 
 export type ScrubberFn<T = any, PARAMS = AnyObject> = (value: T, params?: PARAMS) => T
 

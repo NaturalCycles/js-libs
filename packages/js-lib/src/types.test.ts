@@ -1,16 +1,20 @@
 import { expect, expectTypeOf, test } from 'vitest'
+import { localTime } from './datetime/index.js'
+import { type AppError, asUnixTimestamp, asUnixTimestamp2000 } from './error/index.js'
 import { _expectedError } from './error/try.js'
-import type { AppError, Branded, IsoDate, UnixTimestamp } from './index.js'
-import { _stringMapValuesSorted, asUnixTimestamp, asUnixTimestamp2000, localTime } from './index.js'
-import type {
-  AnyObject,
-  BaseDBEntity,
-  MonthId,
-  Reviver,
-  Saved,
-  StringMap,
-  Unsaved,
-  UnsavedId,
+import {
+  _stringMapValuesSorted,
+  type AnyObject,
+  type BaseDBEntity,
+  type Branded,
+  type IsoDate,
+  type MonthId,
+  type Reviver,
+  type Saved,
+  type StringMap,
+  type UnixTimestamp,
+  type Unsaved,
+  type UnsavedId,
 } from './types.js'
 import {
   _noop,

@@ -1,5 +1,5 @@
-import type { Unsaved } from '@naturalcycles/js-lib'
-import { localDate } from '@naturalcycles/js-lib'
+import { localDate } from '@naturalcycles/js-lib/datetime'
+import type { Unsaved } from '@naturalcycles/js-lib/types'
 import { satisfies } from 'semver'
 import type {
   Bucket,

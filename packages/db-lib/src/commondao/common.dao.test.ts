@@ -1,20 +1,13 @@
 import { MOCK_TS_2018_06_21, mockTime } from '@naturalcycles/dev-lib/testing/time'
-import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib'
-import {
-  _deepFreeze,
-  _omit,
-  _range,
-  _sortBy,
-  ErrorMode,
-  pExpectedError,
-  pExpectedErrorString,
-  pTry,
-} from '@naturalcycles/js-lib'
+import { _range, _sortBy } from '@naturalcycles/js-lib'
+import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalcycles/js-lib/error'
+import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
+import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import { InMemoryDB } from '../adapter/inmemory/inMemory.db.js'
 import { DBLibError } from '../cnst.js'
+import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import type { TestItemBM, TestItemDBM } from '../testing/index.js'
 import {
   createTestItemBM,

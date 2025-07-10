@@ -1,4 +1,5 @@
-import { jsonSchema, type StringMap } from '@naturalcycles/js-lib'
+import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'

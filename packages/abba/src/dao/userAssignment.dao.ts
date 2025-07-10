@@ -1,5 +1,5 @@
 import type { CommonDB } from '@naturalcycles/db-lib'
-import { CommonDao } from '@naturalcycles/db-lib'
+import { CommonDao } from '@naturalcycles/db-lib/dao'
 import type { UserAssignment } from '../types.js'
 
 export class UserAssignmentDao extends CommonDao<UserAssignment> {

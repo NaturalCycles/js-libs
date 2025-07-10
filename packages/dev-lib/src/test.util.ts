@@ -1,5 +1,5 @@
-import type { AnyObject } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'

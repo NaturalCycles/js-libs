@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest'
-import { _Memo, _range } from '../index.js'
+import { _range } from '../index.js'
+import { _Memo } from './memo.decorator.js'
 
 class C {
   fn(): void {}

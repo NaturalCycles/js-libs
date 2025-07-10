@@ -1,4 +1,5 @@
-import { _get, AppError } from '@naturalcycles/js-lib'
+import { AppError } from '@naturalcycles/js-lib/error'
+import { _get } from '@naturalcycles/js-lib/object'
 import type { AnySchema, JoiValidationError } from '@naturalcycles/nodejs-lib/joi'
 import { getValidationResult } from '@naturalcycles/nodejs-lib/joi'
 import type { BackendRequest } from '../../server/server.model.js'

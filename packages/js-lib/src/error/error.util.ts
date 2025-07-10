@@ -1,15 +1,15 @@
 import { isServerSide } from '../env.js'
+import { _jsonParseIfPossible } from '../string/json.util.js'
+import { _truncate, _truncateMiddle } from '../string/string.util.js'
+import { _stringify } from '../string/stringify.js'
+import type { Class } from '../types.js'
 import type {
   BackendErrorResponseObject,
-  Class,
   ErrorData,
   ErrorLike,
   ErrorObject,
   HttpRequestErrorData,
-} from '../index.js'
-import { _jsonParseIfPossible } from '../string/json.util.js'
-import { _truncate, _truncateMiddle } from '../string/string.util.js'
-import { _stringify } from '../string/stringify.js'
+} from './error.model.js'
 
 /**
  * Useful to ensure that error in `catch (err) { ... }`

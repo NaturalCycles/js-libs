@@ -1,5 +1,4 @@
-import type { Promisable } from '../typeFest.js'
-import type { AbortableAsyncMapper, AbortableAsyncPredicate } from '../types.js'
+import type { AbortableAsyncMapper, AbortableAsyncPredicate, Promisable } from '../types.js'
 import { END, SKIP } from '../types.js'
 
 /**

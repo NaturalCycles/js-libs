@@ -1,4 +1,4 @@
-import type { CommonLogLevel } from '@naturalcycles/js-lib'
+import type { CommonLogLevel } from '@naturalcycles/js-lib/log'
 import { boldGrey, green, red, yellow } from '@naturalcycles/nodejs-lib/colors'
 import type { BackendRequest } from './server.model.js'
 

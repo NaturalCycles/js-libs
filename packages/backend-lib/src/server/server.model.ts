@@ -1,4 +1,5 @@
-import type { CommonLogFunction, Promisable } from '@naturalcycles/js-lib'
+import type { CommonLogFunction } from '@naturalcycles/js-lib/log'
+import type { Promisable } from '@naturalcycles/js-lib/types'
 import type { Application, IRouter, NextFunction, Request, Response } from 'express'
 
 /**

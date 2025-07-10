@@ -1,4 +1,5 @@
-import type { CommonLogger, ObjectWithId } from '@naturalcycles/js-lib'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { DBSaveBatchOperation } from '../../db.model.js'
 import type { DBQueryOrder } from '../../query/dbQuery.js'
 

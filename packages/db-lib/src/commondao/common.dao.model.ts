@@ -1,11 +1,11 @@
+import type { ErrorMode } from '@naturalcycles/js-lib/error'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type {
   BaseDBEntity,
-  CommonLogger,
-  ErrorMode,
   NumberOfMilliseconds,
   Promisable,
   UnixTimestamp,
-} from '@naturalcycles/js-lib'
+} from '@naturalcycles/js-lib/types'
 import type { ZodType, ZodValidationError } from '@naturalcycles/js-lib/zod'
 import type { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import type { JoiValidationError, ObjectSchema } from '@naturalcycles/nodejs-lib/joi'
@@ -13,7 +13,7 @@ import type {
   TransformLogProgressOptions,
   TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
-import type { CommonDB } from '../common.db.js'
+import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBCreateOptions, CommonDBOptions, CommonDBSaveOptions } from '../db.model.js'
 
 export interface CommonDaoHooks<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID = BM['id']> {

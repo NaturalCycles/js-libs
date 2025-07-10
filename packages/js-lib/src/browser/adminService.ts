@@ -1,7 +1,7 @@
 import { _Memo } from '../decorators/memo.decorator.js'
 import { isServerSide } from '../env.js'
 import { _stringify } from '../string/stringify.js'
-import type { Promisable } from '../typeFest.js'
+import type { Promisable } from '../types.js'
 
 export interface AdminModeCfg {
   /**

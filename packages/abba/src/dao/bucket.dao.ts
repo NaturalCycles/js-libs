@@ -1,5 +1,5 @@
 import type { CommonDB } from '@naturalcycles/db-lib'
-import { CommonDao } from '@naturalcycles/db-lib'
+import { CommonDao } from '@naturalcycles/db-lib/dao'
 import type { BaseBucket, Bucket } from '../types.js'
 
 type BucketDBM = BaseBucket & {

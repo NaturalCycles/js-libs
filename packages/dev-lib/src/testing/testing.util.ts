@@ -1,4 +1,4 @@
-import { commonLoggerCreate } from '@naturalcycles/js-lib'
+import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 
 export function silentConsole(): void {

@@ -1,5 +1,5 @@
 import type { Readable } from 'node:stream'
-import type { CommonLogger } from '@naturalcycles/js-lib'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { AbortableTransform, transformNoOp } from '../index.js'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 import { pipelineClose } from '../stream.util.js'

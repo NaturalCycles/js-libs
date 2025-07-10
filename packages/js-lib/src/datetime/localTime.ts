@@ -1,6 +1,5 @@
 import type { MutateOptions } from '../array/array.util.js'
 import { _assert } from '../error/assert.js'
-import { _ms } from '../time/time.util.js'
 import type {
   IANATimezone,
   Inclusiveness,
@@ -15,6 +14,7 @@ import type {
 } from '../types.js'
 import type { LocalDate } from './localDate.js'
 import { localDate } from './localDate.js'
+import { _ms } from './time.util.js'
 import { WallTime } from './wallTime.js'
 
 export type LocalTimeUnit = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second'

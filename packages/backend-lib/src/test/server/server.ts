@@ -21,7 +21,8 @@ import { sentry } from './instrument.js'
 
 // should come after `instrument.ts` import
 
-import { _errorLikeToErrorObject, AppError, pDelay } from '@naturalcycles/js-lib'
+import { _errorLikeToErrorObject, AppError } from '@naturalcycles/js-lib/error'
+import { pDelay } from '@naturalcycles/js-lib/promise'
 import { loginHtml } from '../../admin/adminMiddleware.js'
 import {
   basicAuthMiddleware,

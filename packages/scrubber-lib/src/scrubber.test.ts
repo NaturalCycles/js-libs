@@ -1,4 +1,4 @@
-import { _deepFreeze } from '@naturalcycles/js-lib'
+import { _deepFreeze } from '@naturalcycles/js-lib/object'
 import { nanoid } from '@naturalcycles/nodejs-lib'
 import { describe, expect, test, vi } from 'vitest'
 import { Scrubber } from './scrubber.js'

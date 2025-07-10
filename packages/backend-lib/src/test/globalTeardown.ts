@@ -1,5 +1,5 @@
-import type { UnixTimestampMillis } from '@naturalcycles/js-lib'
-import { _since } from '@naturalcycles/js-lib'
+import { _since } from '@naturalcycles/js-lib/datetime'
+import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 
 /* eslint-disable import-x/no-anonymous-default-export, unicorn/no-anonymous-default-export */
 // biome-ignore lint/style/noDefaultExport: ok

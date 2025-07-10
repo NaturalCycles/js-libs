@@ -1,4 +1,4 @@
-import { AppError } from '@naturalcycles/js-lib'
+import { AppError } from '@naturalcycles/js-lib/error'
 import { timingSafeStringEqual } from '@naturalcycles/nodejs-lib'
 import type { BackendRequestHandler } from '../server/server.model.js'
 import type { AdminMiddleware, RequireAdminCfg } from './adminMiddleware.js'

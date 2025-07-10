@@ -1,4 +1,6 @@
-import { _anyToError, _objectAssign, pRetry } from '@naturalcycles/js-lib'
+import { _anyToError } from '@naturalcycles/js-lib/error'
+import { pRetry } from '@naturalcycles/js-lib/promise'
+import { _objectAssign } from '@naturalcycles/js-lib/types'
 import { appendToGithubSummary } from '@naturalcycles/nodejs-lib/env'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'

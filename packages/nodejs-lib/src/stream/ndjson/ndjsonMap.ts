@@ -1,5 +1,5 @@
-import type { AbortableAsyncMapper } from '@naturalcycles/js-lib'
-import { ErrorMode } from '@naturalcycles/js-lib'
+import { ErrorMode } from '@naturalcycles/js-lib/error'
+import type { AbortableAsyncMapper } from '@naturalcycles/js-lib/types'
 import {
   createReadStreamAsNDJSON,
   createWriteStreamAsNDJSON,

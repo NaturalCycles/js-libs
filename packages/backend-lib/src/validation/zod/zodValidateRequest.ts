@@ -1,4 +1,5 @@
-import { _get, AppError } from '@naturalcycles/js-lib'
+import { AppError } from '@naturalcycles/js-lib/error'
+import { _get } from '@naturalcycles/js-lib/object'
 import { type ZodType, type ZodValidationError, zSafeValidate } from '@naturalcycles/js-lib/zod'
 import type { BackendRequest } from '../../server/server.model.js'
 import type { ReqValidationOptions } from '../joi/joiValidateRequest.js'

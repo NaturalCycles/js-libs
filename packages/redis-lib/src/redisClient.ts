@@ -1,15 +1,15 @@
 import { Transform } from 'node:stream'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type {
   AnyObject,
   AsyncFunction,
-  CommonLogger,
   NullableBuffer,
   NullableString,
   Promisable,
   StringMap,
   UnixTimestamp,
-} from '@naturalcycles/js-lib'
-import { _stringMapEntries } from '@naturalcycles/js-lib'
+} from '@naturalcycles/js-lib/types'
+import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { Redis, RedisOptions } from 'ioredis'
 import type { ScanStreamOptions } from 'ioredis/built/types.js'

@@ -6,7 +6,7 @@ pn tsx scripts/validation.bench.script.ts
 
 import http from 'node:http'
 import { runCannon } from '@naturalcycles/bench-lib'
-import { jsonSchema } from '@naturalcycles/js-lib'
+import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { runScript } from '@naturalcycles/nodejs-lib'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'

@@ -1,5 +1,5 @@
-import type { PRetryOptions } from '../index.js'
-import { pRetryFn } from '../index.js'
+import type { PRetryOptions } from '../promise/index.js'
+import { pRetryFn } from '../promise/index.js'
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export function _Retry(opt: PRetryOptions = {}): MethodDecorator {

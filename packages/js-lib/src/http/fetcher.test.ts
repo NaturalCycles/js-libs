@@ -1,22 +1,26 @@
 import { expect, expectTypeOf, test, vi } from 'vitest'
 import { _range } from '../array/range.js'
-import { _assert, _assertIsError, _assertIsErrorObject } from '../error/assert.js'
-import type { BackendErrorResponseObject } from '../error/error.model.js'
-import { _errorLikeToErrorObject } from '../error/error.util.js'
-import type { ErrorObject, FetcherCfg, FetcherOptions, UnixTimestampMillis } from '../index.js'
+import { localTime } from '../datetime/index.js'
 import {
+  _assert,
   _assertIsBackendErrorResponseObject,
+  _assertIsError,
+  _assertIsErrorObject,
+} from '../error/assert.js'
+import type { BackendErrorResponseObject, ErrorObject } from '../error/error.model.js'
+import {
+  _errorLikeToErrorObject,
   AppError,
   HttpRequestError,
-  localTime,
-  pExpectedErrorString,
   UnexpectedPassError,
-} from '../index.js'
+} from '../error/error.util.js'
+import { pExpectedErrorString } from '../error/index.js'
 import { commonLoggerNoop } from '../log/commonLogger.js'
 import { _omit } from '../object/object.util.js'
 import { _stringify } from '../string/stringify.js'
+import type { UnixTimestampMillis } from '../types.js'
 import { Fetcher, getFetcher } from './fetcher.js'
-import type { FetcherRequest } from './fetcher.model.js'
+import type { FetcherCfg, FetcherOptions, FetcherRequest } from './fetcher.model.js'
 
 test('defaults', () => {
   const fetcher = getFetcher()

@@ -1,11 +1,6 @@
 /* eslint-disable */
 
-/**
- Matches any [primitive value](https://developer.mozilla.org/en-US/docs/Glossary/Primitive).
-
- @category Basic
- */
-export type Primitive = null | undefined | string | number | boolean | symbol | bigint
+import type { Primitive } from './types.js'
 
 /**
  Flatten the type output to improve type hints shown in editors.
@@ -172,32 +167,6 @@ export type Merge<Destination, Source> = {
 } & PickIndexSignature<Destination & Source>
 
 /**
- Create a type that represents either the value or the value wrapped in `PromiseLike`.
-
- Use-cases:
- - A function accepts a callback that may either return a value synchronously or may return a promised value.
- - This type could be the return type of `Promise#then()`, `Promise#catch()`, and `Promise#finally()` callbacks.
-
- Please upvote [this issue](https://github.com/microsoft/TypeScript/issues/31394) if you want to have this type as a built-in in TypeScript.
-
- @example
- ```
- import {Promisable} from 'type-fest';
-
- async function logger(getLogEntry: () => Promisable<string>): Promise<void> {
-    const entry = await getLogEntry();
-    console.log(entry);
-}
-
- logger(() => 'foo');
- logger(() => Promise.resolve('bar'));
-
- @category Utilities
- ```
- */
-export type Promisable<T> = T | PromiseLike<T>
-
-/**
  Extract the keys from a type where the value type of the key extends the given `Condition`.
  Internally this is used for the `ConditionalPick` and `ConditionalExcept` types.
  @example
@@ -295,12 +264,6 @@ export type ConditionalExcept<Base, Condition> = Except<Base, ConditionalKeys<Ba
  @category Utilities
  */
 export type ConditionalPick<Base, Condition> = Pick<Base, ConditionalKeys<Base, Condition>>
-
-/**
- Matches a [`class` constructor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes).
- @category Basic
- */
-export type Class<T = any> = new (...args: any[]) => T
 
 /**
  Matches any [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray), like `Uint8Array` or `Float64Array`.

@@ -1,4 +1,4 @@
-import { _stringMapEntries } from '@naturalcycles/js-lib'
+import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import { nanoid } from '@naturalcycles/nodejs-lib'
 import { describe, expect, test } from 'vitest'
 import type { BcryptStringScrubberParams } from './scrubbers.js'

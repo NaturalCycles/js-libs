@@ -1,5 +1,5 @@
 import { Writable } from 'node:stream'
-import type { DeferredPromise } from '@naturalcycles/js-lib'
+import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
 import type { TransformOptions } from '../stream.model.js'
 
 export interface WritableVoidOptions extends TransformOptions {

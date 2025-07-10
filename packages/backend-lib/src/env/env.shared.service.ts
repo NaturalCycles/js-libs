@@ -1,5 +1,6 @@
-import type { StringMap } from '@naturalcycles/js-lib'
-import { _assert, _by } from '@naturalcycles/js-lib'
+import { _by } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 
 export interface BaseEnv {

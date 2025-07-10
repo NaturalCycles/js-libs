@@ -1,6 +1,6 @@
 import type { BinaryToTextEncoding } from 'node:crypto'
 import { hash as cryptoHash } from 'node:crypto'
-import type { Base64String, Base64UrlString } from '@naturalcycles/js-lib'
+import type { Base64String, Base64UrlString } from '@naturalcycles/js-lib/types'
 
 export function md5(s: string | Buffer, outputEncoding: BinaryToTextEncoding = 'hex'): string {
   return hash(s, 'md5', outputEncoding)

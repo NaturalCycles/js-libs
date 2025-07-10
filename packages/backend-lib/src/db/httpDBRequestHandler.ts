@@ -1,11 +1,12 @@
 import type { CommonDB, CommonDBOptions, CommonDBSaveOptions } from '@naturalcycles/db-lib'
-import { DBQuery, InMemoryDB } from '@naturalcycles/db-lib'
+import { DBQuery } from '@naturalcycles/db-lib'
+import { InMemoryDB } from '@naturalcycles/db-lib/inmemory'
 import {
   commonDBOptionsSchema,
   commonDBSaveOptionsSchema,
   dbQuerySchema,
 } from '@naturalcycles/db-lib/validation'
-import type { ObjectWithId } from '@naturalcycles/js-lib'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import {
   anyObjectSchema,
   arraySchema,

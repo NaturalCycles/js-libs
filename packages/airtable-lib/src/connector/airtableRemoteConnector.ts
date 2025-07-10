@@ -1,5 +1,6 @@
-import type { StringMap } from '@naturalcycles/js-lib'
-import { _filterObject, _mapValues, pMap } from '@naturalcycles/js-lib'
+import { _filterObject, _mapValues } from '@naturalcycles/js-lib/object'
+import { pMap } from '@naturalcycles/js-lib/promise'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import type { AirtableApi } from '../airtable.api.js'
 import type {
   AirtableAttachment,

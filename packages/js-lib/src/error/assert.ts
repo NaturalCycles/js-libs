@@ -1,7 +1,6 @@
 import { _deepEquals } from '../object/deepEquals.js'
 import { _stringify } from '../string/stringify.js'
-import type { Class } from '../typeFest.js'
-import type { UnixTimestamp } from '../types.js'
+import type { Class, UnixTimestamp } from '../types.js'
 import type { BackendErrorResponseObject, ErrorData, ErrorObject } from './error.model.js'
 import { _isBackendErrorResponseObject, _isErrorObject, AssertionError } from './error.util.js'
 

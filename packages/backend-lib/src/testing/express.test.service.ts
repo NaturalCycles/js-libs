@@ -1,7 +1,8 @@
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import type { Fetcher, FetcherOptions, FetchFunction } from '@naturalcycles/js-lib'
-import { getFetcher, pDelay } from '@naturalcycles/js-lib'
+import type { Fetcher, FetcherOptions, FetchFunction } from '@naturalcycles/js-lib/http'
+import { getFetcher } from '@naturalcycles/js-lib/http'
+import { pDelay } from '@naturalcycles/js-lib/promise'
 import {
   type BackendRequestHandlerCfg,
   createDefaultApp,

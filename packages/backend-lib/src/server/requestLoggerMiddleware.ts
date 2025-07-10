@@ -1,5 +1,5 @@
-import type { UnixTimestampMillis } from '@naturalcycles/js-lib'
-import { _since } from '@naturalcycles/js-lib'
+import { _since } from '@naturalcycles/js-lib/datetime'
+import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { onFinished } from '../onFinished.js'
 import type { BackendRequest, BackendRequestHandler } from './server.model.js'
 

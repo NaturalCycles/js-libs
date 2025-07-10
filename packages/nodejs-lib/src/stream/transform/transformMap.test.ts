@@ -1,7 +1,9 @@
 import { Readable } from 'node:stream'
 import { mockTime } from '@naturalcycles/dev-lib/testing/time'
-import type { AsyncIndexedMapper } from '@naturalcycles/js-lib'
-import { _range, _stringify, ErrorMode, pExpectedError } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib'
+import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
+import { _stringify } from '@naturalcycles/js-lib/string'
+import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
 import { beforeAll, expect, test } from 'vitest'
 import type { TransformMapStats } from '../index.js'
 import {

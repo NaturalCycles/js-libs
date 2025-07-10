@@ -1,4 +1,4 @@
-import type { ValuesOf } from '@naturalcycles/js-lib'
+import type { ValuesOf } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
 
 /**

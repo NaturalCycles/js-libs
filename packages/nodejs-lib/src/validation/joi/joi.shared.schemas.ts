@@ -1,3 +1,9 @@
+import {
+  _numberEnumKeys,
+  _numberEnumValues,
+  _stringEnumKeys,
+  _stringEnumValues,
+} from '@naturalcycles/js-lib'
 import type {
   BaseDBEntity,
   IANATimezone,
@@ -6,13 +12,7 @@ import type {
   StringEnum,
   UnixTimestamp,
   UnixTimestampMillis,
-} from '@naturalcycles/js-lib'
-import {
-  _numberEnumKeys,
-  _numberEnumValues,
-  _stringEnumKeys,
-  _stringEnumValues,
-} from '@naturalcycles/js-lib'
+} from '@naturalcycles/js-lib/types'
 import type { AlternativesSchema, AnySchema, ArraySchema, ObjectSchema } from 'joi'
 import { Joi } from './joi.extensions.js'
 import type { NumberSchema } from './number.extensions.js'

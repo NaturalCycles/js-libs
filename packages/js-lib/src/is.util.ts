@@ -1,5 +1,4 @@
-import type { Primitive } from './typeFest.js'
-import type { AnyObject, FalsyValue, NullishValue } from './types.js'
+import type { AnyObject, FalsyValue, NullishValue, Primitive } from './types.js'
 
 type Nullish<T> = T extends NullishValue ? T : never
 type Truthy<T> = T extends FalsyValue ? never : T

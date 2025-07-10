@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process'
 import { basename } from 'node:path'
-import type { UnixTimestamp } from '@naturalcycles/js-lib'
+import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { exec2 } from '../exec2.js'
 
 /**

@@ -5,7 +5,7 @@ pn tsx scripts/todayIsoDateBench
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import type { IsoDate } from '../src/index.js'
+import type { IsoDate } from '../src/types.js'
 
 runBenchScript({
   fns: {

@@ -1,13 +1,13 @@
 import { _uniq } from '../array/array.util.js'
-import type {
-  AnyObject,
-  BaseDBEntity,
-  JsonSchemaAllOf,
-  JsonSchemaArray,
-  JsonSchemaOneOf,
-  JsonSchemaTuple,
-} from '../index.js'
-import { _deepCopy, _sortObject, mergeJsonSchemaObjects } from '../index.js'
+import { _deepCopy, _sortObject } from '../object/index.js'
+import type { AnyObject, BaseDBEntity } from '../types.js'
+import {
+  type JsonSchemaAllOf,
+  type JsonSchemaArray,
+  type JsonSchemaOneOf,
+  type JsonSchemaTuple,
+  mergeJsonSchemaObjects,
+} from './index.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,

@@ -1,17 +1,5 @@
 import { expect, test } from 'vitest'
-import type { BackendErrorResponseObject, ErrorObject, HttpRequestErrorData } from '../index.js'
-import {
-  _errorDataAppend,
-  _errorLikeToErrorObject,
-  _errorObjectToError,
-  _errorSnippet,
-  _isErrorLike,
-  _isHttpRequestErrorObject,
-  _omit,
-  AppError,
-  AssertionError,
-  HttpRequestError,
-} from '../index.js'
+import { _omit } from '../object/index.js'
 import { expectResults } from '../test/test.util.js'
 import {
   _anyToError,
@@ -19,6 +7,18 @@ import {
   _isBackendErrorResponseObject,
   _isErrorObject,
 } from './error.util.js'
+import type { BackendErrorResponseObject, ErrorObject, HttpRequestErrorData } from './index.js'
+import {
+  _errorDataAppend,
+  _errorLikeToErrorObject,
+  _errorObjectToError,
+  _errorSnippet,
+  _isErrorLike,
+  _isHttpRequestErrorObject,
+  AppError,
+  AssertionError,
+  HttpRequestError,
+} from './index.js'
 
 const anyItems = [
   undefined,

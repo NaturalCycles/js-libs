@@ -1,6 +1,7 @@
 import { Transform } from 'node:stream'
-import type { CommonLogger, IndexedMapper } from '@naturalcycles/js-lib'
-import { ErrorMode } from '@naturalcycles/js-lib'
+import { ErrorMode } from '@naturalcycles/js-lib/error'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { IndexedMapper } from '@naturalcycles/js-lib/types'
 import type { TransformTyped } from '../stream.model.js'
 
 export interface TransformMapSimpleOptions {

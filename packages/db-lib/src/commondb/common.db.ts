@@ -1,9 +1,5 @@
-import type {
-  JsonSchemaObject,
-  JsonSchemaRootObject,
-  ObjectWithId,
-  StringMap,
-} from '@naturalcycles/js-lib'
+import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
+import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {
   CommonDBCreateOptions,
@@ -15,8 +11,8 @@ import type {
   DBTransaction,
   DBTransactionFn,
   RunQueryResult,
-} from './db.model.js'
-import type { DBQuery } from './query/dbQuery.js'
+} from '../db.model.js'
+import type { DBQuery } from '../query/dbQuery.js'
 
 export enum CommonDBType {
   'document' = 'document',

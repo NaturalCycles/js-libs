@@ -1,5 +1,5 @@
 import type { CommonDB } from '@naturalcycles/db-lib'
-import type { AnyObject, BaseDBEntity, IsoDate } from '@naturalcycles/js-lib'
+import type { AnyObject, BaseDBEntity, IsoDate } from '@naturalcycles/js-lib/types'
 
 export interface AbbaConfig {
   db: CommonDB

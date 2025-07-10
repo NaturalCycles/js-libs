@@ -1,4 +1,4 @@
-import type { AnyObject } from '@naturalcycles/js-lib'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 
 export interface AirtableApi {
   base: (baseId: string) => AirtableApiBase

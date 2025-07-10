@@ -1,4 +1,6 @@
-import { _stringify, getFetcher, pExpectedError } from '@naturalcycles/js-lib'
+import { pExpectedError } from '@naturalcycles/js-lib/error'
+import { getFetcher } from '@naturalcycles/js-lib/http'
+import { _stringify } from '@naturalcycles/js-lib/string'
 import { expect, test } from 'vitest'
 const fetcher = getFetcher({
   retry: { count: 0 },

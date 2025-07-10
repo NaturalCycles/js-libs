@@ -1,5 +1,5 @@
-import type { KeyValueTuple } from '@naturalcycles/js-lib'
 import { _range, _sortBy } from '@naturalcycles/js-lib'
+import type { KeyValueTuple } from '@naturalcycles/js-lib/types'
 import type { CommonKeyValueDB } from '../kv/commonKeyValueDB.js'
 import { TEST_TABLE } from './test.model.js'
 

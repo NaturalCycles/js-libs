@@ -1,11 +1,11 @@
+import { _range } from '@naturalcycles/js-lib'
 import {
   _assert,
   _isErrorObject,
-  _range,
   AppError,
   HttpRequestError,
   pExpectedError,
-} from '@naturalcycles/js-lib'
+} from '@naturalcycles/js-lib/error'
 import { arraySchema, objectSchema } from '@naturalcycles/nodejs-lib/joi'
 import { deflateString } from '@naturalcycles/nodejs-lib/zip'
 import { afterAll, expect, test } from 'vitest'

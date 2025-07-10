@@ -6,7 +6,8 @@ pn tsx scripts/semverBench
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import semver from 'semver'
-import { _range, semver2 } from '../src/index.js'
+import { _range } from '../src/index.js'
+import { semver2 } from '../src/semver.js'
 
 const data = _range(10).map(n => `${n}.${(n * 7) % 10}.${(n * 9) % 7}`)
 const data2 = _range(data.length).map(n => `${n}.${Math.round((n * 7.5) % 10)}.${(n * 5) % 7}`)

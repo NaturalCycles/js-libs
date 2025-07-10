@@ -4,7 +4,7 @@ import {
   _substringAfterLast,
   _substringBefore,
   _substringBeforeLast,
-} from '../index.js'
+} from './index.js'
 import {
   _capitalize,
   _lowerFirst,

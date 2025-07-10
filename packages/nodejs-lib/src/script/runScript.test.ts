@@ -1,4 +1,6 @@
-import { _noop, _stringify, pDelay, setGlobalStringifyFunction } from '@naturalcycles/js-lib'
+import { pDelay } from '@naturalcycles/js-lib/promise'
+import { _stringify, setGlobalStringifyFunction } from '@naturalcycles/js-lib/string'
+import { _noop } from '@naturalcycles/js-lib/types'
 import { expect, test, vi } from 'vitest'
 import { inspectStringifyFn } from '../string/inspect.js'
 import { runScript } from './runScript.js'

@@ -1,7 +1,6 @@
 import { AsyncIterable2 } from '../iter/asyncIterable2.js'
 import { Iterable2 } from '../iter/iterable2.js'
-import type { Primitive } from '../typeFest.js'
-import type { Integer } from '../types.js'
+import type { Integer, Primitive } from '../types.js'
 
 /**
  * Returns an array with ranges from `from` up to (but not including) `to`.

@@ -1,4 +1,4 @@
-import type { BackendErrorResponseObject } from '@naturalcycles/js-lib'
+import type { BackendErrorResponseObject } from '@naturalcycles/js-lib/error'
 import { afterAll, expect, test } from 'vitest'
 import { debugResource } from '../test/debug.resource.js'
 import { expressTestService } from '../testing/index.js'

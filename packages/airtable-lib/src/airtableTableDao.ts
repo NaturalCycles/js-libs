@@ -1,5 +1,8 @@
-import type { InstanceId } from '@naturalcycles/js-lib'
-import { _LogMethod, _mapValues, AppError, pMap } from '@naturalcycles/js-lib'
+import { _LogMethod } from '@naturalcycles/js-lib/decorators'
+import { AppError } from '@naturalcycles/js-lib/error'
+import { _mapValues } from '@naturalcycles/js-lib/object'
+import { pMap } from '@naturalcycles/js-lib/promise'
+import type { InstanceId } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { getValidationResult } from '@naturalcycles/nodejs-lib/joi'
 import type {

@@ -1,9 +1,6 @@
-import {
-  _objectAssign,
-  type BackendErrorResponseObject,
-  type ErrorObject,
-} from '@naturalcycles/js-lib'
-import { _anyToError, _errorLikeToErrorObject } from '@naturalcycles/js-lib'
+import type { BackendErrorResponseObject, ErrorObject } from '@naturalcycles/js-lib/error'
+import { _anyToError, _errorLikeToErrorObject } from '@naturalcycles/js-lib/error'
+import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { BackendErrorRequestHandler, BackendRequest, BackendResponse } from './server.model.js'
 
 export interface GenericErrorMiddlewareCfg {

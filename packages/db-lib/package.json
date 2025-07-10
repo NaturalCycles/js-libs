@@ -32,8 +32,12 @@
     ".": "./dist/index.js",
     "./testing": "./dist/testing/index.js",
     "./validation": "./dist/validation/index.js",
-    "./adapter/cachedb": "./dist/adapter/cachedb/index.js",
-    "./adapter/file": "./dist/adapter/file/index.js"
+    "./pipeline": "./dist/pipeline/index.js",
+    "./kv": "./dist/kv/index.js",
+    "./dao": "./dist/commondao/index.js",
+    "./cachedb": "./dist/adapter/cachedb/index.js",
+    "./file": "./dist/adapter/file/index.js",
+    "./inmemory": "./dist/inmemory/index.js"
   },
   "publishConfig": {
     "access": "public"

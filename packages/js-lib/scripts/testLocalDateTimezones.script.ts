@@ -7,7 +7,7 @@ It's a separate script, because our jest setup always runs in UTC.
  */
 
 import { runScript } from '@naturalcycles/nodejs-lib'
-import { localDate } from '../src/index.js'
+import { localDate } from '../src/datetime/index.js'
 
 runScript(async () => {
   let d = localDate.today().toDateInUTC()

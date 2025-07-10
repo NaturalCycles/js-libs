@@ -1,16 +1,8 @@
-import type { StringMap } from '@naturalcycles/js-lib'
-import {
-  _get,
-  _mapValues,
-  _mb,
-  _ms,
-  _percentile,
-  _sortBy,
-  _stringMapEntries,
-  _stringMapValues,
-  _sum,
-  NumberStack,
-} from '@naturalcycles/js-lib'
+import { _mb, _sortBy, _sum } from '@naturalcycles/js-lib'
+import { _ms } from '@naturalcycles/js-lib/datetime'
+import { _percentile, NumberStack } from '@naturalcycles/js-lib/math'
+import { _get, _mapValues } from '@naturalcycles/js-lib/object'
+import { _stringMapEntries, _stringMapValues, type StringMap } from '@naturalcycles/js-lib/types'
 import { onFinished } from '../onFinished.js'
 import { getRequestEndpoint } from './request.util.js'
 import type { BackendRequestHandler } from './server.model.js'

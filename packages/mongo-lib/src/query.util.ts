@@ -1,5 +1,5 @@
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
-import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib'
+import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { Filter, FilterOperators, FindOptions, SortDirection } from 'mongodb'
 
 // Map DBQueryFilterOp to Mongo "Comparison query operator"

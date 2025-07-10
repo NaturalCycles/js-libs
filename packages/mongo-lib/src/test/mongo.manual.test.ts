@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { CommonDao, CommonDaoLogLevel } from '@naturalcycles/db-lib'
+import { CommonDao, CommonDaoLogLevel } from '@naturalcycles/db-lib/dao'
 import {
   createTestItemsBM,
   runCommonDaoTest,

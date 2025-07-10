@@ -1,5 +1,5 @@
-import type { StringMap } from '@naturalcycles/js-lib'
-import { _split } from '@naturalcycles/js-lib'
+import { _split } from '@naturalcycles/js-lib/string'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import { base64ToString, timingSafeStringEqual } from '@naturalcycles/nodejs-lib'
 import type { BackendRequestHandler } from './server.model.js'
 

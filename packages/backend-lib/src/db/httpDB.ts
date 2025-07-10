@@ -9,13 +9,10 @@ import type {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
-import type {
-  Fetcher,
-  FetcherOptions,
-  JsonSchemaRootObject,
-  ObjectWithId,
-} from '@naturalcycles/js-lib'
-import { getFetcher } from '@naturalcycles/js-lib'
+import type { Fetcher, FetcherOptions } from '@naturalcycles/js-lib/http'
+import { getFetcher } from '@naturalcycles/js-lib/http'
+import type { JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 
 export interface HttpDBCfg extends FetcherOptions {

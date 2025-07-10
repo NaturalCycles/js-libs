@@ -8,14 +8,14 @@ import type {
   DBQuery,
   RunQueryResult,
 } from '@naturalcycles/db-lib'
-import {
-  BaseCommonDB,
-  commonDBFullSupport,
-  CommonDBType,
-  queryInMemory,
-} from '@naturalcycles/db-lib'
-import { _Memo, type AnyObject, type ObjectWithId } from '@naturalcycles/js-lib'
-import { _by, _mapValues, _omit, AppError, pMap } from '@naturalcycles/js-lib'
+import { BaseCommonDB, commonDBFullSupport, CommonDBType } from '@naturalcycles/db-lib'
+import { queryInMemory } from '@naturalcycles/db-lib/inmemory'
+import { _by } from '@naturalcycles/js-lib'
+import { _Memo } from '@naturalcycles/js-lib/decorators'
+import { AppError } from '@naturalcycles/js-lib/error'
+import { _mapValues, _omit } from '@naturalcycles/js-lib/object'
+import { pMap } from '@naturalcycles/js-lib/promise'
+import type { AnyObject, ObjectWithId } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {

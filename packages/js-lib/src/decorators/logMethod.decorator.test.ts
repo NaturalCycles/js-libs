@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import type { InstanceId } from '../index.js'
-import { pDelay } from '../index.js'
+import { pDelay } from '../promise/index.js'
+import type { InstanceId } from '../types.js'
 import { _LogMethod } from './logMethod.decorator.js'
 
 class C {

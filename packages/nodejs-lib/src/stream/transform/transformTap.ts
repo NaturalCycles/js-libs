@@ -1,5 +1,6 @@
 import { Transform } from 'node:stream'
-import type { AsyncIndexedMapper, CommonLogger } from '@naturalcycles/js-lib'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
 export interface TransformTapOptions extends TransformOptions {

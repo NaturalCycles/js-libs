@@ -20,16 +20,12 @@ import type {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
-import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib'
-import {
-  _assert,
-  _chunk,
-  _filterUndefinedValues,
-  _isTruthy,
-  _omit,
-  _stringMapEntries,
-  pMap,
-} from '@naturalcycles/js-lib'
+import { _chunk, _isTruthy } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error'
+import { _filterUndefinedValues, _omit } from '@naturalcycles/js-lib/object'
+import { pMap } from '@naturalcycles/js-lib/promise'
+import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { escapeDocId, unescapeDocId } from './firestore.util.js'
 import { dbQueryToFirestoreQuery } from './query.util.js'

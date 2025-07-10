@@ -3,8 +3,13 @@
 
 import type { ErrorData } from '../error/error.model.js'
 import type { CommonLogger } from '../log/commonLogger.js'
-import type { Promisable } from '../typeFest.js'
-import type { AnyObject, NumberOfMilliseconds, Reviver, UnixTimestampMillis } from '../types.js'
+import type {
+  AnyObject,
+  NumberOfMilliseconds,
+  Promisable,
+  Reviver,
+  UnixTimestampMillis,
+} from '../types.js'
 import type { HttpMethod, HttpStatusFamily } from './http.model.js'
 
 export interface FetcherNormalizedCfg

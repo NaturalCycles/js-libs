@@ -4,7 +4,8 @@ import type {
   CommonDBReadOptions,
   CommonDBSaveOptions,
 } from '@naturalcycles/db-lib'
-import type { CommonLogger, NumberOfSeconds, ObjectWithId } from '@naturalcycles/js-lib'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { NumberOfSeconds, ObjectWithId } from '@naturalcycles/js-lib/types'
 
 export interface DatastorePayload<T = any> {
   key: Key

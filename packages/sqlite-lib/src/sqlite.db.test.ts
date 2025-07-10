@@ -1,5 +1,5 @@
 import { createTestItemsDBM, TEST_TABLE, testItemBMJsonSchema } from '@naturalcycles/db-lib/testing'
-import { _omit } from '@naturalcycles/js-lib'
+import { _omit } from '@naturalcycles/js-lib/object'
 import { test } from 'vitest'
 import { SQLiteDB } from './sqlite.db.js'
 

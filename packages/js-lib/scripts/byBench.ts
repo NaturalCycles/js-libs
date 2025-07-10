@@ -5,7 +5,8 @@ pn tsx scripts/byBench.ts
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import { _range, type Mapper, type StringMap } from '../src/index.js'
+import { _range } from '../src/index.js'
+import type { Mapper, StringMap } from '../src/types.js'
 
 const arr = _range(1000).map(n => ({
   id: String(n),

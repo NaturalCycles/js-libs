@@ -1,6 +1,8 @@
 import os from 'node:os'
-import type { AnyObject, CommonLogger } from '@naturalcycles/js-lib'
-import { pDelay, setGlobalStringifyFunction } from '@naturalcycles/js-lib'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { pDelay } from '@naturalcycles/js-lib/promise'
+import { setGlobalStringifyFunction } from '@naturalcycles/js-lib/string'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { inspectStringifyFn } from '../string/inspect.js'
 
 export interface RunScriptOptions {

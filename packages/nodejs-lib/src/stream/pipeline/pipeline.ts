@@ -1,8 +1,10 @@
 import type { Readable, Writable } from 'node:stream'
 import { Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
-import type { AnyFunction, DeferredPromise } from '@naturalcycles/js-lib'
-import { _last, pDefer } from '@naturalcycles/js-lib'
+import { _last } from '@naturalcycles/js-lib'
+import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
+import { pDefer } from '@naturalcycles/js-lib/promise'
+import type { AnyFunction } from '@naturalcycles/js-lib/types'
 import { writablePushToArray } from '../writable/writablePushToArray.js'
 
 type AnyStream = NodeJS.ReadableStream | NodeJS.WritableStream | NodeJS.ReadWriteStream

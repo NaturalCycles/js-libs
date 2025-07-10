@@ -6,8 +6,8 @@ pn tsx scripts/dateParseBench.ts
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import dayjs from 'dayjs'
-import type { IsoDate } from '../src/index.js'
-import { localDate } from '../src/index.js'
+import { localDate } from '../src/datetime/index.js'
+import type { IsoDate } from '../src/types.js'
 
 const strings = localDate
   .range('2022-01-03' as IsoDate, '2023-01-05' as IsoDate, '[)')

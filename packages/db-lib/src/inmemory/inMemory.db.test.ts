@@ -4,7 +4,7 @@ import {
   runCommonDaoTest,
   runCommonDBTest,
   TEST_TABLE,
-} from '../../testing/index.js'
+} from '../testing/index.js'
 import { InMemoryDB } from './inMemory.db.js'
 
 const db = new InMemoryDB()

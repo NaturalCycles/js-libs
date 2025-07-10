@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
-import type { ObjectWithId } from '@naturalcycles/js-lib'
-import { pMap } from '@naturalcycles/js-lib'
+import { pMap } from '@naturalcycles/js-lib/promise'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
   _pipeline,

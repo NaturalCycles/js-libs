@@ -1,5 +1,6 @@
 import type { Readable, Writable } from 'node:stream'
-import { AppError, pMap } from '@naturalcycles/js-lib'
+import { AppError } from '@naturalcycles/js-lib/error'
+import { pMap } from '@naturalcycles/js-lib/promise'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
 

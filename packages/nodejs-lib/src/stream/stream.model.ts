@@ -1,5 +1,5 @@
 import type { Readable, Transform, Writable } from 'node:stream'
-import type { Promisable } from '@naturalcycles/js-lib'
+import type { Promisable } from '@naturalcycles/js-lib/types'
 
 export interface ReadableSignalOptions {
   /** allows destroying the stream if the signal is aborted. */

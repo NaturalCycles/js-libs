@@ -1,5 +1,9 @@
-import type { AnyFunction, CommonLogger, ErrorData, UnixTimestampMillis } from '../index.js'
-import { _errorDataAppend, _since, pDelay, pTimeout } from '../index.js'
+import { _since } from '../datetime/index.js'
+import { _errorDataAppend, type ErrorData } from '../error/index.js'
+import type { CommonLogger } from '../log/index.js'
+import type { AnyFunction, UnixTimestampMillis } from '../types.js'
+import { pDelay } from './pDelay.js'
+import { pTimeout } from './pTimeout.js'
 
 export interface PRetryOptions {
   /**

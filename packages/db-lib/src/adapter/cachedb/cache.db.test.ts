@@ -1,6 +1,6 @@
 import { describe } from 'vitest'
+import { InMemoryDB } from '../../inmemory/inMemory.db.js'
 import { runCommonDaoTest, runCommonDBTest } from '../../testing/index.js'
-import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import { CacheDB } from './cache.db.js'
 
 const downstreamDB = new InMemoryDB()

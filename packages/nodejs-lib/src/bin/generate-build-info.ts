@@ -2,7 +2,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import type { UnixTimestamp } from '@naturalcycles/js-lib'
+import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { appendToBashEnv, appendToGithubEnv, appendToGithubOutput } from '../fs/json2env.js'
 import { runScript } from '../script/runScript.js'
 import { generateBuildInfo } from '../util/buildInfo.util.js'

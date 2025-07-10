@@ -1,5 +1,5 @@
-import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { _isTruthy } from '@naturalcycles/js-lib'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { DBQuery } from '../query/dbQuery.js'
 import type {
   CommonTimeSeriesDaoCfg,

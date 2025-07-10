@@ -1,10 +1,8 @@
-import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib'
-import {
-  _filterNullishValues,
-  _isObject,
-  _substringBefore,
-  JsonSchemaAnyBuilder,
-} from '@naturalcycles/js-lib'
+import { _isObject } from '@naturalcycles/js-lib'
+import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib/json-schema'
+import { JsonSchemaAnyBuilder } from '@naturalcycles/js-lib/json-schema'
+import { _filterNullishValues } from '@naturalcycles/js-lib/object'
+import { _substringBefore } from '@naturalcycles/js-lib/string'
 import type { Ajv, ValidateFunction } from 'ajv'
 import { fs2 } from '../../fs/fs2.js'
 import { _inspect } from '../../string/inspect.js'

@@ -1,4 +1,4 @@
-import type { AnyObject, InstanceId } from '../index.js'
+import type { AnyObject, InstanceId } from '../types.js'
 
 /**
  * @returns

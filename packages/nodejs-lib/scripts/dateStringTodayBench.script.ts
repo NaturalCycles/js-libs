@@ -5,8 +5,8 @@ pn tsx scripts/dateStringTodayBench
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import type { IsoDate } from '@naturalcycles/js-lib'
-import { localDate } from '@naturalcycles/js-lib'
+import { localDate } from '@naturalcycles/js-lib/datetime'
+import type { IsoDate } from '@naturalcycles/js-lib/types'
 import { isValid, objectSchema, stringSchema } from '../src/validation/joi/index.js'
 
 const entries = localDate

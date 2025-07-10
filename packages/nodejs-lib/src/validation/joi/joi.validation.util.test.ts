@@ -1,5 +1,5 @@
-import type { AnyObject } from '@naturalcycles/js-lib'
-import { _stringify } from '@naturalcycles/js-lib'
+import { _stringify } from '@naturalcycles/js-lib/string'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
 import { testValidation } from '../../test/validation.test.util.js'
 import { Joi } from './joi.extensions.js'

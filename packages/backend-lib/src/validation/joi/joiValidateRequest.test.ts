@@ -1,4 +1,4 @@
-import type { StringMap } from '@naturalcycles/js-lib'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { numberSchema, objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'

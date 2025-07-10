@@ -5,7 +5,9 @@ import type {
   CommonDBSaveOptions,
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB } from '@naturalcycles/db-lib'
-import type { CommonLogger, JsonSchemaObject, ObjectWithId } from '@naturalcycles/js-lib'
+import type { JsonSchemaObject } from '@naturalcycles/js-lib/json-schema'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import type { Database } from 'sqlite'
 import { open } from 'sqlite'

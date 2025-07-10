@@ -1,4 +1,4 @@
-import type { CommonDB } from '../common.db.js'
+import type { CommonDB } from '../commondb/common.db.js'
 
 export interface CommonTimeSeriesDaoCfg {
   db: CommonDB

@@ -8,7 +8,7 @@ _mergeObjects x 983 ops/sec ±0.41% (96 runs sampled)
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import type { StringMap } from '@naturalcycles/js-lib'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 
 let _sink: any
 

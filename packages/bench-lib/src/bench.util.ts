@@ -1,4 +1,5 @@
-import { _range, pDefer } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib'
+import { pDefer } from '@naturalcycles/js-lib/promise'
 import { runScript } from '@naturalcycles/nodejs-lib'
 import { dimGrey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'

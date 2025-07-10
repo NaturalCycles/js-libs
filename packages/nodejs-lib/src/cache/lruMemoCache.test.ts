@@ -1,4 +1,4 @@
-import { _Memo } from '@naturalcycles/js-lib'
+import { _Memo } from '@naturalcycles/js-lib/decorators'
 import { expect, test, vi } from 'vitest'
 import { LRUMemoCache } from './lruMemoCache.js'
 

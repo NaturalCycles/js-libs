@@ -2,6 +2,7 @@
 /// <reference lib="dom" preserve="true" />
 /// <reference lib="dom.iterable" preserve="true" />
 
+import { _ms, _since } from '../datetime/time.util.js'
 import { isServerSide } from '../env.js'
 import { _assertErrorClassOrRethrow, _assertIsError } from '../error/assert.js'
 import type { ErrorLike, ErrorObject } from '../error/error.model.js'
@@ -28,7 +29,6 @@ import { pDelay } from '../promise/pDelay.js'
 import { pTimeout } from '../promise/pTimeout.js'
 import { _jsonParse, _jsonParseIfPossible } from '../string/json.util.js'
 import { _stringify } from '../string/stringify.js'
-import { _ms, _since } from '../time/time.util.js'
 import type {
   AnyObject,
   ErrorDataTuple,

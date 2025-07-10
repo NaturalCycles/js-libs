@@ -1,12 +1,6 @@
-import type {
-  JsonSchemaObject,
-  JsonSchemaRootObject,
-  ObjectWithId,
-  StringMap,
-} from '@naturalcycles/js-lib'
+import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
+import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
-import type { CommonDB, CommonDBSupport } from './common.db.js'
-import { CommonDBType } from './common.db.js'
 import type {
   CommonDBOptions,
   CommonDBSaveOptions,
@@ -14,9 +8,11 @@ import type {
   DBTransaction,
   DBTransactionFn,
   RunQueryResult,
-} from './db.model.js'
-import type { DBQuery } from './query/dbQuery.js'
-import { FakeDBTransaction } from './transaction/dbTransaction.util.js'
+} from '../db.model.js'
+import type { DBQuery } from '../query/dbQuery.js'
+import { FakeDBTransaction } from '../transaction/dbTransaction.util.js'
+import type { CommonDB, CommonDBSupport } from './common.db.js'
+import { CommonDBType } from './common.db.js'
 
 /**
  * No-op implementation of CommonDB interface.

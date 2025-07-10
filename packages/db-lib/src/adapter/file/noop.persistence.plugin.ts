@@ -1,4 +1,4 @@
-import type { ObjectWithId } from '@naturalcycles/js-lib'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { DBSaveBatchOperation } from '../../db.model.js'
 import type { FileDBPersistencePlugin } from './file.db.model.js'
 

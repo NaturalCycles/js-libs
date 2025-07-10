@@ -1,5 +1,5 @@
-import type { UnixTimestamp } from '@naturalcycles/js-lib'
-import { localDate } from '@naturalcycles/js-lib'
+import { localDate } from '@naturalcycles/js-lib/datetime'
+import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
 import type {
   Bucket,

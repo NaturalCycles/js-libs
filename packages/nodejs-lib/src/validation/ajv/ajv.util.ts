@@ -1,4 +1,4 @@
-import type { JsonSchema } from '@naturalcycles/js-lib'
+import type { JsonSchema } from '@naturalcycles/js-lib/json-schema'
 import type { GlobOptions } from 'tinyglobby'
 import { globSync } from 'tinyglobby'
 import { fs2 } from '../../fs/fs2.js'

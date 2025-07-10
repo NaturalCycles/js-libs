@@ -1,5 +1,6 @@
-import type { AbortableAsyncMapper, CommonLogger } from '../index.js'
-import { END, ErrorMode, SKIP } from '../index.js'
+import { ErrorMode } from '../error/index.js'
+import type { CommonLogger } from '../log/index.js'
+import { type AbortableAsyncMapper, END, SKIP } from '../types.js'
 
 export interface PMapOptions {
   /**

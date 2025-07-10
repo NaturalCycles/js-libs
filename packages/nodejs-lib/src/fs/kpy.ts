@@ -1,6 +1,6 @@
 import path from 'node:path'
-import type { UnixTimestampMillis } from '@naturalcycles/js-lib'
-import { _since, localTime } from '@naturalcycles/js-lib'
+import { _since, localTime } from '@naturalcycles/js-lib/datetime'
+import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { glob, globSync } from 'tinyglobby'
 import { boldWhite, dimGrey, grey, yellow } from '../colors/colors.js'
 import { fs2 } from './fs2.js'

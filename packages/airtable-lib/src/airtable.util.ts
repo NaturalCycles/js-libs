@@ -1,5 +1,5 @@
-import type { AnyObject } from '@naturalcycles/js-lib'
-import { _mapValues } from '@naturalcycles/js-lib'
+import { _mapValues } from '@naturalcycles/js-lib/object'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import type { AirtableAttachment, AirtableThumbnails } from './airtable.model.js'
 
 /**

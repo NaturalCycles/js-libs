@@ -1,4 +1,4 @@
-import type { KeyValueDBTuple } from '@naturalcycles/db-lib'
+import type { KeyValueDBTuple } from '@naturalcycles/db-lib/kv'
 import type { SQLStatement } from 'sql-template-strings'
 import { SQL } from 'sql-template-strings'
 

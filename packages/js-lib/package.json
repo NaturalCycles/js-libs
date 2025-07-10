@@ -29,6 +29,21 @@
   "exports": {
     "./cfg/frontend/tsconfig.json": "./cfg/frontend/tsconfig.json",
     ".": "./dist/index.js",
+    "./browser": "./dist/browser/index.js",
+    "./datetime": "./dist/datetime/index.js",
+    "./decorators": "./dist/decorators/index.js",
+    "./deviceIdService": "./dist/deviceIdService.js",
+    "./error": "./dist/error/index.js",
+    "./http": "./dist/http/index.js",
+    "./json-schema": "./dist/json-schema/index.js",
+    "./log": "./dist/log/index.js",
+    "./math": "./dist/math/index.js",
+    "./object": "./dist/object/index.js",
+    "./promise": "./dist/promise/index.js",
+    "./nanoid": "./dist/nanoid.js",
+    "./semver": "./dist/semver.js",
+    "./string": "./dist/string/index.js",
+    "./types": "./dist/types.js",
     "./zod": "./dist/zod/index.js"
   },
   "files": [

@@ -1,12 +1,8 @@
-import type {
-  CommonDBCreateOptions,
-  CommonKeyValueDB,
-  IncrementTuple,
-  KeyValueDBTuple,
-} from '@naturalcycles/db-lib'
-import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib'
-import type { CommonLogger } from '@naturalcycles/js-lib'
-import { AppError } from '@naturalcycles/js-lib'
+import type { CommonDBCreateOptions } from '@naturalcycles/db-lib'
+import type { CommonKeyValueDB, IncrementTuple, KeyValueDBTuple } from '@naturalcycles/db-lib/kv'
+import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
+import { AppError } from '@naturalcycles/js-lib/error'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import { readableCreate, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { Database, Options } from 'better-sqlite3'

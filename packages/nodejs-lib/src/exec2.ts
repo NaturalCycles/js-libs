@@ -1,11 +1,12 @@
 import { execSync, spawn, spawnSync } from 'node:child_process'
-import {
-  _substringAfterLast,
-  type AnyObject,
-  type NumberOfMilliseconds,
-  type UnixTimestampMillis,
-} from '@naturalcycles/js-lib'
-import { _since, AppError } from '@naturalcycles/js-lib'
+import { _since } from '@naturalcycles/js-lib/datetime'
+import { AppError } from '@naturalcycles/js-lib/error'
+import { _substringAfterLast } from '@naturalcycles/js-lib/string'
+import type {
+  AnyObject,
+  NumberOfMilliseconds,
+  UnixTimestampMillis,
+} from '@naturalcycles/js-lib/types'
 import { dimGrey, dimRed, hasColors, white } from './colors/colors.js'
 
 /**

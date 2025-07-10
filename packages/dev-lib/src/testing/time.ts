@@ -1,4 +1,4 @@
-import type { UnixTimestamp } from '@naturalcycles/js-lib'
+import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import timekeeper from 'timekeeper'
 
 export const MOCK_TS_2018_06_21 = 1_529_539_200 as UnixTimestamp

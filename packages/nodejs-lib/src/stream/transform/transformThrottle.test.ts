@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
-import type { ObjectWithId } from '@naturalcycles/js-lib'
 import { _range } from '@naturalcycles/js-lib'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { test } from 'vitest'
 import { _pipeline } from '../pipeline/pipeline.js'
 import { writableVoid } from '../writable/writableVoid.js'

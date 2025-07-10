@@ -1,8 +1,10 @@
 import { Readable } from 'node:stream'
 import type { Query } from '@google-cloud/datastore'
 import type { RunQueryInfo, RunQueryOptions } from '@google-cloud/datastore/build/src/query.js'
-import type { CommonLogger, UnixTimestampMillis } from '@naturalcycles/js-lib'
-import { _ms, pRetry } from '@naturalcycles/js-lib'
+import { _ms } from '@naturalcycles/js-lib/datetime'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { pRetry } from '@naturalcycles/js-lib/promise'
+import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { DatastoreDBStreamOptions } from './datastore.model.js'
 

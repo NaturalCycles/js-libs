@@ -1,11 +1,10 @@
-import type { LocalTimeInput, StringMap } from '@naturalcycles/js-lib'
-import {
-  _assert,
-  _isTruthy,
-  _stringMapEntries,
-  _substringAfterLast,
-  localTime,
-} from '@naturalcycles/js-lib'
+import { _isTruthy } from '@naturalcycles/js-lib'
+import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
+import { localTime } from '@naturalcycles/js-lib/datetime'
+import { _assert } from '@naturalcycles/js-lib/error'
+import { _substringAfterLast } from '@naturalcycles/js-lib/string'
+import type { StringMap } from '@naturalcycles/js-lib/types'
+import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import { md5 } from '@naturalcycles/nodejs-lib'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {

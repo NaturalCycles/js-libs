@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
-import { _noop } from '@naturalcycles/js-lib'
+import { _noop } from '@naturalcycles/js-lib/types'
 import { beforeEach, test, vi } from 'vitest'
 import { scriptsDir, testDir, tmpDir } from '../test/paths.cnst.js'
 import { json2env } from './json2env.js'

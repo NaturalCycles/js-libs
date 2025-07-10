@@ -5,8 +5,9 @@ pn tsx scripts/filterBench
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import type { AnyObject } from '../src/index.js'
-import { _filterNullishValues, _range } from '../src/index.js'
+import { _range } from '../src/index.js'
+import { _filterNullishValues } from '../src/object/index.js'
+import type { AnyObject } from '../src/types.js'
 
 const objects = _range(1000).map(n => ({
   id: `id_${n}`,

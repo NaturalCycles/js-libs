@@ -4,7 +4,8 @@ pn tsx scripts/backpressureSimulation.script.ts
 
  */
 
-import { _range, pDelay } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib'
+import { pDelay } from '@naturalcycles/js-lib/promise'
 import { runScript } from '../src/script/runScript.js'
 import {
   _pipeline,

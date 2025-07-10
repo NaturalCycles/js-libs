@@ -6,7 +6,8 @@
  * "Converts" mean e.g trims all strings from leading/trailing spaces.
  */
 
-import { _hb, _isObject, _truncateMiddle } from '@naturalcycles/js-lib'
+import { _hb, _isObject } from '@naturalcycles/js-lib'
+import { _truncateMiddle } from '@naturalcycles/js-lib/string'
 import type { AnySchema, ValidationError, ValidationOptions } from 'joi'
 import type { JoiValidationErrorData } from './joi.validation.error.js'
 import { JoiValidationError } from './joi.validation.error.js'

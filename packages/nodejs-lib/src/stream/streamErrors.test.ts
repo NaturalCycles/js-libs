@@ -1,6 +1,7 @@
 import { Readable, Transform } from 'node:stream'
-import type { ObjectWithId } from '@naturalcycles/js-lib'
-import { _range, pExpectedErrorString } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib'
+import { pExpectedErrorString } from '@naturalcycles/js-lib/error'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
 import { _pipeline, writablePushToArray } from './index.js'
 

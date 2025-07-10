@@ -1,7 +1,8 @@
 // Relevant material:
 // https://deviceandbrowserinfo.com/learning_zone/articles/detecting-headless-chrome-puppeteer-2024
 
-import { isServerSide } from './env.js'
+import { BotReason } from '../bot.model.js'
+import { isServerSide } from '../env.js'
 
 export interface BotDetectionServiceCfg {
   /**
@@ -148,19 +149,4 @@ export class BotDetectionService {
     } catch {}
     return cdpCheck1
   }
-}
-
-export enum BotReason {
-  NoNavigator = 1,
-  NoUserAgent = 2,
-  UserAgent = 3,
-  WebDriver = 4,
-  // ZeroPlugins = 5,
-  EmptyLanguages = 6,
-  // ChromeWithoutChrome = 7,
-  /**
-   * This is when CDP is considered to be a reason to be a Bot.
-   * By default it's not.
-   */
-  CDP = 8,
 }

@@ -1,12 +1,12 @@
 import type {
-  AnyObject,
-  CommonLogger,
   JsonSchemaBoolean,
   JsonSchemaNumber,
   JsonSchemaObject,
   JsonSchemaRootObject,
   JsonSchemaString,
-} from '@naturalcycles/js-lib'
+} from '@naturalcycles/js-lib/json-schema'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import * as mysql from 'mysql'
 
 export interface MySQLTableStats {

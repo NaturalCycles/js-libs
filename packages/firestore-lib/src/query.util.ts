@@ -1,6 +1,6 @@
 import type { Query, WhereFilterOp } from '@google-cloud/firestore'
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
-import type { ObjectWithId } from '@naturalcycles/js-lib'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 
 // Map DBQueryFilterOp to WhereFilterOp
 // Currently it's fully aligned!

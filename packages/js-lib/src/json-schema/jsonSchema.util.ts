@@ -1,6 +1,6 @@
-import type { AnyObject } from '../index.js'
 import { _uniq } from '../index.js'
 import { _filterNullishValues } from '../object/object.util.js'
+import type { AnyObject } from '../types.js'
 import type { JsonSchemaObject } from './jsonSchema.model.js'
 
 /**

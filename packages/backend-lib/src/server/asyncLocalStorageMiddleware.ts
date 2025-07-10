@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
-import type { CommonLogger } from '@naturalcycles/js-lib'
 import { _lazyValue } from '@naturalcycles/js-lib'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { ciLogger, devLogger, gcpStructuredLogger } from './logMiddleware.js'
 import type { BackendRequest, BackendRequestHandler } from './server.model.js'
 

@@ -1,7 +1,7 @@
 import type { CommonDB } from '@naturalcycles/db-lib'
-import { CommonDao } from '@naturalcycles/db-lib'
-import type { IsoDate } from '@naturalcycles/js-lib'
-import { localDate } from '@naturalcycles/js-lib'
+import { CommonDao } from '@naturalcycles/db-lib/dao'
+import { localDate } from '@naturalcycles/js-lib/datetime'
+import type { IsoDate } from '@naturalcycles/js-lib/types'
 import type { BaseExperiment, Experiment } from '../types.js'
 
 export class ExperimentDao extends CommonDao<Experiment, ExperimentDBM> {

@@ -1,5 +1,6 @@
-import type { CommonLogger, CommonLogLevel, Primitive, StringMap } from '@naturalcycles/js-lib'
-import { _anyToError, _isErrorObject } from '@naturalcycles/js-lib'
+import { _anyToError, _isErrorObject } from '@naturalcycles/js-lib/error'
+import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
+import type { Primitive, StringMap } from '@naturalcycles/js-lib/types'
 import type { InspectAnyOptions } from '@naturalcycles/nodejs-lib'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import type { Breadcrumb, SeverityLevel } from '@sentry/node'

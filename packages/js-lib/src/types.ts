@@ -1,5 +1,4 @@
 import { _sortBy } from './array/array.util.js'
-import type { Promisable } from './typeFest.js'
 
 declare const __brand: unique symbol
 
@@ -435,3 +434,12 @@ export interface CommonClient extends AsyncDisposable {
   disconnect: () => Promise<void>
   ping: () => Promise<void>
 }
+
+export type Primitive = null | undefined | string | number | boolean | symbol | bigint
+
+export type Promisable<T> = T | PromiseLike<T>
+
+/**
+ Matches a [`class` constructor](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes).
+ */
+export type Class<T = any> = new (...args: any[]) => T

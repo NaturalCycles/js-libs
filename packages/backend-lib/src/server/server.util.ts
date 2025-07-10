@@ -1,6 +1,6 @@
 import type { Server } from 'node:http'
 import type { Socket } from 'node:net'
-import type { StringMap } from '@naturalcycles/js-lib'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 
 export interface DestroyableServer extends Server {
   destroy: () => Promise<void>
