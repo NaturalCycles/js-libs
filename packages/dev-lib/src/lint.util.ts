@@ -4,8 +4,10 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib'
 import { _assert, _isTruthy, _since, _truncate, semver2 } from '@naturalcycles/js-lib'
-import { boldGrey, dimGrey, exec2, git2 } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { git2 } from '@naturalcycles/nodejs-lib'
+import { boldGrey, dimGrey } from '@naturalcycles/nodejs-lib/colors'
+import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
 import {
   eslintExtensions,

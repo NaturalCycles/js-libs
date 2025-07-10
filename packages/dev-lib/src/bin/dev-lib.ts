@@ -3,7 +3,7 @@ import { select, Separator } from '@inquirer/prompts'
 import type { PromisableFunction } from '@naturalcycles/js-lib'
 import { _assert, _by } from '@naturalcycles/js-lib'
 import { runScript } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { buildCopy, buildProd, runTSCInFolders } from '../build.util.js'
 import {
   eslintAll,

@@ -1,5 +1,6 @@
-import { exec2 } from '@naturalcycles/nodejs-lib'
-import { fs2, kpySync } from '@naturalcycles/nodejs-lib/fs'
+import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
 import { findPackageBinPath } from './lint.util.js'
 
 export async function buildProd(): Promise<void> {

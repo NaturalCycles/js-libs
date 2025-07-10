@@ -16,7 +16,7 @@ import fs from 'node:fs'
 import micromatch from 'micromatch'
 import { execSync } from 'node:child_process'
 import { _assert, semver2 } from '@naturalcycles/js-lib'
-import { exec2 } from '@naturalcycles/nodejs-lib'
+import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 
 import {
   prettierDirs,

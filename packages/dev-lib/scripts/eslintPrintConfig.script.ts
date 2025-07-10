@@ -9,8 +9,9 @@ Changes are visible in git diff every time they are observed.
  */
 
 import { _sortObjectDeep } from '@naturalcycles/js-lib'
-import { exec2, runScript } from '@naturalcycles/nodejs-lib'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs'
+import { runScript } from '@naturalcycles/nodejs-lib'
+import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { testDir } from '../src/paths.js'
 
 runScript(async () => {
