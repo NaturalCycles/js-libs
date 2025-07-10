@@ -15,7 +15,8 @@ console.log(`lint-staged.config.js runs on node ${node} ${platform} ${arch}`)
 import fs from 'node:fs'
 import micromatch from 'micromatch'
 import { execSync } from 'node:child_process'
-import { _assert, semver2 } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error'
+import { semver2 } from '@naturalcycles/js-lib/semver'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 
 import {
