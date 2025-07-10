@@ -11,8 +11,9 @@ import { runScript } from '@naturalcycles/nodejs-lib'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
 import express from 'express'
-import { ajvValidateRequest, type BackendApplication } from '../src/index.js'
-import { validateRequest } from '../src/index.js'
+import type { BackendApplication } from '../src/index.js'
+import { ajvValidateRequest } from '../src/validation/ajv/ajvValidateRequest.js'
+import { validateRequest } from '../src/validation/joi/joiValidateRequest.js'
 
 interface PwInput {
   pw: string

@@ -1,12 +1,12 @@
-import { jsonSchema, type StringMap } from '@naturalcycles/js-lib'
+import type { StringMap } from '@naturalcycles/js-lib'
 import { _inspect } from '@naturalcycles/nodejs-lib'
-import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { numberSchema, objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { getDefaultRouter } from '../../express/getDefaultRouter.js'
 import { debugResource } from '../../test/debug.resource.js'
 import type { ExpressApp } from '../../testing/index.js'
 import { expressTestService } from '../../testing/index.js'
-import { getDefaultRouter } from '../getDefaultRouter.js'
-import { ajvValidateRequest } from './ajvValidateRequest.js'
+import { validateRequest } from './joiValidateRequest.js'
 
 const app = await expressTestService.createAppFromResource(debugResource)
 
@@ -14,9 +14,9 @@ afterAll(async () => {
   await app.close()
 })
 
-test('ajvValidateRequest', async () => {
+test('validateRequest', async () => {
   // should pass (no error)
-  await app.put('changePasswordAjv', {
+  await app.put('changePasswordJoi', {
     json: {
       pw: 'longEnough',
     },
@@ -24,7 +24,7 @@ test('ajvValidateRequest', async () => {
 
   const pw = 'short'
   const err = await app.expectError({
-    url: 'changePasswordAjv',
+    url: 'changePasswordJoi',
     method: 'PUT',
     json: {
       pw,
@@ -34,35 +34,33 @@ test('ajvValidateRequest', async () => {
   expect(err.cause.message).not.toContain(pw)
   expect(err.cause.message).toContain('REDACTED')
   expect(err.cause).toMatchInlineSnapshot(`
-    {
-      "data": {
-        "backendResponseStatusCode": 400,
-        "errors": [
-          {
-            "instancePath": "/pw",
-            "keyword": "minLength",
-            "message": "must NOT have fewer than 8 characters",
-            "params": {
-              "limit": 8,
-            },
-            "schemaPath": "#/properties/pw/minLength",
-          },
-        ],
-        "objectName": "request body",
-      },
-      "message": "request body/pw must NOT have fewer than 8 characters
-    Input: { pw: 'REDACTED' }",
-      "name": "AppError",
-    }
-  `)
+{
+  "data": {
+    "backendResponseStatusCode": 400,
+    "joiValidationErrorItems": [],
+    "joiValidationObjectName": "request body",
+  },
+  "message": "Invalid request body
+{
+  "pw" [1]: "REDACTED"
+}
+
+[1] "pw" length must be at least 8 characters long",
+  "name": "AppError",
+}
+`)
 
   expect(_inspect(err.cause)).toMatchInlineSnapshot(`
-    "AppError: request body/pw must NOT have fewer than 8 characters
-    Input: { pw: 'REDACTED' }"
+    "AppError: Invalid request body
+    {
+      "pw" [1]: "REDACTED"
+    }
+
+    [1] "pw" length must be at least 8 characters long"
   `)
 })
 
-describe('ajvValidateRequest.headers', () => {
+describe('validateRequest.headers', () => {
   let app: ExpressApp
   interface TestResponse {
     ok: 1
@@ -72,16 +70,14 @@ describe('ajvValidateRequest.headers', () => {
   beforeAll(async () => {
     const resource = getDefaultRouter()
     resource.get('/', async (req, res) => {
-      ajvValidateRequest.headers(
+      validateRequest.headers(
         req,
-        AjvSchema.create(
-          jsonSchema.object({
-            shortstring: jsonSchema.string().min(8).max(16),
-            numeric: jsonSchema.string(),
-            bool: jsonSchema.string(),
-            sessionid: jsonSchema.string(),
-          }),
-        ),
+        objectSchema<any>({
+          shortstring: stringSchema.min(8).max(16),
+          numeric: numberSchema,
+          bool: stringSchema,
+          sessionid: stringSchema,
+        }),
         { redactPaths: ['sessionid'] },
       )
 
@@ -126,15 +122,24 @@ describe('ajvValidateRequest.headers', () => {
     })
 
     expect(err.data.responseStatusCode).toBe(400)
-    expect(err.cause.message).toMatchInlineSnapshot(`
-      "request headers/shortstring must NOT have fewer than 8 characters
-      Input: {
+    expect(err.cause.message).toContain('"shortstring" length must be at least 8 characters long')
+  })
+
+  test('should list all errors (and not stop at the first error)', async () => {
+    const err = await app.expectError({
+      url: '',
+      method: 'GET',
+      headers: {
         shortstring: 'short',
-        numeric: '123',
+        numeric: 'text',
         bool: '1',
-        REDACTED: 'REDACTED'
-      }"
-    `)
+        sessionid: 'sessionid',
+      },
+    })
+
+    expect(err.data.responseStatusCode).toBe(400)
+    expect(err.cause.message).toContain('"shortstring" length must be at least 8 characters long')
+    expect(err.cause.message).toContain('"numeric" must be a number')
   })
 
   test('should redact sensitive data', async () => {
@@ -150,16 +155,7 @@ describe('ajvValidateRequest.headers', () => {
     })
 
     expect(err.data.responseStatusCode).toBe(400)
-    expect(err.cause.message).toMatchInlineSnapshot(`
-      "request headers/shortstring must NOT have fewer than 8 characters
-      Input: {
-        shortstring: 'short',
-        numeric: '127',
-        bool: '1',
-        REDACTED: 'REDACTED'
-      }"
-    `)
-    expect(err.cause.message).toContain("REDACTED: 'REDACTED'")
+    expect(err.cause.message).toContain('"REDACTED": "REDACTED"')
     expect(err.cause.message).not.toContain('sessionid')
   })
 
@@ -185,14 +181,12 @@ describe('ajvValidateRequest.headers', () => {
 
   test('should replace the headers with the validated value when configured so', async () => {
     const resource = getDefaultRouter().get('/', async (req, res) => {
-      ajvValidateRequest.headers(
+      validateRequest.headers(
         req,
-        AjvSchema.create(
-          jsonSchema.object({
-            shortstring: jsonSchema.string().min(8).max(16),
-            numeric: jsonSchema.string(),
-          }),
-        ),
+        objectSchema<any>({
+          shortstring: stringSchema.min(8).max(16),
+          numeric: numberSchema,
+        }),
         { keepOriginal: false },
       )
 
@@ -203,14 +197,14 @@ describe('ajvValidateRequest.headers', () => {
     const response = await app.get<TestResponse>('', {
       headers: {
         shortstring: 'shortstring',
-        numeric: '123',
+        numeric: 123,
         foo: 'bar',
       },
     })
 
     expect(response.headers).toEqual({
       shortstring: 'shortstring',
-      numeric: '123', // NOT converted to number
+      numeric: 123, // converted to number
       // foo: 'bar' // fields not in the schema are removed
     })
 

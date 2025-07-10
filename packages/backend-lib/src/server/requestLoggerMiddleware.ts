@@ -1,7 +1,7 @@
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib'
-import type { BackendRequest, BackendRequestHandler } from '../index.js'
-import { onFinished } from '../index.js'
+import { onFinished } from '../onFinished.js'
+import type { BackendRequest, BackendRequestHandler } from './server.model.js'
 
 export interface RequestLoggerMiddlewareCfg {
   /**

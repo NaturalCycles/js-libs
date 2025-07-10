@@ -1,7 +1,9 @@
 import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest'
-import { BaseAdminService, FirebaseSharedService, getDefaultRouter } from '../index.js'
+import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { expressTestService } from '../testing/index.js'
+import { BaseAdminService } from './base.admin.service.js'
+import { FirebaseSharedService } from './firebase.shared.service.js'
 
 const firebaseService = new FirebaseSharedService({
   authDomain: 'FIREBASE_AUTH_DOMAIN',

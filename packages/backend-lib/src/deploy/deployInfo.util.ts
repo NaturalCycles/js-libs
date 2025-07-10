@@ -1,6 +1,6 @@
 import { _memoFn, localTime } from '@naturalcycles/js-lib'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs'
-import type { DeployInfo } from '../deploy/index.js'
+import type { DeployInfo } from './deploy.model.js'
 
 export const getDeployInfo = _memoFn((projectDir: string): DeployInfo => {
   const deployInfoPath = `${projectDir}/deployInfo.json`

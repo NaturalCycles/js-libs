@@ -1,12 +1,12 @@
-import type { StringMap } from '@naturalcycles/js-lib'
-import { z } from '@naturalcycles/js-lib/zod'
+import { jsonSchema, type StringMap } from '@naturalcycles/js-lib'
 import { _inspect } from '@naturalcycles/nodejs-lib'
+import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { getDefaultRouter } from '../../express/getDefaultRouter.js'
 import { debugResource } from '../../test/debug.resource.js'
 import type { ExpressApp } from '../../testing/index.js'
 import { expressTestService } from '../../testing/index.js'
-import { getDefaultRouter } from '../getDefaultRouter.js'
-import { zodValidateRequest } from './zodValidateRequest.js'
+import { ajvValidateRequest } from './ajvValidateRequest.js'
 
 const app = await expressTestService.createAppFromResource(debugResource)
 
@@ -14,9 +14,9 @@ afterAll(async () => {
   await app.close()
 })
 
-test('zodValidateRequest', async () => {
+test('ajvValidateRequest', async () => {
   // should pass (no error)
-  await app.put('changePasswordZod', {
+  await app.put('changePasswordAjv', {
     json: {
       pw: 'longEnough',
     },
@@ -24,7 +24,7 @@ test('zodValidateRequest', async () => {
 
   const pw = 'short'
   const err = await app.expectError({
-    url: 'changePasswordZod',
+    url: 'changePasswordAjv',
     method: 'PUT',
     json: {
       pw,
@@ -37,32 +37,32 @@ test('zodValidateRequest', async () => {
     {
       "data": {
         "backendResponseStatusCode": 400,
+        "errors": [
+          {
+            "instancePath": "/pw",
+            "keyword": "minLength",
+            "message": "must NOT have fewer than 8 characters",
+            "params": {
+              "limit": 8,
+            },
+            "schemaPath": "#/properties/pw/minLength",
+          },
+        ],
+        "objectName": "request body",
       },
-      "message": "Invalid Object
-
-    Input:
-    {
-      "pw": "REDACTED"
-    }
-
-    pw: Too small: expected string to have >=8 characters",
+      "message": "request body/pw must NOT have fewer than 8 characters
+    Input: { pw: 'REDACTED' }",
       "name": "AppError",
     }
   `)
 
   expect(_inspect(err.cause)).toMatchInlineSnapshot(`
-    "AppError: Invalid Object
-
-    Input:
-    {
-      "pw": "REDACTED"
-    }
-
-    pw: Too small: expected string to have >=8 characters"
+    "AppError: request body/pw must NOT have fewer than 8 characters
+    Input: { pw: 'REDACTED' }"
   `)
 })
 
-describe('zodValidateRequest.headers', () => {
+describe('ajvValidateRequest.headers', () => {
   let app: ExpressApp
   interface TestResponse {
     ok: 1
@@ -72,14 +72,16 @@ describe('zodValidateRequest.headers', () => {
   beforeAll(async () => {
     const resource = getDefaultRouter()
     resource.get('/', async (req, res) => {
-      zodValidateRequest.headers(
+      ajvValidateRequest.headers(
         req,
-        z.object({
-          shortstring: z.string().min(8).max(16),
-          numeric: z.string(),
-          bool: z.string(),
-          sessionid: z.string(),
-        }),
+        AjvSchema.create(
+          jsonSchema.object({
+            shortstring: jsonSchema.string().min(8).max(16),
+            numeric: jsonSchema.string(),
+            bool: jsonSchema.string(),
+            sessionid: jsonSchema.string(),
+          }),
+        ),
         { redactPaths: ['sessionid'] },
       )
 
@@ -124,9 +126,15 @@ describe('zodValidateRequest.headers', () => {
     })
 
     expect(err.data.responseStatusCode).toBe(400)
-    expect(err.cause.message).toContain(
-      `shortstring: Too small: expected string to have >=8 characters`,
-    )
+    expect(err.cause.message).toMatchInlineSnapshot(`
+      "request headers/shortstring must NOT have fewer than 8 characters
+      Input: {
+        shortstring: 'short',
+        numeric: '123',
+        bool: '1',
+        REDACTED: 'REDACTED'
+      }"
+    `)
   })
 
   test('should redact sensitive data', async () => {
@@ -142,7 +150,16 @@ describe('zodValidateRequest.headers', () => {
     })
 
     expect(err.data.responseStatusCode).toBe(400)
-    expect(err.cause.message).toContain('"REDACTED": "REDACTED"')
+    expect(err.cause.message).toMatchInlineSnapshot(`
+      "request headers/shortstring must NOT have fewer than 8 characters
+      Input: {
+        shortstring: 'short',
+        numeric: '127',
+        bool: '1',
+        REDACTED: 'REDACTED'
+      }"
+    `)
+    expect(err.cause.message).toContain("REDACTED: 'REDACTED'")
     expect(err.cause.message).not.toContain('sessionid')
   })
 
@@ -168,12 +185,14 @@ describe('zodValidateRequest.headers', () => {
 
   test('should replace the headers with the validated value when configured so', async () => {
     const resource = getDefaultRouter().get('/', async (req, res) => {
-      zodValidateRequest.headers(
+      ajvValidateRequest.headers(
         req,
-        z.object({
-          shortstring: z.string().min(8).max(16),
-          numeric: z.string(),
-        }),
+        AjvSchema.create(
+          jsonSchema.object({
+            shortstring: jsonSchema.string().min(8).max(16),
+            numeric: jsonSchema.string(),
+          }),
+        ),
         { keepOriginal: false },
       )
 

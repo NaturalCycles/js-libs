@@ -14,6 +14,8 @@ autocannon -c 100 -d 40 -p 10 localhost:8080
 
 console.log('startServer... ')
 
+import { getDefaultRouter } from '../../express/getDefaultRouter.js'
+import { startServer } from '../../express/startServer.js'
 // should come strictly first
 import { sentry } from './instrument.js'
 
@@ -23,11 +25,9 @@ import { _errorLikeToErrorObject, AppError, pDelay } from '@naturalcycles/js-lib
 import { loginHtml } from '../../admin/adminMiddleware.js'
 import {
   basicAuthMiddleware,
-  getDefaultRouter,
   okMiddleware,
   SentrySharedService,
   serverStatusMiddleware,
-  startServer,
 } from '../../index.js'
 import {
   getRequest,

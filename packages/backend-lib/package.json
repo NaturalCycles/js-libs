@@ -49,7 +49,16 @@
   "exports": {
     "./cfg/tsconfig.json": "./cfg/tsconfig.json",
     ".": "./dist/index.js",
-    "./db": "./dist/db/index.js"
+    "./db": "./dist/db/index.js",
+    "./deploy": "./dist/deploy/index.js",
+    "./express/createDefaultApp": "./dist/express/createDefaultApp.js",
+    "./express/getDefaultRouter": "./dist/express/getDefaultRouter.js",
+    "./express/startServer": "./dist/express/startServer.js",
+    "./ajvValidateRequest": "./dist/validation/ajv/ajvValidateRequest.js",
+    "./joiValidateRequest": "./dist/validation/joi/joiValidateRequest.js",
+    "./zodValidateRequest": "./dist/validation/zod/zodValidateRequest.js",
+    "./onFinished": "./dist/onFinished.js",
+    "./testing": "./dist/testing/index.js"
   },
   "files": [
     "dist",

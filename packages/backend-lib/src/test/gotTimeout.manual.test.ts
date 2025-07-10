@@ -1,6 +1,6 @@
 import { pDelay } from '@naturalcycles/js-lib'
 import { afterAll, test } from 'vitest'
-import { getDefaultRouter } from '../server/getDefaultRouter.js'
+import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { expressTestService } from '../testing/index.js'
 
 const res = getDefaultRouter()

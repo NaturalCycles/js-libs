@@ -2,9 +2,12 @@ import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { Fetcher, FetcherOptions, FetchFunction } from '@naturalcycles/js-lib'
 import { getFetcher, pDelay } from '@naturalcycles/js-lib'
-import type { BackendApplication, DefaultAppCfg } from '../index.js'
-import { createDefaultApp } from '../index.js'
-import type { BackendRequestHandlerCfg } from '../server/createDefaultApp.model.js'
+import {
+  type BackendRequestHandlerCfg,
+  createDefaultApp,
+  type DefaultAppCfg,
+} from '../express/createDefaultApp.js'
+import type { BackendApplication } from '../server/server.model.js'
 
 const nativeFetchFn: FetchFunction = async (url, init) => await globalThis.fetch(url, init)
 

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import type { BackendRequestHandler, BackendRouter } from './server.model.js'
+import type { BackendRequestHandler, BackendRouter } from '../server/server.model.js'
 
 /**
  * Convenience method.

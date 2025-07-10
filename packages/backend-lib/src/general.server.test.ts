@@ -9,9 +9,10 @@ import {
 import { deflateString } from '@naturalcycles/nodejs-lib'
 import { arraySchema, objectSchema } from '@naturalcycles/nodejs-lib/joi'
 import { afterAll, expect, test } from 'vitest'
-import { getDefaultRouter, validateRequest } from './index.js'
+import { getDefaultRouter } from './express/getDefaultRouter.js'
 import { safeJsonMiddleware } from './server/safeJsonMiddleware.js'
 import { expressTestService } from './testing/index.js'
+import { validateRequest } from './validation/joi/joiValidateRequest.js'
 
 const router = getDefaultRouter()
 router.get('/circular', safeJsonMiddleware(), async req => {

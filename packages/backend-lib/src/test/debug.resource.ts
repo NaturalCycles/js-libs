@@ -2,10 +2,10 @@ import { AppError, jsonSchema } from '@naturalcycles/js-lib'
 import { z } from '@naturalcycles/js-lib/zod'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
-import { getDefaultRouter } from '../server/getDefaultRouter.js'
-import { ajvValidateRequest } from '../server/validation/ajvValidateRequest.js'
-import { validateRequest } from '../server/validation/validateRequest.js'
-import { zodValidateRequest } from '../server/validation/zodValidateRequest.js'
+import { getDefaultRouter } from '../express/getDefaultRouter.js'
+import { ajvValidateRequest } from '../validation/ajv/ajvValidateRequest.js'
+import { validateRequest } from '../validation/joi/joiValidateRequest.js'
+import { zodValidateRequest } from '../validation/zod/zodValidateRequest.js'
 
 const router = getDefaultRouter()
 export const debugResource = router

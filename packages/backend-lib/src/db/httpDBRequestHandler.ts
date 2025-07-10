@@ -12,9 +12,9 @@ import {
   objectSchema,
   stringSchema,
 } from '@naturalcycles/nodejs-lib/joi'
-import { getDefaultRouter } from '../server/getDefaultRouter.js'
+import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import type { BackendRouter } from '../server/server.model.js'
-import { validateRequest } from '../server/validation/validateRequest.js'
+import { validateRequest } from '../validation/joi/joiValidateRequest.js'
 
 export interface GetByIdsInput {
   table: string

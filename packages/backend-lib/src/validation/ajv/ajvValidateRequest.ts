@@ -1,29 +1,29 @@
 import { _get, AppError } from '@naturalcycles/js-lib'
-import { type ZodType, type ZodValidationError, zSafeValidate } from '@naturalcycles/js-lib/zod'
-import type { BackendRequest } from '../server.model.js'
-import type { ReqValidationOptions } from './validateRequest.js'
+import type { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
+import type { BackendRequest } from '../../server/server.model.js'
+import type { ReqValidationOptions } from '../joi/joiValidateRequest.js'
 
-class ZodValidateRequest {
+class AjvValidateRequest {
   body<T>(
     req: BackendRequest,
-    schema: ZodType<T>,
-    opt: ReqValidationOptions<ZodValidationError> = {},
+    schema: AjvSchema<T>,
+    opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
     return this.validate(req, 'body', schema, opt)
   }
 
   query<T>(
     req: BackendRequest,
-    schema: ZodType<T>,
-    opt: ReqValidationOptions<ZodValidationError> = {},
+    schema: AjvSchema<T>,
+    opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
     return this.validate(req, 'query', schema, opt)
   }
 
   params<T>(
     req: BackendRequest,
-    schema: ZodType<T>,
-    opt: ReqValidationOptions<ZodValidationError> = {},
+    schema: AjvSchema<T>,
+    opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
     return this.validate(req, 'params', schema, opt)
   }
@@ -39,10 +39,10 @@ class ZodValidateRequest {
    */
   headers<T>(
     req: BackendRequest,
-    schema: ZodType<T>,
-    opt: ReqValidationOptions<ZodValidationError> = {},
+    schema: AjvSchema<T>,
+    opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    const options: ReqValidationOptions<ZodValidationError> = {
+    const options: ReqValidationOptions<AjvValidationError> = {
       keepOriginal: true,
       ...opt,
     }
@@ -52,14 +52,14 @@ class ZodValidateRequest {
   private validate<T>(
     req: BackendRequest,
     reqProperty: 'body' | 'params' | 'query' | 'headers',
-    schema: ZodType<T>,
-    opt: ReqValidationOptions<ZodValidationError> = {},
+    schema: AjvSchema<T>,
+    opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    const { data, error } = zSafeValidate(
-      req[reqProperty] || {},
-      schema,
-      // `request ${reqProperty}`,
-    )
+    const value: T = { ...req[reqProperty] } // destructure to avoid being mutated by Ajv
+    // It will mutate the `value`, but not the original object
+    const error = schema.getValidationError(value, {
+      objectName: `request ${reqProperty}`,
+    })
 
     if (error) {
       let report: boolean | undefined
@@ -83,14 +83,14 @@ class ZodValidateRequest {
     // mutate req to replace the property with the value, converted by Joi
     if (!opt.keepOriginal && reqProperty !== 'query') {
       // query is read-only in Express 5
-      req[reqProperty] = data
+      req[reqProperty] = value
     }
 
-    return data
+    return value
   }
 }
 
-export const zodValidateRequest = new ZodValidateRequest()
+export const ajvValidateRequest = new AjvValidateRequest()
 
 const REDACTED = 'REDACTED'
 

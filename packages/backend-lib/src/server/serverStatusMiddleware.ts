@@ -1,6 +1,6 @@
 import { _filterNullishValues, localTime } from '@naturalcycles/js-lib'
 import { memoryUsageFull, processSharedUtil } from '@naturalcycles/nodejs-lib'
-import { getDeployInfo } from './deployInfo.util.js'
+import { getDeployInfo } from '../deploy/deployInfo.util.js'
 import type { BackendRequestHandler } from './server.model.js'
 
 const { versions, arch, platform } = process

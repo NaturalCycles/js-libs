@@ -1,6 +1,5 @@
 import { _memoFn, AppError } from '@naturalcycles/js-lib'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs'
-import ejs from 'ejs'
 import { srcDir } from '../paths.cnst.js'
 import type { BackendRequestHandler } from '../server/server.model.js'
 import type { BaseAdminService } from './base.admin.service.js'
@@ -89,9 +88,9 @@ export function loginHtml(firebaseServiceCfg: FirebaseSharedServiceCfg): Backend
     adminAuthProvider: firebaseAuthProvider = 'GoogleAuthProvider',
   } = firebaseServiceCfg
 
-  return (_req, res) => {
+  return async (_req, res) => {
     res.send(
-      getLoginHtml({
+      await getLoginHtml({
         firebaseApiKey,
         firebaseAuthDomain,
         firebaseAuthProvider,
@@ -100,9 +99,10 @@ export function loginHtml(firebaseServiceCfg: FirebaseSharedServiceCfg): Backend
   }
 }
 
-const getLoginHtml = _memoFn((cfg: LoginHtmlCfg) => {
+const getLoginHtml = _memoFn(async (cfg: LoginHtmlCfg) => {
   console.log(`reading login.html`)
   const tmpl = fs2.readText(`${srcDir}/admin/login.html`)
+  const { default: ejs } = await import('ejs')
   return ejs.render(tmpl, cfg)
 })
 

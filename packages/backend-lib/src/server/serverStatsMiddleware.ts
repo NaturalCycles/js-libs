@@ -11,9 +11,9 @@ import {
   _sum,
   NumberStack,
 } from '@naturalcycles/js-lib'
-import type { BackendRequestHandler } from '../index.js'
-import { onFinished } from '../index.js'
+import { onFinished } from '../onFinished.js'
 import { getRequestEndpoint } from './request.util.js'
+import type { BackendRequestHandler } from './server.model.js'
 
 const { GAE_INSTANCE } = process.env
 

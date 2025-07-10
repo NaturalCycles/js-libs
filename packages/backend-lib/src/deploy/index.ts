@@ -17,3 +17,5 @@ export {
   deployPrepare,
   getBackendCfg,
 }
+
+export * from './deployInfo.util.js'

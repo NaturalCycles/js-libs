@@ -4,7 +4,7 @@ import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib'
-import { createDefaultApp } from '../server/createDefaultApp.js'
+import { createDefaultApp } from '../express/createDefaultApp.js'
 import { debugResource } from './debug.resource.js'
 
 declare global {

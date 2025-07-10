@@ -1,25 +1,27 @@
-import cookieParser from 'cookie-parser'
-import cors from 'cors'
-import express from 'express'
-import { asyncLocalStorageMiddleware } from './asyncLocalStorageMiddleware.js'
-import type {
-  BackendRequestHandlerCfg,
-  BackendRequestHandlerWithPath,
-  DefaultAppCfg,
-} from './createDefaultApp.model.js'
-import { genericErrorMiddleware } from './genericErrorMiddleware.js'
-import { logMiddleware } from './logMiddleware.js'
-import { methodOverrideMiddleware } from './methodOverrideMiddleware.js'
-import { notFoundMiddleware } from './notFoundMiddleware.js'
-import { requestTimeoutMiddleware } from './requestTimeoutMiddleware.js'
-import type { BackendApplication } from './server.model.js'
-import { simpleRequestLoggerMiddleware } from './simpleRequestLoggerMiddleware.js'
+import type { Options, OptionsJson, OptionsUrlencoded } from 'body-parser'
+import type { CorsOptions } from 'cors'
+import type { SentrySharedService } from '../sentry/sentry.shared.service.js'
+import { asyncLocalStorageMiddleware } from '../server/asyncLocalStorageMiddleware.js'
+import {
+  genericErrorMiddleware,
+  type GenericErrorMiddlewareCfg,
+} from '../server/genericErrorMiddleware.js'
+import { logMiddleware } from '../server/logMiddleware.js'
+import { methodOverrideMiddleware } from '../server/methodOverrideMiddleware.js'
+import { notFoundMiddleware } from '../server/notFoundMiddleware.js'
+import { requestTimeoutMiddleware } from '../server/requestTimeoutMiddleware.js'
+import type { BackendApplication, BackendRequestHandler } from '../server/server.model.js'
+import { simpleRequestLoggerMiddleware } from '../server/simpleRequestLoggerMiddleware.js'
 
 const isTest = process.env['APP_ENV'] === 'test'
 const isDev = process.env['APP_ENV'] === 'dev'
 
 export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendApplication> {
   const { sentryService } = cfg
+
+  const { default: express } = await import('express')
+  const { default: cors } = await import('cors')
+  const { default: cookieParser } = await import('cookie-parser')
 
   const app = express()
 
@@ -142,4 +144,40 @@ function useHandlers(app: BackendApplication, handlers: BackendRequestHandlerCfg
     .forEach(cfg => {
       app.use(cfg.path, cfg.handler)
     })
+}
+
+/**
+ * Plain RequestHandler can be provided - then it's mounted to /
+ * Otherwise `path` can be provided to specify mounting point.
+ */
+export type BackendRequestHandlerCfg = BackendRequestHandler | BackendRequestHandlerWithPath
+
+export interface BackendRequestHandlerWithPath {
+  path: string
+  handler: BackendRequestHandler
+}
+
+/**
+ * Handlers are used in this order:
+ *
+ * 1. preHandlers
+ * 2. handlers
+ * 3. resources
+ * 4. postHandlers
+ */
+export interface DefaultAppCfg {
+  preHandlers?: BackendRequestHandlerCfg[]
+  handlers?: BackendRequestHandlerCfg[]
+  resources?: BackendRequestHandlerCfg[]
+  postHandlers?: BackendRequestHandlerCfg[]
+
+  sentryService?: SentrySharedService
+
+  bodyParserJsonOptions?: OptionsJson
+  bodyParserUrlEncodedOptions?: OptionsUrlencoded
+  bodyParserRawOptions?: Options
+
+  corsOptions?: CorsOptions
+
+  genericErrorMwCfg?: GenericErrorMiddlewareCfg
 }

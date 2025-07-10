@@ -1,5 +1,6 @@
 import http from 'node:http'
-import { createDefaultApp, getDefaultRouter } from '../../src/index.js'
+import { createDefaultApp } from '../../src/express/createDefaultApp.js'
+import { getDefaultRouter } from '../../src/express/getDefaultRouter.js'
 
 export async function createServerBackendLib(): Promise<http.Server> {
   const router = getDefaultRouter()
