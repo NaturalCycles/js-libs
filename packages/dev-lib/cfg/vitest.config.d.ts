@@ -14,3 +14,5 @@ import type { InlineConfig } from 'vitest/node'
 export function defineVitestConfig(config?: Partial<ViteUserConfig>): ViteUserConfig
 
 export const sharedConfig: InlineConfig
+
+export const CollectReporter: any

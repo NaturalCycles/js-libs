@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import { VitestAlphabeticSequencer } from './vitestAlphabeticSequencer.js'
 import { defineConfig } from 'vitest/config'
+export { CollectReporter } from './collectReporter.js'
 
 const runsInIDE = doesItRunInIDE()
 const testType = getTestType(runsInIDE)
