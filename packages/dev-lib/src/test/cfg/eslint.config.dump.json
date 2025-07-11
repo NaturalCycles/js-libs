@@ -711,7 +711,12 @@
       2
     ],
     "import-x/no-cycle": [
-      2
+      2,
+      {
+        "allowUnsafeDynamicCyclicDependency": true,
+        "ignoreExternal": true,
+        "maxDepth": 10
+      }
     ],
     "import-x/no-default-export": [
       0

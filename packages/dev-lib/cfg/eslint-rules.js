@@ -193,7 +193,14 @@ export default {
     'import-x/no-duplicates': [2, { 'prefer-inline': false }],
     'import-x/export': 2,
     'import-x/no-empty-named-blocks': 2,
-    'import-x/no-cycle': 2,
+    'import-x/no-cycle': [
+      2,
+      {
+        ignoreExternal: true,
+        allowUnsafeDynamicCyclicDependency: true,
+        maxDepth: 10,
+      },
+    ],
     'import-x/no-useless-path-segments': 2,
     'import-x/no-default-export': 0, // biome
     // 'import-x/no-commonjs': 2, // biome `noCommonJs`
