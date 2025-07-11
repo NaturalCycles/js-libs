@@ -49,6 +49,7 @@
   "exports": {
     "./cfg/tsconfig.json": "./cfg/tsconfig.json",
     ".": "./dist/index.js",
+    "./admin": "./dist/admin/index.js",
     "./db": "./dist/db/index.js",
     "./deploy": "./dist/deploy/index.js",
     "./express/createDefaultApp": "./dist/express/createDefaultApp.js",
