@@ -5,6 +5,7 @@ import path from 'node:path'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib/datetime'
 import { _assert } from '@naturalcycles/js-lib/error'
+import { _filterFalsyValues } from '@naturalcycles/js-lib/object'
 import { semver2 } from '@naturalcycles/js-lib/semver'
 import { _truncate } from '@naturalcycles/js-lib/string'
 import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
@@ -22,6 +23,8 @@ import {
   stylelintExtensions,
 } from '../cfg/_cnst.js'
 import { cfgDir, scriptsDir } from './paths.js'
+
+const { CI } = process.env
 
 /**
  * Run all linters.
@@ -177,6 +180,10 @@ async function runESLint(
       fix ? `--fix` : '',
     ].filter(Boolean),
     shell: false,
+    env: _filterFalsyValues({
+      // Print eslint plugin timing, but only in CI
+      TIMING: CI ? 'true' : '',
+    }),
   })
 }
 

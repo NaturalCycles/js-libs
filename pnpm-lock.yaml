@@ -24,7 +24,7 @@ importers:
         version: 4.3.0
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@naturalcycles/nodejs-lib':
         specifier: '*'
         version: 15.3.0
@@ -91,7 +91,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/semver':
         specifier: ^7
         version: 7.7.0
@@ -116,7 +116,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -183,10 +183,10 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@sentry/node':
         specifier: ^9
-        version: 9.37.0
+        version: 9.38.0
       '@types/ejs':
         specifier: ^3
         version: 3.1.5
@@ -217,7 +217,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/benchmark':
         specifier: ^2
         version: 2.1.5
@@ -263,7 +263,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -288,7 +288,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -420,7 +420,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -438,11 +438,11 @@ importers:
         version: 2.8.1
       zod:
         specifier: ^4
-        version: 4.0.4
+        version: 4.0.5
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/crypto-js':
         specifier: ^4
         version: 4.2.2
@@ -472,14 +472,14 @@ importers:
         version: link:../nodejs-lib
       mongodb:
         specifier: ^6
-        version: 6.17.0(socks@2.8.5)
+        version: 6.17.0(socks@2.8.6)
       tslib:
         specifier: ^2
         version: 2.8.1
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -510,7 +510,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -574,7 +574,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/through2-concurrent':
         specifier: ^2
         version: 2.0.4
@@ -599,7 +599,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -618,7 +618,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -658,7 +658,7 @@ importers:
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: '*'
-        version: 19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
+        version: 19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
       '@types/node':
         specifier: ^24
         version: 24.0.13
@@ -1604,8 +1604,8 @@ packages:
     resolution: {integrity: sha512-+JMd77cQtOnglspR4xJ6T2QEsxZ4dUCaa0mXFYgpmbuoyAB9fd2sdIeFav+cz+4dt4V+p/dwT1tZPGby57dZWA==}
     engines: {node: '>=22.12.0'}
 
-  '@naturalcycles/dev-lib@19.8.0':
-    resolution: {integrity: sha512-k1eFw72sLOjISPnr3UmuMXKiRQ+4b+rdoTwSLsYJVvLZ3hiSI60OLNaggyY0SzBrtqaP0s95VqZzvvF+TVMMtA==}
+  '@naturalcycles/dev-lib@19.8.2':
+    resolution: {integrity: sha512-8h0vVo2OJS1BLCyAOF0a9FxTm1UKfj7/74SSsWfOhMo13PYcZZzjspD5ARp0n//B75F6qBu1G3aSYPBGjMLBKA==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -1622,8 +1622,8 @@ packages:
       stylelint-config-standard-scss:
         optional: true
 
-  '@naturalcycles/js-lib@15.16.0':
-    resolution: {integrity: sha512-r8o+JC/DZE0AskRwn+yUIDtq2wXd+cT+MdXX6zmo73mda6OHJ/Vqlw0fi7AYprC4rnUS7oKNtXM1yW5pfhFsgw==}
+  '@naturalcycles/js-lib@15.16.2':
+    resolution: {integrity: sha512-pmDuqfTA9weRnb+N42NnWhRTPkgh35sKUM7B4z5N667Jt2spRMJIsrQg6BFsgrxZumKas41z3xpIx57f27E8nQ==}
     engines: {node: '>=22.12.0'}
 
   '@naturalcycles/nodejs-lib@15.3.0':
@@ -2079,12 +2079,12 @@ packages:
     peerDependencies:
       semantic-release: '>=20.1.0'
 
-  '@sentry/core@9.37.0':
-    resolution: {integrity: sha512-RyIsIIcIzEngvvNRr+0oAHJpeAgT5sP12qQXAY6DpeBfFJc9tRTdvxaTURNTkfh+WWO35eIqr4XEB4Hp7Q81IA==}
+  '@sentry/core@9.38.0':
+    resolution: {integrity: sha512-dUwSv1VXDfsrcY69a/cgZNDsFal6iYOf0C4T+/ylpmgYp5SVe3vQK+2FLXUMuvgnOf+kHO6IeW0RhnhSyUflmA==}
     engines: {node: '>=18'}
 
-  '@sentry/node-core@9.37.0':
-    resolution: {integrity: sha512-j/DM2jb2egZQyTJx76QtOh4qskL9kduIPMy9OXC+6m6nY+rVbRhIgs9aDjn3GE+DdUU79OMIoy10g8basGjM5Q==}
+  '@sentry/node-core@9.38.0':
+    resolution: {integrity: sha512-G0JmsntsvALoqS9iLTi4Jn1DcQB7gw9PY1Fmkdcdcf7i4EJEdRDX0tiD9ssDrcjgzzFPnm0PCrSAkIfTtd3Zyg==}
     engines: {node: '>=18'}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
@@ -2095,12 +2095,12 @@ packages:
       '@opentelemetry/sdk-trace-base': ^1.30.1 || ^2.0.0
       '@opentelemetry/semantic-conventions': ^1.34.0
 
-  '@sentry/node@9.37.0':
-    resolution: {integrity: sha512-wj0y6Yo4u3qa/qzTW6Xwvf9G6njxSkPxJ91Bpb/iqhf8JGWJnigXkyq9R2qnelXazCX44TYqqC+zHpaBiX9pLg==}
+  '@sentry/node@9.38.0':
+    resolution: {integrity: sha512-OhfRTge6hncSehrTBHpnz5R66OWRd8WMKn6ZoS0nwBmTfREjPkNRfOADIUqEElfyuaNj+gWsqTM1/E915pnZew==}
     engines: {node: '>=18'}
 
-  '@sentry/opentelemetry@9.37.0':
-    resolution: {integrity: sha512-vJfy7TyYIvKYzzqFlVDZNHm3gzPmr14eyyXYmCVkpWKsqZWdJChg5zfGJTXujLKwMsTFVOt08RMw2DF1s9r5jA==}
+  '@sentry/opentelemetry@9.38.0':
+    resolution: {integrity: sha512-Oa0kk4EiBMwCvHS5ZI50M/SMNfGM9ztsmedFEfpS+mZz8y9C5Artd0ukGK4OAYcSBggNVQkhmmhWbwpNnRNQiw==}
     engines: {node: '>=18'}
     peerDependencies:
       '@opentelemetry/api': ^1.9.0
@@ -5796,8 +5796,8 @@ packages:
     resolution: {integrity: sha512-a6KW9G+6B3nWZ1yB8G7pJwL3ggLy1uTzKAgCb7ttblwqdz9fMGJUuTy3uFzEP48FAs9FLILlmzDlE2JJhVQaXQ==}
     engines: {node: '>= 10'}
 
-  socks@2.8.5:
-    resolution: {integrity: sha512-iF+tNDQla22geJdTyJB1wM/qrX9DMRwWrciEPwWLPRWAUEM8sQiyxgckLxWT1f7+9VabJS0jTGGr4QgBuvi6Ww==}
+  socks@2.8.6:
+    resolution: {integrity: sha512-pe4Y2yzru68lXCb38aAqRf5gvN8YdjP1lok5o0J7BOHljkyCGKVz7H3vpVIXKD27rj2giOJ7DwVyk/GWrPHDWA==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
 
   sonic-boom@4.2.0:
@@ -6612,8 +6612,8 @@ packages:
     resolution: {integrity: sha512-GQHQqAopRhwU8Kt1DDM8NjibDXHC8eoh1erhGAJPEyveY9qqVeXvVikNKrDz69sHowPMorbPUrH/mx8c50eiBQ==}
     engines: {node: '>=18'}
 
-  zod@4.0.4:
-    resolution: {integrity: sha512-i+8X+1VC5B3ufKpHJYkp1uACl34n8MA3PNXiayDGmKVqTmiKgqmxSayPQjsYvkGs+DitAMS7U1l4uG6AZYCJGA==}
+  zod@4.0.5:
+    resolution: {integrity: sha512-/5UuuRPStvHXu7RS+gmvRf4NXrNxpSllGwDnCBcJZtQsKrviYXm54yDGV2KYNLT5kq0lHGcl7lqWJLgSaG+tgA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -7516,21 +7516,21 @@ snapshots:
 
   '@naturalcycles/bench-lib@4.3.0':
     dependencies:
-      '@naturalcycles/js-lib': 15.16.0
+      '@naturalcycles/js-lib': 15.16.2
       '@naturalcycles/nodejs-lib': 15.3.0
       autocannon: 8.0.0
       benchmark: 2.1.4
       hdr-histogram-js: 3.0.1
       tslib: 2.8.1
 
-  '@naturalcycles/dev-lib@19.8.0(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))':
+  '@naturalcycles/dev-lib@19.8.2(@biomejs/biome@2.1.1)(@types/node@24.0.13)(@typescript-eslint/parser@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/utils@8.36.0(eslint@9.30.1(jiti@2.4.2))(typescript@5.8.3))(eslint@9.30.1(jiti@2.4.2))(husky@9.1.7)(prettier@3.6.2)(stylelint-config-standard-scss@15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3)))(stylelint@16.21.1(typescript@5.8.3))(typescript@5.8.3)(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))':
     dependencies:
       '@biomejs/biome': 2.1.1
       '@commitlint/cli': 19.8.1(@types/node@24.0.13)(typescript@5.8.3)
       '@commitlint/config-conventional': 19.8.1
       '@eslint/js': 9.30.1
       '@inquirer/prompts': 7.6.0(@types/node@24.0.13)
-      '@naturalcycles/js-lib': 15.16.0
+      '@naturalcycles/js-lib': 15.16.2
       '@naturalcycles/nodejs-lib': 15.3.0
       '@stylistic/eslint-plugin': 5.1.0(eslint@9.30.1(jiti@2.4.2))
       '@vitest/coverage-v8': 3.2.4(vitest@3.2.4(@types/node@24.0.13)(jiti@2.4.2)(tsx@4.20.3)(yaml@2.8.0))
@@ -7563,14 +7563,14 @@ snapshots:
       - supports-color
       - vitest
 
-  '@naturalcycles/js-lib@15.16.0':
+  '@naturalcycles/js-lib@15.16.2':
     dependencies:
       tslib: 2.8.1
-      zod: 4.0.4
+      zod: 4.0.5
 
   '@naturalcycles/nodejs-lib@15.3.0':
     dependencies:
-      '@naturalcycles/js-lib': 15.16.0
+      '@naturalcycles/js-lib': 15.16.2
       '@types/js-yaml': 4.0.9
       '@types/jsonwebtoken': 9.0.10
       '@types/yargs': 16.0.9
@@ -8107,9 +8107,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@sentry/core@9.37.0': {}
+  '@sentry/core@9.38.0': {}
 
-  '@sentry/node-core@9.37.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/resources@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)':
+  '@sentry/node-core@9.38.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/resources@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)':
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/context-async-hooks': 1.30.1(@opentelemetry/api@1.9.0)
@@ -8118,11 +8118,11 @@ snapshots:
       '@opentelemetry/resources': 1.30.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.36.0
-      '@sentry/core': 9.37.0
-      '@sentry/opentelemetry': 9.37.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)
+      '@sentry/core': 9.38.0
+      '@sentry/opentelemetry': 9.38.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)
       import-in-the-middle: 1.14.2
 
-  '@sentry/node@9.37.0':
+  '@sentry/node@9.38.0':
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/context-async-hooks': 1.30.1(@opentelemetry/api@1.9.0)
@@ -8154,15 +8154,15 @@ snapshots:
       '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.36.0
       '@prisma/instrumentation': 6.11.1(@opentelemetry/api@1.9.0)
-      '@sentry/core': 9.37.0
-      '@sentry/node-core': 9.37.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/resources@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)
-      '@sentry/opentelemetry': 9.37.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)
+      '@sentry/core': 9.38.0
+      '@sentry/node-core': 9.38.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/resources@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)
+      '@sentry/opentelemetry': 9.38.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)
       import-in-the-middle: 1.14.2
       minimatch: 9.0.5
     transitivePeerDependencies:
       - supports-color
 
-  '@sentry/opentelemetry@9.37.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)':
+  '@sentry/opentelemetry@9.38.0(@opentelemetry/api@1.9.0)(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.36.0)':
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/context-async-hooks': 1.30.1(@opentelemetry/api@1.9.0)
@@ -8170,7 +8170,7 @@ snapshots:
       '@opentelemetry/instrumentation': 0.57.2(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-base': 1.30.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/semantic-conventions': 1.36.0
-      '@sentry/core': 9.37.0
+      '@sentry/core': 9.38.0
 
   '@shikijs/core@2.5.0':
     dependencies:
@@ -8289,7 +8289,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.19.6':
     dependencies:
-      '@types/node': 22.16.3
+      '@types/node': 24.0.13
       '@types/qs': 6.14.0
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.5
@@ -11149,13 +11149,13 @@ snapshots:
       '@types/whatwg-url': 11.0.5
       whatwg-url: 14.2.0
 
-  mongodb@6.17.0(socks@2.8.5):
+  mongodb@6.17.0(socks@2.8.6):
     dependencies:
       '@mongodb-js/saslprep': 1.3.0
       bson: 6.10.4
       mongodb-connection-string-url: 3.0.2
     optionalDependencies:
-      socks: 2.8.5
+      socks: 2.8.6
 
   ms@2.1.3: {}
 
@@ -12116,12 +12116,12 @@ snapshots:
     dependencies:
       agent-base: 6.0.2
       debug: 4.4.1
-      socks: 2.8.5
+      socks: 2.8.6
     transitivePeerDependencies:
       - supports-color
     optional: true
 
-  socks@2.8.5:
+  socks@2.8.6:
     dependencies:
       ip-address: 9.0.5
       smart-buffer: 4.2.0
@@ -13010,6 +13010,6 @@ snapshots:
 
   yoctocolors@2.1.1: {}
 
-  zod@4.0.4: {}
+  zod@4.0.5: {}
 
   zwitch@2.0.4: {}
