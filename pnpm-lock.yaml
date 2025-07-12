@@ -21,13 +21,13 @@ importers:
         version: 2.1.1
       '@naturalcycles/bench-lib':
         specifier: '*'
-        version: 4.4.0
+        version: 4.5.0
       '@naturalcycles/dev-lib':
         specifier: workspace:*
         version: link:packages/dev-lib
       '@naturalcycles/nodejs-lib':
         specifier: '*'
-        version: 15.4.0
+        version: 15.5.0
       '@semantic-release/git':
         specifier: ^10
         version: 10.0.1(semantic-release@24.2.7(typescript@5.8.3))
@@ -328,7 +328,7 @@ importers:
         version: link:../js-lib
       '@naturalcycles/nodejs-lib':
         specifier: ^15
-        version: 15.4.0
+        version: 15.5.0
       '@stylistic/eslint-plugin':
         specifier: ^5
         version: 5.1.0(eslint@9.31.0(jiti@2.4.2))
@@ -1596,16 +1596,16 @@ packages:
   '@napi-rs/wasm-runtime@0.2.12':
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
 
-  '@naturalcycles/bench-lib@4.4.0':
-    resolution: {integrity: sha512-oyQARDCt03d5QUzt9upIARw1ud+RGJSLlcqHW2+WZ/zWfdazHgkvciT0iaT0V+RaS5hjW4wgIr/CM9zyGFrwCA==}
+  '@naturalcycles/bench-lib@4.5.0':
+    resolution: {integrity: sha512-FSlRp0t836XZg/R5W0ZHLTRbXPGYEdO10wX1bMJMWKQ0v6igenvh9Am5iXTPvauCCZRLJudpLdTecLjIXKGOxA==}
     engines: {node: '>=22.12.0'}
 
-  '@naturalcycles/js-lib@15.17.0':
-    resolution: {integrity: sha512-GxX2tGSimc1NZp6rv36aeywyUJy3XEEQHjjQgfARzQArDq7h2TQVTBbpDnqmdS4XSSBUz7kBVy6ataF4aEDDWw==}
+  '@naturalcycles/js-lib@15.18.0':
+    resolution: {integrity: sha512-d1nzKLljc4woDlNUjrY6P3+mjDp1BnXgiWeKG2ttJgjoseUMJ0VEO6dl0jhWariu7khK3TkX/O09HxQVKz57sQ==}
     engines: {node: '>=22.12.0'}
 
-  '@naturalcycles/nodejs-lib@15.4.0':
-    resolution: {integrity: sha512-RjDaRxD2trm3oxbDKKFGdDpHei97WIxkP/sPilzRWdNqJPVswrudHpaIjldTL4ot0M0wgDOUTDTLNg3HyJQBnQ==}
+  '@naturalcycles/nodejs-lib@15.5.0':
+    resolution: {integrity: sha512-bZCzuLl8LW7Ws3F6B8fwnphuD8SPVvpAFVD9lXomQ8Qau+gjimEjdjAfNXvSx8jGHRalBs867uuGzg0i5p6pVA==}
     engines: {node: '>=22.12.0'}
     hasBin: true
 
@@ -7488,23 +7488,23 @@ snapshots:
       '@tybys/wasm-util': 0.10.0
     optional: true
 
-  '@naturalcycles/bench-lib@4.4.0':
+  '@naturalcycles/bench-lib@4.5.0':
     dependencies:
-      '@naturalcycles/js-lib': 15.17.0
-      '@naturalcycles/nodejs-lib': 15.4.0
+      '@naturalcycles/js-lib': 15.18.0
+      '@naturalcycles/nodejs-lib': 15.5.0
       autocannon: 8.0.0
       benchmark: 2.1.4
       hdr-histogram-js: 3.0.1
       tslib: 2.8.1
 
-  '@naturalcycles/js-lib@15.17.0':
+  '@naturalcycles/js-lib@15.18.0':
     dependencies:
       tslib: 2.8.1
       zod: 4.0.5
 
-  '@naturalcycles/nodejs-lib@15.4.0':
+  '@naturalcycles/nodejs-lib@15.5.0':
     dependencies:
-      '@naturalcycles/js-lib': 15.17.0
+      '@naturalcycles/js-lib': 15.18.0
       '@types/js-yaml': 4.0.9
       '@types/jsonwebtoken': 9.0.10
       '@types/yargs': 16.0.9

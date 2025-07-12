@@ -1,15 +1,20 @@
 export class CollectReporter {
-  onTestModuleEnd(testModule) {
-    const shortModuleId = testModule.moduleId.split('/').at(-1)
+  constructor(cfg = {}) { this.cfg = cfg }
 
-    console.log(shortModuleId, Math.round(testModule.diagnostic().collectDuration))
+  onTestModuleEnd(testModule) {
+    const { threshold = 0 } = this.cfg
+    const shortModuleId = testModule.moduleId.split('/').at(-1)
 
     const selfTimeMap = {}
     const totalTimeMap = {}
+    let moduleCount = 0
+    let selfSum = 0
 
     Object.entries(testModule.diagnostic().importDurations).forEach(([k, v]) => {
+      moduleCount++
+      selfSum += v.selfTime
       const short = k.split('/').at(-3) + '/' + k.split('/').at(-2) + '/' + k.split('/').at(-1)
-      // if (Math.round(v.totalTime) < 5) return // skip <0.5ms imports
+      if (Math.round(v.totalTime) < threshold) return // skip < ${threshold} ms imports
       selfTimeMap[short] = Math.round(v.selfTime)
       totalTimeMap[short] = Math.round(v.totalTime)
     })
@@ -21,6 +26,11 @@ export class CollectReporter {
       Object.entries(totalTimeMap).sort((a, b) => b[1] - a[1]),
     )
 
+    console.log(shortModuleId, {
+      moduleCount,
+      selfSum: Math.round(selfSum),
+      collectDuration: Math.round(testModule.diagnostic().collectDuration),
+    })
     console.log({ sortedSelfTimeMap })
     console.log({ sortedTotalTimeMap })
   }
