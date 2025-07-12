@@ -25,7 +25,7 @@
     ".": "./dist/index.js"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "*",
+    "@naturalcycles/dev-lib": "workspace:*",
     "@types/node": "^24"
   },
   "files": [

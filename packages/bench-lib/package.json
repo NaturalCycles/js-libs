@@ -19,7 +19,7 @@
     "tslib": "^2"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "*",
+    "@naturalcycles/dev-lib": "workspace:*",
     "@types/benchmark": "^2",
     "@types/cors": "^2",
     "@types/express": "^5",

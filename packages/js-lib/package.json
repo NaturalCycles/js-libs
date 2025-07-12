@@ -19,7 +19,7 @@
     "zod": "^4"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "*",
+    "@naturalcycles/dev-lib": "workspace:*",
     "@types/crypto-js": "^4",
     "@types/node": "^24",
     "@types/semver": "^7",

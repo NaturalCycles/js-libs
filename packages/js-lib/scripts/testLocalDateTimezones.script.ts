@@ -6,7 +6,7 @@ It's a separate script, because our jest setup always runs in UTC.
 
  */
 
-import { runScript } from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { localDate } from '../src/datetime/index.js'
 
 runScript(async () => {

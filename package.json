@@ -6,6 +6,7 @@
     "prepare": "husky",
     "upd": "pnpm -r up --no-save",
     "out": "pnpm -r outdated",
+    "warm": "pnpm --filter '@naturalcycles/js-lib' exec tsc -P tsconfig.prod.json --noCheck && pnpm --filter '@naturalcycles/dev-lib' exec tsc -P tsconfig.prod.json --noCheck",
     "clean": "pnpm -r exec rm -rf dist",
     "check": "pnpm build && pnpm lint && pnpm typecheck && pnpm test:all",
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
@@ -69,7 +70,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2",
     "@naturalcycles/bench-lib": "*",
-    "@naturalcycles/dev-lib": "*",
+    "@naturalcycles/dev-lib": "workspace:*",
     "@naturalcycles/nodejs-lib": "*",
     "@semantic-release/git": "^10",
     "@types/node": "^24",
@@ -89,5 +90,5 @@
   "engines": {
     "node": ">=22.12.0"
   },
-  "packageManager": "pnpm@10.12.4"
+  "packageManager": "pnpm@10.13.1"
 }

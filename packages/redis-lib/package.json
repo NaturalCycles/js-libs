@@ -18,7 +18,7 @@
     "tslib": "^2"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "*",
+    "@naturalcycles/dev-lib": "workspace:*",
     "@types/node": "^24"
   },
   "exports": {
