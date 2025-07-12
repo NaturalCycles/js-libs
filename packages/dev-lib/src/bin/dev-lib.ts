@@ -3,8 +3,8 @@ import { select, Separator } from '@inquirer/prompts'
 import { _by } from '@naturalcycles/js-lib'
 import { _assert } from '@naturalcycles/js-lib/error'
 import type { PromisableFunction } from '@naturalcycles/js-lib/types'
-import { runScript } from '@naturalcycles/nodejs-lib'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { buildCopy, buildProd, runTSCInFolders } from '../build.util.js'
 import {
   eslintAll,
@@ -33,24 +33,12 @@ const commands: (Command | Separator)[] = [
     fn: typecheck,
     desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present',
   },
-  {
-    name: 'tsc',
-    fn: tscAll,
-    desc: 'Run tsc in folders (src, scripts, e2e) if there is tsconfig.json present',
-    deprecated: true,
-  },
   { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (tsc) and then "test".' },
   { name: 'check', fn: lbt, desc: '"Run all possible checks": lint, typecheck, then test.' },
   {
-    name: 'lbt',
-    fn: lbtDeprecated,
-    desc: 'Lint/Build/Test: run "lint", then "tsc", then "test".',
-    deprecated: true,
-  },
-  {
     name: 'build',
     fn: buildProd,
-    desc: 'Clean ./dist, run "build-copy" then tsc with --emit and --noCheck, using tsconfig.prod.json',
+    desc: 'Run "build-copy" then tsc with --emit and --noCheck, using tsconfig.prod.json',
   },
   {
     name: 'build-copy',
@@ -61,6 +49,11 @@ const commands: (Command | Separator)[] = [
     name: 'clean',
     fn: cleanDist,
     desc: 'Clean ./dist',
+  },
+  {
+    name: 'clean-build',
+    fn: cleanBuild,
+    desc: 'Cleans ./dist, then runs the build.',
   },
   new Separator(), // test
   { name: 'test', fn: runTest, desc: 'Run vitest for *.test.ts files.' },
@@ -178,16 +171,11 @@ async function typecheck(): Promise<void> {
   )
 }
 
-async function tscAll(): Promise<void> {
-  console.log(`"dev-lib tsc" is deprecated, use "dev-lib typecheck" instead`)
-  await typecheck()
-}
-
-async function lbtDeprecated(): Promise<void> {
-  console.log(`"dev-lib lbt" is deprecated, use "dev-lib check" instead`)
-  await lbt()
-}
-
 async function cleanDist(): Promise<void> {
   fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
+}
+
+async function cleanBuild(): Promise<void> {
+  await cleanDist()
+  await buildProd()
 }

@@ -4,7 +4,7 @@ import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
 import { findPackageBinPath } from './lint.util.js'
 
 export async function buildProd(): Promise<void> {
-  fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
+  // fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
   buildCopy()
   await runTSCProd()
 }
