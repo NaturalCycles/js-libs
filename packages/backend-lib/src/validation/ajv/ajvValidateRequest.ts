@@ -41,10 +41,7 @@ class AjvValidateRequest {
     schema: AjvSchema<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    return this.validate(req, 'headers', schema, {
-      mutate: false,
-      ...opt,
-    })
+    return this.validate(req, 'headers', schema, opt)
   }
 
   private validate<T>(
@@ -53,7 +50,7 @@ class AjvValidateRequest {
     schema: AjvSchema<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    const { mutate = true } = opt
+    const { mutate } = opt
     const originalProperty = req[reqProperty] || {}
     const item: T = mutate ? originalProperty : { ...originalProperty }
 

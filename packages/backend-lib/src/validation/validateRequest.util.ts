@@ -54,10 +54,9 @@ export interface ReqValidationOptions<ERR extends AppError> {
   report?: boolean | ((err: ERR) => boolean)
 
   /**
-   * When set to true, the validated object will not be replaced with the Joi-converted value.
+   * Defaults to false.
    *
-   * Defaults to true.
-   * Exception is `headers` validation, where the default is `false`.
+   * When set to true, the validated object will be replaced with the converted value.
    *
    * To avoid mutation - shallow copy is performed.
    */

@@ -41,10 +41,7 @@ class ZodValidateRequest {
     schema: ZodType<T>,
     opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
-    return this.validate(req, 'headers', schema, {
-      mutate: false,
-      ...opt,
-    })
+    return this.validate(req, 'headers', schema, opt)
   }
 
   private validate<T>(
@@ -53,7 +50,7 @@ class ZodValidateRequest {
     schema: ZodType<T>,
     opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
-    const { mutate = true } = opt
+    const { mutate } = opt
     const originalProperty = req[reqProperty] || {}
 
     // Zod does not mutate the input

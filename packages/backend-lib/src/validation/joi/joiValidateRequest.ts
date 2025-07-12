@@ -42,10 +42,7 @@ class ValidateRequest {
     schema: AnySchema<T>,
     opt: ReqValidationOptions<JoiValidationError> = {},
   ): T {
-    return this.validate(req, 'headers', schema, {
-      mutate: false,
-      ...opt,
-    })
+    return this.validate(req, 'headers', schema, opt)
   }
 
   private validate<T>(
@@ -54,7 +51,7 @@ class ValidateRequest {
     schema: AnySchema<T>,
     opt: ReqValidationOptions<JoiValidationError> = {},
   ): T {
-    const { mutate = true } = opt
+    const { mutate } = opt
     const originalProperty = req[reqProperty] || {}
 
     // Joi does not mutate the input
