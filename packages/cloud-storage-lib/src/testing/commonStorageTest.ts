@@ -1,5 +1,5 @@
-import { _range } from '@naturalcycles/js-lib'
-import { pMap } from '@naturalcycles/js-lib/promise'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import type { CommonStorage, FileEntry } from '../commonStorage.js'

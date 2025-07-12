@@ -4,8 +4,8 @@ import { createTestTimeSeries } from '../testing/timeSeriesTest.util.js'
 import { CommonTimeSeriesDao } from './commonTimeSeriesDao.js'
 
 const db = new InMemoryDB({
-  persistenceEnabled: true,
-  persistZip: false,
+  // persistenceEnabled: true,
+  // persistZip: false,
 })
 
 const tsDao = new CommonTimeSeriesDao({

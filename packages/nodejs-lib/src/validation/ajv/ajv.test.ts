@@ -1,4 +1,4 @@
-import { localTime } from '@naturalcycles/js-lib/datetime'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _try } from '@naturalcycles/js-lib/error'
 import type { JsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { jsonSchema } from '@naturalcycles/js-lib/json-schema'

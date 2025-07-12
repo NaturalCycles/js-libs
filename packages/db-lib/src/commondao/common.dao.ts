@@ -1,17 +1,19 @@
 import type { Transform } from 'node:stream'
-import { _isTruthy, _uniqBy } from '@naturalcycles/js-lib'
-import { _since, localTime } from '@naturalcycles/js-lib/datetime'
+import { _isTruthy } from '@naturalcycles/js-lib'
+import { _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert, AppError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { _deepJsonEquals } from '@naturalcycles/js-lib/object/deepEquals.js'
 import {
   _deepCopy,
-  _deepJsonEquals,
   _filterUndefinedValues,
   _objectAssignExact,
-} from '@naturalcycles/js-lib/object'
-import { pMap } from '@naturalcycles/js-lib/promise'
-import { _truncate } from '@naturalcycles/js-lib/string'
+} from '@naturalcycles/js-lib/object/object.util.js'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
+import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
 import type {
   AsyncIndexedMapper,
   BaseDBEntity,

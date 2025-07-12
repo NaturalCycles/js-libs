@@ -1,5 +1,5 @@
 import { Transform } from 'node:stream'
-import { ErrorMode } from '@naturalcycles/js-lib/error'
+import { ErrorMode } from '@naturalcycles/js-lib/error/errorMode.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { IndexedMapper } from '@naturalcycles/js-lib/types'
 import type { TransformTyped } from '../stream.model.js'

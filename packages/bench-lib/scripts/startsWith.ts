@@ -4,7 +4,7 @@ yarn tsx scripts/startsWith
 
  */
 
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { runBenchScript } from '../src/index.js'
 
 const strings = _range(100).map(String)

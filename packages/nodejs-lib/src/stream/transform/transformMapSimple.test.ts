@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream'
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
 import { expect, test } from 'vitest'
 import { _pipeline } from '../pipeline/pipeline.js'

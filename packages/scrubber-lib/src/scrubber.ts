@@ -1,4 +1,4 @@
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _deepEquals } from '@naturalcycles/js-lib/object'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { nanoid } from '@naturalcycles/nodejs-lib'

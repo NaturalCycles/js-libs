@@ -9,8 +9,8 @@ import type {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB, commonDBFullSupport, CommonDBType, DBQuery } from '@naturalcycles/db-lib'
-import { _Memo } from '@naturalcycles/js-lib/decorators'
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { commonLoggerPrefix } from '@naturalcycles/js-lib/log'

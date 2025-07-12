@@ -1,4 +1,4 @@
-import { AppError } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 
 export const mockAllKindsOfThings = (): any[] => {
   const errorWithCode = new Error('Error with code')

@@ -1,5 +1,5 @@
 import { _hb } from '@naturalcycles/js-lib'
-import { _ms } from '@naturalcycles/js-lib/datetime'
+import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { boldWhite, dimWhite } from '../../colors/colors.js'
 
 export class NDJsonStats {

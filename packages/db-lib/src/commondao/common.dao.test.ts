@@ -1,5 +1,5 @@
 import { MOCK_TS_2018_06_21, mockTime } from '@naturalcycles/dev-lib/testing/time'
-import { _range, _sortBy } from '@naturalcycles/js-lib'
+import { _range, _sortBy } from '@naturalcycles/js-lib/array'
 import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalcycles/js-lib/error'
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'

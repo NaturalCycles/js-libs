@@ -1,7 +1,7 @@
 import { DBQuery } from '@naturalcycles/db-lib'
 import type { CommonKeyValueDB, IncrementTuple, KeyValueDBTuple } from '@naturalcycles/db-lib/kv'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
-import { AppError } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { DatastoreDB } from './datastore.db.js'

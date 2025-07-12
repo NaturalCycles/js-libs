@@ -1,6 +1,6 @@
 import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import { beforeEach, expect, test } from 'vitest'
-import { _range } from '../index.js'
+import { _range } from '../array/index.js'
 import type { NumberOfMilliseconds, UnixTimestampMillis } from '../types.js'
 import { _ms, _since } from './time.util.js'
 

@@ -1,5 +1,5 @@
 import { Readable, Transform } from 'node:stream'
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { pExpectedErrorString } from '@naturalcycles/js-lib/error'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'

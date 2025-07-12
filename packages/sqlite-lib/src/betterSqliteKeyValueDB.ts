@@ -1,7 +1,7 @@
 import type { CommonDBCreateOptions } from '@naturalcycles/db-lib'
 import type { CommonKeyValueDB, IncrementTuple, KeyValueDBTuple } from '@naturalcycles/db-lib/kv'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
-import { AppError } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import { readableCreate, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'

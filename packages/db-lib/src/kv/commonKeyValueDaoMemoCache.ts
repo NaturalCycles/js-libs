@@ -1,4 +1,4 @@
-import { localTime } from '@naturalcycles/js-lib/datetime'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import type { AsyncMemoCache } from '@naturalcycles/js-lib/decorators'
 import type { NumberOfSeconds, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { MISS } from '@naturalcycles/js-lib/types'

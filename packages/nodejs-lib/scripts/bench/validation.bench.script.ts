@@ -5,7 +5,7 @@ pn tsx packages/nodejs-lib/scripts/bench/validation.bench.script.ts
  */
 
 import { runBench } from '@naturalcycles/bench-lib'
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
 import { runScript } from '../../src/script/runScript.js'

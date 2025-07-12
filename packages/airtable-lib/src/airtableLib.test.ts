@@ -1,4 +1,4 @@
-import { AppError } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { expect, test } from 'vitest'
 import { AirtableErrorCode } from './airtable.model.js'
 import { AirtableLib } from './airtableLib.js'

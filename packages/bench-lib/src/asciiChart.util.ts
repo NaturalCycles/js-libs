@@ -1,4 +1,4 @@
-import { _arrayFilled } from '@naturalcycles/js-lib'
+import { _arrayFilled } from '@naturalcycles/js-lib/array/range.js'
 import { asciiColor, asciiPlot } from './vendor/asciichart.js'
 
 const colors = [

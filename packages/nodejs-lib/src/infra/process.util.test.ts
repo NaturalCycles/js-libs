@@ -1,4 +1,4 @@
-import { pDelay } from '@naturalcycles/js-lib/promise'
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expect, test } from 'vitest'
 import { memoryUsage, memoryUsageFull, processSharedUtil } from './process.util.js'
 

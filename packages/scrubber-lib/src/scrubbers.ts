@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { nanoIdCustomAlphabet } from '@naturalcycles/nodejs-lib'
 import type { ScrubberFn, ScrubbersMap, ScrubberSQLFn, ScrubbersSQLMap } from './scrubber.model.js'
 

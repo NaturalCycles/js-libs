@@ -1,6 +1,6 @@
 import type { BuildInfo } from '@naturalcycles/js-lib'
-import { localTime } from '@naturalcycles/js-lib/datetime'
-import { _filterUndefinedValues } from '@naturalcycles/js-lib/object'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { _filterUndefinedValues } from '@naturalcycles/js-lib/object/object.util.js'
 import type { AnyObject, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
 import { git2 } from './git2.js'

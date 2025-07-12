@@ -5,7 +5,7 @@ pn tsx packages/nodejs-lib/scripts/bench/schemaCompilation.bench.script.ts
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
 import { AjvSchema } from '../../src/validation/ajv/index.js'

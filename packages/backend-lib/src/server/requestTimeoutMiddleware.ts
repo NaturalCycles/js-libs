@@ -1,5 +1,5 @@
-import { _ms } from '@naturalcycles/js-lib/datetime'
-import { AppError } from '@naturalcycles/js-lib/error'
+import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { NumberOfSeconds } from '@naturalcycles/js-lib/types'
 import { onFinished } from '../onFinished.js'
 import { respondWithError } from './genericErrorMiddleware.js'

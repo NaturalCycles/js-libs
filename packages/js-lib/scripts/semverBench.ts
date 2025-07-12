@@ -6,7 +6,7 @@ pn tsx scripts/semverBench
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import semver from 'semver'
-import { _range } from '../src/index.js'
+import { _range } from '../src/array/index.js'
 import { semver2 } from '../src/semver.js'
 
 const data = _range(10).map(n => `${n}.${(n * 7) % 10}.${(n * 9) % 7}`)

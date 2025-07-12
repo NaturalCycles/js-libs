@@ -1,4 +1,4 @@
-import { _truncate } from '@naturalcycles/js-lib/string'
+import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
 import type { AsyncIndexedMapper, BaseDBEntity, ObjectWithId } from '@naturalcycles/js-lib/types'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'

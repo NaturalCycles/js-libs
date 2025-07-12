@@ -7,7 +7,7 @@ pn tsx scripts/startsWithBench
 /* eslint-disable */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import { _range } from '../src/index.js'
+import { _range } from '../src/array/index.js'
 
 const regex = /^{/
 

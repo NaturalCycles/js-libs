@@ -5,7 +5,7 @@ yarn tsx scripts/cannon.ts
  */
 
 import { _randomInt } from '@naturalcycles/js-lib'
-import { pDelay } from '@naturalcycles/js-lib/promise'
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expressFunctionFactory, runCannonScript } from '../src/index.js'
 
 runCannonScript(

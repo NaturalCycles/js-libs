@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream'
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, test } from 'vitest'
 import { _pipeline } from '../stream/pipeline/pipeline.js'
 import { writablePushToArray } from '../stream/writable/writablePushToArray.js'

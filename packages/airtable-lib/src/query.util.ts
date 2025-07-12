@@ -1,5 +1,5 @@
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
-import { _uniq } from '@naturalcycles/js-lib'
+import { _uniq } from '@naturalcycles/js-lib/array/array.util.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { AirtableApiSelectOpts } from './airtable.api.js'
 import type { AirtableDBOptions } from './airtableDB.js'

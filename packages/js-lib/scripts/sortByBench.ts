@@ -5,7 +5,7 @@ pn tsx scripts/sortByBench.ts
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import { _range } from '../src/index.js'
+import { _range } from '../src/array/index.js'
 import type { Mapper, SortDirection } from '../src/types.js'
 
 const arr = _range(1000).map(n => ({

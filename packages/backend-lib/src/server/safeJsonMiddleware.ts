@@ -1,4 +1,4 @@
-import { _safeJsonStringify } from '@naturalcycles/js-lib/string'
+import { _safeJsonStringify } from '@naturalcycles/js-lib/string/safeJsonStringify.js'
 import type { BackendRequestHandler, BackendResponse } from './server.model.js'
 
 /**

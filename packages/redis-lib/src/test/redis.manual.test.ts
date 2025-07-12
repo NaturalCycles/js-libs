@@ -5,10 +5,10 @@ import {
   runCommonKeyValueDBTest,
   TEST_TABLE,
 } from '@naturalcycles/db-lib/testing'
-import { _range } from '@naturalcycles/js-lib'
-import { localTime } from '@naturalcycles/js-lib/datetime'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _AsyncMemo } from '@naturalcycles/js-lib/decorators'
-import { pDelay } from '@naturalcycles/js-lib/promise'
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { afterAll, describe, expect, test } from 'vitest'
 import { RedisClient } from '../redisClient.js'
 import { RedisKeyValueDB } from '../redisKeyValueDB.js'

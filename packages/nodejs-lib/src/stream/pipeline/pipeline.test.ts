@@ -1,4 +1,5 @@
-import { _range, createAbortableSignal } from '@naturalcycles/js-lib'
+import { createAbortableSignal } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array'
 import { pExpectedErrorString } from '@naturalcycles/js-lib/error'
 import { expect, test } from 'vitest'
 import { readableFromArray } from '../readable/readableFromArray.js'

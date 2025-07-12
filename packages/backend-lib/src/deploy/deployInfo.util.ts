@@ -1,5 +1,5 @@
-import { localTime } from '@naturalcycles/js-lib/datetime'
-import { _memoFn } from '@naturalcycles/js-lib/decorators'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { _memoFn } from '@naturalcycles/js-lib/decorators/memoFn.js'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import type { DeployInfo } from './deploy.model.js'
 

@@ -1,4 +1,4 @@
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, test } from 'vitest'
 import { testDir } from '../../../test/paths.cnst.js'
 import { _pipelineToArray, readableFromArray } from '../../index.js'

@@ -1,9 +1,9 @@
 import type { Readable, Writable } from 'node:stream'
 import { Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
-import { _last } from '@naturalcycles/js-lib'
+import { _last } from '@naturalcycles/js-lib/array/array.util.js'
 import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
-import { pDefer } from '@naturalcycles/js-lib/promise'
+import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import type { AnyFunction } from '@naturalcycles/js-lib/types'
 import { writablePushToArray } from '../writable/writablePushToArray.js'
 

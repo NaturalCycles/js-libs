@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
+import { _range } from '../array/index.js'
 import { AppError, ErrorMode, pExpectedError } from '../error/index.js'
-import { _isBetween, _randomInt, _range } from '../index.js'
+import { _isBetween, _randomInt } from '../index.js'
 import { timeSpan } from '../test/test.util.js'
 import { type AsyncMapper, END, SKIP } from '../types.js'
 import { pDelay } from './pDelay.js'

@@ -1,4 +1,4 @@
-import { pDelay } from '@naturalcycles/js-lib/promise'
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { expect, test } from 'vitest'
 import { expressFunctionFactory } from './cannon.profiles.js'

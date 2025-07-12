@@ -1,6 +1,6 @@
-import { _by, _sortBy } from '@naturalcycles/js-lib'
+import { _by, _sortBy } from '@naturalcycles/js-lib/array'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import { generateJsonSchemaFromData } from '@naturalcycles/js-lib/json-schema'
 import { _deepEquals, _filterUndefinedValues, _sortObjectDeep } from '@naturalcycles/js-lib/object'

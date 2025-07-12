@@ -1,4 +1,4 @@
-import { _sortBy } from '@naturalcycles/js-lib'
+import { _sortBy } from '@naturalcycles/js-lib/array/array.util.js'
 import { CommonKeyValueDao } from '../kv/commonKeyValueDao.js'
 import type { CommonKeyValueDB, KeyValueDBTuple } from '../kv/commonKeyValueDB.js'
 import { createTestItemsBM, TEST_TABLE } from './test.model.js'

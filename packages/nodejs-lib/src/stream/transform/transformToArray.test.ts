@@ -1,4 +1,4 @@
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, test } from 'vitest'
 import { _pipeline, readableFromArray } from '../index.js'
 import { transformMap } from './transformMap.js'

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { _range } from '../index.js'
+import { _range } from '../array/index.js'
 import { _createDeterministicRandom } from './createDeterministicRandom.js'
 
 test('_createDeterministicRandom', () => {

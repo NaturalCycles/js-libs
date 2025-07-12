@@ -1,6 +1,6 @@
-import { localTime } from '@naturalcycles/js-lib/datetime'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { AppError, ErrorMode } from '@naturalcycles/js-lib/error'
-import { pMap } from '@naturalcycles/js-lib/promise'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { AsyncMapper, StringMap, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { _passthroughMapper } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'

@@ -5,7 +5,7 @@ pn tsx scripts/filterBench
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import { _range } from '../src/index.js'
+import { _range } from '../src/array/index.js'
 import { _filterNullishValues } from '../src/object/index.js'
 import type { AnyObject } from '../src/types.js'
 

@@ -1,5 +1,5 @@
-import { localTime } from '@naturalcycles/js-lib/datetime'
-import { _filterNullishValues } from '@naturalcycles/js-lib/object'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { _filterNullishValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { memoryUsageFull, processSharedUtil } from '@naturalcycles/nodejs-lib'
 import { getDeployInfo } from '../deploy/deployInfo.util.js'
 import type { BackendRequestHandler } from './server.model.js'

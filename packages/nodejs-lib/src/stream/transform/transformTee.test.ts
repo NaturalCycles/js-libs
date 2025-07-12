@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream'
-import { pDelay } from '@naturalcycles/js-lib/promise'
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expect, test } from 'vitest'
 import { _pipeline } from '../pipeline/pipeline.js'
 import { writablePushToArray } from '../writable/writablePushToArray.js'

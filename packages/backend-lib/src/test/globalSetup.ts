@@ -2,7 +2,7 @@ const started = Date.now() as UnixTimestampMillis
 
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { _since } from '@naturalcycles/js-lib/datetime'
+import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { createDefaultApp } from '../express/createDefaultApp.js'
 import { debugResource } from './debug.resource.js'

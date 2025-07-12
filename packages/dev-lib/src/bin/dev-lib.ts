@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { select, Separator } from '@inquirer/prompts'
-import { _by } from '@naturalcycles/js-lib'
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _by } from '@naturalcycles/js-lib/array/array.util.js'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { PromisableFunction } from '@naturalcycles/js-lib/types'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'

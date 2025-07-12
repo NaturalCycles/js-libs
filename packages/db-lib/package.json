@@ -37,7 +37,8 @@
     "./dao": "./dist/commondao/index.js",
     "./cachedb": "./dist/adapter/cachedb/index.js",
     "./file": "./dist/adapter/file/index.js",
-    "./inmemory": "./dist/inmemory/index.js"
+    "./inmemory": "./dist/inmemory/index.js",
+    "./inmemory/*": "./dist/inmemory/*.js"
   },
   "publishConfig": {
     "access": "public"

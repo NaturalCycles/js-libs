@@ -1,5 +1,5 @@
 import type { AddressInfo } from 'node:net'
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { pDefer, pDelay } from '@naturalcycles/js-lib/promise'
 import type { StringMap } from '@naturalcycles/js-lib/types'

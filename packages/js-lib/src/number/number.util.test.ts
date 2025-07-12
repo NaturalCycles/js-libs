@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
-import { _isBetween, _randomInt, _range, _runLessOften, _sortNumbers } from '../index.js'
+import { _range } from '../array/index.js'
+import { _isBetween, _randomInt, _runLessOften, _sortNumbers } from '../index.js'
 import { _clamp, _randomArrayItem, _round, _toFixed, _toPrecision } from './number.util.js'
 
 test('_randomInt', () => {

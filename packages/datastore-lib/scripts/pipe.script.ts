@@ -1,6 +1,6 @@
 import { Readable, Writable } from 'node:stream'
 import { finished } from 'node:stream/promises'
-import { pDelay } from '@naturalcycles/js-lib/promise'
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { transformMapSimple } from '@naturalcycles/nodejs-lib/stream'
 

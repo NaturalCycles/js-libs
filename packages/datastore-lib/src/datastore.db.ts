@@ -15,8 +15,9 @@ import type {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
-import { _chunk } from '@naturalcycles/js-lib'
-import { _assert, _errorDataAppend, TimeoutError } from '@naturalcycles/js-lib/error'
+import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
+import { _errorDataAppend, TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
 import type {
   JsonSchemaAny,
   JsonSchemaBoolean,
@@ -28,9 +29,11 @@ import type {
 } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { commonLoggerMinLevel } from '@naturalcycles/js-lib/log'
-import { _omit } from '@naturalcycles/js-lib/object'
+import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import type { PRetryOptions } from '@naturalcycles/js-lib/promise'
-import { pMap, pRetry, pRetryFn, pTimeout } from '@naturalcycles/js-lib/promise'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
+import { pRetry, pRetryFn } from '@naturalcycles/js-lib/promise/pRetry.js'
+import { pTimeout } from '@naturalcycles/js-lib/promise/pTimeout.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'

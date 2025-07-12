@@ -1,4 +1,4 @@
-import { AppError } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'

@@ -1,4 +1,5 @@
-import { _randomInt, _range } from '@naturalcycles/js-lib'
+import { _randomInt } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import type { TimeSeriesDataPoint } from '../timeseries/timeSeries.model.js'
 
 export function createTestTimeSeries(count = 10): TimeSeriesDataPoint[] {

@@ -1,5 +1,5 @@
-import { AppError } from '@naturalcycles/js-lib/error'
-import { _get } from '@naturalcycles/js-lib/object'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
+import { _get } from '@naturalcycles/js-lib/object/object.util.js'
 
 export function handleValidationError<T, ERR extends AppError>(
   error: ERR,

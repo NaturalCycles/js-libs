@@ -1,4 +1,4 @@
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { SKIP } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
 import { _pipeline, readableCreate, transformMap, writablePushToArray } from '../index.js'

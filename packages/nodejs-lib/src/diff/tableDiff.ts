@@ -1,4 +1,4 @@
-import { _truncate } from '@naturalcycles/js-lib/string'
+import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 
 export interface TableDiffOptions {

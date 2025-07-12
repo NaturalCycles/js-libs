@@ -1,5 +1,5 @@
 import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
-import { _range } from '@naturalcycles/js-lib'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import type { Assertion } from 'vitest'
 import { expect, test } from 'vitest'
 import { _inspect } from '../index.js'

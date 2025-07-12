@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
-import { _sortBy } from '@naturalcycles/js-lib'
-import { localTime } from '@naturalcycles/js-lib/datetime'
+import { _sortBy } from '@naturalcycles/js-lib/array/array.util.js'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _deepCopy, _filterObject, _omit, _pick } from '@naturalcycles/js-lib/object'
 import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { CommonDao } from '../commondao/common.dao.js'

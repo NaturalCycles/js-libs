@@ -1,4 +1,4 @@
-import { _uniq } from '../../index.js'
+import { _uniq } from '../../array/index.js'
 import { _stringMapEntries, type AnyObject, type StringMap } from '../../types.js'
 import type {
   JsonSchema,

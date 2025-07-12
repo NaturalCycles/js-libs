@@ -1,5 +1,5 @@
 import { Readable } from 'node:stream'
-import { pMap } from '@naturalcycles/js-lib/promise'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {

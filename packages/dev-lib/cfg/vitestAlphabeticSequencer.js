@@ -1,5 +1,5 @@
 import { BaseSequencer } from 'vitest/node'
-import { _sortBy } from '@naturalcycles/js-lib'
+import { _sortBy } from '@naturalcycles/js-lib/array/array.util.js'
 
 export class VitestAlphabeticSequencer extends BaseSequencer {
   async sort(files) {

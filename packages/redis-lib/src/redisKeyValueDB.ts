@@ -6,7 +6,8 @@ import type {
   KeyValueDBTuple,
 } from '@naturalcycles/db-lib/kv'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
-import { _isTruthy, _zip } from '@naturalcycles/js-lib'
+import { _isTruthy } from '@naturalcycles/js-lib'
+import { _zip } from '@naturalcycles/js-lib/array/array.util.js'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { RedisClient } from './redisClient.js'
 

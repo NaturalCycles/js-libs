@@ -1,4 +1,4 @@
-import { _stringify } from '@naturalcycles/js-lib/string'
+import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
 import { testValidation } from '../../test/validation.test.util.js'

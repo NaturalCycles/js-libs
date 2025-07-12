@@ -1,4 +1,4 @@
-import { _uniq } from '@naturalcycles/js-lib'
+import { _uniq } from '@naturalcycles/js-lib/array/array.util.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'

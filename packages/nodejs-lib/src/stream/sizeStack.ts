@@ -1,6 +1,6 @@
 import { _hb } from '@naturalcycles/js-lib'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { NumberStack } from '@naturalcycles/js-lib/math'
+import { NumberStack } from '@naturalcycles/js-lib/math/stack.util.js'
 import { yellow } from '../colors/colors.js'
 import { gzipBuffer } from '../zip/zip.util.js'
 

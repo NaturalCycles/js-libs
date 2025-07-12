@@ -1,5 +1,5 @@
 import { _filterObject, _mapValues } from '@naturalcycles/js-lib/object'
-import { pMap } from '@naturalcycles/js-lib/promise'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import type { AirtableApi } from '../airtable.api.js'
 import type {

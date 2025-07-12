@@ -1,6 +1,6 @@
 // Inspired by: https://github.com/ryu1kn/csv-writer/
 
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 
 export interface CSVWriterConfig {

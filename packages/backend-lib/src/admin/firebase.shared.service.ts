@@ -1,4 +1,4 @@
-import { _Memo } from '@naturalcycles/js-lib/decorators'
+import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import type { AppOptions, ServiceAccount } from 'firebase-admin'
 import type FirebaseAdmin from 'firebase-admin'
 

@@ -1,6 +1,6 @@
-import { AppError } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { pMap } from '@naturalcycles/js-lib/promise'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { KeyValueTuple } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'

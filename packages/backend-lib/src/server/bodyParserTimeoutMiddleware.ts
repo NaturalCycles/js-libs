@@ -1,4 +1,4 @@
-import { AppError } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { respondWithError } from './genericErrorMiddleware.js'
 import type { BackendRequestHandler } from './server.model.js'
 

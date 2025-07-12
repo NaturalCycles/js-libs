@@ -2,7 +2,7 @@ import { mockTime } from '@naturalcycles/dev-lib/testing/time'
 import { pExpectedError } from '@naturalcycles/js-lib/error'
 import { Fetcher } from '@naturalcycles/js-lib/http'
 import { commonLoggerNoop } from '@naturalcycles/js-lib/log'
-import { _stringify } from '@naturalcycles/js-lib/string'
+import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import { beforeEach, expect, test, vi } from 'vitest'
 import { slackDefaultMessagePrefixHook, SlackService } from './slack.service.js'
 

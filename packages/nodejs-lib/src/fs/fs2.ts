@@ -18,7 +18,7 @@ import type { RmOptions, Stats } from 'node:fs'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
-import { _jsonParse } from '@naturalcycles/js-lib/string'
+import { _jsonParse } from '@naturalcycles/js-lib/string/json.util.js'
 
 /**
  * fs2 conveniently groups filesystem functions together.

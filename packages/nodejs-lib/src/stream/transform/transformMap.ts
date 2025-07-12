@@ -1,9 +1,9 @@
 import { _hc } from '@naturalcycles/js-lib'
-import { _since } from '@naturalcycles/js-lib/datetime'
+import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _anyToError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { pFilter } from '@naturalcycles/js-lib/promise'
-import { _stringify } from '@naturalcycles/js-lib/string'
+import { pFilter } from '@naturalcycles/js-lib/promise/pFilter.js'
+import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import {
   type AbortableAsyncMapper,
   type AsyncPredicate,

@@ -1,5 +1,5 @@
-import { _LogMethod } from '@naturalcycles/js-lib/decorators'
-import { pMap } from '@naturalcycles/js-lib/promise'
+import { _LogMethod } from '@naturalcycles/js-lib/decorators/logMethod.decorator.js'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { AnyObject, StringMap } from '@naturalcycles/js-lib/types'
 import type { AirtableDaoOptions, AirtableDaoSaveOptions } from './airtable.model.js'
 import type { AirtableBaseDao } from './airtableBaseDao.js'

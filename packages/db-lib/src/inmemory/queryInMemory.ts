@@ -1,4 +1,4 @@
-import { _get, _pick } from '@naturalcycles/js-lib/object'
+import { _get, _pick } from '@naturalcycles/js-lib/object/object.util.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { DBQuery, DBQueryFilterOperator } from '../query/dbQuery.js'
 

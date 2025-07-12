@@ -1,12 +1,12 @@
-import { localTime } from '@naturalcycles/js-lib/datetime'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { type Fetcher, getFetcher } from '@naturalcycles/js-lib/http'
 import {
   type CommonLogger,
   commonLoggerMinLevel,
   type CommonLogLevel,
 } from '@naturalcycles/js-lib/log'
-import { _omit } from '@naturalcycles/js-lib/object'
-import { PQueue } from '@naturalcycles/js-lib/promise'
+import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
+import { PQueue } from '@naturalcycles/js-lib/promise/pQueue.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { _inspect, type InspectAnyOptions } from '../index.js'
 import type {

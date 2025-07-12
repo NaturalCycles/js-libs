@@ -1,7 +1,7 @@
 import { Transform } from 'node:stream'
 import { _ms, _since, localTime } from '@naturalcycles/js-lib/datetime'
 import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
-import { pDefer } from '@naturalcycles/js-lib/promise'
+import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import type {
   NumberOfSeconds,
   PositiveInteger,

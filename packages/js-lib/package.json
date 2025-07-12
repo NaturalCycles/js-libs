@@ -27,8 +27,10 @@
     "dayjs": "^1"
   },
   "exports": {
-    "./cfg/frontend/tsconfig.json": "./cfg/frontend/tsconfig.json",
     ".": "./dist/index.js",
+    "./cfg/frontend/tsconfig.json": "./cfg/frontend/tsconfig.json",
+    "./array": "./dist/array/index.js",
+    "./array/*.js": "./dist/array/*.js",
     "./browser": "./dist/browser/index.js",
     "./browser/*.js": "./dist/browser/*.js",
     "./datetime": "./dist/datetime/index.js",

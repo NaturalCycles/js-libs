@@ -1,4 +1,4 @@
-import { localTime } from '@naturalcycles/js-lib/datetime'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import type { IsoDate } from '@naturalcycles/js-lib/types'
 import type Joi from 'joi'
 import type { Extension, StringSchema as JoiStringSchema } from 'joi'

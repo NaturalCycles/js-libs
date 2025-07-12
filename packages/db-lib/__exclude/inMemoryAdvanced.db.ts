@@ -1,5 +1,12 @@
+import { createReadStreamAsNDJSON } from '@naturalcycles/nodejs-lib/stream/ndjson/createReadStreamAsNDJSON.js'
+import { createWriteStreamAsNDJSON } from '@naturalcycles/nodejs-lib/stream/ndjson/createWriteStreamAsNDJSON.js'
+import { bufferReviver } from '@naturalcycles/nodejs-lib/stream/ndjson/transformJsonParse.js'
+import { _pipeline } from '@naturalcycles/nodejs-lib/stream/pipeline/pipeline.js'
+import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream/stream.model.js'
 import { Readable } from 'node:stream'
 import { _isEmptyObject } from '@naturalcycles/js-lib'
+import { _by } from '@naturalcycles/js-lib/array/array.util.js'
+import { _since, localTime } from '@naturalcycles/js-lib/datetime'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import {
   generateJsonSchemaFromData,
@@ -8,6 +15,7 @@ import {
 } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _deepCopy, _sortObjectDeep } from '@naturalcycles/js-lib/object'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import {
   _stringMapEntries,
   _stringMapValues,
@@ -15,8 +23,9 @@ import {
   type ObjectWithId,
   type StringMap,
 } from '@naturalcycles/js-lib/types'
-import { bufferReviver } from '@naturalcycles/nodejs-lib/stream/ndjson/transformJsonParse.js'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream/stream.model.js'
+import { dimGrey, yellow } from '@naturalcycles/nodejs-lib/colors'
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+
 import type { CommonDB, CommonDBSupport } from '../commondb/common.db.js'
 import { commonDBFullSupport, CommonDBType } from '../commondb/common.db.js'
 import type {
@@ -32,7 +41,7 @@ import type {
 import type { DBQuery } from '../query/dbQuery.js'
 import { queryInMemory } from './queryInMemory.js'
 
-export interface InMemoryDBCfg {
+export interface InMemoryAdvancedDBCfg {
   /**
    * @default ''
    *
@@ -54,12 +63,33 @@ export interface InMemoryDBCfg {
   forbidTransactionReadAfterWrite?: boolean
 
   /**
+   * @default false
+   *
+   * Set to true to enable disk persistence (!).
+   */
+  persistenceEnabled: boolean
+
+  /**
+   * @default ./tmp/inmemorydb.ndjson.gz
+   *
+   * Will store one ndjson file per table.
+   * Will only flush on demand (see .flushToDisk() and .restoreFromDisk() methods).
+   * Even if persistence is enabled - nothing is flushed or restored automatically.
+   */
+  persistentStoragePath: string
+
+  /**
+   * @default true
+   */
+  persistZip: boolean
+
+  /**
    * Defaults to `console`.
    */
   logger?: CommonLogger
 }
 
-export class InMemoryDB implements CommonDB {
+export class InMemoryAdvancedDB implements CommonDB {
   dbType = CommonDBType.document
 
   support: CommonDBSupport = {
@@ -67,17 +97,20 @@ export class InMemoryDB implements CommonDB {
     timeMachine: false,
   }
 
-  constructor(cfg?: Partial<InMemoryDBCfg>) {
+  constructor(cfg?: Partial<InMemoryAdvancedDBCfg>) {
     this.cfg = {
       // defaults
       tablesPrefix: '',
       forbidTransactionReadAfterWrite: true,
+      persistenceEnabled: false,
+      persistZip: true,
+      persistentStoragePath: './tmp/inmemorydb',
       logger: console,
       ...cfg,
     }
   }
 
-  cfg: InMemoryDBCfg
+  cfg: InMemoryAdvancedDBCfg
 
   // data[table][id] > {id: 'a', created: ... }
   data: StringMap<StringMap<AnyObjectWithId>> = {}
@@ -277,97 +310,63 @@ export class InMemoryDB implements CommonDB {
 
     return result
   }
-}
 
-export class InMemoryDBTransaction implements DBTransaction {
-  constructor(
-    private db: InMemoryDB,
-    private opt: Required<CommonDBTransactionOptions>,
-  ) {}
+  /**
+   * Flushes all tables (all namespaces) at once.
+   */
+  async flushToDisk(): Promise<void> {
+    _assert(this.cfg.persistenceEnabled, 'flushToDisk() called but persistenceEnabled=false')
+    const { persistentStoragePath, persistZip } = this.cfg
 
-  ops: DBOperation[] = []
+    const started = localTime.nowUnixMillis()
 
-  // used to enforce forbidReadAfterWrite setting
-  writeOperationHappened = false
+    await fs2.emptyDirAsync(persistentStoragePath)
 
-  async getByIds<ROW extends ObjectWithId>(
-    table: string,
-    ids: string[],
-    opt?: CommonDBOptions,
-  ): Promise<ROW[]> {
-    if (this.db.cfg.forbidTransactionReadAfterWrite) {
-      _assert(
-        !this.writeOperationHappened,
-        `InMemoryDBTransaction: read operation attempted after write operation`,
-      )
-    }
+    let tables = 0
 
-    return await this.db.getByIds(table, ids, opt)
-  }
+    // infinite concurrency for now
+    await pMap(Object.keys(this.data), async table => {
+      const rows = Object.values(this.data[table]!)
+      if (rows.length === 0) return // 0 rows
 
-  async saveBatch<ROW extends ObjectWithId>(
-    table: string,
-    rows: ROW[],
-    opt?: CommonDBSaveOptions<ROW>,
-  ): Promise<void> {
-    _assert(
-      !this.opt.readOnly,
-      `InMemoryDBTransaction: saveBatch(${table}) called in readOnly mode`,
-    )
+      tables++
+      const fname = `${persistentStoragePath}/${table}.ndjson${persistZip ? '.gz' : ''}`
 
-    this.writeOperationHappened = true
-
-    this.ops.push({
-      type: 'saveBatch',
-      table,
-      rows,
-      opt,
+      await _pipeline([Readable.from(rows), ...createWriteStreamAsNDJSON(fname)])
     })
-  }
 
-  async deleteByIds(table: string, ids: string[], opt?: CommonDBOptions): Promise<number> {
-    _assert(
-      !this.opt.readOnly,
-      `InMemoryDBTransaction: deleteByIds(${table}) called in readOnly mode`,
+    this.cfg.logger!.log(
+      `flushToDisk took ${dimGrey(_since(started))} to save ${yellow(tables)} tables`,
     )
+  }
 
-    this.writeOperationHappened = true
+  /**
+   * Restores all tables (all namespaces) at once.
+   */
+  async restoreFromDisk(): Promise<void> {
+    _assert(this.cfg.persistenceEnabled, 'restoreFromDisk() called but persistenceEnabled=false')
+    const { persistentStoragePath } = this.cfg
 
-    this.ops.push({
-      type: 'deleteByIds',
-      table,
-      ids,
-      opt,
+    const started = localTime.nowUnixMillis()
+
+    await fs2.ensureDirAsync(persistentStoragePath)
+
+    this.data = {} // empty it in the beginning!
+
+    const files = (await fs2.readdirAsync(persistentStoragePath)).filter(f => f.includes('.ndjson'))
+
+    // infinite concurrency for now
+    await pMap(files, async file => {
+      const fname = `${persistentStoragePath}/${file}`
+      const table = file.split('.ndjson')[0]!
+
+      const rows = await createReadStreamAsNDJSON(fname).toArray()
+
+      this.data[table] = _by(rows, r => r.id)
     })
-    return ids.length
-  }
 
-  async commit(): Promise<void> {
-    const backup = _deepCopy(this.db.data)
-
-    try {
-      for (const op of this.ops) {
-        if (op.type === 'saveBatch') {
-          await this.db.saveBatch(op.table, op.rows, op.opt)
-        } else if (op.type === 'deleteByIds') {
-          await this.db.deleteByIds(op.table, op.ids, op.opt)
-        } else {
-          throw new Error(`DBOperation not supported: ${(op as any).type}`)
-        }
-      }
-
-      this.ops = []
-    } catch (err) {
-      // rollback
-      this.ops = []
-      this.db.data = backup
-      this.db.cfg.logger!.log('InMemoryDB transaction rolled back')
-
-      throw err
-    }
-  }
-
-  async rollback(): Promise<void> {
-    this.ops = []
+    this.cfg.logger!.log(
+      `restoreFromDisk took ${dimGrey(_since(started))} to read ${yellow(files.length)} tables`,
+    )
   }
 }

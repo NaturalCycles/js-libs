@@ -1,5 +1,5 @@
-import { _by } from '@naturalcycles/js-lib'
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _by } from '@naturalcycles/js-lib/array/array.util.js'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 
