@@ -54,7 +54,6 @@
     "!src/**/*.test.*",
     "!src/**/__snapshots__"
   ],
-  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "sideEffects": false,
   "engines": {
