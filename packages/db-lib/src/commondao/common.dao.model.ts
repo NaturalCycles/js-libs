@@ -1,3 +1,4 @@
+import type { ValidationFunction } from '@naturalcycles/js-lib'
 import type { ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type {
@@ -132,6 +133,16 @@ export interface CommonDaoCfg<
    */
   bmSchema?: ObjectSchema<BM> | AjvSchema<BM> | ZodType<BM>
 
+  /**
+   * Experimental alternative to bmSchema.
+   * "Bring your own validation function".
+   * It removes the knowledge from CommonDao about the validation library used
+   * and abstracts it away.
+   *
+   * @experimental
+   */
+  validateBM?: ValidationFunction<BM, any>
+
   excludeFromIndexes?: (keyof DBM)[]
 
   /**
@@ -145,13 +156,6 @@ export interface CommonDaoCfg<
    * If set to false - save (write) operations will skip validation (and conversion).
    */
   validateOnSave?: boolean
-
-  /**
-   * The hook allows to get a callback, to instrument "validation time".
-   *
-   * @experimental
-   */
-  onValidationTime?: (data: OnValidationTimeData) => void
 
   /**
    * Defaults to false.

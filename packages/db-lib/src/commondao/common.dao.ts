@@ -1240,7 +1240,13 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     let error: JoiValidationError | AjvValidationError | ZodValidationError | undefined
     let convertedValue: any
 
-    if (schema instanceof ZodType) {
+    if (this.cfg.validateBM) {
+      const [err, value] = this.cfg.validateBM(obj as any as BM, {
+        itemName: table,
+      })
+      error = err
+      convertedValue = value
+    } else if (schema instanceof ZodType) {
       // Zod schema
       const vr = zSafeValidate(obj as T, schema)
       error = vr.error
@@ -1254,16 +1260,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
       })
     } else {
       // Joi
-      const start = localTime.nowUnixMillis()
       const vr = getValidationResult(obj, schema, objectName)
-      const tookMillis = localTime.nowUnixMillis() - start
-
-      this.cfg.onValidationTime?.({
-        tookMillis,
-        table,
-        obj,
-      })
-
       error = vr.error
       convertedValue = vr.value
     }
