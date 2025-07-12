@@ -1,3 +1,5 @@
+import { _lazyValue } from '@naturalcycles/js-lib'
+import type { JsonSchema } from '@naturalcycles/js-lib/json-schema'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
@@ -38,12 +40,10 @@ export interface BackendCfg {
   appYamlPassEnv?: string
 }
 
-const backendCfgSchema = AjvSchema.readJsonSync<BackendCfg>(
-  `${resourcesDir}/backendCfg.schema.json`,
-  {
-    objectName: 'backend.cfg.yaml',
-  },
-)
+const getBackendCfgSchema = _lazyValue(() => {
+  const schemaJson = fs2.readJson<JsonSchema<BackendCfg>>(`${resourcesDir}/backendCfg.schema.json`)
+  return AjvSchema.create(schemaJson, { objectName: 'backend.cfg.yaml' })
+})
 
 export function getBackendCfg(projectDir = '.'): BackendCfg {
   const backendCfgYamlPath = `${projectDir}/backend.cfg.yaml`
@@ -54,6 +54,6 @@ export function getBackendCfg(projectDir = '.'): BackendCfg {
     ...yaml2.readYaml(backendCfgYamlPath),
   }
 
-  backendCfgSchema.validate(backendCfg)
+  getBackendCfgSchema().validate(backendCfg)
   return backendCfg
 }

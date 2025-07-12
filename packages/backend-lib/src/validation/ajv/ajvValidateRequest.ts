@@ -1,8 +1,6 @@
-import { AppError } from '@naturalcycles/js-lib/error'
-import { _get } from '@naturalcycles/js-lib/object'
 import type { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../../server/server.model.js'
-import type { ReqValidationOptions } from '../joi/joiValidateRequest.js'
+import { handleValidationError, type ReqValidationOptions } from '../validateRequest.util.js'
 
 class AjvValidateRequest {
   body<T>(
@@ -43,11 +41,10 @@ class AjvValidateRequest {
     schema: AjvSchema<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    const options: ReqValidationOptions<AjvValidationError> = {
-      keepOriginal: true,
+    return this.validate(req, 'headers', schema, {
+      mutate: false,
       ...opt,
-    }
-    return this.validate(req, 'headers', schema, options)
+    })
   }
 
   private validate<T>(
@@ -56,53 +53,21 @@ class AjvValidateRequest {
     schema: AjvSchema<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    const value: T = { ...req[reqProperty] } // destructure to avoid being mutated by Ajv
-    // It will mutate the `value`, but not the original object
-    const error = schema.getValidationError(value, {
+    const { mutate = true } = opt
+    const originalProperty = req[reqProperty] || {}
+    const item: T = mutate ? originalProperty : { ...originalProperty }
+
+    // Ajv mutates the input
+    const error = schema.getValidationError(item, {
       objectName: `request ${reqProperty}`,
     })
 
     if (error) {
-      let report: boolean | undefined
-      if (typeof opt.report === 'boolean') {
-        report = opt.report
-      } else if (typeof opt.report === 'function') {
-        report = opt.report(error)
-      }
-
-      if (opt.redactPaths) {
-        redact(opt.redactPaths, req[reqProperty], error)
-      }
-
-      throw new AppError(error.message, {
-        backendResponseStatusCode: 400,
-        report,
-        ...error.data,
-      })
+      handleValidationError(error, originalProperty, opt)
     }
 
-    // mutate req to replace the property with the value, converted by Joi
-    if (!opt.keepOriginal && reqProperty !== 'query') {
-      // query is read-only in Express 5
-      req[reqProperty] = value
-    }
-
-    return value
+    return item
   }
 }
 
 export const ajvValidateRequest = new AjvValidateRequest()
-
-const REDACTED = 'REDACTED'
-
-/**
- * Mutates error
- */
-function redact(redactPaths: string[], obj: any, error: Error): void {
-  redactPaths
-    .map(path => _get(obj, path) as string)
-    .filter(Boolean)
-    .forEach(secret => {
-      error.message = error.message.replaceAll(secret, REDACTED)
-    })
-}

@@ -174,12 +174,12 @@ describe('zodValidateRequest.headers', () => {
           shortstring: z.string().min(8).max(16),
           numeric: z.string(),
         }),
-        { keepOriginal: false },
+        { mutate: true },
       )
 
       res.json({ ok: 1, headers: req.headers })
     })
-    const app = await expressTestService.createAppFromResource(resource)
+    await using app = await expressTestService.createAppFromResource(resource)
 
     const response = await app.get<TestResponse>('', {
       headers: {
@@ -194,7 +194,5 @@ describe('zodValidateRequest.headers', () => {
       numeric: '123', // NOT converted to number
       // foo: 'bar' // fields not in the schema are removed
     })
-
-    await app.close()
   })
 })

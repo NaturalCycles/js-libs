@@ -77,7 +77,6 @@
     "deploy-prepare": "dist/bin/deploy-prepare.js",
     "deploy-health-check": "dist/bin/deploy-health-check.js"
   },
-  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"

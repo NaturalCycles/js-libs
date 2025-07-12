@@ -187,17 +187,17 @@ describe('validateRequest.headers', () => {
           shortstring: stringSchema.min(8).max(16),
           numeric: numberSchema,
         }),
-        { keepOriginal: false },
+        { mutate: true },
       )
 
       res.json({ ok: 1, headers: req.headers })
     })
-    const app = await expressTestService.createAppFromResource(resource)
+    await using app = await expressTestService.createAppFromResource(resource)
 
     const response = await app.get<TestResponse>('', {
       headers: {
         shortstring: 'shortstring',
-        numeric: 123,
+        numeric: '123',
         foo: 'bar',
       },
     })
@@ -207,7 +207,5 @@ describe('validateRequest.headers', () => {
       numeric: 123, // converted to number
       // foo: 'bar' // fields not in the schema are removed
     })
-
-    await app.close()
   })
 })

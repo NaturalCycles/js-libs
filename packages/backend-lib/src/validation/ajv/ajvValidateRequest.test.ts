@@ -180,7 +180,7 @@ describe('ajvValidateRequest.headers', () => {
       numeric: '123',
       bool: '1',
       sessionid: 'sessionid',
-      foo: 'bar',
+      foo: 'bar', // original header is preserved (headers object is not mutated)
     })
   })
 
@@ -194,12 +194,12 @@ describe('ajvValidateRequest.headers', () => {
             numeric: jsonSchema.string(),
           }),
         ),
-        { keepOriginal: false },
+        { mutate: true },
       )
 
       res.json({ ok: 1, headers: req.headers })
     })
-    const app = await expressTestService.createAppFromResource(resource)
+    await using app = await expressTestService.createAppFromResource(resource)
 
     const response = await app.get<TestResponse>('', {
       headers: {
@@ -214,7 +214,5 @@ describe('ajvValidateRequest.headers', () => {
       numeric: '123', // NOT converted to number
       // foo: 'bar' // fields not in the schema are removed
     })
-
-    await app.close()
   })
 })
