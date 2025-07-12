@@ -385,3 +385,24 @@ test('formatting of email error', () => {
     [1] "email" must be a valid email"
   `)
 })
+
+test('should not mutate the input', () => {
+  interface Obj {
+    s: string
+  }
+
+  const schema = objectSchema<Obj>({
+    // transforms by truncating the string
+    s: stringSchema.max(3).truncate(),
+  })
+
+  const obj: Obj = {
+    s: '12345678',
+  }
+
+  const { value, error } = getValidationResult(obj, schema)
+  expect(error).toBeUndefined()
+  expect(value).toEqual({ s: '123' }) // truncated
+  expect(obj.s, 'should not mutate').toBe('12345678')
+  expect(value === obj).toBe(false) // should not reference the same object
+})

@@ -1,6 +1,6 @@
 /*
 
-pn tsx scripts/bench/validation.bench.script.ts
+pn tsx packages/nodejs-lib/scripts/bench/validation.bench.script.ts
 
  */
 

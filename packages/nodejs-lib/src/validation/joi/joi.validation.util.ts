@@ -70,6 +70,8 @@ export function validate<T>(
  * Returns JoiValidationResult with converted value and error (if any).
  * Does not throw.
  *
+ * Joi does NOT mutate the input.
+ *
  * If `schema` is undefined - returns value as is.
  */
 export function getValidationResult<T>(

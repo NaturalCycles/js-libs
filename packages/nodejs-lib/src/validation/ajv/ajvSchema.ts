@@ -1,10 +1,9 @@
-import { _isObject } from '@naturalcycles/js-lib'
+import { _isObject, _lazyValue } from '@naturalcycles/js-lib'
 import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib/json-schema'
 import { JsonSchemaAnyBuilder } from '@naturalcycles/js-lib/json-schema'
 import { _filterNullishValues } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
-import type { Ajv, ValidateFunction } from 'ajv'
-import { fs2 } from '../../fs/fs2.js'
+import type { Ajv } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
 import { AjvValidationError } from './ajvValidationError.js'
 import { getAjv } from './getAjv.js'
@@ -25,7 +24,7 @@ export interface AjvSchemaCfg {
    * Dependent schemas to pass to Ajv instance constructor.
    * Simpler than instantiating and passing ajv instance yourself.
    */
-  schemas?: (JsonSchema | JsonSchemaBuilder | AjvSchema)[]
+  // schemas?: (JsonSchema | JsonSchemaBuilder | AjvSchema)[]
 
   objectName?: string
 
@@ -36,7 +35,13 @@ export interface AjvSchemaCfg {
    *
    * This option is a "shortcut" to skip creating and passing Ajv instance.
    */
-  coerceTypes?: boolean
+  // coerceTypes?: boolean
+
+  /**
+   * If true - schema will be compiled on-demand (lazily).
+   * Default: false.
+   */
+  lazy?: boolean
 }
 
 /**
@@ -51,23 +56,40 @@ export class AjvSchema<T = unknown> {
     cfg: Partial<AjvSchemaCfg> = {},
   ) {
     this.cfg = {
+      lazy: false,
       ...cfg,
-      ajv:
-        cfg.ajv ||
-        getAjv({
-          schemas: cfg.schemas?.map(s => {
-            if (s instanceof AjvSchema) return s.schema
-            if (s instanceof JsonSchemaAnyBuilder) return s.build()
-            return s as JsonSchema
-          }),
-          coerceTypes: cfg.coerceTypes || false,
-          // verbose: true,
-        }),
+      ajv: cfg.ajv || getAjv(),
+      // ajv:
+      //   cfg.ajv ||
+      //   getAjv({
+      //     schemas: cfg.schemas?.map(s => {
+      //       if (s instanceof AjvSchema) return s.schema
+      //       if (s instanceof JsonSchemaAnyBuilder) return s.build()
+      //       return s as JsonSchema
+      //     }),
+      //     coerceTypes: cfg.coerceTypes || false,
+      //     // verbose: true,
+      //   }),
       // Auto-detecting "ObjectName" from $id of the schema (e.g "Address.schema.json")
       objectName: cfg.objectName || (schema.$id ? _substringBefore(schema.$id, '.') : undefined),
     }
 
-    this.validateFunction = this.cfg.ajv.compile<T>(schema)
+    if (!cfg.lazy) {
+      this.getValidateFunction() // compile eagerly
+    }
+  }
+
+  /**
+   * Shortcut for AjvSchema.create(schema, { lazy: true })
+   */
+  static createLazy<T>(
+    schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T>,
+    cfg: Partial<AjvSchemaCfg> = {},
+  ): AjvSchema<T> {
+    return AjvSchema.create(schema, {
+      lazy: true,
+      ...cfg,
+    })
   }
 
   /**
@@ -90,21 +112,9 @@ export class AjvSchema<T = unknown> {
     return new AjvSchema<T>(schema as JsonSchema<T>, cfg)
   }
 
-  /**
-   * Create AjvSchema directly from a filePath of json schema.
-   * Convenient method that just does fs.readFileSync for you.
-   */
-  static readJsonSync<T = unknown>(
-    filePath: string,
-    cfg: Partial<AjvSchemaCfg> = {},
-  ): AjvSchema<T> {
-    fs2.requireFileToExist(filePath)
-    const schema = fs2.readJson<JsonSchema<T>>(filePath)
-    return new AjvSchema<T>(schema, cfg)
-  }
-
   readonly cfg: AjvSchemaCfg
-  private readonly validateFunction: ValidateFunction<T>
+
+  private getValidateFunction = _lazyValue(() => this.cfg.ajv.compile<T>(this.schema))
 
   /**
    * It returns the original object just for convenience.
@@ -121,13 +131,13 @@ export class AjvSchema<T = unknown> {
   }
 
   isValid(obj: T): boolean {
-    return this.validateFunction(obj)
+    return this.getValidateFunction()(obj)
   }
 
   getValidationError(obj: T, opt: AjvValidationOptions = {}): AjvValidationError | undefined {
     if (this.isValid(obj)) return
 
-    const errors = this.validateFunction.errors!
+    const errors = this.getValidateFunction().errors!
 
     const {
       objectId = _isObject(obj) ? (obj['id' as keyof T] as any) : undefined,

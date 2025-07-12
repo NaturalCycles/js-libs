@@ -5,6 +5,7 @@ import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { _deepFreeze } from '@naturalcycles/js-lib/object'
 import type { IsoDate } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
+import { fs2 } from '../../fs/fs2.js'
 import { _inspect } from '../../index.js'
 import { testDir } from '../../test/paths.cnst.js'
 import { AjvSchema } from './ajvSchema.js'
@@ -22,7 +23,8 @@ interface TestType {
 }
 
 test('simple', () => {
-  const schema = AjvSchema.readJsonSync<Simple>(`${testDir}/schema/simple.schema.json`)
+  const jsonSchemaSimple = fs2.readJson<JsonSchema<Simple>>(`${testDir}/schema/simple.schema.json`)
+  const schema = AjvSchema.create(jsonSchemaSimple)
 
   // Valid
   const valid: Simple = { s: 's' }
@@ -86,7 +88,10 @@ test('simple', () => {
 })
 
 test('TestType', () => {
-  const schema = AjvSchema.readJsonSync<TestType>(`${testDir}/schema/TestType.schema.json`)
+  const jsonSchemaTest = fs2.readJson<JsonSchema<TestType>>(
+    `${testDir}/schema/TestType.schema.json`,
+  )
+  const schema = AjvSchema.create(jsonSchemaTest)
 
   // Valid
   const valid: TestType = {

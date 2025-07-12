@@ -77,7 +77,6 @@
     "!src/**/__snapshots__",
     "!src/**/__exclude"
   ],
-  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "publishConfig": {
     "access": "public"

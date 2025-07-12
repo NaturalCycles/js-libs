@@ -1,3 +1,4 @@
+import { _lazyValue } from '@naturalcycles/js-lib'
 import type { Options } from 'ajv'
 import { Ajv } from 'ajv'
 import ajvFormats from 'ajv-formats'
@@ -14,11 +15,21 @@ const AJV_OPTIONS: Options = {
 }
 
 /**
+ * Return cached instance of Ajv with default (recommended) options.
+ *
+ * This function should be used as much as possible,
+ * to benefit from cached Ajv instance.
+ */
+export const getAjv = _lazyValue(createAjv)
+
+/**
  * Create Ajv with modified defaults.
+ *
+ * !!! Please note that this function is EXPENSIVE computationally !!!
  *
  * https://ajv.js.org/options.html
  */
-export function getAjv(opt?: Options): Ajv {
+export function createAjv(opt?: Options): Ajv {
   const ajv = new Ajv({
     ...AJV_OPTIONS,
     ...opt,
