@@ -23,6 +23,7 @@ export function testOffline(): void {
     const { host } = opts
 
     if (!LOCAL_HOSTS.includes(host as string)) {
+      process.stderr.write(`Network request forbidden by testOffline(): ${host}\n`)
       throw new Error(`Network request forbidden by testOffline(): ${host}`)
     }
 
