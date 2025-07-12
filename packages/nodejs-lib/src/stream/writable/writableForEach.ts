@@ -1,8 +1,8 @@
 import type { AsyncIndexedMapper, IndexedMapper } from '@naturalcycles/js-lib/types'
 import { _passNothingPredicate } from '@naturalcycles/js-lib/types'
-import type { TransformMapOptions } from '../index.js'
-import { transformMap, transformMapSync } from '../index.js'
 import type { WritableTyped } from '../stream.model.js'
+import { transformMap, type TransformMapOptions } from '../transform/transformMap.js'
+import { transformMapSync } from '../transform/transformMapSync.js'
 
 /**
  * Just an alias to transformMap that declares OUT as void.

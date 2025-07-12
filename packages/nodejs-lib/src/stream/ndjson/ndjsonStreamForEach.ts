@@ -1,11 +1,13 @@
 import { ErrorMode } from '@naturalcycles/js-lib/error'
 import type { AbortableAsyncMapper } from '@naturalcycles/js-lib/types'
+import { _pipeline } from '../pipeline/pipeline.js'
 import {
-  createReadStreamAsNDJSON,
+  transformLogProgress,
   type TransformLogProgressOptions,
-  type TransformMapOptions,
-} from '../index.js'
-import { _pipeline, transformLogProgress, transformMap, writableVoid } from '../index.js'
+} from '../transform/transformLogProgress.js'
+import { transformMap, type TransformMapOptions } from '../transform/transformMap.js'
+import { writableVoid } from '../writable/writableVoid.js'
+import { createReadStreamAsNDJSON } from './createReadStreamAsNDJSON.js'
 
 export interface NDJSONStreamForEachOptions<IN = any>
   extends TransformMapOptions<IN, void>,

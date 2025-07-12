@@ -4,7 +4,7 @@ pn tsx scripts/startServerFastify
 
  */
 
-import { runScript } from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import fastifyLib from 'fastify'
 
 runScript(async () => {

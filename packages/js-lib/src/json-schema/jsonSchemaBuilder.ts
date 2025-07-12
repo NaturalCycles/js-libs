@@ -1,26 +1,25 @@
 import { _uniq } from '../array/array.util.js'
-import { _deepCopy, _sortObject } from '../object/index.js'
+import { _deepCopy } from '../object/object.util.js'
+import { _sortObject } from '../object/sortObject.js'
 import type { AnyObject, BaseDBEntity } from '../types.js'
-import {
-  type JsonSchemaAllOf,
-  type JsonSchemaArray,
-  type JsonSchemaOneOf,
-  type JsonSchemaTuple,
-  mergeJsonSchemaObjects,
-} from './index.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
+  JsonSchemaAllOf,
   JsonSchemaAny,
+  JsonSchemaArray,
   JsonSchemaBoolean,
   JsonSchemaConst,
   JsonSchemaEnum,
   JsonSchemaNull,
   JsonSchemaNumber,
   JsonSchemaObject,
+  JsonSchemaOneOf,
   JsonSchemaRef,
   JsonSchemaString,
+  JsonSchemaTuple,
 } from './jsonSchema.model.js'
+import { mergeJsonSchemaObjects } from './jsonSchema.util.js'
 
 /* eslint-disable id-blacklist, @typescript-eslint/explicit-module-boundary-types */
 

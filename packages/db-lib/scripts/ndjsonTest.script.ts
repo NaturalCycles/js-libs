@@ -4,7 +4,7 @@ pn tsx scripts/ndjsonTest.script.ts
 
  */
 
-import { runScript } from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { InMemoryDB } from '../src/inmemory/index.js'
 import { dbPipelineBackup, dbPipelineCopy, dbPipelineRestore } from '../src/pipeline/index.js'
 import { tmpDir } from '../src/test/paths.cnst.js'

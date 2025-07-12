@@ -1,4 +1,4 @@
-import { isServerSide } from '../index.js'
+import { isServerSide } from '../env.js'
 import { loadScript } from './script.util.js'
 
 declare global {

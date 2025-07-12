@@ -5,7 +5,7 @@ pn tsx scripts/bench/transformMap.bench
  */
 
 import { runBench } from '@naturalcycles/bench-lib'
-import { runScript } from '../../src/index.js'
+import { runScript } from '../../src/script/runScript.js'
 
 // const items = _range(1000).map(id => ({
 //   id,

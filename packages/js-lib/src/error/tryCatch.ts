@@ -1,5 +1,5 @@
-import { _since } from '../datetime/index.js'
-import type { CommonLogger } from '../log/index.js'
+import { _since } from '../datetime/time.util.js'
+import type { CommonLogger } from '../log/commonLogger.js'
 import type { AnyFunction, UnixTimestampMillis } from '../types.js'
 import { _anyToError } from './error.util.js'
 

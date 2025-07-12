@@ -4,7 +4,8 @@ pn tsx scripts/ndjsonParseSpeed
 
  */
 
-import { requireEnvKeys, runScript } from '../src/index.js'
+import { requireEnvKeys } from '../src/index.js'
+import { runScript } from '../src/script/runScript.js'
 import {
   _pipeline,
   createReadStreamAsNDJSON,

@@ -3,9 +3,9 @@ import { _range } from '@naturalcycles/js-lib'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { pDefer, pDelay } from '@naturalcycles/js-lib/promise'
 import type { StringMap } from '@naturalcycles/js-lib/types'
-import { runScript } from '@naturalcycles/nodejs-lib'
 import { boldRed, dimGrey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import hdr from 'hdr-histogram-js'
 import type {
   AutocannonResult,

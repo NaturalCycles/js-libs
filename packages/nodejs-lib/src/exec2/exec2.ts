@@ -7,7 +7,7 @@ import type {
   NumberOfMilliseconds,
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
-import { dimGrey, dimRed, hasColors, white } from './colors/colors.js'
+import { dimGrey, dimRed, hasColors, white } from '../colors/colors.js'
 
 /**
  * Set of utility functions to work with Spawn / Exec.

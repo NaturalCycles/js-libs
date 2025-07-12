@@ -1,4 +1,4 @@
-import type { AppError } from '../error/index.js'
+import type { AppError } from '../error/error.util.js'
 import type { ErrorDataTuple } from '../types.js'
 
 /**

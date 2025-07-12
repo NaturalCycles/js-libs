@@ -5,7 +5,7 @@ yarn tsx scripts/cannonPost.bench
  */
 
 import http from 'node:http'
-import { runScript } from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { runCannon } from '../src/index.js'
 
 runScript(async () => {

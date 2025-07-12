@@ -8,8 +8,7 @@ import {
 import { _omit } from '@naturalcycles/js-lib/object'
 import { PQueue } from '@naturalcycles/js-lib/promise'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import type { InspectAnyOptions } from '../index.js'
-import { _inspect } from '../index.js'
+import { _inspect, type InspectAnyOptions } from '../index.js'
 import type {
   SlackApiBody,
   SlackAttachmentField,

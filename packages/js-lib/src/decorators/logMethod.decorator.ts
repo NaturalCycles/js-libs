@@ -1,8 +1,8 @@
 import { _ms } from '../datetime/time.util.js'
-import { _assert } from '../error/index.js'
-import type { CommonLogger } from '../log/index.js'
-import { SimpleMovingAverage } from '../math/index.js'
-import { _stringify } from '../string/index.js'
+import { _assert } from '../error/assert.js'
+import type { CommonLogger } from '../log/commonLogger.js'
+import { SimpleMovingAverage } from '../math/sma.js'
+import { _stringify } from '../string/stringify.js'
 import { _getArgsSignature, _getMethodSignature } from './decorator.util.js'
 
 /**

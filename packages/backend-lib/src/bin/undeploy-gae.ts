@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { runScript } from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
 import { undeployGae } from '../deploy/deployGae.js'
 

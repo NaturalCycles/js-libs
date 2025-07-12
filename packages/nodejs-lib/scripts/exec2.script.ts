@@ -4,8 +4,8 @@ pn tsx scripts/exec2.script.ts
 
  */
 
-import { exec2 } from '../src/exec2.js'
-import { runScript } from '../src/index.js'
+import { exec2 } from '../src/exec2/exec2.js'
+import { runScript } from '../src/script/runScript.js'
 
 runScript(async () => {
   await exec2.spawnAsync('node', {

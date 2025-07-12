@@ -8,7 +8,7 @@ import { runBench } from '@naturalcycles/bench-lib'
 import { _range } from '@naturalcycles/js-lib'
 import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
-import { runScript } from '../../src/index.js'
+import { runScript } from '../../src/script/runScript.js'
 import { AjvSchema } from '../../src/validation/ajv/index.js'
 import {
   arraySchema,

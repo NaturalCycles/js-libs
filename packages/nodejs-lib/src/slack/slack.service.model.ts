@@ -1,6 +1,6 @@
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import type { InspectAnyOptions } from '../index.js'
+import type { InspectAnyOptions } from '../string/inspect.js'
 
 /**
  * Properties that exists both in SlackApiBody (as per Slack API) and SlackMessage (our abstraction).

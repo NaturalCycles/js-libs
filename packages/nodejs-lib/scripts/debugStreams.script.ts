@@ -8,7 +8,8 @@ import fs from 'node:fs'
 import { Readable, Writable } from 'node:stream'
 import { createUnzip } from 'node:zlib'
 import { pDelay } from '@naturalcycles/js-lib/promise'
-import { requireEnvKeys, runScript } from '../src/index.js'
+import { requireEnvKeys } from '../src/index.js'
+import { runScript } from '../src/script/runScript.js'
 import {
   _pipeline,
   transformJsonParse,

@@ -5,7 +5,7 @@ pn tsx scripts/memo.decorator.bench
  */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
-import { _Memo } from '../src/decorators/index.js'
+import { _Memo } from '../src/decorators/memo.decorator.js'
 import { memoSimple } from '../src/decorators/memoSimple.decorator.js'
 
 let _c = 0

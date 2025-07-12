@@ -6,7 +6,8 @@ yarn tsx scripts/oom.script.ts
 
 import { Transform, Writable } from 'node:stream'
 import { DBQuery } from '@naturalcycles/db-lib'
-import { requireEnvKeys, runScript } from '@naturalcycles/nodejs-lib'
+import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { _pipeline, transformLogProgress } from '@naturalcycles/nodejs-lib/stream'
 import { DatastoreDB } from '../src/index.js'
 

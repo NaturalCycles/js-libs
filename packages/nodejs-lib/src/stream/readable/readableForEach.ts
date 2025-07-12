@@ -1,7 +1,7 @@
 import type { AbortableAsyncMapper, IndexedMapper } from '@naturalcycles/js-lib/types'
 import { _passNothingPredicate } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '../index.js'
-import { _pipeline } from '../index.js'
+import { _pipeline } from '../pipeline/pipeline.js'
+import type { ReadableTyped } from '../stream.model.js'
 import type { TransformMapOptions } from '../transform/transformMap.js'
 import { transformMap } from '../transform/transformMap.js'
 
