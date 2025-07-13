@@ -1,5 +1,7 @@
 export class CollectReporter {
-  constructor(cfg = {}) { this.cfg = cfg }
+  constructor(cfg = {}) {
+    this.cfg = cfg
+  }
 
   onTestModuleEnd(testModule) {
     const { threshold = 0 } = this.cfg

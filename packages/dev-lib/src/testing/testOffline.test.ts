@@ -15,7 +15,7 @@ test('should throw on network connections', async () => {
   expect(_stringify(err)).toMatchInlineSnapshot(`
     "HttpRequestError: GET http://example.com/
     Caused by: TypeError: fetch failed
-    Caused by: Error: Network request forbidden by testOffline(): example.com"
+    Caused by: Error: Network request forbidden by testOffline: example.com"
   `)
 })
 

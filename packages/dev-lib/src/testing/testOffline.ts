@@ -1,3 +1,4 @@
+import { red } from '@naturalcycles/nodejs-lib/colors'
 import createMitm from 'mitm'
 
 const LOCAL_HOSTS = ['localhost', '127.0.0.1']
@@ -23,8 +24,8 @@ export function testOffline(): void {
     const { host } = opts
 
     if (!LOCAL_HOSTS.includes(host as string)) {
-      process.stderr.write(`Network request forbidden by testOffline(): ${host}\n`)
-      throw new Error(`Network request forbidden by testOffline(): ${host}`)
+      process.stderr.write(red(`Network request forbidden by testOffline: ${host}\n`))
+      throw new Error(`Network request forbidden by testOffline: ${host}`)
     }
 
     socket.bypass()
