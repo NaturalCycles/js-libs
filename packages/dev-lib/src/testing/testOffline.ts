@@ -5,20 +5,20 @@ const LOCAL_HOSTS = ['localhost', '127.0.0.1']
 
 const detectLeaks = process.argv.some(a => a.includes('detectLeaks'))
 
-let mitm: createMitm.Mitm
+let mitm: createMitm.Mitm | undefined
 
 /**
  * Based on: https://github.com/palmerj3/jest-offline/blob/master/index.js
  */
 export function testOffline(): void {
+  if (mitm) return // already applied
+
   if (detectLeaks) {
     console.log('NOT applying testOffline() when --detectLeaks is on')
     return
   }
 
-  console.log('test offline mode')
-
-  mitm ||= createMitm()
+  mitm = createMitm()
 
   mitm.on('connect', (socket: any, opts: any) => {
     const { host } = opts
@@ -37,4 +37,5 @@ export function testOffline(): void {
  */
 export function testOnline(): void {
   mitm?.disable()
+  mitm = undefined
 }
