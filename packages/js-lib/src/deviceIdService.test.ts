@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { _range } from './array/range.js'
 import { DeviceIdService } from './deviceIdService.js'
 import { InMemoryWebStorage } from './web.js'
@@ -16,11 +16,10 @@ describe('when run in Browser', () => {
 
   beforeEach(() => {
     localStorage = new InMemoryWebStorage()
-    Object.assign(globalThis, {
-      localStorage,
-      window: {
-        document: {}, // so isServerSide() returns false
-      },
+
+    vi.stubGlobal('localStorage', localStorage)
+    vi.stubGlobal('window', {
+      document: {}, // so isServerSide() returns false
     })
   })
 

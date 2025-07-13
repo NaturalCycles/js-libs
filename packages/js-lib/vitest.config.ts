@@ -4,6 +4,10 @@ import { defineVitestConfig, CollectReporter } from '@naturalcycles/dev-lib/cfg/
 
 export default defineVitestConfig({
   test: {
+    isolate: false, // experimenting
+    bail: 1,
+    // fileParallelism: false,
+    // silent: false,
     // reporters: ['default', new CollectReporter()],
     // deps: { inline: [ /.*/ ] },
   },

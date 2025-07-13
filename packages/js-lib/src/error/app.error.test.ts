@@ -1,5 +1,5 @@
 import { inspect } from 'node:util'
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { _stringify } from '../string/stringify.js'
 import { _anyToErrorObject, AppError } from './error.util.js'
 
@@ -28,7 +28,7 @@ test('appError properties should be present', async () => {
 })
 
 test('appError should work when Error.captureStacktrace is n/a', () => {
-  Error.captureStackTrace = false as any
+  vi.spyOn(Error, 'captureStackTrace').mockReturnValue(undefined)
   const r = new AppError('hello')
   // console.log(r.message, r.name, r.stack)
   expect(r.message).toBe('hello')
