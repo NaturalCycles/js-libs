@@ -2,6 +2,7 @@ import { _isBackendErrorResponseObject, _isErrorLike, _isErrorObject } from '../
 import type { Reviver } from '../types.js'
 import { _jsonParseIfPossible } from './json.util.js'
 import { _safeJsonStringify } from './safeJsonStringify.js'
+import { _truncateMiddle } from './string.util.js'
 
 const supportsAggregateError = typeof globalThis.AggregateError === 'function'
 
@@ -179,7 +180,7 @@ export function _stringify(obj: any, opt: StringifyOptions = {}): string {
   // Handle maxLen
   const { maxLen = 10_000 } = opt
   if (maxLen && s.length > maxLen) {
-    s = s.slice(0, maxLen) + `... ${Math.ceil(s.length / 1024)} KB message truncated`
+    return _truncateMiddle(s, maxLen, `\n... ${Math.ceil(s.length / 1024)} Kb message truncated ...\n`)
   }
 
   return s
