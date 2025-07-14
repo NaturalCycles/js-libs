@@ -15,6 +15,7 @@ const {
   APP_ENV,
   NODE_OPTIONS,
   DEPLOY_BUILD_TIME,
+  BUILD_VERSION,
 } = process.env
 
 export function serverStatusMiddleware(projectDir?: string, extra?: any): BackendRequestHandler {
@@ -34,6 +35,7 @@ export function getServerStatusData(
   return _filterNullishValues({
     nodeProcessStarted: getStartedStr(),
     deployBuildTime,
+    BUILD_VERSION,
     APP_ENV,
     GOOGLE_CLOUD_PROJECT,
     GAE_APPLICATION,
