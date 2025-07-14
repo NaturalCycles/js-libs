@@ -150,8 +150,8 @@ export class AjvSchema<T = unknown> {
       separator,
     })
 
-    const strValue = _inspect(obj, { maxLen: 1000 })
-    message = [message, 'Input: ' + strValue].join(separator)
+    const inputStringified = _inspect(obj, { maxLen: 4000 })
+    message = [message, 'Input: ' + inputStringified].join(separator)
 
     return new AjvValidationError(
       message,
