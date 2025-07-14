@@ -7,7 +7,7 @@
     "upd": "pnpm -r up --no-save",
     "out": "pnpm -r outdated",
     "warm": "pnpm --filter '@naturalcycles/js-lib' exec tsc -P tsconfig.prod.json --noCheck && pnpm --filter '@naturalcycles/dev-lib' exec tsc -P tsconfig.prod.json --noCheck",
-    "clean": "pnpm -r exec rm -rf dist",
+    "clean": "pnpm -r exec rm -rf dist node_modules",
     "check": "pnpm build && pnpm lint && pnpm typecheck && pnpm test:all",
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
     "lint": "pnpm --filter '@naturalcycles/*' run lint",
