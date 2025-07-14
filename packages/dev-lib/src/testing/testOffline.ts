@@ -1,3 +1,4 @@
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { red } from '@naturalcycles/nodejs-lib/colors'
 import createMitm from 'mitm'
 
@@ -26,7 +27,9 @@ export function testOffline(opt?: TestOfflineOptions): void {
     if (!LOCAL_HOSTS.includes(host!)) {
       process.stderr.write(red(`Network request forbidden by testOffline: ${host}\n`))
       opt?.onForbiddenRequest?.(host!)
-      throw new Error(`Network request forbidden by testOffline: ${host}`)
+      throw new AppError(`Network request forbidden by testOffline: ${host}`, {
+        backendResponseStatusCode: 410,
+      })
     }
 
     socket.bypass()
