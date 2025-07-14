@@ -15,6 +15,7 @@ import type {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
+import { localTime } from '@naturalcycles/js-lib'
 import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _errorDataAppend, TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
@@ -215,7 +216,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
 
     return (
       rows
-        .map(r => this.mapId<ROW>(r))
+        .map(r => this.fromDatastoreEntity<ROW>(r))
         // Seems like datastore .get() method doesn't return items properly sorted by input ids, so we gonna sort them here
         // same ids are not expected here
         .sort((a, b) => (a.id > b.id ? 1 : -1))
@@ -280,7 +281,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     const ds = await this.ds()
     const [entities, queryResult] = await ds.runQuery(q, dsOpt)
 
-    const rows = entities.map(e => this.mapId<ROW>(e))
+    const rows = entities.map(e => this.fromDatastoreEntity<ROW>(e))
 
     return {
       ...queryResult,
@@ -295,7 +296,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     const transform = new Transform({
       objectMode: true,
       transform: (chunk, _, cb) => {
-        cb(null, this.mapId(chunk))
+        cb(null, this.fromDatastoreEntity(chunk))
       },
     })
 
@@ -503,13 +504,14 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     return stats
   }
 
-  private mapId<T extends ObjectWithId>(o: any, preserveKey = false): T {
+  private fromDatastoreEntity<T extends ObjectWithId>(o: any): T {
     if (!o) return o
     const r = {
       ...o,
       id: this.getKey(this.getDsKey(o)!),
     }
-    if (!preserveKey) delete r[this.KEY]
+    delete r[this.KEY]
+    r.deleteAt ||= localTime(r.deleteAt).unix
     return r
   }
 
@@ -522,6 +524,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
   ): DatastorePayload<T> {
     const key = this.getDsKey(o) || this.key(ds, kind, o.id)
     const data = Object.assign({}, o) as any
+    ;(o as any).deleteAt ||= new Date((o as any).deleteAt * 1000)
     delete data.id
     delete data[this.KEY]
 
