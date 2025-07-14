@@ -6,12 +6,21 @@ import {
   nanoIdCustomAlphabet,
 } from './nanoid.js'
 
+let mockedStringId: string | undefined
+
+export function mockStringId(id: string): void {
+  mockedStringId = id
+}
+export function unmockStringId(): void {
+  mockedStringId = undefined
+}
+
 /**
  * Generate cryptographically-secure string id.
  * Powered by `nanoid`.
  */
 export function stringId(length = 16, alphabet = ALPHABET_ALPHANUMERIC_LOWERCASE): string {
-  return nanoIdCustomAlphabet(alphabet, length)()
+  return mockedStringId ?? nanoIdCustomAlphabet(alphabet, length)()
 }
 
 /**

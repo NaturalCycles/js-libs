@@ -1,11 +1,13 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { describe, expect, test } from 'vitest'
 import {
+  mockStringId,
   stringId,
   stringIdBase62,
   stringIdBase64,
   stringIdBase64Url,
   stringIdNonAmbiguous,
+  unmockStringId,
 } from '../index.js'
 import {
   base62Schema,
@@ -32,6 +34,15 @@ test('stringId', () => {
   _range(100).forEach(() => {
     expect(stringId()).toMatch(stringIdRegex)
   })
+})
+
+test('stringId mocked', () => {
+  mockStringId('abc')
+  expect(stringId()).toBe('abc')
+  expect(stringId()).toBe('abc')
+  unmockStringId()
+  expect(stringId()).not.toBe('abc')
+  expect(stringId()).toHaveLength(16)
 })
 
 test('stringIdBase62', () => {
