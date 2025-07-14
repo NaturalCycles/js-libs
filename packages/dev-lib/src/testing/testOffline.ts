@@ -10,7 +10,7 @@ let mitm: createMitm.Mitm | undefined
 /**
  * Based on: https://github.com/palmerj3/jest-offline/blob/master/index.js
  */
-export function testOffline(): void {
+export function testOffline(opt?: TestOfflineOptions): void {
   if (mitm) return // already applied
 
   if (detectLeaks) {
@@ -20,11 +20,12 @@ export function testOffline(): void {
 
   mitm = createMitm()
 
-  mitm.on('connect', (socket: any, opts: any) => {
-    const { host } = opts
+  mitm.on('connect', (socket, socketOptions) => {
+    const { host } = socketOptions
 
-    if (!LOCAL_HOSTS.includes(host as string)) {
+    if (!LOCAL_HOSTS.includes(host!)) {
       process.stderr.write(red(`Network request forbidden by testOffline: ${host}\n`))
+      opt?.onForbiddenRequest?.(host!)
       throw new Error(`Network request forbidden by testOffline: ${host}`)
     }
 
@@ -38,4 +39,11 @@ export function testOffline(): void {
 export function testOnline(): void {
   mitm?.disable()
   mitm = undefined
+}
+
+interface TestOfflineOptions {
+  /**
+   * Called when a forbidden network request is detected.
+   */
+  onForbiddenRequest?: (host: string) => void
 }

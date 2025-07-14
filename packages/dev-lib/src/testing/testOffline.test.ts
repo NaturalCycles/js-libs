@@ -21,4 +21,4 @@ test('should throw on network connections', async () => {
 
 test('should allow connection to local hosts', async () => {
   await fetcher.get('http://localhost').catch(_ => {})
-}, 20_000)
+})
