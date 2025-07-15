@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest'
-import { MOCK_TS_2018_06_21, mockTime, resetTime } from './time.js'
+import { expect, test, vi } from 'vitest'
+import { MOCK_TS_2018_06_21 } from './time.js'
 
 const now = Date.now()
 
@@ -8,15 +8,12 @@ test('mockTime default', () => {
 
   expect(Date.now()).toBeGreaterThanOrEqual(now)
 
-  mockTime()
+  vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 
   expect(Date.now()).toBe(MOCK_TS_2018_06_21 * 1000)
 
-  resetTime()
+  vi.useRealTimers()
 
   expect(Date.now()).toBeGreaterThanOrEqual(now)
-
-  resetTime()
-
   expect(new Date().getFullYear()).toBeGreaterThan(2018)
 })

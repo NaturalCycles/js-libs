@@ -1,9 +1,9 @@
-import { mockTime } from '@naturalcycles/dev-lib/testing/time'
-import { beforeEach, expect, test } from 'vitest'
+import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
+import { beforeEach, expect, test, vi } from 'vitest'
 import { generateBuildInfoDev } from './buildInfo.js'
 
 beforeEach(() => {
-  mockTime()
+  vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 })
 
 test('buildInfo', () => {

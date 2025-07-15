@@ -1,10 +1,10 @@
 import { Readable } from 'node:stream'
-import { mockTime } from '@naturalcycles/dev-lib/testing/time'
+import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
-import { beforeAll, expect, test } from 'vitest'
+import { beforeAll, expect, test, vi } from 'vitest'
 import type { TransformMapStats } from '../index.js'
 import {
   _pipeline,
@@ -15,7 +15,7 @@ import {
 } from '../index.js'
 
 beforeAll(() => {
-  mockTime()
+  vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 })
 
 interface Item {

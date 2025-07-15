@@ -180,7 +180,11 @@ export function _stringify(obj: any, opt: StringifyOptions = {}): string {
   // Handle maxLen
   const { maxLen = 10_000 } = opt
   if (maxLen && s.length > maxLen) {
-    return _truncateMiddle(s, maxLen, `\n... ${Math.ceil(s.length / 1024)} Kb message truncated ...\n`)
+    return _truncateMiddle(
+      s,
+      maxLen,
+      `\n... ${Math.ceil(s.length / 1024)} Kb message truncated ...\n`,
+    )
   }
 
   return s

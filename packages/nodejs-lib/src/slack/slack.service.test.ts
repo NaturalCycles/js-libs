@@ -1,4 +1,4 @@
-import { mockTime } from '@naturalcycles/dev-lib/testing/time'
+import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { pExpectedError } from '@naturalcycles/js-lib/error'
 import { Fetcher } from '@naturalcycles/js-lib/http'
 import { commonLoggerNoop } from '@naturalcycles/js-lib/log'
@@ -18,7 +18,7 @@ let lastBody: any
 
 beforeEach(() => {
   lastBody = null
-  mockTime()
+  vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 
   vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(async (url, init) => {
     lastBody = init.body

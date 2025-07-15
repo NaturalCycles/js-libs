@@ -1,4 +1,4 @@
-import { mockTime } from '@naturalcycles/dev-lib/testing/time'
+import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { expressTestService } from '../testing/index.js'
@@ -33,7 +33,7 @@ adminResource.get('/admin/info', async (req, res) => {
 adminResource.post('/admin/login', adminService.getFirebaseAuthLoginHandler())
 
 beforeEach(() => {
-  mockTime()
+  vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 })
 
 const app = await expressTestService.createAppFromResource(adminResource)

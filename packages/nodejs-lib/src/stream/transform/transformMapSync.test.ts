@@ -1,8 +1,8 @@
 import { Readable } from 'node:stream'
-import { mockTime } from '@naturalcycles/dev-lib/testing/time'
+import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
-import { beforeAll, expect, test } from 'vitest'
+import { beforeAll, expect, test, vi } from 'vitest'
 import type { TransformMapStats } from '../index.js'
 import { _pipeline, writableVoid } from '../index.js'
 import { transformMapSync } from './transformMapSync.js'
@@ -12,7 +12,7 @@ interface Item {
 }
 
 beforeAll(() => {
-  mockTime()
+  vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 })
 
 test('transformMapSync simple', async () => {

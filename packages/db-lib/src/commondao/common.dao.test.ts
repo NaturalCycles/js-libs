@@ -1,4 +1,4 @@
-import { MOCK_TS_2018_06_21, mockTime } from '@naturalcycles/dev-lib/testing/time'
+import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range, _sortBy } from '@naturalcycles/js-lib/array'
 import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalcycles/js-lib/error'
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
@@ -52,7 +52,7 @@ const dao = new CommonDao(daoCfg)
 
 beforeEach(async () => {
   await db.resetCache()
-  mockTime()
+  vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 })
 
 test('common', async () => {
@@ -474,7 +474,7 @@ test('does not reset updated on getByIdAsDBM', async () => {
 
   // 5 seconds later
   const newNow = (MOCK_TS_2018_06_21 + 5000) as UnixTimestamp
-  mockTime(newNow)
+  vi.setSystemTime(newNow * 1000)
 
   const bm = await dao.requireById(r.id)
   // console.log(bm.updated)

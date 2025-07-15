@@ -1,11 +1,11 @@
-import { MOCK_TS_2018_06_21, mockTime } from '@naturalcycles/dev-lib/testing/time'
-import { beforeEach, expect, test } from 'vitest'
+import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
+import { beforeEach, expect, test, vi } from 'vitest'
 import { AirtableLib } from './airtableLib.js'
 import { AIRTABLE_CONNECTOR_JSON } from './connector/airtableJsonConnector.js'
 import { mockBaseDao } from './test/airtable.mock.js'
 
 beforeEach(() => {
-  mockTime()
+  vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 })
 
 const airtableLib = new AirtableLib({
