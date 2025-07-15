@@ -6,17 +6,11 @@
  * "Converts" mean e.g trims all strings from leading/trailing spaces.
  */
 
-import { _hb, _isObject } from '@naturalcycles/js-lib'
+import { _hb, _isObject, type ValidationFunctionResult } from '@naturalcycles/js-lib'
 import { _truncateMiddle } from '@naturalcycles/js-lib/string/string.util.js'
 import type { AnySchema, ValidationError, ValidationOptions } from 'joi'
 import type { JoiValidationErrorData } from './joi.validation.error.js'
 import { JoiValidationError } from './joi.validation.error.js'
-
-// todo: consider replacing with Tuple of [error, value]
-export interface JoiValidationResult<T = any> {
-  value: T
-  error?: JoiValidationError
-}
 
 // Strip colors in production (for e.g Sentry reporting)
 // const stripColors = process.env.NODE_ENV === 'production' || !!process.env.GAE_INSTANCE
@@ -56,12 +50,8 @@ export function validate<T>(
   objectName?: string,
   opt: ValidationOptions = {},
 ): T {
-  const { value: returnValue, error } = getValidationResult(input, schema, objectName, opt)
-
-  if (error) {
-    throw error
-  }
-
+  const [error, returnValue] = getValidationResult(input, schema, objectName, opt)
+  if (error) throw error
   return returnValue
 }
 
@@ -75,27 +65,20 @@ export function validate<T>(
  * If `schema` is undefined - returns value as is.
  */
 export function getValidationResult<T>(
-  input: any,
+  input: T,
   schema?: AnySchema<T>,
   objectName?: string,
   options: ValidationOptions = {},
-): JoiValidationResult<T> {
-  if (!schema) return { value: input }
+): ValidationFunctionResult<T, JoiValidationError> {
+  if (!schema) return [null, input]
 
   const { value, error } = schema.validate(input, {
     ...defaultOptions,
     ...options,
   })
 
-  const vr: JoiValidationResult<T> = {
-    value,
-  }
-
-  if (error) {
-    vr.error = createError(input, error, objectName)
-  }
-
-  return vr
+  const err = error ? createError(input, error, objectName) : null
+  return [err, value]
 }
 
 /**

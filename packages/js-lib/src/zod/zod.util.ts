@@ -2,18 +2,7 @@ import type { ZodError, ZodType } from 'zod'
 import type { ErrorData } from '../error/error.model.js'
 import { AppError } from '../error/error.util.js'
 import { _stringify } from '../string/stringify.js'
-
-export interface ZodErrorResult<T> {
-  success: false
-  data?: T
-  error: ZodValidationError
-}
-
-export interface ZodSuccessResult<T> {
-  success: true
-  data: T
-  error?: ZodValidationError
-}
+import type { ValidationFunctionResult } from '../validation/validation.js'
 
 export function zIsValid<T>(value: T, schema: ZodType<T>): boolean {
   const { success } = schema.safeParse(value)
@@ -21,28 +10,22 @@ export function zIsValid<T>(value: T, schema: ZodType<T>): boolean {
 }
 
 export function zValidate<T>(value: T, schema: ZodType<T>): T {
-  const r = zSafeValidate(value, schema)
-  if (r.success) {
-    return r.data
-  }
-
-  throw r.error
+  const [err, data] = zSafeValidate(value, schema)
+  if (err) throw err
+  return data
 }
 
 export function zSafeValidate<T>(
-  value: T,
+  input: T,
   schema: ZodType<T>,
   // objectName?: string,
-): ZodSuccessResult<T> | ZodErrorResult<T> {
-  const r = schema.safeParse(value)
+): ValidationFunctionResult<T, ZodValidationError> {
+  const r = schema.safeParse(input)
   if (r.success) {
-    return r
+    return [null, r.data]
   }
 
-  return {
-    success: false,
-    error: new ZodValidationError(r.error, value, schema),
-  }
+  return [new ZodValidationError(r.error, input, schema), r.data ?? input]
 }
 
 export interface ZodValidationErrorData extends ErrorData {

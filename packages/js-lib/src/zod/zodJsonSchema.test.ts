@@ -148,7 +148,7 @@ test('happy case', () => {
 test('email invalid', () => {
   const account = getMockAccount({ email: 'invalid-email' })
 
-  const err = accountAjvSchema.getValidationError(account)
+  const [err] = accountAjvSchema.getValidationResult(account)
   expect(_stringify(err)).toMatchInlineSnapshot(`
     "AjvValidationError: Object.12345678/email must match pattern "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
     Object.12345678/email must match format "email"

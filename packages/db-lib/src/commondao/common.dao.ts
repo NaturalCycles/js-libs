@@ -1239,32 +1239,32 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     const table = opt.table || this.cfg.table
     const objectName = table
 
-    let error: JoiValidationError | AjvValidationError | ZodValidationError | undefined
+    let error: JoiValidationError | AjvValidationError | ZodValidationError | null | undefined
     let convertedValue: any
 
     if (this.cfg.validateBM) {
       const [err, value] = this.cfg.validateBM(obj as any as BM, {
-        itemName: table,
+        inputName: table,
       })
       error = err
       convertedValue = value
     } else if (schema instanceof ZodType) {
       // Zod schema
-      const vr = zSafeValidate(obj as T, schema)
-      error = vr.error
-      convertedValue = vr.data
+      const [err, value] = zSafeValidate(obj as T, schema)
+      error = err
+      convertedValue = value
     } else if (schema instanceof AjvSchema) {
       // Ajv schema
-      convertedValue = obj // because Ajv mutates original object
-
-      error = schema.getValidationError(obj as T, {
+      const [err, value] = schema.getValidationResult(obj as T, {
         objectName,
       })
+      error = err
+      convertedValue = value
     } else {
       // Joi
-      const vr = getValidationResult(obj, schema, objectName)
-      error = vr.error
-      convertedValue = vr.value
+      const [err, value] = getValidationResult(obj, schema, objectName)
+      error = err
+      convertedValue = value
     }
 
     // If we care about validation and there's an error

@@ -75,12 +75,12 @@ runBenchScript({
     },
     ajvEager: () => {
       const schema = AjvSchema.create(jsonSchema2)
-      _sink = schema.getValidationError(item)
+      _sink = schema.getValidationResult(item)
       _assert(_sink === undefined)
     },
     ajvLazy: () => {
       const schema = AjvSchema.createLazy(jsonSchema2)
-      _sink = schema.getValidationError(item)
+      _sink = schema.getValidationResult(item)
       _assert(_sink === undefined)
     },
     // ajvEagerWithAjv: () => {

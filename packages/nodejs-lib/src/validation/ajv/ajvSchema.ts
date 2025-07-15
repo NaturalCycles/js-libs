@@ -1,4 +1,4 @@
-import { _isObject, _lazyValue } from '@naturalcycles/js-lib'
+import { _isObject, _lazyValue, type ValidationFunctionResult } from '@naturalcycles/js-lib'
 import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib/json-schema'
 import { JsonSchemaAnyBuilder } from '@naturalcycles/js-lib/json-schema'
 import { _filterNullishValues } from '@naturalcycles/js-lib/object'
@@ -124,23 +124,26 @@ export class AjvSchema<T = unknown> {
    *
    * Returned object is always the same object (`===`) that was passed, so it is returned just for convenience.
    */
-  validate(obj: T, opt: AjvValidationOptions = {}): T {
-    const err = this.getValidationError(obj, opt)
-    if (err) throw err
-    return obj
+  validate(input: T, opt: AjvValidationOptions = {}): T {
+    const [error, output] = this.getValidationResult(input, opt)
+    if (error) throw error
+    return output
   }
 
-  isValid(obj: T): boolean {
-    return this.getValidateFunction()(obj)
+  isValid(input: T): boolean {
+    return this.getValidateFunction()(input)
   }
 
-  getValidationError(obj: T, opt: AjvValidationOptions = {}): AjvValidationError | undefined {
-    if (this.isValid(obj)) return
+  getValidationResult(
+    input: T,
+    opt: AjvValidationOptions = {},
+  ): ValidationFunctionResult<T, AjvValidationError> {
+    if (this.isValid(input)) return [null, input]
 
     const errors = this.getValidateFunction().errors!
 
     const {
-      objectId = _isObject(obj) ? (obj['id' as keyof T] as any) : undefined,
+      objectId = _isObject(input) ? (input['id' as keyof T] as any) : undefined,
       objectName = this.cfg.objectName,
     } = opt
     const name = [objectName || 'Object', objectId].filter(Boolean).join('.')
@@ -150,10 +153,10 @@ export class AjvSchema<T = unknown> {
       separator,
     })
 
-    const inputStringified = _inspect(obj, { maxLen: 4000 })
+    const inputStringified = _inspect(input, { maxLen: 4000 })
     message = [message, 'Input: ' + inputStringified].join(separator)
 
-    return new AjvValidationError(
+    const err = new AjvValidationError(
       message,
       _filterNullishValues({
         errors,
@@ -161,6 +164,7 @@ export class AjvSchema<T = unknown> {
         objectId,
       }),
     )
+    return [err, input]
   }
 }
 

@@ -54,7 +54,7 @@ class ZodValidateRequest {
     const originalProperty = req[reqProperty] || {}
 
     // Zod does not mutate the input
-    const { error, data } = zSafeValidate(
+    const [error, data] = zSafeValidate(
       originalProperty,
       schema,
       // opt2?.itemName,

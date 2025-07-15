@@ -99,15 +99,15 @@ test('getValidationResult should still convert', async () => {
     a1: ' ff ', // to be converted
     a2: 'a', // invalid!
   }
-  const vr = getValidationResult(v, obj1Schema, 'objName')
-  expect(vr.value.a1).toBe('ff')
-  expect(vr.error).toBeInstanceOf(JoiValidationError)
-  expect(vr.error).toMatchSnapshot()
+  const [error, value] = getValidationResult(v, obj1Schema, 'objName')
+  expect(value?.a1).toBe('ff')
+  expect(error).toBeInstanceOf(JoiValidationError)
+  expect(error).toMatchSnapshot()
 })
 
 test('getValidationResult valid', async () => {
-  const vr = getValidationResult('asd', stringSchema)
-  expect(vr.error).toBeUndefined()
+  const [error] = getValidationResult('asd', stringSchema)
+  expect(error).toBeNull()
 })
 
 test('error should contain errorItems', async () => {
@@ -115,7 +115,7 @@ test('error should contain errorItems', async () => {
     a1: ' ff ', // to be converted
     a2: 'a', // invalid!
   }
-  const { error } = getValidationResult(v, obj1Schema, 'objName')
+  const [error] = getValidationResult(v, obj1Schema, 'objName')
   expect(error!.data).toMatchSnapshot()
 })
 
@@ -129,9 +129,9 @@ test('array items with unknown props', async () => {
     ],
   }
 
-  const { value, error } = getValidationResult(v, obj2Schema)
+  const [error, value] = getValidationResult(v, obj2Schema)
   // console.log(value)
-  expect(error).toBeUndefined()
+  expect(error).toBeNull()
 
   // Expect 'unk' to be stripped away, no validation error
   expect(value).toEqual({
@@ -149,7 +149,7 @@ test('array with invalid items', async () => {
     ],
   }
 
-  const { error } = getValidationResult(v, obj2Schema)
+  const [error] = getValidationResult(v, obj2Schema)
   // console.log(value)
   expect(error!.data).toMatchSnapshot()
 })
@@ -163,7 +163,7 @@ test('array items with invalid props', async () => {
     ],
   }
 
-  const { error } = getValidationResult(v, obj2Schema)
+  const [error] = getValidationResult(v, obj2Schema)
   expect(error!.data).toMatchSnapshot()
 })
 
@@ -175,7 +175,7 @@ test('long message string', () => {
 
   const longObject = Array.from({ length: 1000 }).fill({ a1: 5 })
 
-  const { error } = getValidationResult(longObject, objSchema)
+  const [error] = getValidationResult(longObject, objSchema)
   // console.log(error!.message, error!.message.length)
   expect(error!.message).toMatchSnapshot()
 })
@@ -190,19 +190,19 @@ test('should include id in the error message', () => {
   })
 
   // No objectName, with id
-  let { error } = getValidationResult(obj as any, obj1Schema)
+  let [error] = getValidationResult(obj as any, obj1Schema)
   // console.log(error)
   expect(error!.message).toMatchSnapshot()
   expect(error!.data).toMatchSnapshot()
 
   // ObjectName, with id
-  ;({ error } = getValidationResult(obj as any, obj1Schema, 'ObjName'))
+  ;[error] = getValidationResult(obj as any, obj1Schema, 'ObjName')
   // console.log(error)
   expect(error!.message).toMatchSnapshot()
   expect(error!.data).toMatchSnapshot()
 
   // No objectName, with id, constructor name
-  ;({ error } = getValidationResult(obj1, obj1Schema))
+  ;[error] = getValidationResult(obj1, obj1Schema)
   // console.log(error)
   expect(error!.message).toMatchSnapshot()
   expect(error!.data).toMatchSnapshot()
@@ -214,9 +214,9 @@ test('should return value on undefined schema', () => {
   }
 
   expect(validate(obj)).toBe(obj)
-  const { value, error } = getValidationResult(obj)
+  const [error, value] = getValidationResult(obj)
   expect(value).toBe(obj)
-  expect(error).toBeUndefined()
+  expect(error).toBeNull()
 })
 
 test('should convert empty string to undefined and strip', () => {
@@ -333,7 +333,7 @@ test.skip('arraySchema should strip undefined/null values by default', () => {
 
 test('annotation is non-enumerable, but still accessible', () => {
   const s = booleanSchema
-  const { error } = getValidationResult('notBoolean' as any, s)
+  const [error] = getValidationResult('notBoolean' as any, s)
   expect(error).toBeInstanceOf(JoiValidationError)
 
   expect(error!.data).toMatchInlineSnapshot(`
@@ -372,7 +372,7 @@ test('formatting of email error', () => {
     email: emailSchema,
   })
 
-  const { error } = getValidationResult(obj, schema)
+  const [error] = getValidationResult(obj, schema)
   expect(_stringify(error)).toMatchInlineSnapshot(`
     "JoiValidationError: "email" must be a valid email
 
@@ -400,8 +400,8 @@ test('should not mutate the input', () => {
     s: '12345678',
   }
 
-  const { value, error } = getValidationResult(obj, schema)
-  expect(error).toBeUndefined()
+  const [error, value] = getValidationResult(obj, schema)
+  expect(error).toBeNull()
   expect(value).toEqual({ s: '123' }) // truncated
   expect(obj.s, 'should not mutate').toBe('12345678')
   expect(value === obj).toBe(false) // should not reference the same object

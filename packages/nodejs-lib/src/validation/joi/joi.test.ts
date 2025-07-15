@@ -1,6 +1,7 @@
 import { expectTypeOf, test } from 'vitest'
 import type { JoiSchemaObject } from './joi.model.js'
 import { numberSchema, objectSchema, stringSchema } from './joi.shared.schemas.js'
+import type { JoiValidationError } from './joi.validation.error.js'
 import { getValidationResult, validate } from './joi.validation.util.js'
 
 interface ItemBM {
@@ -43,6 +44,13 @@ test('validate type inference', () => {
   const r = validate({} as any, itemBMSchema)
   expectTypeOf(r).toEqualTypeOf<ItemBM>()
 
-  const { value } = getValidationResult({} as any, itemBMSchema)
+  const [error, value] = getValidationResult({} as ItemBM, itemBMSchema)
+
   expectTypeOf(value).toEqualTypeOf<ItemBM>()
+
+  if (error) {
+    expectTypeOf(error).toEqualTypeOf<JoiValidationError>()
+  } else {
+    expectTypeOf(error).toEqualTypeOf<null>()
+  }
 })

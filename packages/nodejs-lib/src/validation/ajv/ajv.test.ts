@@ -32,7 +32,7 @@ test('simple', () => {
   schema.validate({ s: '' })
   schema.validate({ s: 's', int: 5 })
   expect(schema.isValid(valid)).toBe(true)
-  expect(schema.getValidationError(valid)).toBeUndefined()
+  expect(schema.getValidationResult(valid)[0]).toBeNull()
 
   // Should remove additonal
   const a = { s: 's', extra: 1 }
