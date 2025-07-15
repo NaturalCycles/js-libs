@@ -22,6 +22,50 @@ test('zod schemas with branded types should still be extensible', () => {
   expect(schema).toBeDefined()
 })
 
+describe('z.baseDBEntity', () => {
+  test('should have id, created, updated fields', () => {
+    const zodSchema = z.baseDBEntity()
+    const data = {
+      id: '123',
+      created: 1622547800,
+      updated: 1622547800,
+    }
+    const result = zodSchema.parse(data)
+    expect(result).toEqual(data)
+    expect(result.id).toBe('123')
+  })
+})
+
+describe('z.dbEntity', () => {
+  test('should have id, created, updated fields', () => {
+    const zodSchema = z.dbEntity()
+    const data = {
+      id: '123',
+      created: 1622547800,
+      updated: 1622547800,
+    }
+    const result = zodSchema.parse(data)
+    expect(result).toEqual(data)
+    expect(result.id).toBe('123')
+  })
+
+  test('should be extensible with additional fields', () => {
+    const zodSchema = z.dbEntity({
+      name: z.string(),
+    })
+    const data = {
+      id: '123',
+      created: 1622547800,
+      updated: 1622547800,
+      name: 'Test Entity',
+    }
+    const result = zodSchema.parse(data)
+    expect(result).toEqual(data)
+    expect(result.id).toBe('123')
+    expect(result.name).toBe('Test Entity')
+  })
+})
+
 describe('z.email', () => {
   test('should accept a valid email address', () => {
     const email = 'test@example.com'

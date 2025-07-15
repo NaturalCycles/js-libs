@@ -1,5 +1,7 @@
+import type { ZodObject, ZodString } from 'zod'
 import { z } from 'zod'
-import type { IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
+import type { $ZodLooseShape, $ZodShape, SomeType, util } from 'zod/v4/core'
+import type { BaseDBEntity, IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
 
 type ZodBranded<T, B> = T & Record<'_zod', Record<'output', number & B>>
 export type ZodBrandedString<B> = ZodBranded<z.ZodString, B>
@@ -88,10 +90,38 @@ export const zIanaTimezone = (): z.ZodEnum =>
     // UTC is added to assist unit-testing, which uses UTC by default (not technically a valid Iana timezone identifier)
     .enum([...Intl.supportedValuesOf('timeZone'), 'UTC'])
 
+export const zBaseDBEntity = (): z.ZodObject<{
+  id: ZodString
+  created: ZodBrandedInt<UnixTimestamp>
+  updated: ZodBrandedInt<UnixTimestamp>
+}> => {
+  return z.object({
+    id: z.string(),
+    created: zUnixTimestamp2000(),
+    updated: zUnixTimestamp2000(),
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type BaseDBEntityZodShape = {
+  id: ZodString
+  created: ZodBrandedInt<UnixTimestamp>
+  updated: ZodBrandedInt<UnixTimestamp>
+}
+
+function zDBEntity<T extends z.ZodRawShape>(): z.ZodObject<BaseDBEntityZodShape>
+function zDBEntity<T extends z.ZodRawShape>(shape: T): z.ZodObject<BaseDBEntityZodShape & T>
+
+function zDBEntity<T extends z.ZodRawShape>(shape?: T): z.ZodObject<BaseDBEntityZodShape & T> {
+  return zBaseDBEntity().extend(shape ?? {}) as z.ZodObject<BaseDBEntityZodShape & T>
+}
+
 export const customZodSchemas = {
   base62: zBase62,
   base64: zBase64,
   base64Url: zBase64Url,
+  baseDBEntity: zBaseDBEntity,
+  dbEntity: zDBEntity,
   email: zEmail,
   ianaTimezone: zIanaTimezone,
   isoDate: zIsoDate,
