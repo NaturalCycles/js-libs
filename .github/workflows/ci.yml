@@ -15,7 +15,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - { uses: actions/setup-node@v4, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm install
-      - run: pnpm warm
+      - run: pnpm build
       - run: pnpm install
       - run: pnpm check
 
@@ -31,9 +31,8 @@ jobs:
       - uses: pnpm/action-setup@v4
       - { uses: actions/setup-node@v4, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm install
-      - run: pnpm warm
-      - run: pnpm install
       - run: pnpm build
+      - run: pnpm install
       - run: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,9 +46,8 @@ jobs:
       - uses: pnpm/action-setup@v4
       - { uses: actions/setup-node@v4, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm install
-      - run: pnpm warm
-      - run: pnpm install
       - run: pnpm build
+      - run: pnpm install
       - run: pnpm docs:build
       - name: publish docs to github pages
         uses: peaceiris/actions-gh-pages@v4
