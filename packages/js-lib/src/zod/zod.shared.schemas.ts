@@ -1,7 +1,6 @@
-import type { ZodObject, ZodString } from 'zod'
+import type { ZodString } from 'zod'
 import { z } from 'zod'
-import type { $ZodLooseShape, $ZodShape, SomeType, util } from 'zod/v4/core'
-import type { BaseDBEntity, IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
+import type { IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
 
 type ZodBranded<T, B> = T & Record<'_zod', Record<'output', number & B>>
 export type ZodBrandedString<B> = ZodBranded<z.ZodString, B>
@@ -109,7 +108,7 @@ type BaseDBEntityZodShape = {
   updated: ZodBrandedInt<UnixTimestamp>
 }
 
-function zDBEntity<T extends z.ZodRawShape>(): z.ZodObject<BaseDBEntityZodShape>
+function zDBEntity(): z.ZodObject<BaseDBEntityZodShape>
 function zDBEntity<T extends z.ZodRawShape>(shape: T): z.ZodObject<BaseDBEntityZodShape & T>
 
 function zDBEntity<T extends z.ZodRawShape>(shape?: T): z.ZodObject<BaseDBEntityZodShape & T> {
