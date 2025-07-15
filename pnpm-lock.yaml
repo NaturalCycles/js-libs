@@ -380,9 +380,6 @@ importers:
       stylelint-config-standard-scss:
         specifier: ^15
         version: 15.0.1(postcss@8.5.6)(stylelint@16.21.1(typescript@5.8.3))
-      timekeeper:
-        specifier: ^2
-        version: 2.3.1
       typescript:
         specifier: ^5
         version: 5.8.3
@@ -6090,9 +6087,6 @@ packages:
   time-span@5.1.0:
     resolution: {integrity: sha512-75voc/9G4rDIJleOo4jPvN4/YC4GRZrY8yy1uU4lwrB3XEQbWve8zXoO5No4eFrGcTAMYyoY67p8jRQdtA1HbA==}
     engines: {node: '>=12'}
-
-  timekeeper@2.3.1:
-    resolution: {integrity: sha512-LeQRS7/4JcC0PgdSFnfUiStQEdiuySlCj/5SJ18D+T1n9BoY7PxKFfCwLulpHXoLUFr67HxBddQdEX47lDGx1g==}
 
   timestring@6.0.0:
     resolution: {integrity: sha512-wMctrWD2HZZLuIlchlkE2dfXJh7J2KDI9Dwl+2abPYg0mswQHfOAyQW3jJg1pY5VfttSINZuKcXoB3FGypVklA==}
@@ -12437,8 +12431,6 @@ snapshots:
   time-span@5.1.0:
     dependencies:
       convert-hrtime: 5.0.0
-
-  timekeeper@2.3.1: {}
 
   timestring@6.0.0: {}
 

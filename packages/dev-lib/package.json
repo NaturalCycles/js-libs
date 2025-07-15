@@ -39,7 +39,6 @@
     "micromatch": "^4",
     "mitm": "^1",
     "prettier": "^3",
-    "timekeeper": "^2",
     "typescript-eslint": "^8",
     "vue-eslint-parser": "^10"
   },
