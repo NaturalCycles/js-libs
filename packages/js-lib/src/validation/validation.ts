@@ -2,11 +2,6 @@ import type { AppError } from '../error/error.util.js'
 import type { ErrorDataTuple } from '../types.js'
 
 /**
- * Item to be validated.
- * Can be null or undefined, which allows validation function to produce an error,
- * if undefined/null are not accepted. But they might be accepted too, it depends
- * on the schema (implementation detail of the ValidationFunction).
- *
  * Function returns a tuple of [err, item].
  * In case of error it will be [err, null].
  * In case of success it is [null, item].
@@ -17,7 +12,7 @@ import type { ErrorDataTuple } from '../types.js'
  * @experimental
  */
 export type ValidationFunction<T, ERR extends AppError> = (
-  item: T | null | undefined,
+  item: T,
   opt?: ValidationFunctionOptions,
 ) => ErrorDataTuple<T, ERR>
 
