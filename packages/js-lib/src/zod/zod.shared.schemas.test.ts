@@ -22,20 +22,6 @@ test('zod schemas with branded types should still be extensible', () => {
   expect(schema).toBeDefined()
 })
 
-describe('z.baseDBEntity', () => {
-  test('should have id, created, updated fields', () => {
-    const zodSchema = z.baseDBEntity()
-    const data = {
-      id: '123',
-      created: 1622547800,
-      updated: 1622547800,
-    }
-    const result = zodSchema.parse(data)
-    expect(result).toEqual(data)
-    expect(result.id).toBe('123')
-  })
-})
-
 describe('z.dbEntity', () => {
   test('should have id, created, updated fields', () => {
     const zodSchema = z.dbEntity()

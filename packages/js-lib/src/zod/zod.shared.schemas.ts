@@ -119,7 +119,6 @@ export const customZodSchemas = {
   base62: zBase62,
   base64: zBase64,
   base64Url: zBase64Url,
-  baseDBEntity: zBaseDBEntity,
   dbEntity: zDBEntity,
   email: zEmail,
   ianaTimezone: zIanaTimezone,
