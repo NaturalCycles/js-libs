@@ -39,7 +39,7 @@
     "micromatch": "^4",
     "mitm": "^1",
     "prettier": "^3",
-    "typescript-eslint": "^8",
+    "typescript-eslint": "8.36.0",
     "vue-eslint-parser": "^10"
   },
   "peerDependencies": {
