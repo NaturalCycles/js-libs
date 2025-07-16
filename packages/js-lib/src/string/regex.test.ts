@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { zEmail } from '../zod/zod.shared.schemas.js'
+import { z } from '../zod/customZod.js'
 import { zIsValid } from '../zod/zod.util.js'
 import { SIMPLE_EMAIL_REGEX } from './regex.js'
 
@@ -8,7 +8,7 @@ test.each(['a@b.cc', 'kirill@naturalcycles.com', 'kirill@naturalcycles.co.uk'])(
   s => {
     expect(s).toMatch(SIMPLE_EMAIL_REGEX)
     // cross-check with Zod
-    expect(zIsValid(s, zEmail())).toBe(true)
+    expect(zIsValid(s, z.email())).toBe(true)
   },
 )
 
@@ -22,5 +22,5 @@ test.each([
 ])('email invalid %', s => {
   expect(s).not.toMatch(SIMPLE_EMAIL_REGEX)
   // cross-check with Zod
-  expect(zIsValid(s, zEmail())).toBe(false)
+  expect(zIsValid(s, z.email())).toBe(false)
 })
