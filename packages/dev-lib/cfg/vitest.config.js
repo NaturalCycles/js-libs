@@ -45,16 +45,17 @@ export function defineVitestConfig(config) {
     },
   })
 
-  const { silent, include, exclude, pool, maxWorkers } = mergedConfig.test
+  const { silent, pool, maxWorkers, isolate } = mergedConfig.test
 
   console.log({
     testType,
     silent,
     isCI,
     runsInIDE,
-    include,
-    exclude,
+    // include,
+    // exclude,
     pool,
+    isolate,
     maxWorkers,
   })
 
@@ -68,6 +69,7 @@ export const sharedConfig = {
   pool,
   minWorkers,
   maxWorkers,
+  isolate: true, // default
   watch: false,
   // dir: 'src',
   restoreMocks: true,
