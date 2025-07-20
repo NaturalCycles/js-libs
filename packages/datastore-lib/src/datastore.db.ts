@@ -15,6 +15,7 @@ import type {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
+import { _round } from '@naturalcycles/js-lib'
 import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _errorDataAppend, TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
@@ -660,7 +661,8 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
 
     return {
       // Datastore expects UnixTimestamp in milliseconds
-      readTime: opt.readAt * 1000,
+      // Datastore requires the timestamp to be rounded to the whole minutes
+      readTime: _round(opt.readAt, 60) * 1000,
     }
   }
 }
