@@ -932,7 +932,7 @@ class LocalTimeFactory {
   /**
    * Throws on invalid value.
    */
-  private validateDateTimeObject(o: DateTimeObject): void {
+  validateDateTimeObject(o: DateTimeObject): void {
     _assert(
       this.isDateTimeObjectValid(o),
       `Cannot construct LocalTime from: ${o.year}-${o.month}-${o.day} ${o.hour}:${o.minute}:${o.second}`,
