@@ -32,7 +32,7 @@
     "eslint-plugin-import-x": "^4",
     "eslint-plugin-jsdoc": "^51",
     "eslint-plugin-simple-import-sort": "^12",
-    "eslint-plugin-unicorn": "^59",
+    "eslint-plugin-unicorn": "^60",
     "eslint-plugin-vue": "^10",
     "globals": "^16",
     "lint-staged": "^16",

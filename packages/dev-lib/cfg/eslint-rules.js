@@ -408,6 +408,7 @@ export default {
     'unicorn/expiring-todo-comments': 1, // warning, instead of error
     '@typescript-eslint/return-await': [2, 'always'],
     '@typescript-eslint/require-await': 0,
+    'unicorn/no-array-reverse': 0, // too early
     '@typescript-eslint/no-misused-promises': 0,
     '@typescript-eslint/no-unsafe-assignment': 0,
     '@typescript-eslint/no-unsafe-member-access': 0,
