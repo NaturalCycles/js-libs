@@ -16,3 +16,4 @@ export function defineVitestConfig(config?: Partial<ViteUserConfig>): ViteUserCo
 export const sharedConfig: InlineConfig
 
 export const CollectReporter: any
+export const SummaryReporter: any

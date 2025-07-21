@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import { VitestAlphabeticSequencer } from './vitestAlphabeticSequencer.js'
 import { defineConfig } from 'vitest/config'
+import { SummaryReporter } from './summaryReporter.js'
+export { SummaryReporter } from './summaryReporter.js'
 export { CollectReporter } from './collectReporter.js'
 
 const runsInIDE = doesItRunInIDE()
@@ -90,6 +92,7 @@ export const sharedConfig = {
   exclude,
   reporters: [
     'default',
+    new SummaryReporter(),
     junitReporterEnabled && [
       'junit',
       {
