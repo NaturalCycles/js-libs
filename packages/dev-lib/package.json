@@ -10,6 +10,7 @@
     "typecheck": "tsx ./src/bin/dev-lib.ts typecheck",
     "clean": "tsx ./src/bin/dev-lib.ts clean",
     "build": "tsx ./src/bin/dev-lib.ts build",
+    "out": "tsx ./src/bin/out.ts",
     "test": "tsx ./src/bin/dev-lib.ts test",
     "test-leaks": "tsx ./src/bin/dev-lib.ts test-leaks",
     "test-integration": "tsx ./src/bin/dev-lib.ts test-integration",
@@ -87,6 +88,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
+    "out": "dist/bin/out.js",
     "dev-lib": "dist/bin/dev-lib.js"
   },
   "engines": {
