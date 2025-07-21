@@ -60,6 +60,8 @@ test.each([
   [1634.5678, 0.05, 1634.55],
   [17, 5, 15],
   [18, 5, 20],
+  [75, 60, 60],
+  [90, 60, 120],
 ])('_round(%s, %s) === %s', (n, precisionUnit, result) => {
   expect(_round(n, precisionUnit)).toBe(result)
 })
