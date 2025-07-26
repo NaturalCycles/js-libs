@@ -71,7 +71,7 @@ export const sharedConfig = {
   pool,
   minWorkers,
   maxWorkers,
-  isolate: true, // default
+  isolate: false,
   watch: false,
   // dir: 'src',
   restoreMocks: true,
