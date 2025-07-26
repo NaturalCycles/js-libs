@@ -16,6 +16,8 @@
     "test:all": "pnpm --filter '@naturalcycles/*' run test",
     "bt": "pnpm --filter '@naturalcycles/*' run bt",
     "dev-lib:build": "pnpm --filter @naturalcycles/dev-lib run build",
+    "dev-lib:lint": "pnpm --filter @naturalcycles/dev-lib run lint",
+    "dev-lib:test": "pnpm --filter @naturalcycles/dev-lib run test",
     "dev-lib:check": "pnpm --filter @naturalcycles/dev-lib run check",
     "dev-lib:bt": "pnpm --filter @naturalcycles/dev-lib run bt",
     "js-lib:check": "pnpm --filter @naturalcycles/js-lib run check",
