@@ -1227,7 +1227,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
 
     // Return as is if no schema is passed or if `skipConversion` is set
     if (
-      !schema ||
+      (!schema && !this.cfg.validateBM) ||
       opt.skipValidation ||
       (op === 'load' && !this.cfg.validateOnLoad) ||
       (op === 'save' && !this.cfg.validateOnSave)
