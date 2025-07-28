@@ -38,7 +38,7 @@ const stylelintConfigPath = [`stylelint.config.js`].find(fs.existsSync)
 
 const eslintConfigPathRoot = ['eslint.config.js'].find(p => fs.existsSync(p))
 
-const prettierCmd = !!prettierConfigPath && `prettier --write --config ${prettierConfigPath}`
+const prettierCmd = !!prettierConfigPath && `prettier --write --experimental-cli --config-path ${prettierConfigPath}`
 const eslintCmd = `eslint --fix`
 
 const stylelintExists =
