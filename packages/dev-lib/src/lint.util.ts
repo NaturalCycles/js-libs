@@ -198,7 +198,7 @@ const prettierPaths = [
   ...lintExclude.map((s: string) => `!${s}`),
 ]
 
-export function runPrettier(): void {
+export function runPrettier(experimentalCli = true): void {
   const prettierConfigPath = [`./prettier.config.js`].find(f => existsSync(f))
   if (!prettierConfigPath) return
 
@@ -206,7 +206,16 @@ export function runPrettier(): void {
 
   // prettier --write 'src/**/*.{js,ts,css,scss,graphql}'
   exec2.spawn(prettierPath, {
-    args: [`--write`, `--log-level=warn`, `--config`, prettierConfigPath, ...prettierPaths],
+    args: [
+      `--write`,
+      `--log-level=warn`,
+      // '--cache-location',
+      // `${process.cwd()}/node_modules/.cache/prettier`,
+      experimentalCli && `--experimental-cli`,
+      experimentalCli ? '--config-path' : `--config`,
+      prettierConfigPath,
+      ...prettierPaths,
+    ].filter(_isTruthy),
     shell: false,
   })
 }
