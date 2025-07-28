@@ -9,6 +9,8 @@ onlyBuiltDependencies:
   - esbuild
   - sqlite3
   - unrs-resolver
+strictDepBuilds: true
+ignoreWorkspaceCycles: true
 patchedDependencies:
   semantic-release-pnpm: patches/semantic-release-pnpm.patch
   '@types/pg': patches/@types__pg.patch
