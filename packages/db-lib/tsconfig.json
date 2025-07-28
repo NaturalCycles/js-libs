@@ -2,5 +2,5 @@
   "extends": "@naturalcycles/dev-lib/cfg/tsconfig.json",
   "compilerOptions": {},
   "include": ["src"],
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }

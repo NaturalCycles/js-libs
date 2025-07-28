@@ -3,8 +3,8 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "../dist",
-    "lib": ["es2023", "dom"],
+    "lib": ["es2023", "dom"]
     // "skipLibCheck": true,
   },
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }

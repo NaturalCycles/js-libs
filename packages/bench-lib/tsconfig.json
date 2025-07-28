@@ -2,8 +2,8 @@
   "extends": "@naturalcycles/dev-lib/cfg/tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "lib": ["esnext", "dom"],
+    "lib": ["esnext", "dom"]
   },
   "include": ["src"],
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }

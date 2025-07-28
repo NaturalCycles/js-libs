@@ -4,8 +4,8 @@
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
     "outDir": "./dist",
-    "declaration": false,
+    "declaration": false
   },
   "include": ["src"],
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }

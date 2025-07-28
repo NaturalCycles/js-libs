@@ -3,7 +3,7 @@
   "compilerOptions": {
     // "skipLibCheck": true,
     "declaration": true,
-    "sourceMap": false,
+    "sourceMap": false
   },
-  "exclude": ["**/__exclude", "src/test", "src/**/*.test.*"],
+  "exclude": ["**/__exclude", "src/test", "src/**/*.test.*"]
 }

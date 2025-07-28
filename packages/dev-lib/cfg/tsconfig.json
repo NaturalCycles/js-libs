@@ -58,8 +58,8 @@
     // Other
     "pretty": true,
     "newLine": "lf",
-    "experimentalDecorators": true,
-  },
+    "experimentalDecorators": true
+  }
   // Need to be specified in the project tsconfig
   // "include": ["src"],
   // "exclude": ["**/__exclude"]

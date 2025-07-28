@@ -7,7 +7,7 @@
     "baseUrl": "./",
     // "target": "es2023",
     "lib": ["esnext", "dom.iterable"],
-    "outDir": "../dist",
+    "outDir": "../dist"
   },
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }

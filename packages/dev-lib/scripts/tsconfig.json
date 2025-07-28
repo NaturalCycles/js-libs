@@ -5,7 +5,7 @@
   "extends": "../cfg/tsconfig.json",
   "compilerOptions": {
     "rootDir": "${configDir}/..",
-    "outDir": "${configDir}/../dist",
+    "outDir": "${configDir}/../dist"
   },
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }

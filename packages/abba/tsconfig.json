@@ -4,8 +4,8 @@
     "verbatimModuleSyntax": true,
     "useDefineForClassFields": false,
     "outDir": "dist",
-    "declaration": true,
+    "declaration": true
   },
   "include": ["src"],
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }

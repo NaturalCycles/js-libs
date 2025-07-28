@@ -59,9 +59,9 @@
     "jsx": "preserve",
     "pretty": true,
     "newLine": "lf",
-    "experimentalDecorators": true,
+    "experimentalDecorators": true
     // "emitDecoratorMetadata": true // use if needed
-  },
+  }
   // Need to be specified in the project tsconfig
   // "include": ["src"],
   // "exclude": ["**/__exclude", "**/@linked"]

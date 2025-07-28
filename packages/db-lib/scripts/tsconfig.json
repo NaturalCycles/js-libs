@@ -3,5 +3,5 @@
 //
 {
   "extends": "@naturalcycles/dev-lib/scripts/tsconfig.json",
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }

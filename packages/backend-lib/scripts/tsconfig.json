@@ -6,5 +6,5 @@
   "compilerOptions": {
     // "skipLibCheck": true, // because of https://github.com/dcodeIO/long.js/issues/109
   },
-  "exclude": ["**/__exclude"],
+  "exclude": ["**/__exclude"]
 }
