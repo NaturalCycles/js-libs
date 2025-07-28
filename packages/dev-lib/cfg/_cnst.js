@@ -1,6 +1,4 @@
-const prettierDirs = [
-  'src,scripts,e2e,docs,cfg,resources,.github,public,static,components,content,layouts,pages,plugins,middleware,store,blocks',
-]
+const prettierDirs = ['src,scripts,e2e,docs,cfg,resources,.github,public,static']
 // ts,tsx,css,scss excluded, cause they need to run in special order (overlap between >1 tool):
 const prettierExtensionsExclusive = 'js,jsx,json,md,graphql,yml,yaml,html'
 // everything that prettier supports:
