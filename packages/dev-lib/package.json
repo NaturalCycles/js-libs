@@ -47,7 +47,6 @@
     "@biomejs/biome": "^2",
     "eslint": "^9",
     "husky": "^9",
-    "prettier": "^3",
     "stylelint": "^16",
     "stylelint-config-standard-scss": "^15",
     "typescript": "^5"
