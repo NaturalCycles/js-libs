@@ -6,8 +6,6 @@ export function handleValidationError<T, ERR extends AppError>(
   originalProperty: T,
   opt: ReqValidationOptions<ERR> = {},
 ): never {
-  // const item: T = opt.mutate ? { ...req[reqProperty] } : (req[reqProperty] || {})
-
   let report: boolean | undefined
   if (typeof opt.report === 'boolean') {
     report = opt.report
@@ -54,11 +52,10 @@ export interface ReqValidationOptions<ERR extends AppError> {
   report?: boolean | ((err: ERR) => boolean)
 
   /**
-   * Defaults to false.
+   * Defaults to true.
    *
-   * When set to true, the validated object will be replaced with the converted value.
-   *
-   * To avoid mutation - shallow copy is performed.
+   * When set to true, input (body, query, headers or params) will be mutated.
+   * So, e.g req.body will already contain mutated data post-validation.
    */
   mutateInput?: boolean
 }

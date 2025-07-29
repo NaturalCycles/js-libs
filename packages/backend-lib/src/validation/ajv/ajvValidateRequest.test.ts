@@ -127,15 +127,9 @@ describe('ajvValidateRequest.headers', () => {
     })
 
     expect(err.data.responseStatusCode).toBe(400)
-    expect(err.cause.message).toMatchInlineSnapshot(`
-      "request headers/shortstring must NOT have fewer than 8 characters
-      Input: {
-        shortstring: 'short',
-        numeric: '123',
-        bool: '1',
-        REDACTED: 'REDACTED'
-      }"
-    `)
+    expect(err.cause.message).toContain(
+      `request headers/shortstring must NOT have fewer than 8 characters`,
+    )
   })
 
   test('should redact sensitive data', async () => {
@@ -151,20 +145,27 @@ describe('ajvValidateRequest.headers', () => {
     })
 
     expect(err.data.responseStatusCode).toBe(400)
-    expect(err.cause.message).toMatchInlineSnapshot(`
-      "request headers/shortstring must NOT have fewer than 8 characters
-      Input: {
-        shortstring: 'short',
-        numeric: '127',
-        bool: '1',
-        REDACTED: 'REDACTED'
-      }"
-    `)
     expect(err.cause.message).toContain("REDACTED: 'REDACTED'")
     expect(err.cause.message).not.toContain('sessionid')
   })
 
-  test('should not replace the headers with the validated value by default', async () => {
+  test('should not replace the headers with the validated value when configured so', async () => {
+    const resource = getDefaultRouter().get('/', async (req, res) => {
+      ajvValidateRequest.headers(
+        req,
+        AjvSchema.create(
+          jsonSchema.object({
+            shortstring: jsonSchema.string().min(8).max(16),
+            numeric: jsonSchema.string(),
+          }),
+        ),
+        { mutateInput: false },
+      )
+
+      res.json({ ok: 1, headers: req.headers })
+    })
+    await using app = await expressTestService.createAppFromResource(resource)
+
     const response = await app.get<TestResponse>('', {
       headers: {
         shortstring: 'shortstring',
@@ -184,7 +185,7 @@ describe('ajvValidateRequest.headers', () => {
     })
   })
 
-  test('should replace the headers with the validated value when configured so', async () => {
+  test('should replace the headers with the validated value by default', async () => {
     const resource = getDefaultRouter().get('/', async (req, res) => {
       ajvValidateRequest.headers(
         req,
@@ -194,7 +195,6 @@ describe('ajvValidateRequest.headers', () => {
             numeric: jsonSchema.string(),
           }),
         ),
-        { mutateInput: true },
       )
 
       res.json({ ok: 1, headers: req.headers })

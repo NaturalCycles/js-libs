@@ -5,7 +5,7 @@ import { AppError } from '../error/error.util.js'
 import { _stringify } from '../string/stringify.js'
 import type { ValidationFunction, ValidationFunctionResult } from '../validation/validation.js'
 
-export function zGetValidationFunction<T>(
+export function getZodValidationFunction<T>(
   schema: ZodType<T>,
 ): ValidationFunction<T, ZodValidationError> {
   return (input, opt) => {
