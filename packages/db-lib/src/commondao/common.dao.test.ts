@@ -433,6 +433,24 @@ test('validateAndConvert does not mutate and returns new reference', async () =>
   expect(bm === bm2).toBe(false)
 })
 
+test('should pass `mutateInput` option to the validateBM method', async () => {
+  const dao = new CommonDao<TestItemBM>({
+    table: TEST_TABLE,
+    db,
+    validateBM: (bm, opt) => {
+      expect(opt?.mutateInput).toBe(true)
+      return [null, bm]
+    },
+  })
+
+  await dao.save(
+    {
+      k1: 'sdf',
+    },
+    { mutateInput: true },
+  )
+})
+
 test('should preserve null on load and save', async () => {
   const r = await dao.save({
     id: '123',
