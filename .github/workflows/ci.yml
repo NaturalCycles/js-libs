@@ -17,7 +17,9 @@ jobs:
       - run: pnpm install
       - run: pnpm build
       - run: pnpm install
-      - run: pnpm check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:all
 
   release:
     runs-on: ubuntu-latest
