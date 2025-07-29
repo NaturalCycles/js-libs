@@ -174,7 +174,7 @@ describe('zodValidateRequest.headers', () => {
           shortstring: z.string().min(8).max(16),
           numeric: z.string(),
         }),
-        { mutate: true },
+        { mutateInput: true },
       )
 
       res.json({ ok: 1, headers: req.headers })

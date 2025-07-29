@@ -1,8 +1,18 @@
 import type { ZodError, ZodType } from 'zod'
+import { _assert } from '../error/assert.js'
 import type { ErrorData } from '../error/error.model.js'
 import { AppError } from '../error/error.util.js'
 import { _stringify } from '../string/stringify.js'
-import type { ValidationFunctionResult } from '../validation/validation.js'
+import type { ValidationFunction, ValidationFunctionResult } from '../validation/validation.js'
+
+export function zGetValidationFunction<T>(
+  schema: ZodType<T>,
+): ValidationFunction<T, ZodValidationError> {
+  return (input, opt) => {
+    _assert(!opt?.mutateInput, 'mutateInput=true is not yet supported with Zod')
+    return zSafeValidate(input, schema)
+  }
+}
 
 export function zIsValid<T>(value: T, schema: ZodType<T>): boolean {
   const { success } = schema.safeParse(value)
@@ -18,7 +28,7 @@ export function zValidate<T>(value: T, schema: ZodType<T>): T {
 export function zSafeValidate<T>(
   input: T,
   schema: ZodType<T>,
-  // objectName?: string,
+  // inputName?: string,
 ): ValidationFunctionResult<T, ZodValidationError> {
   const r = schema.safeParse(input)
   if (r.success) {
@@ -28,19 +38,7 @@ export function zSafeValidate<T>(
   return [new ZodValidationError(r.error, input, schema), r.data ?? input]
 }
 
-export interface ZodValidationErrorData extends ErrorData {
-  // issues: $ZodIssue[]
-  // joiValidationObjectName?: string
-  // joiValidationObjectId?: string
-  /**
-   * Error "annotation" is stripped in Error.message.
-   * This field contains the "full" annotation.
-   *
-   * This field is non-enumerable, won't be printed or included in JSON by default,
-   * but still accessible programmatically (via `err.data.annotation`) when needed!
-   */
-  // annotation?: string
-}
+export interface ZodValidationErrorData extends ErrorData {}
 
 export class ZodValidationError extends AppError<ZodValidationErrorData> {
   constructor(zodError: ZodError, value: any, schema: ZodType) {
@@ -54,9 +52,9 @@ function createZodErrorMessage<T>(err: ZodError<T>, schema: ZodType<T>, value: T
   let objectTitle = schema.description
 
   if (typeof value === 'object' && value) {
-    const objectName = schema.description || value.constructor?.name
-    const objectId = (value as any)['id'] as string
-    objectTitle = [objectName, objectId].filter(Boolean).join('.')
+    const inputName = schema.description || value.constructor?.name
+    const inputId = (value as any)['id'] as string
+    objectTitle = [inputName, inputId].filter(Boolean).join('.')
   }
 
   objectTitle ||= 'data'

@@ -60,5 +60,5 @@ export interface ReqValidationOptions<ERR extends AppError> {
    *
    * To avoid mutation - shallow copy is performed.
    */
-  mutate?: boolean
+  mutateInput?: boolean
 }

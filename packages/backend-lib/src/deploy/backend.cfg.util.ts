@@ -42,7 +42,7 @@ export interface BackendCfg {
 
 const getBackendCfgSchema = _lazyValue(() => {
   const schemaJson = fs2.readJson<JsonSchema<BackendCfg>>(`${resourcesDir}/backendCfg.schema.json`)
-  return AjvSchema.create(schemaJson, { objectName: 'backend.cfg.yaml' })
+  return AjvSchema.create(schemaJson, { inputName: 'backend.cfg.yaml' })
 })
 
 export function getBackendCfg(projectDir = '.'): BackendCfg {

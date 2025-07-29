@@ -1,3 +1,4 @@
+import { _deepFreeze } from '@naturalcycles/js-lib/object/object.util.js'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
@@ -16,6 +17,7 @@ import {
 import { JoiValidationError } from './joi.validation.error.js'
 import {
   convert,
+  getJoiValidationFunction,
   getValidationResult,
   isValid,
   undefinedIfInvalid,
@@ -189,19 +191,19 @@ test('should include id in the error message', () => {
     id: 'someId',
   })
 
-  // No objectName, with id
+  // No inputName, with id
   let [error] = getValidationResult(obj as any, obj1Schema)
   // console.log(error)
   expect(error!.message).toMatchSnapshot()
   expect(error!.data).toMatchSnapshot()
 
-  // ObjectName, with id
+  // InputName, with id
   ;[error] = getValidationResult(obj as any, obj1Schema, 'ObjName')
   // console.log(error)
   expect(error!.message).toMatchSnapshot()
   expect(error!.data).toMatchSnapshot()
 
-  // No objectName, with id, constructor name
+  // No inputName, with id, constructor name
   ;[error] = getValidationResult(obj1, obj1Schema)
   // console.log(error)
   expect(error!.message).toMatchSnapshot()
@@ -405,4 +407,25 @@ test('should not mutate the input', () => {
   expect(value).toEqual({ s: '123' }) // truncated
   expect(obj.s, 'should not mutate').toBe('12345678')
   expect(value === obj).toBe(false) // should not reference the same object
+})
+
+test('getJoiValidationFunction', () => {
+  interface Obj {
+    s: string
+  }
+
+  const schema = objectSchema<Obj>({
+    s: stringSchema,
+  })
+
+  const fn = getJoiValidationFunction(schema)
+
+  const input: Obj = {
+    s: 'test',
+  }
+  _deepFreeze(input) // ensure non-mutation
+
+  const [err, value] = fn(input)
+  expect(err).toBeNull()
+  expect(value).toEqual(input)
 })

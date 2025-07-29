@@ -50,13 +50,14 @@ class AjvValidateRequest {
     schema: AjvSchema<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    const { mutate } = opt
+    const { mutateInput } = opt
     const originalProperty = req[reqProperty] || {}
-    const item: T = mutate ? originalProperty : { ...originalProperty }
+    const item: T = mutateInput ? originalProperty : { ...originalProperty }
 
     // Ajv mutates the input
     const [error, output] = schema.getValidationResult(item, {
-      objectName: `request ${reqProperty}`,
+      mutateInput: true,
+      inputName: `request ${reqProperty}`,
     })
 
     if (error) {

@@ -4,8 +4,8 @@ import type { ErrorObject } from 'ajv'
 
 export interface AjvValidationErrorData extends ErrorData {
   errors: ErrorObject[]
-  objectName?: string
-  objectId?: string
+  inputName?: string
+  inputId?: string
 }
 
 export class AjvValidationError extends AppError<AjvValidationErrorData> {

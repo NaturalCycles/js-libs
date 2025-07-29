@@ -49,7 +49,7 @@ test('ajvValidateRequest', async () => {
             "schemaPath": "#/properties/pw/minLength",
           },
         ],
-        "objectName": "request body",
+        "inputName": "request body",
       },
       "message": "request body/pw must NOT have fewer than 8 characters
     Input: { pw: 'REDACTED' }",
@@ -194,7 +194,7 @@ describe('ajvValidateRequest.headers', () => {
             numeric: jsonSchema.string(),
           }),
         ),
-        { mutate: true },
+        { mutateInput: true },
       )
 
       res.json({ ok: 1, headers: req.headers })
