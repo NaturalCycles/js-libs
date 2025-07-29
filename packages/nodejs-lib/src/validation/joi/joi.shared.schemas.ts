@@ -7,6 +7,7 @@ import {
 import type {
   BaseDBEntity,
   IANATimezone,
+  IsoDate,
   IsoDateTime,
   NumberEnum,
   StringEnum,
@@ -26,7 +27,7 @@ export const numberSchema = Joi.number()
 export const numberSchemaTyped = <T>(): NumberSchema<T> => Joi.number<T>()
 export const integerSchema = Joi.number().integer()
 export const percentageSchema = Joi.number().integer().min(0).max(100)
-export const dateStringSchema = stringSchema.dateString()
+export const dateStringSchema: StringSchema<IsoDate> = stringSchema.dateString()
 export const binarySchema = Joi.binary()
 export const dateObjectSchema = Joi.object().instance(Date)
 
