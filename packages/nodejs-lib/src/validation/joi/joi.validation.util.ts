@@ -6,7 +6,13 @@
  * "Converts" mean e.g trims all strings from leading/trailing spaces.
  */
 
-import { _hb, _isObject, type ValidationFunctionResult } from '@naturalcycles/js-lib'
+import {
+  _hb,
+  _isObject,
+  type ValidationFunction,
+  type ValidationFunctionResult,
+} from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _truncateMiddle } from '@naturalcycles/js-lib/string/string.util.js'
 import type { AnySchema, ValidationError, ValidationOptions } from 'joi'
 import type { JoiValidationErrorData } from './joi.validation.error.js'
@@ -37,6 +43,15 @@ const defaultOptions: ValidationOptions = {
   // }
 }
 
+export function getJoiValidationFunction<T>(
+  schema: AnySchema<T>,
+): ValidationFunction<T, JoiValidationError> {
+  return (input, opt) => {
+    _assert(!opt?.mutateInput, 'mutateInput=true is not yet supported with Joi')
+    return getValidationResult(input, schema, opt?.inputName)
+  }
+}
+
 /**
  * Validates with Joi.
  * Throws JoiValidationError if invalid.
@@ -47,10 +62,10 @@ const defaultOptions: ValidationOptions = {
 export function validate<T>(
   input: any,
   schema?: AnySchema<T>,
-  objectName?: string,
+  inputName?: string,
   opt: ValidationOptions = {},
 ): T {
-  const [error, returnValue] = getValidationResult(input, schema, objectName, opt)
+  const [error, returnValue] = getValidationResult(input, schema, inputName, opt)
   if (error) throw error
   return returnValue
 }
@@ -67,7 +82,7 @@ export function validate<T>(
 export function getValidationResult<T>(
   input: T,
   schema?: AnySchema<T>,
-  objectName?: string,
+  inputName?: string,
   options: ValidationOptions = {},
 ): ValidationFunctionResult<T, JoiValidationError> {
   if (!schema) return [null, input]
@@ -77,7 +92,7 @@ export function getValidationResult<T>(
     ...options,
   })
 
-  const err = error ? createError(input, error, objectName) : null
+  const err = error ? createError(input, error, inputName) : null
   return [err, value]
 }
 
@@ -110,15 +125,15 @@ export function convert<T>(input: any, schema?: AnySchema<T>): T {
   return value
 }
 
-function createError(value: any, err: ValidationError, objectName?: string): JoiValidationError {
+function createError(value: any, err: ValidationError, inputName?: string): JoiValidationError {
   const tokens: string[] = []
 
-  const objectId = _isObject(value) ? (value['id'] as string) : undefined
+  const inputId = _isObject(value) ? (value['id'] as string) : undefined
 
-  if (objectId || objectName) {
-    objectName ||= value?.constructor?.name
+  if (inputId || inputName) {
+    inputName ||= value?.constructor?.name
 
-    tokens.push('Invalid ' + [objectName, objectId].filter(Boolean).join('.'))
+    tokens.push('Invalid ' + [inputName, inputId].filter(Boolean).join('.'))
   }
 
   const annotation = err.annotate(stripColors)
@@ -151,8 +166,8 @@ function createError(value: any, err: ValidationError, objectName?: string): Joi
 
   const data: JoiValidationErrorData = {
     joiValidationErrorItems: err.details,
-    ...(objectName && { joiValidationObjectName: objectName }),
-    ...(objectId && { joiValidationObjectId: objectId }),
+    ...(inputName && { joiValidationInputName: inputName }),
+    ...(inputId && { joiValidationInputId: inputId }),
   }
 
   // Make annotation non-enumerable, to not get it automatically printed,

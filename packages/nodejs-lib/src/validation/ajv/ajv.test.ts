@@ -22,10 +22,10 @@ interface TestType {
   s2: string | null
 }
 
-test('simple', () => {
-  const jsonSchemaSimple = fs2.readJson<JsonSchema<Simple>>(`${testDir}/schema/simple.schema.json`)
-  const schema = AjvSchema.create(jsonSchemaSimple)
+const jsonSchemaSimple = fs2.readJson<JsonSchema<Simple>>(`${testDir}/schema/simple.schema.json`)
+const schema = AjvSchema.create(jsonSchemaSimple)
 
+test('simple', () => {
   // Valid
   const valid: Simple = { s: 's' }
   schema.validate(valid)
@@ -36,7 +36,7 @@ test('simple', () => {
 
   // Should remove additonal
   const a = { s: 's', extra: 1 }
-  schema.validate(a)
+  schema.validate(a, { mutateInput: true })
   expect(a).toEqual({ s: 's' }) // extra removed, no error
 
   // Error, required property
@@ -62,19 +62,19 @@ test('simple', () => {
           "schemaPath": "#/required",
         },
       ],
-      "objectName": "simple",
+      "inputName": "simple",
     }
   `)
 
   // Object name, id from options
-  expect(() => schema.validate(missing, { objectName: 'Simple', objectId: 'id1' }))
+  expect(() => schema.validate(missing, { inputName: 'Simple', inputId: 'id1' }))
     .toThrowErrorMatchingInlineSnapshot(`
       [AjvValidationError: Simple.id1 must have required property 's'
       Input: {}]
     `)
 
   // Object name without id from options
-  expect(() => schema.validate(missing, { objectName: 'Simple' }))
+  expect(() => schema.validate(missing, { inputName: 'Simple' }))
     .toThrowErrorMatchingInlineSnapshot(`
       [AjvValidationError: Simple must have required property 's'
       Input: {}]
@@ -85,6 +85,15 @@ test('simple', () => {
     [AjvValidationError: simple.id2 must have required property 's'
     Input: { id: 'id2' }]
   `)
+})
+
+test('should not mutate input by default', () => {
+  const input = { s: 's', extra: 'abc' } as Simple
+  _deepFreeze(input)
+  const result = schema.validate(input)
+  expect(result).toEqual({ s: 's' }) // extra removed
+  expect(input).toEqual({ s: 's', extra: 'abc' }) // input is not mutated
+  expect(result !== input).toBe(true) // different object is returned
 })
 
 test('TestType', () => {
@@ -166,7 +175,7 @@ test.each([
   const ajvSchema = AjvSchema.create(schema)
   objects.forEach(obj => {
     // should not throw
-    ajvSchema.validate(obj)
+    ajvSchema.validate(obj, { mutateInput: true })
   })
 })
 
@@ -230,7 +239,7 @@ test('default string', () => {
   schema.validate(obj1)
 
   const obj2 = {}
-  schema.validate(obj2)
+  schema.validate(obj2, { mutateInput: true })
   expect(obj2).toEqual({ s: 'def' })
 })
 
@@ -254,13 +263,14 @@ test('default object', () => {
   _deepFreeze(obj1)
   schema.validate(obj1)
 
-  // Additional props should be removed
   const obj2 = { o: { extra: 123 } }
-  schema.validate(obj2)
+  expect(schema.validate(obj2)).toEqual({ o: {} }) // Additional props are removed
+  expect(obj2).toEqual({ o: { extra: 123 } }) // input object is not mutated
+  schema.validate(obj2, { mutateInput: true })
   expect(obj2).toEqual({ o: {} })
 
   const obj3 = {}
-  schema.validate(obj3)
+  schema.validate(obj3, { mutateInput: true })
   expect(obj3).toEqual({ o: { hello: 'world', also: { n: 1 } } })
 })
 
@@ -280,18 +290,18 @@ test('transform string', () => {
   schema.validate(obj1)
 
   const obj2 = { s: '   lo Lo lO' }
-  schema.validate(obj2)
+  schema.validate(obj2, { mutateInput: true })
   expect(obj2).toEqual({ s: 'lo lo lo' })
 })
 
-test('objectName', () => {
+test('inputName', () => {
   const s = AjvSchema.create(
     {},
     {
-      objectName: 'body',
+      inputName: 'body',
     },
   )
-  expect(s.cfg.objectName).toBe('body')
+  expect(s.cfg.inputName).toBe('body')
 })
 
 interface Item {
@@ -316,8 +326,8 @@ test('types', () => {
 test('buffer', () => {
   const schema = AjvSchema.create({
     instanceof: 'Buffer',
-  } as any)
-  schema.validate(Buffer.from('abc'))
+  })
+  schema.validate(Buffer.from('abc'), { mutateInput: true })
 
   expect(schema.isValid('a b c' as any)).toBe(false)
 })

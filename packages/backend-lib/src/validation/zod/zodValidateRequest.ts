@@ -50,7 +50,7 @@ class ZodValidateRequest {
     schema: ZodType<T>,
     opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
-    const { mutate } = opt
+    const { mutateInput } = opt
     const originalProperty = req[reqProperty] || {}
 
     // Zod does not mutate the input
@@ -64,7 +64,7 @@ class ZodValidateRequest {
       handleValidationError(error, originalProperty, opt)
     }
 
-    if (mutate) {
+    if (mutateInput) {
       req[reqProperty] = data
     }
 

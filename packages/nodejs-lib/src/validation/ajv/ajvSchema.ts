@@ -1,7 +1,12 @@
-import { _isObject, _lazyValue, type ValidationFunctionResult } from '@naturalcycles/js-lib'
+import {
+  _isObject,
+  _lazyValue,
+  type ValidationFunction,
+  type ValidationFunctionResult,
+} from '@naturalcycles/js-lib'
 import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib/json-schema'
 import { JsonSchemaAnyBuilder } from '@naturalcycles/js-lib/json-schema'
-import { _filterNullishValues } from '@naturalcycles/js-lib/object'
+import { _deepCopy, _filterNullishValues } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
 import type { Ajv } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
@@ -9,8 +14,17 @@ import { AjvValidationError } from './ajvValidationError.js'
 import { getAjv } from './getAjv.js'
 
 export interface AjvValidationOptions {
-  objectName?: string
-  objectId?: string
+  /**
+   * Defaults to false.
+   *
+   * If set to true - AJV will mutate the input in case it needs to apply transformations
+   * (strip unknown properties, convert types, etc).
+   *
+   * If false - it will deep-clone the input to prevent its mutation. Will return the cloned/mutated object.
+   */
+  mutateInput?: boolean
+  inputName?: string
+  inputId?: string
 }
 
 export interface AjvSchemaCfg {
@@ -20,13 +34,7 @@ export interface AjvSchemaCfg {
    */
   ajv: Ajv
 
-  /**
-   * Dependent schemas to pass to Ajv instance constructor.
-   * Simpler than instantiating and passing ajv instance yourself.
-   */
-  // schemas?: (JsonSchema | JsonSchemaBuilder | AjvSchema)[]
-
-  objectName?: string
+  inputName?: string
 
   /**
    * Option of Ajv.
@@ -59,23 +67,12 @@ export class AjvSchema<T = unknown> {
       lazy: false,
       ...cfg,
       ajv: cfg.ajv || getAjv(),
-      // ajv:
-      //   cfg.ajv ||
-      //   getAjv({
-      //     schemas: cfg.schemas?.map(s => {
-      //       if (s instanceof AjvSchema) return s.schema
-      //       if (s instanceof JsonSchemaAnyBuilder) return s.build()
-      //       return s as JsonSchema
-      //     }),
-      //     coerceTypes: cfg.coerceTypes || false,
-      //     // verbose: true,
-      //   }),
-      // Auto-detecting "ObjectName" from $id of the schema (e.g "Address.schema.json")
-      objectName: cfg.objectName || (schema.$id ? _substringBefore(schema.$id, '.') : undefined),
+      // Auto-detecting "InputName" from $id of the schema (e.g "Address.schema.json")
+      inputName: cfg.inputName || (schema.$id ? _substringBefore(schema.$id, '.') : undefined),
     }
 
     if (!cfg.lazy) {
-      this.getValidateFunction() // compile eagerly
+      this.getAJVValidateFunction() // compile eagerly
     }
   }
 
@@ -114,8 +111,6 @@ export class AjvSchema<T = unknown> {
 
   readonly cfg: AjvSchemaCfg
 
-  private getValidateFunction = _lazyValue(() => this.cfg.ajv.compile<T>(this.schema))
-
   /**
    * It returns the original object just for convenience.
    * Reminder: Ajv will MUTATE your object under 2 circumstances:
@@ -125,31 +120,37 @@ export class AjvSchema<T = unknown> {
    * Returned object is always the same object (`===`) that was passed, so it is returned just for convenience.
    */
   validate(input: T, opt: AjvValidationOptions = {}): T {
-    const [error, output] = this.getValidationResult(input, opt)
-    if (error) throw error
+    const [err, output] = this.getValidationResult(input, opt)
+    if (err) throw err
     return output
   }
 
-  isValid(input: T): boolean {
-    return this.getValidateFunction()(input)
+  isValid(input: T, opt?: AjvValidationOptions): boolean {
+    const [err] = this.getValidationResult(input, opt)
+    return !err
   }
 
   getValidationResult(
     input: T,
     opt: AjvValidationOptions = {},
   ): ValidationFunctionResult<T, AjvValidationError> {
-    if (this.isValid(input)) return [null, input]
+    const fn = this.getAJVValidateFunction()
 
-    const errors = this.getValidateFunction().errors!
+    const item = opt.mutateInput || typeof input !== 'object' ? input : _deepCopy(input)
+
+    const valid = fn(item) // mutates item
+    if (valid) return [null, item]
+
+    const errors = fn.errors!
 
     const {
-      objectId = _isObject(input) ? (input['id' as keyof T] as any) : undefined,
-      objectName = this.cfg.objectName,
+      inputId = _isObject(input) ? (input['id' as keyof T] as any) : undefined,
+      inputName = this.cfg.inputName || 'Object',
     } = opt
-    const name = [objectName || 'Object', objectId].filter(Boolean).join('.')
+    const dataVar = [inputName, inputId].filter(Boolean).join('.')
 
     let message = this.cfg.ajv.errorsText(errors, {
-      dataVar: name,
+      dataVar,
       separator,
     })
 
@@ -160,12 +161,24 @@ export class AjvSchema<T = unknown> {
       message,
       _filterNullishValues({
         errors,
-        objectName,
-        objectId,
+        inputName,
+        inputId,
       }),
     )
-    return [err, input]
+    return [err, item]
   }
+
+  getValidationFunction(): ValidationFunction<T, AjvValidationError> {
+    return (input, opt) => {
+      return this.getValidationResult(input, {
+        mutateInput: opt?.mutateInput,
+        inputName: opt?.inputName,
+        inputId: opt?.inputId,
+      })
+    }
+  }
+
+  private getAJVValidateFunction = _lazyValue(() => this.cfg.ajv.compile<T>(this.schema))
 }
 
 const separator = '\n'

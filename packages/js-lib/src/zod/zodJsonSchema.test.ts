@@ -140,9 +140,10 @@ test('happy case', () => {
 
   const accountResult = accountAjvSchema.validate(account)
   expect(accountResult).toStrictEqual(account)
-  // expect(accountResult !== account, 'should not mutate the original object').toBe(true)
-  // it actually mutates the original object
-  expect(accountResult === account, 'should return the reference to the same object').toBe(true)
+  expect(accountResult !== account, 'should not mutate the original object').toBe(true)
+
+  const accountResult2 = accountAjvSchema.validate(account, { mutateInput: true })
+  expect(accountResult2 === account, 'should return the reference to the same object').toBe(true)
 })
 
 test('email invalid', () => {

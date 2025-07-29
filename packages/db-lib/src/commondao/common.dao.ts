@@ -1235,16 +1235,17 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
       return obj
     }
 
-    // This will Convert and Validate
-    const table = opt.table || this.cfg.table
-    const objectName = table
-
+    const inputName = opt.table || this.cfg.table
     let error: JoiValidationError | AjvValidationError | ZodValidationError | null | undefined
     let convertedValue: any
 
     if (this.cfg.validateBM) {
       const [err, value] = this.cfg.validateBM(obj as any as BM, {
-        inputName: table,
+        // Passing `mutateInput` through allows to do opt-in mutation
+        // for individual operations, e.g `someDao.save(myObj, { mutateInput: true })`,
+        // while still keeping safe non-mutating behavior by default
+        mutateInput: opt.mutateInput,
+        inputName,
       })
       error = err
       convertedValue = value
@@ -1256,13 +1257,13 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     } else if (schema instanceof AjvSchema) {
       // Ajv schema
       const [err, value] = schema.getValidationResult(obj as T, {
-        objectName,
+        inputName,
       })
       error = err
       convertedValue = value
     } else {
       // Joi
-      const [err, value] = getValidationResult(obj, schema, objectName)
+      const [err, value] = getValidationResult(obj, schema, inputName)
       error = err
       convertedValue = value
     }

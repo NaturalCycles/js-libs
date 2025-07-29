@@ -38,7 +38,7 @@ test('validateRequest', async () => {
   "data": {
     "backendResponseStatusCode": 400,
     "joiValidationErrorItems": [],
-    "joiValidationObjectName": "request body",
+    "joiValidationInputName": "request body",
   },
   "message": "Invalid request body
 {
@@ -187,7 +187,7 @@ describe('validateRequest.headers', () => {
           shortstring: stringSchema.min(8).max(16),
           numeric: numberSchema,
         }),
-        { mutate: true },
+        { mutateInput: true },
       )
 
       res.json({ ok: 1, headers: req.headers })

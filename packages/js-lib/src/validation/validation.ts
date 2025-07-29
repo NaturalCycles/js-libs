@@ -24,6 +24,16 @@ export type ValidationFunctionResult<T, ERR extends AppError> = [err: ERR | null
 
 export interface ValidationFunctionOptions {
   /**
+   * Defaults to false,
+   * which means that the ValidationFunction IS NOT ALLOWED to mutate the input.
+   * If set to true - the ValidationFunction HAS TO mutate the input
+   * if it needs to apply transformations, such as:
+   * - stripping unknown properties
+   * - converting types (e.g. string to number)
+   * - applying transformations (which as string trim, toLowerCase, etc)
+   */
+  mutateInput?: boolean
+  /**
    * E.g User
    * Used for error message printing.
    */

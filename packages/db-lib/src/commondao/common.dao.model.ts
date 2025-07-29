@@ -130,6 +130,8 @@ export interface CommonDaoCfg<
 
   /**
    * Joi, AjvSchema or ZodSchema is supported.
+   *
+   * @deprecated - use `validateBM` instead.
    */
   bmSchema?: ObjectSchema<BM> | AjvSchema<BM> | ZodType<BM>
 
@@ -233,10 +235,23 @@ export interface CommonDaoOptions extends CommonDBOptions {
   /**
    * Defaults to false.
    *
-   * If set to true - will disable validation (and conversion).
-   * One possible use case of doing this is - performance (as validation/conversion takes time, especially with Joi).
+   * If set to true - will disable validation.
+   * One possible use case of doing this is - performance (as validation/transformation takes time, especially with Joi).
    */
   skipValidation?: boolean
+
+  /**
+   * Default to false.
+   *
+   * False ensures that the input is not mutated by the Validation function (`validateBM`).
+   *
+   * True ensures the opposite - that the Validation function will mutate the input object
+   * if it needs to apply transformations, such as:
+   * - stripping unknown properties
+   * - converting types (e.g. string to number)
+   * - applying transformations (which as string trim, toLowerCase, etc)
+   */
+  mutateInput?: boolean
 
   /**
    * @default false

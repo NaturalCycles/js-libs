@@ -60,7 +60,7 @@ exports[`error should contain errorItems 1`] = `
       "type": "string.min",
     },
   ],
-  "joiValidationObjectName": "objName",
+  "joiValidationInputName": "objName",
 }
 `;
 
@@ -200,8 +200,8 @@ exports[`should include id in the error message 2`] = `
       "type": "any.required",
     },
   ],
-  "joiValidationObjectId": "someId",
-  "joiValidationObjectName": "Object",
+  "joiValidationInputId": "someId",
+  "joiValidationInputName": "Object",
 }
 `;
 
@@ -230,8 +230,8 @@ exports[`should include id in the error message 4`] = `
       "type": "any.required",
     },
   ],
-  "joiValidationObjectId": "someId",
-  "joiValidationObjectName": "ObjName",
+  "joiValidationInputId": "someId",
+  "joiValidationInputName": "ObjName",
 }
 `;
 
@@ -260,7 +260,7 @@ exports[`should include id in the error message 6`] = `
       "type": "any.required",
     },
   ],
-  "joiValidationObjectId": "someId",
-  "joiValidationObjectName": "Obj1",
+  "joiValidationInputId": "someId",
+  "joiValidationInputName": "Obj1",
 }
 `;

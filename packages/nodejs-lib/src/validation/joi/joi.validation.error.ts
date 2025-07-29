@@ -14,8 +14,8 @@ import type { ValidationErrorItem } from 'joi'
  */
 export interface JoiValidationErrorData extends ErrorData {
   joiValidationErrorItems: ValidationErrorItem[]
-  joiValidationObjectName?: string
-  joiValidationObjectId?: string
+  joiValidationInputName?: string
+  joiValidationInputId?: string
   /**
    * Error "annotation" is stripped in Error.message.
    * This field contains the "full" annotation.
