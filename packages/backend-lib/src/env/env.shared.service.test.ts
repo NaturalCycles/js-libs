@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import type { BaseEnv, EnvSharedServiceCfg } from './env.shared.service.js'
 import { EnvSharedService } from './env.shared.service.js'
 
@@ -26,7 +26,7 @@ test('envService', () => {
   expect(() => envService.getEnv()).toThrow('Environment test is not defined')
 
   // test1
-  process.env['APP_ENV'] = 'test1'
+  vi.stubEnv('APP_ENV', 'test1')
   let env = envService.getEnv()
   expect(env).toEqual({
     name: 'test1',
@@ -34,7 +34,7 @@ test('envService', () => {
   })
 
   // test2, env cached
-  process.env['APP_ENV'] = 'test2'
+  vi.stubEnv('APP_ENV', 'test2')
   env = envService.getEnv()
   expect(env).toEqual({
     name: 'test1',

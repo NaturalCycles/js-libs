@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
 import { requireEnvKeys } from '../index.js'
 import { srcDir } from '../test/paths.cnst.js'
@@ -8,17 +8,17 @@ test('requireEnvKeys', () => {
     `[Error: NON_EXISTING env variable is required, but missing]`,
   )
 
-  process.env['AAAA'] = 'aaaa'
+  vi.stubEnv('AAAA', 'aaaa')
   expect(requireEnvKeys('AAAA')).toEqual({
     AAAA: 'aaaa',
   })
 
-  process.env['BBBB'] = '' // not allowed
+  vi.stubEnv('BBBB', '') // not allowed
   expect(() => requireEnvKeys('BBBB')).toThrowErrorMatchingInlineSnapshot(
     `[Error: BBBB env variable is required, but missing]`,
   )
 
-  process.env['CCCC'] = 'cccc'
+  vi.stubEnv('CCCC', 'cccc')
   expect(requireEnvKeys('AAAA', 'CCCC')).toEqual({
     AAAA: 'aaaa',
     CCCC: 'cccc',

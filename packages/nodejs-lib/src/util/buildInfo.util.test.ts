@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { generateBuildInfo } from './buildInfo.util.js'
 
 test('generateBuildInfo', () => {
@@ -9,7 +9,7 @@ test('generateBuildInfo', () => {
     env: 'test',
   })
 
-  process.env['APP_ENV'] = ''
+  vi.stubEnv('APP_ENV', '') // to not throw on APP_ENV=test check
   buildInfo = generateBuildInfo()
   console.log(buildInfo)
   expect(buildInfo.env).not.toBe('test') // read from package.json
