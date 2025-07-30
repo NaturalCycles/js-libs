@@ -1,7 +1,11 @@
-import { expect, test, vi } from 'vitest'
+import { afterAll, expect, test, vi } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
 import { requireEnvKeys } from '../index.js'
 import { srcDir } from '../test/paths.cnst.js'
+
+afterAll(() => {
+  process.env['APP_ENV'] = 'test' // restore
+})
 
 test('requireEnvKeys', () => {
   expect(() => requireEnvKeys('NON_EXISTING')).toThrowErrorMatchingInlineSnapshot(

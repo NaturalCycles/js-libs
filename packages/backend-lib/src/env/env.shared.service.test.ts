@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest'
+import { afterAll, expect, test, vi } from 'vitest'
 import type { BaseEnv, EnvSharedServiceCfg } from './env.shared.service.js'
 import { EnvSharedService } from './env.shared.service.js'
 
@@ -18,6 +18,10 @@ const cfg: EnvSharedServiceCfg<MyEnv> = {
     },
   ],
 }
+
+afterAll(() => {
+  process.env['APP_ENV'] = 'test' // restore
+})
 
 test('envService', () => {
   const envService = new EnvSharedService(cfg)

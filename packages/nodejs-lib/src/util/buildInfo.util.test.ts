@@ -1,5 +1,9 @@
-import { expect, test, vi } from 'vitest'
+import { afterAll, expect, test, vi } from 'vitest'
 import { generateBuildInfo } from './buildInfo.util.js'
+
+afterAll(() => {
+  process.env['APP_ENV'] = 'test' // restore
+})
 
 test('generateBuildInfo', () => {
   let buildInfo = generateBuildInfo()

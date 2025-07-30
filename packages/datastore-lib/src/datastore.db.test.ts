@@ -1,6 +1,10 @@
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { expect, test, vi } from 'vitest'
+import { afterAll, expect, test, vi } from 'vitest'
 import { DatastoreDB } from './datastore.db.js'
+
+afterAll(() => {
+  process.env['APP_ENV'] = 'test' // restore
+})
 
 test('should throw on missing id', async () => {
   vi.stubEnv('APP_ENV', 'abc') // to not throw on APP_ENV=test check
