@@ -162,6 +162,10 @@ async function runESLint(
   }
 
   const eslintPath = findPackageBinPath('eslint', 'eslint')
+  const cacheLocation = `node_modules/.cache/eslint_${dir}`
+  if (existsSync(cacheLocation)) {
+    console.log(boldGrey(`eslint ${dir} cache found`))
+  }
 
   await exec2.spawnAsync(eslintPath, {
     args: [
@@ -171,7 +175,7 @@ async function runESLint(
       `--parser-options=project:${tsconfigPath}`,
       '--cache',
       '--cache-location',
-      `./node_modules/.cache/eslint_${dir}`,
+      cacheLocation,
       `--no-error-on-unmatched-pattern`,
       `--report-unused-disable-directives`, // todo: unnecessary with flat, as it's defined in the config
       fix ? `--fix` : '',
@@ -200,6 +204,10 @@ export function runPrettier(experimentalCli = true): void {
   if (!prettierConfigPath) return
 
   const prettierPath = findPackageBinPath('prettier', 'prettier')
+  const cacheLocation = 'node_modules/.cache/prettier'
+  if (existsSync(cacheLocation)) {
+    console.log(boldGrey('prettier cache found'))
+  }
 
   // prettier --write 'src/**/*.{js,ts,css,scss,graphql}'
   exec2.spawn(prettierPath, {
@@ -207,7 +215,7 @@ export function runPrettier(experimentalCli = true): void {
       `--write`,
       `--log-level=warn`,
       '--cache-location',
-      `node_modules/.cache/prettier`,
+      cacheLocation,
       experimentalCli && `--experimental-cli`,
       experimentalCli ? '--config-path' : `--config`,
       prettierConfigPath,

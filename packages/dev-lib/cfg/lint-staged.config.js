@@ -73,7 +73,7 @@ const linters = {
     return [
       biomeCmd,
       eslintConfigPathRoot &&
-        `${eslintCmd} --config ${eslintConfigPathRoot} --cache-location ./node_modules/.cache/eslint_src`,
+        `${eslintCmd} --config ${eslintConfigPathRoot} --cache-location node_modules/.cache/eslint_src`,
       prettierCmd,
     ]
       .filter(Boolean)
@@ -146,7 +146,7 @@ const linters = {
 
 // /scripts are separate, cause they require separate tsconfig.json
 if (fs.existsSync(`./scripts`)) {
-  const eslintConfigPathScripts = ['./scripts/eslint.config.js'].find(p => fs.existsSync(p))
+  const eslintConfigPathScripts = ['scripts/eslint.config.js'].find(p => fs.existsSync(p))
   Object.assign(linters, {
     // biome, eslint, Prettier
     './scripts/**/*.{ts,tsx,cts,mts,vue,html}': match => {
@@ -155,7 +155,7 @@ if (fs.existsSync(`./scripts`)) {
       return [
         biomeCmd,
         eslintConfigPathScripts &&
-          `${eslintCmd} --config ${eslintConfigPathScripts} --parser-options=project:./scripts/tsconfig.json --cache-location ./node_modules/.cache/eslint_scripts`,
+          `${eslintCmd} --config ${eslintConfigPathScripts} --parser-options=project:scripts/tsconfig.json --cache-location node_modules/.cache/eslint_scripts`,
         prettierCmd,
       ]
         .filter(Boolean)
@@ -166,7 +166,7 @@ if (fs.existsSync(`./scripts`)) {
 
 // /e2e
 if (fs.existsSync(`./e2e`)) {
-  const eslintConfigPathE2e = ['./e2e/eslint.config.js'].find(p => fs.existsSync(p))
+  const eslintConfigPathE2e = ['e2e/eslint.config.js'].find(p => fs.existsSync(p))
 
   Object.assign(linters, {
     // biome, eslint, Prettier
@@ -176,7 +176,7 @@ if (fs.existsSync(`./e2e`)) {
       return [
         biomeCmd,
         eslintConfigPathE2e &&
-          `${eslintCmd} --config ${eslintConfigPathE2e} --parser-options=project:./e2e/tsconfig.json --cache-location ./node_modules/.cache/eslint_e2e`,
+          `${eslintCmd} --config ${eslintConfigPathE2e} --parser-options=project:e2e/tsconfig.json --cache-location ./node_modules/.cache/eslint_e2e`,
         prettierCmd,
       ]
         .filter(Boolean)
