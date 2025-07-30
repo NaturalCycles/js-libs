@@ -97,6 +97,7 @@
   "license": "MIT",
   "envByBranch": {
     "master": "master",
+    "main": "master",
     "*": "branch"
   }
 }
