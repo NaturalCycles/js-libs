@@ -5,7 +5,9 @@
   "extends": "../cfg/tsconfig.json",
   "compilerOptions": {
     "rootDir": "${configDir}/..",
-    "outDir": "${configDir}/../dist"
+    "outDir": "${configDir}/../dist/scripts",
+    "noEmit": true,
+    "tsBuildInfoFile": "${configDir}/../node_modules/.cache/scripts.tsbuildinfo"
   },
   "exclude": ["**/__exclude"]
 }
