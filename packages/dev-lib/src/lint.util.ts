@@ -22,7 +22,7 @@ import {
   prettierExtensionsAll,
   stylelintExtensions,
 } from '../cfg/_cnst.js'
-import { cfgDir, scriptsDir } from './paths.js'
+import { cfgDir } from './paths.js'
 
 const { CI } = process.env
 
@@ -122,37 +122,23 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
 
   const extensions = ext.split(',')
 
-  const eslintConfigPathRoot = ['./eslint.config.js'].find(p => existsSync(p))
-  const eslintConfigPathScripts = ['./scripts/eslint.config.js', './eslint.config.js'].find(p =>
-    existsSync(p),
-  )
-  const eslintConfigPathE2e = ['./e2e/eslint.config.js', './eslint.config.js'].find(p =>
-    existsSync(p),
-  )
-
-  const tsconfigPathScripts =
-    [`./scripts/tsconfig.json`].find(p => existsSync(p)) || `${scriptsDir}/tsconfig.json`
-  const tsconfigPathE2e = `./e2e/tsconfig.json`
-
-  // todo: run on other dirs too, e.g pages, components, layouts
-
   if (fix) {
     await Promise.all([
       // /src
-      runESLint(`./src`, eslintConfigPathRoot, undefined, extensions, fix),
+      runESLint(`src`, extensions, fix),
       // /scripts
-      runESLint(`./scripts`, eslintConfigPathScripts, tsconfigPathScripts, extensions, fix),
+      runESLint(`scripts`, extensions, fix),
       // /e2e
-      runESLint(`./e2e`, eslintConfigPathE2e, tsconfigPathE2e, extensions, fix),
+      runESLint(`e2e`, extensions, fix),
     ])
   } else {
     // with no-fix - let's run serially
     // /src
-    await runESLint(`./src`, eslintConfigPathRoot, undefined, extensions, fix)
+    await runESLint(`src`, extensions, fix)
     // /scripts
-    await runESLint(`./scripts`, eslintConfigPathScripts, tsconfigPathScripts, extensions, fix)
+    await runESLint(`scripts`, extensions, fix)
     // /e2e
-    await runESLint(`./e2e`, eslintConfigPathE2e, tsconfigPathE2e, extensions, fix)
+    await runESLint(`e2e`, extensions, fix)
   }
 
   console.log(`${boldGrey('eslint-all')} ${dimGrey(`took ` + _since(started))}`)
@@ -160,12 +146,20 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
 
 async function runESLint(
   dir: string,
-  eslintConfigPath: string | undefined,
-  tsconfigPath?: string,
   extensions = eslintExtensions.split(','),
   fix = true,
 ): Promise<void> {
-  if (!eslintConfigPath || !existsSync(dir)) return // faster to bail-out like this
+  let configDir = dir
+  if (dir === 'src') {
+    configDir = '.'
+  }
+
+  const eslintConfigPath = `${configDir}/eslint.config.js`
+  const tsconfigPath = `${configDir}/tsconfig.json`
+  if (!existsSync(dir) || !existsSync(eslintConfigPath) || !existsSync(tsconfigPath)) {
+    // faster to bail-out like this
+    return
+  }
 
   const eslintPath = findPackageBinPath('eslint', 'eslint')
 
@@ -174,7 +168,10 @@ async function runESLint(
       `--config`,
       eslintConfigPath,
       `${dir}/**/*.{${extensions.join(',')}}`,
-      ...(tsconfigPath ? [`--parser-options=project:${tsconfigPath}`] : []),
+      `--parser-options=project:${tsconfigPath}`,
+      '--cache',
+      '--cache-location',
+      `./node_modules/.cache/eslint_${dir}`,
       `--no-error-on-unmatched-pattern`,
       `--report-unused-disable-directives`, // todo: unnecessary with flat, as it's defined in the config
       fix ? `--fix` : '',
@@ -209,8 +206,8 @@ export function runPrettier(experimentalCli = true): void {
     args: [
       `--write`,
       `--log-level=warn`,
-      // '--cache-location',
-      // `${process.cwd()}/node_modules/.cache/prettier`,
+      '--cache-location',
+      `node_modules/.cache/prettier`,
       experimentalCli && `--experimental-cli`,
       experimentalCli ? '--config-path' : `--config`,
       prettierConfigPath,
