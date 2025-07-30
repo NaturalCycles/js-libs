@@ -2,11 +2,9 @@ import type { ErrorData } from '@naturalcycles/js-lib/error'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _errorDataAppend } from '@naturalcycles/js-lib/error/error.util.js'
 import type { AnyObject, JWTString } from '@naturalcycles/js-lib/types'
-import type { AnySchema } from 'joi'
 import type { Algorithm, JwtHeader, SignOptions, VerifyOptions } from 'jsonwebtoken'
 import jsonwebtoken from 'jsonwebtoken'
-import { anyObjectSchema } from '../validation/joi/joi.shared.schemas.js'
-import { validate } from '../validation/joi/joi.validation.util.js'
+import type { AjvSchema } from '../validation/ajv/ajvSchema.js'
 export { jsonwebtoken }
 export type { Algorithm, JwtHeader, SignOptions, VerifyOptions }
 
@@ -65,15 +63,15 @@ export interface JWTServiceCfg {
 export class JWTService {
   constructor(public cfg: JWTServiceCfg) {}
 
-  sign<T extends AnyObject>(payload: T, schema?: AnySchema<T>, opt: SignOptions = {}): JWTString {
+  sign<T extends AnyObject>(payload: T, schema?: AjvSchema<T>, opt: SignOptions = {}): JWTString {
     _assert(
       this.cfg.privateKey,
       'JWTService: privateKey is required to be able to verify, but not provided',
     )
 
-    if (schema) {
-      validate(payload, schema)
-    }
+    schema?.validate(payload, {
+      mutateInput: true,
+    })
 
     return jsonwebtoken.sign(payload, this.cfg.privateKey, {
       algorithm: this.cfg.algorithm,
@@ -85,7 +83,7 @@ export class JWTService {
 
   verify<T extends AnyObject>(
     token: JWTString,
-    schema?: AnySchema<T>,
+    schema?: AjvSchema<T>,
     opt: VerifyOptions = {},
     publicKey?: string, // allows to override public key
   ): T {
@@ -101,9 +99,9 @@ export class JWTService {
         ...opt,
       }) as T
 
-      if (schema) {
-        validate(data, schema)
-      }
+      schema?.validate(data, {
+        mutateInput: true,
+      })
 
       return data
     } catch (err) {
@@ -118,7 +116,7 @@ export class JWTService {
 
   decode<T extends AnyObject>(
     token: JWTString,
-    schema?: AnySchema<T>,
+    schema?: AjvSchema<T>,
   ): {
     header: JwtHeader
     payload: T
@@ -136,7 +134,9 @@ export class JWTService {
       ...this.cfg.errorData,
     })
 
-    validate(data.payload, schema || anyObjectSchema)
+    schema?.validate(data.payload, {
+      mutateInput: true,
+    })
 
     return data
   }

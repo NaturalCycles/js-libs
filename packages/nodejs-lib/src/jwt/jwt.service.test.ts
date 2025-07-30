@@ -1,8 +1,9 @@
 import { _omit } from '@naturalcycles/js-lib/object'
+import { z } from '@naturalcycles/js-lib/zod'
 import { expect, test } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
 import { testDir } from '../test/paths.cnst.js'
-import { numberSchema, objectSchema, stringSchema } from '../validation/joi/joi.shared.schemas.js'
+import { AjvSchema } from '../validation/ajv/index.js'
 import { JWTService } from './jwt.service.js'
 
 const jwtService = new JWTService({
@@ -16,10 +17,14 @@ interface Data {
   num: number
 }
 
-const dataSchema = objectSchema<Data>({
-  accountId: stringSchema,
-  num: numberSchema,
+const dataZodSchema = z.object({
+  accountId: z.string(),
+  num: z.number(),
 })
+
+const dataSchema = AjvSchema.create<Data>(
+  z.toJSONSchema(dataZodSchema, { target: 'draft-7' }) as any,
+)
 
 const data1: Data = {
   accountId: 'abc123',
