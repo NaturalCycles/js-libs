@@ -58,6 +58,9 @@ export async function runTSCProd(args: string[] = []): Promise<void> {
   const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
 
   const tscPath = findPackageBinPath('typescript', 'tsc')
+  const cacheLocation = `node_modules/.cache/src.tsbuildinfo`
+  const cacheFound = existsSync(cacheLocation)
+  console.log(grey(`tsc src cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(tscPath, {
     args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', ...args],
