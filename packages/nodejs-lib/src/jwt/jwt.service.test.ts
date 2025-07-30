@@ -17,13 +17,11 @@ interface Data {
   num: number
 }
 
-const dataZodSchema = z.object({
-  accountId: z.string(),
-  num: z.number(),
-})
-
-const dataSchema = AjvSchema.create<Data>(
-  z.toJSONSchema(dataZodSchema, { target: 'draft-7' }) as any,
+const dataSchema = AjvSchema.createFromZod<Data>(
+  z.object({
+    accountId: z.string(),
+    num: z.number(),
+  }),
 )
 
 const data1: Data = {

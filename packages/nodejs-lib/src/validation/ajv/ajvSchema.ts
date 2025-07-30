@@ -8,6 +8,7 @@ import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib/json-s
 import { JsonSchemaAnyBuilder } from '@naturalcycles/js-lib/json-schema'
 import { _filterNullishValues } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
+import { z, type ZodType } from '@naturalcycles/js-lib/zod'
 import type { Ajv } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
 import { AjvValidationError } from './ajvValidationError.js'
@@ -55,8 +56,6 @@ export interface AjvSchemaCfg {
 /**
  * On creation - compiles ajv validation function.
  * Provides convenient methods, error reporting, etc.
- *
- * @experimental
  */
 export class AjvSchema<T = unknown> {
   private constructor(
@@ -81,7 +80,7 @@ export class AjvSchema<T = unknown> {
    */
   static createLazy<T>(
     schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T>,
-    cfg: Partial<AjvSchemaCfg> = {},
+    cfg?: Partial<AjvSchemaCfg>,
   ): AjvSchema<T> {
     return AjvSchema.create(schema, {
       lazy: true,
@@ -100,13 +99,18 @@ export class AjvSchema<T = unknown> {
    */
   static create<T>(
     schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T>,
-    cfg: Partial<AjvSchemaCfg> = {},
+    cfg?: Partial<AjvSchemaCfg>,
   ): AjvSchema<T> {
     if (schema instanceof AjvSchema) return schema
     if (schema instanceof JsonSchemaAnyBuilder) {
       return new AjvSchema<T>(schema.build(), cfg)
     }
     return new AjvSchema<T>(schema as JsonSchema<T>, cfg)
+  }
+
+  static createFromZod<T>(zodSchema: ZodType<T>, cfg?: Partial<AjvSchemaCfg>): AjvSchema<T> {
+    const jsonSchema = z.toJSONSchema(zodSchema, { target: 'draft-7' })
+    return new AjvSchema<T>(jsonSchema as JsonSchema<T>, cfg)
   }
 
   readonly cfg: AjvSchemaCfg
