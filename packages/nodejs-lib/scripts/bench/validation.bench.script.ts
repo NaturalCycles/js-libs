@@ -2,6 +2,11 @@
 
 pn tsx packages/nodejs-lib/scripts/bench/validation.bench.script.ts
 
+ajvMutant x 180,417 ops/sec ±1.01% (96 runs sampled)
+ajv x 7,372 ops/sec ±1.02% (98 runs sampled)
+zod x 17,882 ops/sec ±0.19% (99 runs sampled)
+joi x 874 ops/sec ±1.55% (95 runs sampled)
+
  */
 
 import { runBench } from '@naturalcycles/bench-lib'
@@ -92,6 +97,13 @@ runScript(async () => {
       ajv: () => {
         items.forEach(item => {
           ajvSchema.validate(item)
+        })
+      },
+      ajvMutant: () => {
+        items.forEach(item => {
+          ajvSchema.validate(item, {
+            mutateInput: true,
+          })
         })
       },
     },
