@@ -10,7 +10,7 @@ import { semver2 } from '@naturalcycles/js-lib/semver'
 import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
 import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { git2 } from '@naturalcycles/nodejs-lib'
-import { boldGrey, dimGrey } from '@naturalcycles/nodejs-lib/colors'
+import { boldGrey, dimGrey, grey } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
@@ -164,7 +164,7 @@ async function runESLint(
   const eslintPath = findPackageBinPath('eslint', 'eslint')
   const cacheLocation = `node_modules/.cache/eslint_${dir}`
   const cacheFound = existsSync(cacheLocation)
-  console.log(boldGrey(`eslint ${dir} cache found: ${cacheFound}`))
+  console.log(grey(`eslint ${dir} cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(eslintPath, {
     args: [
@@ -205,7 +205,7 @@ export function runPrettier(experimentalCli = true): void {
   const prettierPath = findPackageBinPath('prettier', 'prettier')
   const cacheLocation = 'node_modules/.cache/prettier'
   const cacheFound = existsSync(cacheLocation)
-  console.log(boldGrey(`prettier cache found: ${cacheFound}`))
+  console.log(grey(`prettier cache found: ${cacheFound}`))
 
   // prettier --write 'src/**/*.{js,ts,css,scss,graphql}'
   exec2.spawn(prettierPath, {

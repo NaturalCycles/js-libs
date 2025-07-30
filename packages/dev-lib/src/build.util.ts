@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { boldGrey } from '@naturalcycles/nodejs-lib/colors'
+import { grey } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
@@ -46,7 +46,7 @@ export async function runTSCInFolder(dir: string, args: string[] = []): Promise<
   const tscPath = findPackageBinPath('typescript', 'tsc')
   const cacheLocation = `node_modules/.cache/${dir}.tsbuildinfo`
   const cacheFound = existsSync(cacheLocation)
-  console.log(boldGrey(`tsc ${dir} cache found: ${cacheFound}`))
+  console.log(grey(`tsc ${dir} cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(tscPath, {
     args: ['-P', tsconfigPath, ...args],

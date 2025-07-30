@@ -59,6 +59,8 @@
     // ],
 
     // Other
+    "incremental": true,
+    "tsBuildInfoFile": "${configDir}/node_modules/.cache/src.tsbuildinfo",
     "pretty": true,
     "newLine": "lf",
     "experimentalDecorators": true
