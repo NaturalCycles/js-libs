@@ -2,6 +2,7 @@ import { Readable } from 'node:stream'
 import { _sortBy } from '@naturalcycles/js-lib/array/array.util.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _deepCopy, _filterObject, _omit, _pick } from '@naturalcycles/js-lib/object'
+import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'
 import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { CommonDao } from '../commondao/common.dao.js'
 import { CommonDaoLogLevel } from '../commondao/common.dao.model.js'
@@ -28,7 +29,7 @@ export async function runCommonDaoTest(
   const dao = new CommonDao({
     table: TEST_TABLE,
     db,
-    bmSchema: testItemBMSchema,
+    validateBM: getJoiValidationFunction(testItemBMSchema),
     logStarted: true,
     logLevel: CommonDaoLogLevel.DATA_FULL,
   })

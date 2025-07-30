@@ -1,5 +1,5 @@
 import type { ValidationFunction } from '@naturalcycles/js-lib'
-import type { ErrorMode } from '@naturalcycles/js-lib/error'
+import type { AppError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type {
   BaseDBEntity,
@@ -7,9 +7,6 @@ import type {
   Promisable,
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
-import type { ZodType, ZodValidationError } from '@naturalcycles/js-lib/zod'
-import type { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
-import type { JoiValidationError, ObjectSchema } from '@naturalcycles/nodejs-lib/joi'
 import type {
   TransformLogProgressOptions,
   TransformMapOptions,
@@ -96,9 +93,7 @@ export interface CommonDaoHooks<BM extends BaseDBEntity, DBM extends BaseDBEntit
    * Return original `err` to pass the error through (will be thrown in CommonDao).
    * Return modified/new `Error` if needed.
    */
-  onValidationError: (
-    err: JoiValidationError | AjvValidationError | ZodValidationError,
-  ) => Error | false
+  onValidationError: (err: AppError) => Error | false
 }
 
 export enum CommonDaoLogLevel {
@@ -129,19 +124,10 @@ export interface CommonDaoCfg<
   table: string
 
   /**
-   * Joi, AjvSchema or ZodSchema is supported.
-   *
-   * @deprecated - use `validateBM` instead.
-   */
-  bmSchema?: ObjectSchema<BM> | AjvSchema<BM> | ZodType<BM>
-
-  /**
    * Experimental alternative to bmSchema.
    * "Bring your own validation function".
    * It removes the knowledge from CommonDao about the validation library used
    * and abstracts it away.
-   *
-   * @experimental
    */
   validateBM?: ValidationFunction<BM, any>
 

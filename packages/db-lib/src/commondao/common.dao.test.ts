@@ -4,6 +4,7 @@ import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalc
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
+import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { DBLibError } from '../cnst.js'
@@ -30,7 +31,7 @@ const db = new InMemoryDB()
 const daoCfg: CommonDaoCfg<TestItemBM, TestItemDBM> = {
   table: TEST_TABLE,
   db,
-  bmSchema: testItemBMSchema,
+  validateBM: getJoiValidationFunction(testItemBMSchema),
   // logStarted: true,
   logLevel: CommonDaoLogLevel.OPERATIONS,
   hooks: {
@@ -429,7 +430,7 @@ test('validateAndConvert does not mutate and returns new reference', async () =>
   const bm = createTestItemBM()
   _deepFreeze(bm)
 
-  const bm2 = dao.validateAndConvert(bm, testItemBMSchema)
+  const bm2 = (dao as any).validateAndConvert(bm)
   expect(bm === bm2).toBe(false)
 })
 
@@ -523,7 +524,7 @@ test('ajvSchema', async () => {
   const dao = new CommonDao({
     table: TEST_TABLE,
     db,
-    bmSchema: AjvSchema.create(testItemBMJsonSchema),
+    validateBM: AjvSchema.create(testItemBMJsonSchema).getValidationFunction(),
   })
 
   const items = createTestItemsBM(3)

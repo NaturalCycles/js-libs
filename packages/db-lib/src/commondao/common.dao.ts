@@ -23,15 +23,7 @@ import type {
   Unsaved,
 } from '@naturalcycles/js-lib/types'
 import { _passthroughPredicate, _typeCast, SKIP } from '@naturalcycles/js-lib/types'
-import type { ZodValidationError } from '@naturalcycles/js-lib/zod'
-import { ZodType, zSafeValidate } from '@naturalcycles/js-lib/zod'
 import { stringId } from '@naturalcycles/nodejs-lib'
-import { AjvSchema, type AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
-import {
-  getValidationResult,
-  type JoiValidationError,
-  type ObjectSchema,
-} from '@naturalcycles/nodejs-lib/joi'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import {
   _pipeline,
@@ -102,7 +94,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     const bm = this.cfg.hooks!.beforeCreate!(part)
     // First assignIdCreatedUpdated, then validate!
     this.assignIdCreatedUpdated(bm, opt)
-    return this.validateAndConvert(bm, this.cfg.bmSchema, undefined, opt)
+    return this.validateAndConvert(bm, undefined, opt)
   }
 
   // GET
@@ -767,7 +759,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
       // We compare with convertedBM, to account for cases when some extra property is assigned to bm,
       // which should be removed post-validation, but it breaks the "equality check"
       // Post-validation the equality check should work as intended
-      const convertedBM = this.validateAndConvert(bm as Partial<BM>, this.cfg.bmSchema, 'save', opt)
+      const convertedBM = this.validateAndConvert(bm as Partial<BM>, 'save', opt)
       if (_deepJsonEquals(convertedBM, opt.skipIfEquals)) {
         // Skipping the save operation
         return bm as BM
@@ -1150,7 +1142,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     const bm = ((await this.cfg.hooks!.beforeDBMToBM?.(dbm)) || dbm) as Partial<BM>
 
     // Validate/convert BM
-    return this.validateAndConvert(bm, this.cfg.bmSchema, 'load', opt)
+    return this.validateAndConvert(bm, 'load', opt)
   }
 
   async dbmsToBM(dbms: DBM[], opt: CommonDaoOptions = {}): Promise<BM[]> {
@@ -1167,10 +1159,10 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     if (bm === undefined) return
 
     // bm gets assigned to the new reference
-    bm = this.validateAndConvert(bm, this.cfg.bmSchema, 'save', opt)
+    bm = this.validateAndConvert(bm, 'save', opt)
 
     // BM > DBM
-    return ((await this.cfg.hooks!.beforeBMToDBM?.(bm!)) || bm) as DBM
+    return ((await this.cfg.hooks!.beforeBMToDBM?.(bm)) || bm) as DBM
   }
 
   async bmsToDBM(bms: BM[], opt: CommonDaoOptions = {}): Promise<DBM[]> {
@@ -1208,70 +1200,37 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
    * Does NOT mutate the object.
    * Validates (unless `skipValidation=true` passed).
    */
-  validateAndConvert<T>(
-    obj: Partial<T>,
-    schema: ObjectSchema<T> | AjvSchema<T> | ZodType<T> | undefined,
+  private validateAndConvert(
+    input: Partial<BM>,
     op?: 'load' | 'save', // this is to skip validation if validateOnLoad/Save is false
     opt: CommonDaoOptions = {},
-  ): any {
-    // Kirill 2021-10-18: I realized that there's little reason to keep removing null values
-    // So, from now on we'll preserve them
-    // "undefined" values, I believe, are/were not saved to/from DB anyway (due to e.g JSON.stringify removing them)
-    // But let's keep watching it!
-    //
-    // Filter null and undefined values
-    // obj = _filterNullishValues(obj as any)
+  ): BM {
     // We still filter `undefined` values here, because `beforeDBMToBM` can return undefined values
     // and they can be annoying with snapshot tests
-    obj = _filterUndefinedValues(obj)
+    input = _filterUndefinedValues(input)
 
     // Return as is if no schema is passed or if `skipConversion` is set
     if (
-      (!schema && !this.cfg.validateBM) ||
+      !this.cfg.validateBM ||
       opt.skipValidation ||
       (op === 'load' && !this.cfg.validateOnLoad) ||
       (op === 'save' && !this.cfg.validateOnSave)
     ) {
-      return obj
+      return input as BM
     }
 
     const inputName = opt.table || this.cfg.table
-    let error: JoiValidationError | AjvValidationError | ZodValidationError | null | undefined
-    let convertedValue: any
 
-    if (this.cfg.validateBM) {
-      const [err, value] = this.cfg.validateBM(obj as any as BM, {
-        // Passing `mutateInput` through allows to do opt-in mutation
-        // for individual operations, e.g `someDao.save(myObj, { mutateInput: true })`,
-        // while still keeping safe non-mutating behavior by default
-        mutateInput: opt.mutateInput,
-        inputName,
-      })
-      error = err
-      convertedValue = value
-    } else if (schema instanceof ZodType) {
-      // Zod schema
-      const [err, value] = zSafeValidate(obj as T, schema)
-      error = err
-      convertedValue = value
-    } else if (schema instanceof AjvSchema) {
-      // Ajv schema
-      const [err, value] = schema.getValidationResult(obj as T, {
-        inputName,
-      })
-      error = err
-      convertedValue = value
-    } else {
-      // Joi
-      const [err, value] = getValidationResult(obj, schema, inputName)
-      error = err
-      convertedValue = value
-    }
+    const [error, convertedValue] = this.cfg.validateBM(input as BM, {
+      // Passing `mutateInput` through allows to do opt-in mutation
+      // for individual operations, e.g `someDao.save(myObj, { mutateInput: true })`,
+      // while still keeping safe non-mutating behavior by default
+      mutateInput: opt.mutateInput,
+      inputName,
+    })
 
-    // If we care about validation and there's an error
     if (error) {
       const processedError = this.cfg.hooks!.onValidationError!(error)
-
       if (processedError) throw processedError
     }
 

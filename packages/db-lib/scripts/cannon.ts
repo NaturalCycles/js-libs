@@ -7,7 +7,7 @@ pn tsx scripts/cannon.ts
 import { expressFunctionFactory, runCannon } from '@naturalcycles/bench-lib'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { stringId } from '@naturalcycles/nodejs-lib'
-import { getValidationResult } from '@naturalcycles/nodejs-lib/joi'
+import { getJoiValidationFunction, getValidationResult } from '@naturalcycles/nodejs-lib/joi'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { CommonDao } from '../src/commondao/index.js'
 import { InMemoryDB } from '../src/inmemory/index.js'
@@ -37,7 +37,7 @@ const db = new InMemoryDB()
 const dao = new CommonDao({
   table: TEST_TABLE,
   db,
-  bmSchema: testItemBMSchema,
+  validateBM: getJoiValidationFunction(testItemBMSchema),
 })
 
 // biome-ignore lint: ok
