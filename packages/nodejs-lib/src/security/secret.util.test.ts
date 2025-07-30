@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
 
+// todo: mock properly
 // const originalProcessEnv = process.env
 process.env = {
   A: 'AAA',

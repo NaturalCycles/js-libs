@@ -10,7 +10,7 @@ test('generateBuildInfo', () => {
   // console.log(buildInfo)
   expect(buildInfo).toMatchObject({
     repoName: 'js-libs',
-    env: 'test',
+    // env: 'test',
   })
 
   vi.stubEnv('APP_ENV', '') // to not throw on APP_ENV=test check

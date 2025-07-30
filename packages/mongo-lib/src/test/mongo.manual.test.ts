@@ -8,6 +8,7 @@ import {
   testItemBMSchema,
 } from '@naturalcycles/db-lib/testing'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'
 import { afterAll, describe, test } from 'vitest'
 import { MongoDB } from '../mongo.db.js'
 const { MONGO_URI } = requireEnvKeys('MONGO_URI')
@@ -33,7 +34,7 @@ test.skip('some', async () => {
   const dao = new CommonDao({
     table: TEST_TABLE,
     db: mongoDB,
-    bmSchema: testItemBMSchema,
+    validateBM: getJoiValidationFunction(testItemBMSchema),
     logStarted: true,
     logLevel: CommonDaoLogLevel.DATA_FULL,
   })
