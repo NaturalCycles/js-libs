@@ -163,9 +163,8 @@ async function runESLint(
 
   const eslintPath = findPackageBinPath('eslint', 'eslint')
   const cacheLocation = `node_modules/.cache/eslint_${dir}`
-  if (existsSync(cacheLocation)) {
-    console.log(boldGrey(`eslint ${dir} cache found`))
-  }
+  const cacheFound = existsSync(cacheLocation)
+  console.log(boldGrey(`eslint ${dir} cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(eslintPath, {
     args: [
@@ -205,9 +204,8 @@ export function runPrettier(experimentalCli = true): void {
 
   const prettierPath = findPackageBinPath('prettier', 'prettier')
   const cacheLocation = 'node_modules/.cache/prettier'
-  if (existsSync(cacheLocation)) {
-    console.log(boldGrey('prettier cache found'))
-  }
+  const cacheFound = existsSync(cacheLocation)
+  console.log(boldGrey(`prettier cache found: ${cacheFound}`))
 
   // prettier --write 'src/**/*.{js,ts,css,scss,graphql}'
   exec2.spawn(prettierPath, {

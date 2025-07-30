@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import { boldGrey } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
@@ -10,7 +12,7 @@ export async function buildProd(): Promise<void> {
 }
 
 /**
- * Use 'tsconfig.json' to indicate root.
+ * Use 'src' to indicate root.
  */
 export async function runTSCInFolders(
   tsconfigPaths: string[],
@@ -27,15 +29,24 @@ export async function runTSCInFolders(
 }
 
 /**
- * Pass 'tsconfig.json' to run in root.
+ * Pass 'src' to run in root.
  */
-export async function runTSCInFolder(tsconfigPath: string, args: string[] = []): Promise<void> {
+export async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
+  let configDir = dir
+  if (dir === 'src') {
+    configDir = ''
+  }
+  const tsconfigPath = [configDir, `tsconfig.json`].filter(Boolean).join('/')
+
   if (!fs2.pathExists(tsconfigPath)) {
     // console.log(`Skipping to run tsc for ${tsconfigPath}, as it doesn't exist`)
     return
   }
 
   const tscPath = findPackageBinPath('typescript', 'tsc')
+  const cacheLocation = `node_modules/.cache/${dir}.tsbuildinfo`
+  const cacheFound = existsSync(cacheLocation)
+  console.log(boldGrey(`tsc ${dir} cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(tscPath, {
     args: ['-P', tsconfigPath, ...args],
