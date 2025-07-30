@@ -6,7 +6,7 @@ import {
 } from '@naturalcycles/js-lib'
 import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib/json-schema'
 import { JsonSchemaAnyBuilder } from '@naturalcycles/js-lib/json-schema'
-import { _filterNullishValues } from '@naturalcycles/js-lib/object'
+import { _deepCopy, _filterNullishValues } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
 import { z, type ZodType } from '@naturalcycles/js-lib/zod'
 import type { Ajv } from 'ajv'
@@ -140,7 +140,7 @@ export class AjvSchema<T = unknown> {
   ): ValidationFunctionResult<T, AjvValidationError> {
     const fn = this.getAJVValidateFunction()
 
-    const item = opt.mutateInput || typeof input !== 'object' ? input : structuredClone(input)
+    const item = opt.mutateInput || typeof input !== 'object' ? input : _deepCopy(input)
 
     const valid = fn(item) // mutates item
     if (valid) return [null, item]
