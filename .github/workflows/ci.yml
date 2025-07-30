@@ -24,9 +24,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-
             ${{ runner.os }}-nmcache-
-      - run: pnpm lint:parallel
-      - run: pnpm typecheck:parallel
-      - run: pnpm test:parallel
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
 
   release:
     runs-on: ubuntu-latest
