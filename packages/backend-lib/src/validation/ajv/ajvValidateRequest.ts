@@ -1,3 +1,4 @@
+import { _deepCopy } from '@naturalcycles/js-lib/object'
 import type { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../../server/server.model.js'
 import { handleValidationError, type ReqValidationOptions } from '../validateRequest.util.js'
@@ -27,12 +28,23 @@ class AjvValidateRequest {
     return this.validate(req, 'params', schema, opt)
   }
 
+  /**
+   * Does NOT mutate `req.headers`,
+   * but returns validated/transformed headers.
+   *
+   * For headers we have a different behavior compared to body/query/params.
+   * We want to non-mutate the `req.headers`, because we anticipate that
+   * there may be additional consumers for `req.headers` (e.g middlewares, etc).
+   */
   headers<T>(
     req: BackendRequest,
     schema: AjvSchema<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    return this.validate(req, 'headers', schema, opt)
+    const originalHeaders = _deepCopy(req.headers)
+    const headers = this.validate(req, 'headers', schema, opt)
+    req.headers = originalHeaders
+    return headers
   }
 
   private validate<T>(
@@ -41,11 +53,9 @@ class AjvValidateRequest {
     schema: AjvSchema<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
-    const { mutateInput = true } = opt
     const input: T = req[reqProperty] || {}
 
     const [error, output] = schema.getValidationResult(input, {
-      mutateInput,
       inputName: `request ${reqProperty}`,
     })
 

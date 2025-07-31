@@ -87,10 +87,17 @@ test('simple', () => {
   `)
 })
 
-test('should not mutate input by default', () => {
+test('should mutate input by default', () => {
+  const input = { s: 's', extra: 'abc' } as Simple
+  const result = schema.validate(input)
+  expect(input).toEqual({ s: 's' }) // input is mutated
+  expect(result === input).toBe(true) // reference to the same object is returned
+})
+
+test('should not mutate input when instructed so', () => {
   const input = { s: 's', extra: 'abc' } as Simple
   _deepFreeze(input)
-  const result = schema.validate(input)
+  const result = schema.validate(input, { mutateInput: false })
   expect(result).toEqual({ s: 's' }) // extra removed
   expect(input).toEqual({ s: 's', extra: 'abc' }) // input is not mutated
   expect(result !== input).toBe(true) // different object is returned
@@ -264,9 +271,9 @@ test('default object', () => {
   schema.validate(obj1)
 
   const obj2 = { o: { extra: 123 } }
-  expect(schema.validate(obj2)).toEqual({ o: {} }) // Additional props are removed
+  expect(schema.validate(obj2, { mutateInput: false })).toEqual({ o: {} }) // Additional props are removed
   expect(obj2).toEqual({ o: { extra: 123 } }) // input object is not mutated
-  schema.validate(obj2, { mutateInput: true })
+  schema.validate(obj2)
   expect(obj2).toEqual({ o: {} })
 
   const obj3 = {}

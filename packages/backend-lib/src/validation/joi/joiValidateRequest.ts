@@ -51,7 +51,6 @@ class ValidateRequest {
     schema: AnySchema<T>,
     opt: ReqValidationOptions<JoiValidationError> = {},
   ): T {
-    const { mutateInput } = opt
     const originalProperty = req[reqProperty] || {}
 
     // Joi does not mutate the input
@@ -66,9 +65,8 @@ class ValidateRequest {
       handleValidationError(error, originalProperty, opt)
     }
 
-    if (mutateInput) {
-      req[reqProperty] = value
-    }
+    // Kirill: decide to not do it, let's see
+    // req[reqProperty] = value
 
     return value
   }

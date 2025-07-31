@@ -138,12 +138,12 @@ test('account json schema', () => {
 test('happy case', () => {
   const account = getMockAccount()
 
-  const accountResult = accountAjvSchema.validate(account)
+  const accountResult2 = accountAjvSchema.validate(account)
+  expect(accountResult2 === account, 'should return the reference to the same object').toBe(true)
+
+  const accountResult = accountAjvSchema.validate(account, { mutateInput: false })
   expect(accountResult).toStrictEqual(account)
   expect(accountResult !== account, 'should not mutate the original object').toBe(true)
-
-  const accountResult2 = accountAjvSchema.validate(account, { mutateInput: true })
-  expect(accountResult2 === account, 'should return the reference to the same object').toBe(true)
 })
 
 test('email invalid', () => {

@@ -68,6 +68,7 @@ describe('ajvValidateRequest.headers', () => {
   interface TestResponse {
     ok: 1
     headers: StringMap<any>
+    validatedHeaders?: StringMap<any>
   }
 
   beforeAll(async () => {
@@ -149,45 +150,9 @@ describe('ajvValidateRequest.headers', () => {
     expect(err.cause.message).not.toContain('sessionid')
   })
 
-  test('should not replace the headers with the validated value when configured so', async () => {
-    const resource = getDefaultRouter().get('/', async (req, res) => {
-      ajvValidateRequest.headers(
-        req,
-        AjvSchema.create(
-          jsonSchema.object({
-            shortstring: jsonSchema.string().min(8).max(16),
-            numeric: jsonSchema.string(),
-          }),
-        ),
-        { mutateInput: false },
-      )
-
-      res.json({ ok: 1, headers: req.headers })
-    })
-    await using app = await expressTestService.createAppFromResource(resource)
-
-    const response = await app.get<TestResponse>('', {
-      headers: {
-        shortstring: 'shortstring',
-        numeric: '123',
-        bool: '1',
-        sessionid: 'sessionid',
-        foo: 'bar',
-      },
-    })
-
-    expect(response.headers).toMatchObject({
-      shortstring: 'shortstring',
-      numeric: '123',
-      bool: '1',
-      sessionid: 'sessionid',
-      foo: 'bar', // original header is preserved (headers object is not mutated)
-    })
-  })
-
   test('should replace the headers with the validated value by default', async () => {
     const resource = getDefaultRouter().get('/', async (req, res) => {
-      ajvValidateRequest.headers(
+      const validatedHeaders = ajvValidateRequest.headers(
         req,
         AjvSchema.create(
           jsonSchema.object({
@@ -197,7 +162,7 @@ describe('ajvValidateRequest.headers', () => {
         ),
       )
 
-      res.json({ ok: 1, headers: req.headers })
+      res.json({ ok: 1, headers: req.headers, validatedHeaders })
     })
     await using app = await expressTestService.createAppFromResource(resource)
 
@@ -209,10 +174,15 @@ describe('ajvValidateRequest.headers', () => {
       },
     })
 
-    expect(response.headers).toEqual({
+    expect(response.validatedHeaders).toEqual({
       shortstring: 'shortstring',
       numeric: '123', // NOT converted to number
       // foo: 'bar' // fields not in the schema are removed
+    })
+
+    expect(response.headers).toMatchObject({
+      foo: 'bar',
+      'user-agent': expect.any(String),
     })
   })
 })

@@ -178,34 +178,4 @@ describe('validateRequest.headers', () => {
       foo: 'bar',
     })
   })
-
-  test('should replace the headers with the validated value when configured so', async () => {
-    const resource = getDefaultRouter().get('/', async (req, res) => {
-      validateRequest.headers(
-        req,
-        objectSchema<any>({
-          shortstring: stringSchema.min(8).max(16),
-          numeric: numberSchema,
-        }),
-        { mutateInput: true },
-      )
-
-      res.json({ ok: 1, headers: req.headers })
-    })
-    await using app = await expressTestService.createAppFromResource(resource)
-
-    const response = await app.get<TestResponse>('', {
-      headers: {
-        shortstring: 'shortstring',
-        numeric: '123',
-        foo: 'bar',
-      },
-    })
-
-    expect(response.headers).toEqual({
-      shortstring: 'shortstring',
-      numeric: 123, // converted to number
-      // foo: 'bar' // fields not in the schema are removed
-    })
-  })
 })

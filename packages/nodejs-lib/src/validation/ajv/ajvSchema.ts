@@ -16,12 +16,19 @@ import { getAjv } from './getAjv.js'
 
 export interface AjvValidationOptions {
   /**
-   * Defaults to false.
+   * Defaults to true,
+   * because that's how AJV works by default,
+   * and what gives it performance advantage.
+   * (Because we have found that deep-clone is surprisingly slow,
+   * nearly as slow as Joi validation).
    *
    * If set to true - AJV will mutate the input in case it needs to apply transformations
    * (strip unknown properties, convert types, etc).
    *
-   * If false - it will deep-clone the input to prevent its mutation. Will return the cloned/mutated object.
+   * If false - it will deep-clone (using JSON.stringify+parse) the input to prevent its mutation.
+   * Will return the cloned/mutated object.
+   * Please note that JSON.stringify+parse has side-effects,
+   * e.g it will transform Buffer into a weird object.
    */
   mutateInput?: boolean
   inputName?: string
@@ -108,6 +115,9 @@ export class AjvSchema<T = unknown> {
     return new AjvSchema<T>(schema as JsonSchema<T>, cfg)
   }
 
+  /**
+   * @experimental
+   */
   static createFromZod<T>(zodSchema: ZodType<T>, cfg?: Partial<AjvSchemaCfg>): AjvSchema<T> {
     const jsonSchema = z.toJSONSchema(zodSchema, { target: 'draft-7' })
     return new AjvSchema<T>(jsonSchema as JsonSchema<T>, cfg)
@@ -130,6 +140,8 @@ export class AjvSchema<T = unknown> {
   }
 
   isValid(input: T, opt?: AjvValidationOptions): boolean {
+    // todo: we can make it both fast and non-mutating by using Ajv
+    // with "removeAdditional" and "useDefaults" disabled.
     const [err] = this.getValidationResult(input, opt)
     return !err
   }
@@ -140,7 +152,10 @@ export class AjvSchema<T = unknown> {
   ): ValidationFunctionResult<T, AjvValidationError> {
     const fn = this.getAJVValidateFunction()
 
-    const item = opt.mutateInput || typeof input !== 'object' ? input : _deepCopy(input)
+    const item =
+      opt.mutateInput !== false || typeof input !== 'object'
+        ? input // mutate
+        : _deepCopy(input) // not mutate
 
     const valid = fn(item) // mutates item
     if (valid) return [null, item]
@@ -158,6 +173,8 @@ export class AjvSchema<T = unknown> {
       separator,
     })
 
+    // Note: if we mutated the input already, e.g stripped unknown properties,
+    // the error message Input would contain already mutated object print, such as Input: {}
     const inputStringified = _inspect(input, { maxLen: 4000 })
     message = [message, 'Input: ' + inputStringified].join(separator)
 

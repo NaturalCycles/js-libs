@@ -50,12 +50,4 @@ export interface ReqValidationOptions<ERR extends AppError> {
    * If true - `genericErrorHandler` will report it to errorReporter (aka Sentry).
    */
   report?: boolean | ((err: ERR) => boolean)
-
-  /**
-   * Defaults to true.
-   *
-   * When set to true, input (body, query, headers or params) will be mutated.
-   * So, e.g req.body will already contain mutated data post-validation.
-   */
-  mutateInput?: boolean
 }

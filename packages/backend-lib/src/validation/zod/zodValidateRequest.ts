@@ -50,7 +50,6 @@ class ZodValidateRequest {
     schema: ZodType<T>,
     opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
-    const { mutateInput } = opt
     const originalProperty = req[reqProperty] || {}
 
     // Zod does not mutate the input
@@ -64,9 +63,8 @@ class ZodValidateRequest {
       handleValidationError(error, originalProperty, opt)
     }
 
-    if (mutateInput) {
-      req[reqProperty] = data
-    }
+    // Kirill: decide to not do it, let's see
+    // req[reqProperty] = data
 
     return data
   }

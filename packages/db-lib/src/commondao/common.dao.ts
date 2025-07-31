@@ -1222,9 +1222,9 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     const inputName = opt.table || this.cfg.table
 
     const [error, convertedValue] = this.cfg.validateBM(input as BM, {
-      // Passing `mutateInput` through allows to do opt-in mutation
-      // for individual operations, e.g `someDao.save(myObj, { mutateInput: true })`,
-      // while still keeping safe non-mutating behavior by default
+      // Passing `mutateInput` through allows to opt-out of mutation
+      // for individual operations, e.g `someDao.save(myObj, { mutateInput: false })`
+      // Default is undefined (the validation function decides whether to mutate or not).
       mutateInput: opt.mutateInput,
       inputName,
     })

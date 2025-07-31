@@ -24,8 +24,13 @@ export type ValidationFunctionResult<T, ERR extends AppError> = [err: ERR | null
 
 export interface ValidationFunctionOptions {
   /**
-   * Defaults to false,
-   * which means that the ValidationFunction IS NOT ALLOWED to mutate the input.
+   * Defaults to undefined.
+   *
+   * Undefined means that it's up for the underlying validation library (implementation)
+   * to mutate or not.
+   * E.g joi and zod would deep-clone, while ajv would mutate.
+   *
+   * False means that the ValidationFunction IS NOT ALLOWED to mutate the input.
    * If set to true - the ValidationFunction HAS TO mutate the input
    * if it needs to apply transformations, such as:
    * - stripping unknown properties

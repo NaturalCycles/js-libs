@@ -227,7 +227,11 @@ export interface CommonDaoOptions extends CommonDBOptions {
   skipValidation?: boolean
 
   /**
-   * Default to false.
+   * Defaults to undefined.
+   *
+   * Undefined means that it's up for the underlying validation library (implementation)
+   * to mutate or not.
+   * E.g joi and zod would deep-clone, while ajv would MUTATE.
    *
    * False ensures that the input is not mutated by the Validation function (`validateBM`).
    *
