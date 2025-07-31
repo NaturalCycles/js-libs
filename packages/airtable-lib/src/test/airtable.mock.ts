@@ -4,6 +4,7 @@ import {
   arraySchema,
   booleanSchema,
   emailSchema,
+  getJoiValidationFunction,
   objectSchema,
   stringSchema,
 } from '@naturalcycles/nodejs-lib/joi'
@@ -159,10 +160,10 @@ export function mockBaseDao(api: AirtableApi, baseId: string): AirtableBaseDao<T
       new AirtableRemoteConnector<TestBase>(api),
     ],
     tableCfgMap: {
-      users: { validationSchema: userSchema, idField: 'id' },
-      roles: { validationSchema: roleSchema, idField: 'id' },
-      permissions: { validationSchema: permissionSchema, idField: 'id' },
-      categories: { validationSchema: categorySchema, idField: 'id' },
+      users: { validationFn: getJoiValidationFunction(userSchema), idField: 'id' },
+      roles: { validationFn: getJoiValidationFunction(roleSchema), idField: 'id' },
+      permissions: { validationFn: getJoiValidationFunction(permissionSchema), idField: 'id' },
+      categories: { validationFn: getJoiValidationFunction(categorySchema), idField: 'id' },
     },
     noAttachmentQueryString: true,
   })

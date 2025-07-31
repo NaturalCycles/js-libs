@@ -4,7 +4,6 @@ import { _mapValues } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { InstanceId } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
-import { getValidationResult } from '@naturalcycles/nodejs-lib/joi'
 import type {
   AirtableApi,
   AirtableApiRecord,
@@ -228,11 +227,22 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
     return airtableIds
   }
 
-  private validate<R>(record: R, opt: AirtableDaoOptions = {}): R {
-    const { validationSchema } = this.cfg
+  private validate(record: T, opt: AirtableDaoOptions = {}): T {
+    const { validationFn } = this.cfg
     const { skipValidation, onValidationError, throwOnValidationError } = opt
 
-    const [error, value] = getValidationResult<R>(record, validationSchema as any, this.tableName)
+    let value: T
+    let error: AppError | undefined
+
+    if (validationFn) {
+      const [err, item] = validationFn(record, {
+        inputName: this.tableName,
+      })
+      value = item
+      error = err
+    } else {
+      value = record
+    }
 
     if (error && !skipValidation) {
       if (onValidationError) onValidationError(error)

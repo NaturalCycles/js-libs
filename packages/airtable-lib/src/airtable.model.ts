@@ -1,9 +1,6 @@
-import type {
-  AnySchema,
-  ArraySchema,
-  JoiValidationError,
-  ObjectSchema,
-} from '@naturalcycles/nodejs-lib/joi'
+import type { ValidationFunction } from '@naturalcycles/js-lib'
+import type { AppError } from '@naturalcycles/js-lib/error'
+import type { ArraySchema, ObjectSchema } from '@naturalcycles/nodejs-lib/joi'
 import {
   arraySchema,
   integerSchema,
@@ -164,7 +161,7 @@ export interface AirtableDaoOptions {
    */
   throwOnValidationError?: boolean
 
-  onValidationError?: (err: JoiValidationError) => any
+  onValidationError?: (err: AppError) => any
 
   /**
    * Applies only to "upload to remote Airtable" tasks.
@@ -239,7 +236,7 @@ export interface AirtableTableCfg<T extends AirtableRecord = any> {
    */
   idField: string
 
-  validationSchema?: AnySchema<T>
+  validationFn?: ValidationFunction<T, any>
   sort?: AirtableApiSort<T>[]
 
   /**
