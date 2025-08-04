@@ -29,7 +29,7 @@
     "ajv-keywords": "^5",
     "chalk": "^5",
     "dotenv": "^17",
-    "joi": "^17",
+    "joi": "^18",
     "js-yaml": "^4",
     "jsonwebtoken": "^9",
     "lru-cache": "^11",
