@@ -110,7 +110,7 @@ test('buffer', () => {
 
   // const schema = AjvSchema.create(s) // this fails strangely!
   const schema = AjvSchema.create(s.build())
-  schema.validate(Buffer.from('abc'), { mutateInput: true })
+  schema.validate(Buffer.from('abc'))
 
   expect(schema.isValid('a b c' as any)).toBe(false)
 })

@@ -64,7 +64,7 @@ test('should support compressed body', async () => {
       'content-type': 'application/json',
       'content-encoding': 'deflate',
     },
-    body,
+    body: body as BufferSource, // todo: cast smarter
   })
 
   // console.log(output)
