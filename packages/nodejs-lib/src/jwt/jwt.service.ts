@@ -69,9 +69,7 @@ export class JWTService {
       'JWTService: privateKey is required to be able to verify, but not provided',
     )
 
-    schema?.validate(payload, {
-      mutateInput: true,
-    })
+    schema?.validate(payload)
 
     return jsonwebtoken.sign(payload, this.cfg.privateKey, {
       algorithm: this.cfg.algorithm,
@@ -99,9 +97,7 @@ export class JWTService {
         ...opt,
       }) as T
 
-      schema?.validate(data, {
-        mutateInput: true,
-      })
+      schema?.validate(data)
 
       return data
     } catch (err) {
@@ -134,9 +130,7 @@ export class JWTService {
       ...this.cfg.errorData,
     })
 
-    schema?.validate(data.payload, {
-      mutateInput: true,
-    })
+    schema?.validate(data.payload)
 
     return data
   }
