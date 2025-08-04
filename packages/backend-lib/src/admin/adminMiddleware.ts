@@ -25,6 +25,14 @@ export interface RequireAdminCfg {
    * Set to `false` to debug login issues.
    */
   autoLogin?: boolean
+
+  /**
+   * Defaults to `true`.
+   *
+   * Set to `true` to require that the current user has "every" permission that is listed.
+   * Set to `false` to require only that the current user has at least one permission that is listed.
+   */
+  andComparison?: boolean
 }
 
 export type AdminMiddleware = (
@@ -54,13 +62,19 @@ export function requireAdminPermissions(
   reqPermissions: string[] = [],
   cfg: RequireAdminCfg = {},
 ): BackendRequestHandler {
-  const { loginHtmlPath = '/login.html', urlStartsWith, apiHost, autoLogin = true } = cfg
+  const {
+    loginHtmlPath = '/login.html',
+    urlStartsWith,
+    apiHost,
+    autoLogin = true,
+    andComparison = true,
+  } = cfg
 
   return async function requireAdminPermissionsFn(req, res, next) {
     if (urlStartsWith && !req.url.startsWith(urlStartsWith)) return next()
 
     try {
-      await adminService.requirePermissions(req, reqPermissions)
+      await adminService.requirePermissions(req, reqPermissions, {}, andComparison)
       return next()
     } catch (err) {
       if (err instanceof AppError && err.data.adminAuthRequired) {
