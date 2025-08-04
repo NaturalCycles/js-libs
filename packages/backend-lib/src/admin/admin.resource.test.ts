@@ -2,6 +2,7 @@ import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { expressTestService } from '../testing/index.js'
+import { createAdminMiddleware } from './adminMiddleware.js'
 import { BaseAdminService } from './base.admin.service.js'
 import { FirebaseSharedService } from './firebase.shared.service.js'
 
@@ -19,6 +20,15 @@ class AdminService extends BaseAdminService {
     if (email === 'second@mail.com') {
       return new Set(['s1', 's2'])
     }
+    if (email === 'p1@mail.com') {
+      return new Set(['p1'])
+    }
+    if (email === 'p2@mail.com') {
+      return new Set(['p2'])
+    }
+    if (email === 'p1p2@mail.com') {
+      return new Set(['p1', 'p2'])
+    }
   }
 }
 
@@ -27,10 +37,26 @@ const adminService = new AdminService(await firebaseService.auth(), {
 })
 
 const adminResource = getDefaultRouter()
+const requireAdmin = createAdminMiddleware(adminService)
+
 adminResource.get('/admin/info', async (req, res) => {
   res.json((await adminService.getAdminInfo(req)) || null)
 })
 adminResource.post('/admin/login', adminService.getFirebaseAuthLoginHandler())
+adminResource.get(
+  '/admin/test-permission-and',
+  requireAdmin(['p1', 'p2'], { andComparison: true }),
+  async (_req, res) => {
+    res.json({ success: true })
+  },
+)
+adminResource.get(
+  '/admin/test-permission-or',
+  requireAdmin(['p1', 'p2'], { andComparison: false }),
+  async (_req, res) => {
+    res.json({ success: true })
+  },
+)
 
 beforeEach(() => {
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
@@ -131,5 +157,60 @@ describe('getAdminInfo', () => {
         ],
       }
     `)
+  })
+})
+
+describe('createAdminMiddleware', () => {
+  beforeEach(() => {
+    vi.spyOn(adminService, 'getEmailByToken').mockImplementation(async (_, token) => {
+      if (token === 'p1') return 'p1@mail.com'
+      if (token === 'p2') return 'p2@mail.com'
+      if (token === 'p1p2') return 'p1p2@mail.com'
+    })
+  })
+
+  test('AND-comparison requires that the user has ALL of the required permissions', async () => {
+    await app.get('admin/test-permission-and', {
+      headers: {
+        'x-admin-token': 'p1p2',
+      },
+    })
+
+    const err1 = await app.expectError({
+      url: 'admin/test-permission-and',
+      headers: {
+        'x-admin-token': 'p1',
+      },
+    })
+
+    const err2 = await app.expectError({
+      url: 'admin/test-permission-and',
+      headers: {
+        'x-admin-token': 'p2',
+      },
+    })
+
+    expect(err1.data.responseStatusCode).toBe(403)
+    expect(err2.data.responseStatusCode).toBe(403)
+  })
+
+  test('OR-comparison requires that the user has ONE OF the required permissions', async () => {
+    await app.get('admin/test-permission-or', {
+      headers: {
+        'x-admin-token': 'p1p2',
+      },
+    })
+
+    await app.get('admin/test-permission-or', {
+      headers: {
+        'x-admin-token': 'p1',
+      },
+    })
+
+    await app.get('admin/test-permission-or', {
+      headers: {
+        'x-admin-token': 'p2',
+      },
+    })
   })
 })
