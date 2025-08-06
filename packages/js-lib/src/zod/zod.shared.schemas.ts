@@ -2,7 +2,7 @@ import type { ZodString } from 'zod'
 import { z } from 'zod'
 import type { IANATimezone, IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
 
-type ZodBranded<T, B> = T & Record<'_zod', Record<'output', number & B>>
+type ZodBranded<T, B> = T & Record<'_zod', Record<'output', B>>
 export type ZodBrandedString<B> = ZodBranded<z.ZodString, B>
 export type ZodBrandedInt<B> = ZodBranded<z.ZodInt, B>
 export type ZodBrandedNumber<B> = ZodBranded<z.ZodNumber, B>

@@ -1,6 +1,7 @@
 import { getAjv } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, test } from 'vitest'
-import { customZodSchemas, z } from './index.js'
+import type { IsoDate, UnixTimestamp } from '../types.js'
+import { customZodSchemas, z, type zInfer } from './index.js'
 
 test.each(Object.keys(customZodSchemas))(
   'custom zod schemas like "z.%s" should properly convert to JSON schema and AJV schema',
@@ -20,6 +21,26 @@ test('zod schemas with branded types should still be extensible', () => {
   })
 
   expect(schema).toBeDefined()
+})
+
+test('zod type inference should work correctly', () => {
+  const schema = z.object({
+    id: z.string(),
+    count: z.int(),
+    created: z.unixTimestamp(),
+    date: z.isoDate(),
+  })
+
+  interface MyType extends zInfer<typeof schema> {}
+
+  const data = {
+    id: '123',
+    count: 42,
+    created: 1622547800 as UnixTimestamp,
+    date: '2021-01-01' as IsoDate,
+  } satisfies MyType
+
+  expect(schema.parse(data)).toEqual(data)
 })
 
 describe('z.dbEntity', () => {
