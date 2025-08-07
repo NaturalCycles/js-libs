@@ -6,7 +6,7 @@ pn tsx scripts/validation.bench.script.ts
 
 import http from 'node:http'
 import { runCannon } from '@naturalcycles/bench-lib'
-import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
+import { j } from '@naturalcycles/js-lib/json-schema'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
@@ -24,8 +24,8 @@ const pwInputSchema = objectSchema<PwInput>({
 })
 
 const pwInputSchemaAjv = AjvSchema.create<PwInput>(
-  jsonSchema.object<PwInput>({
-    pw: jsonSchema.string().min(6),
+  j.object<PwInput>({
+    pw: j.string().min(6),
   }),
 )
 

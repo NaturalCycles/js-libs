@@ -1,4 +1,4 @@
-import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
+import { j } from '@naturalcycles/js-lib/json-schema'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
@@ -77,11 +77,11 @@ describe('ajvValidateRequest.headers', () => {
       ajvValidateRequest.headers(
         req,
         AjvSchema.create(
-          jsonSchema.object({
-            shortstring: jsonSchema.string().min(8).max(16),
-            numeric: jsonSchema.string(),
-            bool: jsonSchema.string(),
-            sessionid: jsonSchema.string(),
+          j.object({
+            shortstring: j.string().min(8).max(16),
+            numeric: j.string(),
+            bool: j.string(),
+            sessionid: j.string(),
           }),
         ),
         { redactPaths: ['sessionid'] },
@@ -155,9 +155,9 @@ describe('ajvValidateRequest.headers', () => {
       const validatedHeaders = ajvValidateRequest.headers(
         req,
         AjvSchema.create(
-          jsonSchema.object({
-            shortstring: jsonSchema.string().min(8).max(16),
-            numeric: jsonSchema.string(),
+          j.object({
+            shortstring: j.string().min(8).max(16),
+            numeric: j.string(),
           }),
         ),
       )

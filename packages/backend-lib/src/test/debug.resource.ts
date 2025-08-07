@@ -1,5 +1,5 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
-import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
+import { j } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
@@ -24,8 +24,8 @@ const changePasswordSchema = objectSchema<PwInput>({
 })
 
 const changePasswordSchemaAjv = AjvSchema.create<PwInput>(
-  jsonSchema.object<PwInput>({
-    pw: jsonSchema.string().min(8),
+  j.object<PwInput>({
+    pw: j.string().min(8),
   }),
 )
 
