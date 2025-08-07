@@ -1,6 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import type { JsonSchemaObject } from '@naturalcycles/js-lib/json-schema'
-import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
+import { j } from '@naturalcycles/js-lib/json-schema'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import {
   baseDBEntitySchema,
@@ -50,17 +50,17 @@ export const testItemTMSchema: ObjectSchema<TestItemTM> = objectSchema<TestItemT
   even: booleanSchema.optional(),
 })
 
-export const testItemBMJsonSchema: JsonSchemaObject<TestItemBM> = jsonSchema
+export const testItemBMJsonSchema: JsonSchemaObject<TestItemBM> = j
   .rootObject<TestItemBM>({
     // todo: figure out how to not copy-paste these 3 fields
-    id: jsonSchema.string(), // todo: not strictly needed here
-    created: jsonSchema.unixTimestamp(),
-    updated: jsonSchema.unixTimestamp(),
-    k1: jsonSchema.string(),
-    k2: jsonSchema.oneOf<string | null>([jsonSchema.string(), jsonSchema.null()]).optional(),
-    k3: jsonSchema.number().optional(),
-    even: jsonSchema.boolean().optional(),
-    b1: jsonSchema.buffer().optional(),
+    id: j.string(), // todo: not strictly needed here
+    created: j.unixTimestamp(),
+    updated: j.unixTimestamp(),
+    k1: j.string(),
+    k2: j.oneOf<string | null>([j.string(), j.null()]).optional(),
+    k3: j.number().optional(),
+    even: j.boolean().optional(),
+    b1: j.buffer().optional(),
   })
   .baseDBEntity()
   .build()

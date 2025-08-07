@@ -1,7 +1,7 @@
 import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
-import type { AnyObject, BaseDBEntity } from '../types.js'
+import type { AnyObject, BaseDBEntity, IsoDate, UnixTimestamp } from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
@@ -29,9 +29,9 @@ export interface JsonSchemaBuilder<T = unknown> {
 
 /**
  * Fluent (chainable) API to manually create Json Schemas.
- * Inspired by Joi
+ * Inspired by Joi and Zod.
  */
-export const jsonSchema = {
+export const j = {
   any<T = unknown>() {
     return new JsonSchemaAnyBuilder<T, JsonSchemaAny<T>>({})
   },
@@ -65,34 +65,34 @@ export const jsonSchema = {
   },
 
   // number types
-  number() {
-    return new JsonSchemaNumberBuilder()
+  number<T extends number = number>() {
+    return new JsonSchemaNumberBuilder<T>()
   },
-  integer() {
-    return new JsonSchemaNumberBuilder().integer()
+  integer<T extends number = number>() {
+    return new JsonSchemaNumberBuilder<T>().integer()
   },
   unixTimestamp() {
-    return new JsonSchemaNumberBuilder().unixTimestamp()
+    return new JsonSchemaNumberBuilder<UnixTimestamp>().unixTimestamp()
   },
   unixTimestamp2000() {
-    return new JsonSchemaNumberBuilder().unixTimestamp2000()
+    return new JsonSchemaNumberBuilder<UnixTimestamp>().unixTimestamp2000()
   },
   // string types
-  string() {
-    return new JsonSchemaStringBuilder()
+  string<T extends string = string>() {
+    return new JsonSchemaStringBuilder<T>()
   },
-  dateString() {
-    return new JsonSchemaStringBuilder().date()
+  isoDate() {
+    return new JsonSchemaStringBuilder<IsoDate>().isoDate()
   },
   // email: () => new JsonSchemaStringBuilder().email(),
   // complex types
   object<T extends AnyObject>(props: {
-    [k in keyof T]: JsonSchemaAnyBuilder<T[k]>
+    [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
   }) {
     return new JsonSchemaObjectBuilder<T>().addProperties(props)
   },
   rootObject<T extends AnyObject>(props: {
-    [k in keyof T]: JsonSchemaAnyBuilder<T[k]>
+    [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
   }) {
     return new JsonSchemaObjectBuilder<T>().addProperties(props).$schemaDraft7()
   },
@@ -203,7 +203,10 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
   }
 }
 
-export class JsonSchemaNumberBuilder extends JsonSchemaAnyBuilder<number, JsonSchemaNumber> {
+export class JsonSchemaNumberBuilder<T extends number = number> extends JsonSchemaAnyBuilder<
+  T,
+  JsonSchemaNumber<T>
+> {
   constructor() {
     super({
       type: 'number',
@@ -257,15 +260,22 @@ export class JsonSchemaNumberBuilder extends JsonSchemaAnyBuilder<number, JsonSc
   int64 = (): this => this.format('int64')
   float = (): this => this.format('float')
   double = (): this => this.format('double')
-  unixTimestamp = (): this => this.format('unixTimestamp')
-  unixTimestamp2000 = (): this => this.format('unixTimestamp2000')
-  unixTimestampMillis = (): this => this.format('unixTimestampMillis')
-  unixTimestampMillis2000 = (): this => this.format('unixTimestampMillis2000')
+  unixTimestamp = (): this => this.format('unixTimestamp').description('UnixTimestamp')
+  unixTimestamp2000 = (): this => this.format('unixTimestamp2000').description('UnixTimestamp2000')
+  unixTimestampMillis = (): this =>
+    this.format('unixTimestampMillis').description('UnixTimestampMillis')
+
+  unixTimestampMillis2000 = (): this =>
+    this.format('unixTimestampMillis2000').description('UnixTimestampMillis2000')
+
   utcOffset = (): this => this.format('utcOffset')
   utcOffsetHours = (): this => this.format('utcOffsetHours')
 }
 
-export class JsonSchemaStringBuilder extends JsonSchemaAnyBuilder<string, JsonSchemaString> {
+export class JsonSchemaStringBuilder<T extends string = string> extends JsonSchemaAnyBuilder<
+  T,
+  JsonSchemaString<T>
+> {
   constructor() {
     super({
       type: 'string',
@@ -298,7 +308,7 @@ export class JsonSchemaStringBuilder extends JsonSchemaAnyBuilder<string, JsonSc
   }
 
   email = (): this => this.format('email')
-  date = (): this => this.format('date')
+  isoDate = (): this => this.format('date').description('IsoDate') // todo: make it custom isoDate instead
   url = (): this => this.format('url')
   ipv4 = (): this => this.format('ipv4')
   ipv6 = (): this => this.format('ipv6')

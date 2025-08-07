@@ -2,6 +2,7 @@
 
 exports[`addressBMJsonSchema 1`] = `
 {
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
   "properties": {
     "address1": {
@@ -18,8 +19,19 @@ exports[`addressBMJsonSchema 1`] = `
       "type": "string",
     },
     "created": {
+      "description": "UnixTimestamp2000",
       "format": "unixTimestamp2000",
       "type": "number",
+    },
+    "createdAt": {
+      "description": "UnixTimestamp2000",
+      "format": "unixTimestamp2000",
+      "type": "number",
+    },
+    "createdDate": {
+      "description": "IsoDate",
+      "format": "date",
+      "type": "string",
     },
     "id": {
       "type": "string",
@@ -31,6 +43,7 @@ exports[`addressBMJsonSchema 1`] = `
       "type": "string",
     },
     "updated": {
+      "description": "UnixTimestamp2000",
       "format": "unixTimestamp2000",
       "type": "number",
     },
@@ -45,6 +58,8 @@ exports[`addressBMJsonSchema 1`] = `
     "city",
     "countryCode",
     "created",
+    "createdAt",
+    "createdDate",
     "id",
     "updated",
     "zip",
@@ -108,6 +123,7 @@ exports[`addressDBMJsonSchema 1`] = `
 
 exports[`addressSchema 1`] = `
 {
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "additionalProperties": false,
   "properties": {
     "address1": {
@@ -121,6 +137,16 @@ exports[`addressSchema 1`] = `
     },
     "countryCode": {
       "format": "countryCode",
+      "type": "string",
+    },
+    "createdAt": {
+      "description": "UnixTimestamp2000",
+      "format": "unixTimestamp2000",
+      "type": "number",
+    },
+    "createdDate": {
+      "description": "IsoDate",
+      "format": "date",
       "type": "string",
     },
     "phone": {
@@ -139,6 +165,8 @@ exports[`addressSchema 1`] = `
     "address1",
     "city",
     "countryCode",
+    "createdAt",
+    "createdDate",
     "zip",
   ],
   "type": "object",

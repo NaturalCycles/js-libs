@@ -14,6 +14,12 @@ const AJV_OPTIONS: Options = {
   coerceTypes: false, // while `false` - it won't mutate your input
 }
 
+const AJV_NON_MUTATING_OPTIONS: Options = {
+  ...AJV_OPTIONS,
+  removeAdditional: false,
+  useDefaults: false,
+}
+
 /**
  * Return cached instance of Ajv with default (recommended) options.
  *
@@ -21,6 +27,14 @@ const AJV_OPTIONS: Options = {
  * to benefit from cached Ajv instance.
  */
 export const getAjv = _lazyValue(createAjv)
+
+/**
+ * Returns cached instance of Ajv, which is non-mutating.
+ *
+ * To be used in places where we only need to know if an item is valid or not,
+ * and are not interested in transforming the data.
+ */
+export const getNonMutatingAjv = _lazyValue(() => createAjv(AJV_NON_MUTATING_OPTIONS))
 
 /**
  * Create Ajv with modified defaults.
@@ -38,6 +52,7 @@ export function createAjv(opt?: Options): Ajv {
   // Add custom formats
   addCustomAjvFormats(ajv)
 
+  // todo: review and possibly cherry-pick/vendor the formats
   // Adds ajv "formats"
   // https://ajv.js.org/guide/formats.html
   // @ts-expect-error types are wrong
@@ -60,7 +75,9 @@ export function createAjv(opt?: Options): Ajv {
 }
 
 const TS_2500 = 16725225600 // 2500-01-01
+const TS_2500_MILLIS = TS_2500 * 1000
 const TS_2000 = 946684800 // 2000-01-01
+const TS_2000_MILLIS = TS_2000 * 1000
 
 function addCustomAjvFormats(ajv: Ajv): Ajv {
   return (
@@ -87,13 +104,13 @@ function addCustomAjvFormats(ajv: Ajv): Ajv {
       .addFormat('unixTimestampMillis', {
         type: 'number',
         validate: (n: number) => {
-          return n >= 0 && n < TS_2500 * 1000
+          return n >= 0 && n < TS_2500_MILLIS
         },
       })
       .addFormat('unixTimestampMillis2000', {
         type: 'number',
         validate: (n: number) => {
-          return n >= TS_2000 * 1000 && n < TS_2500 * 1000
+          return n >= TS_2000_MILLIS && n < TS_2500_MILLIS
         },
       })
       .addFormat('utcOffset', {

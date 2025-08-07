@@ -1,7 +1,7 @@
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _try } from '@naturalcycles/js-lib/error'
 import type { JsonSchema } from '@naturalcycles/js-lib/json-schema'
-import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
+import { j } from '@naturalcycles/js-lib/json-schema'
 import { _deepFreeze } from '@naturalcycles/js-lib/object'
 import type { IsoDate } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
@@ -316,8 +316,8 @@ interface Item {
 }
 
 test('types', () => {
-  const rawSchema = jsonSchema.object<Item>({
-    id: jsonSchema.string(),
+  const rawSchema = j.object<Item>({
+    id: j.string(),
   })
 
   // Type of ajvSchema must be AjvSchema<Item> (not AjvSchema<any> !)

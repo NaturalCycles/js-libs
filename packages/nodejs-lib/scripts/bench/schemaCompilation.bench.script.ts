@@ -6,7 +6,7 @@ pn tsx packages/nodejs-lib/scripts/bench/schemaCompilation.bench.script.ts
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { jsonSchema } from '@naturalcycles/js-lib/json-schema'
+import { j } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
 import { AjvSchema } from '../../src/validation/ajv/index.js'
 import {
@@ -35,13 +35,13 @@ const item: Item = {
 
 let _sink: any
 
-const jsonSchema2 = jsonSchema
+const jsonSchema2 = j
   .object<Item>({
-    s: jsonSchema.string(),
-    n1: jsonSchema.number(),
-    n2: jsonSchema.number().optional(),
-    b1: jsonSchema.boolean().optional(),
-    a: jsonSchema.array(jsonSchema.number()),
+    s: j.string(),
+    n1: j.number(),
+    n2: j.number().optional(),
+    b1: j.boolean().optional(),
+    a: j.array(j.number()),
   })
   .build()
 

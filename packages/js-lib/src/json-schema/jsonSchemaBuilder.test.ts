@@ -1,10 +1,13 @@
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { expect, test } from 'vitest'
-import type { BaseDBEntity } from '../types.js'
-import { jsonSchema } from './jsonSchemaBuilder.js'
+import type { BaseDBEntity, IsoDate, UnixTimestamp } from '../types.js'
+import { z } from '../zod/index.js'
+import { j } from './jsonSchemaBuilder.js'
 import { baseDBEntityJsonSchema } from './jsonSchemas.js'
 
 interface Address {
+  createdAt: UnixTimestamp
+  createdDate: IsoDate
   countryCode: string
   zip: string
   city: string
@@ -15,37 +18,50 @@ interface Address {
 }
 
 // interface AddressBM extends Address, BaseDBEntity {}
-// interface AddressDBM extends Address, SavedDBEntity {}
 
-const addressJsonSchema = jsonSchema.object<Address>({
-  countryCode: jsonSchema.string().countryCode(),
-  zip: jsonSchema.string().length(1, 40),
-  city: jsonSchema.string(),
-  address1: jsonSchema.string(),
-  address2: jsonSchema.string().optional(),
-  region: jsonSchema.string().optional(),
-  phone: jsonSchema.string().optional(),
+const addressJsonSchema = j.rootObject<Address>({
+  createdAt: j.unixTimestamp2000(),
+  createdDate: j.isoDate(),
+  countryCode: j.string().countryCode(),
+  zip: j.string().length(1, 40),
+  city: j.string(),
+  address1: j.string(),
+  address2: j.string().optional(),
+  region: j.string().optional(),
+  phone: j.string().optional(),
+})
+
+const addressZodSchema = z.object({
+  createdAt: z.unixTimestamp2000(),
+  createdDate: z.isoDate(),
+  countryCode: z.string(),
+  zip: z.string().min(1).max(40),
+  city: z.string(),
+  address1: z.string(),
+  address2: z.string().optional(),
+  region: z.string().optional(),
+  phone: z.string().optional(),
 })
 
 const addressBMJsonSchema = addressJsonSchema.extend(baseDBEntityJsonSchema)
-const addressDBMJsonSchema = addressJsonSchema.extend(baseDBEntityJsonSchema)
 
 // alternative
 
-const addressBMJsonSchema2 = baseDBEntityJsonSchema.extend(addressJsonSchema)
-const addressDBMJsonSchema2 = baseDBEntityJsonSchema.extend(addressJsonSchema)
+const addressBMJsonSchema2 = j
+  .rootObject({})
+  .extend(baseDBEntityJsonSchema.extend(addressJsonSchema))
 
 // alternative 2
 const addressBMJsonSchema3 = addressJsonSchema.extend(
-  jsonSchema.object<BaseDBEntity>({
-    id: jsonSchema.string(),
-    created: jsonSchema.unixTimestamp2000(),
-    updated: jsonSchema.unixTimestamp2000(),
+  j.object<BaseDBEntity>({
+    id: j.string(),
+    created: j.unixTimestamp2000(),
+    updated: j.unixTimestamp2000(),
   }),
 )
 
 test('simpleStringSchema', () => {
-  const s = jsonSchema.string().build()
+  const s = j.string().build()
 
   expect(s).toMatchInlineSnapshot(`
     {
@@ -64,13 +80,8 @@ test('addressBMJsonSchema', () => {
   expect(addressBMJsonSchema3.build()).toEqual(addressBMJsonSchema.build())
 })
 
-test('addressDBMJsonSchema', () => {
-  expect(addressDBMJsonSchema.build()).toMatchSnapshot()
-  expect(addressDBMJsonSchema2.build()).toEqual(addressDBMJsonSchema.build())
-})
-
 test('oneOf', () => {
-  const s = jsonSchema.allOf([jsonSchema.string(), jsonSchema.string().countryCode()])
+  const s = j.allOf([j.string(), j.string().countryCode()])
   expect(s.build()).toMatchInlineSnapshot(`
     {
       "allOf": [
@@ -87,7 +98,7 @@ test('oneOf', () => {
 })
 
 test('order', () => {
-  const s = addressDBMJsonSchema.$schemaDraft7().$id('AddressDBM').build()
+  const s = addressBMJsonSchema.$schemaDraft7().$id('AddressBM').build()
   expect(Object.keys(s)).toMatchInlineSnapshot(`
     [
       "$schema",
@@ -101,7 +112,7 @@ test('order', () => {
 })
 
 test('buffer', () => {
-  const s = jsonSchema.buffer()
+  const s = j.buffer()
   expect(s.build()).toMatchInlineSnapshot(`
     {
       "instanceof": "Buffer",
@@ -113,4 +124,14 @@ test('buffer', () => {
   schema.validate(Buffer.from('abc'))
 
   expect(schema.isValid('a b c' as any)).toBe(false)
+})
+
+// todo: there are still differences, let's review them
+test.todo('compare with zod json schema', () => {
+  const zodJsonSchema = z.toJSONSchema(addressZodSchema, { target: 'draft-7' })
+  const jsonSchema = addressJsonSchema.build()
+
+  zodJsonSchema.required!.sort() // for snapshot stability
+
+  expect(jsonSchema).toEqual(zodJsonSchema)
 })

@@ -58,8 +58,8 @@ function isoDate(): ZodBrandedString<IsoDate> {
     .string()
     .refine(v => {
       return /^\d{4}-\d{2}-\d{2}$/.test(v)
-    }, 'Must be an IsoDateString')
-    .describe('IsoDateString') as ZodBrandedString<IsoDate>
+    }, 'Must be a YYYY-MM-DD string')
+    .describe('IsoDate') as ZodBrandedString<IsoDate>
 }
 
 function email(): z.ZodEmail {

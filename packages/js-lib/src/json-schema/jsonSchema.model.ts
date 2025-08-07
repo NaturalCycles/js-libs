@@ -80,7 +80,7 @@ export interface JsonSchemaConst<T = unknown> extends JsonSchemaAny<T> {
   const: T // literal type
 }
 
-export interface JsonSchemaString extends JsonSchemaAny<string> {
+export interface JsonSchemaString<T extends string = string> extends JsonSchemaAny<T> {
   type: 'string'
   pattern?: string
   minLength?: number
@@ -96,7 +96,7 @@ export interface JsonSchemaString extends JsonSchemaAny<string> {
   transform?: ('trim' | 'toLowerCase' | 'toUpperCase')[]
 }
 
-export interface JsonSchemaNumber extends JsonSchemaAny<number> {
+export interface JsonSchemaNumber<T extends number = number> extends JsonSchemaAny<T> {
   type: 'number' | 'integer'
   format?: string
   multipleOf?: number
