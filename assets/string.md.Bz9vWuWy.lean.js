@@ -1,0 +1,1 @@
+import{_ as i,c as a,o as t,ae as e}from"./chunks/framework.GVCJppe9.js";const g=JSON.parse('{"title":"String","description":"","frontmatter":{},"headers":[],"relativePath":"string.md","filePath":"string.md"}'),n={name:"string.md"};function l(h,s,p,k,r,d){return t(),a("div",null,s[0]||(s[0]=[e("",51)]))}const E=i(n,[["render",l]]);export{g as __pageData,E as default};
