@@ -44,7 +44,6 @@
     "vue-eslint-parser": "^10"
   },
   "peerDependencies": {
-    "eslint": "^9",
     "husky": "^9",
     "stylelint": "^16",
     "stylelint-config-standard-scss": "^15",
