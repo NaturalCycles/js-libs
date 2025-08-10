@@ -73,7 +73,7 @@ const linters = {
     return [
       biomeCmd,
       eslintConfigPathRoot &&
-        `${eslintCmd} --config ${eslintConfigPathRoot} --cache-location node_modules/.cache/eslint_src`,
+        `${eslintCmd} --config ${eslintConfigPathRoot} --parser-options=tsconfigRootDir:. --cache-location node_modules/.cache/eslint_src`,
       prettierCmd,
     ]
       .filter(Boolean)
