@@ -84,6 +84,7 @@ const commands: (Command | Separator)[] = [
     desc: 'Run "lint-staged", which runs linter on git staged files.',
   },
   { name: 'eslint', fn: eslintAll, desc: 'Run eslint on all files.' },
+  { name: 'eslint-no-fix', deprecated: true, fn: async () => await eslintAll({ fix: false }) },
   {
     name: 'eslint --no-fix',
     fn: async () => await eslintAll({ fix: false }),

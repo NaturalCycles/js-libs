@@ -155,7 +155,7 @@ if (fs.existsSync(`./scripts`)) {
       return [
         biomeCmd,
         eslintConfigPathScripts &&
-          `${eslintCmd} --config ${eslintConfigPathScripts} --parser-options=project:scripts/tsconfig.json --cache-location node_modules/.cache/eslint_scripts`,
+          `${eslintCmd} --config ${eslintConfigPathScripts} --parser-options=project:scripts/tsconfig.json --parser-options=tsconfigRootDir:. --cache-location node_modules/.cache/eslint_scripts`,
         prettierCmd,
       ]
         .filter(Boolean)
@@ -176,7 +176,7 @@ if (fs.existsSync(`./e2e`)) {
       return [
         biomeCmd,
         eslintConfigPathE2e &&
-          `${eslintCmd} --config ${eslintConfigPathE2e} --parser-options=project:e2e/tsconfig.json --cache-location ./node_modules/.cache/eslint_e2e`,
+          `${eslintCmd} --config ${eslintConfigPathE2e} --parser-options=project:e2e/tsconfig.json --parser-options=tsconfigRootDir:. --cache-location ./node_modules/.cache/eslint_e2e`,
         prettierCmd,
       ]
         .filter(Boolean)

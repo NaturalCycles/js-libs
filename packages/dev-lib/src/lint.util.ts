@@ -172,6 +172,8 @@ async function runESLint(
       eslintConfigPath,
       `${dir}/**/*.{${extensions.join(',')}}`,
       `--parser-options=project:${tsconfigPath}`,
+      // The next line fixes the `typescript-eslint` 8.37 bug of resolving tsconfig.json
+      `--parser-options=tsconfigRootDir:.`,
       '--cache',
       '--cache-location',
       cacheLocation,
