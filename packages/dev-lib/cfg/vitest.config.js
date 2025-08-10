@@ -130,8 +130,14 @@ export const sharedConfig = {
 }
 
 function doesItRunInIDE() {
+  // example command line below:
+  // /usr/local/bin/node /Users/some/Idea/some/node_modules/vitest/vitest.mjs --run --reporter /Users/some/Library/Application Support/JetBrains/IntelliJIdea2025.2/plugins/javascript-plugin/helpers/vitest-intellij/node_modules/vitest-intellij-reporter-safe.js --testNamePattern=^ ?case 001: empty data$ /Users/some/Idea/some/src/some/some.integration.test.ts
   return process.argv.some(
-    a => a === '--runTestsByPath' || a.includes('IDEA') || a.includes('Visual Studio'),
+    a =>
+      a === '--runTestsByPath' ||
+      a.includes('IDEA') ||
+      a.includes('JetBrains') ||
+      a.includes('Visual Studio'),
   )
 }
 
