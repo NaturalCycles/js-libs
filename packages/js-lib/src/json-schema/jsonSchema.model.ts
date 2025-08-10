@@ -13,7 +13,7 @@ export type JsonSchema<T = unknown> =
   | JsonSchemaNumber
   | JsonSchemaBoolean
   | JsonSchemaNull
-  | JsonSchemaObject
+  | JsonSchemaObject // cannot use <T>, because T needs to extend AnyObject
   | JsonSchemaArray<T>
   | JsonSchemaTuple<T>
 

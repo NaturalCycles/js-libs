@@ -201,6 +201,11 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
   clone(): JsonSchemaAnyBuilder<T, SCHEMA_TYPE> {
     return new JsonSchemaAnyBuilder<T, SCHEMA_TYPE>(_deepCopy(this.schema))
   }
+
+  /**
+   * @experimental
+   */
+  infer!: T
 }
 
 export class JsonSchemaNumberBuilder<T extends number = number> extends JsonSchemaAnyBuilder<
