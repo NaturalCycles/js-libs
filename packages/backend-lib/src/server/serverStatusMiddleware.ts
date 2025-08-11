@@ -28,9 +28,11 @@ export function getServerStatusData(
   projectDir: string = process.cwd(),
   extra?: any,
 ): Record<string, any> {
-  const { ts } = getDeployInfo(projectDir)
-  const t = localTime(ts)
-  const deployBuildTime = DEPLOY_BUILD_TIME || t.toPretty()
+  let deployBuildTime = DEPLOY_BUILD_TIME
+  if (!deployBuildTime) {
+    const { ts } = getDeployInfo(projectDir)
+    deployBuildTime = localTime(ts).toPretty()
+  }
 
   return _filterNullishValues({
     nodeProcessStarted: getStartedStr(),
