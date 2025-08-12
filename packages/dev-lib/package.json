@@ -33,7 +33,7 @@
     "@vitest/eslint-plugin": "^1",
     "eslint": "^9",
     "eslint-plugin-import-x": "^4",
-    "eslint-plugin-jsdoc": "^52",
+    "eslint-plugin-jsdoc": "^53",
     "eslint-plugin-simple-import-sort": "^12",
     "eslint-plugin-unicorn": "^60",
     "eslint-plugin-vue": "^10",
