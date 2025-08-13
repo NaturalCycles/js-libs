@@ -204,6 +204,8 @@ export function transformMap<IN = any, OUT = IN>(
 
       try {
         const res: OUT | typeof SKIP | typeof END = await mapper(chunk, currentIndex)
+        // Check for isSettled again, as it may happen while mapper was running
+        if (isSettled) return cb()
         // todo: consider retiring flattenArrayOutput from here
         // and implementing it as a separate .flat transform/operator
         const resInput = (flattenArrayOutput && Array.isArray(res) ? res : [res]) as (
@@ -220,6 +222,7 @@ export function transformMap<IN = any, OUT = IN>(
             }
             if (r === SKIP) return
             if (await predicate(r, currentIndex)) {
+              if (isSettled) return END // isSettled could have happened in parallel
               countOut++
               this.push(r)
             }
