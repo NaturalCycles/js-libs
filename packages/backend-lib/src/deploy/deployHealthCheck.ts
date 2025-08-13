@@ -84,7 +84,7 @@ export async function deployHealthCheck(
     maxTries = 30,
     timeoutSec = 30,
     intervalSec = 1,
-    logOnFailure = true,
+    logOnFailure,
     logOnSuccess,
     gaeProject,
     gaeService,
