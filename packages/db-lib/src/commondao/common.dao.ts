@@ -457,23 +457,26 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     const stream = this.cfg.db.streamQuery<DBM>(q, opt)
     if (partialQuery) return stream
 
-    return stream
-      .on('error', err => stream.emit('error', err))
-      .pipe(
-        transformMap<any, DBM>(
-          async dbm => {
-            if (this.cfg.hooks!.afterLoad) {
-              dbm = (await this.cfg.hooks!.afterLoad(dbm))!
-              if (dbm === null) return SKIP
-            }
+    return (
+      stream
+        // the commented out line was causing RangeError: Maximum call stack size exceeded
+        // .on('error', err => stream.emit('error', err))
+        .pipe(
+          transformMap<any, DBM>(
+            async dbm => {
+              if (this.cfg.hooks!.afterLoad) {
+                dbm = (await this.cfg.hooks!.afterLoad(dbm))!
+                if (dbm === null) return SKIP
+              }
 
-            return this.anyToDBM(dbm, opt)
-          },
-          {
-            errorMode: opt.errorMode,
-          },
-        ),
-      )
+              return this.anyToDBM(dbm, opt)
+            },
+            {
+              errorMode: opt.errorMode,
+            },
+          ),
+        )
+    )
   }
 
   /**
@@ -512,7 +515,8 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
         // optimization: 1 validation is enough
         // .pipe(transformMap<any, DBM>(dbm => this.anyToDBM(dbm, opt), safeOpt))
         // .pipe(transformMap<DBM, BM>(dbm => this.dbmToBM(dbm, opt), safeOpt))
-        .on('error', err => stream.emit('error', err))
+        // the commented out line was causing RangeError: Maximum call stack size exceeded
+        // .on('error', err => stream.emit('error', err))
         .pipe(
           transformMap<DBM, BM>(
             async dbm => {
