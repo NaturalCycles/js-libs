@@ -159,14 +159,14 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     if (opt.tx) {
       const { tx } = opt.tx as FirestoreDBTransaction
 
-      rows.forEach(row => {
+      for (const row of rows) {
         _assert(
           row.id,
           `firestore-db doesn't support id auto-generation, but empty id was provided in saveBatch`,
         )
 
         tx[method as 'set' | 'create'](col.doc(escapeDocId(row.id)), _filterUndefinedValues(row))
-      })
+      }
       return
     }
 
@@ -176,7 +176,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       async chunk => {
         const batch = firestore.batch()
 
-        chunk.forEach(row => {
+        for (const row of chunk) {
           _assert(
             row.id,
             `firestore-db doesn't support id auto-generation, but empty id was provided in saveBatch`,
@@ -185,7 +185,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
             col.doc(escapeDocId(row.id)),
             _filterUndefinedValues(row),
           )
-        })
+        }
 
         await batch.commit()
       },
@@ -227,18 +227,18 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     if (opt.tx) {
       const { tx } = opt.tx as FirestoreDBTransaction
 
-      ids.forEach(id => {
+      for (const id of ids) {
         tx.delete(col.doc(escapeDocId(id)))
-      })
+      }
       return ids.length
     }
 
     await pMap(_chunk(ids, 500), async chunk => {
       const batch = firestore.batch()
 
-      chunk.forEach(id => {
+      for (const id of chunk) {
         batch.delete(col.doc(escapeDocId(id)))
-      })
+      }
 
       await batch.commit()
     })

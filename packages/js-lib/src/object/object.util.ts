@@ -312,18 +312,18 @@ export function _filterEmptyValues<T extends AnyObject>(obj: T, opt: MutateOptio
  * Based on: https://gist.github.com/Salakar/1d7137de9cb8b704e48a
  */
 export function _merge<T extends AnyObject>(target: T, ...sources: any[]): T {
-  sources.forEach(source => {
-    if (!_isObject(source)) return
+  for (const source of sources) {
+    if (!_isObject(source)) continue
 
-    Object.keys(source).forEach(key => {
+    for (const key of Object.keys(source)) {
       if (_isObject(source[key])) {
         ;(target as any)[key] ||= {}
         _merge(target[key], source[key])
       } else {
         ;(target as any)[key] = source[key]
       }
-    })
-  })
+    }
+  }
 
   return target
 }
@@ -340,9 +340,9 @@ export function _deepTrim<T extends AnyObject | string>(o: T): T {
     return o.trim() as T
   }
   if (typeof o === 'object') {
-    Object.keys(o).forEach(k => {
+    for (const k of Object.keys(o)) {
       o[k] = _deepTrim(o[k])
-    })
+    }
   }
 
   return o

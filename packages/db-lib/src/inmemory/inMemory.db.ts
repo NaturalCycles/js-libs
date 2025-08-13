@@ -153,7 +153,7 @@ export class InMemoryDB implements CommonDB {
     const table = this.cfg.tablesPrefix + _table
     this.data[table] ||= {}
 
-    rows.forEach(r => {
+    for (const r of rows) {
       if (!r.id) {
         this.cfg.logger!.warn({ rows })
         throw new Error(
@@ -161,19 +161,19 @@ export class InMemoryDB implements CommonDB {
         )
       }
 
-      if (opt.saveMethod === 'insert' && this.data[table]![r.id]) {
+      if (opt.saveMethod === 'insert' && this.data[table][r.id]) {
         throw new Error(`InMemoryDB: INSERT failed, entity exists: ${table}.${r.id}`)
       }
 
-      if (opt.saveMethod === 'update' && !this.data[table]![r.id]) {
+      if (opt.saveMethod === 'update' && !this.data[table][r.id]) {
         throw new Error(`InMemoryDB: UPDATE failed, entity doesn't exist: ${table}.${r.id}`)
       }
 
       // JSON parse/stringify (deep clone) is to:
       // 1. Not store values "by reference" (avoid mutation bugs)
       // 2. Simulate real DB that would do something like that in a transport layer anyway
-      this.data[table]![r.id] = JSON.parse(JSON.stringify(r), bufferReviver)
-    })
+      this.data[table][r.id] = JSON.parse(JSON.stringify(r), bufferReviver)
+    }
   }
 
   async deleteByQuery<ROW extends ObjectWithId>(
@@ -191,11 +191,11 @@ export class InMemoryDB implements CommonDB {
     if (!this.data[table]) return 0
 
     let count = 0
-    ids.forEach(id => {
-      if (!this.data[table]![id]) return
-      delete this.data[table]![id]
+    for (const id of ids) {
+      if (!this.data[table][id]) continue
+      delete this.data[table][id]
       count++
-    })
+    }
 
     return count
   }
@@ -207,7 +207,9 @@ export class InMemoryDB implements CommonDB {
     if (_isEmptyObject(patch)) return 0
     const table = this.cfg.tablesPrefix + q.table
     const rows = queryInMemory(q, Object.values(this.data[table] || {}) as ROW[])
-    rows.forEach(row => Object.assign(row, patch))
+    for (const row of rows) {
+      Object.assign(row, patch)
+    }
     return rows.length
   }
 

@@ -62,7 +62,9 @@ export function insertSQL(
 
   // eslint-disable-next-line unicorn/no-array-reduce
   const fieldSet = rows.reduce((set: Set<string>, row) => {
-    Object.keys(row).forEach(field => set.add(field))
+    for (const field of Object.keys(row)) {
+      set.add(field)
+    }
     return set
   }, new Set<string>())
   const fields = [...fieldSet]
@@ -86,7 +88,7 @@ export function insertSQL(
   const sqls: string[] = []
   let sql: string | undefined
 
-  valueRows.forEach(vrow => {
+  for (const vrow of valueRows) {
     if (!sql) {
       sql = start + vrow
     } else {
@@ -97,7 +99,7 @@ export function insertSQL(
         sql += ',\n ' + vrow // add
       }
     }
-  })
+  }
 
   if (sql) {
     sqls.push(sql) // last one

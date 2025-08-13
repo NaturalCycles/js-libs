@@ -78,6 +78,10 @@ export function arrayToCSVString(arr: AnyObject[], cfg: CSVWriterConfig = {}): s
  */
 export function arrayToCSVColumns(arr: AnyObject[]): string[] {
   const cols = new Set<string>()
-  arr.forEach(row => Object.keys(row).forEach(col => cols.add(col)))
+  for (const row of arr) {
+    for (const col of Object.keys(row)) {
+      cols.add(col)
+    }
+  }
   return [...cols]
 }

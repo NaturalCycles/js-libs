@@ -23,7 +23,9 @@ export class InMemoryKeyValueDB implements CommonKeyValueDB {
 
   async deleteByIds(table: string, ids: string[]): Promise<void> {
     this.data[table] ||= {}
-    ids.forEach(id => delete this.data[table]![id])
+    for (const id of ids) {
+      delete this.data[table][id]
+    }
   }
 
   async getByIds(table: string, ids: string[]): Promise<KeyValueDBTuple[]> {
@@ -33,7 +35,9 @@ export class InMemoryKeyValueDB implements CommonKeyValueDB {
 
   async saveBatch(table: string, entries: KeyValueDBTuple[]): Promise<void> {
     this.data[table] ||= {}
-    entries.forEach(([id, v]) => (this.data[table]![id] = v))
+    for (const [id, v] of entries) {
+      this.data[table][id] = v
+    }
   }
 
   streamIds(table: string, limit?: number): ReadableTyped<string> {

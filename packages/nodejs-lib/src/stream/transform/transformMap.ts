@@ -2,7 +2,7 @@ import { _hc } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _anyToError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { pFilter } from '@naturalcycles/js-lib/promise/pFilter.js'
+import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import {
   type AbortableAsyncMapper,
@@ -203,20 +203,38 @@ export function transformMap<IN = any, OUT = IN>(
       const currentIndex = ++index
 
       try {
-        const res = await mapper(chunk, currentIndex)
-        const passedResults = await pFilter(
-          flattenArrayOutput && Array.isArray(res) ? res : [res],
-          async r => {
+        const res: OUT | typeof SKIP | typeof END = await mapper(chunk, currentIndex)
+        // todo: consider retiring flattenArrayOutput from here
+        // and implementing it as a separate .flat transform/operator
+        const resInput = (flattenArrayOutput && Array.isArray(res) ? res : [res]) as (
+          | OUT
+          | typeof SKIP
+          | typeof END
+        )[]
+
+        if (predicate) {
+          await pMap(resInput, async r => {
             if (r === END) {
               isSettled = true // will be checked later
-              return false
+              return END
             }
-            return r !== SKIP && (!predicate || (await predicate(r, currentIndex)))
-          },
-        )
-
-        countOut += passedResults.length
-        passedResults.forEach(r => this.push(r))
+            if (r === SKIP) return
+            if (await predicate(r, currentIndex)) {
+              countOut++
+              this.push(r)
+            }
+          })
+        } else {
+          for (const r of resInput) {
+            if (r === END) {
+              isSettled = true // will be checked later
+              break
+            }
+            if (r === SKIP) continue
+            countOut++
+            this.push(r)
+          }
+        }
 
         if (isSettled) {
           logger.log(`transformMap END received at index ${currentIndex}`)

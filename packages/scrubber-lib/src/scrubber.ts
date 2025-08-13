@@ -78,7 +78,7 @@ export class Scrubber {
     const isArray = Array.isArray(data)
     const dataCopy: any = Array.isArray(data) ? [...data] : { ...data }
 
-    Object.keys(dataCopy).forEach(key => {
+    for (const key of Object.keys(dataCopy)) {
       let scrubberCurrentField = this.cfg.fields[key]
 
       if (!scrubberCurrentField && this.cfg.splitFields?.[key] && parents) {
@@ -97,7 +97,7 @@ export class Scrubber {
           dataCopy[key] instanceof Set ||
           Buffer.isBuffer(dataCopy[key])
         ) {
-          return
+          continue
         }
 
         // Deep traverse
@@ -107,7 +107,7 @@ export class Scrubber {
           dataCopy[key] = this.applyScrubbers(dataCopy[key], parentsNext)
         }
 
-        return
+        continue
       }
 
       const scrubber = this.scrubbersMap[scrubberCurrentField.scrubber]!
@@ -129,7 +129,7 @@ export class Scrubber {
           err,
         )
       }
-    })
+    }
 
     return dataCopy
   }

@@ -1,4 +1,3 @@
-import { _range } from '../array/range.js'
 import { _average, _percentile, _percentiles } from './math.util.js'
 
 /**
@@ -29,7 +28,9 @@ export class Stack<T> {
    * Fill (overwrite) the whole Stack (all its items) with the passed `item`.
    */
   fill(item: T): this {
-    _range(this.size).forEach(i => (this.items[i] = item))
+    for (let i = 0; i < this.size; i++) {
+      this.items[i] = item
+    }
     return this
   }
 

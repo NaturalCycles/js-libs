@@ -104,7 +104,9 @@ export function transformMultiThreaded<IN, OUT>(
       async final(cb) {
         try {
           // Push null (complete) to all sub-streams
-          workers.forEach(worker => worker.postMessage(null))
+          for (const worker of workers) {
+            worker.postMessage(null)
+          }
 
           console.log(`transformMultiThreaded.final is waiting for all chains to be done`)
           await Promise.all(workerDonePromises)

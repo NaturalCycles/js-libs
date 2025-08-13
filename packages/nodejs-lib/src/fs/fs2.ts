@@ -219,7 +219,9 @@ class FS2 {
       return
     }
 
-    items.forEach(item => this.removePath(path.join(dirPath, item)))
+    for (const item of items) {
+      this.removePath(path.join(dirPath, item))
+    }
   }
 
   async emptyDirAsync(dirPath: string): Promise<void> {

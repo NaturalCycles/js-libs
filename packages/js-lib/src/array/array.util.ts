@@ -62,13 +62,13 @@ export function _pushUniq<T>(a: T[], ...items: T[]): T[] {
  */
 export function _pushUniqBy<T>(a: T[], mapper: Mapper<T, any>, ...items: T[]): T[] {
   const mappedSet = new Set(a.map(mapper))
-  items.forEach(item => {
+  for (const item of items) {
     const mapped = mapper(item)
     if (!mappedSet.has(mapped)) {
       a.push(item)
       mappedSet.add(mapped)
     }
-  })
+  }
   return a
 }
 

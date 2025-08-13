@@ -154,7 +154,9 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     this.running = false // ready to take more _reads
     this.lastQueryDone = Date.now()
 
-    rows.forEach(row => this.push(row))
+    for (const row of rows) {
+      this.push(row)
+    }
 
     if (
       !info.endCursor ||

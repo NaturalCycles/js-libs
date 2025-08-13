@@ -97,7 +97,7 @@ export function kpySync(opt: KpyOptions): void {
 
   const overwrite = !opt.noOverwrite
 
-  filenames.forEach(filename => {
+  for (const filename of filenames) {
     const basename = path.basename(filename)
     const srcFilename = path.resolve(opt.baseDir, filename)
     const destFilename = path.resolve(opt.outputDir, opt.flat ? basename : filename)
@@ -113,7 +113,7 @@ export function kpySync(opt: KpyOptions): void {
     if (opt.verbose) {
       console.log(grey(`  ${filename}`))
     }
-  })
+  }
 
   kpyLogResult(opt, filenames, started)
 }

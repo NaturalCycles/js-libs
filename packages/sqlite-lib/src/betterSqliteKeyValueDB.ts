@@ -117,9 +117,9 @@ export class BetterSqliteKeyValueDB implements CommonKeyValueDB {
 
     const stmt = this.db.prepare(sql)
 
-    entries.forEach(([id, buf]) => {
+    for (const [id, buf] of entries) {
       stmt.run(id, buf)
-    })
+    }
   }
 
   async beginTransaction(): Promise<void> {

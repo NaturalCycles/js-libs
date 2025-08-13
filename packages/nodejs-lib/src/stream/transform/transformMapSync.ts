@@ -102,17 +102,23 @@ export function transformMapSync<IN = any, OUT = IN>(
       try {
         // map and pass through
         const v = mapper(chunk, currentIndex)
+        // todo: consider retiring flattenArrayOutput option
+        const vInput = (flattenArrayOutput && Array.isArray(v) ? v : [v]) as (
+          | OUT
+          | typeof SKIP
+          | typeof END
+        )[]
 
-        const passedResults = (flattenArrayOutput && Array.isArray(v) ? v : [v]).filter(r => {
+        for (const r of vInput) {
           if (r === END) {
             isSettled = true // will be checked later
-            return false
+            break
           }
-          return r !== SKIP && (!predicate || predicate(r, currentIndex))
-        })
-
-        countOut += passedResults.length
-        passedResults.forEach(r => this.push(r))
+          if (r !== SKIP && (!predicate || predicate(r, currentIndex))) {
+            countOut++
+            this.push(r)
+          }
+        }
 
         if (isSettled) {
           logger.log(`transformMapSync END received at index ${currentIndex}`)
