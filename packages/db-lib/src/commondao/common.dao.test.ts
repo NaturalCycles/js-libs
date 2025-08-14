@@ -90,7 +90,7 @@ test('should propagate pipe errors', async () => {
   const items = createTestItemsBM(20)
 
   await dao.saveBatch(items, {
-    preserveUpdatedCreated: true,
+    preserveUpdated: true,
   })
 
   throwError = true

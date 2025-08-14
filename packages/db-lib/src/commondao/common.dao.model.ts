@@ -244,9 +244,12 @@ export interface CommonDaoOptions extends CommonDBOptions {
   mutateInput?: boolean
 
   /**
-   * @default false
+   * Defaults to false.
+   *
+   * If false (default) - will set `updated` property to the current timestamp.
+   * If true - will NOT set it (preserve the original value).
    */
-  preserveUpdatedCreated?: boolean
+  preserveUpdated?: boolean
 
   /**
    * @default false (for streams). Setting to true enables deletion of immutable objects

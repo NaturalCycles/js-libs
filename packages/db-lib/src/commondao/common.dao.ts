@@ -617,7 +617,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     }
 
     if (this.cfg.useUpdatedProperty) {
-      obj.updated = opt.preserveUpdatedCreated && obj.updated ? obj.updated : now
+      obj.updated = opt.preserveUpdated && obj.updated ? obj.updated : now
     }
 
     if (this.cfg.generateId) {
