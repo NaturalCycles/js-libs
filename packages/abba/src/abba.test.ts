@@ -95,7 +95,7 @@ describe('deleteExperiment', () => {
         status: AssignmentStatus.Inactive,
         updated: localTime.now().minusMinutes(14).unix,
       }),
-      { preserveUpdatedCreated: true },
+      { preserveUpdated: true },
     )
 
     await expect(abba.deleteExperiment(experiment.id)).rejects.toThrow(
@@ -109,7 +109,7 @@ describe('deleteExperiment', () => {
         status: AssignmentStatus.Inactive,
         updated: localTime.now().minusMinutes(15).unix,
       }),
-      { preserveUpdatedCreated: true },
+      { preserveUpdated: true },
     )
     const experiment2 = await experimentsDAO.save(
       mockExperiment({ id: 'mockExperiment2', exclusions: [experiment1.id] }),
