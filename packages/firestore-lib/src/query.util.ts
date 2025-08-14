@@ -13,17 +13,17 @@ export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
   dbQuery: DBQuery<ROW>,
   emptyQuery: Query,
 ): Query {
+  let q = emptyQuery
+
   // filter
-  // eslint-disable-next-line unicorn/no-array-reduce
-  let q = dbQuery._filters.reduce((q, f) => {
-    return q.where(f.name as string, OP_MAP[f.op] || (f.op as WhereFilterOp), f.val)
-  }, emptyQuery)
+  for (const f of dbQuery._filters) {
+    q = q.where(f.name as string, OP_MAP[f.op] || (f.op as WhereFilterOp), f.val)
+  }
 
   // order
-  // eslint-disable-next-line unicorn/no-array-reduce
-  q = dbQuery._orders.reduce((q, ord) => {
-    return q.orderBy(ord.name as string, ord.descending ? 'desc' : 'asc')
-  }, q)
+  for (const ord of dbQuery._orders) {
+    q = q.orderBy(ord.name as string, ord.descending ? 'desc' : 'asc')
+  }
 
   // limit
   q = q.limit(dbQuery._limitValue)

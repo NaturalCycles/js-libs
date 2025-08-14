@@ -85,8 +85,8 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
         if (data === undefined) return
         return {
           id: unescapeDocId(doc.id),
-          ...(data as any),
-        }
+          ...data,
+        } as ROW
       })
       .filter(_isTruthy)
   }
@@ -106,7 +106,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
-    let rows = await this.runFirestoreQuery<ROW>(firestoreQuery, opt)
+    let rows = await this.runFirestoreQuery<ROW>(firestoreQuery)
 
     // Special case when projection query didn't specify 'id'
     if (q._selectedFieldNames && !q._selectedFieldNames.includes('id')) {
@@ -116,10 +116,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     return { rows }
   }
 
-  async runFirestoreQuery<ROW extends ObjectWithId>(
-    q: Query,
-    _opt?: FirestoreDBOptions,
-  ): Promise<ROW[]> {
+  async runFirestoreQuery<ROW extends ObjectWithId>(q: Query): Promise<ROW[]> {
     return this.querySnapshotToArray(await q.get())
   }
 
@@ -165,14 +162,17 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
           `firestore-db doesn't support id auto-generation, but empty id was provided in saveBatch`,
         )
 
-        tx[method as 'set' | 'create'](col.doc(escapeDocId(row.id)), _filterUndefinedValues(row))
+        const { id, ...rowWithoutId } = row
+        tx[method as 'set' | 'create'](
+          col.doc(escapeDocId(id)),
+          _filterUndefinedValues(rowWithoutId),
+        )
       }
       return
     }
 
-    // Firestore allows max 500 items in one batch
     await pMap(
-      _chunk(rows, 500),
+      _chunk(rows, MAX_ITEMS),
       async chunk => {
         const batch = firestore.batch()
 
@@ -181,15 +181,16 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
             row.id,
             `firestore-db doesn't support id auto-generation, but empty id was provided in saveBatch`,
           )
+          const { id, ...rowWithoutId } = row
           batch[method as 'set' | 'create'](
-            col.doc(escapeDocId(row.id)),
-            _filterUndefinedValues(row),
+            col.doc(escapeDocId(id)),
+            _filterUndefinedValues(rowWithoutId),
           )
         }
 
         await batch.commit()
       },
-      { concurrency: 1 },
+      { concurrency: FIRESTORE_RECOMMENDED_CONCURRENCY },
     )
   }
 
@@ -208,7 +209,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
         q.select([]),
         this.cfg.firestore.collection(q.table),
       )
-      ids = (await this.runFirestoreQuery<ROW>(firestoreQuery)).map(obj => obj.id)
+      ids = (await this.runFirestoreQuery<ObjectWithId>(firestoreQuery)).map(obj => obj.id)
     }
 
     await this.deleteByIds(q.table, ids, opt)
@@ -233,30 +234,33 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       return ids.length
     }
 
-    await pMap(_chunk(ids, 500), async chunk => {
-      const batch = firestore.batch()
+    await pMap(
+      _chunk(ids, MAX_ITEMS),
+      async chunk => {
+        const batch = firestore.batch()
 
-      for (const id of chunk) {
-        batch.delete(col.doc(escapeDocId(id)))
-      }
+        for (const id of chunk) {
+          batch.delete(col.doc(escapeDocId(id)))
+        }
 
-      await batch.commit()
-    })
+        await batch.commit()
+      },
+      {
+        concurrency: FIRESTORE_RECOMMENDED_CONCURRENCY,
+      },
+    )
 
     return ids.length
   }
 
   private querySnapshotToArray<T = any>(qs: QuerySnapshot): T[] {
-    const rows: any[] = []
-
-    qs.forEach(doc => {
-      rows.push({
-        id: unescapeDocId(doc.id),
-        ...doc.data(),
-      })
-    })
-
-    return rows
+    return qs.docs.map(
+      doc =>
+        ({
+          id: unescapeDocId(doc.id),
+          ...doc.data(),
+        }) as T,
+    )
   }
 
   override async runInTransaction(
@@ -301,7 +305,6 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       batch.set(
         col.doc(escapeDocId(id)),
         {
-          // todo: lazy-load FieldValue
           [prop]: FieldValue.increment(increment),
         },
         { merge: true },
@@ -358,3 +361,8 @@ export class FirestoreDBTransaction implements DBTransaction {
     return await this.db.deleteByIds(table, ids, { ...opt, tx: this })
   }
 }
+
+// Datastore (also Firestore and other Google APIs) supports max 500 of items when saving/deleting, etc.
+const MAX_ITEMS = 500
+// It's an empyrical value, but anything less than infinity is better than infinity
+const FIRESTORE_RECOMMENDED_CONCURRENCY = 8
