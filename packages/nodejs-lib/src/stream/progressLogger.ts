@@ -1,6 +1,6 @@
 import type { InspectOptions } from 'node:util'
 import { inspect } from 'node:util'
-import { _mb } from '@naturalcycles/js-lib'
+import { _hc, _mb } from '@naturalcycles/js-lib'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { SimpleMovingAverage } from '@naturalcycles/js-lib/math'
@@ -284,16 +284,12 @@ export class ProgressLogger<T> implements Disposable {
     }
 
     if (tenx) {
-      let perHour: number | string =
-        Math.round((batchedProgress * 1000 * 60 * 60) / (now - this.started)) || 0
-      if (perHour > 900) {
-        perHour = Math.round(perHour / 1000) + 'K'
-      }
+      const perHour = _hc((batchedProgress * 1000 * 60 * 60) / (now - this.started))
 
       logger.log(
         `${dimGrey(localTime.now().toPretty())} ${white(metric)} took ${yellow(
           _since(this.started),
-        )} so far to process ${yellow(batchedProgress)} rows, ~${yellow(perHour)}/hour`,
+        )} so far to process ${yellow(_hc(batchedProgress))} rows, ~${yellow(perHour)}/hour`,
       )
     } else if (final) {
       logger.log(
