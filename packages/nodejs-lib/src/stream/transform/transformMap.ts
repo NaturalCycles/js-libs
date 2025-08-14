@@ -2,7 +2,6 @@ import { _hc } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _anyToError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import {
   type AbortableAsyncMapper,
@@ -20,13 +19,6 @@ import type { TransformTyped } from '../stream.model.js'
 import { pipelineClose } from '../stream.util.js'
 
 export interface TransformMapOptions<IN = any, OUT = IN> {
-  /**
-   * Set true to support "multiMap" - possibility to return [] and emit 1 result for each item in the array.
-   *
-   * @default false
-   */
-  flattenArrayOutput?: boolean
-
   /**
    * Predicate to filter outgoing results (after mapper).
    * Allows to not emit all results.
@@ -133,7 +125,6 @@ export function transformMap<IN = any, OUT = IN>(
     concurrency = 16,
     predicate, // we now default to "no predicate" (meaning pass-everything)
     errorMode = ErrorMode.THROW_IMMEDIATELY,
-    flattenArrayOutput,
     onError,
     onDone,
     metric = 'stream',
@@ -206,42 +197,23 @@ export function transformMap<IN = any, OUT = IN>(
         const res: OUT | typeof SKIP | typeof END = await mapper(chunk, currentIndex)
         // Check for isSettled again, as it may happen while mapper was running
         if (isSettled) return cb()
-        // todo: consider retiring flattenArrayOutput from here
-        // and implementing it as a separate .flat transform/operator
-        const resInput = (flattenArrayOutput && Array.isArray(res) ? res : [res]) as (
-          | OUT
-          | typeof SKIP
-          | typeof END
-        )[]
 
-        if (predicate) {
-          await pMap(resInput, async r => {
-            if (r === END) {
-              isSettled = true // will be checked later
-              return END
-            }
-            if (r === SKIP) return
-            if (await predicate(r, currentIndex)) {
-              if (isSettled) return END // isSettled could have happened in parallel
-              countOut++
-              this.push(r)
-            }
-          })
-        } else {
-          for (const r of resInput) {
-            if (r === END) {
-              isSettled = true // will be checked later
-              break
-            }
-            if (r === SKIP) continue
-            countOut++
-            this.push(r)
-          }
-        }
-
-        if (isSettled) {
+        if (res === END) {
+          isSettled = true
           logger.log(`transformMap END received at index ${currentIndex}`)
           pipelineClose('transformMap', this, this.sourceReadable, this.streamDone, logger)
+          return cb()
+        }
+
+        if (res === SKIP) {
+          // do nothing, don't push
+          return cb()
+        }
+
+        if (!predicate || ((await predicate(res, currentIndex)) && !isSettled)) {
+          // isSettled could have happened in parallel, hence the extra check
+          countOut++
+          this.push(res)
         }
 
         cb() // done processing

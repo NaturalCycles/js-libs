@@ -7,6 +7,7 @@ import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/col
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
   createWriteStreamAsNDJSON,
+  transformFlatten,
   type TransformLogProgressOptions,
   type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
@@ -220,10 +221,10 @@ export async function dbPipelineBackup(opt: DBPipelineBackupOptions): Promise<ND
         }),
         transformMap(mapperPerTable[table] || _passthroughMapper, {
           errorMode,
-          flattenArrayOutput: true,
           ...transformMapOptions,
           metric: table,
         }),
+        transformFlatten(),
         transformTap(() => {
           rows++
         }),

@@ -3,6 +3,7 @@ import type { AbortableAsyncMapper } from '@naturalcycles/js-lib/types'
 import {
   createReadStreamAsNDJSON,
   createWriteStreamAsNDJSON,
+  transformFlatten,
   type TransformLogProgressOptions,
   type TransformMapOptions,
 } from '../index.js'
@@ -21,13 +22,6 @@ export interface NDJSONMapOptions<IN = any, OUT = IN>
    * @default 100_000
    */
   logEveryOutput?: number
-
-  /**
-   * Defaults to `true` for ndjsonMap
-   *
-   * @default true
-   */
-  flattenArrayOutput?: boolean
 }
 
 /**
@@ -53,10 +47,10 @@ export async function ndjsonMap<IN = any, OUT = any>(
     readable,
     transformLogProgress({ metric: 'read', ...opt }),
     transformMap(mapper, {
-      flattenArrayOutput: true,
       errorMode: ErrorMode.SUPPRESS,
       ...opt,
     }),
+    transformFlatten(),
     transformLimit({ limit: limitOutput, sourceReadable: readable }),
     transformLogProgress({ metric: 'saved', logEvery: logEveryOutput }),
     ...createWriteStreamAsNDJSON(outputFilePath),

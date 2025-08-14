@@ -15,12 +15,6 @@ export interface TransformMapSyncOptions<IN = any, OUT = IN> {
   objectMode?: boolean
 
   /**
-   * @default false
-   * Set true to support "multiMap" - possibility to return [] and emit 1 result for each item in the array.
-   */
-  flattenArrayOutput?: boolean
-
-  /**
    * Predicate to filter outgoing results (after mapper).
    * Allows to not emit all results.
    *
@@ -75,7 +69,6 @@ export function transformMapSync<IN = any, OUT = IN>(
   const {
     predicate, // defaults to "no predicate" (pass everything)
     errorMode = ErrorMode.THROW_IMMEDIATELY,
-    flattenArrayOutput = false,
     onError,
     onDone,
     metric = 'stream',
@@ -102,27 +95,22 @@ export function transformMapSync<IN = any, OUT = IN>(
       try {
         // map and pass through
         const v = mapper(chunk, currentIndex)
-        // todo: consider retiring flattenArrayOutput option
-        const vInput = (flattenArrayOutput && Array.isArray(v) ? v : [v]) as (
-          | OUT
-          | typeof SKIP
-          | typeof END
-        )[]
 
-        for (const r of vInput) {
-          if (r === END) {
-            isSettled = true // will be checked later
-            break
-          }
-          if (r !== SKIP && (!predicate || predicate(r, currentIndex))) {
-            countOut++
-            this.push(r)
-          }
-        }
-
-        if (isSettled) {
+        if (v === END) {
+          isSettled = true // will be checked later
           logger.log(`transformMapSync END received at index ${currentIndex}`)
           pipelineClose('transformMapSync', this, this.sourceReadable, this.streamDone, logger)
+          return cb()
+        }
+
+        if (v === SKIP) {
+          // do nothing, don't push
+          return cb()
+        }
+
+        if (!predicate || predicate(v, currentIndex)) {
+          countOut++
+          this.push(v)
         }
 
         cb() // done processing

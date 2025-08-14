@@ -10,6 +10,7 @@ import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/col
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
   createReadStreamAsNDJSON,
+  transformFlatten,
   type TransformLogProgressOptions,
   type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
@@ -207,10 +208,10 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
           : []),
         transformMap(mapperPerTable[table] || _passthroughMapper, {
           errorMode,
-          flattenArrayOutput: true,
           ...transformMapOptions,
           metric: table,
         }),
+        transformFlatten(),
         transformChunk({ chunkSize }),
         writableForEach(async dbms => {
           await db.saveBatch(table, dbms, saveOptions)

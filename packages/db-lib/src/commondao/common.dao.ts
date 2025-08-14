@@ -24,7 +24,7 @@ import type {
 } from '@naturalcycles/js-lib/types'
 import { _passthroughPredicate, _typeCast, SKIP } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { type ReadableTyped, transformFlatten } from '@naturalcycles/nodejs-lib/stream'
 import {
   _pipeline,
   transformChunk,
@@ -983,9 +983,9 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
         {
           concurrency: chunkConcurrency,
           errorMode,
-          flattenArrayOutput: true,
         },
       ),
+      transformFlatten(),
       transformLogProgress({
         metric: 'saved',
         ...opt,

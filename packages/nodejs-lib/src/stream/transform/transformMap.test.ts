@@ -5,7 +5,7 @@ import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
 import { beforeAll, expect, test, vi } from 'vitest'
-import type { TransformMapStats } from '../index.js'
+import { transformFlatten, type TransformMapStats } from '../index.js'
 import {
   _pipeline,
   _pipelineToArray,
@@ -58,10 +58,10 @@ test('transformMap emit array as multiple items', async () => {
   const data2 = await _pipelineToArray<number>([
     readableFromArray(data),
     transformMap(n => [n * 2, n * 2 + 1], {
-      flattenArrayOutput: true,
       // async is to test that it's awaited
       onDone: async s => (stats = s),
     }),
+    transformFlatten(),
   ])
 
   const expected: number[] = []
@@ -78,7 +78,7 @@ test('transformMap emit array as multiple items', async () => {
   "collectedErrors": [],
   "countErrors": 0,
   "countIn": 3,
-  "countOut": 6,
+  "countOut": 3,
   "ok": true,
   "started": 1529539200000,
 }

@@ -4,9 +4,10 @@ import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { AsyncMapper, BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { _passthroughMapper } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
-import type {
-  TransformLogProgressOptions,
-  TransformMapOptions,
+import {
+  transformFlatten,
+  type TransformLogProgressOptions,
+  type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
 import {
   _pipeline,
@@ -144,10 +145,10 @@ export async function dbPipelineCopy(opt: DBPipelineCopyOptions): Promise<NDJson
         }),
         transformMap(mapper, {
           errorMode,
-          flattenArrayOutput: true,
           ...transformMapOptions,
           metric: table,
         }),
+        transformFlatten(),
         transformTap(() => rows++),
         transformChunk({ chunkSize }),
         writableForEach(async dbms => {
