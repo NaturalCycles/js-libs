@@ -239,10 +239,7 @@ export interface CommonDaoIndex<DBM extends BaseDBEntity> {
    * Name of the property to index.
    */
   name: keyof DBM
-  /**
-   * Defaults to ['asc']
-   */
-  order?: CommonDaoIndexOrder[]
+  order: CommonDaoIndexOrder[]
 }
 
 export type CommonDaoIndexOrder = 'asc' | 'desc' | 'array-contains'
