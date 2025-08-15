@@ -131,7 +131,17 @@ export interface CommonDaoCfg<
    */
   validateBM?: ValidationFunction<BM, any>
 
+  /**
+   * Used by e.g Datastore.
+   */
   excludeFromIndexes?: (keyof DBM)[]
+
+  /**
+   * Used by e.g Firestore.
+   */
+  indexes?: CommonDaoIndex<DBM>[]
+
+  ttl?: CommonDaoTTL<DBM>
 
   /**
    * Defaults to true.
@@ -212,6 +222,31 @@ export interface CommonDaoCfg<
    * @experimental
    */
   patchInTransaction?: boolean
+}
+
+export interface CommonDaoIndex<DBM extends BaseDBEntity> {
+  /**
+   * Name of the property to index.
+   */
+  name: keyof DBM
+  /**
+   * Defaults to ['asc']
+   */
+  order?: CommonDaoIndexOrder[]
+}
+
+export type CommonDaoIndexOrder = 'asc' | 'desc' | 'array-contains'
+
+/**
+ * TTL definition - a map from Table name to an array of properties that should be used for TTL.
+ * Example:
+ *
+ * {
+ *   myTable: ['deleteAt']
+ * }
+ */
+export interface CommonDaoTTL<DBM extends BaseDBEntity> {
+  [table: string]: (keyof DBM)[]
 }
 
 /**
