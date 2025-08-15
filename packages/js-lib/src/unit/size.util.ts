@@ -14,11 +14,13 @@ export function _kb(b: number): number {
  * Byte size to Human byte size string
  */
 export function _hb(b = 0): string {
-  if (b < 1024) return `${Math.round(b)} byte(s)`
-  if (b < 1024 ** 2) return `${(b / 1024).toPrecision(3)} Kb`
-  if (b < 1024 ** 3) return `${(b / 1024 ** 2).toPrecision(3)} Mb`
-  if (b < 1024 ** 4) return `${(b / 1024 ** 3).toPrecision(3)} Gb`
-  if (b < 1024 ** 5) return `${(b / 1024 ** 4).toPrecision(3)} Tb`
+  if (b < 100) return `${Math.round(b)} byte(s)`
+  if (b < 1000) return `${(b / 1024).toFixed(2)} Kb`
+  if (b < 0.9 * 1024 ** 2) return `${Math.round(b / 1024)} Kb`
+  if (b < 0.9 * 1024 ** 3) return `${Math.round(b / 1024 ** 2)} Mb`
+  if (b < 0.09 * 1024 ** 4) return `${(b / 1024 ** 3).toFixed(2)} Gb`
+  if (b < 0.9 * 1024 ** 4) return `${Math.round(b / 1024 ** 3)} Gb`
+  if (b < 0.9 * 1024 ** 5) return `${(b / 1024 ** 4).toFixed(2)} Tb`
   return `${Math.round(b / 1024 ** 4)} Tb`
 }
 
@@ -28,10 +30,10 @@ export function _hb(b = 0): string {
  * them more readable.
  */
 export function _hc(c = 0): string {
-  if (c < 10 ** 4) return String(c)
-  if (c < 10 ** 6) return (c / 10 ** 3).toPrecision(3) + ' K'
-  if (c < 10 ** 9) return (c / 10 ** 6).toPrecision(3) + ' M' // million
-  if (c < 10 ** 12) return (c / 10 ** 9).toPrecision(3) + ' B' // billion
-  if (c < 10 ** 15) return (c / 10 ** 12).toPrecision(3) + ' T' // trillion
+  if (c < 10 ** 4) return String(Math.round(c))
+  if (c < 10 ** 6) return Math.round(c / 10 ** 3) + ' K'
+  if (c < 10 ** 9) return Math.round(c / 10 ** 6) + ' M' // million
+  if (c < 10 ** 12) return Math.round(c / 10 ** 9) + ' B' // billion
+  if (c < 10 ** 15) return Math.round(c / 10 ** 12) + ' T' // trillion
   return Math.round(c / 10 ** 12) + ' T'
 }
