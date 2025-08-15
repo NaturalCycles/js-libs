@@ -264,7 +264,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
   ): Promise<number> {
     const ds = await this.ds()
     const q = dbQueryToDatastoreQuery(
-      dbQuery.select([]),
+      dbQuery,
       ds.createQuery(dbQuery.table),
       await this.getPropertyFilter(),
     )
@@ -395,7 +395,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       await this.getPropertyFilter(),
     )
     const dsOpt = this.getRunQueryOptions(opt)
-    const { rows } = await this.runDatastoreQuery<ROW>(datastoreQuery, dsOpt)
+    const { rows } = await this.runDatastoreQuery<ObjectWithId>(datastoreQuery, dsOpt)
     return await this.deleteByIds(
       q.table,
       rows.map(obj => obj.id),
@@ -504,13 +504,13 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     return stats
   }
 
-  private mapId<T extends ObjectWithId>(o: any, preserveKey = false): T {
+  private mapId<T extends ObjectWithId>(o: any): T {
     if (!o) return o
     const r = {
       ...o,
       id: this.getKey(this.getDsKey(o)!),
     }
-    if (!preserveKey) delete r[this.KEY]
+    delete r[this.KEY]
     return r
   }
 
