@@ -139,9 +139,12 @@ export interface CommonDaoCfg<
   /**
    * Used by e.g Firestore.
    */
-  indexes?: CommonDaoIndex<DBM>[]
-
-  ttl?: CommonDaoTTL<DBM>
+  indexes?: CommonDaoIndexDefinition<DBM>[]
+  /**
+   * Defines the property that is used for TTL (auto-cleanup by the DB,
+   * e.g Datastore/Firestore).
+   */
+  ttl?: keyof DBM
 
   /**
    * Defaults to true.
@@ -224,6 +227,13 @@ export interface CommonDaoCfg<
   patchInTransaction?: boolean
 }
 
+/**
+ * Index can be defined in simple form, just as a property name: `abc`
+ *
+ * or as an object, when non-standard index order(s) are needed.
+ */
+export type CommonDaoIndexDefinition<DBM extends BaseDBEntity> = keyof DBM | CommonDaoIndex<DBM>
+
 export interface CommonDaoIndex<DBM extends BaseDBEntity> {
   /**
    * Name of the property to index.
@@ -236,18 +246,6 @@ export interface CommonDaoIndex<DBM extends BaseDBEntity> {
 }
 
 export type CommonDaoIndexOrder = 'asc' | 'desc' | 'array-contains'
-
-/**
- * TTL definition - a map from Table name to an array of properties that should be used for TTL.
- * Example:
- *
- * {
- *   myTable: ['deleteAt']
- * }
- */
-export interface CommonDaoTTL<DBM extends BaseDBEntity> {
-  [table: string]: (keyof DBM)[]
-}
 
 /**
  * All properties default to undefined.
