@@ -3,6 +3,7 @@ import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {
   CommonDBOptions,
+  CommonDBReadOptions,
   CommonDBSaveOptions,
   CommonDBTransactionOptions,
   DBTransaction,
@@ -60,6 +61,15 @@ export class BaseCommonDB implements CommonDB {
     throw new Error('patchByQuery is not implemented')
   }
 
+  async patchById<ROW extends ObjectWithId>(
+    _table: string,
+    _id: string,
+    _patch: Partial<ROW>,
+    _opt?: CommonDBOptions,
+  ): Promise<void> {
+    throw new Error('patchById is not implemented')
+  }
+
   async runQuery<ROW extends ObjectWithId>(_q: DBQuery<ROW>): Promise<RunQueryResult<ROW>> {
     throw new Error('runQuery is not implemented')
   }
@@ -101,5 +111,23 @@ export class BaseCommonDB implements CommonDB {
     _opt?: CommonDBOptions,
   ): Promise<StringMap<number>> {
     throw new Error('incrementBatch is not implemented')
+  }
+
+  async multiGetByIds<ROW extends ObjectWithId>(
+    _map: StringMap<string[]>,
+    _opt?: CommonDBReadOptions,
+  ): Promise<StringMap<ROW[]>> {
+    throw new Error('multiGetByIds is not implemented')
+  }
+
+  async multiSaveBatch<ROW extends ObjectWithId>(
+    _map: StringMap<ROW[]>,
+    _opt?: CommonDBSaveOptions<ROW>,
+  ): Promise<void> {
+    throw new Error('multiSaveBatch is not implemented')
+  }
+
+  async multiDeleteByIds(_map: StringMap<string[]>, _opt?: CommonDBOptions): Promise<number> {
+    throw new Error('multiDeleteByIds is not implemented')
   }
 }

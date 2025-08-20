@@ -19,6 +19,11 @@ export enum CommonDBType {
   'relational' = 'relational',
 }
 
+/**
+ * A tuple that contains the table name and the id.
+ */
+export type CommonDBKey = [table: string, id: string]
+
 export interface CommonDB {
   /**
    * Relational databases are expected to return `null` for all missing properties.
@@ -72,6 +77,27 @@ export interface CommonDB {
     opt?: CommonDBReadOptions,
   ) => Promise<ROW[]>
 
+  /**
+   * Get rows from multiple tables at once.
+   * Mimics the API of some NoSQL databases like Firestore.
+   *
+   * Takes `map`, which is a map from "table name" to an array of ids.
+   * Example:
+   * {
+   *   'TableOne': ['id1', 'id2'],
+   *   'TableTwo': ['id3'],
+   * }
+   *
+   * Returns a map with the same keys (table names) and arrays of rows as values.
+   * Even if some table is not found, it will return an empty array of results for that table.
+   *
+   * @experimental
+   */
+  multiGetByIds: <ROW extends ObjectWithId>(
+    idsByTable: StringMap<string[]>,
+    opt?: CommonDBReadOptions,
+  ) => Promise<StringMap<ROW[]>>
+
   // QUERY
   /**
    * Order by 'id' is not supported by all implementations (for example, Datastore doesn't support it).
@@ -101,20 +127,66 @@ export interface CommonDB {
     opt?: CommonDBSaveOptions<ROW>,
   ) => Promise<void>
 
-  // todo:
-  // patch: <ROW extends ObjectWithId>(
-  //   table: string,
-  //   row: ROW,
-  //   patch: Partial<ROW>,
-  //   opt?: CommonDBSaveOptions<ROW>,
-  // ) => Promise<ROW>
+  /**
+   * Save rows for multiple tables at once.
+   * Mimics the API of some NoSQL databases like Firestore.
+   *
+   * Takes `map`, which is a map from "table name" to an array of rows.
+   * Example:
+   * {
+   *  'TableOne': [{ id: 'id1', ... }, { id: 'id2', ... }],
+   *  'TableTwo': [{ id: 'id3', ... }],
+   * }
+   *
+   * @experimental
+   */
+  multiSaveBatch: <ROW extends ObjectWithId>(
+    rowsByTable: StringMap<ROW[]>,
+    opt?: CommonDBSaveOptions<ROW>,
+  ) => Promise<void>
+
+  /**
+   * Perform a partial update of a row by its id.
+   * Unlike save - doesn't require to first load the doc.
+   * Mimics the API of some NoSQL databases like Firestore.
+   *
+   * The object with given id has to exist, otherwise an error will be thrown.
+   *
+   * @experimental
+   */
+  patchById: <ROW extends ObjectWithId>(
+    table: string,
+    id: string,
+    patch: Partial<ROW>,
+    opt?: CommonDBOptions,
+  ) => Promise<void>
 
   // DELETE
   /**
    * Returns number of deleted items.
    * Not supported by all implementations (e.g Datastore will always return same number as number of ids).
    */
-  deleteByIds: (table: string, ids: string[], opt?: CommonDBOptions) => Promise<number>
+  deleteByIds: (table: string, ids: string[], opt?: CommonDBOptions) => Promise<NonNegativeInteger>
+
+  /**
+   * Deletes rows from multiple tables at once.
+   * Mimics the API of some NoSQL databases like Firestore.
+   * Takes `map`, which is a map from "table name" to an array of ids to delete.
+   * Example:
+   * {
+   *  'TableOne': ['id1', 'id2'],
+   *  'TableTwo': ['id3'],
+   * }
+   *
+   * Returns number of deleted items.
+   * Not supported by all implementations (e.g Datastore will always return same number as number of ids).
+   *
+   * @experimental
+   */
+  multiDeleteByIds: (
+    idsByTable: StringMap<string[]>,
+    opt?: CommonDBOptions,
+  ) => Promise<NonNegativeInteger>
 
   /**
    * Returns number of deleted items.
@@ -123,7 +195,7 @@ export interface CommonDB {
   deleteByQuery: <ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: CommonDBOptions,
-  ) => Promise<number>
+  ) => Promise<NonNegativeInteger>
 
   /**
    * Applies patch to all the rows that are matched by the query.
@@ -198,6 +270,7 @@ export interface CommonDBSupport {
   insertSaveMethod?: boolean
   updateSaveMethod?: boolean
   patchByQuery?: boolean
+  patchById?: boolean
   increment?: boolean
   createTable?: boolean
   tableSchemas?: boolean
@@ -206,9 +279,10 @@ export interface CommonDBSupport {
   nullValues?: boolean
   transactions?: boolean
   timeMachine?: boolean
+  multiTableOperations?: boolean
 }
 
-export const commonDBFullSupport: CommonDBSupport = {
+export const commonDBFullSupport: Required<CommonDBSupport> = {
   queries: true,
   dbQueryFilter: true,
   dbQueryFilterIn: true,
@@ -217,6 +291,7 @@ export const commonDBFullSupport: CommonDBSupport = {
   insertSaveMethod: true,
   updateSaveMethod: true,
   patchByQuery: true,
+  patchById: true,
   increment: true,
   createTable: true,
   tableSchemas: true,
@@ -225,4 +300,5 @@ export const commonDBFullSupport: CommonDBSupport = {
   nullValues: true,
   transactions: true,
   timeMachine: true,
+  multiTableOperations: true,
 }

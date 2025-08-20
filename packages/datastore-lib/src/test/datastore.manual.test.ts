@@ -67,3 +67,31 @@ test.skip('GOAWAY stress test', async () => {
     await datastoreDB.saveBatch(TEST_TABLE, [item])
   })
 })
+
+test('multiGetByIds', async () => {
+  // const r = await datastoreDB.runQuery(DBQuery.create('Session').limit(5))
+  // console.log(r.rows.map(rr => rr.id))
+
+  const accountIds = [
+    '0000r9j3f2dlhaon',
+    '0001ztxfzgp0gq61',
+    '0002jcoojapgoidk',
+    '0003fiarp2cf8xpy',
+    '0003wr0larnxi0vu',
+  ]
+
+  const abcIds = [
+    '10000r9j3f2dlhaon',
+    '10001ztxfzgp0gq61',
+    '10002jcoojapgoidk',
+    '10003fiarp2cf8xpy',
+    '10003wr0larnxi0vu',
+    'non-ex',
+  ]
+
+  const r = await datastoreDB.multiGetByIds({
+    Account: accountIds,
+    Abc: abcIds,
+  })
+  console.log(r)
+})

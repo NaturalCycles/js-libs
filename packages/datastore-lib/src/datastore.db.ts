@@ -35,7 +35,12 @@ import type { PRetryOptions } from '@naturalcycles/js-lib/promise'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { pRetry, pRetryFn } from '@naturalcycles/js-lib/promise/pRetry.js'
 import { pTimeout } from '@naturalcycles/js-lib/promise/pTimeout.js'
-import type { ObjectWithId } from '@naturalcycles/js-lib/types'
+import {
+  _stringMapEntries,
+  _stringMapValues,
+  type ObjectWithId,
+  type StringMap,
+} from '@naturalcycles/js-lib/types'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {
@@ -87,6 +92,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
   override support: CommonDBSupport = {
     ...commonDBFullSupport,
     patchByQuery: false,
+    patchById: false, // use Firestore for that
     increment: false,
   }
 
@@ -219,8 +225,38 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
         .map(r => this.mapId<ROW>(r))
         // Seems like datastore .get() method doesn't return items properly sorted by input ids, so we gonna sort them here
         // same ids are not expected here
-        .sort((a, b) => (a.id > b.id ? 1 : -1))
+        .sort(idComparator)
     )
+  }
+
+  override async multiGetByIds<ROW extends ObjectWithId>(
+    map: StringMap<string[]>,
+    opt: DatastoreDBReadOptions = {},
+  ): Promise<StringMap<ROW[]>> {
+    const result: StringMap<ROW[]> = {}
+    const ds = await this.ds()
+    const dsOpt = this.getRunQueryOptions(opt)
+    const keys: Key[] = []
+    for (const [table, ids] of _stringMapEntries(map)) {
+      result[table] = []
+      keys.push(...ids.map(id => this.key(ds, table, id)))
+    }
+
+    const r = await ds.get(keys, dsOpt)
+    const rows: any[] = r[0]
+
+    rows.forEach(entity => {
+      const [kind, row] = this.parseDatastoreEntity<ROW>(entity)
+      result[kind]!.push(row)
+    })
+
+    // Seems like datastore .get() method doesn't return items properly sorted by input ids, so we gonna sort them here
+    // same ids are not expected here
+    for (const tableRows of _stringMapValues(result)) {
+      tableRows.sort(idComparator)
+    }
+
+    return result
   }
 
   // getQueryKind(q: Query): string {
@@ -378,6 +414,8 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     }
   }
 
+  // not implementing multiSaveBatch, since the API does not support passing excludeFromIndexes for multiple tables
+
   override async deleteByQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt: DatastoreDBReadOptions = {},
@@ -430,6 +468,34 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       },
     )
     return ids.length
+  }
+
+  override async multiDeleteByIds(
+    map: StringMap<string[]>,
+    opt: DatastoreDBOptions = {},
+  ): Promise<number> {
+    const ds = await this.ds()
+    const keys: Key[] = []
+    for (const [table, ids] of _stringMapEntries(map)) {
+      keys.push(...ids.map(id => this.key(ds, table, id)))
+    }
+
+    const retryOptions = this.getPRetryOptions(`DatastoreLib.multiDeleteByIds`)
+
+    await pMap(
+      _chunk(keys, MAX_ITEMS),
+      // async batch => await doDelete(batch),
+      async batchOfKeys => {
+        await pRetry(async () => {
+          await ((opt.tx as DatastoreDBTransaction)?.tx || ds).delete(batchOfKeys)
+        }, retryOptions)
+      },
+      {
+        concurrency: DATASTORE_RECOMMENDED_CONCURRENCY,
+      },
+    )
+
+    return keys.length
   }
 
   override async createTransaction(
@@ -508,10 +574,21 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     if (!o) return o
     const r = {
       ...o,
-      id: this.getKey(this.getDsKey(o)!),
+      id: this.getIdFromKey(this.getDsKey(o)!),
     }
     delete r[this.KEY]
     return r
+  }
+
+  private parseDatastoreEntity<T extends ObjectWithId>(entity: any): [kind: string, row: T] {
+    const key = this.getDsKey(entity)!
+    const { name, kind } = key
+    const row: any = {
+      ...entity,
+      id: name,
+    }
+    delete row[this.KEY]
+    return [kind, row]
   }
 
   // if key field exists on entity, it will be used as key (prevent to duplication of numeric keyed entities)
@@ -542,7 +619,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     return o?.[this.KEY]
   }
 
-  getKey(key: Key): string | undefined {
+  private getIdFromKey(key: Key): string | undefined {
     const id = key.id || key.name
     return id?.toString()
   }
@@ -708,4 +785,8 @@ export class DatastoreDBTransaction implements DBTransaction {
   async deleteByIds(table: string, ids: string[], opt?: CommonDBOptions): Promise<number> {
     return await this.db.deleteByIds(table, ids, { ...opt, tx: this })
   }
+}
+
+function idComparator<T extends ObjectWithId>(a: T, b: T): number {
+  return a.id > b.id ? 1 : a.id < b.id ? -1 : 0
 }

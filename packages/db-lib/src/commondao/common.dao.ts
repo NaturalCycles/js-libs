@@ -17,6 +17,7 @@ import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
 import type {
   AsyncIndexedMapper,
   BaseDBEntity,
+  NonNegativeInteger,
   ObjectWithId,
   StringMap,
   UnixTimestampMillis,
@@ -51,6 +52,9 @@ import type {
   CommonDaoStreamForEachOptions,
   CommonDaoStreamOptions,
   CommonDaoStreamSaveOptions,
+  DaoWithId,
+  DaoWithIds,
+  DaoWithRows,
 } from './common.dao.model.js'
 import { CommonDaoLogLevel } from './common.dao.model.js'
 
@@ -1255,6 +1259,113 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
    */
   async ping(): Promise<void> {
     await this.cfg.db.ping()
+  }
+
+  id(id: string): DaoWithId {
+    return {
+      dao: this,
+      id,
+    }
+  }
+
+  ids(ids: string[]): DaoWithIds {
+    return {
+      dao: this,
+      ids,
+    }
+  }
+
+  rows(rows: BM[]): DaoWithRows {
+    return {
+      dao: this,
+      rows,
+    }
+  }
+
+  /**
+   * Very @experimental.
+   */
+  static async multiGetById<T>(inputs: DaoWithId[], opt: CommonDaoReadOptions = {}): Promise<T> {
+    const inputs2 = inputs.map(input => ({
+      dao: input.dao,
+      ids: [input.id],
+    }))
+
+    const rowsByTable = await CommonDao.multiGetByIds(inputs2, opt)
+    const results: any[] = inputs.map(({ dao }) => {
+      const { table } = dao.cfg
+      return rowsByTable[table]?.[0] || null
+    })
+
+    return results as T
+  }
+
+  /**
+   * Very @experimental.
+   */
+  static async multiGetByIds(
+    inputs: DaoWithIds[],
+    opt: CommonDaoReadOptions = {},
+  ): Promise<StringMap<unknown[]>> {
+    if (!inputs.length) return {}
+    const { db } = inputs[0]!.dao.cfg
+    const idsByTable: StringMap<string[]> = {}
+    for (const { dao, ids } of inputs) {
+      const { table } = dao.cfg
+      idsByTable[table] = ids
+    }
+
+    // todo: support tx
+    const dbmsByTable = await db.multiGetByIds(idsByTable, opt)
+    const bmsByTable: StringMap<unknown[]> = {}
+
+    await pMap(inputs, async ({ dao }) => {
+      const { table } = dao.cfg
+      let dbms = dbmsByTable[table] || []
+
+      if (dao.cfg.hooks!.afterLoad && dbms.length) {
+        dbms = (await pMap(dbms, async dbm => await dao.cfg.hooks!.afterLoad!(dbm))).filter(
+          _isTruthy,
+        )
+      }
+
+      bmsByTable[table] = await dao.dbmsToBM(dbms, opt)
+    })
+
+    return bmsByTable
+  }
+
+  /**
+   * Very @experimental.
+   */
+  static async multiDeleteByIds(
+    inputs: DaoWithIds[],
+    _opt: CommonDaoOptions = {},
+  ): Promise<NonNegativeInteger> {
+    if (!inputs.length) return 0
+    const { db } = inputs[0]!.dao.cfg
+    const idsByTable: StringMap<string[]> = {}
+    for (const { dao, ids } of inputs) {
+      idsByTable[dao.cfg.table] = ids
+    }
+
+    return await db.multiDeleteByIds(idsByTable)
+  }
+
+  static async multiSaveBatch(
+    inputs: DaoWithRows[],
+    opt: CommonDaoSaveBatchOptions<any> = {},
+  ): Promise<void> {
+    if (!inputs.length) return
+    const { db } = inputs[0]!.dao.cfg
+    const dbmsByTable: StringMap<any[]> = {}
+    await pMap(inputs, async ({ dao, rows }) => {
+      const { table } = dao.cfg
+      rows.forEach(bm => dao.assignIdCreatedUpdated(bm, opt))
+      dbmsByTable[table] = await dao.bmsToDBM(rows, opt)
+    })
+
+    await db.multiSaveBatch(dbmsByTable)
   }
 
   async createTransaction(opt?: CommonDBTransactionOptions): Promise<CommonDaoTransaction> {

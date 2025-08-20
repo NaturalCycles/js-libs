@@ -145,6 +145,20 @@ export class InMemoryDB implements CommonDB {
     return ids.map(id => this.data[table]![id] as ROW).filter(Boolean)
   }
 
+  async multiGetByIds<ROW extends ObjectWithId>(
+    map: StringMap<string[]>,
+    _opt: CommonDBOptions = {},
+  ): Promise<StringMap<ROW[]>> {
+    const result: StringMap<ROW[]> = {}
+
+    for (const [tableName, ids] of _stringMapEntries(map)) {
+      const table = this.cfg.tablesPrefix + tableName
+      result[table] = ids.map(id => this.data[table]?.[id] as ROW).filter(Boolean)
+    }
+
+    return result
+  }
+
   async saveBatch<ROW extends ObjectWithId>(
     _table: string,
     rows: ROW[],
@@ -152,6 +166,8 @@ export class InMemoryDB implements CommonDB {
   ): Promise<void> {
     const table = this.cfg.tablesPrefix + _table
     this.data[table] ||= {}
+    const isInsert = opt.saveMethod === 'insert'
+    const isUpdate = opt.saveMethod === 'update'
 
     for (const r of rows) {
       if (!r.id) {
@@ -161,11 +177,11 @@ export class InMemoryDB implements CommonDB {
         )
       }
 
-      if (opt.saveMethod === 'insert' && this.data[table][r.id]) {
+      if (isInsert && this.data[table][r.id]) {
         throw new Error(`InMemoryDB: INSERT failed, entity exists: ${table}.${r.id}`)
       }
 
-      if (opt.saveMethod === 'update' && !this.data[table][r.id]) {
+      if (isUpdate && !this.data[table][r.id]) {
         throw new Error(`InMemoryDB: UPDATE failed, entity doesn't exist: ${table}.${r.id}`)
       }
 
@@ -174,6 +190,29 @@ export class InMemoryDB implements CommonDB {
       // 2. Simulate real DB that would do something like that in a transport layer anyway
       this.data[table][r.id] = JSON.parse(JSON.stringify(r), bufferReviver)
     }
+  }
+
+  async multiSaveBatch<ROW extends ObjectWithId>(
+    map: StringMap<ROW[]>,
+    opt: CommonDBSaveOptions<ROW> = {},
+  ): Promise<void> {
+    for (const [table, rows] of _stringMapEntries(map)) {
+      await this.saveBatch(table, rows, opt)
+    }
+  }
+
+  async patchById<ROW extends ObjectWithId>(
+    _table: string,
+    id: string,
+    patch: Partial<ROW>,
+    _opt?: CommonDBOptions,
+  ): Promise<void> {
+    const table = this.cfg.tablesPrefix + _table
+    _assert(
+      !this.data[table]?.[id],
+      `InMemoryDB: patchById failed, entity doesn't exist: ${table}.${id}`,
+    )
+    Object.assign(this.data[table]![id]!, patch)
   }
 
   async deleteByQuery<ROW extends ObjectWithId>(
@@ -195,6 +234,16 @@ export class InMemoryDB implements CommonDB {
       if (!this.data[table][id]) continue
       delete this.data[table][id]
       count++
+    }
+
+    return count
+  }
+
+  async multiDeleteByIds(map: StringMap<string[]>, _opt?: CommonDBOptions): Promise<number> {
+    let count = 0
+
+    for (const [table, ids] of _stringMapEntries(map)) {
+      count += await this.deleteByIds(table, ids, _opt)
     }
 
     return count

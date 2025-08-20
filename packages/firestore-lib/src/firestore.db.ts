@@ -1,14 +1,17 @@
 import type {
+  DocumentReference,
   Firestore,
   Query,
   QueryDocumentSnapshot,
   QuerySnapshot,
   Transaction,
+  UpdateData,
 } from '@google-cloud/firestore'
 import { FieldValue } from '@google-cloud/firestore'
 import type {
   CommonDB,
   CommonDBOptions,
+  CommonDBReadOptions,
   CommonDBSaveMethod,
   CommonDBSaveOptions,
   CommonDBStreamOptions,
@@ -36,6 +39,7 @@ export interface FirestoreDBCfg {
 }
 
 export interface FirestoreDBOptions extends CommonDBOptions {}
+export interface FirestoreDBReadOptions extends CommonDBReadOptions {}
 export interface FirestoreDBSaveOptions<ROW extends ObjectWithId>
   extends CommonDBSaveOptions<ROW> {}
 
@@ -68,7 +72,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
     ids: string[],
-    opt: FirestoreDBOptions = {},
+    opt: FirestoreDBReadOptions = {},
   ): Promise<ROW[]> {
     if (!ids.length) return []
 
@@ -89,6 +93,34 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
         } as ROW
       })
       .filter(_isTruthy)
+  }
+
+  override async multiGetByIds<ROW extends ObjectWithId>(
+    map: StringMap<string[]>,
+    opt: CommonDBReadOptions = {},
+  ): Promise<StringMap<ROW[]>> {
+    const result: StringMap<ROW[]> = {}
+    const { firestore } = this.cfg
+    const refs: DocumentReference[] = []
+    for (const [table, ids] of _stringMapEntries(map)) {
+      result[table] = []
+      const col = firestore.collection(table)
+      refs.push(...ids.map(id => col.doc(escapeDocId(id))))
+    }
+
+    const snapshots = await ((opt.tx as FirestoreDBTransaction)?.tx || firestore).getAll(...refs)
+    snapshots.forEach(snap => {
+      const data = snap.data()
+      if (data === undefined) return
+      const table = snap.ref.parent.id
+      const row = {
+        id: unescapeDocId(snap.id),
+        ...data,
+      } as ROW
+      result[table]!.push(row)
+    })
+
+    return result
   }
 
   // QUERY
@@ -198,6 +230,82 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     )
   }
 
+  override async multiSaveBatch<ROW extends ObjectWithId>(
+    map: StringMap<ROW[]>,
+    opt: FirestoreDBSaveOptions<ROW> = {},
+  ): Promise<void> {
+    const { firestore } = this.cfg
+    const method: SaveOp = methodMap[opt.saveMethod!] || 'set'
+
+    if (opt.tx) {
+      const { tx } = opt.tx as FirestoreDBTransaction
+
+      for (const [table, rows] of _stringMapEntries(map)) {
+        const col = firestore.collection(table)
+        for (const row of rows) {
+          _assert(
+            row.id,
+            `firestore-db doesn't support id auto-generation, but empty id was provided in multiSaveBatch`,
+          )
+
+          const { id, ...rowWithoutId } = row
+          tx[method as 'set' | 'create'](
+            col.doc(escapeDocId(id)),
+            _filterUndefinedValues(rowWithoutId),
+          )
+        }
+      }
+      return
+    }
+
+    const tableRows: TableRow<ROW>[] = []
+    for (const [table, rows] of _stringMapEntries(map)) {
+      for (const row of rows) {
+        tableRows.push([table, row])
+      }
+    }
+
+    await pMap(
+      _chunk(tableRows, MAX_ITEMS),
+      async chunk => {
+        const batch = firestore.batch()
+
+        for (const [table, row] of chunk) {
+          _assert(
+            row.id,
+            `firestore-db doesn't support id auto-generation, but empty id was provided in multiSaveBatch`,
+          )
+          const { id, ...rowWithoutId } = row
+          batch[method as 'set' | 'create'](
+            firestore.collection(table).doc(escapeDocId(id)),
+            _filterUndefinedValues(rowWithoutId),
+          )
+        }
+
+        await batch.commit()
+      },
+      { concurrency: FIRESTORE_RECOMMENDED_CONCURRENCY },
+    )
+  }
+
+  override async patchById<ROW extends ObjectWithId>(
+    table: string,
+    id: string,
+    patch: Partial<ROW>,
+    opt: FirestoreDBOptions = {},
+  ): Promise<void> {
+    const { firestore } = this.cfg
+    const col = firestore.collection(table)
+
+    if (opt.tx) {
+      const { tx } = opt.tx as FirestoreDBTransaction
+      tx.update(col.doc(escapeDocId(id)), patch as UpdateData<ROW>)
+      return
+    }
+
+    await col.doc(escapeDocId(id)).update(patch)
+  }
+
   // DELETE
   override async deleteByQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
@@ -242,19 +350,48 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       _chunk(ids, MAX_ITEMS),
       async chunk => {
         const batch = firestore.batch()
-
         for (const id of chunk) {
           batch.delete(col.doc(escapeDocId(id)))
         }
-
         await batch.commit()
       },
-      {
-        concurrency: FIRESTORE_RECOMMENDED_CONCURRENCY,
-      },
+      { concurrency: FIRESTORE_RECOMMENDED_CONCURRENCY },
     )
 
     return ids.length
+  }
+
+  override async multiDeleteByIds(
+    map: StringMap<string[]>,
+    opt: FirestoreDBOptions = {},
+  ): Promise<number> {
+    const { firestore } = this.cfg
+    const refs: DocumentReference[] = []
+    for (const [table, ids] of _stringMapEntries(map)) {
+      const col = firestore.collection(table)
+      refs.push(...ids.map(id => col.doc(escapeDocId(id))))
+    }
+
+    if (opt.tx) {
+      const { tx } = opt.tx as FirestoreDBTransaction
+      for (const ref of refs) {
+        tx.delete(ref)
+      }
+    } else {
+      await pMap(
+        _chunk(refs, MAX_ITEMS),
+        async chunk => {
+          const batch = firestore.batch()
+          for (const ref of chunk) {
+            batch.delete(ref)
+          }
+          await batch.commit()
+        },
+        { concurrency: FIRESTORE_RECOMMENDED_CONCURRENCY },
+      )
+    }
+
+    return refs.length
   }
 
   private querySnapshotToArray<T = any>(qs: QuerySnapshot): T[] {
@@ -370,3 +507,5 @@ export class FirestoreDBTransaction implements DBTransaction {
 const MAX_ITEMS = 500
 // It's an empyrical value, but anything less than infinity is better than infinity
 const FIRESTORE_RECOMMENDED_CONCURRENCY = 8
+
+type TableRow<ROW extends ObjectWithId> = [table: string, row: ROW]

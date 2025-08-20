@@ -15,6 +15,7 @@ import {
 const MOCK_TS_2018_06_21 = 1529539200 as UnixTimestamp
 
 export const TEST_TABLE = 'TEST_TABLE'
+export const TEST_TABLE_2 = 'TEST_TABLE_2'
 
 export interface TestItemBM extends BaseDBEntity {
   k1: string

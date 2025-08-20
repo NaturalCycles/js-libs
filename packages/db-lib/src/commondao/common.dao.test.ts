@@ -73,6 +73,33 @@ test('common', async () => {
   expect(dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
 })
 
+test('multiGetByIds', async () => {
+  const rowsByTable = await CommonDao.multiGetByIds([
+    dao.ids(['id1', 'id2', 'id3']),
+    // can have more daos here
+  ])
+  expect(rowsByTable).toEqual({
+    [TEST_TABLE]: [],
+  })
+
+  const rows = await CommonDao.multiGetById<[TestItemBM | null, TestItemBM | null]>([
+    dao.id('id1'),
+    dao.id('id2'), // this can be another Dao
+  ])
+  expect(rows).toEqual([null, null])
+
+  await CommonDao.multiDeleteByIds([
+    dao.ids(['id1', 'id2', 'id3']),
+    // can have more daos here
+  ])
+
+  const items = createTestItemsBM(20)
+  await CommonDao.multiSaveBatch([
+    dao.rows(items),
+    // can have more daos here
+  ])
+})
+
 test('runUnionQuery', async () => {
   const items = createTestItemsBM(5)
   await dao.saveBatch(items)

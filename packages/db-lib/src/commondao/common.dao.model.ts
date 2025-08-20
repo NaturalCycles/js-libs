@@ -3,7 +3,7 @@ import type { AppError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type {
   BaseDBEntity,
-  NumberOfMilliseconds,
+  ObjectWithId,
   Promisable,
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
@@ -13,6 +13,7 @@ import type {
 } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBCreateOptions, CommonDBOptions, CommonDBSaveOptions } from '../db.model.js'
+import type { CommonDao } from './common.dao.js'
 
 export interface CommonDaoHooks<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID = BM['id']> {
   /**
@@ -404,8 +405,17 @@ export interface CommonDaoStreamOptions<IN>
 
 export type CommonDaoCreateOptions = CommonDBCreateOptions
 
-export interface OnValidationTimeData {
-  tookMillis: NumberOfMilliseconds
-  table: string
-  obj: any
+export interface DaoWithIds {
+  dao: CommonDao<any>
+  ids: string[]
+}
+
+export interface DaoWithId {
+  dao: CommonDao<any>
+  id: string
+}
+
+export interface DaoWithRows<ROW extends ObjectWithId = ObjectWithId> {
+  dao: CommonDao<any>
+  rows: ROW[]
 }

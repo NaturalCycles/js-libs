@@ -12,7 +12,7 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(firestoreDB)
 })
 
-test.skip('undefined value', async () => {
+test('undefined value', async () => {
   const testItem: TestItemDBM = {
     id: '123',
     k1: 'k11',
@@ -22,5 +22,10 @@ test.skip('undefined value', async () => {
   }
   await firestoreDB.saveBatch<TestItemDBM>(TEST_TABLE, [testItem])
   const [loaded] = await firestoreDB.getByIds(TEST_TABLE, [testItem.id])
-  console.log(loaded)
+  // console.log(loaded)
+
+  const r = await firestoreDB.multiGetByIds({
+    [TEST_TABLE]: [loaded!.id],
+  })
+  console.log(r)
 })
