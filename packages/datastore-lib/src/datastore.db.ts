@@ -199,7 +199,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
         } catch (err) {
           if (err instanceof TimeoutError) {
             _errorDataAppend(err, {
-              fingerprint: [DATASTORE_TIMEOUT],
+              fingerprint: DATASTORE_TIMEOUT,
             })
           }
           throw err
@@ -364,7 +364,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     } catch (err) {
       if (err instanceof TimeoutError) {
         _errorDataAppend(err, {
-          fingerprint: [DATASTORE_TIMEOUT],
+          fingerprint: DATASTORE_TIMEOUT,
         })
       }
 
@@ -638,7 +638,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       logger: this.cfg.logger,
       // not appending fingerprint here, otherwise it would just group all kinds of errors, not just Timeout errors
       // errorData: {
-      //   fingerprint: [DATASTORE_TIMEOUT],
+      //   fingerprint: DATASTORE_TIMEOUT,
       // },
     }
   }

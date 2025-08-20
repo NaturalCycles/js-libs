@@ -63,7 +63,7 @@ export interface ErrorData {
    *
    * Sentry takes string[], but for convenience we allow to pass a singe string.
    */
-  fingerprint?: string | string[]
+  fingerprint?: string
 
   /**
    * Set when throwing an error from your backend code, to indicate desired http status code.
