@@ -174,6 +174,10 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     await pMap(
       _chunk(rows, MAX_ITEMS),
       async chunk => {
+        // .batch is called "Atomic batch writer"
+        // Executes multiple writes in a single atomic transaction-like commit — all succeed or all fail.
+        // If any write in the batch fails (e.g., permission error, missing doc), the whole batch fails.
+        // Good for small, related sets of writes where consistency is critical.
         const batch = firestore.batch()
 
         for (const row of chunk) {

@@ -1,5 +1,5 @@
 import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
-import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import type { NonNegativeInteger, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type {
   CommonDBCreateOptions,
@@ -84,7 +84,7 @@ export interface CommonDB {
   runQueryCount: <ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: CommonDBReadOptions,
-  ) => Promise<number>
+  ) => Promise<NonNegativeInteger>
 
   streamQuery: <ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
@@ -100,6 +100,14 @@ export interface CommonDB {
     rows: ROW[],
     opt?: CommonDBSaveOptions<ROW>,
   ) => Promise<void>
+
+  // todo:
+  // patch: <ROW extends ObjectWithId>(
+  //   table: string,
+  //   row: ROW,
+  //   patch: Partial<ROW>,
+  //   opt?: CommonDBSaveOptions<ROW>,
+  // ) => Promise<ROW>
 
   // DELETE
   /**
