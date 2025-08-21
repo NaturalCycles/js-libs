@@ -94,7 +94,6 @@ function getConfig() {
       },
       // parser: tseslint.parser,
       parserOptions: {
-        project: 'tsconfig.json',
         parser: tseslint.parser,
         extraFileExtensions: ['.vue', '.html'],
       },
