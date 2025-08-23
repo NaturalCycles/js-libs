@@ -14,6 +14,7 @@
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
     "typecheck:parallel": "pnpm --filter '@naturalcycles/*' --parallel run typecheck",
     "lint": "pnpm --filter '@naturalcycles/*' run lint",
+    "eslint:all": "pnpm --filter '@naturalcycles/*' exec dev-lib eslint",
     "lint:parallel": "pnpm --filter '@naturalcycles/*' --parallel run lint",
     "prettier:all": "pnpm --filter '@naturalcycles/*' exec dev-lib prettier",
     "test": "node scripts/smart-test.js",

@@ -7,7 +7,7 @@ const prettierExtensionsAll =
 const eslintExtensions = 'ts,tsx,cts,mts,vue,html'
 const stylelintExtensions = 'css,scss'
 const lintExclude = ['./**/__exclude/**', './**/dist/**', './**/cache/**', './CHANGELOG.md']
-const minActionlintVersion = '1.7.4'
+const minActionlintVersion = '1.7.7'
 
 export {
   prettierDirs,

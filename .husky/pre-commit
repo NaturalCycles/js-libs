@@ -1,5 +1,3 @@
 [ -n "$CI" ] && exit 0
 
-# todo: enable lint-staged
-# dev-lib lint-staged
-exit 0
+dev-lib lint-staged

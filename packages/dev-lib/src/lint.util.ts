@@ -24,7 +24,7 @@ import {
 } from '../cfg/_cnst.js'
 import { cfgDir } from './paths.js'
 
-const { CI } = process.env
+const { CI, ESLINT_CONCURRENCY } = process.env
 
 /**
  * Run all linters.
@@ -174,13 +174,14 @@ async function runESLint(
       `--parser-options=project:${tsconfigPath}`,
       // The next line fixes the `typescript-eslint` 8.37 bug of resolving tsconfig.json
       `--parser-options=tsconfigRootDir:.`,
+      ESLINT_CONCURRENCY && `--concurrency=${ESLINT_CONCURRENCY}`,
       '--cache',
       '--cache-location',
       cacheLocation,
       `--no-error-on-unmatched-pattern`,
       `--report-unused-disable-directives`, // todo: unnecessary with flat, as it's defined in the config
       fix ? `--fix` : '',
-    ].filter(Boolean),
+    ].filter(_isTruthy),
     shell: false,
     env: _filterFalsyValues({
       // Print eslint plugin timing, but only in CI
