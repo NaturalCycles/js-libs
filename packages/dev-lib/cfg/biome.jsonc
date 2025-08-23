@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
   "root": false,
   "files": {
     "includes": [
@@ -35,6 +35,7 @@
       },
       "correctness": {
         "useImportExtensions": "error",
+        "useParseIntRadix": "off",
         "noUnusedFunctionParameters": "error",
         // noUnusedImports + noUnusedVariables can replace eslint-plugin-unused-vars!
         "noUnusedImports": "error",
@@ -73,6 +74,7 @@
       },
       "suspicious": {
         "useNumberToFixedDigitsArgument": "error",
+        "useIterableCallbackReturn": "off",
         "useErrorMessage": "error",
         "noEvolvingTypes": "error",
         "noExplicitAny": "off",

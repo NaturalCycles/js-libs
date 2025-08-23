@@ -96,6 +96,7 @@ const commands: (Command | Separator)[] = [
     fn: () => runBiome(),
     desc: 'Run biome linter on all files.',
   },
+  { name: 'biome-no-fix', deprecated: true, fn: () => runBiome(false) },
   {
     name: 'biome --no-fix',
     fn: () => runBiome(false),

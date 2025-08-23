@@ -18,10 +18,11 @@
     "lint": "tsx ./src/bin/dev-lib.ts lint",
     "eslint": "tsx ./src/bin/dev-lib.ts eslint",
     "eslint-no-fix": "tsx ./src/bin/dev-lib.ts eslint-no-fix",
+    "biome-no-fix": "tsx ./src/bin/dev-lib.ts biome-no-fix",
     "lint-staged-debug": "tsx ./src/bin/dev-lib.ts lint-staged"
   },
   "dependencies": {
-    "@biomejs/biome": "2.1.3",
+    "@biomejs/biome": "^2",
     "@commitlint/cli": "^19",
     "@commitlint/config-conventional": "^19",
     "@eslint/js": "^9",
