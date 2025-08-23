@@ -57,7 +57,7 @@ const repaint = () => {
 
   const lineGradient = ctx.createLinearGradient(0, 0, canvas.width, 0)
   for (const stop in options.barColors) {
-    // @ts-ignore
+    // @ts-expect-error
     lineGradient.addColorStop(stop, options.barColors[stop])
   }
   ctx.lineWidth = options.barThickness
@@ -83,7 +83,7 @@ export const topbar = {
   config(opts: TopBarOptions) {
     for (const key in opts) {
       if (options.hasOwnProperty(key)) {
-        // @ts-ignore
+        // @ts-expect-error
         options[key] = opts[key]
       }
     }
