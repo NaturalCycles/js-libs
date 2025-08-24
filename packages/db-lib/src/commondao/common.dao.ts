@@ -20,7 +20,7 @@ import {
   type StringMap,
   type Unsaved,
 } from '@naturalcycles/js-lib/types'
-import { _passthroughPredicate, _typeCast, SKIP } from '@naturalcycles/js-lib/types'
+import { _passthroughPredicate, _typeCast } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
 import {
   type ReadableTyped,
@@ -616,13 +616,8 @@ export class CommonDao<
 
     this.assignIdCreatedUpdated(bm, opt) // mutates
     _typeCast<BM>(bm)
-    let dbm = await this.bmToDBM(bm, opt) // validates BM
-
-    if (this.cfg.hooks!.beforeSave) {
-      dbm = (await this.cfg.hooks!.beforeSave(dbm))!
-      if (dbm === null) return bm
-    }
-
+    const dbm = await this.bmToDBM(bm, opt) // validates BM
+    this.cfg.hooks!.beforeSave?.(dbm)
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
@@ -637,15 +632,9 @@ export class CommonDao<
 
   async saveAsDBM(dbm: Unsaved<DBM>, opt: CommonDaoSaveOptions<BM, DBM> = {}): Promise<DBM> {
     this.requireWriteAccess()
-
     this.assignIdCreatedUpdated(dbm, opt) // mutates
-    let row = this.anyToDBM(dbm, opt)
-
-    if (this.cfg.hooks!.beforeSave) {
-      row = (await this.cfg.hooks!.beforeSave(row))!
-      if (row === null) return dbm as DBM
-    }
-
+    const row = this.anyToDBM(dbm, opt)
+    this.cfg.hooks!.beforeSave?.(row)
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
@@ -662,14 +651,10 @@ export class CommonDao<
     if (!bms.length) return []
     this.requireWriteAccess()
     bms.forEach(bm => this.assignIdCreatedUpdated(bm, opt))
-    let dbms = await this.bmsToDBM(bms as BM[], opt)
-
-    if (this.cfg.hooks!.beforeSave && dbms.length) {
-      dbms = (await pMap(dbms, async dbm => await this.cfg.hooks!.beforeSave!(dbm))).filter(
-        _isTruthy,
-      )
+    const dbms = await this.bmsToDBM(bms as BM[], opt)
+    if (this.cfg.hooks!.beforeSave) {
+      dbms.forEach(dbm => this.cfg.hooks!.beforeSave!(dbm))
     }
-
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
@@ -689,14 +674,10 @@ export class CommonDao<
     if (!dbms.length) return []
     this.requireWriteAccess()
     dbms.forEach(dbm => this.assignIdCreatedUpdated(dbm, opt))
-    let rows = this.anyToDBMs(dbms as DBM[], opt)
-
-    if (this.cfg.hooks!.beforeSave && rows.length) {
-      rows = (await pMap(rows, async row => await this.cfg.hooks!.beforeSave!(row))).filter(
-        _isTruthy,
-      )
+    const rows = this.anyToDBMs(dbms as DBM[], opt)
+    if (this.cfg.hooks!.beforeSave) {
+      rows.forEach(row => this.cfg.hooks!.beforeSave!(row))
     }
-
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
@@ -752,15 +733,9 @@ export class CommonDao<
     return [
       transformMap<BM, DBM>(
         async bm => {
-          this.assignIdCreatedUpdated(bm, opt) // mutates
-
-          let dbm = await this.bmToDBM(bm, opt)
-
-          if (beforeSave) {
-            dbm = (await beforeSave(dbm))!
-            if (dbm === null) return SKIP
-          }
-
+          this.assignIdCreatedUpdated(bm, opt)
+          const dbm = await this.bmToDBM(bm, opt)
+          beforeSave?.(dbm)
           return dbm
         },
         {
@@ -1167,7 +1142,7 @@ export class CommonDao<
    * Very @experimental.
    */
   static async multiDeleteByIds(
-    inputs: DaoWithIds<any>[],
+    inputs: DaoWithIds<AnyDao>[],
     _opt: CommonDaoOptions = {},
   ): Promise<NonNegativeInteger> {
     if (!inputs.length) return 0
@@ -1181,7 +1156,7 @@ export class CommonDao<
   }
 
   static async multiSave(
-    inputs: (DaoWithRows<any> | DaoWithRow<any>)[],
+    inputs: (DaoWithRows<AnyDao> | DaoWithRow<AnyDao>)[],
     opt: CommonDaoSaveBatchOptions<any> = {},
   ): Promise<void> {
     if (!inputs.length) return
@@ -1208,11 +1183,17 @@ export class CommonDao<
         }
 
         dao.assignIdCreatedUpdated(row, opt)
-        dbmsByTable[table].push(await dao.bmToDBM(row, opt))
+        const dbm = await dao.bmToDBM(row, opt)
+        dao.cfg.hooks!.beforeSave?.(dbm)
+        dbmsByTable[table].push(dbm)
       } else {
         // Plural
         input.rows.forEach(bm => dao.assignIdCreatedUpdated(bm, opt))
-        dbmsByTable[table].push(...(await dao.bmsToDBM(input.rows, opt)))
+        const dbms = await dao.bmsToDBM(input.rows, opt)
+        if (dao.cfg.hooks!.beforeSave) {
+          dbms.forEach(dbm => dao.cfg.hooks!.beforeSave!(dbm))
+        }
+        dbmsByTable[table].push(...dbms)
       }
     })
 

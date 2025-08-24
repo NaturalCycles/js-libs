@@ -1,7 +1,7 @@
 import type { ValidationFunction } from '@naturalcycles/js-lib'
 import type { AppError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import type { BaseDBEntity, Promisable, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import type {
   TransformLogProgressOptions,
   TransformMapOptions,
@@ -9,7 +9,11 @@ import type {
 import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBCreateOptions, CommonDBOptions, CommonDBSaveOptions } from '../db.model.js'
 
-export interface CommonDaoHooks<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID = BM['id']> {
+export interface CommonDaoHooks<
+  BM extends BaseDBEntity,
+  DBM extends BaseDBEntity,
+  ID extends string = BM['id'],
+> {
   /**
    * Allows to override the id generation function.
    * By default it uses `stringId` from nodejs-lib
@@ -61,15 +65,10 @@ export interface CommonDaoHooks<BM extends BaseDBEntity, DBM extends BaseDBEntit
    *
    * Normally does nothing.
    *
-   * You can change the DBM as you want here: ok to mutate or not, but you need to return the DBM
-   * to pass it further.
-   *
-   * You can return `null` to prevent it from being saved, without throwing an error.
-   * `.save` method will then return the BM/DBM as it has entered the method (it **won't** return the null value!).
-   *
    * You can do validations as needed here and throw errors, they will be propagated.
+   * Or, you can mutate the DBM if needed.
    */
-  beforeSave?: (dbm: DBM) => Promisable<DBM | null>
+  beforeSave?: (dbm: DBM) => void
 
   /**
    * Called in:
@@ -113,7 +112,7 @@ export enum CommonDaoLogLevel {
 export interface CommonDaoCfg<
   BM extends BaseDBEntity,
   DBM extends BaseDBEntity = BM,
-  ID = BM['id'],
+  ID extends string = BM['id'],
 > {
   db: CommonDB
   table: string
