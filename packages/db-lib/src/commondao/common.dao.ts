@@ -1049,14 +1049,14 @@ export class CommonDao<
     }
   }
 
-  withRowsToSave(rows: BM[]): DaoWithRows<typeof this> {
+  withRowsToSave(rows: Unsaved<BM>[]): DaoWithRows<typeof this> {
     return {
       dao: this,
       rows: rows as any,
     }
   }
 
-  withRowToSave(row: BM, opt?: DaoWithRowOptions<BM>): DaoWithRow<typeof this> {
+  withRowToSave(row: Unsaved<BM>, opt?: DaoWithRowOptions<BM>): DaoWithRow<typeof this> {
     return {
       dao: this,
       row: row as any,
