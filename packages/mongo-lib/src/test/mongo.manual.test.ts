@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { CommonDao, CommonDaoLogLevel } from '@naturalcycles/db-lib/dao'
+import { CommonDao } from '@naturalcycles/db-lib/dao'
 import {
   createTestItemsBM,
   runCommonDaoTest,
@@ -35,8 +35,6 @@ test.skip('some', async () => {
     table: TEST_TABLE,
     db: mongoDB,
     validateBM: getJoiValidationFunction(testItemBMSchema),
-    logStarted: true,
-    logLevel: CommonDaoLogLevel.DATA_FULL,
   })
 
   const items = createTestItemsBM(3)
