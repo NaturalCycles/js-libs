@@ -54,7 +54,7 @@ export interface CommonDaoHooks<BM extends BaseDBEntity, DBM extends BaseDBEntit
    *
    * You can do validations as needed here and throw errors, they will be propagated.
    */
-  afterLoad?: (dbm: DBM) => Promisable<DBM | null>
+  // afterLoad?: (dbm: DBM) => Promisable<DBM | null> // feature is currently disabled
 
   /**
    * Allows to access the DBM just before it's supposed to be saved to the DB.
@@ -354,7 +354,7 @@ export interface CommonDaoSaveBatchOptions<DBM extends BaseDBEntity>
    *
    * Only applies to auto-generated ids! Does not apply to passed id.
    */
-  ensureUniqueId?: boolean
+  // ensureUniqueId?: boolean // feature is currently disabled
 }
 
 export interface CommonDaoStreamDeleteOptions<DBM extends BaseDBEntity>
