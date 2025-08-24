@@ -14,16 +14,6 @@ import type {
 } from '../db.model.js'
 import type { DBQuery } from '../query/dbQuery.js'
 
-export enum CommonDBType {
-  'document' = 'document',
-  'relational' = 'relational',
-}
-
-/**
- * A tuple that contains the table name and the id.
- */
-export type CommonDBKey = [table: string, id: string]
-
 export interface CommonDB {
   /**
    * Relational databases are expected to return `null` for all missing properties.
@@ -93,7 +83,7 @@ export interface CommonDB {
    *
    * @experimental
    */
-  multiGetByIds: <ROW extends ObjectWithId>(
+  multiGet: <ROW extends ObjectWithId>(
     idsByTable: StringMap<string[]>,
     opt?: CommonDBReadOptions,
   ) => Promise<StringMap<ROW[]>>
@@ -140,7 +130,7 @@ export interface CommonDB {
    *
    * @experimental
    */
-  multiSaveBatch: <ROW extends ObjectWithId>(
+  multiSave: <ROW extends ObjectWithId>(
     rowsByTable: StringMap<ROW[]>,
     opt?: CommonDBSaveOptions<ROW>,
   ) => Promise<void>
@@ -183,7 +173,7 @@ export interface CommonDB {
    *
    * @experimental
    */
-  multiDeleteByIds: (
+  multiDelete: (
     idsByTable: StringMap<string[]>,
     opt?: CommonDBOptions,
   ) => Promise<NonNegativeInteger>
@@ -256,6 +246,11 @@ export interface CommonDB {
     incrementMap: StringMap<number>,
     opt?: CommonDBOptions,
   ) => Promise<StringMap<number>>
+}
+
+export enum CommonDBType {
+  'document' = 'document',
+  'relational' = 'relational',
 }
 
 /**

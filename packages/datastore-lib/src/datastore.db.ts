@@ -229,7 +229,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     )
   }
 
-  override async multiGetByIds<ROW extends ObjectWithId>(
+  override async multiGet<ROW extends ObjectWithId>(
     map: StringMap<string[]>,
     opt: DatastoreDBReadOptions = {},
   ): Promise<StringMap<ROW[]>> {
@@ -470,7 +470,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     return ids.length
   }
 
-  override async multiDeleteByIds(
+  override async multiDelete(
     map: StringMap<string[]>,
     opt: DatastoreDBOptions = {},
   ): Promise<number> {

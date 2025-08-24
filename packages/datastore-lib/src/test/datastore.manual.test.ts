@@ -89,7 +89,7 @@ test('multiGetByIds', async () => {
     'non-ex',
   ]
 
-  const r = await datastoreDB.multiGetByIds({
+  const r = await datastoreDB.multiGet({
     Account: accountIds,
     Abc: abcIds,
   })

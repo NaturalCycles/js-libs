@@ -17,6 +17,7 @@ import {
   testItemBMJsonSchema,
   testItemBMSchema,
 } from '../testing/index.js'
+import { TEST_TABLE_2 } from '../testing/test.model.js'
 import { CommonDao } from './common.dao.js'
 import type {
   CommonDaoCfg,
@@ -50,6 +51,10 @@ const daoCfg: CommonDaoCfg<TestItemBM, TestItemDBM> = {
   },
 }
 const dao = new CommonDao(daoCfg)
+const dao2 = new CommonDao({
+  ...daoCfg,
+  table: TEST_TABLE_2,
+})
 
 beforeEach(async () => {
   await db.resetCache()
@@ -73,31 +78,93 @@ test('common', async () => {
   expect(dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
 })
 
-test('multiGetByIds', async () => {
-  const rowsByTable = await CommonDao.multiGetByIds([
-    dao.ids(['id1', 'id2', 'id3']),
-    // can have more daos here
-  ])
-  expect(rowsByTable).toEqual({
-    [TEST_TABLE]: [],
+test('multiGet', async () => {
+  const { testItems1, testItems2 } = await CommonDao.multiGet({
+    testItems1: dao.withIds(['id1', 'id2', 'id3']),
+    testItems2: dao2.withIds(['id2', 'id4']),
   })
+  expect(testItems1).toEqual([])
+  expect(testItems2).toEqual([])
 
-  const rows = await CommonDao.multiGetById<[TestItemBM | null, TestItemBM | null]>([
-    dao.id('id1'),
-    dao.id('id2'), // this can be another Dao
-  ])
-  expect(rows).toEqual([null, null])
+  const { item1, item2 } = await CommonDao.multiGet({
+    item1: dao.withId('id1'),
+    item2: dao2.withId('id2'), // this can be another Dao
+  })
+  expect(item1).toBeNull()
+  expect(item2).toBeNull()
 
   await CommonDao.multiDeleteByIds([
-    dao.ids(['id1', 'id2', 'id3']),
+    dao.withIds(['id1', 'id2', 'id3']),
     // can have more daos here
   ])
 
-  const items = createTestItemsBM(20)
-  await CommonDao.multiSaveBatch([
-    dao.rows(items),
-    // can have more daos here
-  ])
+  const items1 = createTestItemsBM(20)
+  const items2 = createTestItemsBM(10)
+  await CommonDao.multiSave([dao.toSave(items1), dao2.toSave(items2)])
+
+  const result = await CommonDao.multiGet({
+    item11: dao.withId('id1'),
+    itemNotFound: dao.withId('id1abc'),
+    item21: dao2.withId('id1'),
+    items2: dao2.withIds(['id2', 'id1']),
+  })
+  // Length should be 2, not 3, since other prop (item21) should not affect it
+  expect(result.items2).toHaveLength(2)
+  expect(result).toMatchInlineSnapshot(`
+    {
+      "item11": {
+        "created": 1529539200,
+        "even": false,
+        "id": "id1",
+        "k1": "v1",
+        "k2": "v2",
+        "k3": 1,
+        "nested": {
+          "foo": 1,
+        },
+        "updated": 1529539200,
+      },
+      "item21": {
+        "created": 1529539200,
+        "even": false,
+        "id": "id1",
+        "k1": "v1",
+        "k2": "v2",
+        "k3": 1,
+        "nested": {
+          "foo": 1,
+        },
+        "updated": 1529539200,
+      },
+      "itemNotFound": null,
+      "items2": [
+        {
+          "created": 1529539200,
+          "even": true,
+          "id": "id2",
+          "k1": "v2",
+          "k2": "v4",
+          "k3": 2,
+          "nested": {
+            "foo": 2,
+          },
+          "updated": 1529539200,
+        },
+        {
+          "created": 1529539200,
+          "even": false,
+          "id": "id1",
+          "k1": "v1",
+          "k2": "v2",
+          "k3": 1,
+          "nested": {
+            "foo": 1,
+          },
+          "updated": 1529539200,
+        },
+      ],
+    }
+  `)
 })
 
 test('runUnionQuery', async () => {

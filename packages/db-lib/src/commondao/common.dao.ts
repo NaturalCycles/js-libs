@@ -14,14 +14,16 @@ import {
 } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
-import type {
-  AsyncIndexedMapper,
-  BaseDBEntity,
-  NonNegativeInteger,
-  ObjectWithId,
-  StringMap,
-  UnixTimestampMillis,
-  Unsaved,
+import {
+  _stringMapEntries,
+  _stringMapValues,
+  type AsyncIndexedMapper,
+  type BaseDBEntity,
+  type NonNegativeInteger,
+  type ObjectWithId,
+  type StringMap,
+  type UnixTimestampMillis,
+  type Unsaved,
 } from '@naturalcycles/js-lib/types'
 import { _passthroughPredicate, _typeCast, SKIP } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
@@ -52,9 +54,6 @@ import type {
   CommonDaoStreamForEachOptions,
   CommonDaoStreamOptions,
   CommonDaoStreamSaveOptions,
-  DaoWithId,
-  DaoWithIds,
-  DaoWithRows,
 } from './common.dao.model.js'
 import { CommonDaoLogLevel } from './common.dao.model.js'
 
@@ -65,7 +64,11 @@ import { CommonDaoLogLevel } from './common.dao.model.js'
  * BM = Backend model (optimized for API access)
  * TM = Transport model (optimized to be sent over the wire)
  */
-export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, ID = BM['id']> {
+export class CommonDao<
+  BM extends BaseDBEntity,
+  DBM extends BaseDBEntity = BM,
+  ID extends string = BM['id'],
+> {
   constructor(public cfg: CommonDaoCfg<BM, DBM, ID>) {
     this.cfg = {
       logLevel: CommonDaoLogLevel.NONE,
@@ -1261,85 +1264,131 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
     await this.cfg.db.ping()
   }
 
-  id(id: string): DaoWithId {
+  withId(id: ID): DaoWithId<typeof this> {
     return {
       dao: this,
       id,
     }
   }
 
-  ids(ids: string[]): DaoWithIds {
+  withIds(ids: ID[]): DaoWithIds<typeof this> {
     return {
       dao: this,
       ids,
     }
   }
 
-  rows(rows: BM[]): DaoWithRows {
+  toSave(input: BM | BM[]): DaoWithRows<typeof this> {
     return {
       dao: this,
-      rows,
+      rows: [input].flat() as any[],
     }
   }
 
   /**
-   * Very @experimental.
+   * Load rows (by their ids) from Multiple tables at once.
+   * An optimized way to load data, minimizing DB round-trips.
+   *
+   * @experimental.
    */
-  static async multiGetById<T>(inputs: DaoWithId[], opt: CommonDaoReadOptions = {}): Promise<T> {
-    const inputs2 = inputs.map(input => ({
-      dao: input.dao,
-      ids: [input.id],
-    }))
-
-    const rowsByTable = await CommonDao.multiGetByIds(inputs2, opt)
-    const results: any[] = inputs.map(({ dao }) => {
-      const { table } = dao.cfg
-      return rowsByTable[table]?.[0] || null
-    })
-
-    return results as T
-  }
-
-  /**
-   * Very @experimental.
-   */
-  static async multiGetByIds(
-    inputs: DaoWithIds[],
+  static async multiGet<MAP extends Record<string, DaoWithIds<AnyDao> | DaoWithId<AnyDao>>>(
+    inputMap: MAP,
     opt: CommonDaoReadOptions = {},
-  ): Promise<StringMap<unknown[]>> {
-    if (!inputs.length) return {}
-    const { db } = inputs[0]!.dao.cfg
-    const idsByTable: StringMap<string[]> = {}
-    for (const { dao, ids } of inputs) {
-      const { table } = dao.cfg
-      idsByTable[table] = ids
+  ): Promise<{
+    [K in keyof MAP]: MAP[K] extends DaoWithIds<any>
+      ? InferBM<MAP[K]['dao']>[]
+      : InferBM<MAP[K]['dao']> | null
+  }> {
+    const db = Object.values(inputMap)[0]?.dao.cfg.db
+    if (!db) {
+      return {} as any
     }
+
+    const idsByTable = CommonDao.prepareMultiGetIds(inputMap)
 
     // todo: support tx
-    const dbmsByTable = await db.multiGetByIds(idsByTable, opt)
-    const bmsByTable: StringMap<unknown[]> = {}
+    const dbmsByTable = await db.multiGet(idsByTable, opt)
 
-    await pMap(inputs, async ({ dao }) => {
-      const { table } = dao.cfg
-      let dbms = dbmsByTable[table] || []
+    const dbmByTableById = CommonDao.multiGetMapByTableById(dbmsByTable)
 
-      if (dao.cfg.hooks!.afterLoad && dbms.length) {
-        dbms = (await pMap(dbms, async dbm => await dao.cfg.hooks!.afterLoad!(dbm))).filter(
-          _isTruthy,
-        )
+    return (await CommonDao.prepareMultiGetOutput(inputMap, dbmByTableById, opt)) as any
+  }
+
+  private static prepareMultiGetIds(
+    inputMap: StringMap<DaoWithIds<AnyDao> | DaoWithId<AnyDao>>,
+  ): StringMap<string[]> {
+    const idSetByTable: StringMap<Set<string>> = {}
+
+    for (const input of _stringMapValues(inputMap)) {
+      const { table } = input.dao.cfg
+      idSetByTable[table] ||= new Set()
+      if ('id' in input) {
+        // Singular
+        idSetByTable[table].add(input.id)
+      } else {
+        // Plural
+        for (const id of input.ids) {
+          idSetByTable[table].add(id)
+        }
       }
+    }
 
-      bmsByTable[table] = await dao.dbmsToBM(dbms, opt)
+    const idsByTable: StringMap<string[]> = {}
+    for (const [table, idSet] of _stringMapEntries(idSetByTable)) {
+      idsByTable[table] = [...idSet]
+    }
+    return idsByTable
+  }
+
+  private static multiGetMapByTableById(
+    dbmsByTable: StringMap<ObjectWithId[]>,
+  ): StringMap<StringMap<ObjectWithId>> {
+    // We create this "map of maps", to be able to track the results back to the input props
+    // This is needed to support:
+    // - having multiple props from the same table
+    const dbmByTableById: StringMap<StringMap<ObjectWithId>> = {}
+    for (const [table, dbms] of _stringMapEntries(dbmsByTable)) {
+      dbmByTableById[table] ||= {}
+      for (const dbm of dbms) {
+        dbmByTableById[table][dbm.id] = dbm
+      }
+    }
+
+    return dbmByTableById
+  }
+
+  private static async prepareMultiGetOutput(
+    inputMap: StringMap<DaoWithIds<AnyDao> | DaoWithId<AnyDao>>,
+    dbmByTableById: StringMap<StringMap<ObjectWithId>>,
+    opt: CommonDaoReadOptions = {},
+  ): Promise<StringMap<unknown>> {
+    const bmsByProp: StringMap<unknown> = {}
+
+    // Loop over input props again, to produce the output of the same shape as requested
+    await pMap(_stringMapEntries(inputMap), async ([prop, input]) => {
+      const { dao } = input
+      const { table } = dao.cfg
+      if ('id' in input) {
+        // Singular
+        const dbm = dbmByTableById[table]![input.id]
+        bmsByProp[prop] = (await dao.dbmToBM(dbm, opt)) || null
+      } else {
+        // Plural
+        // We apply filtering, to be able to support multiple input props fetching from the same table.
+        // Without filtering - every prop will get ALL rows from that table.
+        const dbms = input.ids.map(id => dbmByTableById[table]![id]).filter(_isTruthy)
+        bmsByProp[prop] = await dao.dbmsToBM(dbms, opt)
+      }
     })
 
-    return bmsByTable
+    return bmsByProp as any
   }
 
   /**
    * Very @experimental.
    */
   static async multiDeleteByIds(
-    inputs: DaoWithIds[],
+    inputs: DaoWithIds<any>[],
     _opt: CommonDaoOptions = {},
   ): Promise<NonNegativeInteger> {
     if (!inputs.length) return 0
@@ -1349,11 +1398,11 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
       idsByTable[dao.cfg.table] = ids
     }
 
-    return await db.multiDeleteByIds(idsByTable)
+    return await db.multiDelete(idsByTable)
   }
 
-  static async multiSaveBatch(
-    inputs: DaoWithRows[],
+  static async multiSave(
+    inputs: DaoWithRows<any>[],
     opt: CommonDaoSaveBatchOptions<any> = {},
   ): Promise<void> {
     if (!inputs.length) return
@@ -1365,7 +1414,7 @@ export class CommonDao<BM extends BaseDBEntity, DBM extends BaseDBEntity = BM, I
       dbmsByTable[table] = await dao.bmsToDBM(rows, opt)
     })
 
-    await db.multiSaveBatch(dbmsByTable)
+    await db.multiSave(dbmsByTable)
   }
 
   async createTransaction(opt?: CommonDBTransactionOptions): Promise<CommonDaoTransaction> {
@@ -1506,7 +1555,7 @@ export class CommonDaoTransaction {
     }
   }
 
-  async getById<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID = BM['id']>(
+  async getById<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID extends string = BM['id']>(
     dao: CommonDao<BM, DBM, ID>,
     id?: ID | null,
     opt?: CommonDaoReadOptions,
@@ -1514,7 +1563,7 @@ export class CommonDaoTransaction {
     return await dao.getById(id, { ...opt, tx: this.tx })
   }
 
-  async getByIds<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID = BM['id']>(
+  async getByIds<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID extends string = BM['id']>(
     dao: CommonDao<BM, DBM, ID>,
     ids: ID[],
     opt?: CommonDaoReadOptions,
@@ -1559,7 +1608,7 @@ export class CommonDaoTransaction {
    *
    * So, this method is a rather simple convenience "Object.assign and then save".
    */
-  async patch<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID = BM['id']>(
+  async patch<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID extends string = BM['id']>(
     dao: CommonDao<BM, DBM, ID>,
     bm: BM,
     patch: Partial<BM>,
@@ -1570,20 +1619,42 @@ export class CommonDaoTransaction {
     return await dao.save(bm, { ...opt, skipIfEquals, tx: this.tx })
   }
 
-  async deleteById<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID = BM['id']>(
-    dao: CommonDao<BM, DBM, ID>,
-    id?: ID | null,
+  // todo: use AnyDao/Infer in other methods as well, if this works well
+  async deleteById<DAO extends AnyDao>(
+    dao: DAO,
+    id?: InferID<DAO> | null,
     opt?: CommonDaoOptions,
   ): Promise<number> {
     if (!id) return 0
     return await this.deleteByIds(dao, [id], opt)
   }
 
-  async deleteByIds<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID = BM['id']>(
-    dao: CommonDao<BM, DBM, ID>,
-    ids: ID[],
+  async deleteByIds<DAO extends AnyDao>(
+    dao: DAO,
+    ids: InferID<DAO>[],
     opt?: CommonDaoOptions,
   ): Promise<number> {
     return await dao.deleteByIds(ids, { ...opt, tx: this.tx })
   }
 }
+
+export interface DaoWithIds<DAO extends AnyDao> {
+  dao: DAO
+  ids: string[]
+}
+
+export interface DaoWithId<DAO extends AnyDao> {
+  dao: DAO
+  id: string
+}
+
+export interface DaoWithRows<DAO extends AnyDao> {
+  dao: DAO
+  rows: InferBM<DAO>[]
+}
+
+type InferBM<DAO> = DAO extends CommonDao<infer BM> ? BM : never
+// type InferDBM<DAO> = DAO extends CommonDao<any, infer DBM> ? DBM : never
+type InferID<DAO> = DAO extends CommonDao<any, any, infer ID> ? ID : never
+
+export type AnyDao = CommonDao<any>

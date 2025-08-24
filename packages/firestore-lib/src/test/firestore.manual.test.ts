@@ -24,7 +24,7 @@ test('undefined value', async () => {
   const [loaded] = await firestoreDB.getByIds(TEST_TABLE, [testItem.id])
   // console.log(loaded)
 
-  const r = await firestoreDB.multiGetByIds({
+  const r = await firestoreDB.multiGet({
     [TEST_TABLE]: [loaded!.id],
   })
   console.log(r)

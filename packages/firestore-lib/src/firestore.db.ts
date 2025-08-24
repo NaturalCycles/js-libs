@@ -95,7 +95,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       .filter(_isTruthy)
   }
 
-  override async multiGetByIds<ROW extends ObjectWithId>(
+  override async multiGet<ROW extends ObjectWithId>(
     map: StringMap<string[]>,
     opt: CommonDBReadOptions = {},
   ): Promise<StringMap<ROW[]>> {
@@ -230,7 +230,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     )
   }
 
-  override async multiSaveBatch<ROW extends ObjectWithId>(
+  override async multiSave<ROW extends ObjectWithId>(
     map: StringMap<ROW[]>,
     opt: FirestoreDBSaveOptions<ROW> = {},
   ): Promise<void> {
@@ -361,7 +361,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     return ids.length
   }
 
-  override async multiDeleteByIds(
+  override async multiDelete(
     map: StringMap<string[]>,
     opt: FirestoreDBOptions = {},
   ): Promise<number> {

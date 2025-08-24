@@ -145,7 +145,7 @@ export class InMemoryDB implements CommonDB {
     return ids.map(id => this.data[table]![id] as ROW).filter(Boolean)
   }
 
-  async multiGetByIds<ROW extends ObjectWithId>(
+  async multiGet<ROW extends ObjectWithId>(
     map: StringMap<string[]>,
     _opt: CommonDBOptions = {},
   ): Promise<StringMap<ROW[]>> {
@@ -192,7 +192,7 @@ export class InMemoryDB implements CommonDB {
     }
   }
 
-  async multiSaveBatch<ROW extends ObjectWithId>(
+  async multiSave<ROW extends ObjectWithId>(
     map: StringMap<ROW[]>,
     opt: CommonDBSaveOptions<ROW> = {},
   ): Promise<void> {
@@ -239,7 +239,7 @@ export class InMemoryDB implements CommonDB {
     return count
   }
 
-  async multiDeleteByIds(map: StringMap<string[]>, _opt?: CommonDBOptions): Promise<number> {
+  async multiDelete(map: StringMap<string[]>, _opt?: CommonDBOptions): Promise<number> {
     let count = 0
 
     for (const [table, ids] of _stringMapEntries(map)) {

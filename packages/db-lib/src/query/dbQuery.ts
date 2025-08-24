@@ -236,7 +236,7 @@ export class DBQuery<ROW extends ObjectWithId> {
 export class RunnableDBQuery<
   BM extends BaseDBEntity,
   DBM extends BaseDBEntity = BM,
-  ID = BM['id'],
+  ID extends string = BM['id'],
 > extends DBQuery<DBM> {
   /**
    * Pass `table` to override table.

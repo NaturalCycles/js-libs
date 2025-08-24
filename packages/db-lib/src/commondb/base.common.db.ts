@@ -113,21 +113,21 @@ export class BaseCommonDB implements CommonDB {
     throw new Error('incrementBatch is not implemented')
   }
 
-  async multiGetByIds<ROW extends ObjectWithId>(
+  async multiGet<ROW extends ObjectWithId>(
     _map: StringMap<string[]>,
     _opt?: CommonDBReadOptions,
   ): Promise<StringMap<ROW[]>> {
     throw new Error('multiGetByIds is not implemented')
   }
 
-  async multiSaveBatch<ROW extends ObjectWithId>(
+  async multiSave<ROW extends ObjectWithId>(
     _map: StringMap<ROW[]>,
     _opt?: CommonDBSaveOptions<ROW>,
   ): Promise<void> {
     throw new Error('multiSaveBatch is not implemented')
   }
 
-  async multiDeleteByIds(_map: StringMap<string[]>, _opt?: CommonDBOptions): Promise<number> {
+  async multiDelete(_map: StringMap<string[]>, _opt?: CommonDBOptions): Promise<number> {
     throw new Error('multiDeleteByIds is not implemented')
   }
 }
