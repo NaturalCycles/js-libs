@@ -178,12 +178,12 @@ export interface CommonDaoCfg<
   /**
    * @default NONE
    */
-  logLevel?: CommonDaoLogLevel
+  // logLevel?: CommonDaoLogLevel
 
   /**
    * @default false
    */
-  logStarted?: boolean
+  // logStarted?: boolean
 
   // Hooks are designed with inspiration from got/ky interface
   hooks?: Partial<CommonDaoHooks<BM, DBM, ID>>

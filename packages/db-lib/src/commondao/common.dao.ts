@@ -2,7 +2,6 @@ import type { Transform } from 'node:stream'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
-import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert, AppError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
@@ -13,7 +12,6 @@ import {
   _objectAssignExact,
 } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
-import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
 import {
   _stringMapEntries,
   _stringMapValues,
@@ -22,7 +20,6 @@ import {
   type NonNegativeInteger,
   type ObjectWithId,
   type StringMap,
-  type UnixTimestampMillis,
   type Unsaved,
 } from '@naturalcycles/js-lib/types'
 import { _passthroughPredicate, _typeCast, SKIP } from '@naturalcycles/js-lib/types'
@@ -55,7 +52,6 @@ import type {
   CommonDaoStreamOptions,
   CommonDaoStreamSaveOptions,
 } from './common.dao.model.js'
-import { CommonDaoLogLevel } from './common.dao.model.js'
 
 /**
  * Lowest common denominator API between supported Databases.
@@ -71,7 +67,6 @@ export class CommonDao<
 > {
   constructor(public cfg: CommonDaoCfg<BM, DBM, ID>) {
     this.cfg = {
-      logLevel: CommonDaoLogLevel.NONE,
       generateId: true,
       assignGeneratedIds: false,
       useCreatedProperty: true,
@@ -110,9 +105,7 @@ export class CommonDao<
   // async getById(id?: ID | null, opt?: CommonDaoOptions): Promise<BM | null>
   async getById(id?: ID | null, opt: CommonDaoReadOptions = {}): Promise<BM | null> {
     if (!id) return null
-    const op = `getById(${id})`
     const table = opt.table || this.cfg.table
-    const started = this.logStarted(op, table)
 
     let dbm = (await (opt.tx || this.cfg.db).getByIds<DBM>(table, [id as string], opt))[0]
     if (dbm && this.cfg.hooks!.afterLoad) {
@@ -120,7 +113,6 @@ export class CommonDao<
     }
 
     const bm = await this.dbmToBM(dbm, opt)
-    this.logResult(started, op, bm, table)
     return bm || null
   }
 
@@ -135,24 +127,19 @@ export class CommonDao<
   // async getByIdAsDBM(id?: ID | null, opt?: CommonDaoOptions): Promise<DBM | null>
   async getByIdAsDBM(id?: ID | null, opt: CommonDaoReadOptions = {}): Promise<DBM | null> {
     if (!id) return null
-    const op = `getByIdAsDBM(${id})`
     const table = opt.table || this.cfg.table
-    const started = this.logStarted(op, table)
     let [dbm] = await (opt.tx || this.cfg.db).getByIds<DBM>(table, [id as string], opt)
     if (dbm && this.cfg.hooks!.afterLoad) {
       dbm = (await this.cfg.hooks!.afterLoad(dbm)) || undefined
     }
 
     dbm = this.anyToDBM(dbm!, opt)
-    this.logResult(started, op, dbm, table)
     return dbm || null
   }
 
   async getByIds(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<BM[]> {
     if (!ids.length) return []
-    const op = `getByIds ${ids.length} id(s) (${_truncate(ids.slice(0, 10).join(', '), 50)})`
     const table = opt.table || this.cfg.table
-    const started = this.logStarted(op, table)
     let dbms = await (opt.tx || this.cfg.db).getByIds<DBM>(table, ids as string[], opt)
     if (this.cfg.hooks!.afterLoad && dbms.length) {
       dbms = (await pMap(dbms, async dbm => await this.cfg.hooks!.afterLoad!(dbm))).filter(
@@ -161,15 +148,12 @@ export class CommonDao<
     }
 
     const bms = await this.dbmsToBM(dbms, opt)
-    this.logResult(started, op, bms, table)
     return bms
   }
 
   async getByIdsAsDBM(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<DBM[]> {
     if (!ids.length) return []
-    const op = `getByIdsAsDBM ${ids.length} id(s) (${_truncate(ids.slice(0, 10).join(', '), 50)})`
     const table = opt.table || this.cfg.table
-    const started = this.logStarted(op, table)
     let dbms = await (opt.tx || this.cfg.db).getByIds<DBM>(table, ids as string[], opt)
     if (this.cfg.hooks!.afterLoad && dbms.length) {
       dbms = (await pMap(dbms, async dbm => await this.cfg.hooks!.afterLoad!(dbm))).filter(
@@ -177,7 +161,6 @@ export class CommonDao<
       )
     }
 
-    this.logResult(started, op, dbms, table)
     return dbms
   }
 
@@ -294,8 +277,6 @@ export class CommonDao<
   ): Promise<RunQueryResult<BM>> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const op = `runQuery(${q.pretty()})`
-    const started = this.logStarted(op, q.table)
     let { rows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const partialQuery = !!q._selectedFieldNames
     if (this.cfg.hooks!.afterLoad && rows.length) {
@@ -305,7 +286,6 @@ export class CommonDao<
     }
 
     const bms = partialQuery ? (rows as any[]) : await this.dbmsToBM(rows, opt)
-    this.logResult(started, op, bms, q.table)
     return {
       rows: bms,
       ...queryResult,
@@ -323,8 +303,6 @@ export class CommonDao<
   ): Promise<RunQueryResult<DBM>> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const op = `runQueryAsDBM(${q.pretty()})`
-    const started = this.logStarted(op, q.table)
     let { rows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     if (this.cfg.hooks!.afterLoad && rows.length) {
       rows = (await pMap(rows, async dbm => await this.cfg.hooks!.afterLoad!(dbm))).filter(
@@ -334,20 +312,13 @@ export class CommonDao<
 
     const partialQuery = !!q._selectedFieldNames
     const dbms = partialQuery ? rows : this.anyToDBMs(rows, opt)
-    this.logResult(started, op, dbms, q.table)
     return { rows: dbms, ...queryResult }
   }
 
   async runQueryCount(q: DBQuery<DBM>, opt: CommonDaoReadOptions = {}): Promise<number> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const op = `runQueryCount(${q.pretty()})`
-    const started = this.logStarted(op, q.table)
-    const count = await this.cfg.db.runQueryCount(q, opt)
-    if (this.cfg.logLevel! >= CommonDaoLogLevel.OPERATIONS) {
-      this.cfg.logger?.log(`<< ${q.table}.${op}: ${count} row(s) in ${_since(started)}`)
-    }
-    return count
+    return await this.cfg.db.runQueryCount(q, opt)
   }
 
   async streamQueryForEach(
@@ -361,15 +332,11 @@ export class CommonDao<
     opt.errorMode ||= ErrorMode.SUPPRESS
 
     const partialQuery = !!q._selectedFieldNames
-    const op = `streamQueryForEach(${q.pretty()})`
-    const started = this.logStarted(op, q.table, true)
-    let count = 0
 
     await _pipeline([
       this.cfg.db.streamQuery<DBM>(q, opt),
       transformMap<DBM, BM>(
         async dbm => {
-          count++
           if (partialQuery) return dbm as any
 
           if (this.cfg.hooks!.afterLoad) {
@@ -394,10 +361,6 @@ export class CommonDao<
       }),
       writableVoid(),
     ])
-
-    if (this.cfg.logLevel! >= CommonDaoLogLevel.OPERATIONS) {
-      this.cfg.logger?.log(`<< ${q.table}.${op}: ${count} row(s) in ${_since(started)}`)
-    }
   }
 
   async streamQueryAsDBMForEach(
@@ -411,15 +374,11 @@ export class CommonDao<
     opt.errorMode ||= ErrorMode.SUPPRESS
 
     const partialQuery = !!q._selectedFieldNames
-    const op = `streamQueryAsDBMForEach(${q.pretty()})`
-    const started = this.logStarted(op, q.table, true)
-    let count = 0
 
     await _pipeline([
       this.cfg.db.streamQuery<any>(q, opt),
       transformMap<any, DBM>(
         async dbm => {
-          count++
           if (partialQuery) return dbm
 
           if (this.cfg.hooks!.afterLoad) {
@@ -444,10 +403,6 @@ export class CommonDao<
       }),
       writableVoid(),
     ])
-
-    if (this.cfg.logLevel! >= CommonDaoLogLevel.OPERATIONS) {
-      this.cfg.logger?.log(`<< ${q.table}.${op}: ${count} row(s) in ${_since(started)}`)
-    }
   }
 
   /**
@@ -586,15 +541,8 @@ export class CommonDao<
     q.table = opt.table || q.table
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    const op = `streamQueryIdsForEach(${q.pretty()})`
-    const started = this.logStarted(op, q.table, true)
-    let count = 0
-
     await _pipeline([
-      this.cfg.db.streamQuery<DBM>(q.select(['id']), opt).map(r => {
-        count++
-        return r.id
-      }),
+      this.cfg.db.streamQuery<DBM>(q.select(['id']), opt).map(r => r.id),
       transformMap<ID, void>(mapper, {
         ...opt,
         predicate: _passthroughPredicate,
@@ -606,10 +554,6 @@ export class CommonDao<
       }),
       writableVoid(),
     ])
-
-    if (this.cfg.logLevel! >= CommonDaoLogLevel.OPERATIONS) {
-      this.cfg.logger?.log(`<< ${q.table}.${op}: ${count} id(s) in ${_since(started)}`)
-    }
   }
 
   /**
@@ -792,8 +736,6 @@ export class CommonDao<
     if (this.cfg.immutable && !opt.allowMutability && !opt.saveMethod) {
       opt = { ...opt, saveMethod: 'insert' }
     }
-    const op = `save(${dbm.id})`
-    const started = this.logSaveStarted(op, bm, table)
     const { excludeFromIndexes } = this.cfg
     const assignGeneratedIds = opt.assignGeneratedIds || this.cfg.assignGeneratedIds
 
@@ -807,7 +749,6 @@ export class CommonDao<
       bm.id = dbm.id
     }
 
-    this.logSaveResult(started, op, table)
     return bm
   }
 
@@ -825,8 +766,6 @@ export class CommonDao<
     if (this.cfg.immutable && !opt.allowMutability && !opt.saveMethod) {
       opt = { ...opt, saveMethod: 'insert' }
     }
-    const op = `saveAsDBM(${row.id})`
-    const started = this.logSaveStarted(op, row, table)
     const { excludeFromIndexes } = this.cfg
     const assignGeneratedIds = opt.assignGeneratedIds || this.cfg.assignGeneratedIds
 
@@ -845,7 +784,6 @@ export class CommonDao<
       dbm.id = row.id
     }
 
-    this.logSaveResult(started, op, table)
     return row
   }
 
@@ -867,14 +805,6 @@ export class CommonDao<
       opt = { ...opt, saveMethod: 'insert' }
     }
 
-    const op = `saveBatch ${dbms.length} row(s) (${_truncate(
-      dbms
-        .slice(0, 10)
-        .map(bm => bm.id)
-        .join(', '),
-      50,
-    )})`
-    const started = this.logSaveStarted(op, bms, table)
     const { excludeFromIndexes } = this.cfg
     const assignGeneratedIds = opt.assignGeneratedIds || this.cfg.assignGeneratedIds
 
@@ -887,8 +817,6 @@ export class CommonDao<
     if (assignGeneratedIds) {
       dbms.forEach((dbm, i) => (bms[i]!.id = dbm.id))
     }
-
-    this.logSaveResult(started, op, table)
 
     return bms as BM[]
   }
@@ -907,14 +835,6 @@ export class CommonDao<
     if (this.cfg.immutable && !opt.allowMutability && !opt.saveMethod) {
       opt = { ...opt, saveMethod: 'insert' }
     }
-    const op = `saveBatchAsDBM ${rows.length} row(s) (${_truncate(
-      rows
-        .slice(0, 10)
-        .map(bm => bm.id)
-        .join(', '),
-      50,
-    )})`
-    const started = this.logSaveStarted(op, rows, table)
     const { excludeFromIndexes } = this.cfg
     const assignGeneratedIds = opt.assignGeneratedIds || this.cfg.assignGeneratedIds
 
@@ -934,7 +854,6 @@ export class CommonDao<
       rows.forEach((row, i) => (dbms[i]!.id = row.id))
     }
 
-    this.logSaveResult(started, op, table)
     return rows
   }
 
@@ -1016,12 +935,8 @@ export class CommonDao<
     if (!ids.length) return 0
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
-    const op = `deleteByIds(${ids.join(', ')})`
     const table = opt.table || this.cfg.table
-    const started = this.logStarted(op, table)
-    const count = await (opt.tx || this.cfg.db).deleteByIds(table, ids as string[], opt)
-    this.logSaveResult(started, op, table)
-    return count
+    return await (opt.tx || this.cfg.db).deleteByIds(table, ids as string[], opt)
   }
 
   /**
@@ -1037,8 +952,6 @@ export class CommonDao<
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
     q.table = opt.table || q.table
-    const op = `deleteByQuery(${q.pretty()})`
-    const started = this.logStarted(op, q.table)
     let deleted = 0
 
     if (opt.chunkSize) {
@@ -1071,7 +984,6 @@ export class CommonDao<
       deleted = await this.cfg.db.deleteByQuery(q, opt)
     }
 
-    this.logSaveResult(started, op, q.table)
     return deleted
   }
 
@@ -1089,11 +1001,7 @@ export class CommonDao<
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
     q.table = opt.table || q.table
-    const op = `patchByQuery(${q.pretty()})`
-    const started = this.logStarted(op, q.table)
-    const updated = await this.cfg.db.patchByQuery(q, patch, opt)
-    this.logSaveResult(started, op, q.table)
-    return updated
+    return await this.cfg.db.patchByQuery(q, patch, opt)
   }
 
   /**
@@ -1105,12 +1013,9 @@ export class CommonDao<
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
     const { table } = this.cfg
-    const op = `increment`
-    const started = this.logStarted(op, table)
     const result = await this.cfg.db.incrementBatch(table, prop as string, {
-      [id as string]: by,
+      [id]: by,
     })
-    this.logSaveResult(started, op, table)
     return result[id as string]!
   }
 
@@ -1127,11 +1032,7 @@ export class CommonDao<
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
     const { table } = this.cfg
-    const op = `incrementBatch`
-    const started = this.logStarted(op, table)
-    const result = await this.cfg.db.incrementBatch(table, prop as string, incrementMap)
-    this.logSaveResult(started, op, table)
-    return result
+    return await this.cfg.db.incrementBatch(table, prop as string, incrementMap)
   }
 
   // CONVERSIONS
@@ -1458,62 +1359,6 @@ export class CommonDao<
         },
       )
     }
-  }
-
-  protected logResult(started: UnixTimestampMillis, op: string, res: any, table: string): void {
-    if (!this.cfg.logLevel) return
-
-    let logRes: any
-    const args: any[] = []
-
-    if (Array.isArray(res)) {
-      logRes = `${res.length} row(s)`
-      if (res.length && this.cfg.logLevel >= CommonDaoLogLevel.DATA_FULL) {
-        args.push('\n', ...res.slice(0, 10)) // max 10 items
-      }
-    } else if (res) {
-      logRes = `1 row`
-      if (this.cfg.logLevel >= CommonDaoLogLevel.DATA_SINGLE) {
-        args.push('\n', res)
-      }
-    } else {
-      logRes = `undefined`
-    }
-
-    this.cfg.logger?.log(`<< ${table}.${op}: ${logRes} in ${_since(started)}`, ...args)
-  }
-
-  protected logSaveResult(started: UnixTimestampMillis, op: string, table: string): void {
-    if (!this.cfg.logLevel) return
-    this.cfg.logger?.log(`<< ${table}.${op} in ${_since(started)}`)
-  }
-
-  protected logStarted(op: string, table: string, force = false): UnixTimestampMillis {
-    if (this.cfg.logStarted || force) {
-      this.cfg.logger?.log(`>> ${table}.${op}`)
-    }
-    return localTime.nowUnixMillis()
-  }
-
-  protected logSaveStarted(op: string, items: any, table: string): UnixTimestampMillis {
-    if (this.cfg.logStarted) {
-      const args: any[] = [`>> ${table}.${op}`]
-      if (Array.isArray(items)) {
-        if (items.length && this.cfg.logLevel! >= CommonDaoLogLevel.DATA_FULL) {
-          args.push('\n', ...items.slice(0, 10))
-        } else {
-          args.push(`${items.length} row(s)`)
-        }
-      } else {
-        if (this.cfg.logLevel! >= CommonDaoLogLevel.DATA_SINGLE) {
-          args.push(items)
-        }
-      }
-
-      this.cfg.logger?.log(...args)
-    }
-
-    return localTime.nowUnixMillis()
   }
 }
 

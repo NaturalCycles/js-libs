@@ -5,7 +5,6 @@ import { _deepCopy, _filterObject, _omit, _pick } from '@naturalcycles/js-lib/ob
 import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'
 import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { CommonDao } from '../commondao/common.dao.js'
-import { CommonDaoLogLevel } from '../commondao/common.dao.model.js'
 import type { CommonDB } from '../commondb/common.db.js'
 import { DBQuery } from '../query/dbQuery.js'
 import type { CommonDBImplementationQuirks } from './commonDBTest.js'
@@ -30,8 +29,6 @@ export async function runCommonDaoTest(
     table: TEST_TABLE,
     db,
     validateBM: getJoiValidationFunction(testItemBMSchema),
-    logStarted: true,
-    logLevel: CommonDaoLogLevel.DATA_FULL,
   })
 
   const items = createTestItemsBM(3)

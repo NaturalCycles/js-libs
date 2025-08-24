@@ -24,7 +24,6 @@ import type {
   CommonDaoOptions,
   CommonDaoSaveBatchOptions,
 } from './common.dao.model.js'
-import { CommonDaoLogLevel } from './common.dao.model.js'
 
 let throwError = false
 
@@ -33,8 +32,6 @@ const daoCfg: CommonDaoCfg<TestItemBM, TestItemDBM> = {
   table: TEST_TABLE,
   db,
   validateBM: getJoiValidationFunction(testItemBMSchema),
-  // logStarted: true,
-  logLevel: CommonDaoLogLevel.OPERATIONS,
   hooks: {
     parseNaturalId: id => {
       if (throwError && id === 'id3') throw new Error('error_from_parseNaturalId')
