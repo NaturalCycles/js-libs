@@ -93,9 +93,9 @@ test('multiGet', async () => {
   const items1 = createTestItemsBM(20)
   const items2 = createTestItemsBM(10)
   await CommonDao.multiSave([
-    dao.withRows(items1),
-    dao2.withRows(items2),
-    dao2.withRow(items2[0]!, {
+    dao.withRowsToSave(items1),
+    dao2.withRowsToSave(items2),
+    dao2.withRowToSave(items2[0]!, {
       skipIfEquals: items2[1]!,
     }),
   ])

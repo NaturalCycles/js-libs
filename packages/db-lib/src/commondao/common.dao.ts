@@ -1049,14 +1049,14 @@ export class CommonDao<
     }
   }
 
-  withRows(rows: BM[]): DaoWithRows<typeof this> {
+  withRowsToSave(rows: BM[]): DaoWithRows<typeof this> {
     return {
       dao: this,
       rows: rows as any,
     }
   }
 
-  withRow(row: BM, opt?: DaoWithRowOptions<BM>): DaoWithRow<typeof this> {
+  withRowToSave(row: BM, opt?: DaoWithRowOptions<BM>): DaoWithRow<typeof this> {
     return {
       dao: this,
       row: row as any,
@@ -1307,18 +1307,18 @@ export interface DaoWithId<DAO extends AnyDao> {
   id: string
 }
 
-export interface DaoWithRows<DAO extends AnyDao> {
+export interface DaoWithRows<DAO extends AnyDao, BM = InferBM<DAO>> {
   dao: DAO
-  rows: InferBM<DAO>[]
+  rows: Unsaved<BM>[]
 }
 
-export interface DaoWithRow<DAO extends AnyDao> {
+export interface DaoWithRow<DAO extends AnyDao, BM = InferBM<DAO>> {
   dao: DAO
-  row: InferBM<DAO>
-  opt?: DaoWithRowOptions<InferBM<DAO>>
+  row: Unsaved<BM>
+  opt?: DaoWithRowOptions<BM>
 }
 
-interface DaoWithRowOptions<BM extends BaseDBEntity> {
+export interface DaoWithRowOptions<BM> {
   skipIfEquals?: BM
 }
 
