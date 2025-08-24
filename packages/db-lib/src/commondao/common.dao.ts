@@ -1035,28 +1035,28 @@ export class CommonDao<
     await this.cfg.db.ping()
   }
 
-  withId(id: ID): DaoWithId<typeof this> {
+  withId(id: ID): DaoWithId<CommonDao<BM, DBM, ID>> {
     return {
       dao: this,
       id,
     }
   }
 
-  withIds(ids: ID[]): DaoWithIds<typeof this> {
+  withIds(ids: ID[]): DaoWithIds<CommonDao<BM, DBM, ID>> {
     return {
       dao: this,
       ids,
     }
   }
 
-  withRowsToSave(rows: Unsaved<BM>[]): DaoWithRows<typeof this> {
+  withRowsToSave(rows: Unsaved<BM>[]): DaoWithRows<CommonDao<BM, DBM, ID>> {
     return {
       dao: this,
       rows: rows as any,
     }
   }
 
-  withRowToSave(row: Unsaved<BM>, opt?: DaoWithRowOptions<BM>): DaoWithRow<typeof this> {
+  withRowToSave(row: Unsaved<BM>, opt?: DaoWithRowOptions<BM>): DaoWithRow<CommonDao<BM, DBM, ID>> {
     return {
       dao: this,
       row: row as any,
