@@ -26,6 +26,7 @@
     "dev-lib:lint": "pnpm --filter @naturalcycles/dev-lib run lint",
     "dev-lib:test": "pnpm --filter @naturalcycles/dev-lib run test",
     "dev-lib:check": "pnpm --filter @naturalcycles/dev-lib run check",
+    "dev-lib:typecheck": "pnpm --filter @naturalcycles/dev-lib run typecheck",
     "dev-lib:bt": "pnpm --filter @naturalcycles/dev-lib run bt",
     "js-lib:check": "pnpm --filter @naturalcycles/js-lib run check",
     "js-lib:build": "pnpm --filter @naturalcycles/js-lib run build",

@@ -9,7 +9,7 @@ import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
 import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { git2 } from '@naturalcycles/nodejs-lib'
-import { boldGrey, dimGrey, grey } from '@naturalcycles/nodejs-lib/colors'
+import { boldGrey, dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
@@ -77,7 +77,7 @@ export async function lintAllCommand(): Promise<void> {
 
   await runKTLint(fix)
 
-  console.log(`${boldGrey('lint-all')} ${dimGrey(`took ` + _since(started))}`)
+  console.log(`${boldGrey(`${check(true)} lint-all`)} ${dimGrey(`took ` + _since(started))}`)
 
   // if (needToTrackChanges) {
   //   const gitStatusAfter = gitStatus()
@@ -143,7 +143,7 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
     await runESLint(`e2e`, extensions, fix)
   }
 
-  console.log(`${boldGrey('eslint-all')} ${dimGrey(`took ` + _since(started))}`)
+  console.log(`${boldGrey(`${check(true)} eslint-all`)} ${dimGrey(`took ` + _since(started))}`)
 }
 
 async function runESLint(
@@ -166,9 +166,10 @@ async function runESLint(
   const eslintPath = findPackageBinPath('eslint', 'eslint')
   const cacheLocation = `node_modules/.cache/eslint_${dir}`
   const cacheFound = existsSync(cacheLocation)
-  console.log(grey(`eslint ${dir} cache found: ${cacheFound}`))
+  console.log(dimGrey(`${check(cacheFound)} eslint ${dir} cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(eslintPath, {
+    name: ['eslint', dir, !fix && '--no-fix'].filter(Boolean).join(' '),
     args: [
       `--config`,
       eslintConfigPath,
@@ -216,10 +217,11 @@ export function runPrettier(opt: RunPrettierOptions = {}): void {
   const prettierPath = findPackageBinPath('prettier', 'prettier')
   const cacheLocation = 'node_modules/.cache/prettier'
   const cacheFound = existsSync(cacheLocation)
-  console.log(grey(`prettier cache found: ${cacheFound}`))
+  console.log(dimGrey(`${check(cacheFound)} prettier cache found: ${cacheFound}`))
 
   // prettier --write 'src/**/*.{js,ts,css,scss,graphql}'
   exec2.spawn(prettierPath, {
+    name: fix ? 'prettier' : 'prettier --check',
     args: [
       fix ? `--write` : '--check',
       `--log-level=warn`,
@@ -257,6 +259,7 @@ export function stylelintAll(fix?: boolean): void {
 
   // stylelint is never hoisted from dev-lib, so, no need to search for its path
   exec2.spawn('stylelint', {
+    name: fix ? 'stylelint' : 'stylelint --no-fix',
     args: [fix ? `--fix` : '', `--allow-empty-input`, `--config`, config, ...stylelintPaths].filter(
       Boolean,
     ),
@@ -349,6 +352,7 @@ export function runBiome(fix = true): void {
   const dirs = [`src`, `scripts`, `e2e`].filter(d => existsSync(d))
 
   exec2.spawn(biomePath, {
+    name: fix ? 'biome' : 'biome --no-fix',
     args: [`lint`, fix && '--write', fix && '--unsafe', '--no-errors-on-unmatched', ...dirs].filter(
       _isTruthy,
     ),
@@ -381,4 +385,8 @@ export function findPackageBinPath(pkg: string, cmd: string): string {
   const { bin } = fs2.readJson<any>(packageJsonPath)
 
   return path.join(path.dirname(packageJsonPath), typeof bin === 'string' ? bin : bin[cmd])
+}
+
+function check(predicate: any): string {
+  return predicate ? '✔️ ' : '   '
 }

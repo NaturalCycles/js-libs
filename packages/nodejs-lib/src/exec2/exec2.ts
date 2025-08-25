@@ -271,15 +271,28 @@ class Exec2 {
   private logStart(cmd: string, opt: SpawnOptions | ExecOptions): void {
     if (!opt.logStart) return
 
-    console.log(
-      [
-        dimGrey(...Object.entries(opt.env || {}).map(([k, v]) => [k, v].join('='))),
-        white(opt.name || _substringAfterLast(cmd, '/')),
-        ...((!opt.name && (opt as SpawnOptions).args) || []),
-      ]
-        .filter(Boolean)
-        .join(' '),
-    )
+    const envString = Object.entries(opt.env || {})
+      .map(([k, v]) => [k, v].join('='))
+      .join(' ')
+
+    if (opt.name) {
+      console.log(
+        ['  ', dimGrey(envString), white(opt.name), dimGrey('started...')]
+          .filter(Boolean)
+          .join(' '),
+      )
+    } else {
+      console.log(
+        [
+          '  ',
+          dimGrey(envString),
+          white(_substringAfterLast(cmd, '/')),
+          ...((opt as SpawnOptions).args || []),
+        ]
+          .filter(Boolean)
+          .join(' '),
+      )
+    }
   }
 
   private logFinish(
@@ -292,6 +305,7 @@ class Exec2 {
 
     console.log(
       [
+        isSuccessful ? '✔️ ' : '❌',
         white(opt.name || _substringAfterLast(cmd, '/')),
         ...((!opt.name && (opt as SpawnOptions).args) || []),
         dimGrey('took ' + _since(started)),
