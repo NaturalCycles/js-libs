@@ -1139,20 +1139,30 @@ export class CommonDao<
   }
 
   /**
-   * Very @experimental.
+   * @experimental.
    */
-  static async multiDeleteByIds(
-    inputs: DaoWithIds<AnyDao>[],
-    _opt: CommonDaoOptions = {},
+  static async multiDelete(
+    inputs: (DaoWithId<AnyDao> | DaoWithIds<AnyDao>)[],
+    opt: CommonDaoOptions = {},
   ): Promise<NonNegativeInteger> {
     if (!inputs.length) return 0
     const { db } = inputs[0]!.dao.cfg
     const idsByTable: StringMap<string[]> = {}
-    for (const { dao, ids } of inputs) {
-      idsByTable[dao.cfg.table] = ids
+    for (const input of inputs) {
+      const { dao } = input
+      const { table } = dao.cfg
+      dao.requireWriteAccess()
+      dao.requireObjectMutability(opt)
+      idsByTable[table] ||= []
+
+      if ('id' in input) {
+        idsByTable[table].push(input.id)
+      } else {
+        idsByTable[table].push(...input.ids)
+      }
     }
 
-    return await db.multiDelete(idsByTable)
+    return await db.multiDelete(idsByTable, opt)
   }
 
   static async multiSave(

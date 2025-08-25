@@ -85,10 +85,7 @@ test('multiGet', async () => {
   expect(item1).toBeNull()
   expect(item2).toBeNull()
 
-  await CommonDao.multiDeleteByIds([
-    dao.withIds(['id1', 'id2', 'id3']),
-    // can have more daos here
-  ])
+  await CommonDao.multiDelete([dao.withIds(['id1', 'id2', 'id3']), dao2.withId('id4')])
 
   const items1 = createTestItemsBM(20)
   const items2 = createTestItemsBM(10)
