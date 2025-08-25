@@ -7,7 +7,6 @@ import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
-import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
 import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { git2 } from '@naturalcycles/nodejs-lib'
 import { boldGrey, dimGrey, grey } from '@naturalcycles/nodejs-lib/colors'
@@ -31,67 +30,74 @@ const { CI, ESLINT_CONCURRENCY } = process.env
  */
 export async function lintAllCommand(): Promise<void> {
   const started = Date.now() as UnixTimestampMillis
-  const { commitOnChanges, failOnChanges } = _yargs().options({
-    commitOnChanges: {
-      type: 'boolean',
-      default: false,
-    },
-    failOnChanges: {
-      type: 'boolean',
-      default: false,
-    },
-  }).argv
+  // const { commitOnChanges, failOnChanges } = _yargs().options({
+  //   commitOnChanges: {
+  //     type: 'boolean',
+  //     default: false,
+  //   },
+  //   failOnChanges: {
+  //     type: 'boolean',
+  //     default: false,
+  //   },
+  // }).argv
 
-  const needToTrackChanges = commitOnChanges || failOnChanges
-  const gitStatusAtStart = gitStatus()
-  if (needToTrackChanges && gitStatusAtStart) {
-    console.log('lint-all: git shows changes before run:')
-    console.log(gitStatusAtStart)
-  }
+  // const needToTrackChanges = commitOnChanges || failOnChanges
+  // const gitStatusAtStart = gitStatus()
+  // if (needToTrackChanges && gitStatusAtStart) {
+  //   console.log('lint-all: git shows changes before run:')
+  //   console.log(gitStatusAtStart)
+  // }
+
+  // In CI, Github Actions doesn't allow us to push and then run CI on changes again
+  // (known limitation / "infinite run loop" prevention)
+  // That's why we run in "no-fix" mode in CI, and "fix" mode locally
+  const fix = !CI
 
   // Fast linters (that run in <1 second) go first
 
   runActionLint()
 
-  runBiome()
+  runBiome(fix)
 
   // From this point we start the "slow" linters, with ESLint leading the way
 
   // We run eslint BEFORE Prettier, because eslint can delete e.g unused imports.
-  await eslintAll()
+  await eslintAll({
+    fix,
+  })
 
   if (
     existsSync(`node_modules/stylelint`) &&
     existsSync(`node_modules/stylelint-config-standard-scss`)
   ) {
-    stylelintAll()
+    stylelintAll(fix)
   }
 
-  runPrettier()
+  runPrettier({ fix })
 
-  await runKTLint()
+  await runKTLint(fix)
 
   console.log(`${boldGrey('lint-all')} ${dimGrey(`took ` + _since(started))}`)
 
-  if (needToTrackChanges) {
-    const gitStatusAfter = gitStatus()
-    const hasChanges = gitStatusAfter !== gitStatusAtStart
-    if (!hasChanges) return
-    const msg =
-      'style(ci): ' + _truncate(git2.commitMessageToTitleMessage(git2.getLastGitCommitMsg()), 60)
-
-    // pull, commit, push changes
-    git2.pull()
-    git2.commitAll(msg)
-    git2.push()
-
-    // fail on changes
-    if (failOnChanges) {
-      console.log(gitStatusAfter)
-      console.log('lint-all failOnChanges: exiting with status 1')
-      process.exitCode = 1
-    }
-  }
+  // if (needToTrackChanges) {
+  //   const gitStatusAfter = gitStatus()
+  //   const hasChanges = gitStatusAfter !== gitStatusAtStart
+  //   if (!hasChanges) return
+  //   const msg =
+  //     'style(ci): ' + _truncate(git2.commitMessageToTitleMessage(git2.getLastGitCommitMsg()), 60)
+  //
+  //   // pull, commit, push changes
+  //   git2.pull()
+  //   git2.commitAll(msg)
+  //   git2.push()
+  //
+  //   // fail on changes
+  //   if (failOnChanges) {
+  //     console.log(gitStatusAfter)
+  //     console.log('lint-all failOnChanges: exiting with status 1')
+  //     process.exitCode = 1
+  //   }
+  // }
 }
 
 interface EslintAllOptions {
@@ -111,7 +117,7 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
     },
     fix: {
       type: 'boolean',
-      default: true,
+      default: !CI, // defaults to false in CI, true otherwise
     },
   })
 
@@ -121,23 +127,19 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
   }
 
   const extensions = ext.split(',')
+  // The only time we don't parallelize is when run locally with no-fix,
+  // so errors can be seen properly
+  const runInParallel = fix || !!CI
 
-  if (fix) {
+  if (runInParallel) {
     await Promise.all([
-      // /src
       runESLint(`src`, extensions, fix),
-      // /scripts
       runESLint(`scripts`, extensions, fix),
-      // /e2e
       runESLint(`e2e`, extensions, fix),
     ])
   } else {
-    // with no-fix - let's run serially
-    // /src
     await runESLint(`src`, extensions, fix)
-    // /scripts
     await runESLint(`scripts`, extensions, fix)
-    // /e2e
     await runESLint(`e2e`, extensions, fix)
   }
 
@@ -180,7 +182,7 @@ async function runESLint(
       cacheLocation,
       `--no-error-on-unmatched-pattern`,
       `--report-unused-disable-directives`, // todo: unnecessary with flat, as it's defined in the config
-      fix ? `--fix` : '',
+      fix ? `--fix` : '--no-fix',
     ].filter(_isTruthy),
     shell: false,
     env: _filterFalsyValues({
@@ -201,7 +203,13 @@ const prettierPaths = [
   ...lintExclude.map((s: string) => `!${s}`),
 ]
 
-export function runPrettier(experimentalCli = true): void {
+interface RunPrettierOptions {
+  experimentalCli?: boolean // default: true
+  fix?: boolean // default: write
+}
+
+export function runPrettier(opt: RunPrettierOptions = {}): void {
+  const { experimentalCli = true, fix = true } = opt
   const prettierConfigPath = [`./prettier.config.js`].find(f => existsSync(f))
   if (!prettierConfigPath) return
 
@@ -213,7 +221,7 @@ export function runPrettier(experimentalCli = true): void {
   // prettier --write 'src/**/*.{js,ts,css,scss,graphql}'
   exec2.spawn(prettierPath, {
     args: [
-      `--write`,
+      fix ? `--write` : '--check',
       `--log-level=warn`,
       '--cache-location',
       cacheLocation,
@@ -234,13 +242,15 @@ const stylelintPaths = [
   ...lintExclude.map((s: string) => `!${s}`),
 ]
 
-export function stylelintAll(): void {
-  const { fix } = _yargs().options({
+export function stylelintAll(fix?: boolean): void {
+  const argv = _yargs().options({
     fix: {
       type: 'boolean',
-      default: true,
+      default: !CI, // defaults to false in CI, true otherwise
     },
   }).argv
+
+  fix ??= argv.fix
 
   const config = [`./stylelint.config.js`].find(f => existsSync(f))
   if (!config) return
@@ -290,11 +300,11 @@ export function runCommitlintCommand(): void {
   })
 }
 
-async function runKTLint(): Promise<void> {
+async function runKTLint(fix = true): Promise<void> {
   if (!existsSync(`node_modules/@naturalcycles/ktlint`)) return
   // @ts-expect-error ktlint is not installed (due to size in node_modules), but it's ok
   const { ktlintAll } = await import('@naturalcycles/ktlint')
-  await ktlintAll()
+  await ktlintAll(fix ? ['-F'] : [])
 }
 
 function runActionLint(): void {
@@ -329,13 +339,6 @@ export function getActionLintVersion(): SemVerString | undefined {
 }
 
 export function runBiome(fix = true): void {
-  // if (!fs.existsSync(`node_modules/@biomejs/biome`)) {
-  //   if (verbose) {
-  //     console.log(`biome is not installed (checked in node_modules/@biomejs/biome), skipping`)
-  //   }
-  //   return
-  // }
-
   const configPath = `biome.jsonc`
   if (!existsSync(configPath)) {
     console.log(`biome is skipped, because ./biome.jsonc is not present`)
@@ -343,7 +346,6 @@ export function runBiome(fix = true): void {
   }
 
   const biomePath = findPackageBinPath('@biomejs/biome', 'biome')
-
   const dirs = [`src`, `scripts`, `e2e`].filter(d => existsSync(d))
 
   exec2.spawn(biomePath, {
@@ -364,13 +366,13 @@ function canRunBinary(name: string): boolean {
   }
 }
 
-function gitStatus(): string | undefined {
-  try {
-    return execSync('git status -s', {
-      encoding: 'utf8',
-    })
-  } catch {}
-}
+// function gitStatus(): string | undefined {
+//   try {
+//     return execSync('git status -s', {
+//       encoding: 'utf8',
+//     })
+//   } catch {}
+// }
 
 const require = createRequire(import.meta.url)
 
