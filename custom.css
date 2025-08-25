@@ -1,0 +1,21 @@
+.app-content button {
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  background-color: #eee;
+  padding: 4px 16px;
+  margin: 0 2px;
+  cursor: pointer;
+}
+
+.app-content button:hover {
+  background-color: #ddd;
+}
+
+.app-content button[disabled] {
+  color: #aaa;
+  cursor: default;
+}
+
+.app-content button[disabled]:hover {
+  background-color: #eee;
+}
