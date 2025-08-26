@@ -156,13 +156,17 @@ async function runESLint(
     configDir = '.'
   }
 
+  const cwd = process.cwd()
   const eslintConfigPath = `${configDir}/eslint.config.js`
-  const tsconfigPath = `${configDir}/tsconfig.json`
+  const tsconfigPath = [cwd, configDir !== '.' && configDir, 'tsconfig.json']
+    .filter(Boolean)
+    .join('/')
   if (!existsSync(dir) || !existsSync(eslintConfigPath) || !existsSync(tsconfigPath)) {
     // faster to bail-out like this
     return
   }
 
+  // const tsconfigRootDir = [cwd, configDir !== '.' && configDir].filter(Boolean).join('/')
   const eslintPath = findPackageBinPath('eslint', 'eslint')
   const cacheLocation = `node_modules/.cache/eslint_${dir}`
   const cacheFound = existsSync(cacheLocation)
@@ -176,7 +180,7 @@ async function runESLint(
       `${dir}/**/*.{${extensions.join(',')}}`,
       `--parser-options=project:${tsconfigPath}`,
       // The next line fixes the `typescript-eslint` 8.37 bug of resolving tsconfig.json
-      `--parser-options=tsconfigRootDir:.`,
+      // `--parser-options=tsconfigRootDir:${tsconfigRootDir}`,
       ESLINT_CONCURRENCY && `--concurrency=${ESLINT_CONCURRENCY}`,
       '--cache',
       '--cache-location',

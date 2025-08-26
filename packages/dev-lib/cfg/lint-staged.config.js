@@ -128,13 +128,16 @@ export function runBiomeEslintPrettier(match, dir) {
     configDir = '.'
   }
 
+  const cwd = process.cwd()
   const eslintConfigPath = `${configDir}/eslint.config.js`
-  const tsconfigPath = `${configDir}/tsconfig.json`
+  const tsconfigPath = [cwd, configDir !== '.' && configDir, 'tsconfig.json']
+    .filter(Boolean)
+    .join('/')
 
   return [
     biomeCmd,
     eslintConfigPath &&
-      `${eslintCmd} --config ${eslintConfigPath} --parser-options=tsconfigRootDir:. --parser-options=project:${tsconfigPath} --cache-location node_modules/.cache/eslint_${dir}`,
+      `${eslintCmd} --config ${eslintConfigPath} --parser-options=project:${tsconfigPath} --cache-location node_modules/.cache/eslint_${dir}`,
     prettierCmd,
   ]
     .filter(Boolean)
