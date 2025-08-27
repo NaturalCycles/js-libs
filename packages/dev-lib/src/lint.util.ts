@@ -214,7 +214,7 @@ interface RunPrettierOptions {
 }
 
 export function runPrettier(opt: RunPrettierOptions = {}): void {
-  const { experimentalCli = true, fix = true } = opt
+  let { experimentalCli = true, fix = true } = opt
   const prettierConfigPath = [`./prettier.config.js`].find(f => existsSync(f))
   if (!prettierConfigPath) return
 
@@ -223,14 +223,20 @@ export function runPrettier(opt: RunPrettierOptions = {}): void {
   const cacheFound = existsSync(cacheLocation)
   console.log(dimGrey(`${check(cacheFound)} prettier cache found: ${cacheFound}`))
 
+  if (hasPrettierOverrides()) {
+    experimentalCli = false
+    console.log('   prettier experimental mode disabled due to "overrides" in prettier.config.js')
+  }
+
   // prettier --write 'src/**/*.{js,ts,css,scss,graphql}'
   exec2.spawn(prettierPath, {
     name: fix ? 'prettier' : 'prettier --check',
     args: [
       fix ? `--write` : '--check',
       `--log-level=warn`,
-      '--cache-location',
-      cacheLocation,
+      // non-experimental-cli has different cache format, hence disabling it
+      experimentalCli && '--cache-location',
+      experimentalCli && cacheLocation,
       experimentalCli && `--experimental-cli`,
       experimentalCli ? '--config-path' : `--config`,
       prettierConfigPath,
@@ -389,6 +395,14 @@ export function findPackageBinPath(pkg: string, cmd: string): string {
   const { bin } = fs2.readJson<any>(packageJsonPath)
 
   return path.join(path.dirname(packageJsonPath), typeof bin === 'string' ? bin : bin[cmd])
+}
+
+function hasPrettierOverrides(): boolean {
+  try {
+    return fs2.readText('prettier.config.js').includes('overrides')
+  } catch {
+    return false
+  }
 }
 
 function check(predicate: any): string {

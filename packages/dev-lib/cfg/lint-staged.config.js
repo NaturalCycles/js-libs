@@ -19,7 +19,7 @@ import { execSync } from 'node:child_process'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
-
+import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
   prettierDirs,
   prettierExtensionsExclusive,
@@ -39,9 +39,22 @@ const stylelintConfigPath = [`stylelint.config.js`].find(fs.existsSync)
 
 // const eslintConfigPathRoot = ['eslint.config.js'].find(p => fs.existsSync(p))
 
-const prettierCmd =
-  !!prettierConfigPath &&
-  `prettier --write --experimental-cli --config-path ${prettierConfigPath} --cache-location node_modules/.cache/prettier`
+let prettierCmd = undefined
+
+if (prettierConfigPath) {
+  const experimental = !hasPrettierOverrides()
+  prettierCmd = [
+    'prettier --write --log-level=warn',
+    experimental && '--cache-location',
+    experimental && 'node_modules/.cache/prettier',
+    experimental && `--experimental-cli`,
+    experimental ? '--config-path' : `--config`,
+    prettierConfigPath,
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
 const eslintCmd = [
   'eslint',
   '--fix',
@@ -219,6 +232,14 @@ function getActionLintVersion() {
   } catch (err) {
     console.log(err)
     return undefined
+  }
+}
+
+function hasPrettierOverrides() {
+  try {
+    return fs2.readText('prettier.config.js').includes('overrides')
+  } catch {
+    return false
   }
 }
 
