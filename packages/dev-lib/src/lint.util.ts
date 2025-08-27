@@ -9,7 +9,7 @@ import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
 import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { git2 } from '@naturalcycles/nodejs-lib'
-import { boldGrey, dimGrey } from '@naturalcycles/nodejs-lib/colors'
+import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
@@ -77,7 +77,7 @@ export async function lintAllCommand(): Promise<void> {
 
   await runKTLint(fix)
 
-  console.log(`${boldGrey(`${check(true)} lint-all`)} ${dimGrey(`took ` + _since(started))}`)
+  console.log(`${check(true)}${white(`lint-all`)} ${dimGrey(`took ` + _since(started))}`)
 
   // if (needToTrackChanges) {
   //   const gitStatusAfter = gitStatus()
@@ -143,7 +143,7 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
     await runESLint(`e2e`, extensions, fix)
   }
 
-  console.log(`${boldGrey(`${check(true)} eslint-all`)} ${dimGrey(`took ` + _since(started))}`)
+  console.log(`${check(true)}${white(`eslint-all`)} ${dimGrey(`took ` + _since(started))}`)
 }
 
 async function runESLint(
@@ -170,7 +170,7 @@ async function runESLint(
   const eslintPath = findPackageBinPath('eslint', 'eslint')
   const cacheLocation = `node_modules/.cache/eslint_${dir}`
   const cacheFound = existsSync(cacheLocation)
-  console.log(dimGrey(`${check(cacheFound)} eslint ${dir} cache found: ${cacheFound}`))
+  console.log(dimGrey(`${check(cacheFound)}eslint ${dir} cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(eslintPath, {
     name: ['eslint', dir, !fix && '--no-fix'].filter(Boolean).join(' '),
@@ -221,7 +221,7 @@ export function runPrettier(opt: RunPrettierOptions = {}): void {
   const prettierPath = findPackageBinPath('prettier', 'prettier')
   const cacheLocation = 'node_modules/.cache/prettier'
   const cacheFound = existsSync(cacheLocation)
-  console.log(dimGrey(`${check(cacheFound)} prettier cache found: ${cacheFound}`))
+  console.log(dimGrey(`${check(cacheFound)}prettier cache found: ${cacheFound}`))
 
   if (hasPrettierOverrides()) {
     experimentalCli = false
@@ -406,5 +406,5 @@ function hasPrettierOverrides(): boolean {
 }
 
 function check(predicate: any): string {
-  return predicate ? '✔️ ' : '   '
+  return predicate ? ' ✓ ' : '   '
 }

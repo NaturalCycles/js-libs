@@ -46,7 +46,7 @@ export async function runTSCInFolder(dir: string, args: string[] = []): Promise<
   const tscPath = findPackageBinPath('typescript', 'tsc')
   const cacheLocation = `node_modules/.cache/${dir}.tsbuildinfo`
   const cacheFound = existsSync(cacheLocation)
-  console.log(dimGrey(`${check(cacheFound)} tsc ${dir} cache found: ${cacheFound}`))
+  console.log(dimGrey(`${check(cacheFound)}tsc ${dir} cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(tscPath, {
     args: ['-P', tsconfigPath, ...args],
@@ -89,5 +89,5 @@ export function buildCopy(): void {
 }
 
 function check(predicate: any): string {
-  return predicate ? '✔️ ' : '   '
+  return predicate ? ' ✓ ' : '   '
 }

@@ -305,7 +305,7 @@ class Exec2 {
 
     console.log(
       [
-        isSuccessful ? '✔️ ' : '❌',
+        isSuccessful ? ' ✓' : ' ×',
         white(opt.name || _substringAfterLast(cmd, '/')),
         ...((!opt.name && (opt as SpawnOptions).args) || []),
         dimGrey('took ' + _since(started)),
