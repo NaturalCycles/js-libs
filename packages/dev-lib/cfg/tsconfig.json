@@ -8,6 +8,9 @@
     "rootDir": "${configDir}/src",
     "baseUrl": "${configDir}/src",
     "outDir": "${configDir}/dist",
+    "paths": {
+      "@src/*": ["${configDir}/src/*"]
+    },
     // Target/module
     "target": "es2023",
     "lib": ["esnext"], // add "dom" if needed

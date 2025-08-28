@@ -4,6 +4,7 @@
 // Shared tsconfig for Frontend applications
 //
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": true,
     "target": "es2023", // es2023+ browsers, adjust to your requirements!
