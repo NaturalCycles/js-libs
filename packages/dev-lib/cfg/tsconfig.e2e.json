@@ -7,6 +7,9 @@
     "rootDir": "${configDir}/..",
     "baseUrl": "${configDir}",
     "outDir": "${configDir}/../dist/e2e",
+    "paths": {
+      "@src/*": ["${configDir}/../src/*"]
+    },
     "noEmit": true,
     "tsBuildInfoFile": "${configDir}/../node_modules/.cache/e2e.tsbuildinfo"
   },
