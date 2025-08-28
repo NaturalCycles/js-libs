@@ -48,7 +48,6 @@
   },
   "exports": {
     ".": "./dist/index.js",
-    "./cfg/tsconfig.json": "./cfg/tsconfig.json",
     "./admin": "./dist/admin/index.js",
     "./admin/*.js": "./dist/admin/*.js",
     "./db": "./dist/db/index.js",

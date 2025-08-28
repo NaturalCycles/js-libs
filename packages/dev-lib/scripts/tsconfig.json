@@ -2,12 +2,7 @@
 // tsconfig.json for /scripts
 //
 {
-  "extends": "../cfg/tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "${configDir}/..",
-    "outDir": "${configDir}/../dist/scripts",
-    "noEmit": true,
-    "tsBuildInfoFile": "${configDir}/../node_modules/.cache/scripts.tsbuildinfo"
-  },
+  "extends": "../cfg/tsconfig.scripts.json",
+  "compilerOptions": {},
   "exclude": ["**/__exclude"]
 }

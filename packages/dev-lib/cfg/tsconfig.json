@@ -5,10 +5,9 @@
 //
 {
   "compilerOptions": {
-    // ${configDir} is supported since ts 5.5
     "rootDir": "${configDir}/src",
+    "baseUrl": "${configDir}/src",
     "outDir": "${configDir}/dist",
-
     // Target/module
     "target": "es2023",
     "lib": ["esnext"], // add "dom" if needed
@@ -45,17 +44,11 @@
     "noUncheckedSideEffectImports": true,
     "noPropertyAccessFromIndexSignature": true,
 
-    // todo: monitor if we should have it default or not
     // Enabled should be faster, but will catch less errors
     // "skipLibCheck": true,
 
-    // Need to be specified in the project tsconfig
-    // "typeRoots": [
-    //   "node_modules/@types",
-    //   "src/@types"
-    // ],
-
     // Other
+    "jsx": "preserve",
     "incremental": true,
     "tsBuildInfoFile": "${configDir}/node_modules/.cache/src.tsbuildinfo",
     "pretty": true,

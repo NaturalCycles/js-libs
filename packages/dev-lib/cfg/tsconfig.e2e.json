@@ -1,0 +1,14 @@
+//
+// @naturalcycles/dev-lib/cfg/tsconfig.e2e.json
+//
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "${configDir}/..",
+    "baseUrl": "${configDir}",
+    "outDir": "${configDir}/../dist/e2e",
+    "noEmit": true,
+    "tsBuildInfoFile": "${configDir}/../node_modules/.cache/e2e.tsbuildinfo"
+  },
+  "exclude": ["**/__exclude"]
+}

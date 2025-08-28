@@ -1,0 +1,14 @@
+//
+// @naturalcycles/dev-lib/cfg/tsconfig.scripts.json
+//
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "${configDir}/..",
+    "baseUrl": "${configDir}",
+    "outDir": "${configDir}/../dist/scripts",
+    "noEmit": true,
+    "tsBuildInfoFile": "${configDir}/../node_modules/.cache/scripts.tsbuildinfo"
+  },
+  "exclude": ["**/__exclude"]
+}
