@@ -2,6 +2,6 @@
 // tsconfig.json for /scripts
 //
 {
-  "extends": "@naturalcycles/dev-lib/scripts/tsconfig.json",
+  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.scripts.json",
   "exclude": ["**/__exclude"]
 }
