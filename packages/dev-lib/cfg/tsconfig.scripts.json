@@ -10,7 +10,6 @@
     "paths": {
       "@src/*": ["${configDir}/../src/*"]
     },
-    "noEmit": true,
     "tsBuildInfoFile": "${configDir}/../node_modules/.cache/scripts.tsbuildinfo"
   },
   "exclude": ["**/__exclude"]

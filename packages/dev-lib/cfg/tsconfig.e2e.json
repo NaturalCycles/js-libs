@@ -10,8 +10,10 @@
     "paths": {
       "@src/*": ["${configDir}/../src/*"]
     },
-    "noEmit": true,
-    "tsBuildInfoFile": "${configDir}/../node_modules/.cache/e2e.tsbuildinfo"
+    "tsBuildInfoFile": "${configDir}/../node_modules/.cache/e2e.tsbuildinfo",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["esnext", "dom", "dom.iterable"]
   },
   "exclude": ["**/__exclude"]
 }
