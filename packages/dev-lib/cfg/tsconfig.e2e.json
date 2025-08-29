@@ -14,6 +14,12 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["esnext", "dom", "dom.iterable"]
+    // copy-paste the paths below,
+    // it's needed, because playwright doesn't support ${configDir} properly
+    //    "baseUrl": ".",
+    //    "paths": {
+    //      "@src/*": ["../src/*"],
+    //    },
   },
   "exclude": ["**/__exclude"]
 }
