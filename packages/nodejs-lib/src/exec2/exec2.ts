@@ -276,11 +276,7 @@ class Exec2 {
       .join(' ')
 
     if (opt.name) {
-      console.log(
-        ['  ', dimGrey(envString), white(opt.name), dimGrey('started...')]
-          .filter(Boolean)
-          .join(' '),
-      )
+      console.log(['  ', white(opt.name), dimGrey('started...')].filter(Boolean).join(' '))
     } else {
       console.log(
         [
