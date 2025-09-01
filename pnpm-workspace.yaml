@@ -11,6 +11,6 @@ onlyBuiltDependencies:
   - unrs-resolver
 strictDepBuilds: true
 ignoreWorkspaceCycles: true
+ignorePatchFailures: false
 patchedDependencies:
   semantic-release-pnpm: patches/semantic-release-pnpm.patch
-  '@types/pg': patches/@types__pg.patch
