@@ -50,6 +50,7 @@
     ".": "./dist/index.js",
     "./admin": "./dist/admin/index.js",
     "./admin/*.js": "./dist/admin/*.js",
+    "./cloudrun": "./dist/cloudrun/cloudRun.util.js",
     "./db": "./dist/db/index.js",
     "./deploy": "./dist/deploy/index.js",
     "./deploy/*.js": "./dist/deploy/*.js",
