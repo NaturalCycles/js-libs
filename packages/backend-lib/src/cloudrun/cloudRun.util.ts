@@ -26,12 +26,12 @@ export interface CloudRunDeployInfo {
   //
   // Urls
   //
+  serviceUrl: string
   /**
    * Service URL that is used to access the service externally (through load balancer)
    * todo: overlaps with env.K_EXTERNAL_URL
    */
-  externalUrl: string
-  serviceUrl: string
+  externalUrl?: string
   //
   // Versioning
   //
@@ -106,7 +106,7 @@ export interface CloudRunEnv {
   /**
    * Example: '--max-old-space-size=864'
    */
-  NODE_OPTIONS: string
+  NODE_OPTIONS?: string
   /**
    * Example: '2025-09-01T15:23:20.769Z'
    * The result of running `new Date().toISOString()`
