@@ -21,8 +21,8 @@ export interface CloudRunDeployInfo {
    * GCP region where the Cloud Run service is deployed. Example: 'europe-west1'
    */
   cloudRunRegion: string
-  sqlInstance: string
-  vpcConnector: string
+  sqlInstance?: string
+  vpcConnector?: string
   //
   // Urls
   //
