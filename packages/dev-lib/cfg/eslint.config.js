@@ -30,7 +30,7 @@ export default config
  * This function only exists, because typescript-eslint started to have an issue with auto-detecting tsconfigRootDir.
  * If the issue is fixed - we can remove this and come back to having just a single config.
  */
-export function getEslintConfigForDir(cwd) {
+export function getEslintConfigForDir(dir) {
   return [
     {
       ...eslint.configs.recommended,
@@ -74,7 +74,7 @@ export function getEslintConfigForDir(cwd) {
     },
     {
       files: defaultFiles,
-      ...getConfig(cwd),
+      ...getConfig(dir),
     },
     {
       ignores: ['**/__exclude/**', '**/*.scss', '**/*.js'],
@@ -82,7 +82,7 @@ export function getEslintConfigForDir(cwd) {
   ].filter(Boolean)
 }
 
-function getConfig(cwd) {
+function getConfig(dir) {
   return {
     plugins: {
       '@typescript-eslint': tseslint.plugin,
@@ -102,7 +102,7 @@ function getConfig(cwd) {
       },
       // parser: tseslint.parser,
       parserOptions: {
-        project: `${cwd}/tsconfig.json`,
+        project: `${dir}/tsconfig.json`,
         // tsconfigRootDir: cwd,
         parser: tseslint.parser,
         extraFileExtensions: ['.vue', '.html'],
