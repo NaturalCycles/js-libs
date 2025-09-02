@@ -23,57 +23,66 @@ import eslintBiomeRules from './eslint-biome-rules.js'
 const defaultFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts']
 const testFiles = ['**/*.test.ts', '**/*.test.tsx', '**/*.test.cts', '**/*.test.mts']
 
-export default [
-  {
-    ...eslint.configs.recommended,
-    files: defaultFiles,
-  },
-  // https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended-type-checked.ts
-  ...tseslint.configs.recommendedTypeChecked.map(c => ({
-    ...c,
-    files: defaultFiles,
-  })),
-  // https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/stylistic-type-checked.ts
-  ...tseslint.configs.stylisticTypeChecked.map(c => ({
-    ...c,
-    files: defaultFiles,
-  })),
-  // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/configs/recommended.js
-  {
-    ...eslintPluginUnicorn.configs.recommended,
-    files: defaultFiles,
-  },
-  // https://eslint.vuejs.org/user-guide/#user-guide
-  // ...require('eslint-plugin-vue').configs['flat/recommended'],
-  ...eslintPluginVue.configs['flat/recommended'].map(c => ({
-    ...c,
-    files: defaultFiles,
-  })),
-  {
-    files: testFiles,
-    plugins: {
-      vitest: eslintPluginVitest,
+const config = getEslintConfigForDir(process.cwd())
+export default config
+
+/**
+ * This function only exists, because typescript-eslint started to have an issue with auto-detecting tsconfigRootDir.
+ * If the issue is fixed - we can remove this and come back to having just a single config.
+ */
+export function getEslintConfigForDir(cwd) {
+  return [
+    {
+      ...eslint.configs.recommended,
+      files: defaultFiles,
     },
-    settings: {
-      vitest: {
-        typecheck: true,
+    // https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/recommended-type-checked.ts
+    ...tseslint.configs.recommendedTypeChecked.map(c => ({
+      ...c,
+      files: defaultFiles,
+    })),
+    // https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/stylistic-type-checked.ts
+    ...tseslint.configs.stylisticTypeChecked.map(c => ({
+      ...c,
+      files: defaultFiles,
+    })),
+    // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/configs/recommended.js
+    {
+      ...eslintPluginUnicorn.configs.recommended,
+      files: defaultFiles,
+    },
+    // https://eslint.vuejs.org/user-guide/#user-guide
+    // ...require('eslint-plugin-vue').configs['flat/recommended'],
+    ...eslintPluginVue.configs['flat/recommended'].map(c => ({
+      ...c,
+      files: defaultFiles,
+    })),
+    {
+      files: testFiles,
+      plugins: {
+        vitest: eslintPluginVitest,
+      },
+      settings: {
+        vitest: {
+          typecheck: true,
+        },
+      },
+      rules: {
+        ...eslintPluginVitest.configs.recommended.rules,
+        ...eslintVitestRules.rules,
       },
     },
-    rules: {
-      ...eslintPluginVitest.configs.recommended.rules,
-      ...eslintVitestRules.rules,
+    {
+      files: defaultFiles,
+      ...getConfig(cwd),
     },
-  },
-  {
-    files: defaultFiles,
-    ...getConfig(),
-  },
-  {
-    ignores: ['**/__exclude/**', '**/*.scss', '**/*.js'],
-  },
-].filter(Boolean)
+    {
+      ignores: ['**/__exclude/**', '**/*.scss', '**/*.js'],
+    },
+  ].filter(Boolean)
+}
 
-function getConfig() {
+function getConfig(cwd) {
   return {
     plugins: {
       '@typescript-eslint': tseslint.plugin,
@@ -88,13 +97,13 @@ function getConfig() {
       globals: {
         ...globals.browser,
         ...globals.node,
-        // ...globals.jest,
         ...globals.vitest,
         NodeJS: 'readonly',
       },
       // parser: tseslint.parser,
       parserOptions: {
-        project: 'tsconfig.json',
+        project: `${cwd}/tsconfig.json`,
+        // tsconfigRootDir: cwd,
         parser: tseslint.parser,
         extraFileExtensions: ['.vue', '.html'],
       },

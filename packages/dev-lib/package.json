@@ -69,6 +69,8 @@
     "./cfg/biome.jsonc": "./cfg/biome.jsonc",
     "./cfg/commitlint.config.js": "./cfg/commitlint.config.js",
     "./cfg/eslint.config.js": "./cfg/eslint.config.js",
+    "./cfg/eslint.scripts.config.js": "./cfg/eslint.scripts.config.js",
+    "./cfg/eslint.e2e.config.js": "./cfg/eslint.e2e.config.js",
     "./cfg/prettier.config.js": "./cfg/prettier.config.js",
     "./cfg/stylelint.config.js": "./cfg/stylelint.config.js",
     "./cfg/tsconfig.json": "./cfg/tsconfig.json",
