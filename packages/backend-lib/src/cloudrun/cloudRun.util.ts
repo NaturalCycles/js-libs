@@ -26,7 +26,7 @@ export interface CloudRunDeployInfo {
   //
   // Urls
   //
-  serviceUrl: string
+  serviceUrl?: string
   /**
    * Service URL that is used to access the service externally (through load balancer)
    * todo: overlaps with env.K_EXTERNAL_URL
