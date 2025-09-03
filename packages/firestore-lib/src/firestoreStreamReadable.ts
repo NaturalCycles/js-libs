@@ -48,7 +48,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     this.originalLimit = dbQuery._limitValue
     this.table = dbQuery.table
 
-    logger.log(
+    logger.warn(
       `!! using experimentalCursorStream !! ${this.table}, batchSize: ${this.opt.batchSize}`,
     )
   }
@@ -160,7 +160,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
 
     if (qs!.empty || (this.originalLimit && this.rowsRetrieved >= this.originalLimit)) {
-      this.logger.log(
+      this.logger.warn(
         `!!!! DONE! ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
       )
       this.push(null)
