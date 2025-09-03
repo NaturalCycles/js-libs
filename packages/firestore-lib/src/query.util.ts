@@ -22,6 +22,8 @@ export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
 
   // order
   for (const ord of dbQuery._orders) {
+    // todo: support ordering by id like this:
+    // .orderBy(FieldPath.documentId())
     q = q.orderBy(ord.name as string, ord.descending ? 'desc' : 'asc')
   }
 
@@ -32,6 +34,15 @@ export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
   if (dbQuery._selectedFieldNames) {
     // todo: check if at least id / __key__ is required to be set
     q = q.select(...(dbQuery._selectedFieldNames as string[]))
+  }
+
+  // cursor
+  if (dbQuery._startCursor) {
+    q = q.startAt(dbQuery._startCursor)
+  }
+
+  if (dbQuery._endCursor) {
+    q = q.endAt(dbQuery._endCursor)
   }
 
   return q

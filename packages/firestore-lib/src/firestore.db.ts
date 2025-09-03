@@ -14,7 +14,6 @@ import type {
   CommonDBReadOptions,
   CommonDBSaveMethod,
   CommonDBSaveOptions,
-  CommonDBStreamOptions,
   CommonDBSupport,
   CommonDBTransactionOptions,
   DBQuery,
@@ -26,41 +25,26 @@ import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
+import { type CommonLogger, commonLoggerMinLevel } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
-import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import type { NumberOfSeconds, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { escapeDocId, unescapeDocId } from './firestore.util.js'
+import { FirestoreStreamReadable } from './firestoreStreamReadable.js'
 import { dbQueryToFirestoreQuery } from './query.util.js'
 
-export interface FirestoreDBCfg {
-  firestore: Firestore
-}
-
-export interface FirestoreDBOptions extends CommonDBOptions {}
-export interface FirestoreDBReadOptions extends CommonDBReadOptions {}
-export interface FirestoreDBSaveOptions<ROW extends ObjectWithId>
-  extends CommonDBSaveOptions<ROW> {}
-
-type SaveOp = 'create' | 'update' | 'set'
-
-const methodMap: Record<CommonDBSaveMethod, SaveOp> = {
-  insert: 'create',
-  update: 'update',
-  upsert: 'set',
-}
-
-export class RollbackError extends Error {
-  constructor() {
-    super('rollback')
-  }
-}
-
 export class FirestoreDB extends BaseCommonDB implements CommonDB {
-  constructor(public cfg: FirestoreDBCfg) {
+  constructor(cfg: FirestoreDBCfg) {
     super()
+    this.cfg = {
+      logger: console,
+      ...cfg,
+    }
   }
+
+  cfg: FirestoreDBCfg & { logger: CommonLogger }
 
   override support: CommonDBSupport = {
     ...commonDBFullSupport,
@@ -75,6 +59,8 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     opt: FirestoreDBReadOptions = {},
   ): Promise<ROW[]> {
     if (!ids.length) return []
+
+    // todo: support PITR: https://firebase.google.com/docs/firestore/enterprise/use-pitr#read-pitr
 
     const { firestore } = this.cfg
     const col = firestore.collection(table)
@@ -163,9 +149,23 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
   override streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
-    _opt?: CommonDBStreamOptions,
+    opt_?: FirestoreDBStreamOptions,
   ): ReadableTyped<ROW> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
+
+    const opt: FirestoreDBStreamOptions = {
+      ...this.cfg.streamOptions,
+      ...opt_,
+    }
+
+    if (opt.experimentalCursorStream) {
+      return new FirestoreStreamReadable(
+        firestoreQuery,
+        q,
+        opt,
+        commonLoggerMinLevel(this.cfg.logger, opt.debug ? 'log' : 'warn'),
+      )
+    }
 
     return (firestoreQuery.stream() as ReadableTyped<QueryDocumentSnapshot<any>>).map(doc => {
       return {
@@ -394,7 +394,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     return refs.length
   }
 
-  private querySnapshotToArray<T = any>(qs: QuerySnapshot): T[] {
+  querySnapshotToArray<T = any>(qs: QuerySnapshot): T[] {
     return qs.docs.map(
       doc =>
         ({
@@ -509,3 +509,95 @@ const MAX_ITEMS = 500
 const FIRESTORE_RECOMMENDED_CONCURRENCY = 8
 
 type TableRow<ROW extends ObjectWithId> = [table: string, row: ROW]
+
+export interface FirestoreDBCfg {
+  firestore: Firestore
+
+  /**
+   * Use it to set default options to stream operations,
+   * e.g you can globally enable `experimentalCursorStream` here, set the batchSize, etc.
+   */
+  streamOptions?: FirestoreDBStreamOptions
+
+  /**
+   * Default to `console`
+   */
+  logger?: CommonLogger
+}
+
+const methodMap: Record<CommonDBSaveMethod, SaveOp> = {
+  insert: 'create',
+  update: 'update',
+  upsert: 'set',
+}
+
+export class RollbackError extends Error {
+  constructor() {
+    super('rollback')
+  }
+}
+
+export interface FirestoreDBStreamOptions extends FirestoreDBReadOptions {
+  /**
+   * Set to `true` to stream via experimental "cursor-query based stream".
+   *
+   * Defaults to false
+   */
+  experimentalCursorStream?: boolean
+
+  /**
+   * Applicable to `experimentalCursorStream`.
+   * Defines the size (limit) of each individual query.
+   *
+   * Default: 1000
+   */
+  batchSize?: number
+
+  /**
+   * Applicable to `experimentalCursorStream`
+   *
+   * Set to a value (number of Megabytes) to control the peak RSS size.
+   * If limit is reached - streaming will pause until the stream keeps up, and then
+   * resumes.
+   *
+   * Set to 0/undefined to disable. Stream will get "slow" then, cause it'll only run the query
+   * when _read is called.
+   *
+   * @default 1000
+   */
+  rssLimitMB?: number
+
+  /**
+   * Applicable to `experimentalCursorStream`
+   * Default false.
+   * If true, stream will pause until consumer requests more data (via _read).
+   * It means it'll run slower, as buffer will be equal to batchSize (1000) at max.
+   * There will be gaps in time between "last query loaded" and "next query requested".
+   * This mode is useful e.g for DB migrations, where you want to avoid "stale data".
+   * So, it minimizes the time between "item loaded" and "item saved" during DB migration.
+   */
+  singleBatchBuffer?: boolean
+
+  /**
+   * Set to `true` to log additional debug info, when using experimentalCursorStream.
+   *
+   * @default false
+   */
+  debug?: boolean
+
+  /**
+   * Default is undefined.
+   * If set - sets a "safety timer", which will force call _read after the specified number of seconds.
+   * This is to prevent possible "dead-lock"/race-condition that would make the stream "hang".
+   *
+   * @experimental
+   */
+  maxWait?: NumberOfSeconds
+}
+
+export interface FirestoreDBOptions extends CommonDBOptions {}
+export interface FirestoreDBReadOptions extends CommonDBReadOptions {}
+export interface FirestoreDBSaveOptions<ROW extends ObjectWithId>
+  extends CommonDBSaveOptions<ROW> {}
+
+type SaveOp = 'create' | 'update' | 'set'
