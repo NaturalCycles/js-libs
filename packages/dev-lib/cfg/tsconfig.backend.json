@@ -5,7 +5,11 @@
 //
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {}
+  "compilerOptions": {
+    "paths": {
+      "@src/*": ["${configDir}/src/*"]
+    }
+  }
   // Need to be specified in the project tsconfig
   // "include": ["src"],
   // "exclude": ["**/__exclude"]
