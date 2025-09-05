@@ -25,42 +25,43 @@ import type { FetcherCfg, FetcherOptions, FetcherRequest } from './fetcher.model
 test('defaults', () => {
   const fetcher = getFetcher()
   expect(_omit(fetcher.cfg, ['logger'])).toMatchInlineSnapshot(`
-{
-  "baseUrl": "",
-  "debug": false,
-  "errorData": {},
-  "hooks": {},
-  "init": {
-    "credentials": undefined,
-    "headers": {
-      "user-agent": "fetcher/2",
-    },
-    "method": "GET",
-    "redirect": undefined,
-  },
-  "inputUrl": "",
-  "logRequest": false,
-  "logRequestBody": false,
-  "logResponse": false,
-  "logResponseBody": false,
-  "logWithBaseUrl": true,
-  "logWithSearchParams": true,
-  "responseType": "json",
-  "retry": {
-    "count": 2,
-    "timeout": 1000,
-    "timeoutMax": 30000,
-    "timeoutMultiplier": 2,
-  },
-  "retry3xx": false,
-  "retry4xx": false,
-  "retry5xx": true,
-  "retryPost": false,
-  "searchParams": {},
-  "throwHttpErrors": true,
-  "timeoutSeconds": 30,
-}
-`)
+    {
+      "baseUrl": "",
+      "debug": false,
+      "errorData": {},
+      "hooks": {},
+      "init": {
+        "credentials": undefined,
+        "dispatcher": undefined,
+        "headers": {
+          "user-agent": "fetcher/2",
+        },
+        "method": "GET",
+        "redirect": undefined,
+      },
+      "inputUrl": "",
+      "logRequest": false,
+      "logRequestBody": false,
+      "logResponse": false,
+      "logResponseBody": false,
+      "logWithBaseUrl": true,
+      "logWithSearchParams": true,
+      "responseType": "json",
+      "retry": {
+        "count": 2,
+        "timeout": 1000,
+        "timeoutMax": 30000,
+        "timeoutMultiplier": 2,
+      },
+      "retry3xx": false,
+      "retry4xx": false,
+      "retry5xx": true,
+      "retryPost": false,
+      "searchParams": {},
+      "throwHttpErrors": true,
+      "timeoutSeconds": 30,
+    }
+  `)
 
   expect(fetcher.cfg.logger).toBe(console)
 
@@ -75,6 +76,7 @@ test('defaults', () => {
       "fullUrl": "some",
       "init": {
         "credentials": undefined,
+        "dispatcher": undefined,
         "headers": {
           "accept": "application/json",
           "user-agent": "fetcher/2",

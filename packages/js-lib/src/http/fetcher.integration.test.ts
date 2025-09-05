@@ -1,8 +1,12 @@
+import type { LookupAddress } from 'node:dns'
+import dns from 'node:dns/promises'
 import fs from 'node:fs'
 import { Readable } from 'node:stream'
 import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
 import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
+import { Agent, fetch as undiciFetch } from 'undici'
 import { expect, expectTypeOf, test } from 'vitest'
+import { _since, localTime } from '../datetime/index.js'
 import { HttpRequestError, TimeoutError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
 import { objectToFormData } from '../form.util.js'
@@ -204,4 +208,40 @@ test.skip('formData with blob', async () => {
       b: new Blob([buf]),
     }),
   })
+})
+
+test('with custom Agent', async () => {
+  const dispatcher = new Agent({
+    allowH2: true,
+    keepAliveTimeout: 30_000,
+    keepAliveMaxTimeout: 60_000,
+
+    connect: {
+      async lookup(hostname, opt, cb) {
+        console.log('dns lookup:', hostname)
+        const started = localTime.nowUnixMillis()
+        const address = await dns.lookup(hostname, opt)
+        console.log(`dns lookup of ${hostname} resolved in ${_since(started)}`)
+        console.log({ address })
+        cb(null, address as LookupAddress[])
+      },
+    },
+  })
+
+  const fetcher = getFetcher({
+    dispatcher,
+  })
+
+  const r = await fetcher.get(`https://kg-backend3.appspot.com`)
+  console.log(r)
+  await fetcher.get(`https://kg-backend3.appspot.com`)
+  await fetcher.get(`https://kg-backend3.appspot.com`)
+  await fetcher.get(`https://kg-backend3.appspot.com`)
+
+  // Fetch with Undici fetch
+  await fetcher.get(`https://kg-backend3.appspot.com`, {
+    fetchFn: undiciFetch as any,
+  })
+
+  console.log(dispatcher.stats)
 })

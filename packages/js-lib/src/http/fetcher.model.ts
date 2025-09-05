@@ -1,6 +1,7 @@
 /// <reference lib="es2022" preserve="true" />
 /// <reference lib="dom" preserve="true" />
 
+import type { Dispatcher } from 'undici'
 import type { ErrorData } from '../error/error.model.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import type {
@@ -13,7 +14,7 @@ import type {
 import type { HttpMethod, HttpStatusFamily } from './http.model.js'
 
 export interface FetcherNormalizedCfg
-  extends Required<FetcherCfg>,
+  extends Required<Omit<FetcherCfg, 'dispatcher'>>,
     Omit<
       FetcherRequest,
       | 'started'
@@ -45,6 +46,10 @@ export type FetcherBeforeRetryHook = <BODY = unknown>(
  */
 export type FetcherOnErrorHook = (err: Error) => Promisable<void>
 
+/**
+ * FetcherCfg: configuration of the Fetcher instance. One per instance.
+ * FetcherOptions: options for a single request. One per request.
+ */
 export interface FetcherCfg {
   /**
    * Should **not** contain trailing slash.
@@ -120,6 +125,14 @@ export interface FetcherCfg {
   logger?: CommonLogger
 
   throwHttpErrors?: boolean
+
+  /**
+   * Pass an Undici Dispatcher.
+   * (Node.js only)
+   *
+   * @experimental
+   */
+  dispatcher?: Dispatcher
 }
 
 export interface FetcherRetryStatus {
@@ -174,6 +187,10 @@ export interface FetcherGraphQLOptions extends FetcherOptions {
   unwrapObject?: string
 }
 
+/**
+ * FetcherCfg: configuration of the Fetcher instance. One per instance.
+ * FetcherOptions: options for a single request. One per request.
+ */
 export interface FetcherOptions {
   method?: HttpMethod
 
@@ -303,6 +320,7 @@ export interface FetcherOptions {
 export type RequestInitNormalized = Omit<RequestInit, 'method' | 'headers'> & {
   method: HttpMethod
   headers: Record<string, any>
+  dispatcher?: Dispatcher
 }
 
 export interface FetcherSuccessResponse<BODY = unknown> {

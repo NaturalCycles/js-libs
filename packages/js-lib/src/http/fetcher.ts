@@ -750,6 +750,7 @@ export class Fetcher {
           }),
           credentials: cfg.credentials,
           redirect: cfg.redirect,
+          dispatcher: cfg.dispatcher,
         },
         hooks: {},
         throwHttpErrors: true,
