@@ -17,7 +17,8 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
   private readonly originalLimit: number
   private rowsRetrieved = 0
   private endCursor?: string
-  private running = false
+  private queryIsRunning = false
+  private paused = false
   private done = false
   private lastQueryDone?: number
   private totalWait = 0
@@ -70,25 +71,27 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       return
     }
 
-    if (!this.running) {
+    if (!this.queryIsRunning) {
       void this.runNextQuery().catch(err => {
         console.log('error in runNextQuery', err)
         this.emit('error', err)
       })
     } else {
-      this.logger.log(`_read ${this.count}, wasRunning: true`)
+      this.logger.log(`_read ${this.count}, queryIsRunning: true`)
+      // todo: check if this can cause a "hang", if no more _reads would come later and we get stuck?
     }
   }
 
   private async runNextQuery(): Promise<void> {
     if (this.done) return
+    const { logger, table } = this
 
     if (this.lastQueryDone) {
       const now = Date.now()
       this.totalWait += now - this.lastQueryDone
     }
 
-    this.running = true
+    this.queryIsRunning = true
 
     let limit = this.opt.batchSize
 
@@ -111,11 +114,11 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
           qs = await q.get()
         },
         {
-          name: `FirestoreStreamReadable.query(${this.table})`,
+          name: `FirestoreStreamReadable.query(${table})`,
           maxAttempts: 5,
           delay: 5000,
           delayMultiplier: 2,
-          logger: this.logger,
+          logger,
           timeout: 120_000, // 2 minutes
         },
       )
@@ -123,7 +126,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       console.log(
         `FirestoreStreamReadable error!\n`,
         {
-          table: this.table,
+          table,
           rowsRetrieved: this.rowsRetrieved,
         },
         err,
@@ -145,14 +148,14 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
 
     this.rowsRetrieved += rows.length
-    this.logger.log(
-      `${this.table} got ${rows.length} rows, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(
+    logger.log(
+      `${table} got ${rows.length} rows, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(
         this.totalWait,
       )}`,
     )
 
     this.endCursor = lastDocId
-    this.running = false // ready to take more _reads
+    this.queryIsRunning = false // ready to take more _reads
     this.lastQueryDone = Date.now()
 
     for (const row of rows) {
@@ -160,24 +163,33 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
 
     if (qs!.empty || (this.originalLimit && this.rowsRetrieved >= this.originalLimit)) {
-      this.logger.warn(
+      logger.warn(
         `!!!! DONE! ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
       )
       this.push(null)
+      this.paused = false
       this.done = true
-    } else if (this.opt.singleBatchBuffer) {
+      return
+    }
+
+    if (this.opt.singleBatchBuffer) {
       // here we don't start next query until we're asked (via next _read call)
       // so, let's do nothing
-    } else {
-      const rssMB = Math.round(process.memoryUsage().rss / 1024 / 1024)
+      return
+    }
 
-      if (rssMB <= this.opt.rssLimitMB) {
-        void this.runNextQuery()
-      } else {
-        this.logger.warn(
-          `${this.table} rssLimitMB reached ${rssMB} > ${this.opt.rssLimitMB}, pausing stream`,
-        )
+    const rssMB = Math.round(process.memoryUsage().rss / 1024 / 1024)
+    const { rssLimitMB } = this.opt
+
+    if (rssMB <= rssLimitMB) {
+      if (this.paused) {
+        logger.warn(`${table} rssLimitMB is below ${rssMB} < ${rssLimitMB}, unpausing stream`)
+        this.paused = false
       }
+      void this.runNextQuery()
+    } else if (!this.paused) {
+      logger.warn(`${table} rssLimitMB reached ${rssMB} > ${rssLimitMB}, pausing stream`)
+      this.paused = true
     }
   }
 }
