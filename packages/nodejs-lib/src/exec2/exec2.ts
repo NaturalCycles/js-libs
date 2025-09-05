@@ -1,4 +1,4 @@
-import { execSync, spawn, spawnSync } from 'node:child_process'
+import { execSync, spawn, spawnSync, type StdioOptions } from 'node:child_process'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string/string.util.js'
@@ -46,7 +46,14 @@ class Exec2 {
    * log: true
    */
   spawn(cmd: string, opt: SpawnOptions = {}): void {
-    const { shell = true, cwd, env, passProcessEnv = true, forceColor = hasColors } = opt
+    const {
+      shell = true,
+      cwd,
+      env,
+      passProcessEnv = true,
+      forceColor = hasColors,
+      stdio = 'inherit',
+    } = opt
     opt.log ??= true // by default log should be true, as we are printing the output
     opt.logStart ??= opt.log
     opt.logFinish ??= opt.log
@@ -55,7 +62,7 @@ class Exec2 {
 
     const r = spawnSync(cmd, opt.args, {
       encoding: 'utf8',
-      stdio: 'inherit',
+      stdio,
       shell,
       cwd,
       env: {
@@ -91,7 +98,7 @@ class Exec2 {
    * log: false
    */
   exec(cmd: string, opt: ExecOptions = {}): string {
-    const { cwd, env, passProcessEnv = true, timeout } = opt
+    const { cwd, env, passProcessEnv = true, timeout, stdio } = opt
     opt.logStart ??= opt.log ?? false
     opt.logFinish ??= opt.log ?? false
     const started = Date.now() as UnixTimestampMillis
@@ -100,8 +107,7 @@ class Exec2 {
     try {
       const s = execSync(cmd, {
         encoding: 'utf8',
-        // stdio: 'inherit', // no, otherwise we don't get the output returned
-        stdio: undefined,
+        stdio,
         // shell: undefined,
         cwd,
         timeout,
@@ -398,6 +404,11 @@ export interface SpawnOptions {
    * Set to false or true to override.
    */
   forceColor?: boolean
+
+  /**
+   * Defaults to "inherit"
+   */
+  stdio?: StdioOptions
 }
 
 export interface ExecOptions {
@@ -429,4 +440,10 @@ export interface ExecOptions {
    * Set to true to pass `process.env` to the spawned process.
    */
   passProcessEnv?: boolean
+
+  /**
+   * Defaults to undefined.
+   * beware that stdio: 'inherit', means we don't get the output returned.
+   */
+  stdio?: StdioOptions
 }
