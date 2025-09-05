@@ -13,7 +13,7 @@ jobs:
     steps:
       - { uses: actions/checkout@v5, with: { persist-credentials: false } }
       - uses: pnpm/action-setup@v4
-      - { uses: actions/setup-node@v4, with: { node-version: 'lts/*', cache: 'pnpm' } }
+      - { uses: actions/setup-node@v5, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm ci:setup
       - run: echo "CACHE_DATE=$(date +%F)" >> "$GITHUB_ENV"
       - name: node_modules/.cache
@@ -38,7 +38,7 @@ jobs:
     steps:
       - { uses: actions/checkout@v5, with: { persist-credentials: false } }
       - uses: pnpm/action-setup@v4
-      - { uses: actions/setup-node@v4, with: { node-version: 'lts/*', cache: 'pnpm' } }
+      - { uses: actions/setup-node@v5, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm ci:setup
       - run: pnpm release
         env:
@@ -51,7 +51,7 @@ jobs:
     steps:
       - { uses: actions/checkout@v5, with: { persist-credentials: false } }
       - uses: pnpm/action-setup@v4
-      - { uses: actions/setup-node@v4, with: { node-version: 'lts/*', cache: 'pnpm' } }
+      - { uses: actions/setup-node@v5, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm ci:setup
       - run: pnpm docs:build
       - name: publish docs to github pages
