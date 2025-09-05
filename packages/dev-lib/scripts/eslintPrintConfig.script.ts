@@ -1,6 +1,6 @@
 /*
 
-pn tsx scripts/eslintPrintConfig.script.ts
+pn --dir packages/dev-lib exec tsx scripts/eslintPrintConfig.script.ts
 
 This script allows to track changes in the final eslint config output,
 like a "manual snapshot test".
@@ -26,6 +26,8 @@ runScript(async () => {
 
   const r = fs2.readJson<any>(outputPath)
   delete r.languageOptions.globals
+  delete r.languageOptions.parserOptions.parser
+  delete r.languageOptions.parserOptions.project
   // r.languageOptions.parser = _substringAfter(r.languageOptions.parser, 'dev-lib/')
   // let str = JSON.stringify(r, null, 2) + '\n'
   // console.log(str)
