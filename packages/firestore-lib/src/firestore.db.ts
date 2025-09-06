@@ -28,10 +28,11 @@ import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { type CommonLogger, commonLoggerMinLevel } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
-import type { NumberOfSeconds, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import type { ObjectWithId, PositiveInteger, StringMap } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { escapeDocId, unescapeDocId } from './firestore.util.js'
+import { FirestoreShardedReadable } from './firestoreShardedReadable.js'
 import { FirestoreStreamReadable } from './firestoreStreamReadable.js'
 import { dbQueryToFirestoreQuery } from './query.util.js'
 
@@ -50,6 +51,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     ...commonDBFullSupport,
     patchByQuery: false, // todo: can be implemented
     tableSchemas: false,
+    createTransaction: false, // Firestore SDK doesn't support it
   }
 
   // GET
@@ -160,6 +162,15 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
     if (opt.experimentalCursorStream) {
       return new FirestoreStreamReadable(
+        firestoreQuery,
+        q,
+        opt,
+        commonLoggerMinLevel(this.cfg.logger, opt.debug ? 'log' : 'warn'),
+      )
+    }
+
+    if (opt.experimentalShardedStream) {
+      return new FirestoreShardedReadable(
         firestoreQuery,
         q,
         opt,
@@ -545,38 +556,24 @@ export interface FirestoreDBStreamOptions extends FirestoreDBReadOptions {
    */
   experimentalCursorStream?: boolean
 
+  experimentalShardedStream?: boolean
+
   /**
    * Applicable to `experimentalCursorStream`.
    * Defines the size (limit) of each individual query.
    *
-   * Default: 1000
+   * Default: 10_000
    */
-  batchSize?: number
+  batchSize?: PositiveInteger
 
   /**
-   * Applicable to `experimentalCursorStream`
-   *
-   * Set to a value (number of Megabytes) to control the peak RSS size.
-   * If limit is reached - streaming will pause until the stream keeps up, and then
-   * resumes.
-   *
-   * Set to 0/undefined to disable. Stream will get "slow" then, cause it'll only run the query
-   * when _read is called.
-   *
-   * @default 1000
+   * Defaults to 3x batchSize.
+   * Default batchSize is 10_000, so default highWaterMark is 30_000.
+   * Controls how many rows to have "buffered".
+   * Should be at least 1x batchSize, otherwise the stream will be "starving"
+   * between the queries.
    */
-  rssLimitMB?: number
-
-  /**
-   * Applicable to `experimentalCursorStream`
-   * Default false.
-   * If true, stream will pause until consumer requests more data (via _read).
-   * It means it'll run slower, as buffer will be equal to batchSize (1000) at max.
-   * There will be gaps in time between "last query loaded" and "next query requested".
-   * This mode is useful e.g for DB migrations, where you want to avoid "stale data".
-   * So, it minimizes the time between "item loaded" and "item saved" during DB migration.
-   */
-  singleBatchBuffer?: boolean
+  highWaterMark?: PositiveInteger
 
   /**
    * Set to `true` to log additional debug info, when using experimentalCursorStream.
@@ -584,15 +581,6 @@ export interface FirestoreDBStreamOptions extends FirestoreDBReadOptions {
    * @default false
    */
   debug?: boolean
-
-  /**
-   * Default is undefined.
-   * If set - sets a "safety timer", which will force call _read after the specified number of seconds.
-   * This is to prevent possible "dead-lock"/race-condition that would make the stream "hang".
-   *
-   * @experimental
-   */
-  maxWait?: NumberOfSeconds
 }
 
 export interface FirestoreDBOptions extends CommonDBOptions {}
