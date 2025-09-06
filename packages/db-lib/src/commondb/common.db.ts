@@ -273,6 +273,7 @@ export interface CommonDBSupport {
   bufferValues?: boolean
   nullValues?: boolean
   transactions?: boolean
+  createTransaction?: boolean
   timeMachine?: boolean
   multiTableOperations?: boolean
 }
@@ -294,6 +295,7 @@ export const commonDBFullSupport: Required<CommonDBSupport> = {
   bufferValues: true,
   nullValues: true,
   transactions: true,
+  createTransaction: true,
   timeMachine: true,
   multiTableOperations: true,
 }

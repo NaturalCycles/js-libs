@@ -358,42 +358,44 @@ export async function runCommonDaoTest(
       expectMatch(expected, rows, quirks)
     })
 
-    test('createTransaction happy path', async () => {
-      // cleanup
-      await dao.query().deleteByQuery()
+    if (support.createTransaction) {
+      test('createTransaction happy path', async () => {
+        // cleanup
+        await dao.query().deleteByQuery()
 
-      // Test that id, created, updated are created
-      const now = localTime.nowUnix()
+        // Test that id, created, updated are created
+        const now = localTime.nowUnix()
 
-      const row = _omit(item1, ['id', 'created', 'updated'])
-      let tx = await dao.createTransaction()
-      await tx.save(dao, row)
-      await tx.commit()
+        const row = _omit(item1, ['id', 'created', 'updated'])
+        let tx = await dao.createTransaction()
+        await tx.save(dao, row)
+        await tx.commit()
 
-      const loaded = await dao.query().runQuery()
-      expect(loaded.length).toBe(1)
-      expect(loaded[0]!.id).toBeDefined()
-      expect(loaded[0]!.created).toBeGreaterThanOrEqual(now)
-      expect(loaded[0]!.updated).toBe(loaded[0]!.created)
+        const loaded = await dao.query().runQuery()
+        expect(loaded.length).toBe(1)
+        expect(loaded[0]!.id).toBeDefined()
+        expect(loaded[0]!.created).toBeGreaterThanOrEqual(now)
+        expect(loaded[0]!.updated).toBe(loaded[0]!.created)
 
-      tx = await dao.createTransaction()
-      await tx.deleteById(dao, loaded[0]!.id)
-      await tx.commit()
+        tx = await dao.createTransaction()
+        await tx.deleteById(dao, loaded[0]!.id)
+        await tx.commit()
 
-      // saveBatch [item1, 2, 3]
-      // save item3 with k1: k1_mod
-      // delete item2
-      // remaining: item1, item3_with_k1_mod
-      tx = await dao.createTransaction()
-      await tx.saveBatch(dao, items)
-      await tx.save(dao, { ...items[2]!, k1: 'k1_mod' })
-      await tx.deleteById(dao, items[1]!.id)
-      await tx.commit()
+        // saveBatch [item1, 2, 3]
+        // save item3 with k1: k1_mod
+        // delete item2
+        // remaining: item1, item3_with_k1_mod
+        tx = await dao.createTransaction()
+        await tx.saveBatch(dao, items)
+        await tx.save(dao, { ...items[2]!, k1: 'k1_mod' })
+        await tx.deleteById(dao, items[1]!.id)
+        await tx.commit()
 
-      const rows = await dao.query().runQuery()
-      const expected = [items[0], { ...items[2]!, k1: 'k1_mod' }]
-      expectMatch(expected, rows, quirks)
-    })
+        const rows = await dao.query().runQuery()
+        const expected = [items[0], { ...items[2]!, k1: 'k1_mod' }]
+        expectMatch(expected, rows, quirks)
+      })
+    }
 
     test('transaction rollback', async () => {
       const expected = await prepare()
@@ -416,25 +418,27 @@ export async function runCommonDaoTest(
       expectMatch(expected, rows, quirks)
     })
 
-    test('createTransaction rollback', async () => {
-      const expected = await prepare()
+    if (support.createTransaction) {
+      test('createTransaction rollback', async () => {
+        const expected = await prepare()
 
-      let err: any
-      try {
-        const tx = await dao.createTransaction()
-        await tx.deleteById(dao, items[2]!.id)
-        await tx.save(dao, { ...items[0]!, k1: 5 as any }) // it should fail here
-        await tx.commit()
-      } catch (err_) {
-        err = err_
-      }
+        let err: any
+        try {
+          const tx = await dao.createTransaction()
+          await tx.deleteById(dao, items[2]!.id)
+          await tx.save(dao, { ...items[0]!, k1: 5 as any }) // it should fail here
+          await tx.commit()
+        } catch (err_) {
+          err = err_
+        }
 
-      expect(err).toBeDefined()
-      expect(err).toBeInstanceOf(Error)
+        expect(err).toBeDefined()
+        expect(err).toBeInstanceOf(Error)
 
-      const rows = await dao.query().runQuery()
-      expectMatch(expected, rows, quirks)
-    })
+        const rows = await dao.query().runQuery()
+        expectMatch(expected, rows, quirks)
+      })
+    }
 
     if (support.queries) {
       test('transaction cleanup', async () => {
