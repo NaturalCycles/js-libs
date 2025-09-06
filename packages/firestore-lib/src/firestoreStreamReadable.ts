@@ -159,7 +159,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       if (this.paused) {
         logger.log(`${table} stream is already paused`)
       } else {
-        logger.warn(`${table} pausing the stream`)
+        logger.log(`${table} pausing the stream`)
         this.paused = true
       }
     }
