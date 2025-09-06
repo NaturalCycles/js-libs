@@ -7,6 +7,7 @@ import {
   type AbortableAsyncMapper,
   type AsyncPredicate,
   END,
+  type PositiveInteger,
   type Promisable,
   SKIP,
   type StringMap,
@@ -38,7 +39,16 @@ export interface TransformMapOptions<IN = any, OUT = IN> {
    * UPD: changed back from 32 to 16, "to be on a safe side", as 32 sometimes
    * causes "Datastore timeout errors".
    */
-  concurrency?: number
+  concurrency?: PositiveInteger
+
+  /**
+   * Defaults to 64 items.
+   * (objectMode default is 16, but we increased it)
+   *
+   * Affects both readable and writable highWaterMark (buffer).
+   * So, 64 means a total buffer of 128 (64 input and 64 output buffer).
+   */
+  highWaterMark?: PositiveInteger
 
   /**
    * @default THROW_IMMEDIATELY
@@ -123,6 +133,7 @@ export function transformMap<IN = any, OUT = IN>(
 ): TransformTyped<IN, OUT> {
   const {
     concurrency = 16,
+    highWaterMark = 64,
     predicate, // we now default to "no predicate" (meaning pass-everything)
     errorMode = ErrorMode.THROW_IMMEDIATELY,
     onError,
@@ -141,6 +152,8 @@ export function transformMap<IN = any, OUT = IN>(
   return through2Concurrent.obj(
     {
       maxConcurrency: concurrency,
+      readableHighWaterMark: highWaterMark,
+      writableHighWaterMark: highWaterMark,
       async final(cb) {
         // console.log('transformMap final')
 
