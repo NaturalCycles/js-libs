@@ -41,10 +41,10 @@ export function _ms(millis: NumberOfMilliseconds): string {
   // <1 sec
   if (millis < 1000) return `${Math.round(millis)} ms`
 
-  // < 5 sec
-  if (millis < 5000) {
+  // < 10 sec
+  if (millis < 10_000) {
     const s = millis / 1000
-    return `${Math.trunc(s) === s ? s : s.toFixed(3)} sec`
+    return `${s.toFixed(2)} sec`
   }
 
   const sec = Math.floor(millis / 1000) % 60
