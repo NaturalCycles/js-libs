@@ -3,9 +3,6 @@
 //
 {
   "extends": "@naturalcycles/dev-lib/cfg/tsconfig.scripts.json",
-  "compilerOptions": {
-    "baseUrl": "./",
-    "outDir": "../dist"
-  },
+  "compilerOptions": {},
   "exclude": ["**/__exclude"]
 }

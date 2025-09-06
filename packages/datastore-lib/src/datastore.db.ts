@@ -54,7 +54,7 @@ import type {
   DatastoreStats,
 } from './datastore.model.js'
 import { DatastoreType } from './datastore.model.js'
-import { DatastoreStreamReadable } from './DatastoreStreamReadable.js'
+import { DatastoreStreamReadable } from './datastoreStreamReadable.js'
 import { dbQueryToDatastoreQuery } from './query.util.js'
 
 // Datastore (also Firestore and other Google APIs) supports max 500 of items when saving/deleting, etc.

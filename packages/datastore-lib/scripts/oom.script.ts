@@ -50,9 +50,6 @@ runScript(async () => {
   await _pipeline([
     db.streamQuery(DBQuery.create(TABLE), {
       experimentalCursorStream: true,
-      batchSize: 1000,
-      rssLimitMB: 1000,
-      singleBatchBuffer: true,
       debug: true,
     }),
 

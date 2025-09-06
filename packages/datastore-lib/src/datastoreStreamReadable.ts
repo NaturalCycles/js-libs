@@ -1,42 +1,49 @@
 import { Readable } from 'node:stream'
-import { FieldPath, type Query, type QuerySnapshot } from '@google-cloud/firestore'
-import type { DBQuery } from '@naturalcycles/db-lib'
+import type { Query } from '@google-cloud/datastore'
+import type {
+  RunQueryInfo,
+  RunQueryOptions,
+  RunQueryResponse,
+} from '@google-cloud/datastore/build/src/query.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
-import type { ObjectWithId } from '@naturalcycles/js-lib/types'
+import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
-import type { FirestoreDBStreamOptions } from './firestore.db.js'
-import { unescapeDocId } from './firestore.util.js'
+import type { DatastoreDBStreamOptions } from './datastore.model.js'
 
-export class FirestoreStreamReadable<T extends ObjectWithId = any>
-  extends Readable
-  implements ReadableTyped<T>
-{
+export class DatastoreStreamReadable<T = any> extends Readable implements ReadableTyped<T> {
   private readonly table: string
   private readonly originalLimit: number
   private rowsRetrieved = 0
-  private endCursor?: string
-  private queryIsRunning = false
-  private paused = false
-  private done = false
   /**
    * Counts how many times _read was called.
    * For debugging.
    */
   countReads = 0
+  private endCursor?: string
+  private queryIsRunning = false
+  private paused = false
+  private done = false
+  private lastQueryDone?: number
+  private totalWait = 0
+  /**
+   * Used to support maxWait
+   */
+  private lastReadTimestamp = 0 as UnixTimestampMillis
+  private readonly maxWaitInterval: NodeJS.Timeout | undefined
 
-  private readonly opt: FirestoreDBStreamOptions & { batchSize: number; highWaterMark: number }
+  private readonly opt: DatastoreDBStreamOptions & { batchSize: number; highWaterMark: number }
+  private readonly dsOpt: RunQueryOptions
 
   constructor(
     private q: Query,
-    dbQuery: DBQuery<T>,
-    opt: FirestoreDBStreamOptions,
+    opt: DatastoreDBStreamOptions,
     private logger: CommonLogger,
   ) {
-    // 10_000 was optimal in benchmarks
-    const { batchSize = 10_000 } = opt
+    // 1_000 was optimal in benchmarks
+    const { batchSize = 1000 } = opt
     const { highWaterMark = batchSize * 3 } = opt
     // Defaulting highWaterMark to 3x batchSize
     super({ objectMode: true, highWaterMark })
@@ -46,20 +53,53 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       batchSize,
       highWaterMark,
     }
-    // todo: support PITR!
+    this.dsOpt = {}
+    if (opt.readAt) {
+      // Datastore expects UnixTimestamp in milliseconds
+      this.dsOpt.readTime = opt.readAt * 1000
+    }
 
-    this.originalLimit = dbQuery._limitValue
-    this.table = dbQuery.table
+    this.originalLimit = q.limitVal
+    this.table = q.kinds[0]!
 
-    logger.warn(`!!! using experimentalCursorStream`, {
+    logger.warn(`!! using experimentalCursorStream`, {
       table: this.table,
       batchSize,
       highWaterMark,
     })
+
+    const { maxWait } = this.opt
+    if (maxWait) {
+      logger.warn(`!! ${this.table} maxWait ${maxWait}`)
+
+      this.maxWaitInterval = setInterval(
+        () => {
+          const millisSinceLastRead = Date.now() - this.lastReadTimestamp
+
+          if (millisSinceLastRead < maxWait * 1000) {
+            logger.warn(
+              `!! ${this.table} millisSinceLastRead(${millisSinceLastRead}) < maxWait*1000`,
+            )
+            return
+          }
+
+          const { queryIsRunning, rowsRetrieved } = this
+          logger.warn(`maxWait of ${maxWait} seconds reached, force-triggering _read`, {
+            running: queryIsRunning,
+            rowsRetrieved,
+          })
+
+          // force-trigger _read
+          // regardless of `running` status
+          this._read()
+        },
+        (maxWait * 1000) / 2,
+      )
+    }
   }
 
   override _read(): void {
-    // this.lastReadTimestamp = Date.now() as UnixTimestampMillis
+    this.lastReadTimestamp = Date.now() as UnixTimestampMillis
 
     // console.log(`_read called ${++this.count}, wasRunning: ${this.running}`) // debugging
     this.countReads++
@@ -91,6 +131,11 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     if (this.done) return
     const { logger, table } = this
 
+    if (this.lastQueryDone) {
+      const now = Date.now()
+      this.totalWait += now - this.lastQueryDone
+    }
+
     this.queryIsRunning = true
 
     let limit = this.opt.batchSize
@@ -99,54 +144,49 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       limit = Math.min(this.opt.batchSize, this.originalLimit - this.rowsRetrieved)
     }
 
-    // We have to orderBy documentId, to be able to use id as a cursor
-    let q = this.q.orderBy(FieldPath.documentId()).limit(limit)
+    let q = this.q.limit(limit)
     if (this.endCursor) {
-      q = q.startAfter(this.endCursor)
+      q = q.start(this.endCursor)
     }
 
-    // logger.log(`runNextQuery`, {
-    //   rowsRetrieved: this.rowsRetrieved,
-    //   paused: this.paused,
-    // })
-
     const started = localTime.nowUnixMillis()
-    const qs = await this.runQuery(q)
+    const res = await this.runQuery(q)
     const queryTook = Date.now() - started
-    if (!qs) {
+    if (!res) {
       // error already emitted in runQuery
       return
     }
-
-    const rows: T[] = []
-    let lastDocId: string | undefined
-
-    for (const doc of qs.docs) {
-      lastDocId = doc.id
-      rows.push({
-        id: unescapeDocId(doc.id),
-        ...doc.data(),
-      } as T)
-    }
+    const rows: T[] = res[0]
+    const info: RunQueryInfo = res[1]
 
     this.rowsRetrieved += rows.length
     logger.log(
-      `${table} got ${rows.length} rows in ${_ms(queryTook)}, ${this.rowsRetrieved} rowsRetrieved`,
+      `${table} got ${rows.length} rows in ${_ms(queryTook)}, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(
+        this.totalWait,
+      )}`,
     )
 
-    this.endCursor = lastDocId
+    this.endCursor = info.endCursor
     this.queryIsRunning = false // ready to take more _reads
+    this.lastQueryDone = Date.now()
     let shouldContinue = false
 
     for (const row of rows) {
       shouldContinue = this.push(row)
     }
 
-    if (!rows.length || (this.originalLimit && this.rowsRetrieved >= this.originalLimit)) {
-      logger.warn(`${table} DONE! ${this.rowsRetrieved} rowsRetrieved`)
+    if (
+      !info.endCursor ||
+      info.moreResults === 'NO_MORE_RESULTS' ||
+      (this.originalLimit && this.rowsRetrieved >= this.originalLimit)
+    ) {
+      logger.log(
+        `!!!! DONE! ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
+      )
       this.push(null)
       this.done = true
       this.paused = false
+      clearInterval(this.maxWaitInterval)
       return
     }
 
@@ -165,16 +205,16 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
   }
 
-  private async runQuery(q: Query): Promise<QuerySnapshot | undefined> {
+  private async runQuery(q: Query): Promise<RunQueryResponse | undefined> {
     const { table, logger } = this
 
     try {
       return await pRetry(
         async () => {
-          return await q.get()
+          return await q.run(this.dsOpt)
         },
         {
-          name: `FirestoreStreamReadable.query(${table})`,
+          name: `DatastoreStreamReadable.query(${table})`,
           maxAttempts: 5,
           delay: 5000,
           delayMultiplier: 2,
@@ -184,7 +224,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       )
     } catch (err) {
       console.log(
-        `FirestoreStreamReadable error!\n`,
+        `DatastoreStreamReadable error!\n`,
         {
           table,
           rowsRetrieved: this.rowsRetrieved,
@@ -192,6 +232,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
         err,
       )
       this.emit('error', err)
+      clearInterval(this.maxWaitInterval)
       return
     }
   }

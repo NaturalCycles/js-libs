@@ -5,7 +5,7 @@ import type {
   CommonDBSaveOptions,
 } from '@naturalcycles/db-lib'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import type { NumberOfSeconds, ObjectWithId } from '@naturalcycles/js-lib/types'
+import type { NumberOfSeconds, ObjectWithId, PositiveInteger } from '@naturalcycles/js-lib/types'
 
 export interface DatastorePayload<T = any> {
   key: Key
@@ -73,34 +73,18 @@ export interface DatastoreDBStreamOptions extends DatastoreDBReadOptions {
    * Applicable to `experimentalCursorStream`.
    * Defines the size (limit) of each individual query.
    *
-   * @default 1000
+   * @default 1_000
    */
-  batchSize?: number
+  batchSize?: PositiveInteger
 
   /**
-   * Applicable to `experimentalCursorStream`
-   *
-   * Set to a value (number of Megabytes) to control the peak RSS size.
-   * If limit is reached - streaming will pause until the stream keeps up, and then
-   * resumes.
-   *
-   * Set to 0/undefined to disable. Stream will get "slow" then, cause it'll only run the query
-   * when _read is called.
-   *
-   * @default 1000
+   * Defaults to 3x batchSize.
+   * Default batchSize is 1_000, so default highWaterMark is 3_000.
+   * Controls how many rows to have "buffered".
+   * Should be at least 1x batchSize, otherwise the stream will be "starving"
+   * between the queries.
    */
-  rssLimitMB?: number
-
-  /**
-   * Applicable to `experimentalCursorStream`
-   * Default false.
-   * If true, stream will pause until consumer requests more data (via _read).
-   * It means it'll run slower, as buffer will be equal to batchSize (1000) at max.
-   * There will be gaps in time between "last query loaded" and "next query requested".
-   * This mode is useful e.g for DB migrations, where you want to avoid "stale data".
-   * So, it minimizes the time between "item loaded" and "item saved" during DB migration.
-   */
-  singleBatchBuffer?: boolean
+  highWaterMark?: PositiveInteger
 
   /**
    * Set to `true` to log additional debug info, when using experimentalCursorStream.
