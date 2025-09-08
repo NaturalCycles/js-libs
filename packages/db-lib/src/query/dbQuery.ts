@@ -1,7 +1,7 @@
 import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
 import type { AsyncIndexedMapper, BaseDBEntity, ObjectWithId } from '@naturalcycles/js-lib/types'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDao } from '../commondao/common.dao.js'
 import type {
   CommonDaoOptions,
@@ -298,12 +298,24 @@ export class RunnableDBQuery<
     return this.dao.streamQueryAsDBM(this, opt)
   }
 
+  pipeline(opt?: CommonDaoStreamOptions<BM>): Pipeline<BM> {
+    return Pipeline.from(this.dao.streamQuery(this, opt))
+  }
+
+  pipelineAsDBM(opt?: CommonDaoStreamOptions<DBM>): Pipeline<DBM> {
+    return Pipeline.from(this.dao.streamQueryAsDBM(this, opt))
+  }
+
   async queryIds(opt?: CommonDaoReadOptions): Promise<ID[]> {
     return await this.dao.queryIds(this, opt)
   }
 
   streamQueryIds(opt?: CommonDaoStreamOptions<ID>): ReadableTyped<ID> {
     return this.dao.streamQueryIds(this, opt)
+  }
+
+  pipelineIds(opt?: CommonDaoStreamOptions<ID>): Pipeline<ID> {
+    return Pipeline.from(this.dao.streamQueryIds(this, opt))
   }
 
   async streamQueryIdsForEach(
