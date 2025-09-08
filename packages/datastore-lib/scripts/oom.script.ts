@@ -4,11 +4,11 @@ yarn tsx scripts/oom.script.ts
 
  */
 
-import { Transform, Writable } from 'node:stream'
+import { Transform } from 'node:stream'
 import { DBQuery } from '@naturalcycles/db-lib'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
-import { _pipeline, transformLogProgress } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { DatastoreDB } from '../src/index.js'
 
 const { SECRET_GCP_SERVICE_ACCOUNT } = requireEnvKeys('SECRET_GCP_SERVICE_ACCOUNT')
@@ -47,40 +47,32 @@ runScript(async () => {
   //   writableVoid(),
   // ])
 
-  await _pipeline([
+  await Pipeline.from(
     db.streamQuery(DBQuery.create(TABLE), {
       experimentalCursorStream: true,
       debug: true,
     }),
-
+  )
     // This thing logs every 100's object + some memory and speed metrics
-    transformLogProgress({
+    .logProgress({
       metric: 'read',
       logEvery: 1000,
       peakRSS: true,
-    }),
-
+    })
     // This is a fake Consumer that introduces a 100ms delay before passing the data further
-    new Transform({
-      objectMode: true,
-      transform(chunk: any, _encoding, cb) {
-        setTimeout(() => cb(null, chunk), 5)
-      },
-    }),
-
-    transformLogProgress({
+    .transform(
+      new Transform({
+        objectMode: true,
+        transform(chunk: any, _encoding, cb) {
+          setTimeout(() => cb(null, chunk), 5)
+        },
+      }),
+    )
+    .logProgress({
       metric: 'processed',
       logEvery: 1000,
       peakRSS: true,
-    }),
-
+    })
     // This is a "no-op" consumer that just discards the data
-    new Writable({
-      objectMode: true,
-      write(_c, _encoding, cb) {
-        // console.log(c.id, c.data.length)
-        cb()
-      },
-    }),
-  ])
+    .run()
 })

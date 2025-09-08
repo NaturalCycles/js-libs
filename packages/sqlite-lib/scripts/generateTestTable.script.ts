@@ -8,11 +8,10 @@ Not gzipped (to better test streaming)
 
  */
 
-import { Readable } from 'node:stream'
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
-import { _pipeline, transformLogProgress, writableForEach } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { SqliteKeyValueDB } from '../src/index.js'
 import { tmpDir } from '../src/test/paths.cnst.js'
 import type { TestItem } from '../src/test/test.model.js'
@@ -35,10 +34,9 @@ runScript(async () => {
 
   // await db.saveBatch(TEST_TABLE, items)
 
-  await _pipeline([
-    Readable.from(_range(1, 1_000_001)),
-    transformLogProgress({ logEvery: 10_000 }),
-    writableForEach(
+  await Pipeline.fromArray(_range(1, 1_000_001))
+    .logProgress({ logEvery: 10_000 })
+    .forEach(
       async n => {
         const item: TestItem = {
           id: `id_${n}`,
@@ -51,8 +49,7 @@ runScript(async () => {
         await db.saveBatch(TEST_TABLE, [[item.id, buf]])
       },
       { concurrency: 16 },
-    ),
-  ])
+    )
 
   await db.endTransaction()
   await db.close()

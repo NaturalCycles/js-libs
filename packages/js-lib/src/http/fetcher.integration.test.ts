@@ -1,9 +1,8 @@
 import type { LookupAddress } from 'node:dns'
 import dns from 'node:dns/promises'
-import fs from 'node:fs'
 import { Readable } from 'node:stream'
 import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
-import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { Agent, fetch as undiciFetch } from 'undici'
 import { expect, expectTypeOf, test } from 'vitest'
 import { _since, localTime } from '../datetime/index.js'
@@ -91,10 +90,8 @@ test('getReadableStream', async () => {
 
   // https://css-tricks.com/web-streams-everywhere-and-fetch-for-node-js/
   // Example of Node.js streams interop
-  await _pipeline([
-    Readable.fromWeb(r as any), // `as any` because of typings conflict between Web and Node types
-    fs.createWriteStream(`${tmpDir}/resp.txt`),
-  ])
+  // `as any` because of typings conflict between Web and Node types
+  await Pipeline.from(Readable.fromWeb(r as any)).toFile(`${tmpDir}/resp.txt`)
 })
 
 test('redirect: error', async () => {
