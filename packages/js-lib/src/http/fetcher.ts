@@ -2,6 +2,7 @@
 /// <reference lib="dom" preserve="true" />
 /// <reference lib="dom.iterable" preserve="true" />
 
+import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { _ms, _since } from '../datetime/time.util.js'
 import { isServerSide } from '../env.js'
 import { _assertErrorClassOrRethrow, _assertIsError } from '../error/assert.js'
@@ -250,7 +251,10 @@ export class Fetcher {
    * More on streams and Node interop:
    * https://css-tricks.com/web-streams-everywhere-and-fetch-for-node-js/
    */
-  async getReadableStream(url: string, opt?: FetcherOptions): Promise<ReadableStream<Uint8Array>> {
+  async getReadableStream(
+    url: string,
+    opt?: FetcherOptions,
+  ): Promise<WebReadableStream<Uint8Array>> {
     return await this.fetch({
       url,
       responseType: 'readableStream',

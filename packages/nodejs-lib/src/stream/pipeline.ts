@@ -1,5 +1,7 @@
 import { Readable, type Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
+import type { ReadableStream as WebReadableStream } from 'node:stream/web'
+import { createUnzip, type ZlibOptions } from 'node:zlib'
 import { createGzip } from 'node:zlib'
 import { createAbortableSignal } from '@naturalcycles/js-lib'
 import type {
@@ -16,6 +18,7 @@ import type {
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
 import { createReadStreamAsNDJSON } from './ndjson/createReadStreamAsNDJSON.js'
+import { transformJsonParse } from './ndjson/transformJsonParse.js'
 import { transformToNDJson } from './ndjson/transformToNDJson.js'
 import type {
   ReadableTyped,
@@ -39,6 +42,7 @@ import {
 } from './transform/transformMapSimple.js'
 import { transformMapSync, type TransformMapSyncOptions } from './transform/transformMapSync.js'
 import { transformOffset, type TransformOffsetOptions } from './transform/transformOffset.js'
+import { transformSplitOnNewline } from './transform/transformSplit.js'
 import { transformTap, type TransformTapOptions } from './transform/transformTap.js'
 import { transformThrottle, type TransformThrottleOptions } from './transform/transformThrottle.js'
 import { writablePushToArray } from './writable/writablePushToArray.js'
@@ -50,14 +54,21 @@ export class Pipeline<T> {
   private transforms: NodeJS.ReadWriteStream[] = []
   private destination?: NodeJS.WritableStream
   private readableLimit?: Integer
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
+  private objectMode: boolean
   private abortableSignal = createAbortableSignal()
 
-  private constructor(source: ReadableTyped<T>) {
+  private constructor(source: ReadableTyped<T>, objectMode = true) {
     this.source = source
+    this.objectMode = objectMode
   }
 
   static from<T>(source: ReadableTyped<T>): Pipeline<T> {
     return new Pipeline(source)
+  }
+
+  static fromWeb<T>(webReadableStream: WebReadableStream<T>): Pipeline<T> {
+    return new Pipeline(Readable.fromWeb(webReadableStream))
   }
 
   /**
@@ -70,6 +81,10 @@ export class Pipeline<T> {
 
   static fromIterable<T>(input: Iterable<T> | AsyncIterable<T>): Pipeline<T> {
     return new Pipeline(Readable.from(input))
+  }
+
+  static fromFile(sourceFilePath: string): Pipeline<Uint8Array> {
+    return new Pipeline(fs2.createReadStream(sourceFilePath), false)
   }
 
   static fromNDJsonFile<T>(sourceFilePath: string): Pipeline<T> {
@@ -216,6 +231,41 @@ export class Pipeline<T> {
    * No runtime effect.
    */
   typeCastAs<TO>(): Pipeline<TO> {
+    return this as any
+  }
+
+  setObjectMode(objectMode: boolean): this {
+    this.objectMode = objectMode
+    return this
+  }
+
+  /**
+   * Transform the stream of Objects into a stream of JSON lines.
+   * Technically, it goes into objectMode=false, so it's a binary stream at the end.
+   */
+  toNDJson(): Pipeline<Uint8Array> {
+    this.transforms.push(transformToNDJson())
+    this.objectMode = false
+    return this as any
+  }
+
+  parseNDJson<TO = unknown>(this: Pipeline<Uint8Array>): Pipeline<TO> {
+    // It was said that transformJsonParse() separately is 10% or more slower than .map(line => JSON.parse(line))
+    // So, we can investigate a speedup
+    this.transforms.push(transformSplitOnNewline(), transformJsonParse())
+    this.objectMode = true
+    return this as any
+  }
+
+  gzip(this: Pipeline<Uint8Array>, opt?: ZlibOptions): Pipeline<Uint8Array> {
+    this.transforms.push(createGzip(opt))
+    this.objectMode = false
+    return this as any
+  }
+
+  gunzip(this: Pipeline<Uint8Array>, opt?: ZlibOptions): Pipeline<Uint8Array> {
+    this.transforms.push(createUnzip(opt))
+    this.objectMode = false
     return this as any
   }
 

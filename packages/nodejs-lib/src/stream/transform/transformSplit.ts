@@ -15,8 +15,9 @@ export function transformSplitOnNewline(): TransformTyped<Buffer, Buffer> {
   let buffered: Buffer | undefined
 
   return new Transform({
-    readableObjectMode: true,
+    writableObjectMode: false,
     writableHighWaterMark: 64 * 1024,
+    readableObjectMode: true,
 
     transform(buf: Buffer, _enc, done) {
       let offset = 0
