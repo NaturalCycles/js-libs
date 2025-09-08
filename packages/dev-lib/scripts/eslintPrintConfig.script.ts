@@ -8,7 +8,7 @@ Changes are visible in git diff every time they are observed.
 
  */
 
-import { _sortObjectDeep } from '@naturalcycles/js-lib/object'
+import { _filterObject, _sortObjectDeep } from '@naturalcycles/js-lib/object'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
@@ -28,6 +28,15 @@ runScript(async () => {
   delete r.languageOptions.globals
   delete r.languageOptions.parserOptions.parser
   delete r.languageOptions.parserOptions.project
+
+  r.rules = _filterObject(r.rules, (k, v) => {
+    if (!Array.isArray(v)) {
+      console.log('!! non-array rule found:', { [k]: v })
+      return true
+    }
+    return v[0] !== 0
+  })
+
   // r.languageOptions.parser = _substringAfter(r.languageOptions.parser, 'dev-lib/')
   // let str = JSON.stringify(r, null, 2) + '\n'
   // console.log(str)
@@ -37,4 +46,7 @@ runScript(async () => {
 
   // const output2Path = `${testDir}/cfg/eslint.config.dump2.json`
   // fs2.writeJson(output2Path, require('../cfg/eslint.flat.config'), { spaces: 2 })
+
+  // Prettify the output
+  exec2.spawn(`prettier --write --experimental-cli --log-level=warn ${outputPath}`)
 })
