@@ -257,6 +257,24 @@ export class Pipeline<T> {
     return this as any
   }
 
+  splitOnNewline(this: Pipeline<Uint8Array>): Pipeline<Buffer> {
+    // Input: objectMode=false - binary stream
+    // Output: objectMode=true - stream of Buffer objects (which are also strings?)
+    this.transforms.push(transformSplitOnNewline())
+    this.objectMode = true
+    return this as any
+  }
+
+  parseJson<TO = unknown>(
+    this: Pipeline<Buffer> | Pipeline<Uint8Array> | Pipeline<string>,
+  ): Pipeline<TO> {
+    // Input: objectMode=false - takes a stream of strings one by one
+    // Output: objectMode=true - stream of json-parsed Objects
+    this.transforms.push(transformJsonParse())
+    this.objectMode = true
+    return this as any
+  }
+
   gzip(this: Pipeline<Uint8Array>, opt?: ZlibOptions): Pipeline<Uint8Array> {
     this.transforms.push(createGzip(opt))
     this.objectMode = false
