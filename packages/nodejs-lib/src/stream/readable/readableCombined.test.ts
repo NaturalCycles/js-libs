@@ -1,7 +1,7 @@
 import { Readable } from 'node:stream'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { test, vi } from 'vitest'
-import { _pipeline, transformLogProgress, transformMap, writableVoid } from '../index.js'
+import { Pipeline } from '../index.js'
 import { ReadableCombined } from './readableCombined.js'
 
 vi.setConfig({
@@ -70,28 +70,24 @@ test.skip('readableCombined', async () => {
   //   console.log(item)
   // })
 
-  await _pipeline([
-    ReadableCombined.create([source1, source2, source3]),
-    transformLogProgress({
+  await Pipeline.from(ReadableCombined.create([source1, source2, source3]))
+    .logProgress({
       metric: 'door1',
       logEvery: 1,
-    }),
-    transformMap(
+    })
+    .map(
       async item => {
         // console.log('map incoming', item)
         await pDelay(1000)
         return item
       },
-      {
-        concurrency: 1,
-      },
-    ),
-    transformLogProgress({
+      { concurrency: 1 },
+    )
+    .logProgress({
       metric: 'door2',
       logEvery: 1,
-    }),
-    writableVoid(),
-  ])
+    })
+    .run()
 
   console.log('done')
 })

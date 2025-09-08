@@ -1,5 +1,5 @@
 import { Transform } from 'node:stream'
-import { _pipeline } from '../pipeline/pipeline.js'
+import { pipeline } from 'node:stream/promises'
 import { readableCreate } from '../readable/readableCreate.js'
 import type { TransformTyped } from '../stream.model.js'
 
@@ -17,11 +17,14 @@ type AnyStream = NodeJS.WritableStream | NodeJS.ReadWriteStream
 export function transformTee<T>(streams: AnyStream[]): TransformTyped<T, T> {
   const readable = readableCreate<T>()
 
-  const secondPipelinePromise = _pipeline([readable, ...streams])
+  const secondPipelinePromise = pipeline([readable, ...streams])
 
   return new Transform({
     objectMode: true,
     transform(chunk: T, _, cb) {
+      // todo: it's possible to start respecting backpressure,
+      // if we start to listen to the boolean output of .push()
+
       // pass to the "secondary" pipeline
       readable.push(chunk)
 

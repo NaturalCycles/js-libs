@@ -1,22 +1,15 @@
-import { Readable } from 'node:stream'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
 import { expect, test } from 'vitest'
-import { _pipeline } from '../pipeline/pipeline.js'
-import { writableVoid } from '../writable/writableVoid.js'
-import { transformMapSimple } from './transformMapSimple.js'
+import { Pipeline } from '../pipeline.js'
 
 test('transformMapSimple', async () => {
   const data = _range(1, 4).map(String)
-  const readable = Readable.from(data)
-
   const data2: string[] = []
 
-  await _pipeline([
-    readable,
-    transformMapSimple<string, void>(r => void data2.push(r)),
-    writableVoid(),
-  ])
+  await Pipeline.fromArray(data)
+    .mapSimple(r => void data2.push(r))
+    .run()
 
   expect(data2).toEqual(data)
 })
@@ -26,17 +19,15 @@ test('transformMapSimple error', async () => {
 
   const data2: string[] = []
   const [err] = await pTry(
-    _pipeline([
-      Readable.from(data),
-      transformMapSimple<string, void>((r, i) => {
+    Pipeline.fromArray(data)
+      .mapSimple((r, i) => {
         if (i === 50) {
           throw new AppError('error on 50th')
         }
 
         data2.push(r)
-      }),
-      writableVoid(),
-    ]),
+      })
+      .run(),
   )
 
   expect(err).toBeInstanceOf(AppError)
@@ -47,11 +38,9 @@ test('transformMapSimple error', async () => {
 
 test('transformMapSimple suppressed error', async () => {
   const data = _range(100).map(String)
-
   const data2: string[] = []
-  await _pipeline([
-    Readable.from(data),
-    transformMapSimple<string, void>(
+  await Pipeline.fromArray(data)
+    .mapSimple(
       (r, i) => {
         if (i === 50) {
           throw new AppError('error on 50th')
@@ -62,9 +51,8 @@ test('transformMapSimple suppressed error', async () => {
       {
         errorMode: ErrorMode.SUPPRESS,
       },
-    ),
-    writableVoid(),
-  ])
+    )
+    .run()
 
   expect(data2).toEqual(data.filter(r => r !== '50'))
 })

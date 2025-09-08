@@ -1,6 +1,6 @@
-import { _hc } from '@naturalcycles/js-lib'
+import { _hc, type AbortableSignal } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
-import { _anyToError, ErrorMode } from '@naturalcycles/js-lib/error'
+import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import {
@@ -15,9 +15,8 @@ import {
 } from '@naturalcycles/js-lib/types'
 import through2Concurrent from 'through2-concurrent'
 import { yellow } from '../../colors/colors.js'
-import type { AbortableTransform } from '../pipeline/pipeline.js'
 import type { TransformTyped } from '../stream.model.js'
-import { pipelineClose } from '../stream.util.js'
+import { PIPELINE_GRACEFUL_ABORT } from '../stream.util.js'
 
 export interface TransformMapOptions<IN = any, OUT = IN> {
   /**
@@ -81,6 +80,11 @@ export interface TransformMapOptions<IN = any, OUT = IN> {
   metric?: string
 
   logger?: CommonLogger
+
+  /**
+   * Allows to abort (gracefully stop) the stream from inside the Transform.
+   */
+  signal?: AbortableSignal
 }
 
 export interface TransformMapStats {
@@ -140,12 +144,14 @@ export function transformMap<IN = any, OUT = IN>(
     onDone,
     metric = 'stream',
     logger = console,
+    signal,
   } = opt
 
   const started = Date.now() as UnixTimestampMillis
   let index = -1
   let countOut = 0
   let isSettled = false
+  let ok = true
   let errors = 0
   const collectedErrors: Error[] = [] // only used if errorMode == THROW_AGGREGATED
 
@@ -185,7 +191,7 @@ export function transformMap<IN = any, OUT = IN>(
 
           try {
             await onDone?.({
-              ok: true,
+              ok,
               collectedErrors,
               countErrors: errors,
               countIn: index + 1,
@@ -200,7 +206,7 @@ export function transformMap<IN = any, OUT = IN>(
         }
       },
     },
-    async function transformMapFn(this: AbortableTransform, chunk: IN, _, cb) {
+    async function transformMapFn(chunk: IN, _, cb) {
       // Stop processing if isSettled (either THROW_IMMEDIATELY was fired or END received)
       if (isSettled) return cb()
 
@@ -214,7 +220,8 @@ export function transformMap<IN = any, OUT = IN>(
         if (res === END) {
           isSettled = true
           logger.log(`transformMap END received at index ${currentIndex}`)
-          pipelineClose('transformMap', this, this.sourceReadable, this.streamDone, logger)
+          _assert(signal, 'signal is required when using END')
+          signal.abort(new Error(PIPELINE_GRACEFUL_ABORT))
           return cb()
         }
 
@@ -243,19 +250,23 @@ export function transformMap<IN = any, OUT = IN>(
 
         if (errorMode === ErrorMode.THROW_IMMEDIATELY) {
           isSettled = true
+          ok = false
 
-          try {
-            await onDone?.({
-              ok: false,
-              collectedErrors,
-              countErrors: errors,
-              countIn: index + 1,
-              countOut,
-              started,
-            })
-          } catch (err) {
-            logger.error(err)
-          }
+          // Tests show that onDone is still called at `final` (second time),
+          // so, we no longer call it here
+
+          // try {
+          //   await onDone?.({
+          //     ok: false,
+          //     collectedErrors,
+          //     countErrors: errors,
+          //     countIn: index + 1,
+          //     countOut,
+          //     started,
+          //   })
+          // } catch (err) {
+          //   logger.error(err)
+          // }
 
           return cb(err) // Emit error immediately
         }

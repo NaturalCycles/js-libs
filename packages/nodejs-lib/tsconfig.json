@@ -1,7 +1,7 @@
 {
   "extends": "@naturalcycles/dev-lib/cfg/tsconfig.json",
   "compilerOptions": {
-    // "erasableSyntaxOnly": true,
+    "skipLibCheck": true // fdir/picomatch issue
   },
   "include": ["src"],
   "exclude": ["**/__exclude"]

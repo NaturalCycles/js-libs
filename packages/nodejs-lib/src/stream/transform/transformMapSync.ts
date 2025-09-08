@@ -1,11 +1,12 @@
-import { _anyToError, ErrorMode } from '@naturalcycles/js-lib/error'
+import { Transform } from 'node:stream'
+import type { AbortableSignal } from '@naturalcycles/js-lib'
+import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { IndexedMapper, Predicate, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { END, SKIP } from '@naturalcycles/js-lib/types'
 import { yellow } from '../../colors/colors.js'
-import { AbortableTransform } from '../pipeline/pipeline.js'
 import type { TransformTyped } from '../stream.model.js'
-import { pipelineClose } from '../stream.util.js'
+import { PIPELINE_GRACEFUL_ABORT } from '../stream.util.js'
 import type { TransformMapStats } from './transformMap.js'
 
 export interface TransformMapSyncOptions<IN = any, OUT = IN> {
@@ -54,9 +55,12 @@ export interface TransformMapSyncOptions<IN = any, OUT = IN> {
   metric?: string
 
   logger?: CommonLogger
-}
 
-export class TransformMapSync extends AbortableTransform {}
+  /**
+   * Allows to abort (gracefully stop) the stream from inside the Transform.
+   */
+  signal?: AbortableSignal
+}
 
 /**
  * Sync (not async) version of transformMap.
@@ -74,6 +78,7 @@ export function transformMapSync<IN = any, OUT = IN>(
     metric = 'stream',
     objectMode = true,
     logger = console,
+    signal,
   } = opt
 
   const started = Date.now() as UnixTimestampMillis
@@ -83,10 +88,10 @@ export function transformMapSync<IN = any, OUT = IN>(
   let errors = 0
   const collectedErrors: Error[] = [] // only used if errorMode == THROW_AGGREGATED
 
-  return new TransformMapSync({
+  return new Transform({
     objectMode,
     ...opt,
-    transform(this: AbortableTransform, chunk: IN, _, cb) {
+    transform(chunk: IN, _, cb) {
       // Stop processing if isSettled
       if (isSettled) return cb()
 
@@ -99,7 +104,8 @@ export function transformMapSync<IN = any, OUT = IN>(
         if (v === END) {
           isSettled = true // will be checked later
           logger.log(`transformMapSync END received at index ${currentIndex}`)
-          pipelineClose('transformMapSync', this, this.sourceReadable, this.streamDone, logger)
+          _assert(signal, 'signal is required when using END')
+          signal.abort(new Error(PIPELINE_GRACEFUL_ABORT))
           return cb()
         }
 

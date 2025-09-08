@@ -7,12 +7,7 @@ pn tsx scripts/backpressureSimulation.script.ts
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { runScript } from '../src/script/runScript.js'
-import {
-  _pipeline,
-  readableFromArray,
-  transformLogProgress,
-  writableForEach,
-} from '../src/stream/index.js'
+import { Pipeline, readableFromArray } from '../src/stream/index.js'
 
 interface Item {
   id: string
@@ -32,16 +27,7 @@ runScript(async () => {
     } as Item),
   )
 
-  await _pipeline([
-    readable,
-    transformLogProgress({ logEvery: 30 }),
-    writableForEach(
-      async _item => {
-        await pDelay(processDelay)
-      },
-      {
-        concurrency,
-      },
-    ),
-  ])
+  await Pipeline.from(readable)
+    .logProgress({ logEvery: 30 })
+    .forEach(async _item => await pDelay(processDelay), { concurrency })
 })

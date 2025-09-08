@@ -1,13 +1,7 @@
 import { ErrorMode } from '@naturalcycles/js-lib/error/errorMode.js'
 import type { AbortableAsyncMapper } from '@naturalcycles/js-lib/types'
-import {
-  createReadStreamAsNDJSON,
-  createWriteStreamAsNDJSON,
-  transformFlatten,
-  type TransformLogProgressOptions,
-  type TransformMapOptions,
-} from '../index.js'
-import { _pipeline, transformLimit, transformLogProgress, transformMap } from '../index.js'
+import type { TransformLogProgressOptions, TransformMapOptions } from '../index.js'
+import { Pipeline } from '../pipeline.js'
 
 export interface NDJSONMapOptions<IN = any, OUT = IN>
   extends TransformMapOptions<IN, OUT>,
@@ -39,20 +33,16 @@ export async function ndjsonMap<IN = any, OUT = any>(
     outputFilePath,
   })
 
-  const readable = createReadStreamAsNDJSON(inputFilePath).take(
-    limitInput || Number.POSITIVE_INFINITY,
-  )
-
-  await _pipeline([
-    readable,
-    transformLogProgress({ metric: 'read', ...opt }),
-    transformMap(mapper, {
+  await Pipeline.fromNDJsonFile<IN>(inputFilePath)
+    .limitSource(limitInput)
+    .logProgress({ metric: 'read', ...opt })
+    .map(mapper, {
       errorMode: ErrorMode.SUPPRESS,
       ...opt,
-    }),
-    transformFlatten(),
-    transformLimit({ limit: limitOutput, sourceReadable: readable }),
-    transformLogProgress({ metric: 'saved', logEvery: logEveryOutput }),
-    ...createWriteStreamAsNDJSON(outputFilePath),
-  ])
+    })
+    .flattenIfNeeded()
+    // .typeCastAs<OUT>()
+    .limit(limitOutput)
+    .logProgress({ metric: 'saved', logEvery: logEveryOutput })
+    .toNDJsonFile(outputFilePath)
 }

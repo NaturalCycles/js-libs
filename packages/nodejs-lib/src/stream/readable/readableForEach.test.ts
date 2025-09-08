@@ -1,7 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, test } from 'vitest'
-import { readableFrom } from '../index.js'
-import { readableForEach, readableForEachSync } from './readableForEach.js'
+import { Pipeline } from '../index.js'
 
 interface Item {
   id: string
@@ -9,11 +8,10 @@ interface Item {
 
 test('readableForEachSync', async () => {
   const items: Item[] = _range(10).map(i => ({ id: `id_${i}` }))
-  const readable = readableFrom(items)
 
   const ids: string[] = []
 
-  await readableForEachSync(readable, item => {
+  await Pipeline.fromArray(items).forEachSync(item => {
     ids.push(item.id)
   })
 
@@ -22,17 +20,12 @@ test('readableForEachSync', async () => {
 
 test('readableForEach', async () => {
   const items: Item[] = _range(10).map(i => ({ id: `id_${i}` }))
-  const readable = readableFrom(items)
 
   const ids: string[] = []
 
-  await readableForEach(
-    readable,
-    async item => {
-      ids.push(item.id)
-    },
-    {},
-  )
+  await Pipeline.fromArray(items).forEach(async item => {
+    ids.push(item.id)
+  })
 
   expect(ids).toEqual(items.map(i => i.id))
 })

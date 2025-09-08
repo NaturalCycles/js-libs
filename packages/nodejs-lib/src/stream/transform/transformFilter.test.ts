@@ -1,24 +1,20 @@
-import { Readable } from 'node:stream'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, test } from 'vitest'
-import { _pipelineToArray, transformFilter } from '../index.js'
-import { transformFilterSync } from './transformFilter.js'
+import { Pipeline } from '../index.js'
 
 test('transformFilter', async () => {
   const items = _range(5)
 
-  let items2 = await _pipelineToArray([
-    Readable.from(items),
-    transformFilter<number>(n => n % 2 === 0),
-  ])
+  let items2 = await Pipeline.fromArray(items)
+    .filter(n => n % 2 === 0)
+    .toArray()
 
   expect(items2).toEqual([0, 2, 4])
 
   // reset
-  items2 = await _pipelineToArray([
-    Readable.from(items),
-    transformFilterSync<number>(n => n % 2 === 0),
-  ])
+  items2 = await Pipeline.fromArray(items)
+    .filterSync(n => n % 2 === 0)
+    .toArray()
 
   expect(items2).toEqual([0, 2, 4])
 })

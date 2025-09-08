@@ -1,9 +1,7 @@
-import { Readable } from 'node:stream'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expect, test } from 'vitest'
-import type { ProgressLogItem } from '../index.js'
-import { _pipeline, progressReadableMapper, readableFrom, writableVoid } from '../index.js'
-import { transformLogProgress } from './transformLogProgress.js'
+import { Pipeline, type ProgressLogItem } from '../index.js'
+import { progressReadableMapper, readableFrom } from '../index.js'
 
 // todo: AsyncIterable2 (or Iterable2.mapAsync) should be implemented in js-lib
 async function* rangeItAsync(
@@ -20,12 +18,10 @@ async function* rangeItAsync(
 test('transformLogProgress', async () => {
   // const readable = readableFromArray(_range(0, 11), i => pDelay(10, i))
   // const readable = Readable.from(AsyncSequence.create(1, i => (i === 10 ? END : pDelay(10, i + 1))))
-  const readable = Readable.from(rangeItAsync(1, 11, 10))
   let stats: ProgressLogItem
 
-  await _pipeline([
-    readable,
-    transformLogProgress({
+  await Pipeline.fromIterable(rangeItAsync(1, 11, 10))
+    .logProgress({
       logEvery: 2,
       peakRSS: true,
       logSizes: true,
@@ -40,10 +36,8 @@ test('transformLogProgress', async () => {
         }
       },
       onProgressDone: s => (stats = s),
-    }),
-    // transformLogProgress({logProgressInterval: 10}),
-    writableVoid(),
-  ])
+    })
+    .run()
 
   expect(stats!).toEqual({
     progress_final: 10,

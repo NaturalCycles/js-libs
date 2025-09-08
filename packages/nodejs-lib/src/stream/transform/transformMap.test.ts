@@ -1,18 +1,11 @@
-import { Readable } from 'node:stream'
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
 import { beforeAll, expect, test, vi } from 'vitest'
-import { transformFlatten, type TransformMapStats } from '../index.js'
-import {
-  _pipeline,
-  _pipelineToArray,
-  readableFromArray,
-  transformMap,
-  transformMapStatsSummary,
-} from '../index.js'
+import { Pipeline, type TransformMapStats } from '../index.js'
+import { transformMapStatsSummary } from '../index.js'
 
 beforeAll(() => {
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
@@ -30,11 +23,11 @@ const mapperError3: AsyncIndexedMapper<Item, Item> = item => {
 
 test('transformMap simple', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
-  const readable = Readable.from(data)
-
   const data2: Item[] = []
 
-  await _pipeline([readable, transformMap<Item, void>(r => void data2.push(r))])
+  await Pipeline.fromArray(data)
+    .map(r => void data2.push(r))
+    .run()
 
   expect(data2).toEqual(data)
   // expect(readable.destroyed).toBe(true)
@@ -42,12 +35,11 @@ test('transformMap simple', async () => {
 
 test('transformMap with mapping', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
-  const data2 = await _pipelineToArray<Item>([
-    readableFromArray(data),
-    transformMap(r => ({
+  const data2 = await Pipeline.fromArray(data)
+    .map(r => ({
       id: r.id + '!',
-    })),
-  ])
+    }))
+    .toArray()
 
   expect(data2).toEqual(data.map(r => ({ id: r.id + '!' })))
 })
@@ -55,14 +47,13 @@ test('transformMap with mapping', async () => {
 test('transformMap emit array as multiple items', async () => {
   let stats: TransformMapStats
   const data = _range(1, 4)
-  const data2 = await _pipelineToArray<number>([
-    readableFromArray(data),
-    transformMap(n => [n * 2, n * 2 + 1], {
+  const data2 = await Pipeline.fromArray(data)
+    .map(n => [n * 2, n * 2 + 1], {
       // async is to test that it's awaited
       onDone: async s => (stats = s),
-    }),
-    transformFlatten(),
-  ])
+    })
+    .flatten()
+    .toArray()
 
   const expected: number[] = []
   data.forEach(n => {
@@ -103,15 +94,13 @@ test('transformMap emit array as multiple items', async () => {
 test('transformMap errorMode=THROW_IMMEDIATELY', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
-  const readable = readableFromArray(data)
   const data2: Item[] = []
 
   await expect(
-    _pipeline([
-      readable,
-      transformMap(mapperError3, { concurrency: 1, onDone: s => (stats = s) }),
-      transformMap<Item, void>(r => void data2.push(r)),
-    ]),
+    Pipeline.fromArray(data)
+      .map(mapperError3, { concurrency: 1, onDone: s => (stats = s) })
+      .map(r => void data2.push(r))
+      .run(),
   ).rejects.toThrow('my error')
 
   expect(data2).toEqual(data.filter(r => Number(r.id) < 3))
@@ -133,18 +122,16 @@ test('transformMap errorMode=THROW_IMMEDIATELY', async () => {
 test('transformMap errorMode=THROW_AGGREGATED', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
-  const readable = readableFromArray(data)
   const data2: Item[] = []
 
   const err = await pExpectedError(
-    _pipeline([
-      readable,
-      transformMap(mapperError3, {
+    Pipeline.fromArray(data)
+      .map(mapperError3, {
         errorMode: ErrorMode.THROW_AGGREGATED,
         onDone: s => (stats = s),
-      }),
-      transformMap<Item, void>(r => void data2.push(r)),
-    ]),
+      })
+      .map(r => void data2.push(r))
+      .run(),
     AggregateError,
   )
   expect(_stringify(err)).toMatchInlineSnapshot(`
@@ -201,14 +188,11 @@ n1: 145"
 test('transformMap errorMode=SUPPRESS', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
-  const readable = readableFromArray(data)
-
   const data2: Item[] = []
-  await _pipeline([
-    readable,
-    transformMap(mapperError3, { errorMode: ErrorMode.SUPPRESS, onDone: s => (stats = s) }),
-    transformMap<Item, void>(r => void data2.push(r)),
-  ])
+  await Pipeline.fromArray(data)
+    .map(mapperError3, { errorMode: ErrorMode.SUPPRESS, onDone: s => (stats = s) })
+    .map(r => void data2.push(r))
+    .run()
 
   expect(data2).toEqual(data.filter(r => r.id !== '3'))
 

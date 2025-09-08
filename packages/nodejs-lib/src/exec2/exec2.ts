@@ -288,6 +288,7 @@ class Exec2 {
         [
           '  ',
           dimGrey(envString),
+          // todo: only before first space
           white(_substringAfterLast(cmd, '/')),
           ...((opt as SpawnOptions).args || []),
         ]

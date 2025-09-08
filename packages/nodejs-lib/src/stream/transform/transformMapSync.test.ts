@@ -1,11 +1,8 @@
-import { Readable } from 'node:stream'
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
 import { beforeAll, expect, test, vi } from 'vitest'
-import type { TransformMapStats } from '../index.js'
-import { _pipeline, writableVoid } from '../index.js'
-import { transformMapSync } from './transformMapSync.js'
+import { Pipeline, type TransformMapStats } from '../index.js'
 
 interface Item {
   id: string
@@ -17,11 +14,11 @@ beforeAll(() => {
 
 test('transformMapSync simple', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
-  const readable = Readable.from(data)
-
   const data2: Item[] = []
 
-  await _pipeline([readable, transformMapSync<Item, void>(r => void data2.push(r)), writableVoid()])
+  await Pipeline.fromArray(data)
+    .mapSync(r => void data2.push(r))
+    .run()
 
   expect(data2).toEqual(data)
   // expect(readable.destroyed).toBe(true)
@@ -33,9 +30,8 @@ test('transformMapSync error', async () => {
 
   const data2: string[] = []
   const [err] = await pTry(
-    _pipeline([
-      Readable.from(data),
-      transformMapSync<string, void>(
+    Pipeline.fromArray(data)
+      .mapSync(
         (r, i) => {
           if (i === 50) {
             throw new AppError('error on 50th')
@@ -46,9 +42,8 @@ test('transformMapSync error', async () => {
         {
           onDone: s => (stats = s),
         },
-      ),
-      writableVoid(),
-    ]),
+      )
+      .run(),
   )
 
   expect(err).toBeInstanceOf(AppError)
@@ -73,9 +68,8 @@ test('transformMapSync suppressed error', async () => {
   const data = _range(100).map(String)
 
   const data2: string[] = []
-  await _pipeline([
-    Readable.from(data),
-    transformMapSync<string, void>(
+  await Pipeline.fromArray(data)
+    .mapSync(
       (r, i) => {
         if (i === 50) {
           throw new AppError('error on 50th')
@@ -87,9 +81,8 @@ test('transformMapSync suppressed error', async () => {
         errorMode: ErrorMode.SUPPRESS,
         onDone: s => (stats = s),
       },
-    ),
-    writableVoid(),
-  ])
+    )
+    .run()
 
   expect(data2).toEqual(data.filter(r => r !== '50'))
 

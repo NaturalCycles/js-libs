@@ -1,8 +1,6 @@
-import { Readable } from 'node:stream'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, test } from 'vitest'
-import { _pipeline } from '../stream/pipeline/pipeline.js'
-import { writablePushToArray } from '../stream/writable/writablePushToArray.js'
+import { Pipeline } from '../stream/index.js'
 import { csvStringParse } from './csvReader.js'
 import { arrayToCSVString } from './csvWriter.js'
 import { transformToCSV } from './transformToCSV.js'
@@ -26,17 +24,13 @@ const items: Item[] = _range(1, 11).map(i => ({
 }))
 
 test('transformToCSV', async () => {
-  const rows: string[] = []
-
-  await _pipeline([
-    Readable.from(items),
-    transformToCSV({
-      columns: ['id', 'k', 'k2', 'n', 'b'],
-    }),
-    writablePushToArray(rows, {
-      objectMode: false,
-    }),
-  ])
+  const rows = await Pipeline.fromArray(items)
+    .transform(
+      transformToCSV({
+        columns: ['id', 'k', 'k2', 'n', 'b'],
+      }),
+    )
+    .toArray({ objectMode: false })
 
   const str = rows.join('')
   expect(str).toMatchInlineSnapshot(`

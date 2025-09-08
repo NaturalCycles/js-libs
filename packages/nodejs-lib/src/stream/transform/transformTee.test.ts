@@ -1,7 +1,7 @@
 import { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expect, test } from 'vitest'
-import { _pipeline } from '../pipeline/pipeline.js'
 import { writablePushToArray } from '../writable/writablePushToArray.js'
 import { transformLogProgress } from './transformLogProgress.js'
 import { transformMapSimple } from './transformMapSimple.js'
@@ -21,7 +21,7 @@ test('transformTee', async () => {
   const firstArray: number[] = []
   const secondArray: number[] = []
 
-  await _pipeline([
+  await pipeline([
     source,
     transformMapSimple(n => {
       console.log(`n is ${n}`)

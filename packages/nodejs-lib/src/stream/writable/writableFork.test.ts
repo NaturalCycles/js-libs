@@ -1,7 +1,8 @@
+import { pipeline } from 'node:stream/promises'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { SKIP } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
-import { _pipeline, readableCreate, transformMap, writablePushToArray } from '../index.js'
+import { readableCreate, transformMap, writablePushToArray } from '../index.js'
 import { writableFork } from './writableFork.js'
 
 // jest.setTimeout(900_000)
@@ -26,7 +27,7 @@ test('writableFork', async () => {
     }
   }, 100)
 
-  await _pipeline([
+  await pipeline([
     readableInput,
     transformMap<number, string>(
       n => {

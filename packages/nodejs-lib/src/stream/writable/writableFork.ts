@@ -1,5 +1,5 @@
 import { Writable } from 'node:stream'
-import { _pipeline } from '../pipeline/pipeline.js'
+import { pipeline } from 'node:stream/promises'
 import { readableCreate } from '../readable/readableCreate.js'
 import type { ReadableTyped, TransformOptions, WritableTyped } from '../stream.model.js'
 
@@ -22,7 +22,7 @@ export function writableFork<T>(
       const readable = readableCreate<T>()
       readables.push(readable)
 
-      return await _pipeline([readable, ...chain])
+      return await pipeline([readable, ...chain])
     }),
   ).catch(err => {
     console.error(err) // ensure the error is logged
