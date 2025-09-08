@@ -1,3 +1,4 @@
+import { Readable } from 'node:stream'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
@@ -7,11 +8,10 @@ import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import { md5 } from '@naturalcycles/nodejs-lib'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
-import {
-  type ReadableBinary,
-  readableFrom,
-  type ReadableTyped,
-  type WritableBinary,
+import type {
+  ReadableBinary,
+  ReadableTyped,
+  WritableBinary,
 } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
 
@@ -30,7 +30,7 @@ export class InMemoryCommonStorage implements CommonStorage {
   }
 
   getBucketNamesStream(): ReadableTyped<string> {
-    return readableFrom(Object.keys(this.data))
+    return Readable.from(Object.keys(this.data))
   }
 
   async fileExists(bucketName: string, filePath: string): Promise<boolean> {
@@ -73,7 +73,7 @@ export class InMemoryCommonStorage implements CommonStorage {
   getFileNamesStream(bucketName: string, opt: CommonStorageGetOptions = {}): ReadableTyped<string> {
     const { prefix = '', fullPaths = true } = opt
 
-    return readableFrom(
+    return Readable.from(
       Object.keys(this.data[bucketName] || {})
         .filter(filePath => filePath.startsWith(prefix))
         .slice(0, opt.limit)
@@ -84,7 +84,7 @@ export class InMemoryCommonStorage implements CommonStorage {
   getFilesStream(bucketName: string, opt: CommonStorageGetOptions = {}): ReadableTyped<FileEntry> {
     const { prefix = '', fullPaths = true } = opt
 
-    return readableFrom(
+    return Readable.from(
       _stringMapEntries(this.data[bucketName] || {})
         .map(([filePath, content]) => ({
           filePath,
@@ -97,7 +97,7 @@ export class InMemoryCommonStorage implements CommonStorage {
   }
 
   getFileReadStream(bucketName: string, filePath: string): ReadableBinary {
-    return readableFrom(this.data[bucketName]![filePath]!)
+    return Readable.from(this.data[bucketName]![filePath]!)
   }
 
   getFileWriteStream(_bucketName: string, _filePath: string): WritableBinary {

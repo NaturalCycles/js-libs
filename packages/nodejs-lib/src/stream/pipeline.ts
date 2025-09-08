@@ -17,7 +17,6 @@ import type {
   SKIP,
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
-import { createReadStreamAsNDJSON } from './ndjson/createReadStreamAsNDJSON.js'
 import { transformJsonParse } from './ndjson/transformJsonParse.js'
 import { transformToNDJson } from './ndjson/transformToNDJson.js'
 import type {
@@ -83,12 +82,26 @@ export class Pipeline<T> {
     return new Pipeline(Readable.from(input))
   }
 
-  static fromFile(sourceFilePath: string): Pipeline<Uint8Array> {
-    return new Pipeline(fs2.createReadStream(sourceFilePath), false)
+  static fromNDJsonFile<T>(sourceFilePath: string): Pipeline<T> {
+    fs2.requireFileToExist(sourceFilePath)
+
+    const p = Pipeline.fromFile(sourceFilePath)
+    if (sourceFilePath.endsWith('.gz')) {
+      p.gunzip()
+    }
+    return p.parseJson()
+    // return stream.pipe(transformSplitOnNewline()).map(line => JSON.parse(line))
+    // For some crazy reason .map is much faster than transformJsonParse!
+    // ~5000 vs ~4000 rps !!!
   }
 
-  static fromNDJsonFile<T>(sourceFilePath: string): Pipeline<T> {
-    return new Pipeline(createReadStreamAsNDJSON<T>(sourceFilePath))
+  static fromFile(sourceFilePath: string): Pipeline<Uint8Array> {
+    return new Pipeline(
+      fs2.createReadStream(sourceFilePath, {
+        highWaterMark: 64 * 1024, // no observed speedup
+      }),
+      false,
+    )
   }
 
   /**
@@ -276,13 +289,23 @@ export class Pipeline<T> {
   }
 
   gzip(this: Pipeline<Uint8Array>, opt?: ZlibOptions): Pipeline<Uint8Array> {
-    this.transforms.push(createGzip(opt))
+    this.transforms.push(
+      createGzip({
+        // chunkSize: 64 * 1024, // no observed speedup
+        ...opt,
+      }),
+    )
     this.objectMode = false
     return this as any
   }
 
   gunzip(this: Pipeline<Uint8Array>, opt?: ZlibOptions): Pipeline<Uint8Array> {
-    this.transforms.push(createUnzip(opt))
+    this.transforms.push(
+      createUnzip({
+        chunkSize: 64 * 1024, // speedup from ~3200 to 3800 rps!
+        ...opt,
+      }),
+    )
     this.objectMode = false
     return this as any
   }

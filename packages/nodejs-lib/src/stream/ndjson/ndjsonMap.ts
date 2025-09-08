@@ -21,6 +21,8 @@ export interface NDJSONMapOptions<IN = any, OUT = IN>
 /**
  * Unzips input file automatically, if it ends with `.gz`.
  * Zips output file automatically, if it ends with `.gz`.
+ *
+ * @deprecated use Pipeline directly
  */
 export async function ndjsonMap<IN = any, OUT = any>(
   mapper: AbortableAsyncMapper<IN, OUT>,

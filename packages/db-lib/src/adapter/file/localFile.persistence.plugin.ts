@@ -1,7 +1,7 @@
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
-import { createReadStreamAsNDJSON, Pipeline } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { DBSaveBatchOperation } from '../../db.model.js'
 import type { FileDBPersistencePlugin } from './file.db.model.js'
 
@@ -46,7 +46,7 @@ export class LocalFilePersistencePlugin implements FileDBPersistencePlugin {
 
     if (!(await fs2.pathExistsAsync(filePath))) return []
 
-    return await createReadStreamAsNDJSON(filePath).toArray()
+    return await Pipeline.fromNDJsonFile<ROW>(filePath).toArray()
   }
 
   async saveFiles(ops: DBSaveBatchOperation<any>[]): Promise<void> {
