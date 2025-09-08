@@ -5,19 +5,11 @@ import type { AsyncMapper, BaseDBEntity, UnixTimestamp } from '@naturalcycles/js
 import { _passthroughMapper } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import {
-  transformFlatten,
+  Pipeline,
   type TransformLogProgressOptions,
   type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
-import {
-  _pipeline,
-  NDJsonStats,
-  transformChunk,
-  transformLogProgress,
-  transformMap,
-  transformTap,
-  writableForEach,
-} from '@naturalcycles/nodejs-lib/stream'
+import { NDJsonStats } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBSaveOptions } from '../db.model.js'
 import { DBQuery } from '../query/dbQuery.js'
@@ -136,25 +128,23 @@ export async function dbPipelineCopy(opt: DBPipelineCopyOptions): Promise<NDJson
       const started = Date.now()
       let rows = 0
 
-      await _pipeline([
-        stream,
-        transformLogProgress({
+      await Pipeline.from(stream)
+        .logProgress({
           logEvery: 1000,
           ...opt,
           metric: table,
-        }),
-        transformMap(mapper, {
+        })
+        .map(mapper, {
           errorMode,
           ...transformMapOptions,
           metric: table,
-        }),
-        transformFlatten(),
-        transformTap(() => rows++),
-        transformChunk({ chunkSize }),
-        writableForEach(async dbms => {
+        })
+        .flattenIfNeeded()
+        .tap(() => rows++)
+        .chunk(chunkSize)
+        .forEach(async dbms => {
           await dbOutput.saveBatch(table, dbms, saveOptions)
-        }),
-      ])
+        })
 
       const stats = NDJsonStats.create({
         tookMillis: Date.now() - started,

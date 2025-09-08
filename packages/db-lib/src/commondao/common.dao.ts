@@ -23,17 +23,16 @@ import {
 import { _passthroughPredicate, _typeCast } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
 import {
+  Pipeline,
   type ReadableTyped,
   transformFlatten,
   transformMapSync,
 } from '@naturalcycles/nodejs-lib/stream'
 import {
-  _pipeline,
   transformChunk,
   transformLogProgress,
   transformMap,
   transformNoOp,
-  writableVoid,
 } from '@naturalcycles/nodejs-lib/stream'
 import { DBLibError } from '../cnst.js'
 import type {
@@ -253,9 +252,8 @@ export class CommonDao<
 
     const isPartialQuery = !!q._selectedFieldNames
 
-    await _pipeline([
-      this.cfg.db.streamQuery<DBM>(q, opt),
-      transformMap<DBM, BM>(
+    await Pipeline.from(this.cfg.db.streamQuery<DBM>(q, opt))
+      .map(
         async dbm => {
           if (isPartialQuery) return dbm as any
           return await this.dbmToBM(dbm, opt)
@@ -263,18 +261,17 @@ export class CommonDao<
         {
           errorMode: opt.errorMode,
         },
-      ),
-      transformMap<BM, void>(mapper, {
+      )
+      .map(mapper, {
         ...opt,
         predicate: _passthroughPredicate, // to be able to logProgress
-      }),
+      })
       // LogProgress should be AFTER the mapper, to be able to report correct stats
-      transformLogProgress({
+      .logProgress({
         metric: q.table,
         ...opt,
-      }),
-      writableVoid(),
-    ])
+      })
+      .run()
   }
 
   async streamQueryAsDBMForEach(
@@ -289,9 +286,8 @@ export class CommonDao<
 
     const isPartialQuery = !!q._selectedFieldNames
 
-    await _pipeline([
-      this.cfg.db.streamQuery<any>(q, opt),
-      transformMapSync<any, DBM>(
+    await Pipeline.from(this.cfg.db.streamQuery<any>(q, opt))
+      .mapSync(
         dbm => {
           if (isPartialQuery) return dbm
           return this.anyToDBM(dbm, opt)
@@ -299,18 +295,16 @@ export class CommonDao<
         {
           errorMode: opt.errorMode,
         },
-      ),
-      transformMap<DBM, void>(mapper, {
+      )
+      .map(mapper, {
         ...opt,
         predicate: _passthroughPredicate, // to be able to logProgress
-      }),
-      // LogProgress should be AFTER the mapper, to be able to report correct stats
-      transformLogProgress({
+      })
+      .logProgress({
         metric: q.table,
         ...opt,
-      }),
-      writableVoid(),
-    ])
+      })
+      .run()
   }
 
   /**
@@ -434,19 +428,17 @@ export class CommonDao<
     q.table = opt.table || q.table
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    await _pipeline([
-      this.cfg.db.streamQuery<DBM>(q.select(['id']), opt).map(r => r.id),
-      transformMap<ID, void>(mapper, {
+    await Pipeline.from(this.cfg.db.streamQuery<DBM>(q.select(['id']), opt).map(r => r.id as ID))
+      .map(mapper, {
         ...opt,
         predicate: _passthroughPredicate,
-      }),
+      })
       // LogProgress should be AFTER the mapper, to be able to report correct stats
-      transformLogProgress({
+      .logProgress({
         metric: q.table,
         ...opt,
-      }),
-      writableVoid(),
-    ])
+      })
+      .run()
   }
 
   /**
@@ -714,7 +706,7 @@ export class CommonDao<
    * and then executing db.saveBatch(chunk) with the concurrency
    * of opt.chunkConcurrency (which defaults to 32).
    */
-  streamSaveTransform(opt: CommonDaoStreamSaveOptions<DBM> = {}): Transform[] {
+  streamSaveTransforms(opt: CommonDaoStreamSaveOptions<DBM> = {}): Transform[] {
     this.requireWriteAccess()
 
     const table = opt.table || this.cfg.table
@@ -742,7 +734,7 @@ export class CommonDao<
           errorMode,
         },
       ),
-      transformChunk<DBM>({ chunkSize }),
+      transformChunk<DBM>(chunkSize),
       transformMap<DBM[], DBM[]>(
         async batch => {
           await this.cfg.db.saveBatch(table, batch, {
@@ -761,9 +753,6 @@ export class CommonDao<
         metric: 'saved',
         ...opt,
       }),
-      // just to satisfy and simplify typings
-      // It's easier to return Transform[], rather than (Transform | Writable)[]
-      writableVoid() as Transform,
     ]
   }
 
@@ -802,10 +791,9 @@ export class CommonDao<
     if (opt.chunkSize) {
       const { chunkSize, chunkConcurrency = 8 } = opt
 
-      await _pipeline([
-        this.cfg.db.streamQuery<DBM>(q.select(['id']), opt).map(r => r.id),
-        transformChunk<string>({ chunkSize }),
-        transformMap<string[], void>(
+      await Pipeline.from(this.cfg.db.streamQuery<DBM>(q.select(['id']), opt).map(r => r.id))
+        .chunk(chunkSize)
+        .map(
           async ids => {
             await this.cfg.db.deleteByIds(q.table, ids, opt)
             deleted += ids.length
@@ -815,16 +803,15 @@ export class CommonDao<
             concurrency: chunkConcurrency,
             errorMode: opt.errorMode || ErrorMode.THROW_IMMEDIATELY,
           },
-        ),
+        )
         // LogProgress should be AFTER the mapper, to be able to report correct stats
-        transformLogProgress({
+        .logProgress({
           metric: q.table,
           logEvery: 2, // 500 * 2 === 1000
           chunkSize,
           ...opt,
-        }),
-        writableVoid(),
-      ])
+        })
+        .run()
     } else {
       deleted = await this.cfg.db.deleteByQuery(q, opt)
     }

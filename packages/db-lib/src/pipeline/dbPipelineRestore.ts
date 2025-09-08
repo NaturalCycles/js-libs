@@ -9,21 +9,11 @@ import { _passthroughMapper } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
-  createReadStreamAsNDJSON,
-  transformFlatten,
+  Pipeline,
   type TransformLogProgressOptions,
   type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
-import {
-  _pipeline,
-  NDJsonStats,
-  transformChunk,
-  transformFilterSync,
-  transformLogProgress,
-  transformMap,
-  transformTap,
-  writableForEach,
-} from '@naturalcycles/nodejs-lib/stream'
+import { NDJsonStats } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBSaveOptions } from '../db.model.js'
 
@@ -195,28 +185,25 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
 
       console.log(`<< ${grey(filePath)} ${dimWhite(_hb(sizeBytes))} started...`)
 
-      await _pipeline([
-        createReadStreamAsNDJSON(filePath).take(limit || Number.POSITIVE_INFINITY),
-        transformTap(() => rows++),
-        transformLogProgress({
+      await Pipeline.fromNDJsonFile<BaseDBEntity>(filePath)
+        .limitSource(limit)
+        .tap(() => rows++)
+        .logProgress({
           logEvery: 1000,
           ...opt,
           metric: table,
-        }),
-        ...(sinceUpdated
-          ? [transformFilterSync<BaseDBEntity>(r => r.updated >= sinceUpdated)]
-          : []),
-        transformMap(mapperPerTable[table] || _passthroughMapper, {
+        })
+        .filterSync(r => !sinceUpdated || r.updated >= sinceUpdated)
+        .map(mapperPerTable[table] || _passthroughMapper, {
           errorMode,
           ...transformMapOptions,
           metric: table,
-        }),
-        transformFlatten(),
-        transformChunk({ chunkSize }),
-        writableForEach(async dbms => {
+        })
+        .flattenIfNeeded()
+        .chunk(chunkSize)
+        .forEach(async dbms => {
           await db.saveBatch(table, dbms, saveOptions)
-        }),
-      ])
+        })
 
       const stats = NDJsonStats.create({
         tookMillis: Date.now() - started,

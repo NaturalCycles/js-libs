@@ -1,9 +1,8 @@
-import { Readable } from 'node:stream'
 import { _sortBy } from '@naturalcycles/js-lib/array/array.util.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _deepCopy, _filterObject, _omit, _pick } from '@naturalcycles/js-lib/object'
 import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'
-import { _pipeline } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { CommonDao } from '../commondao/common.dao.js'
 import type { CommonDB } from '../commondb/common.db.js'
 import { DBQuery } from '../query/dbQuery.js'
@@ -284,7 +283,7 @@ export async function runCommonDaoTest(
       const items2 = createTestItemsBM(2).map(i => ({ ...i, id: i.id + '_str' }))
       const ids = items2.map(i => i.id)
 
-      await _pipeline([Readable.from(items2), ...dao.streamSaveTransform()])
+      await Pipeline.fromArray(items2).transformMany(dao.streamSaveTransforms()).run()
 
       const items2Loaded = await dao.getByIds(ids)
       expectMatch(items2, items2Loaded, quirks)

@@ -6,18 +6,11 @@ import { _passthroughMapper } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
-  createWriteStreamAsNDJSON,
-  transformFlatten,
+  Pipeline,
   type TransformLogProgressOptions,
   type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
-import {
-  _pipeline,
-  NDJsonStats,
-  transformLogProgress,
-  transformMap,
-  transformTap,
-} from '@naturalcycles/nodejs-lib/stream'
+import { NDJsonStats } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../commondb/common.db.js'
 import { DBQuery } from '../query/dbQuery.js'
 
@@ -212,24 +205,20 @@ export async function dbPipelineBackup(opt: DBPipelineBackupOptions): Promise<ND
         console.log(`>> ${grey(schemaFilePath)} saved (generated from DB)`)
       }
 
-      await _pipeline([
-        db.streamQuery(q),
-        transformLogProgress({
+      await Pipeline.from(db.streamQuery(q))
+        .logProgress({
           ...opt,
           logEvery: logEveryPerTable[table] ?? opt.logEvery ?? 1000,
           metric: table,
-        }),
-        transformMap(mapperPerTable[table] || _passthroughMapper, {
+        })
+        .map(mapperPerTable[table] || _passthroughMapper, {
           errorMode,
           ...transformMapOptions,
           metric: table,
-        }),
-        transformFlatten(),
-        transformTap(() => {
-          rows++
-        }),
-        ...createWriteStreamAsNDJSON(filePath),
-      ])
+        })
+        .flattenIfNeeded()
+        .tap(() => rows++)
+        .toNDJsonFile(filePath)
 
       const { size: sizeBytes } = await fs2.statAsync(filePath)
 
