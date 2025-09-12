@@ -11,6 +11,7 @@ import BetterSqlite3 from 'better-sqlite3'
 export interface BetterSQLiteKeyValueDBCfg extends Options {
   filename: string
 
+  // todo: refactor to logLevel instead
   /**
    * Will log all sql queries executed.
    *

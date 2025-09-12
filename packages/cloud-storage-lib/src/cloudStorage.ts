@@ -40,6 +40,7 @@ export interface CloudStorageCfg {
    */
   logger?: CommonLogger
 
+  // todo: refactor to logLevel
   /**
    * Pass true for extra debugging
    */
