@@ -123,6 +123,7 @@ export class SentrySharedService {
    */
   getCommonLogger(): CommonLogger {
     return {
+      debug: () => {}, // noop
       log: () => {}, // noop
       warn: () => {}, // noop
       error: (...args) => {

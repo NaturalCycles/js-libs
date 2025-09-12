@@ -3,7 +3,7 @@ import { FieldPath, type Query, type QuerySnapshot } from '@google-cloud/firesto
 import type { DBQuery } from '@naturalcycles/db-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { type CommonLogger, createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
 import type {
   ObjectWithId,
@@ -42,12 +42,12 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
   private totalWait = 0
 
   private readonly opt: FirestoreDBStreamOptions & { batchSize: number }
+  private logger: CommonLogger
 
   constructor(
     private readonly q: Query,
     readonly dbQuery: DBQuery<T>,
     opt: FirestoreDBStreamOptions,
-    private logger: CommonLogger,
   ) {
     super({ objectMode: true })
 
@@ -58,8 +58,10 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
 
     this.originalLimit = dbQuery._limitValue
     this.table = dbQuery.table
+    const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
+    this.logger = logger
 
-    logger.warn(
+    logger.log(
       `!! using experimentalShardedStream !! ${this.table}, batchSize: ${this.opt.batchSize}`,
     )
   }
@@ -77,18 +79,18 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     this.count++
 
     if (this.done) {
-      this.logger.warn(`!!! _read was called, but done==true`)
+      this.logger.log(`!!! _read was called, but done==true`)
       return
     }
 
     // const shard = this.getNextShardAndMove()
     const shard = this.findNextFreeShard()
     if (!shard) {
-      this.logger.log(`_read ${this.count}: all shards are busy, skipping`)
+      this.logger.debug(`_read ${this.count}: all shards are busy, skipping`)
       return
     }
     void this.runNextQuery(shard).catch(err => {
-      console.log('error in runNextQuery', err)
+      this.logger.error('error in runNextQuery', err)
       this.emit('error', err)
     })
   }
@@ -112,7 +114,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
       q = q.startAfter(this.cursorByShard[shard])
     }
 
-    console.log(`runNextQuery[${shard}]`, {
+    logger.debug(`runNextQuery[${shard}]`, {
       retrieved: this.rowsRetrieved,
     })
     const qs = await this.runQuery(q)
@@ -133,7 +135,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     }
 
     this.rowsRetrieved += rows.length
-    logger.log(
+    logger.debug(
       `${table} got ${rows.length} rows, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(
         this.totalWait,
       )}`,
@@ -148,14 +150,14 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     }
 
     if (qs.empty) {
-      logger.warn(
+      logger.log(
         `!!!! Shard ${shard} DONE! ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
       )
       this.doneShards.add(shard)
     }
 
     if (this.doneShards.size === SHARDS) {
-      logger.warn(
+      logger.log(
         `!!!! DONE: all shards completed, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
       )
       this.push(null)
@@ -165,7 +167,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     }
 
     if (this.originalLimit && this.rowsRetrieved >= this.originalLimit) {
-      logger.warn(
+      logger.log(
         `!!!! DONE: reached total limit of ${this.originalLimit}, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
       )
       this.push(null)
@@ -181,7 +183,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     if (nextShard) {
       void this.runNextQuery(nextShard)
     } else {
-      logger.warn(`${table} all shards are busy in runNextQuery, skipping`)
+      logger.log(`${table} all shards are busy in runNextQuery, skipping`)
     }
   }
 
@@ -203,7 +205,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
         },
       )
     } catch (err) {
-      console.log(
+      logger.error(
         `FirestoreStreamReadable error!\n`,
         {
           table,

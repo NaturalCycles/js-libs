@@ -43,7 +43,7 @@ test('experimentalCursorStream', async () => {
   const items = await firestoreDB
     .streamQuery(DBQuery.create(TEST_TABLE), {
       experimentalCursorStream: true,
-      debug: true,
+      logLevel: 'debug',
     })
     .toArray()
 

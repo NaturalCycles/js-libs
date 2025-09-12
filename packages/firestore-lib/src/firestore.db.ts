@@ -25,7 +25,7 @@ import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { type CommonLogger, commonLoggerMinLevel } from '@naturalcycles/js-lib/log'
+import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { ObjectWithId, PositiveInteger, StringMap } from '@naturalcycles/js-lib/types'
@@ -156,26 +156,18 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
     const opt: FirestoreDBStreamOptions = {
+      logger: this.cfg.logger,
+      logLevel: this.cfg.logLevel,
       ...this.cfg.streamOptions,
       ...opt_,
     }
 
     if (opt.experimentalCursorStream) {
-      return new FirestoreStreamReadable(
-        firestoreQuery,
-        q,
-        opt,
-        commonLoggerMinLevel(this.cfg.logger, opt.debug ? 'log' : 'warn'),
-      )
+      return new FirestoreStreamReadable(firestoreQuery, q, opt)
     }
 
     if (opt.experimentalShardedStream) {
-      return new FirestoreShardedReadable(
-        firestoreQuery,
-        q,
-        opt,
-        commonLoggerMinLevel(this.cfg.logger, opt.debug ? 'log' : 'warn'),
-      )
+      return new FirestoreShardedReadable(firestoreQuery, q, opt)
     }
 
     return (firestoreQuery.stream() as ReadableTyped<QueryDocumentSnapshot<any>>).map(doc => {
@@ -534,6 +526,8 @@ export interface FirestoreDBCfg {
    * Default to `console`
    */
   logger?: CommonLogger
+
+  logLevel?: CommonLogLevel
 }
 
 const methodMap: Record<CommonDBSaveMethod, SaveOp> = {
@@ -575,12 +569,13 @@ export interface FirestoreDBStreamOptions extends FirestoreDBReadOptions {
    */
   highWaterMark?: PositiveInteger
 
+  logger?: CommonLogger
+
   /**
-   * Set to `true` to log additional debug info, when using experimentalCursorStream.
-   *
-   * @default false
+   * Defaults to `log`.
+   * Set to `debug` to allow for extra debugging, e.g in experimentalCursorStream.
    */
-  debug?: boolean
+  logLevel?: CommonLogLevel
 }
 
 export interface FirestoreDBOptions extends CommonDBOptions {}

@@ -50,7 +50,7 @@ runScript(async () => {
   await Pipeline.from(
     db.streamQuery(DBQuery.create(TABLE), {
       experimentalCursorStream: true,
-      debug: true,
+      logLevel: 'debug',
     }),
   )
     // This thing logs every 100's object + some memory and speed metrics

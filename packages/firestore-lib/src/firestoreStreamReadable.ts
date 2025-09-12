@@ -3,7 +3,7 @@ import { FieldPath, type Query, type QuerySnapshot } from '@google-cloud/firesto
 import type { DBQuery } from '@naturalcycles/db-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { type CommonLogger, createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
@@ -28,12 +28,12 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
   countReads = 0
 
   private readonly opt: FirestoreDBStreamOptions & { batchSize: number; highWaterMark: number }
+  private logger: CommonLogger
 
   constructor(
     private q: Query,
     dbQuery: DBQuery<T>,
     opt: FirestoreDBStreamOptions,
-    private logger: CommonLogger,
   ) {
     // 10_000 was optimal in benchmarks
     const { batchSize = 10_000 } = opt
@@ -50,8 +50,10 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
 
     this.originalLimit = dbQuery._limitValue
     this.table = dbQuery.table
+    const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
+    this.logger = logger
 
-    logger.warn(`!!! using experimentalCursorStream`, {
+    logger.log(`!!! using experimentalCursorStream`, {
       table: this.table,
       batchSize,
       highWaterMark,
@@ -77,12 +79,12 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
 
     if (this.queryIsRunning) {
-      this.logger.log(`_read #${this.countReads}, queryIsRunning: true, doing nothing`)
+      this.logger.debug(`_read #${this.countReads}, queryIsRunning: true, doing nothing`)
       return
     }
 
     void this.runNextQuery().catch(err => {
-      console.log('error in runNextQuery', err)
+      this.logger.error('error in runNextQuery', err)
       this.emit('error', err)
     })
   }
@@ -130,7 +132,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
 
     this.rowsRetrieved += rows.length
-    logger.log(
+    logger.debug(
       `${table} got ${rows.length} rows in ${_ms(queryTook)}, ${this.rowsRetrieved} rowsRetrieved`,
     )
 
@@ -143,7 +145,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
 
     if (!rows.length || (this.originalLimit && this.rowsRetrieved >= this.originalLimit)) {
-      logger.warn(`${table} DONE! ${this.rowsRetrieved} rowsRetrieved`)
+      logger.log(`${table} DONE! ${this.rowsRetrieved} rowsRetrieved`)
       this.push(null)
       this.done = true
       this.paused = false
@@ -152,12 +154,12 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
 
     if (shouldContinue) {
       // Keep the stream flowing
-      logger.log(`${table} continuing the stream`)
+      logger.debug(`${table} continuing the stream`)
       void this.runNextQuery()
     } else {
       // Not starting the next query
       if (this.paused) {
-        logger.log(`${table} stream is already paused`)
+        logger.debug(`${table} stream is already paused`)
       } else {
         logger.log(`${table} pausing the stream`)
         this.paused = true
@@ -183,7 +185,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
         },
       )
     } catch (err) {
-      console.log(
+      logger.error(
         `FirestoreStreamReadable error!\n`,
         {
           table,

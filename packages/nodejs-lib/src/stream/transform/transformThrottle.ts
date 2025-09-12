@@ -1,5 +1,6 @@
 import { Transform } from 'node:stream'
 import { _ms, _since, localTime } from '@naturalcycles/js-lib/datetime'
+import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
 import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import type {
@@ -7,9 +8,9 @@ import type {
   PositiveInteger,
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
-import type { TransformTyped } from '../stream.model.js'
+import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
-export interface TransformThrottleOptions {
+export interface TransformThrottleOptions extends TransformOptions {
   /**
    * How many items to allow per `interval` of seconds.
    */
@@ -19,8 +20,6 @@ export interface TransformThrottleOptions {
    * How long is the interval (in seconds) where number of items should not exceed `throughput`.
    */
   interval: NumberOfSeconds
-
-  debug?: boolean
 }
 
 /**
@@ -41,42 +40,40 @@ export interface TransformThrottleOptions {
  * @experimental
  */
 export function transformThrottle<T>(opt: TransformThrottleOptions): TransformTyped<T, T> {
-  const { throughput, interval, debug } = opt
+  const { throughput, interval, objectMode = true, highWaterMark } = opt
 
   let count = 0
   let start: UnixTimestampMillis
-  let paused: DeferredPromise | undefined
+  let lock: DeferredPromise | undefined
   let timeout: NodeJS.Timeout | undefined
+  const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
 
   return new Transform({
-    objectMode: true,
+    objectMode,
+    highWaterMark,
     async transform(item: T, _, cb) {
       // console.log('incoming', item, { paused: !!paused, count })
       if (!start) {
         start = Date.now() as UnixTimestampMillis
         timeout = setTimeout(() => onInterval(this), interval * 1000)
-        if (debug) {
-          console.log(`${localTime.now().toPretty()} transformThrottle started with`, {
-            throughput,
-            interval,
-            rps: Math.round(throughput / interval),
-          })
-        }
+        logger.log(`${localTime.now().toPretty()} transformThrottle started with`, {
+          throughput,
+          interval,
+          rps: Math.round(throughput / interval),
+        })
       }
 
-      if (paused) {
-        // console.log('awaiting pause', {item, count})
-        await paused
+      if (lock) {
+        // console.log('awaiting lock', {item, count})
+        await lock
       }
 
       if (++count >= throughput) {
         // console.log('pausing now after', {item, count})
-        paused = pDefer()
-        if (debug) {
-          console.log(
-            `${localTime.now().toPretty()} transformThrottle activated: ${count} items passed in ${_since(start)}, will pause for ${_ms(interval * 1000 - (Date.now() - start))}`,
-          )
-        }
+        lock = pDefer()
+        logger.log(
+          `${localTime.now().toPretty()} transformThrottle activated: ${count} items passed in ${_since(start)}, will pause for ${_ms(interval * 1000 - (Date.now() - start))}`,
+        )
       }
 
       cb(null, item) // pass the item through
@@ -88,23 +85,18 @@ export function transformThrottle<T>(opt: TransformThrottleOptions): TransformTy
   })
 
   function onInterval(transform: Transform): void {
-    if (paused) {
-      if (debug) {
-        console.log(`${localTime.now().toPretty()} transformThrottle resumed`)
-      }
-
-      paused.resolve()
-      paused = undefined
+    if (lock) {
+      logger.log(`${localTime.now().toPretty()} transformThrottle resumed`)
+      lock.resolve()
+      lock = undefined
     } else {
-      if (debug) {
-        console.log(
-          `${localTime.now().toPretty()} transformThrottle passed ${count} (of max ${throughput}) items in ${_since(start)}`,
-        )
-      }
+      logger.log(
+        `${localTime.now().toPretty()} transformThrottle passed ${count} (of max ${throughput}) items in ${_since(start)}`,
+      )
     }
 
     count = 0
-    start = Date.now() as UnixTimestampMillis
+    start = localTime.nowUnixMillis()
     timeout = setTimeout(() => onInterval(transform), interval * 1000)
   }
 }

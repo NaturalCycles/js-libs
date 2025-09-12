@@ -1,15 +1,15 @@
 import { Transform } from 'node:stream'
 import type { AbortableSignal } from '@naturalcycles/js-lib'
 import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { IndexedMapper, Predicate, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { END, SKIP } from '@naturalcycles/js-lib/types'
 import { yellow } from '../../colors/colors.js'
-import type { TransformTyped } from '../stream.model.js'
+import type { TransformOptions, TransformTyped } from '../stream.model.js'
 import { PIPELINE_GRACEFUL_ABORT } from '../stream.util.js'
 import type { TransformMapStats } from './transformMap.js'
 
-export interface TransformMapSyncOptions<IN = any, OUT = IN> {
+export interface TransformMapSyncOptions<IN = any, OUT = IN> extends TransformOptions {
   /**
    * @default true
    */
@@ -54,8 +54,6 @@ export interface TransformMapSyncOptions<IN = any, OUT = IN> {
    */
   metric?: string
 
-  logger?: CommonLogger
-
   /**
    * Allows to abort (gracefully stop) the stream from inside the Transform.
    */
@@ -77,7 +75,6 @@ export function transformMapSync<IN = any, OUT = IN>(
     onDone,
     metric = 'stream',
     objectMode = true,
-    logger = console,
     signal,
   } = opt
 
@@ -87,6 +84,7 @@ export function transformMapSync<IN = any, OUT = IN>(
   let isSettled = false
   let errors = 0
   const collectedErrors: Error[] = [] // only used if errorMode == THROW_AGGREGATED
+  const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
 
   return new Transform({
     objectMode,

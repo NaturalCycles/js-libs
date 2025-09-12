@@ -29,7 +29,6 @@ import type {
   JsonSchemaString,
 } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { commonLoggerMinLevel } from '@naturalcycles/js-lib/log'
 import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import type { PRetryOptions } from '@naturalcycles/js-lib/promise'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
@@ -344,16 +343,13 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       )
 
       const opt = {
+        logger: this.cfg.logger,
         ...this.cfg.streamOptions,
         ..._opt,
       }
 
       ;(opt.experimentalCursorStream
-        ? new DatastoreStreamReadable<ROW>(
-            q,
-            opt,
-            commonLoggerMinLevel(this.cfg.logger, opt.debug ? 'log' : 'warn'),
-          )
+        ? new DatastoreStreamReadable<ROW>(q, opt)
         : (ds.runQueryStream(q, this.getRunQueryOptions(opt)) as ReadableTyped<ROW>)
       )
         .on('error', err => transform.emit('error', err))

@@ -10,6 +10,7 @@ import type { Application, IRouter, NextFunction, Request, Response } from 'expr
  * Previous name `ExpressRequest` was clashing with Sentry.
  */
 export interface BackendRequest extends Request {
+  debug: CommonLogFunction
   log: CommonLogFunction
   warn: CommonLogFunction
   error: CommonLogFunction
@@ -49,6 +50,7 @@ export type BackendApplication = Application
 
 declare module 'http' {
   interface IncomingMessage {
+    debug: CommonLogFunction
     log: CommonLogFunction
     warn: CommonLogFunction
     error: CommonLogFunction

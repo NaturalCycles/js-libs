@@ -1,6 +1,6 @@
 import { inspect } from 'node:util'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import type { AnyObject } from '@naturalcycles/js-lib/types'
+import { _objectAssign, type AnyObject } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import type { BackendRequestHandler } from './server.model.js'
@@ -19,6 +19,7 @@ let reqCounter = 0
  * To be used in outside-of-request situations (otherwise req.log should be used).
  */
 export const gcpStructuredLogger: CommonLogger = {
+  debug: (...args) => writeGCPStructuredLog({ severity: 'DEBUG' }, args),
   log: (...args) => writeGCPStructuredLog({}, args),
   warn: (...args) => writeGCPStructuredLog({ severity: 'WARNING' }, args),
   error: (...args) => writeGCPStructuredLog({ severity: 'ERROR' }, args),
@@ -29,6 +30,7 @@ export const gcpStructuredLogger: CommonLogger = {
  * (otherwise req.log should be used).
  */
 export const devLogger: CommonLogger = {
+  debug: (...args) => logToDev(null, args),
   log: (...args) => logToDev(null, args),
   warn: (...args) => logToDev(null, args),
   error: (...args) => logToDev(null, args),
@@ -38,6 +40,7 @@ export const devLogger: CommonLogger = {
  * Same as devLogger, but without colors (e.g to not confuse Sentry).
  */
 export const ciLogger: CommonLogger = {
+  debug: (...args) => logToCI(args),
   log: (...args) => logToCI(args),
   warn: (...args) => logToCI(args),
   error: (...args) => logToCI(args),
@@ -99,11 +102,12 @@ export function logMiddleware(): BackendRequestHandler {
         meta['appengine.googleapis.com/request_id'] = req.header('x-appengine-request-log-id')
       }
 
-      Object.assign(req, {
+      _objectAssign(req, {
+        debug: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'DEBUG' }, args),
         log: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'INFO' }, args),
         warn: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'WARNING' }, args),
         error: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'ERROR' }, args),
-      })
+      } satisfies CommonLogger)
 
       next()
     }
@@ -114,7 +118,11 @@ export function logMiddleware(): BackendRequestHandler {
     return function devLogHandler(req, _res, next) {
       // Local machine
       req.requestId = String(++reqCounter)
-      req.log = req.warn = req.error = (...args: any[]) => logToDev(req.requestId!, args)
+      req.debug =
+        req.log =
+        req.warn =
+        req.error =
+          (...args: any[]) => logToDev(req.requestId!, args)
       next()
     }
   }
@@ -122,7 +130,7 @@ export function logMiddleware(): BackendRequestHandler {
   // Otherwise, return "simple" logger
   // This includes: unit tests, CI environments
   return function simpleLogHandler(req, _res, next) {
-    req.log = req.warn = req.error = (...args: any[]) => logToCI(args)
+    req.debug = req.log = req.warn = req.error = (...args: any[]) => logToCI(args)
     next()
   }
 }

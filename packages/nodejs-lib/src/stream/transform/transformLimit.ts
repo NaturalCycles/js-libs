@@ -1,5 +1,6 @@
 import { Transform } from 'node:stream'
 import type { AbortableSignal } from '@naturalcycles/js-lib'
+import type { NonNegativeInteger } from '@naturalcycles/js-lib/types'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 import { PIPELINE_GRACEFUL_ABORT } from '../stream.util.js'
 import { transformNoOp } from './transformNoOp.js'
@@ -8,7 +9,7 @@ export interface TransformLimitOptions extends TransformOptions {
   /**
    * Nullish value (e.g 0 or undefined) would mean "no limit"
    */
-  limit?: number
+  limit?: NonNegativeInteger
 
   /**
    * Allows to abort (gracefully stop) the stream from inside the Transform.
@@ -17,7 +18,7 @@ export interface TransformLimitOptions extends TransformOptions {
 }
 
 export function transformLimit<IN>(opt: TransformLimitOptions): TransformTyped<IN, IN> {
-  const { limit, signal } = opt
+  const { limit, signal, objectMode = true, highWaterMark } = opt
 
   if (!limit) {
     return transformNoOp()
@@ -26,8 +27,8 @@ export function transformLimit<IN>(opt: TransformLimitOptions): TransformTyped<I
   let i = 0 // so we start first chunk with 1
   let ended = false
   return new Transform({
-    objectMode: true,
-    ...opt,
+    objectMode,
+    highWaterMark,
     transform(chunk, _, cb) {
       if (ended) {
         return

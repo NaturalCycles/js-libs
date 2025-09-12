@@ -4,7 +4,7 @@ import { _hc, _mb } from '@naturalcycles/js-lib'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { SimpleMovingAverage } from '@naturalcycles/js-lib/math'
-import type { AnyObject, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
+import type { AnyObject, PositiveInteger, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimGrey, hasColors, white, yellow } from '../colors/colors.js'
 import { SizeStack } from './sizeStack.js'
 import type { ReadableMapper } from './stream.model.js'
@@ -87,7 +87,7 @@ export interface ProgressLoggerCfg<T = any> {
    *
    * @default 1000
    */
-  logEvery?: number
+  logEvery?: PositiveInteger
 
   logger?: CommonLogger
 
@@ -111,7 +111,7 @@ export interface ProgressLoggerCfg<T = any> {
    *
    * Defaults to 1.
    */
-  chunkSize?: number
+  chunkSize?: PositiveInteger
 
   /**
    * Experimental logging of item (shunk) sizes, when json-stringified.

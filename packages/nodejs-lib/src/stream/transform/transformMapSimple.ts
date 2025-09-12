@@ -1,18 +1,15 @@
 import { Transform } from 'node:stream'
 import { ErrorMode } from '@naturalcycles/js-lib/error/errorMode.js'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { IndexedMapper } from '@naturalcycles/js-lib/types'
-import type { TransformTyped } from '../stream.model.js'
+import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
-export interface TransformMapSimpleOptions {
+export interface TransformMapSimpleOptions extends TransformOptions {
   /**
    * Only supports THROW_IMMEDIATELY (default) and SUPPRESS.
    *
    * @default ErrorMode.THROW_IMMEDIATELY
    */
   errorMode?: ErrorMode.THROW_IMMEDIATELY | ErrorMode.SUPPRESS
-
-  logger?: CommonLogger
 }
 
 /**
@@ -29,10 +26,16 @@ export function transformMapSimple<IN = any, OUT = IN>(
   opt: TransformMapSimpleOptions = {},
 ): TransformTyped<IN, OUT> {
   let index = -1
-  const { errorMode = ErrorMode.THROW_IMMEDIATELY, logger = console } = opt
+  const {
+    errorMode = ErrorMode.THROW_IMMEDIATELY,
+    logger = console,
+    objectMode = true,
+    highWaterMark,
+  } = opt
 
   return new Transform({
-    objectMode: true,
+    objectMode,
+    highWaterMark,
     transform(chunk: IN, _, cb) {
       try {
         cb(null, mapper(chunk, ++index))

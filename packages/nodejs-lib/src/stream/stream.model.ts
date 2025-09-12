@@ -1,4 +1,5 @@
 import type { Readable, Transform, Writable } from 'node:stream'
+import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
 import type { Promisable } from '@naturalcycles/js-lib/types'
 
 export interface ReadableSignalOptions {
@@ -72,4 +73,21 @@ export interface TransformOptions {
    * @default 16
    */
   highWaterMark?: number
+
+  /**
+   * Defaults to `console`.
+   */
+  logger?: CommonLogger
+
+  /**
+   * Not every Transform implements it.
+   * Can be one of:
+   * debug - most verbose, when debugging is needed
+   * log - default level
+   * error - logs errors and warnings only
+   *
+   * Default is 'log'.
+   *
+   */
+  logLevel?: CommonLogLevel
 }

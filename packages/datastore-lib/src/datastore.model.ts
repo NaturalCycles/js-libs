@@ -4,7 +4,7 @@ import type {
   CommonDBReadOptions,
   CommonDBSaveOptions,
 } from '@naturalcycles/db-lib'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
 import type { NumberOfSeconds, ObjectWithId, PositiveInteger } from '@naturalcycles/js-lib/types'
 
 export interface DatastorePayload<T = any> {
@@ -40,6 +40,11 @@ export interface DatastoreDBCfg extends DatastoreOptions {
    * Default to `console`
    */
   logger?: CommonLogger
+
+  /**
+   * Defaults to `log`.
+   */
+  logLevel?: CommonLogLevel
 
   /**
    * Experimental option, currently only applies to `getByIds`.
@@ -86,12 +91,13 @@ export interface DatastoreDBStreamOptions extends DatastoreDBReadOptions {
    */
   highWaterMark?: PositiveInteger
 
+  logger?: CommonLogger
+
   /**
-   * Set to `true` to log additional debug info, when using experimentalCursorStream.
-   *
-   * @default false
+   * Defaults to `log`.
+   * Set to `debug` to allow for extra debugging, e.g in experimentalCursorStream.
    */
-  debug?: boolean
+  logLevel?: CommonLogLevel
 
   /**
    * Default is undefined.

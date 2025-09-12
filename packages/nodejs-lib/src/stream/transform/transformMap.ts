@@ -1,7 +1,7 @@
 import { _hc, type AbortableSignal } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import {
   type AbortableAsyncMapper,
@@ -15,10 +15,10 @@ import {
 } from '@naturalcycles/js-lib/types'
 import through2Concurrent from 'through2-concurrent'
 import { yellow } from '../../colors/colors.js'
-import type { TransformTyped } from '../stream.model.js'
+import type { TransformOptions, TransformTyped } from '../stream.model.js'
 import { PIPELINE_GRACEFUL_ABORT } from '../stream.util.js'
 
-export interface TransformMapOptions<IN = any, OUT = IN> {
+export interface TransformMapOptions<IN = any, OUT = IN> extends TransformOptions {
   /**
    * Predicate to filter outgoing results (after mapper).
    * Allows to not emit all results.
@@ -78,8 +78,6 @@ export interface TransformMapOptions<IN = any, OUT = IN> {
    * @default `stream`
    */
   metric?: string
-
-  logger?: CommonLogger
 
   /**
    * Allows to abort (gracefully stop) the stream from inside the Transform.
@@ -143,7 +141,6 @@ export function transformMap<IN = any, OUT = IN>(
     onError,
     onDone,
     metric = 'stream',
-    logger = console,
     signal,
   } = opt
 
@@ -154,6 +151,7 @@ export function transformMap<IN = any, OUT = IN>(
   let ok = true
   let errors = 0
   const collectedErrors: Error[] = [] // only used if errorMode == THROW_AGGREGATED
+  const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
 
   return through2Concurrent.obj(
     {
@@ -161,8 +159,6 @@ export function transformMap<IN = any, OUT = IN>(
       readableHighWaterMark: highWaterMark,
       writableHighWaterMark: highWaterMark,
       async final(cb) {
-        // console.log('transformMap final')
-
         logErrorStats(true)
 
         if (collectedErrors.length) {

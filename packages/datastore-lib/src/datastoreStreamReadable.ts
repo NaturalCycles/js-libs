@@ -7,7 +7,7 @@ import type {
 } from '@google-cloud/datastore/build/src/query.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { type CommonLogger, createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
@@ -35,12 +35,12 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
   private readonly maxWaitInterval: NodeJS.Timeout | undefined
 
   private readonly opt: DatastoreDBStreamOptions & { batchSize: number; highWaterMark: number }
+  private readonly logger: CommonLogger
   private readonly dsOpt: RunQueryOptions
 
   constructor(
     private q: Query,
     opt: DatastoreDBStreamOptions,
-    private logger: CommonLogger,
   ) {
     // 1_000 was optimal in benchmarks
     const { batchSize = 1000 } = opt
@@ -59,10 +59,12 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       this.dsOpt.readTime = opt.readAt * 1000
     }
 
+    const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
+    this.logger = logger
     this.originalLimit = q.limitVal
     this.table = q.kinds[0]!
 
-    logger.warn(`!! using experimentalCursorStream`, {
+    logger.log(`!! using experimentalCursorStream`, {
       table: this.table,
       batchSize,
       highWaterMark,
@@ -70,21 +72,21 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
 
     const { maxWait } = this.opt
     if (maxWait) {
-      logger.warn(`!! ${this.table} maxWait ${maxWait}`)
+      logger.log(`!! ${this.table} maxWait ${maxWait}`)
 
       this.maxWaitInterval = setInterval(
         () => {
           const millisSinceLastRead = Date.now() - this.lastReadTimestamp
 
           if (millisSinceLastRead < maxWait * 1000) {
-            logger.warn(
+            logger.log(
               `!! ${this.table} millisSinceLastRead(${millisSinceLastRead}) < maxWait*1000`,
             )
             return
           }
 
           const { queryIsRunning, rowsRetrieved } = this
-          logger.warn(`maxWait of ${maxWait} seconds reached, force-triggering _read`, {
+          logger.log(`maxWait of ${maxWait} seconds reached, force-triggering _read`, {
             running: queryIsRunning,
             rowsRetrieved,
           })
@@ -99,7 +101,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
   }
 
   override _read(): void {
-    this.lastReadTimestamp = Date.now() as UnixTimestampMillis
+    this.lastReadTimestamp = localTime.nowUnixMillis()
 
     // console.log(`_read called ${++this.count}, wasRunning: ${this.running}`) // debugging
     this.countReads++
@@ -117,12 +119,12 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     }
 
     if (this.queryIsRunning) {
-      this.logger.log(`_read #${this.countReads}, queryIsRunning: true, doing nothing`)
+      this.logger.debug(`_read #${this.countReads}, queryIsRunning: true, doing nothing`)
       return
     }
 
     void this.runNextQuery().catch(err => {
-      console.log('error in runNextQuery', err)
+      this.logger.error('error in runNextQuery', err)
       this.emit('error', err)
     })
   }
@@ -192,12 +194,12 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
 
     if (shouldContinue) {
       // Keep the stream flowing
-      logger.log(`${table} continuing the stream`)
+      logger.debug(`${table} continuing the stream`)
       void this.runNextQuery()
     } else {
       // Not starting the next query
       if (this.paused) {
-        logger.log(`${table} stream is already paused`)
+        logger.debug(`${table} stream is already paused`)
       } else {
         logger.log(`${table} pausing the stream`)
         this.paused = true
@@ -223,7 +225,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
         },
       )
     } catch (err) {
-      console.log(
+      logger.error(
         `DatastoreStreamReadable error!\n`,
         {
           table,

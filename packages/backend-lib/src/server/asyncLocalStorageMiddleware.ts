@@ -53,6 +53,7 @@ export function getRequestLogger(): CommonLogger {
  * @experimental
  */
 export const requestLogger: CommonLogger = {
+  debug: (...args) => getRequestLogger().debug(...args),
   log: (...args) => getRequestLogger().log(...args),
   warn: (...args) => getRequestLogger().warn(...args),
   error: (...args) => getRequestLogger().error(...args),

@@ -2,32 +2,32 @@ import { test } from 'vitest'
 import type { CommonLogger, CommonLogWithLevelFunction } from './commonLogger.js'
 import {
   commonLoggerCreate,
-  commonLoggerMinLevel,
   commonLoggerNoop,
   commonLoggerPipe,
   commonLoggerPrefix,
+  createCommonLoggerAtLevel,
 } from './commonLogger.js'
 
 // This "tests" that `console` is a valid CommonLogger by itself
 const consoleLogger: CommonLogger = console
 
 test('commonLogger', () => {
+  consoleLogger.debug('hello')
   consoleLogger.log('hello')
-  consoleLogger.warn('hello')
   consoleLogger.error('hello')
 })
 
 test('noopLogger', () => {
   const logger = commonLoggerNoop
+  logger.debug('hey')
   logger.log('hey')
-  logger.warn('hey')
   logger.error('hey')
 })
 
-test('commonLoggerMinLevel', () => {
-  const logger = commonLoggerMinLevel(console, 'warn')
-  logger.log('hey') // should be silent
-  logger.warn('hey') // verbose
+test('limitCommonLoggerToMinimumLevel', () => {
+  const logger = createCommonLoggerAtLevel(console, 'log')
+  logger.debug('hey') // should be silent
+  logger.log('hey') // verbose
   logger.error('hey') // verbose
 })
 
@@ -45,7 +45,7 @@ test('commonLoggerCreate', () => {
   const fn: CommonLogWithLevelFunction = (level, args) => console[level](...args)
 
   const logger = commonLoggerCreate(fn)
+  logger.debug('hey')
   logger.log('hey')
-  logger.warn('hey')
   logger.error('hey')
 })

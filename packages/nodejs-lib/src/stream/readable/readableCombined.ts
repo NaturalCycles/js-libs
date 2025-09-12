@@ -1,7 +1,9 @@
 import { Readable } from 'node:stream'
+import { type CommonLogger, createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import { type DeferredPromise, pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { TransformOptions } from '../stream.model.js'
 
 /**
  * Allows to combine multiple Readables into 1 Readable.
@@ -14,14 +16,21 @@ import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
  * @experimental
  */
 export class ReadableCombined<T> extends Readable implements ReadableTyped<T> {
-  static create<T>(inputs: Readable[]): ReadableCombined<T> {
-    return new ReadableCombined<T>(inputs)
+  static create<T>(inputs: Readable[], opt: TransformOptions = {}): ReadableCombined<T> {
+    return new ReadableCombined<T>(inputs, opt)
   }
 
-  private constructor(public inputs: Readable[]) {
-    super({ objectMode: true })
-    void this.start()
+  private constructor(
+    public inputs: Readable[],
+    opt: TransformOptions,
+  ) {
+    const { objectMode = true, highWaterMark } = opt
+    super({ objectMode, highWaterMark })
+    this.logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
+    void this.run()
   }
+
+  private logger: CommonLogger
 
   /**
    * If defined - we are in Paused mode
@@ -38,7 +47,9 @@ export class ReadableCombined<T> extends Readable implements ReadableTyped<T> {
   // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
   private countReads = 0
 
-  private async start(): Promise<void> {
+  private async run(): Promise<void> {
+    const { logger } = this
+
     await pMap(this.inputs, async (input, i) => {
       for await (const item of input) {
         this.countIn++
@@ -52,14 +63,14 @@ export class ReadableCombined<T> extends Readable implements ReadableTyped<T> {
         this.countOut++
         if (!shouldContinue && !this.lock) {
           this.lock = pDefer()
-          console.log(`ReadableCombined.push #${i} returned false, pausing the flow!`)
+          logger.log(`ReadableCombined.push #${i} returned false, pausing the flow!`)
         }
       }
 
-      console.log(`ReadableCombined: input #${i} done`)
+      logger.log(`ReadableCombined: input #${i} done`)
     })
 
-    console.log(`ReadableCombined: all inputs done!`)
+    logger.log(`ReadableCombined: all inputs done!`)
     this.push(null)
   }
 
@@ -67,7 +78,7 @@ export class ReadableCombined<T> extends Readable implements ReadableTyped<T> {
     this.countReads++
 
     if (this.lock) {
-      console.log(`ReadableCombined._read: resuming the flow!`)
+      this.logger.log(`ReadableCombined._read: resuming the flow!`)
       // calling it in this order is important!
       // this.lock should be undefined BEFORE we call lock.resolve()
       const { lock } = this
@@ -78,7 +89,7 @@ export class ReadableCombined<T> extends Readable implements ReadableTyped<T> {
 
   private logStats(): void {
     const { countIn, countOut, countReads } = this
-    console.log({
+    this.logger.debug({
       countIn,
       countOut,
       countReads,

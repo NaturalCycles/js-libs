@@ -13,11 +13,12 @@ export interface TransformLogProgressOptions<IN = any>
 export function transformLogProgress<IN = any>(
   opt: TransformLogProgressOptions = {},
 ): TransformTyped<IN, IN> {
+  const { objectMode = true, highWaterMark } = opt
   const progress = progressLogger(opt)
 
   return new Transform({
-    objectMode: true,
-    ...opt,
+    objectMode,
+    highWaterMark,
     transform(chunk: IN, _, cb) {
       progress.log(chunk)
       cb(null, chunk) // pass-through

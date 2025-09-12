@@ -2,8 +2,8 @@ import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { type Fetcher, getFetcher } from '@naturalcycles/js-lib/http'
 import {
   type CommonLogger,
-  commonLoggerMinLevel,
   type CommonLogLevel,
+  createCommonLoggerAtLevel,
 } from '@naturalcycles/js-lib/log'
 import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import { PQueue } from '@naturalcycles/js-lib/promise/pQueue.js'
@@ -152,19 +152,22 @@ export class SlackService<CTX = any> {
    */
   getCommonLogger(opt: {
     minLogLevel: CommonLogLevel
+    debugChannel?: string
     logChannel?: string
     warnChannel?: string
     errorChannel?: string
   }): CommonLogger {
-    const { minLogLevel = 'log', logChannel, warnChannel, errorChannel } = opt
+    const { minLogLevel = 'log', debugChannel, logChannel, warnChannel, errorChannel } = opt
     const defaultChannel = this.cfg.defaults?.channel || DEFAULTS.channel!
 
     const q = new PQueue({
       concurrency: 1,
     })
 
-    return commonLoggerMinLevel(
+    return createCommonLoggerAtLevel(
       {
+        debug: (...args) =>
+          q.push(() => this.send({ items: args, channel: debugChannel || defaultChannel })),
         log: (...args) =>
           q.push(() => this.send({ items: args, channel: logChannel || defaultChannel })),
         warn: (...args) =>

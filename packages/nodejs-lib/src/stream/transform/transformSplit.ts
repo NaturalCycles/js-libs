@@ -19,7 +19,7 @@ export function transformSplitOnNewline(): TransformTyped<Buffer, Buffer> {
     writableHighWaterMark: 64 * 1024,
     readableObjectMode: true,
 
-    transform(buf: Buffer, _enc, done) {
+    transform(buf: Buffer, _enc, cb) {
       let offset = 0
       let lastMatch = 0
       if (buffered) {
@@ -42,7 +42,7 @@ export function transformSplitOnNewline(): TransformTyped<Buffer, Buffer> {
         }
       }
 
-      done()
+      cb()
     },
 
     flush(done) {
