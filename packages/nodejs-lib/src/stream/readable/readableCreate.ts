@@ -13,17 +13,18 @@ import type { ReadableTyped } from '../stream.model.js'
  * e.g the read() method doesn't return anything, so, it will hang the Node process (or cause it to process.exit(0))
  * if read() will be called AFTER everything was pushed and Readable is closed (by pushing `null`).
  * Beware of it when e.g doing unit testing! Jest prefers to hang (not exit-0).
- *
- * @deprecated because of the caution above
  */
 export function readableCreate<T>(
   items: Iterable<T> = [],
   opt?: ReadableOptions,
+  onRead?: () => void, // read callback
 ): ReadableTyped<T> {
   const readable = new Readable({
     objectMode: true,
     ...opt,
-    read() {}, // Caution, if this is called and Readable has not finished yet (null wasn't pushed) - it'll hang the process!
+    read() {
+      onRead?.()
+    },
   })
   for (const item of items) {
     readable.push(item)

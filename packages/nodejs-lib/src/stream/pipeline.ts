@@ -17,6 +17,7 @@ import type {
   SKIP,
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
+import { createReadStreamAsNDJson } from './ndjson/createReadStreamAsNDJson.js'
 import { transformJsonParse } from './ndjson/transformJsonParse.js'
 import { transformToNDJson } from './ndjson/transformToNDJson.js'
 import type {
@@ -29,6 +30,7 @@ import { PIPELINE_GRACEFUL_ABORT } from './stream.util.js'
 import { transformChunk } from './transform/transformChunk.js'
 import { transformFilterSync } from './transform/transformFilter.js'
 import { transformFlatten, transformFlattenIfNeeded } from './transform/transformFlatten.js'
+import { transformFork } from './transform/transformFork.js'
 import { transformLimit } from './transform/transformLimit.js'
 import {
   transformLogProgress,
@@ -83,16 +85,12 @@ export class Pipeline<T> {
   }
 
   static fromNDJsonFile<T>(sourceFilePath: string): Pipeline<T> {
-    fs2.requireFileToExist(sourceFilePath)
-
-    const p = Pipeline.fromFile(sourceFilePath)
-    if (sourceFilePath.endsWith('.gz')) {
-      p.gunzip()
-    }
-    return p.parseJson()
-    // return stream.pipe(transformSplitOnNewline()).map(line => JSON.parse(line))
-    // For some crazy reason .map is much faster than transformJsonParse!
-    // ~5000 vs ~4000 rps !!!
+    // Important that createReadStreamAsNDJson function is used
+    // (and not Pipeline set of individual transforms),
+    // because createReadStreamAsNDJson returns a Readable,
+    // hence it allows to apply .take(limit) on it
+    // e.g like Pipeline.fromNDJsonFile().limitSource(limit)
+    return new Pipeline<T>(createReadStreamAsNDJson(sourceFilePath))
   }
 
   static fromFile(sourceFilePath: string): Pipeline<Uint8Array> {
@@ -223,8 +221,6 @@ export class Pipeline<T> {
     return this
   }
 
-  // todo: tee/fork
-
   transform<TO>(transform: TransformTyped<T, TO>): Pipeline<TO> {
     this.transforms.push(transform)
     return this as any
@@ -237,6 +233,11 @@ export class Pipeline<T> {
   transformMany<TO>(transforms: Transform[]): Pipeline<TO> {
     this.transforms.push(...transforms)
     return this as any
+  }
+
+  fork(fn: (pipeline: Pipeline<T>) => Pipeline<T>, opt?: TransformOptions): this {
+    this.transforms.push(transformFork(fn, opt))
+    return this
   }
 
   /**
