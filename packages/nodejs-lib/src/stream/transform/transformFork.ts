@@ -12,8 +12,8 @@ import type { TransformOptions, TransformTyped } from '../stream.model.js'
  *
  * @experimental
  */
-export function transformFork<T, FORK>(
-  fn: (pipeline: Pipeline<T>) => Pipeline<FORK>,
+export function transformFork<T>(
+  fn: (pipeline: Pipeline<T>) => Promise<void>,
   opt: TransformOptions = {},
 ): TransformTyped<T, T> {
   const { objectMode = true, highWaterMark } = opt
@@ -31,8 +31,7 @@ export function transformFork<T, FORK>(
     lockCopy.resolve()
   })
 
-  const p = fn(Pipeline.from<T>(fork))
-  void p.run().then(() => {
+  void fn(Pipeline.from<T>(fork)).then(() => {
     logger.log('TransformFork: done')
   })
 

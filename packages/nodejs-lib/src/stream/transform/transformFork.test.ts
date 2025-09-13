@@ -5,7 +5,7 @@ import { Pipeline } from '../pipeline.js'
 import type { ReadableTyped } from '../stream.model.js'
 
 test('transformFork', async () => {
-  const secondArray: number[] = []
+  const secondArray: string[] = []
 
   const firstArray = await Pipeline.from(new HonestReadable(3))
     .mapSimple(n => {
@@ -16,14 +16,15 @@ test('transformFork', async () => {
       p
         .mapSimple(n2 => {
           console.log(`n2 is ${n2}`)
-          const r = n2 * 2
+          const r = String(n2 * 2)
           secondArray.push(r)
           return r
         })
         .logProgress({
           metric: 'doorF',
           logEvery: 1,
-        }),
+        })
+        .run(),
     )
     .logProgress({
       metric: 'door2',
@@ -32,7 +33,7 @@ test('transformFork', async () => {
     .toArray()
 
   expect(firstArray).toEqual([2, 4, 6])
-  expect(secondArray).toEqual([4, 8, 12])
+  expect(secondArray).toEqual(['4', '8', '12'])
 })
 
 // unskip to test manually
@@ -46,6 +47,7 @@ test.skip('source stream gets stuck', async () => {
           metric: 'doorF',
           logEvery: 1,
         })
+        .run()
     })
     .logProgress({
       metric: 'door2',
@@ -66,6 +68,7 @@ test.skip('main stream consumer gets stuck', async () => {
             metric: 'fork',
             logEvery: 1,
           })
+          .run()
       },
       { highWaterMark: 1 },
     )
@@ -113,6 +116,7 @@ test.skip('fork stream consumer gets stuck', async () => {
             metric: 'fork',
             logEvery: 1,
           })
+          .run()
       },
       { highWaterMark: 1 },
     )
