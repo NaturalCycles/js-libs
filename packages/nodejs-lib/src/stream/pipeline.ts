@@ -140,6 +140,14 @@ export class Pipeline<T = unknown> {
    * less clean than `.take()` on the source.
    */
   limit(limit: NonNegativeInteger | undefined): this {
+    if (!this.transforms.length) {
+      console.warn(
+        `Pipeline.limit was used as a very first Transfrom - please use Pipeline.limitSource instead`,
+      )
+      this.limitSource(limit)
+      return this
+    }
+
     this.transforms.push(
       transformLimit({
         limit,
