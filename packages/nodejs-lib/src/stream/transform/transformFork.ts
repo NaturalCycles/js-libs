@@ -12,8 +12,8 @@ import type { TransformOptions, TransformTyped } from '../stream.model.js'
  *
  * @experimental
  */
-export function transformFork<T>(
-  fn: (pipeline: Pipeline<T>) => Pipeline<T>,
+export function transformFork<T, FORK>(
+  fn: (pipeline: Pipeline<T>) => Pipeline<FORK>,
   opt: TransformOptions = {},
 ): TransformTyped<T, T> {
   const { objectMode = true, highWaterMark } = opt

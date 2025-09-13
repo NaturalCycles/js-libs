@@ -235,7 +235,7 @@ export class Pipeline<T> {
     return this as any
   }
 
-  fork(fn: (pipeline: Pipeline<T>) => Pipeline<T>, opt?: TransformOptions): this {
+  fork<FORK>(fn: (pipeline: Pipeline<T>) => Pipeline<FORK>, opt?: TransformOptions): this {
     this.transforms.push(transformFork(fn, opt))
     return this
   }
