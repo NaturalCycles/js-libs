@@ -191,8 +191,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
         },
       )
     } catch (err) {
-      console.log((q as any)._queryOptions)
-
+      // console.log((q as any)._queryOptions)
       logger.error(
         `FirestoreStreamReadable error!\n`,
         {
