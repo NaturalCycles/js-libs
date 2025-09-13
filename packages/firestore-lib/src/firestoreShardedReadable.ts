@@ -91,7 +91,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     }
     void this.runNextQuery(shard).catch(err => {
       this.logger.error('error in runNextQuery', err)
-      this.emit('error', err)
+      this.destroy(err)
     })
   }
 
@@ -213,7 +213,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
         },
         err,
       )
-      this.emit('error', err)
+      this.destroy(err as Error)
       return
     }
   }

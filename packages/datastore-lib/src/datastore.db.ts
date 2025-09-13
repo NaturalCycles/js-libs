@@ -352,7 +352,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
         ? new DatastoreStreamReadable<ROW>(q, opt)
         : (ds.runQueryStream(q, this.getRunQueryOptions(opt)) as ReadableTyped<ROW>)
       )
-        .on('error', err => transform.emit('error', err))
+        .on('error', err => transform.destroy(err))
         .pipe(transform)
     })
 

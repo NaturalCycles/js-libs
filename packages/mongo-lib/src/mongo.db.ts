@@ -260,10 +260,10 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
           .collection<ROW>(q.table)
           .find(query, options)
           .stream()
-          .on('error', err => transform.emit('error', err))
+          .on('error', err => transform.destroy(err))
           .pipe(transform)
       })
-      .catch(err => transform.emit('error', err))
+      .catch(err => transform.destroy(err))
 
     return transform
   }

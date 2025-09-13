@@ -37,8 +37,8 @@ export class SqliteReadable<T = any> extends Readable implements ReadableTyped<T
       const r = await this.stmt.get<T>()
       this.push(r || null)
     } catch (err) {
-      console.log(err)
-      this.emit('error', err)
+      console.error(err)
+      this.destroy(err as Error)
     }
   }
 }

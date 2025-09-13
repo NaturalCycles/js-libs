@@ -125,7 +125,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
 
     void this.runNextQuery().catch(err => {
       this.logger.error('error in runNextQuery', err)
-      this.emit('error', err)
+      this.destroy(err)
     })
   }
 
@@ -217,6 +217,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
         },
         {
           name: `DatastoreStreamReadable.query(${table})`,
+          predicate: err => RETRY_ON.some(s => err?.message?.toLowerCase()?.includes(s)),
           maxAttempts: 5,
           delay: 5000,
           delayMultiplier: 2,
@@ -233,9 +234,22 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
         },
         err,
       )
-      this.emit('error', err)
       clearInterval(this.maxWaitInterval)
+      this.destroy(err as Error)
       return
     }
   }
 }
+
+// Examples of errors:
+// UNKNOWN: Stream removed
+const RETRY_ON = [
+  'GOAWAY',
+  'UNAVAILABLE',
+  'UNKNOWN',
+  'DEADLINE_EXCEEDED',
+  'ABORTED',
+  'much contention',
+  'try again',
+  'timeout',
+].map(s => s.toLowerCase())

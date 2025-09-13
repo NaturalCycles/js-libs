@@ -384,7 +384,7 @@ export class CommonDao<
         // this can make the stream async-iteration-friendly
         // but not applying it now for perf reasons
         // UPD: applying, to be compliant with `.toArray()`, etc.
-        .on('error', err => stream.emit('error', err))
+        .on('error', err => stream.destroy(err))
         .pipe(transformNoOp())
     )
   }

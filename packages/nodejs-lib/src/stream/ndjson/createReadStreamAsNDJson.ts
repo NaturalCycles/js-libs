@@ -25,7 +25,7 @@ export function createReadStreamAsNDJson<ROW = any>(inputPath: string): Readable
     .createReadStream(inputPath, {
       highWaterMark: 64 * 1024, // no observed speedup
     })
-    .on('error', err => stream.emit('error', err))
+    .on('error', err => stream.destroy(err))
 
   if (inputPath.endsWith('.gz')) {
     stream = stream.pipe(

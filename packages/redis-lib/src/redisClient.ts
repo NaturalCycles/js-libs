@@ -359,9 +359,9 @@ function createReadableFromAsync<T>(fn: AsyncFunction<ReadableTyped<T>>): Readab
 
   void fn()
     .then(readable => {
-      readable.on('error', err => transform.emit('error', err)).pipe(transform)
+      readable.on('error', err => transform.destroy(err)).pipe(transform)
     })
-    .catch(err => transform.emit('error', err))
+    .catch(err => transform.destroy(err))
 
   return transform
 }

@@ -85,7 +85,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
 
     void this.runNextQuery().catch(err => {
       this.logger.error('error in runNextQuery', err)
-      this.emit('error', err)
+      this.destroy(err)
     })
   }
 
@@ -177,6 +177,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
         },
         {
           name: `FirestoreStreamReadable.query(${table})`,
+          predicate: err => RETRY_ON.some(s => err?.message?.toLowerCase()?.includes(s)),
           maxAttempts: 5,
           delay: 5000,
           delayMultiplier: 2,
@@ -193,8 +194,21 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
         },
         err,
       )
-      this.emit('error', err)
+      this.destroy(err as Error)
       return
     }
   }
 }
+
+// Examples of errors:
+// UNKNOWN: Stream removed
+const RETRY_ON = [
+  'GOAWAY',
+  'UNAVAILABLE',
+  'UNKNOWN',
+  'DEADLINE_EXCEEDED',
+  'ABORTED',
+  'much contention',
+  'try again',
+  'timeout',
+].map(s => s.toLowerCase())
