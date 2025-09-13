@@ -13,7 +13,7 @@ export interface TransformLogProgressOptions<IN = any>
 export function transformLogProgress<IN = any>(
   opt: TransformLogProgressOptions = {},
 ): TransformTyped<IN, IN> {
-  const { objectMode = true, highWaterMark } = opt
+  const { objectMode = true, highWaterMark = 1 } = opt
   const progress = progressLogger(opt)
 
   return new Transform({

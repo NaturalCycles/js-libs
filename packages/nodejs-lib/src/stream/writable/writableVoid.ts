@@ -7,9 +7,10 @@ import type { TransformOptions } from '../stream.model.js'
  * Put it in the end of your pipeline in case it ends with Transform that needs a consumer.
  */
 export function writableVoid(opt: TransformOptions = {}): Writable {
+  const { objectMode = true, highWaterMark = 1 } = opt
   return new Writable({
-    objectMode: true,
-    ...opt,
+    objectMode,
+    highWaterMark,
     write(_chunk, _, cb) {
       cb()
     },

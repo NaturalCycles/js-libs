@@ -27,7 +27,9 @@ export interface TransformMapOptions<IN = any, OUT = IN> extends TransformOption
    * Defaults to "pass everything" (including null, undefined, etc).
    * Simpler way to exclude certain cases is to return SKIP symbol from the mapper.
    */
-  predicate?: Predicate<OUT> | AsyncPredicate<OUT>
+  predicate?: Predicate<OUT>
+
+  asyncPredicate?: AsyncPredicate<OUT>
 
   /**
    * Number of concurrently pending promises returned by `mapper`.
@@ -138,6 +140,7 @@ export function transformMap<IN = any, OUT = IN>(
     concurrency = 16,
     highWaterMark = 64,
     predicate, // we now default to "no predicate" (meaning pass-everything)
+    asyncPredicate,
     errorMode = ErrorMode.THROW_IMMEDIATELY,
     onError,
     onDone,
@@ -227,8 +230,18 @@ export function transformMap<IN = any, OUT = IN>(
           return cb()
         }
 
-        if (!predicate || ((await predicate(res, currentIndex)) && !isSettled)) {
-          // isSettled could have happened in parallel, hence the extra check
+        if (predicate) {
+          if (predicate(res, currentIndex)) {
+            countOut++
+            this.push(res)
+          }
+        } else if (asyncPredicate) {
+          if ((await asyncPredicate(res, currentIndex)) && !isSettled) {
+            // isSettled could have happened in parallel, hence the extra check
+            countOut++
+            this.push(res)
+          }
+        } else {
           countOut++
           this.push(res)
         }

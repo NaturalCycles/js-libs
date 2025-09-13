@@ -4,17 +4,18 @@ import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { createUnzip, type ZlibOptions } from 'node:zlib'
 import { createGzip } from 'node:zlib'
 import { createAbortableSignal } from '@naturalcycles/js-lib'
-import type {
-  AbortableAsyncMapper,
-  AsyncIndexedMapper,
-  AsyncPredicate,
-  END,
-  IndexedMapper,
-  Integer,
-  NonNegativeInteger,
-  PositiveInteger,
-  Predicate,
-  SKIP,
+import {
+  _passthroughPredicate,
+  type AbortableAsyncMapper,
+  type AsyncIndexedMapper,
+  type AsyncPredicate,
+  type END,
+  type IndexedMapper,
+  type Integer,
+  type NonNegativeInteger,
+  type PositiveInteger,
+  type Predicate,
+  type SKIP,
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
 import { createReadStreamAsNDJson } from './ndjson/createReadStreamAsNDJson.js'
@@ -200,10 +201,10 @@ export class Pipeline<T = unknown> {
     return this as any
   }
 
-  filter(predicate: AsyncPredicate<T>, opt?: TransformMapOptions): this {
+  filter(asyncPredicate: AsyncPredicate<T>, opt?: TransformMapOptions): this {
     this.transforms.push(
       transformMap(v => v, {
-        predicate,
+        asyncPredicate,
         ...opt,
         signal: this.abortableSignal,
       }),
@@ -362,27 +363,35 @@ export class Pipeline<T = unknown> {
 
   async forEach(
     fn: AsyncIndexedMapper<T, void>,
-    opt?: TransformMapOptions<T, void>,
+    opt: TransformMapOptions<T, void> & TransformLogProgressOptions<T> = {},
   ): Promise<void> {
     this.transforms.push(
       transformMap(fn, {
+        predicate: opt.logEvery ? _passthroughPredicate : undefined, // for the logger to work
         ...opt,
         signal: this.abortableSignal,
       }),
     )
+    if (opt.logEvery) {
+      this.transforms.push(transformLogProgress(opt))
+    }
     await this.run()
   }
 
   async forEachSync(
     fn: IndexedMapper<T, void>,
-    opt?: TransformMapSyncOptions<T, void>,
+    opt: TransformMapSyncOptions<T, void> & TransformLogProgressOptions<T> = {},
   ): Promise<void> {
     this.transforms.push(
       transformMapSync(fn, {
+        predicate: opt.logEvery ? _passthroughPredicate : undefined, // for the logger to work
         ...opt,
         signal: this.abortableSignal,
       }),
     )
+    if (opt.logEvery) {
+      this.transforms.push(transformLogProgress(opt))
+    }
     await this.run()
   }
 

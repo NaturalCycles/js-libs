@@ -8,11 +8,11 @@ import { transformMap } from './transformMap.js'
  * Just a convenience wrapper around `transformMap` that has built-in predicate filtering support.
  */
 export function transformFilter<IN = any>(
-  predicate: AsyncPredicate<IN>,
+  asyncPredicate: AsyncPredicate<IN>,
   opt: TransformMapOptions = {},
 ): TransformTyped<IN, IN> {
   return transformMap(v => v, {
-    predicate,
+    asyncPredicate,
     ...opt,
   })
 }
