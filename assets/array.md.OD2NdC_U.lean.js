@@ -1,0 +1,1 @@
+import{_ as i,c as a,o as n,ae as h}from"./chunks/framework.DfMfa-VC.js";const g=JSON.parse('{"title":"Array","description":"","frontmatter":{},"headers":[],"relativePath":"array.md","filePath":"array.md"}'),t={name:"array.md"};function l(p,s,k,e,r,d){return n(),a("div",null,[...s[0]||(s[0]=[h("",67)])])}const y=i(t,[["render",l]]);export{g as __pageData,y as default};
