@@ -17,7 +17,7 @@ import { _mapValues, _omit } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { AnyObject, ObjectWithId } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   AirtableApi,
   AirtableApiRecord,
@@ -258,18 +258,11 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
   override streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: AirtableDBStreamOptions,
-  ): ReadableTyped<ROW> {
-    const readable = new Readable({
-      objectMode: true,
-      read() {},
+  ): Pipeline<ROW> {
+    return Pipeline.fromAsyncReadable(async () => {
+      const { rows } = await this.runQuery(q, opt)
+      return Readable.from(rows)
     })
-
-    void this.runQuery(q, opt).then(({ rows }) => {
-      rows.forEach(r => readable.push(r))
-      readable.push(null) // "complete" the stream
-    })
-
-    return readable
   }
 
   private async tableApi<ROW extends ObjectWithId>(table: string): Promise<AirtableApiTable<ROW>> {

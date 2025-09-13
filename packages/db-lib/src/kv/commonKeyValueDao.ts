@@ -1,8 +1,8 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
-import type { KeyValueTuple } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { type KeyValueTuple, SKIP } from '@naturalcycles/js-lib/types'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import type { CommonDaoLogLevel } from '../commondao/common.dao.model.js'
 import type { CommonDBCreateOptions } from '../db.model.js'
@@ -159,51 +159,47 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
     await this.cfg.db.deleteByIds(this.cfg.table, [id])
   }
 
-  streamIds(limit?: number): ReadableTyped<K> {
-    return this.cfg.db.streamIds(this.cfg.table, limit) as ReadableTyped<K>
+  streamIds(limit?: number): Pipeline<K> {
+    return this.cfg.db.streamIds(this.cfg.table, limit) as Pipeline<K>
   }
 
-  streamValues(limit?: number): ReadableTyped<V> {
+  streamValues(limit?: number): Pipeline<V> {
     const { transformer } = this.cfg
 
     if (!transformer) {
-      return this.cfg.db.streamValues(this.cfg.table, limit) as ReadableTyped<V>
+      return this.cfg.db.streamValues(this.cfg.table, limit) as Pipeline<V>
     }
 
-    return this.cfg.db.streamValues(this.cfg.table, limit).flatMap(
+    return this.cfg.db.streamValues(this.cfg.table, limit).map(
       async buf => {
         try {
-          return [await transformer.bufferToValue(buf)]
+          return await transformer.bufferToValue(buf)
         } catch (err) {
           this.cfg.logger.error(err)
-          return [] // SKIP
+          return SKIP
         }
       },
-      {
-        concurrency: 32,
-      },
+      { concurrency: 32 },
     )
   }
 
-  streamEntries(limit?: number): ReadableTyped<KeyValueTuple<K, V>> {
+  streamEntries(limit?: number): Pipeline<KeyValueTuple<K, V>> {
     const { transformer } = this.cfg
 
     if (!transformer) {
-      return this.cfg.db.streamEntries(this.cfg.table, limit) as ReadableTyped<KeyValueTuple<K, V>>
+      return this.cfg.db.streamEntries(this.cfg.table, limit) as Pipeline<KeyValueTuple<K, V>>
     }
 
-    return this.cfg.db.streamEntries(this.cfg.table, limit).flatMap(
+    return this.cfg.db.streamEntries(this.cfg.table, limit).map(
       async ([id, buf]) => {
         try {
-          return [[id as K, await transformer.bufferToValue(buf)]]
+          return [id as K, await transformer.bufferToValue(buf)]
         } catch (err) {
           this.cfg.logger.error(err)
-          return [] // SKIP
+          return SKIP
         }
       },
-      {
-        concurrency: 32,
-      },
+      { concurrency: 32 },
     )
   }
 

@@ -190,25 +190,34 @@ test('should propagate pipe errors', async () => {
 
   // default: Suppress errors
   let results: any[] = []
-  await dao.query().streamQueryForEach(r => void results.push(r), opt)
+  await dao
+    .query()
+    .streamQuery(opt)
+    .forEachSync(r => void results.push(r))
   // console.log(results)
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 
   // Suppress errors
   results = []
-  await dao.query().streamQueryForEach(r => void results.push(r), {
-    ...opt,
-    errorMode: ErrorMode.SUPPRESS,
-  })
+  await dao
+    .query()
+    .streamQuery({
+      ...opt,
+      errorMode: ErrorMode.SUPPRESS,
+    })
+    .forEachSync(r => void results.push(r))
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 
   // THROW_IMMEDIATELY
   const results2: any[] = []
   await expect(
-    dao.query().streamQueryForEach(r => void results2.push(r), {
-      ...opt,
-      errorMode: ErrorMode.THROW_IMMEDIATELY,
-    }),
+    dao
+      .query()
+      .streamQuery({
+        ...opt,
+        errorMode: ErrorMode.THROW_IMMEDIATELY,
+      })
+      .forEachSync(r => void results2.push(r)),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: error_from_parseNaturalId]`)
 
   // Throws on 3rd element, all previous elements should be collected
@@ -219,10 +228,13 @@ test('should propagate pipe errors', async () => {
   // THROW_AGGREGATED
   results = []
   await expect(
-    dao.query().streamQueryForEach(r => void results.push(r), {
-      ...opt,
-      errorMode: ErrorMode.THROW_AGGREGATED,
-    }),
+    dao
+      .query()
+      .streamQuery({
+        ...opt,
+        errorMode: ErrorMode.THROW_AGGREGATED,
+      })
+      .forEachSync(r => void results.push(r)),
   ).rejects.toThrowErrorMatchingInlineSnapshot(
     `[AggregateError: transformMap resulted in 1 error(s)]`,
   )

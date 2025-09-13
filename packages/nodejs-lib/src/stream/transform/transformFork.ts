@@ -2,7 +2,7 @@ import { Transform } from 'node:stream'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import { type DeferredPromise, pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import { Pipeline } from '../pipeline.js'
-import { readableCreate } from '../readable/readableCreate.js'
+import { createReadable } from '../readable/createReadable.js'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
 /**
@@ -21,11 +21,11 @@ export function transformFork<T>(
 
   let lock: DeferredPromise | undefined
 
-  const fork = readableCreate<T>([], {}, () => {
+  const fork = createReadable<T>([], {}, () => {
     // `_read` is called
     if (!lock) return
     // We had a lock - let's Resume
-    logger.log(`TransformFork: resume`)
+    logger.debug(`TransformFork: resume`)
     const lockCopy = lock
     lock = undefined
     lockCopy.resolve()
@@ -54,7 +54,7 @@ export function transformFork<T>(
       if (!shouldContinue && !lock) {
         // Forked pipeline indicates that we should Pause
         lock = pDefer()
-        logger.log(`TransformFork: pause`)
+        logger.debug(`TransformFork: pause`)
       }
 
       // acknowledge that we've finished processing the input chunk

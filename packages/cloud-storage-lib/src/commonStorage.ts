@@ -1,9 +1,5 @@
 import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
-import type {
-  ReadableBinary,
-  ReadableTyped,
-  WritableBinary,
-} from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline, WritableTyped } from '@naturalcycles/nodejs-lib/stream'
 
 export interface FileEntry {
   filePath: string
@@ -90,13 +86,16 @@ export interface CommonStorage {
    */
   getFileNames: (bucketName: string, opt?: CommonStorageGetOptions) => Promise<string[]>
 
-  getFileNamesStream: (bucketName: string, opt?: CommonStorageGetOptions) => ReadableTyped<string>
+  getFileNamesStream: (bucketName: string, opt?: CommonStorageGetOptions) => Pipeline<string>
 
-  getFilesStream: (bucketName: string, opt?: CommonStorageGetOptions) => ReadableTyped<FileEntry>
+  getFilesStream: (bucketName: string, opt?: CommonStorageGetOptions) => Pipeline<FileEntry>
 
-  getFileReadStream: (bucketName: string, filePath: string) => ReadableBinary
+  /**
+   * Returns a Pipeline with binary output, objectMode=false.
+   */
+  getFileReadStream: (bucketName: string, filePath: string) => Pipeline<Uint8Array>
 
-  getFileWriteStream: (bucketName: string, filePath: string) => WritableBinary
+  getFileWriteStream: (bucketName: string, filePath: string) => WritableTyped<Uint8Array>
 
   /**
    * Upload local file to the bucket (by streaming it).

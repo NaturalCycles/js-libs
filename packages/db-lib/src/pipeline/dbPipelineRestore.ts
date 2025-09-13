@@ -187,7 +187,7 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
 
       await Pipeline.fromNDJsonFile<BaseDBEntity>(filePath)
         .limitSource(limit)
-        .tap(() => rows++)
+        .tapSync(() => rows++)
         .logProgress({
           logEvery: 1000,
           ...opt,

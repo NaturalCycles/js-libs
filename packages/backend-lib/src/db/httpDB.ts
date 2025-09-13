@@ -1,9 +1,7 @@
-import { Readable } from 'node:stream'
 import type {
   CommonDB,
   CommonDBOptions,
   CommonDBSaveOptions,
-  CommonDBStreamOptions,
   CommonDBSupport,
   DBQuery,
   RunQueryResult,
@@ -13,7 +11,6 @@ import type { Fetcher, FetcherOptions } from '@naturalcycles/js-lib/http'
 import { getFetcher } from '@naturalcycles/js-lib/http'
 import type { JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 
 export interface HttpDBCfg extends FetcherOptions {
   baseUrl: string
@@ -136,13 +133,5 @@ export class HttpDB extends BaseCommonDB implements CommonDB {
         opt,
       },
     })
-  }
-
-  override streamQuery<ROW extends ObjectWithId>(
-    _q: DBQuery<ROW>,
-    _opt?: CommonDBStreamOptions,
-  ): ReadableTyped<ROW> {
-    console.warn(`streamQuery not implemented`)
-    return Readable.from([])
   }
 }

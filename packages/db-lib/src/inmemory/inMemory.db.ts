@@ -1,4 +1,3 @@
-import { Readable } from 'node:stream'
 import { _isEmptyObject } from '@naturalcycles/js-lib'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import {
@@ -15,8 +14,8 @@ import {
   type ObjectWithId,
   type StringMap,
 } from '@naturalcycles/js-lib/types'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { bufferReviver } from '@naturalcycles/nodejs-lib/stream/ndjson/transformJsonParse.js'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream/stream.model.js'
 import type { CommonDB, CommonDBSupport } from '../commondb/common.db.js'
 import { commonDBFullSupport, CommonDBType } from '../commondb/common.db.js'
 import type {
@@ -278,12 +277,9 @@ export class InMemoryDB implements CommonDB {
     return queryInMemory<any>(q, Object.values(this.data[table] || {})).length
   }
 
-  streamQuery<ROW extends ObjectWithId>(
-    q: DBQuery<ROW>,
-    _opt?: CommonDBOptions,
-  ): ReadableTyped<ROW> {
+  streamQuery<ROW extends ObjectWithId>(q: DBQuery<ROW>, _opt?: CommonDBOptions): Pipeline<ROW> {
     const table = this.cfg.tablesPrefix + q.table
-    return Readable.from(queryInMemory(q, Object.values(this.data[table] || {}) as ROW[]))
+    return Pipeline.fromArray(queryInMemory(q, Object.values(this.data[table] || {}) as ROW[]))
   }
 
   async runInTransaction(fn: DBTransactionFn, opt: CommonDBTransactionOptions = {}): Promise<void> {

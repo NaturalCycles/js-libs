@@ -1,11 +1,6 @@
 import { Transform } from 'node:stream'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
+import type { AsyncIndexedMapper, IndexedMapper } from '@naturalcycles/js-lib/types'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
-
-export interface TransformTapOptions extends TransformOptions {
-  logger?: CommonLogger
-}
 
 /**
  * Similar to RxJS `tap` - allows to run a function for each stream item, without affecting the result.
@@ -15,17 +10,15 @@ export interface TransformTapOptions extends TransformOptions {
  */
 export function transformTap<IN>(
   fn: AsyncIndexedMapper<IN, any>,
-  opt: TransformTapOptions = {},
+  opt: TransformOptions = {},
 ): TransformTyped<IN, IN> {
-  const { logger = console } = opt
+  const { logger = console, highWaterMark = 1 } = opt
   let index = -1
 
   return new Transform({
     objectMode: true,
-    ...opt,
+    highWaterMark,
     async transform(chunk: IN, _, cb) {
-      // console.log('tap', chunk)
-
       try {
         await fn(chunk, ++index)
       } catch (err) {
@@ -33,7 +26,33 @@ export function transformTap<IN>(
         // suppressed error
       }
 
-      cb(null, chunk) // pass through the item
+      cb(null, chunk)
+    },
+  })
+}
+
+/**
+ * Sync version of transformTap
+ */
+export function transformTapSync<IN>(
+  fn: IndexedMapper<IN, any>,
+  opt: TransformOptions = {},
+): TransformTyped<IN, IN> {
+  const { logger = console, highWaterMark = 1 } = opt
+  let index = -1
+
+  return new Transform({
+    objectMode: true,
+    highWaterMark,
+    transform(chunk: IN, _, cb) {
+      try {
+        fn(chunk, ++index)
+      } catch (err) {
+        logger.error(err)
+        // suppressed error
+      }
+
+      cb(null, chunk)
     },
   })
 }

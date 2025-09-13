@@ -5,20 +5,40 @@ import type { Database, Statement } from 'sqlite'
 /**
  * Based on: https://gist.github.com/rmela/a3bed669ad6194fb2d9670789541b0c7
  */
-export class SqliteReadable<T = any> extends Readable implements ReadableTyped<T> {
-  constructor(private stmt: Statement) {
+export class SqliteReadable<T = any> extends Readable implements ReadableTyped<T>, AsyncDisposable {
+  private constructor(private stmt: Statement) {
     super({ objectMode: true })
 
-    // might be unnecessary
-    // this.on( 'end', () => {
-    //   console.log(`SQLiteStream end`)
-    //   void this.stmt.finalize()
-    // })
+    this.on('end', () => {
+      console.log(`SqliteReadable: end`)
+      void this.close()
+    })
   }
 
   static async create<T = any>(db: Database, sql: string): Promise<SqliteReadable<T>> {
     const stmt = await db.prepare(sql)
     return new SqliteReadable<T>(stmt)
+  }
+
+  private busy = false
+
+  override _read(): void {
+    if (this.busy) return
+
+    this.stmt
+      .get<T>()
+      .then(r => {
+        this.push(r || null)
+        this.busy = false
+      })
+      .catch(err => {
+        console.error(err)
+        this.destroy(err as Error)
+      })
+  }
+
+  override async [Symbol.asyncDispose](): Promise<void> {
+    await this.close()
   }
 
   /**
@@ -27,18 +47,5 @@ export class SqliteReadable<T = any> extends Readable implements ReadableTyped<T
    */
   async close(): Promise<void> {
     await this.stmt.finalize()
-  }
-
-  // count = 0 // use for debugging
-
-  override async _read(): Promise<void> {
-    // console.log(`read ${++this.count}`) // debugging
-    try {
-      const r = await this.stmt.get<T>()
-      this.push(r || null)
-    } catch (err) {
-      console.error(err)
-      this.destroy(err as Error)
-    }
   }
 }

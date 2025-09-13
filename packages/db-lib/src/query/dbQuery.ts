@@ -1,13 +1,12 @@
 import { _truncate } from '@naturalcycles/js-lib/string/string.util.js'
-import type { AsyncIndexedMapper, BaseDBEntity, ObjectWithId } from '@naturalcycles/js-lib/types'
+import type { BaseDBEntity, ObjectWithId } from '@naturalcycles/js-lib/types'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
-import { Pipeline, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDao } from '../commondao/common.dao.js'
 import type {
   CommonDaoOptions,
   CommonDaoReadOptions,
   CommonDaoStreamDeleteOptions,
-  CommonDaoStreamForEachOptions,
   CommonDaoStreamOptions,
 } from '../commondao/common.dao.model.js'
 import type { RunQueryResult } from '../db.model.js'
@@ -276,53 +275,20 @@ export class RunnableDBQuery<
     return await this.dao.patchByQuery(this, patch, opt)
   }
 
-  async streamQueryForEach(
-    mapper: AsyncIndexedMapper<BM, void>,
-    opt?: CommonDaoStreamForEachOptions<BM>,
-  ): Promise<void> {
-    await this.dao.streamQueryForEach(this, mapper, opt)
-  }
-
-  async streamQueryAsDBMForEach(
-    mapper: AsyncIndexedMapper<DBM, void>,
-    opt?: CommonDaoStreamForEachOptions<DBM>,
-  ): Promise<void> {
-    await this.dao.streamQueryAsDBMForEach(this, mapper, opt)
-  }
-
-  streamQuery(opt?: CommonDaoStreamOptions<BM>): ReadableTyped<BM> {
+  streamQuery(opt?: CommonDaoStreamOptions<BM>): Pipeline<BM> {
     return this.dao.streamQuery(this, opt)
   }
 
-  streamQueryAsDBM(opt?: CommonDaoStreamOptions<DBM>): ReadableTyped<DBM> {
+  streamQueryAsDBM(opt?: CommonDaoStreamOptions<DBM>): Pipeline<DBM> {
     return this.dao.streamQueryAsDBM(this, opt)
-  }
-
-  pipeline(opt?: CommonDaoStreamOptions<BM>): Pipeline<BM> {
-    return Pipeline.from(this.dao.streamQuery(this, opt))
-  }
-
-  pipelineAsDBM(opt?: CommonDaoStreamOptions<DBM>): Pipeline<DBM> {
-    return Pipeline.from(this.dao.streamQueryAsDBM(this, opt))
   }
 
   async queryIds(opt?: CommonDaoReadOptions): Promise<ID[]> {
     return await this.dao.queryIds(this, opt)
   }
 
-  streamQueryIds(opt?: CommonDaoStreamOptions<ID>): ReadableTyped<ID> {
+  streamQueryIds(opt?: CommonDaoStreamOptions<ID>): Pipeline<ID> {
     return this.dao.streamQueryIds(this, opt)
-  }
-
-  pipelineIds(opt?: CommonDaoStreamOptions<ID>): Pipeline<ID> {
-    return Pipeline.from(this.dao.streamQueryIds(this, opt))
-  }
-
-  async streamQueryIdsForEach(
-    mapper: AsyncIndexedMapper<ID, void>,
-    opt?: CommonDaoStreamForEachOptions<ID>,
-  ): Promise<void> {
-    await this.dao.streamQueryIdsForEach(this, mapper, opt)
   }
 
   async deleteByQuery(opt?: CommonDaoStreamDeleteOptions<DBM>): Promise<number> {

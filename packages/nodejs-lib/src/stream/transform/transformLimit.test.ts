@@ -1,6 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, test } from 'vitest'
-import { readableFrom } from '../index.js'
+import { createReadableFrom } from '../index.js'
 import { Pipeline } from '../pipeline.js'
 
 test('transformLimit', async () => {
@@ -13,7 +13,7 @@ test('transformLimit', async () => {
 
 test('using .take', async () => {
   const data = _range(1, 50).map(n => ({ id: String(n) }))
-  const readable = readableFrom(data)
+  const readable = createReadableFrom(data)
 
   const arr = await readable.take(5).toArray()
 
@@ -22,7 +22,7 @@ test('using .take', async () => {
 
 test('flatMap', async () => {
   const data = _range(1, 50).map(n => ({ id: n }))
-  const readable = readableFrom(data)
+  const readable = createReadableFrom(data)
 
   const arr = await readable
     .take(5)

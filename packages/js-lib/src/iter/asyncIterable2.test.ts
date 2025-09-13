@@ -5,21 +5,21 @@ import { AsyncIterable2 } from './asyncIterable2.js'
 test('asyncIterable2', async () => {
   expect(await _rangeAsyncIterable(3).toArray()).toEqual([0, 1, 2])
 
-  expect(await _rangeAsyncIterable(1, 4).find(v => v % 2 === 0)).toBe(2)
-  expect(await _rangeAsyncIterable(1, 4).some(v => v % 2 === 0)).toBe(true)
-  expect(await _rangeAsyncIterable(1, 4).some(v => v % 2 === -1)).toBe(false)
-  expect(await _rangeAsyncIterable(1, 4).every(v => v % 2 === 0)).toBe(false)
-  expect(await _rangeAsyncIterable(1, 4).every(v => v > 0)).toBe(true)
+  expect(await _rangeAsyncIterable(1, 4).findSync(v => v % 2 === 0)).toBe(2)
+  expect(await _rangeAsyncIterable(1, 4).someSync(v => v % 2 === 0)).toBe(true)
+  expect(await _rangeAsyncIterable(1, 4).someSync(v => v % 2 === -1)).toBe(false)
+  expect(await _rangeAsyncIterable(1, 4).everySync(v => v % 2 === 0)).toBe(false)
+  expect(await _rangeAsyncIterable(1, 4).everySync(v => v > 0)).toBe(true)
 
   expect(
     await _rangeAsyncIterable(1, 4)
-      .filter(v => v % 2 === 1)
+      .filterSync(v => v % 2 === 1)
       .toArray(),
   ).toEqual([1, 3])
 
   expect(
     await _rangeAsyncIterable(1, 4)
-      .map(v => v * 2)
+      .mapSync(v => v * 2)
       .toArray(),
   ).toEqual([2, 4, 6])
 

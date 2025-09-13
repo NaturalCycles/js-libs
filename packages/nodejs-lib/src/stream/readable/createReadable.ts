@@ -1,4 +1,4 @@
-import type { ReadableOptions } from 'node:stream'
+import { type ReadableOptions, Transform } from 'node:stream'
 import { Readable } from 'node:stream'
 import type { ReadableTyped } from '../stream.model.js'
 
@@ -14,7 +14,7 @@ import type { ReadableTyped } from '../stream.model.js'
  * if read() will be called AFTER everything was pushed and Readable is closed (by pushing `null`).
  * Beware of it when e.g doing unit testing! Jest prefers to hang (not exit-0).
  */
-export function readableCreate<T>(
+export function createReadable<T>(
   items: Iterable<T> = [],
   opt?: ReadableOptions,
   onRead?: () => void, // read callback
@@ -35,9 +35,32 @@ export function readableCreate<T>(
 /**
  * Convenience type-safe wrapper around Readable.from() that infers the Type of input.
  */
-export function readableFrom<T>(
+export function createReadableFrom<T>(
   iterable: Iterable<T> | AsyncIterable<T>,
   opt?: ReadableOptions,
 ): ReadableTyped<T> {
   return Readable.from(iterable, opt)
+}
+
+/**
+ * Allows to "create Readable asynchronously".
+ * Implemented via a proxy Transform, which is created (and returned) eagerly,
+ * and later (when source Readable is created) serves as a pass-through proxy.
+ */
+export function createReadableFromAsync<T>(fn: () => Promise<ReadableTyped<T>>): ReadableTyped<T> {
+  const transform = new Transform({
+    objectMode: true,
+    highWaterMark: 1,
+    transform: (chunk, _encoding, cb) => {
+      cb(null, chunk)
+    },
+  })
+
+  void fn()
+    .then(readable => {
+      readable.on('error', err => transform.destroy(err)).pipe(transform)
+    })
+    .catch(err => transform.destroy(err))
+
+  return transform
 }

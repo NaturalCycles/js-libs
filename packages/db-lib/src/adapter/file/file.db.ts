@@ -1,3 +1,4 @@
+import { Readable } from 'node:stream'
 import { _by, _sortBy } from '@naturalcycles/js-lib/array'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
@@ -10,8 +11,7 @@ import {
   type UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
-import { readableCreate } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { BaseCommonDB } from '../../commondb/base.common.db.js'
 import type { CommonDB, CommonDBSupport } from '../../commondb/common.db.js'
 import { commonDBFullSupport } from '../../commondb/common.db.js'
@@ -127,15 +127,11 @@ export class FileDB extends BaseCommonDB implements CommonDB {
   override streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: CommonDBStreamOptions,
-  ): ReadableTyped<ROW> {
-    const readable = readableCreate<ROW>()
-
-    void this.runQuery(q, opt).then(({ rows }) => {
-      rows.forEach(r => readable.push(r))
-      readable.push(null) // done
+  ): Pipeline<ROW> {
+    return Pipeline.fromAsyncReadable(async () => {
+      const { rows } = await this.runQuery(q, opt)
+      return Readable.from(rows)
     })
-
-    return readable
   }
 
   override async deleteByQuery<ROW extends ObjectWithId>(

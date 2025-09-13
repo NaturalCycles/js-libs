@@ -1,7 +1,7 @@
-import type { Readable, Writable } from 'node:stream'
+import type { Writable } from 'node:stream'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
 
 export interface CommonStorageBucketCfg {
@@ -160,15 +160,15 @@ export class CommonStorageBucket {
     return await this.cfg.storage.getFileNames(this.cfg.bucketName, opt)
   }
 
-  getFileNamesStream(opt?: CommonStorageGetOptions): ReadableTyped<string> {
+  getFileNamesStream(opt?: CommonStorageGetOptions): Pipeline<string> {
     return this.cfg.storage.getFileNamesStream(this.cfg.bucketName, opt)
   }
 
-  getFilesStream(opt?: CommonStorageGetOptions): ReadableTyped<FileEntry> {
+  getFilesStream(opt?: CommonStorageGetOptions): Pipeline<FileEntry> {
     return this.cfg.storage.getFilesStream(this.cfg.bucketName, opt)
   }
 
-  getFileReadStream(filePath: string): Readable {
+  getFileReadStream(filePath: string): Pipeline<Uint8Array> {
     return this.cfg.storage.getFileReadStream(this.cfg.bucketName, filePath)
   }
 

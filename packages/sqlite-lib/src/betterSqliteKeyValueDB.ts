@@ -3,8 +3,9 @@ import type { CommonKeyValueDB, IncrementTuple, KeyValueDBTuple } from '@natural
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
-import { readableCreate, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { Database, Options } from 'better-sqlite3'
 import BetterSqlite3 from 'better-sqlite3'
 
@@ -131,64 +132,37 @@ export class BetterSqliteKeyValueDB implements CommonKeyValueDB {
     this.db.exec(`END TRANSACTION`)
   }
 
-  streamIds(table: string, limit?: number): ReadableTyped<string> {
-    const readable = readableCreate<string>()
-
+  streamIds(table: string, limit?: number): Pipeline<string> {
     let sql = `SELECT id FROM ${table}`
     if (limit) {
       sql += ` LIMIT ${limit}`
     }
 
-    void (async () => {
-      for (const row of this.db.prepare(sql).iterate()) {
-        readable.push((row as { id: string }).id)
-      }
-
-      // Now we're done
-      readable.push(null)
-    })()
-
-    return readable
+    return Pipeline.fromIterable(
+      this.db.prepare(sql).iterate() as IterableIterator<ObjectWithId>,
+    ).mapSync(row => row.id)
   }
 
-  streamValues(table: string, limit?: number): ReadableTyped<Buffer> {
-    const readable = readableCreate<Buffer>()
-
+  streamValues(table: string, limit?: number): Pipeline<Buffer> {
     let sql = `SELECT v FROM ${table}`
     if (limit) {
       sql += ` LIMIT ${limit}`
     }
 
-    void (async () => {
-      for (const row of this.db.prepare(sql).iterate()) {
-        readable.push((row as { v: Buffer }).v)
-      }
-
-      // Now we're done
-      readable.push(null)
-    })()
-
-    return readable
+    return Pipeline.fromIterable(
+      this.db.prepare(sql).iterate() as IterableIterator<{ v: Buffer }>,
+    ).mapSync(row => row.v)
   }
 
-  streamEntries(table: string, limit?: number): ReadableTyped<KeyValueDBTuple> {
-    const readable = readableCreate<KeyValueDBTuple>()
-
+  streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
     let sql = `SELECT id,v FROM ${table}`
     if (limit) {
       sql += ` LIMIT ${limit}`
     }
 
-    void (async () => {
-      for (const row of this.db.prepare(sql).iterate()) {
-        readable.push([(row as any).id, (row as any).v])
-      }
-
-      // Now we're done
-      readable.push(null)
-    })()
-
-    return readable
+    return Pipeline.fromIterable(
+      this.db.prepare(sql).iterate() as IterableIterator<{ id: string; v: Buffer }>,
+    ).mapSync(row => [row.id, row.v])
   }
 
   /**

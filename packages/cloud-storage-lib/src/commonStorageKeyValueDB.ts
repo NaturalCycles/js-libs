@@ -4,7 +4,7 @@ import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { StringMap } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage } from './commonStorage.js'
 
 export interface CommonStorageKeyValueDBCfg {
@@ -84,24 +84,24 @@ export class CommonStorageKeyValueDB implements CommonKeyValueDB {
     })
   }
 
-  streamIds(table: string, limit?: number): ReadableTyped<string> {
+  streamIds(table: string, limit?: number): Pipeline<string> {
     const { bucketName, prefix } = this.getBucketAndPrefix(table)
 
     return this.cfg.storage.getFileNamesStream(bucketName, { prefix, limit, fullPaths: false })
   }
 
-  streamValues(table: string, limit?: number): ReadableTyped<Buffer> {
+  streamValues(table: string, limit?: number): Pipeline<Buffer> {
     const { bucketName, prefix } = this.getBucketAndPrefix(table)
 
-    return this.cfg.storage.getFilesStream(bucketName, { prefix, limit }).map(f => f.content)
+    return this.cfg.storage.getFilesStream(bucketName, { prefix, limit }).mapSync(f => f.content)
   }
 
-  streamEntries(table: string, limit?: number): ReadableTyped<KeyValueDBTuple> {
+  streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
     const { bucketName, prefix } = this.getBucketAndPrefix(table)
 
     return this.cfg.storage
       .getFilesStream(bucketName, { prefix, limit, fullPaths: false })
-      .map(f => [f.filePath, f.content])
+      .mapSync(f => [f.filePath, f.content])
   }
 
   async count(table: string): Promise<number> {

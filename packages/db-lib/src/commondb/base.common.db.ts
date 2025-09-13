@@ -1,6 +1,6 @@
 import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   CommonDBOptions,
   CommonDBReadOptions,
@@ -86,7 +86,7 @@ export class BaseCommonDB implements CommonDB {
     throw new Error('saveBatch is not implemented')
   }
 
-  streamQuery<ROW extends ObjectWithId>(_q: DBQuery<ROW>): ReadableTyped<ROW> {
+  streamQuery<ROW extends ObjectWithId>(_q: DBQuery<ROW>): Pipeline<ROW> {
     throw new Error('streamQuery is not implemented')
   }
 

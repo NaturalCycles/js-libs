@@ -20,6 +20,7 @@ import { fs2 } from '../fs/fs2.js'
 import { createReadStreamAsNDJson } from './ndjson/createReadStreamAsNDJson.js'
 import { transformJsonParse } from './ndjson/transformJsonParse.js'
 import { transformToNDJson } from './ndjson/transformToNDJson.js'
+import { createReadableFromAsync } from './readable/createReadable.js'
 import type {
   ReadableTyped,
   TransformOptions,
@@ -44,12 +45,12 @@ import {
 import { transformMapSync, type TransformMapSyncOptions } from './transform/transformMapSync.js'
 import { transformOffset, type TransformOffsetOptions } from './transform/transformOffset.js'
 import { transformSplitOnNewline } from './transform/transformSplit.js'
-import { transformTap, type TransformTapOptions } from './transform/transformTap.js'
+import { transformTap, transformTapSync } from './transform/transformTap.js'
 import { transformThrottle, type TransformThrottleOptions } from './transform/transformThrottle.js'
 import { writablePushToArray } from './writable/writablePushToArray.js'
 import { writableVoid } from './writable/writableVoid.js'
 
-export class Pipeline<T> {
+export class Pipeline<T = unknown> {
   // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
   private readonly source: Readable
   private transforms: NodeJS.ReadWriteStream[] = []
@@ -66,6 +67,15 @@ export class Pipeline<T> {
 
   static from<T>(source: ReadableTyped<T>): Pipeline<T> {
     return new Pipeline(source)
+  }
+
+  /**
+   * Useful in cases when Readable is not immediately available,
+   * but only available after an async operation is completed.
+   * Implemented via a proxy Transform, which should be transparent.
+   */
+  static fromAsyncReadable<T = unknown>(fn: () => Promise<ReadableTyped<T>>): Pipeline<T> {
+    return new Pipeline(createReadableFromAsync(fn))
   }
 
   static fromWeb<T>(webReadableStream: WebReadableStream<T>): Pipeline<T> {
@@ -211,8 +221,13 @@ export class Pipeline<T> {
     return this
   }
 
-  tap(fn: AsyncIndexedMapper<T, any>, opt?: TransformTapOptions): this {
+  tap(fn: AsyncIndexedMapper<T, any>, opt?: TransformOptions): this {
     this.transforms.push(transformTap(fn, opt))
+    return this
+  }
+
+  tapSync(fn: IndexedMapper<T, any>, opt?: TransformOptions): this {
+    this.transforms.push(transformTapSync(fn, opt))
     return this
   }
 

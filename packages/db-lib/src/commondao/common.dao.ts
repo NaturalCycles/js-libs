@@ -13,7 +13,6 @@ import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import {
   _stringMapEntries,
   _stringMapValues,
-  type AsyncIndexedMapper,
   type BaseDBEntity,
   type NonNegativeInteger,
   type ObjectWithId,
@@ -22,17 +21,11 @@ import {
 } from '@naturalcycles/js-lib/types'
 import { _passthroughPredicate, _typeCast } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
-import {
-  Pipeline,
-  type ReadableTyped,
-  transformFlatten,
-  transformMapSync,
-} from '@naturalcycles/nodejs-lib/stream'
+import { type Pipeline, transformFlatten } from '@naturalcycles/nodejs-lib/stream'
 import {
   transformChunk,
   transformLogProgress,
   transformMap,
-  transformNoOp,
 } from '@naturalcycles/nodejs-lib/stream'
 import { DBLibError } from '../cnst.js'
 import type {
@@ -53,7 +46,6 @@ import type {
   CommonDaoSaveBatchOptions,
   CommonDaoSaveOptions,
   CommonDaoStreamDeleteOptions,
-  CommonDaoStreamForEachOptions,
   CommonDaoStreamOptions,
   CommonDaoStreamSaveOptions,
 } from './common.dao.model.js'
@@ -84,7 +76,6 @@ export class CommonDao<
       hooks: {
         parseNaturalId: () => ({}),
         beforeCreate: bm => bm as BM,
-        anonymize: dbm => dbm,
         onValidationError: err => err,
         ...cfg.hooks,
       } satisfies Partial<CommonDaoHooks<BM, DBM, ID>>,
@@ -240,153 +231,34 @@ export class CommonDao<
     return await this.cfg.db.runQueryCount(q, opt)
   }
 
-  async streamQueryForEach(
-    q: DBQuery<DBM>,
-    mapper: AsyncIndexedMapper<BM, void>,
-    opt: CommonDaoStreamForEachOptions<BM> = {},
-  ): Promise<void> {
-    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
-    opt.skipValidation = opt.skipValidation !== false // default true
-    opt.errorMode ||= ErrorMode.SUPPRESS
+  streamQueryAsDBM(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<DBM> = {}): Pipeline<DBM> {
+    const pipeline = this.streamQueryRaw(q, opt)
 
     const isPartialQuery = !!q._selectedFieldNames
+    if (isPartialQuery) return pipeline
 
-    await Pipeline.from(this.cfg.db.streamQuery<DBM>(q, opt))
-      .map(
-        async dbm => {
-          if (isPartialQuery) return dbm as any
-          return await this.dbmToBM(dbm, opt)
-        },
-        {
-          errorMode: opt.errorMode,
-        },
-      )
-      .map(mapper, {
-        ...opt,
-        predicate: _passthroughPredicate, // to be able to logProgress
-      })
-      // LogProgress should be AFTER the mapper, to be able to report correct stats
-      .logProgress({
-        metric: q.table,
-        ...opt,
-      })
-      .run()
+    opt.skipValidation ??= true
+    opt.errorMode ||= ErrorMode.SUPPRESS
+
+    return pipeline.mapSync(dbm => this.anyToDBM(dbm, opt), { errorMode: opt.errorMode })
   }
 
-  async streamQueryAsDBMForEach(
-    q: DBQuery<DBM>,
-    mapper: AsyncIndexedMapper<DBM, void>,
-    opt: CommonDaoStreamForEachOptions<DBM> = {},
-  ): Promise<void> {
-    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
-    opt.skipValidation = opt.skipValidation !== false // default true
-    opt.errorMode ||= ErrorMode.SUPPRESS
+  streamQuery(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<BM> = {}): Pipeline<BM> {
+    const pipeline = this.streamQueryRaw(q, opt)
 
     const isPartialQuery = !!q._selectedFieldNames
+    if (isPartialQuery) return pipeline as any as Pipeline<BM>
 
-    await Pipeline.from(this.cfg.db.streamQuery<any>(q, opt))
-      .mapSync(
-        dbm => {
-          if (isPartialQuery) return dbm
-          return this.anyToDBM(dbm, opt)
-        },
-        {
-          errorMode: opt.errorMode,
-        },
-      )
-      .map(mapper, {
-        ...opt,
-        predicate: _passthroughPredicate, // to be able to logProgress
-      })
-      .logProgress({
-        metric: q.table,
-        ...opt,
-      })
-      .run()
+    opt.skipValidation ??= true
+    opt.errorMode ||= ErrorMode.SUPPRESS
+
+    return pipeline.map(async dbm => await this.dbmToBM(dbm, opt), { errorMode: opt.errorMode })
   }
 
-  /**
-   * Stream as Readable, to be able to .pipe() it further with support of backpressure.
-   */
-  streamQueryAsDBM(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<DBM> = {}): ReadableTyped<DBM> {
+  private streamQueryRaw(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<any> = {}): Pipeline<DBM> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    opt.skipValidation = opt.skipValidation !== false // default true
-    opt.errorMode ||= ErrorMode.SUPPRESS
-
-    const isPartialQuery = !!q._selectedFieldNames
-
-    const stream = this.cfg.db.streamQuery<DBM>(q, opt)
-    if (isPartialQuery) return stream
-
-    return (
-      stream
-        // the commented out line was causing RangeError: Maximum call stack size exceeded
-        // .on('error', err => stream.emit('error', err))
-        .pipe(
-          transformMapSync<any, DBM>(
-            dbm => {
-              return this.anyToDBM(dbm, opt)
-            },
-            {
-              errorMode: opt.errorMode,
-            },
-          ),
-        )
-    )
-  }
-
-  /**
-   * Stream as Readable, to be able to .pipe() it further with support of backpressure.
-   *
-   * Please note that this stream is currently not async-iteration friendly, because of
-   * `through2` usage.
-   * Will be migrated/fixed at some point in the future.
-   *
-   * You can do `.pipe(transformNoOp)` to make it "valid again".
-   */
-  streamQuery(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<BM> = {}): ReadableTyped<BM> {
-    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
-    opt.skipValidation = opt.skipValidation !== false // default true
-    opt.errorMode ||= ErrorMode.SUPPRESS
-
-    const stream = this.cfg.db.streamQuery<DBM>(q, opt)
-    const isPartialQuery = !!q._selectedFieldNames
-    if (isPartialQuery) return stream as any
-
-    // This almost works, but hard to implement `errorMode: THROW_AGGREGATED` in this case
-    // return stream.flatMap(async (dbm: DBM) => {
-    //   return [await this.dbmToBM(dbm, opt)] satisfies BM[]
-    // }, {
-    //   concurrency: 16,
-    // })
-
-    return (
-      stream
-        // optimization: 1 validation is enough
-        // .pipe(transformMap<any, DBM>(dbm => this.anyToDBM(dbm, opt), safeOpt))
-        // .pipe(transformMap<DBM, BM>(dbm => this.dbmToBM(dbm, opt), safeOpt))
-        // the commented out line was causing RangeError: Maximum call stack size exceeded
-        // .on('error', err => stream.emit('error', err))
-        .pipe(
-          transformMap<DBM, BM>(
-            async dbm => {
-              return await this.dbmToBM(dbm, opt)
-            },
-            {
-              errorMode: opt.errorMode,
-            },
-          ),
-        )
-        // this can make the stream async-iteration-friendly
-        // but not applying it now for perf reasons
-        // UPD: applying, to be compliant with `.toArray()`, etc.
-        .on('error', err => stream.destroy(err))
-        .pipe(transformNoOp())
-    )
+    return this.cfg.db.streamQuery<DBM>(q, opt)
   }
 
   async queryIds(q: DBQuery<DBM>, opt: CommonDaoReadOptions = {}): Promise<ID[]> {
@@ -396,49 +268,12 @@ export class CommonDao<
     return rows.map(r => r.id as ID)
   }
 
-  streamQueryIds(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<ID> = {}): ReadableTyped<ID> {
+  streamQueryIds(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<ID> = {}): Pipeline<ID> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    // Experimental: using `.map()`
-    const stream: ReadableTyped<ID> = this.cfg.db
-      .streamQuery<DBM>(q.select(['id']), opt)
-      // .on('error', err => stream.emit('error', err))
-      .map((r: ObjectWithId) => r.id as ID)
-
-    // const stream: ReadableTyped<string> = this.cfg.db
-    //   .streamQuery<DBM>(q.select(['id']), opt)
-    //   .on('error', err => stream.emit('error', err))
-    //   .pipe(
-    //     transformMapSimple<DBM, string>(r => r.id, {
-    //       errorMode: ErrorMode.SUPPRESS, // cause .pipe() cannot propagate errors
-    //     }),
-    //   )
-
-    return stream
-  }
-
-  async streamQueryIdsForEach(
-    q: DBQuery<DBM>,
-    mapper: AsyncIndexedMapper<ID, void>,
-    opt: CommonDaoStreamForEachOptions<ID> = {},
-  ): Promise<void> {
-    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
-    opt.errorMode ||= ErrorMode.SUPPRESS
-
-    await Pipeline.from(this.cfg.db.streamQuery<DBM>(q.select(['id']), opt).map(r => r.id as ID))
-      .map(mapper, {
-        ...opt,
-        predicate: _passthroughPredicate,
-      })
-      // LogProgress should be AFTER the mapper, to be able to report correct stats
-      .logProgress({
-        metric: q.table,
-        ...opt,
-      })
-      .run()
+    return this.cfg.db.streamQuery(q.select(['id']), opt).mapSync((r: ObjectWithId) => r.id as ID)
   }
 
   /**
@@ -791,7 +626,9 @@ export class CommonDao<
     if (opt.chunkSize) {
       const { chunkSize, chunkConcurrency = 8 } = opt
 
-      await Pipeline.from(this.cfg.db.streamQuery<DBM>(q.select(['id']), opt).map(r => r.id))
+      await this.cfg.db
+        .streamQuery<DBM>(q.select(['id']), opt)
+        .mapSync(r => r.id)
         .chunk(chunkSize)
         .map(
           async ids => {
@@ -876,11 +713,7 @@ export class CommonDao<
 
     // optimization: no need to run full joi DBM validation, cause BM validation will be run
     // const dbm = this.anyToDBM(_dbm, opt)
-    let dbm: DBM = { ..._dbm, ...this.cfg.hooks!.parseNaturalId!(_dbm.id as ID) }
-
-    if (opt.anonymize) {
-      dbm = this.cfg.hooks!.anonymize!(dbm)
-    }
+    const dbm: DBM = { ..._dbm, ...this.cfg.hooks!.parseNaturalId!(_dbm.id as ID) }
 
     // DBM > BM
     const bm = ((await this.cfg.hooks!.beforeDBMToBM?.(dbm)) || dbm) as Partial<BM>
@@ -916,19 +749,13 @@ export class CommonDao<
 
   anyToDBM(dbm: undefined, opt?: CommonDaoOptions): null
   anyToDBM(dbm?: any, opt?: CommonDaoOptions): DBM
-  anyToDBM(dbm?: DBM, opt: CommonDaoOptions = {}): DBM | null {
+  anyToDBM(dbm?: DBM, _opt: CommonDaoOptions = {}): DBM | null {
     if (!dbm) return null
 
     // this shouldn't be happening on load! but should on save!
     // this.assignIdCreatedUpdated(dbm, opt)
 
     dbm = { ...dbm, ...this.cfg.hooks!.parseNaturalId!(dbm.id as ID) }
-
-    // todo: is this the right place?
-    // todo: is anyToDBM even needed?
-    if (opt.anonymize) {
-      dbm = this.cfg.hooks!.anonymize!(dbm)
-    }
 
     // Validate/convert DBM
     // return this.validateAndConvert(dbm, this.cfg.dbmSchema, DBModelType.DBM, opt)
@@ -1253,17 +1080,30 @@ export class CommonDao<
    * Throws if query uses a property that is in `excludeFromIndexes` list.
    */
   private validateQueryIndexes(q: DBQuery<DBM>): void {
-    const { excludeFromIndexes } = this.cfg
-    if (!excludeFromIndexes) return
+    const { excludeFromIndexes, indexes } = this.cfg
 
-    for (const f of q._filters) {
-      _assert(
-        !excludeFromIndexes.includes(f.name),
-        `cannot query on non-indexed property: ${this.cfg.table}.${f.name as string}`,
-        {
-          query: q.pretty(),
-        },
-      )
+    if (excludeFromIndexes) {
+      for (const f of q._filters) {
+        _assert(
+          !excludeFromIndexes.includes(f.name),
+          `cannot query on non-indexed property: ${this.cfg.table}.${f.name as string}`,
+          {
+            query: q.pretty(),
+          },
+        )
+      }
+    }
+
+    if (indexes) {
+      for (const f of q._filters) {
+        _assert(
+          f.name === 'id' || indexes.includes(f.name),
+          `cannot query on non-indexed property: ${this.cfg.table}.${f.name as string}`,
+          {
+            query: q.pretty(),
+          },
+        )
+      }
     }
   }
 }

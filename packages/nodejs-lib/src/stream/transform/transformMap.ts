@@ -8,6 +8,7 @@ import {
   type AsyncPredicate,
   END,
   type PositiveInteger,
+  type Predicate,
   type Promisable,
   SKIP,
   type StringMap,
@@ -26,7 +27,7 @@ export interface TransformMapOptions<IN = any, OUT = IN> extends TransformOption
    * Defaults to "pass everything" (including null, undefined, etc).
    * Simpler way to exclude certain cases is to return SKIP symbol from the mapper.
    */
-  predicate?: AsyncPredicate<OUT>
+  predicate?: Predicate<OUT> | AsyncPredicate<OUT>
 
   /**
    * Number of concurrently pending promises returned by `mapper`.

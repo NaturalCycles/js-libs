@@ -14,9 +14,12 @@ export interface ReadableArrayOptions {
   signal?: AbortSignal
 }
 
-export type ReadableMapper<IN, OUT> = (data: IN, opt?: ReadableSignalOptions) => Promisable<OUT>
+export type ReadableMapper<IN, OUT = unknown> = (
+  data: IN,
+  opt?: ReadableSignalOptions,
+) => Promisable<OUT>
 
-export type ReadableFlatMapper<IN, OUT> = (
+export type ReadableFlatMapper<IN, OUT = unknown> = (
   data: IN,
   opt?: ReadableSignalOptions,
 ) => Promisable<OUT[]>
@@ -28,7 +31,7 @@ export type ReadablePredicate<IN> = (
   opt?: ReadableSignalOptions,
 ) => boolean | Promise<boolean>
 
-export interface ReadableTyped<T> extends Readable {
+export interface ReadableTyped<T = unknown> extends Readable {
   toArray: (opt?: ReadableSignalOptions) => Promise<T[]>
 
   map: <OUT>(mapper: ReadableMapper<T, OUT>, opt?: ReadableArrayOptions) => ReadableTyped<OUT>
@@ -49,19 +52,8 @@ export interface ReadableTyped<T> extends Readable {
 // biome-ignore lint/correctness/noUnusedVariables: ok
 export interface WritableTyped<T> extends Writable {}
 
-/**
- * Type alias that indicates that the Readable is not in objectMode,
- * e.g returns a binary stream (like a gzip stream).
- */
-export type ReadableBinary = Readable
-/**
- * Type alias that indicates that the Writable is not in objectMode,
- * e.g reads a binary stream (like a gzip stream).
- */
-export type WritableBinary = Writable
-
 // biome-ignore lint/correctness/noUnusedVariables: ok
-export interface TransformTyped<IN, OUT> extends Transform {}
+export interface TransformTyped<IN = unknown, OUT = unknown> extends Transform {}
 
 export interface TransformOptions {
   /**

@@ -2,10 +2,7 @@ import type { ValidationFunction } from '@naturalcycles/js-lib'
 import type { AppError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
-import type {
-  TransformLogProgressOptions,
-  TransformMapOptions,
-} from '@naturalcycles/nodejs-lib/stream'
+import type { TransformLogProgressOptions } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBCreateOptions, CommonDBOptions, CommonDBSaveOptions } from '../db.model.js'
 
@@ -69,17 +66,6 @@ export interface CommonDaoHooks<
    * Or, you can mutate the DBM if needed.
    */
   beforeSave?: (dbm: DBM) => void
-
-  /**
-   * Called in:
-   * - dbmToBM (applied before DBM becomes BM)
-   * - anyToDBM
-   *
-   * Hook only allows to apply anonymization to DBM (not to BM).
-   * It still applies to BM "transitively", during dbmToBM
-   * (e.g after loaded from the Database).
-   */
-  anonymize: (dbm: DBM) => DBM
 
   /**
    * If hook is defined - allows to prevent or modify the error thrown.
@@ -281,13 +267,6 @@ export interface CommonDaoOptions extends CommonDBOptions {
   allowMutability?: boolean
 
   /**
-   * If true - data will be anonymized (by calling a BaseDao.anonymize() hook that you can extend in your Dao implementation).
-   * Only applicable to loading/querying/streaming_loading operations (n/a for saving).
-   * There is additional validation applied AFTER Anonymization, so your anonymization implementation should keep the object valid.
-   */
-  anonymize?: boolean
-
-  /**
    * Allows to override the Table that this Dao is connected to, only in the context of this call.
    *
    * Useful e.g in AirtableDB where you can have one Dao to control multiple tables.
@@ -362,10 +341,6 @@ export interface CommonDaoStreamDeleteOptions<DBM extends BaseDBEntity>
 export interface CommonDaoStreamSaveOptions<DBM extends BaseDBEntity>
   extends CommonDaoSaveBatchOptions<DBM>,
     CommonDaoStreamOptions<DBM> {}
-
-export interface CommonDaoStreamForEachOptions<IN>
-  extends CommonDaoStreamOptions<IN>,
-    TransformMapOptions<IN, any> {}
 
 export interface CommonDaoStreamOptions<IN>
   extends CommonDaoReadOptions,

@@ -1,6 +1,5 @@
-import { Readable } from 'node:stream'
 import type { StringMap } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDBCreateOptions } from '../db.model.js'
 import type { CommonKeyValueDB, IncrementTuple, KeyValueDBTuple } from '../kv/commonKeyValueDB.js'
 import { commonKeyValueDBFullSupport } from '../kv/commonKeyValueDB.js'
@@ -40,16 +39,16 @@ export class InMemoryKeyValueDB implements CommonKeyValueDB {
     }
   }
 
-  streamIds(table: string, limit?: number): ReadableTyped<string> {
-    return Readable.from(Object.keys(this.data[table] || {}).slice(0, limit))
+  streamIds(table: string, limit?: number): Pipeline<string> {
+    return Pipeline.fromArray(Object.keys(this.data[table] || {}).slice(0, limit))
   }
 
-  streamValues(table: string, limit?: number): ReadableTyped<Buffer> {
-    return Readable.from(Object.values(this.data[table] || {}).slice(0, limit))
+  streamValues(table: string, limit?: number): Pipeline<Buffer> {
+    return Pipeline.fromArray(Object.values(this.data[table] || {}).slice(0, limit))
   }
 
-  streamEntries(table: string, limit?: number): ReadableTyped<KeyValueDBTuple> {
-    return Readable.from(Object.entries(this.data[table] || {}).slice(0, limit))
+  streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
+    return Pipeline.fromArray(Object.entries(this.data[table] || {}).slice(0, limit))
   }
 
   async count(table: string): Promise<number> {

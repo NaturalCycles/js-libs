@@ -13,7 +13,7 @@ test('transformThrottle', async () => {
       throughput: 3,
       // debug: true,
     })
-    .tap(obj => {
+    .tapSync(obj => {
       console.log('post', obj)
     })
     .run()

@@ -8,11 +8,7 @@ import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import { md5 } from '@naturalcycles/nodejs-lib'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
-import type {
-  ReadableBinary,
-  ReadableTyped,
-  WritableBinary,
-} from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline, type WritableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
 
 export class InMemoryCommonStorage implements CommonStorage {
@@ -29,8 +25,8 @@ export class InMemoryCommonStorage implements CommonStorage {
     return Object.keys(this.data)
   }
 
-  getBucketNamesStream(): ReadableTyped<string> {
-    return Readable.from(Object.keys(this.data))
+  getBucketNamesStream(): Pipeline<string> {
+    return Pipeline.fromArray(Object.keys(this.data))
   }
 
   async fileExists(bucketName: string, filePath: string): Promise<boolean> {
@@ -70,10 +66,10 @@ export class InMemoryCommonStorage implements CommonStorage {
       .map(f => (fullPaths ? f : _substringAfterLast(f, '/')))
   }
 
-  getFileNamesStream(bucketName: string, opt: CommonStorageGetOptions = {}): ReadableTyped<string> {
+  getFileNamesStream(bucketName: string, opt: CommonStorageGetOptions = {}): Pipeline<string> {
     const { prefix = '', fullPaths = true } = opt
 
-    return Readable.from(
+    return Pipeline.fromArray(
       Object.keys(this.data[bucketName] || {})
         .filter(filePath => filePath.startsWith(prefix))
         .slice(0, opt.limit)
@@ -81,10 +77,10 @@ export class InMemoryCommonStorage implements CommonStorage {
     )
   }
 
-  getFilesStream(bucketName: string, opt: CommonStorageGetOptions = {}): ReadableTyped<FileEntry> {
+  getFilesStream(bucketName: string, opt: CommonStorageGetOptions = {}): Pipeline<FileEntry> {
     const { prefix = '', fullPaths = true } = opt
 
-    return Readable.from(
+    return Pipeline.fromArray(
       _stringMapEntries(this.data[bucketName] || {})
         .map(([filePath, content]) => ({
           filePath,
@@ -96,11 +92,11 @@ export class InMemoryCommonStorage implements CommonStorage {
     )
   }
 
-  getFileReadStream(bucketName: string, filePath: string): ReadableBinary {
-    return Readable.from(this.data[bucketName]![filePath]!)
+  getFileReadStream(bucketName: string, filePath: string): Pipeline<Uint8Array> {
+    return Pipeline.from(Readable.from(this.data[bucketName]![filePath]!))
   }
 
-  getFileWriteStream(_bucketName: string, _filePath: string): WritableBinary {
+  getFileWriteStream(_bucketName: string, _filePath: string): WritableTyped<Uint8Array> {
     throw new Error('Method not implemented.')
   }
 

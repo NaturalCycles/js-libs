@@ -4,8 +4,9 @@ import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
+import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
-import { readableCreate, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { Database } from 'sqlite'
 import { open } from 'sqlite'
 import * as sqlite3 from 'sqlite3'
@@ -146,73 +147,37 @@ export class SqliteKeyValueDB implements CommonKeyValueDB {
     await this.db.run(`END TRANSACTION`)
   }
 
-  streamIds(table: string, limit?: number): ReadableTyped<string> {
-    const readable = readableCreate<string>()
-
+  streamIds(table: string, limit?: number): Pipeline<string> {
     let sql = `SELECT id FROM ${table}`
     if (limit) {
       sql += ` LIMIT ${limit}`
     }
 
-    void SqliteReadable.create<{ id: string }>(this.db, sql).then(async stream => {
-      for await (const row of stream) {
-        readable.push(row.id)
-      }
-
-      // Close the statement before "finishing" the steam!
-      await stream.close()
-
-      // Now we're done
-      readable.push(null)
-    })
-
-    return readable
+    return Pipeline.fromAsyncReadable<ObjectWithId>(
+      async () => await SqliteReadable.create<ObjectWithId>(this.db, sql),
+    ).mapSync(r => r.id)
   }
 
-  streamValues(table: string, limit?: number): ReadableTyped<Buffer> {
-    const readable = readableCreate<Buffer>()
-
+  streamValues(table: string, limit?: number): Pipeline<Buffer> {
     let sql = `SELECT v FROM ${table}`
     if (limit) {
       sql += ` LIMIT ${limit}`
     }
 
-    void SqliteReadable.create<{ v: Buffer }>(this.db, sql).then(async stream => {
-      for await (const row of stream) {
-        readable.push(row.v)
-      }
-
-      // Close the statement before "finishing" the steam!
-      await stream.close()
-
-      // Now we're done
-      readable.push(null)
-    })
-
-    return readable
+    return Pipeline.fromAsyncReadable<{ v: Buffer }>(
+      async () => await SqliteReadable.create<{ v: Buffer }>(this.db, sql),
+    ).mapSync(r => r.v)
   }
 
-  streamEntries(table: string, limit?: number): ReadableTyped<KeyValueDBTuple> {
-    const readable = readableCreate<KeyValueDBTuple>()
-
+  streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
     let sql = `SELECT id,v FROM ${table}`
     if (limit) {
       sql += ` LIMIT ${limit}`
     }
 
-    void SqliteReadable.create<KeyValueObject>(this.db, sql).then(async stream => {
-      for await (const row of stream) {
-        readable.push([row.id, row.v])
-      }
-
-      // Close the statement before "finishing" the steam!
-      await stream.close()
-
-      // Now we're done
-      readable.push(null)
-    })
-
-    return readable
+    return Pipeline.fromAsyncReadable<{ id: string; v: Buffer }>(
+      async () => await SqliteReadable.create<{ id: string; v: Buffer }>(this.db, sql),
+    ).mapSync(row => [row.id, row.v])
   }
 
   /**

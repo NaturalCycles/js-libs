@@ -30,7 +30,7 @@ import { _filterUndefinedValues, _omit } from '@naturalcycles/js-lib/object/obje
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { ObjectWithId, PositiveInteger, StringMap } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline, type ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { escapeDocId, unescapeDocId } from './firestore.util.js'
 import { FirestoreShardedReadable } from './firestoreShardedReadable.js'
 import { FirestoreStreamReadable } from './firestoreStreamReadable.js'
@@ -152,7 +152,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   override streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt_?: FirestoreDBStreamOptions,
-  ): ReadableTyped<ROW> {
+  ): Pipeline<ROW> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
     const opt: FirestoreDBStreamOptions = {
@@ -163,19 +163,21 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     }
 
     if (opt.experimentalCursorStream) {
-      return new FirestoreStreamReadable(firestoreQuery, q, opt)
+      return Pipeline.from(new FirestoreStreamReadable(firestoreQuery, q, opt))
     }
 
     if (opt.experimentalShardedStream) {
-      return new FirestoreShardedReadable(firestoreQuery, q, opt)
+      return Pipeline.from(new FirestoreShardedReadable(firestoreQuery, q, opt))
     }
 
-    return (firestoreQuery.stream() as ReadableTyped<QueryDocumentSnapshot<any>>).map(doc => {
-      return {
-        id: unescapeDocId(doc.id),
-        ...doc.data(),
-      } as ROW
-    })
+    return Pipeline.from(
+      (firestoreQuery.stream() as ReadableTyped<QueryDocumentSnapshot<any>>).map(doc => {
+        return {
+          id: unescapeDocId(doc.id),
+          ...doc.data(),
+        } as ROW
+      }),
+    )
   }
 
   // SAVE

@@ -245,7 +245,10 @@ export async function runCommonDaoTest(
   if (support.streaming) {
     test('streamQueryForEach all', async () => {
       let rows: TestItemBM[] = []
-      await dao.query().streamQueryForEach(bm => void rows.push(bm))
+      await dao
+        .query()
+        .streamQuery()
+        .forEachSync(bm => void rows.push(bm))
 
       rows = _sortBy(rows, r => r.id)
       expectMatch(expectedItems, rows, quirks)
@@ -260,7 +263,10 @@ export async function runCommonDaoTest(
 
     test('streamQueryIdsForEach all', async () => {
       let ids: string[] = []
-      await dao.query().streamQueryIdsForEach(id => void ids.push(id))
+      await dao
+        .query()
+        .streamQueryIds()
+        .forEachSync(id => void ids.push(id))
       ids = ids.sort()
       expectMatch(
         expectedItems.map(i => i.id),

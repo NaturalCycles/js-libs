@@ -1,6 +1,6 @@
 import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { NonNegativeInteger, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   CommonDBCreateOptions,
   CommonDBOptions,
@@ -105,7 +105,7 @@ export interface CommonDB {
   streamQuery: <ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt?: CommonDBStreamOptions,
-  ) => ReadableTyped<ROW>
+  ) => Pipeline<ROW>
 
   // SAVE
   /**

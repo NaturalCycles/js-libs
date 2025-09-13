@@ -141,13 +141,10 @@ export const SKIP = Symbol('SKIP')
 export const MISS = Symbol('MISS')
 
 /**
- * Function which is called for every item in `input`. Expected to return a `Promise` or value.
+ * Function which is called for every item in `input`. Expected to return a `Promise`.
  */
-export type AsyncMapper<IN = any, OUT = any> = (input: IN) => OUT | PromiseLike<OUT>
-export type AsyncIndexedMapper<IN = any, OUT = any> = (
-  input: IN,
-  index: number,
-) => OUT | PromiseLike<OUT>
+export type AsyncMapper<IN = any, OUT = any> = (input: IN) => PromiseLike<OUT>
+export type AsyncIndexedMapper<IN = any, OUT = any> = (input: IN, index: number) => PromiseLike<OUT>
 export type Mapper<IN = any, OUT = any> = (input: IN) => OUT
 export type IndexedMapper<IN = any, OUT = any> = (input: IN, index: number) => OUT
 
@@ -160,10 +157,10 @@ export const _passUndefinedMapper: IndexedMapper<any, void> = () => undefined
 export const _noop = (..._args: any[]): undefined => undefined
 
 export type Predicate<T> = (item: T, index: number) => boolean
-export type AsyncPredicate<T> = (item: T, index: number) => boolean | PromiseLike<boolean>
+export type AsyncPredicate<T> = (item: T, index: number) => PromiseLike<boolean>
 
 export type AbortablePredicate<T> = (item: T, i: number) => boolean | typeof END
-export type AbortableAsyncPredicate<T> = (item: T, i: number) => Promisable<boolean | typeof END>
+export type AbortableAsyncPredicate<T> = (item: T, i: number) => PromiseLike<boolean | typeof END>
 export type AbortableMapper<IN = any, OUT = any> = (
   input: IN,
   i: number,
@@ -171,7 +168,7 @@ export type AbortableMapper<IN = any, OUT = any> = (
 export type AbortableAsyncMapper<IN = any, OUT = any> = (
   input: IN,
   i: number,
-) => Promisable<OUT | typeof SKIP | typeof END>
+) => PromiseLike<OUT | typeof SKIP | typeof END>
 
 export const _passthroughPredicate: Predicate<any> = () => true
 export const _passNothingPredicate: Predicate<any> = () => false

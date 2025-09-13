@@ -1,4 +1,10 @@
-import type { AbortableAsyncMapper, AbortableAsyncPredicate, Promisable } from '../types.js'
+import type {
+  AbortableAsyncMapper,
+  AbortableAsyncPredicate,
+  AbortableMapper,
+  AbortablePredicate,
+  Promisable,
+} from '../types.js'
 import { END, SKIP } from '../types.js'
 
 /**
@@ -58,6 +64,10 @@ export class AsyncIterable2<T> implements AsyncIterable<T> {
     return !!(await this.find(cb))
   }
 
+  async someSync(cb: AbortablePredicate<T>): Promise<boolean> {
+    return !!(await this.findSync(cb))
+  }
+
   async every(cb: AbortableAsyncPredicate<T>): Promise<boolean> {
     let i = 0
     for await (const v of this.it) {
@@ -67,10 +77,28 @@ export class AsyncIterable2<T> implements AsyncIterable<T> {
     return true
   }
 
+  async everySync(cb: AbortablePredicate<T>): Promise<boolean> {
+    let i = 0
+    for await (const v of this.it) {
+      const r = cb(v, i++)
+      if (r === END || !r) return false
+    }
+    return true
+  }
+
   async find(cb: AbortableAsyncPredicate<T>): Promise<T | undefined> {
     let i = 0
     for await (const v of this.it) {
       const r = await cb(v, i++)
+      if (r === END) return
+      if (r) return v
+    }
+  }
+
+  async findSync(cb: AbortablePredicate<T>): Promise<T | undefined> {
+    let i = 0
+    for await (const v of this.it) {
+      const r = cb(v, i++)
       if (r === END) return
       if (r) return v
     }
@@ -91,6 +119,21 @@ export class AsyncIterable2<T> implements AsyncIterable<T> {
     })
   }
 
+  filterSync(cb: AbortablePredicate<T>): AsyncIterable2<T> {
+    const { it } = this
+
+    return new AsyncIterable2<T>({
+      async *[Symbol.asyncIterator]() {
+        let i = 0
+        for await (const v of it) {
+          const r = cb(v, i++)
+          if (r === END) return
+          if (r) yield v
+        }
+      },
+    })
+  }
+
   map<OUT>(mapper: AbortableAsyncMapper<T, OUT>): AsyncIterable2<OUT> {
     const { it } = this
 
@@ -99,6 +142,22 @@ export class AsyncIterable2<T> implements AsyncIterable<T> {
         let i = 0
         for await (const v of it) {
           const r = await mapper(v, i++)
+          if (r === END) return
+          if (r === SKIP) continue
+          yield r
+        }
+      },
+    })
+  }
+
+  mapSync<OUT>(mapper: AbortableMapper<T, OUT>): AsyncIterable2<OUT> {
+    const { it } = this
+
+    return new AsyncIterable2<OUT>({
+      async *[Symbol.asyncIterator]() {
+        let i = 0
+        for await (const v of it) {
+          const r = mapper(v, i++)
           if (r === END) return
           if (r === SKIP) continue
           yield r

@@ -8,7 +8,6 @@ import { Transform } from 'node:stream'
 import { DBQuery } from '@naturalcycles/db-lib'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
-import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { DatastoreDB } from '../src/index.js'
 
 const { SECRET_GCP_SERVICE_ACCOUNT } = requireEnvKeys('SECRET_GCP_SERVICE_ACCOUNT')
@@ -47,12 +46,11 @@ runScript(async () => {
   //   writableVoid(),
   // ])
 
-  await Pipeline.from(
-    db.streamQuery(DBQuery.create(TABLE), {
+  await db
+    .streamQuery(DBQuery.create(TABLE), {
       experimentalCursorStream: true,
       logLevel: 'debug',
-    }),
-  )
+    })
     // This thing logs every 100's object + some memory and speed metrics
     .logProgress({
       metric: 'read',

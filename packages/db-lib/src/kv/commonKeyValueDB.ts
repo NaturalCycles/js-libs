@@ -1,5 +1,5 @@
 import type { Integer, UnixTimestamp } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDBCreateOptions } from '../db.model.js'
 
 /**
@@ -39,9 +39,9 @@ export interface CommonKeyValueDB {
     opt?: CommonKeyValueDBSaveBatchOptions,
   ) => Promise<void>
 
-  streamIds: (table: string, limit?: number) => ReadableTyped<string>
-  streamValues: (table: string, limit?: number) => ReadableTyped<Buffer>
-  streamEntries: (table: string, limit?: number) => ReadableTyped<KeyValueDBTuple>
+  streamIds: (table: string, limit?: number) => Pipeline<string>
+  streamValues: (table: string, limit?: number) => Pipeline<Buffer>
+  streamEntries: (table: string, limit?: number) => Pipeline<KeyValueDBTuple>
 
   count: (table: string) => Promise<number>
 

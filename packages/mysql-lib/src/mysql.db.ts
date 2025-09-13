@@ -1,4 +1,3 @@
-import { Readable, Transform } from 'node:stream'
 import { promisify } from 'node:util'
 import type {
   CommonDB,
@@ -17,7 +16,7 @@ import { commonLoggerPrefix } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _mapKeys, _mapValues, _omit } from '@naturalcycles/js-lib/object'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { white } from '@naturalcycles/nodejs-lib/colors'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   Connection,
   OkPacket,
@@ -269,10 +268,10 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
   override streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     _opt: MysqlDBOptions = {},
-  ): ReadableTyped<ROW> {
+  ): Pipeline<ROW> {
     const sql = dbQueryToSQLSelect(q)
     if (!sql) {
-      return Readable.from([])
+      return Pipeline.fromArray([])
     }
 
     if (this.cfg.logSQL) this.cfg.logger.log(`stream: ${sql}`)
@@ -281,17 +280,9 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
     // return (this.pool().query(sql).stream() as ReadableTyped<ROW>).map(row =>
     //   _filterUndefinedValues(row, true),
     // )
-    return this.pool()
-      .query(sql)
-      .stream()
-      .pipe(
-        new Transform({
-          objectMode: true,
-          transform(row: ROW, _encoding, cb) {
-            cb(null, _filterUndefinedValues(row, { mutate: true }))
-          },
-        }),
-      )
+    return Pipeline.from<ROW>(this.pool().query(sql).stream()).mapSync(row =>
+      _filterUndefinedValues(row, { mutate: true }),
+    )
   }
 
   // SAVE

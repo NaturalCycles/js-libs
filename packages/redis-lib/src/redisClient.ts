@@ -1,8 +1,6 @@
-import { Transform } from 'node:stream'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type {
   AnyObject,
-  AsyncFunction,
   NullableBuffer,
   NullableString,
   Promisable,
@@ -10,7 +8,7 @@ import type {
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { Redis, RedisOptions } from 'ioredis'
 import type { ScanStreamOptions } from 'ioredis/built/types.js'
 import type { ChainableCommander } from 'ioredis/built/utils/RedisCommander.js'
@@ -258,7 +256,7 @@ export class RedisClient implements CommonClient {
     await this.withPipeline(async pipeline => {
       await this.scanStream({
         match: `${table}:*`,
-      }).forEach(keys => {
+      }).forEachSync(keys => {
         pipeline.del(keys)
         count += keys.length
       })
@@ -274,7 +272,7 @@ export class RedisClient implements CommonClient {
     await this.withPipeline(async pipeline => {
       await this.scanStream({
         match: `*`,
-      }).forEach(keys => {
+      }).forEachSync(keys => {
         pipeline.del(keys)
         count += keys.length
       })
@@ -287,8 +285,8 @@ export class RedisClient implements CommonClient {
    Convenient type-safe wrapper.
    Returns BATCHES of keys in each iteration (as-is).
    */
-  scanStream(opt?: ScanStreamOptions): ReadableTyped<string[]> {
-    return createReadableFromAsync(async () => {
+  scanStream(opt?: ScanStreamOptions): Pipeline<string[]> {
+    return Pipeline.fromAsyncReadable(async () => {
       const redis = await this.redis()
       return redis.scanStream(opt)
     })
@@ -297,9 +295,8 @@ export class RedisClient implements CommonClient {
   /**
    * Like scanStream, but flattens the stream of keys.
    */
-  scanStreamFlat(opt: ScanStreamOptions): ReadableTyped<string> {
-    // biome-ignore lint/complexity/noFlatMapIdentity: ok
-    return this.scanStream(opt).flatMap(keys => keys)
+  scanStreamFlat(opt: ScanStreamOptions): Pipeline<string> {
+    return this.scanStream(opt).flatten()
   }
 
   async scanCount(opt: ScanStreamOptions): Promise<number> {
@@ -307,15 +304,15 @@ export class RedisClient implements CommonClient {
     // todo: implement more efficiently, e.g via LUA?
     let count = 0
 
-    await (redis.scanStream(opt) as ReadableTyped<string[]>).forEach(keys => {
+    await redis.scanStream(opt).forEach((keys: string[]) => {
       count += keys.length
     })
 
     return count
   }
 
-  hscanStream(key: string, opt?: ScanStreamOptions): ReadableTyped<string[]> {
-    return createReadableFromAsync(async () => {
+  hscanStream(key: string, opt?: ScanStreamOptions): Pipeline<string[]> {
+    return Pipeline.fromAsyncReadable(async () => {
       const redis = await this.redis()
       return redis.hscanStream(key, opt)
     })
@@ -344,24 +341,4 @@ export class RedisClient implements CommonClient {
   private log(...args: any[]): void {
     this.cfg.logger.log(...args)
   }
-}
-
-/**
- * Turn async function into Readable.
- */
-function createReadableFromAsync<T>(fn: AsyncFunction<ReadableTyped<T>>): ReadableTyped<T> {
-  const transform = new Transform({
-    objectMode: true,
-    transform: (chunk, _encoding, cb) => {
-      cb(null, chunk)
-    },
-  })
-
-  void fn()
-    .then(readable => {
-      readable.on('error', err => transform.destroy(err)).pipe(transform)
-    })
-    .catch(err => transform.destroy(err))
-
-  return transform
 }

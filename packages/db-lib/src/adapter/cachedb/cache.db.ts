@@ -1,8 +1,7 @@
-import { Readable } from 'node:stream'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { BaseCommonDB } from '../../commondb/base.common.db.js'
 import type { CommonDB, CommonDBSupport } from '../../commondb/common.db.js'
 import { commonDBFullSupport } from '../../commondb/common.db.js'
@@ -201,9 +200,9 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
   override streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt: CacheDBStreamOptions = {},
-  ): ReadableTyped<ROW> {
+  ): Pipeline<ROW> {
     if (!opt.onlyCache && !this.cfg.onlyCache) {
-      const stream = this.cfg.downstreamDB.streamQuery<ROW>(q, opt)
+      const pipeline = this.cfg.downstreamDB.streamQuery<ROW>(q, opt)
 
       // Don't save to cache if it was a projection query
       if (!opt.skipCache && !this.cfg.skipCache && !q._selectedFieldNames) {
@@ -216,12 +215,12 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
         //   })
       }
 
-      return stream
+      return pipeline
     }
 
-    if (opt.skipCache || this.cfg.skipCache) return Readable.from([])
+    if (opt.skipCache || this.cfg.skipCache) return Pipeline.fromArray([])
 
-    const stream = this.cfg.cacheDB.streamQuery<ROW>(q, opt)
+    const pipeline = this.cfg.cacheDB.streamQuery<ROW>(q, opt)
 
     // if (this.cfg.logCached) {
     //   let count = 0
@@ -234,7 +233,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     //     })
     // }
 
-    return stream
+    return pipeline
   }
 
   override async deleteByQuery<ROW extends ObjectWithId>(

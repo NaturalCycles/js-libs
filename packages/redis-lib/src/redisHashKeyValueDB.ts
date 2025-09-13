@@ -6,7 +6,7 @@ import type {
   KeyValueDBTuple,
 } from '@naturalcycles/db-lib/kv'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { RedisKeyValueDBCfg } from './redisKeyValueDB.js'
 
 /**
@@ -64,25 +64,24 @@ export class RedisHashKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
     }
   }
 
-  streamIds(table: string, limit?: number): ReadableTyped<string> {
-    const stream = this.cfg.client
+  streamIds(table: string, limit?: number): Pipeline<string> {
+    return this.cfg.client
       .hscanStream(table)
-      .flatMap(keyValueList => {
+      .mapSync(keyValueList => {
         const keys: string[] = []
         for (let i = 0; i < keyValueList.length; i += 2) {
           keys.push(keyValueList[i]!)
         }
         return keys
       })
-      .take(limit || Infinity)
-
-    return stream
+      .flatten()
+      .limit(limit)
   }
 
-  streamValues(table: string, limit?: number): ReadableTyped<Buffer> {
+  streamValues(table: string, limit?: number): Pipeline<Buffer> {
     return this.cfg.client
       .hscanStream(table)
-      .flatMap(keyValueList => {
+      .mapSync(keyValueList => {
         const values: Buffer[] = []
         for (let i = 0; i < keyValueList.length; i += 2) {
           const value = Buffer.from(keyValueList[i + 1]!)
@@ -90,13 +89,14 @@ export class RedisHashKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
         }
         return values
       })
-      .take(limit || Infinity)
+      .flatten()
+      .limit(limit)
   }
 
-  streamEntries(table: string, limit?: number): ReadableTyped<KeyValueDBTuple> {
+  streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
     return this.cfg.client
       .hscanStream(table)
-      .flatMap(keyValueList => {
+      .mapSync(keyValueList => {
         const entries: [string, Buffer][] = []
         for (let i = 0; i < keyValueList.length; i += 2) {
           const key = keyValueList[i]!
@@ -105,7 +105,8 @@ export class RedisHashKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
         }
         return entries
       })
-      .take(limit || Infinity)
+      .flatten()
+      .limit(limit)
   }
 
   async count(table: string): Promise<number> {

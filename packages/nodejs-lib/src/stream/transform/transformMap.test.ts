@@ -16,7 +16,7 @@ interface Item {
 }
 
 // Mapper that throws 'my error' on third id
-const mapperError3: AsyncIndexedMapper<Item, Item> = item => {
+const mapperError3: AsyncIndexedMapper<Item, Item> = async item => {
   if (item.id === '3') throw new Error('my error')
   return item
 }
@@ -26,7 +26,7 @@ test('transformMap simple', async () => {
   const data2: Item[] = []
 
   await Pipeline.fromArray(data)
-    .map(r => void data2.push(r))
+    .map(async r => void data2.push(r))
     .run()
 
   expect(data2).toEqual(data)
@@ -36,7 +36,7 @@ test('transformMap simple', async () => {
 test('transformMap with mapping', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2 = await Pipeline.fromArray(data)
-    .map(r => ({
+    .map(async r => ({
       id: r.id + '!',
     }))
     .toArray()
@@ -48,7 +48,7 @@ test('transformMap emit array as multiple items', async () => {
   let stats: TransformMapStats
   const data = _range(1, 4)
   const data2 = await Pipeline.fromArray(data)
-    .map(n => [n * 2, n * 2 + 1], {
+    .map(async n => [n * 2, n * 2 + 1], {
       // async is to test that it's awaited
       onDone: async s => (stats = s),
     })
@@ -99,7 +99,7 @@ test('transformMap errorMode=THROW_IMMEDIATELY', async () => {
   await expect(
     Pipeline.fromArray(data)
       .map(mapperError3, { concurrency: 1, onDone: s => (stats = s) })
-      .map(r => void data2.push(r))
+      .map(async r => void data2.push(r))
       .run(),
   ).rejects.toThrow('my error')
 
@@ -130,7 +130,7 @@ test('transformMap errorMode=THROW_AGGREGATED', async () => {
         errorMode: ErrorMode.THROW_AGGREGATED,
         onDone: s => (stats = s),
       })
-      .map(r => void data2.push(r))
+      .map(async r => void data2.push(r))
       .run(),
     AggregateError,
   )
@@ -191,7 +191,7 @@ test('transformMap errorMode=SUPPRESS', async () => {
   const data2: Item[] = []
   await Pipeline.fromArray(data)
     .map(mapperError3, { errorMode: ErrorMode.SUPPRESS, onDone: s => (stats = s) })
-    .map(r => void data2.push(r))
+    .map(async r => void data2.push(r))
     .run()
 
   expect(data2).toEqual(data.filter(r => r.id !== '3'))

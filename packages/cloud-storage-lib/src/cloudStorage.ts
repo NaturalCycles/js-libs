@@ -8,11 +8,7 @@ import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { SKIP } from '@naturalcycles/js-lib/types'
-import type {
-  ReadableBinary,
-  ReadableTyped,
-  WritableBinary,
-} from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline, type WritableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
 import type { GCPServiceAccount } from './model.js'
 
@@ -143,40 +139,34 @@ export class CloudStorage implements CommonStorage {
     return files.map(f => _substringAfterLast(f.name, '/')).filter(Boolean)
   }
 
-  getFileNamesStream(bucketName: string, opt: CommonStorageGetOptions = {}): ReadableTyped<string> {
+  getFileNamesStream(bucketName: string, opt: CommonStorageGetOptions = {}): Pipeline<string> {
     const { prefix, fullPaths = true } = opt
 
-    return (
+    return Pipeline.from<File>(
       this.storage.bucket(bucketName).getFilesStream({
         prefix,
         maxResults: opt.limit || undefined,
-      }) as ReadableTyped<File>
-    ).flatMap(f => {
-      const r = this.normalizeFilename(f.name, fullPaths)
-      if (r === SKIP) return []
-      return [r]
-    })
+      }),
+    ).mapSync(f => this.normalizeFilename(f.name, fullPaths))
   }
 
-  getFilesStream(bucketName: string, opt: CommonStorageGetOptions = {}): ReadableTyped<FileEntry> {
+  getFilesStream(bucketName: string, opt: CommonStorageGetOptions = {}): Pipeline<FileEntry> {
     const { prefix, fullPaths = true } = opt
 
-    return (
+    return Pipeline.from<File>(
       this.storage.bucket(bucketName).getFilesStream({
         prefix,
         maxResults: opt.limit || undefined,
-      }) as ReadableTyped<File>
-    ).flatMap(
+      }),
+    ).map(
       async f => {
         const filePath = this.normalizeFilename(f.name, fullPaths)
-        if (filePath === SKIP) return []
+        if (filePath === SKIP) return SKIP
 
         const [content] = await f.download()
-        return [{ filePath, content }] as FileEntry[]
+        return { filePath, content } satisfies FileEntry
       },
-      {
-        concurrency: 16,
-      },
+      { concurrency: 16 },
     )
   }
 
@@ -197,15 +187,15 @@ export class CloudStorage implements CommonStorage {
    * Returns a Readable that is NOT object mode,
    * so you can e.g pipe it to fs.createWriteStream()
    */
-  getFileReadStream(bucketName: string, filePath: string): ReadableBinary {
-    return this.storage.bucket(bucketName).file(filePath).createReadStream()
+  getFileReadStream(bucketName: string, filePath: string): Pipeline<Uint8Array> {
+    return Pipeline.from(this.storage.bucket(bucketName).file(filePath).createReadStream())
   }
 
   async saveFile(bucketName: string, filePath: string, content: Buffer): Promise<void> {
     await this.storage.bucket(bucketName).file(filePath).save(content)
   }
 
-  getFileWriteStream(bucketName: string, filePath: string): WritableBinary {
+  getFileWriteStream(bucketName: string, filePath: string): WritableTyped<Uint8Array> {
     return this.storage.bucket(bucketName).file(filePath).createWriteStream()
   }
 

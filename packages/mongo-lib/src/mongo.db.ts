@@ -1,4 +1,3 @@
-import { Transform } from 'node:stream'
 import type {
   CommonDB,
   CommonDBOptions,
@@ -14,7 +13,7 @@ import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { commonLoggerPrefix } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _omit } from '@naturalcycles/js-lib/object'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { CommandOperationOptions, Filter, MongoClient, MongoClientOptions } from 'mongodb'
 import { dbQueryToMongoQuery } from './query.util.js'
 
@@ -243,29 +242,12 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
   override streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     _opt?: CommonDBOptions,
-  ): ReadableTyped<ROW> {
-    const { query, options } = dbQueryToMongoQuery(q)
-
-    const transform = new Transform({
-      objectMode: true,
-      transform: (chunk, _encoding, cb) => {
-        cb(null, this.mapFromMongo(chunk))
-      },
-    })
-
-    void this.client()
-      .then(client => {
-        client
-          .db(this.cfg.db)
-          .collection<ROW>(q.table)
-          .find(query, options)
-          .stream()
-          .on('error', err => transform.destroy(err))
-          .pipe(transform)
-      })
-      .catch(err => transform.destroy(err))
-
-    return transform
+  ): Pipeline<ROW> {
+    return Pipeline.fromAsyncReadable<MongoObject<ROW>>(async () => {
+      const client = await this.client()
+      const { query, options } = dbQueryToMongoQuery(q)
+      return client.db(this.cfg.db).collection<ROW>(q.table).find(query, options).stream()
+    }).mapSync(r => this.mapFromMongo(r))
   }
 
   async distinct<ROW extends ObjectWithId>(

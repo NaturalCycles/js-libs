@@ -1,5 +1,10 @@
 import { Readable } from 'node:stream'
-import { FieldPath, type Query, type QuerySnapshot } from '@google-cloud/firestore'
+import {
+  FieldPath,
+  type Query,
+  type QueryDocumentSnapshot,
+  type QuerySnapshot,
+} from '@google-cloud/firestore'
 import type { DBQuery } from '@naturalcycles/db-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
@@ -17,7 +22,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
   private readonly table: string
   private readonly originalLimit: number
   private rowsRetrieved = 0
-  private endCursor?: string
+  private endCursor?: QueryDocumentSnapshot
   private queryIsRunning = false
   private paused = false
   private done = false
@@ -121,10 +126,10 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
 
     const rows: T[] = []
-    let lastDocId: string | undefined
+    let lastDoc: QueryDocumentSnapshot | undefined
 
     for (const doc of qs.docs) {
-      lastDocId = doc.id
+      lastDoc = doc
       rows.push({
         id: unescapeDocId(doc.id),
         ...doc.data(),
@@ -136,7 +141,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       `${table} got ${rows.length} rows in ${_ms(queryTook)}, ${this.rowsRetrieved} rowsRetrieved`,
     )
 
-    this.endCursor = lastDocId
+    this.endCursor = lastDoc
     this.queryIsRunning = false // ready to take more _reads
     let shouldContinue = false
 
@@ -186,6 +191,8 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
         },
       )
     } catch (err) {
+      console.log((q as any)._queryOptions)
+
       logger.error(
         `FirestoreStreamReadable error!\n`,
         {

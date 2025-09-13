@@ -1,4 +1,3 @@
-import { Transform } from 'node:stream'
 import type { Datastore, Key, PropertyFilter, Query, Transaction } from '@google-cloud/datastore'
 import type { RunQueryOptions } from '@google-cloud/datastore/build/src/query.js'
 import type {
@@ -41,7 +40,7 @@ import {
   type StringMap,
 } from '@naturalcycles/js-lib/types'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   DatastoreDBCfg,
   DatastoreDBOptions,
@@ -327,15 +326,10 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
   override streamQuery<ROW extends ObjectWithId>(
     dbQuery: DBQuery<ROW>,
     _opt?: DatastoreDBStreamOptions,
-  ): ReadableTyped<ROW> {
-    const transform = new Transform({
-      objectMode: true,
-      transform: (chunk, _, cb) => {
-        cb(null, this.mapId(chunk))
-      },
-    })
+  ): Pipeline<ROW> {
+    return Pipeline.fromAsyncReadable<ROW>(async () => {
+      const ds = await this.ds()
 
-    void this.ds().then(async ds => {
       const q = dbQueryToDatastoreQuery(
         dbQuery,
         ds.createQuery(dbQuery.table),
@@ -348,15 +342,10 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
         ..._opt,
       }
 
-      ;(opt.experimentalCursorStream
+      return opt.experimentalCursorStream
         ? new DatastoreStreamReadable<ROW>(q, opt)
-        : (ds.runQueryStream(q, this.getRunQueryOptions(opt)) as ReadableTyped<ROW>)
-      )
-        .on('error', err => transform.destroy(err))
-        .pipe(transform)
-    })
-
-    return transform
+        : ds.runQueryStream(q, this.getRunQueryOptions(opt))
+    }).mapSync(r => this.mapId<ROW>(r))
   }
 
   // https://github.com/GoogleCloudPlatform/nodejs-getting-started/blob/master/2-structured-data/books/model-datastore.js

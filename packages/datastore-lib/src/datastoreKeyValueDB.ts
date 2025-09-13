@@ -3,7 +3,7 @@ import type { CommonKeyValueDB, IncrementTuple, KeyValueDBTuple } from '@natural
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { DatastoreDB } from './datastore.db.js'
 import type { DatastoreDBCfg } from './datastore.model.js'
 
@@ -52,20 +52,15 @@ export class DatastoreKeyValueDB implements CommonKeyValueDB {
     )
   }
 
-  streamIds(table: string, limit?: number): ReadableTyped<string> {
+  streamIds(table: string, limit?: number): Pipeline<string> {
     const q = DBQuery.create<ObjectWithId>(table)
       .select(['id'])
       .limit(limit || 0)
 
-    return (
-      this.db
-        .streamQuery(q)
-        // .on('error', err => stream.emit('error', err))
-        .map(r => r.id)
-    )
+    return this.db.streamQuery(q).mapSync(r => r.id)
   }
 
-  streamValues(table: string, limit?: number): ReadableTyped<Buffer> {
+  streamValues(table: string, limit?: number): Pipeline<Buffer> {
     // `select v` doesn't work for some reason
     const q = DBQuery.create<KVObject>(table).limit(limit || 0)
 
@@ -73,19 +68,14 @@ export class DatastoreKeyValueDB implements CommonKeyValueDB {
       this.db
         .streamQuery(q)
         // .on('error', err => stream.emit('error', err))
-        .map(r => r.v)
+        .mapSync(r => r.v)
     )
   }
 
-  streamEntries(table: string, limit?: number): ReadableTyped<KeyValueDBTuple> {
+  streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
     const q = DBQuery.create<KVObject>(table).limit(limit || 0)
 
-    return (
-      this.db
-        .streamQuery(q)
-        // .on('error', err => stream.emit('error', err))
-        .map(r => [r.id, r.v])
-    )
+    return this.db.streamQuery(q).mapSync(r => [r.id, r.v])
   }
 
   async count(table: string): Promise<number> {

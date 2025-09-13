@@ -8,7 +8,7 @@ import type {
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _zip } from '@naturalcycles/js-lib/array/array.util.js'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { RedisClient } from './redisClient.js'
 
 export interface RedisKeyValueDBCfg {
@@ -65,53 +65,47 @@ export class RedisKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
     }
   }
 
-  streamIds(table: string, limit?: number): ReadableTyped<string> {
-    let stream = this.cfg.client
+  streamIds(table: string, limit?: number): Pipeline<string> {
+    return this.cfg.client
       .scanStream({
         match: `${table}:*`,
         // count: limit, // count is actually a "batchSize", not a limit
       })
-      .flatMap(keys => this.keysToIds(table, keys))
-
-    if (limit) {
-      stream = stream.take(limit)
-    }
-
-    return stream
+      .mapSync(keys => this.keysToIds(table, keys))
+      .flatten()
+      .limit(limit)
   }
 
-  streamValues(table: string, limit?: number): ReadableTyped<Buffer> {
+  streamValues(table: string, limit?: number): Pipeline<Buffer> {
     return this.cfg.client
       .scanStream({
         match: `${table}:*`,
       })
-      .flatMap(
+      .map(
         async keys => {
           return (await this.cfg.client.mgetBuffer(keys)).filter(_isTruthy)
         },
-        {
-          concurrency: 16,
-        },
+        { concurrency: 16 },
       )
-      .take(limit || Infinity)
+      .flatten()
+      .limit(limit)
   }
 
-  streamEntries(table: string, limit?: number): ReadableTyped<KeyValueDBTuple> {
+  streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
     return this.cfg.client
       .scanStream({
         match: `${table}:*`,
       })
-      .flatMap(
+      .map(
         async keys => {
           // casting as Buffer[], because values are expected to exist for given keys
           const bufs = (await this.cfg.client.mgetBuffer(keys)) as Buffer[]
           return _zip(this.keysToIds(table, keys), bufs)
         },
-        {
-          concurrency: 16,
-        },
+        { concurrency: 16 },
       )
-      .take(limit || Infinity)
+      .flatten()
+      .limit(limit)
   }
 
   async count(table: string): Promise<number> {

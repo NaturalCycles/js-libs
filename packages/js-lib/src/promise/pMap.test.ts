@@ -185,19 +185,19 @@ test('suppress errors when errorMode=SUPPRESS', async () => {
 
 test('SKIP', async () => {
   const values = _range(1, 4)
-  const r = await pMap(values, v => (v % 2 === 0 ? SKIP : v), { concurrency: 1 })
+  const r = await pMap(values, async v => (v % 2 === 0 ? SKIP : v), { concurrency: 1 })
   expect(r).toEqual([1, 3])
 })
 
 test('END', async () => {
   const values = _range(1, 10)
-  let r = await pMap(values, v => (v === 3 ? END : v), { concurrency: 1 })
+  let r = await pMap(values, async v => (v === 3 ? END : v), { concurrency: 1 })
   expect(r).toEqual([1, 2])
 
-  r = await pMap(values, v => (v === 3 ? END : v), { concurrency: 5 })
+  r = await pMap(values, async v => (v === 3 ? END : v), { concurrency: 5 })
   expect(r).toEqual([1, 2])
 
-  r = await pMap(values, v => (v === 3 ? END : v), { concurrency: 11 })
+  r = await pMap(values, async v => (v === 3 ? END : v), { concurrency: 11 })
   // Because concurrency is 11, END cannot really stop the other values from being returned
   // (they're "in-flight")
   expect(r).toEqual([1, 2, 4, 5, 6, 7, 8, 9])

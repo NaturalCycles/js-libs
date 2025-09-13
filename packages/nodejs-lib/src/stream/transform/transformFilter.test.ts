@@ -6,7 +6,7 @@ test('transformFilter', async () => {
   const items = _range(5)
 
   let items2 = await Pipeline.fromArray(items)
-    .filter(n => n % 2 === 0)
+    .filter(async n => n % 2 === 0)
     .toArray()
 
   expect(items2).toEqual([0, 2, 4])

@@ -1,11 +1,10 @@
-import { Transform } from 'node:stream'
 import type { CommonDBCreateOptions } from '@naturalcycles/db-lib'
 import type { CommonKeyValueDB, IncrementTuple, KeyValueDBTuple } from '@naturalcycles/db-lib/kv'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
-import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { QueryOptions } from 'mysql'
 import type { MysqlDBCfg } from './mysql.db.js'
 import { MysqlDB } from './mysql.db.js'
@@ -83,44 +82,32 @@ export class MySQLKeyValueDB implements CommonKeyValueDB {
     })
   }
 
-  streamIds(table: string, limit?: number): ReadableTyped<string> {
+  streamIds(table: string, limit?: number): Pipeline<string> {
     let sql = `SELECT id FROM ${table}`
     if (limit) sql += ` LIMIT ${limit}`
     if (this.cfg.logSQL) this.db.cfg.logger.log(`stream: ${sql}`)
 
     // todo: this is nice, but `mysql` package uses `readable-stream@2` which is not compatible with `node:stream` iterable helpers
     // return (this.db.pool().query(sql).stream() as ReadableTyped<ObjectWithId>).map(row => row.id)
-    return this.db
-      .pool()
-      .query(sql)
-      .stream()
-      .pipe(
-        new Transform({
-          objectMode: true,
-          transform(row: ObjectWithId, _encoding, cb) {
-            cb(null, row.id)
-          },
-        }),
-      )
+    return Pipeline.from<ObjectWithId>(this.db.pool().query(sql).stream()).mapSync(r => r.id)
   }
 
-  streamValues(table: string, limit?: number): ReadableTyped<Buffer> {
+  streamValues(table: string, limit?: number): Pipeline<Buffer> {
     let sql = `SELECT v FROM ${table}`
     if (limit) sql += ` LIMIT ${limit}`
     if (this.cfg.logSQL) this.db.cfg.logger.log(`stream: ${sql}`)
 
-    return (this.db.pool().query(sql).stream() as ReadableTyped<{ v: Buffer }>).map(row => row.v)
+    return Pipeline.from<{ v: Buffer }>(this.db.pool().query(sql).stream()).mapSync(row => row.v)
   }
 
-  streamEntries(table: string, limit?: number): ReadableTyped<KeyValueDBTuple> {
+  streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
     let sql = `SELECT id,v FROM ${table}`
     if (limit) sql += ` LIMIT ${limit}`
     if (this.cfg.logSQL) this.db.cfg.logger.log(`stream: ${sql}`)
 
-    return (this.db.pool().query(sql).stream() as ReadableTyped<KeyValueObject>).map(row => [
-      row.id,
-      row.v,
-    ])
+    return Pipeline.from<{ id: string; v: Buffer }>(this.db.pool().query(sql).stream()).mapSync(
+      row => [row.id, row.v],
+    )
   }
 
   async beginTransaction(): Promise<void> {
