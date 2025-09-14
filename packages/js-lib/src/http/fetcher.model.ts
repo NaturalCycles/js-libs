@@ -364,7 +364,31 @@ export type FetcherResponseType =
  * Used to be able to override and provide a different implementation,
  * e.g when mocking.
  */
-export type FetchFunction = (url: string, init: RequestInitNormalized) => Promise<Response>
+export type FetchFunction = (
+  url: string,
+  init: RequestInitCrossPlatform,
+) => Promise<ResponseCrossPlatform>
+
+/**
+ * A subset of RequestInit that would match both:
+ *
+ * 1. RequestInit from dom types
+ * 2. RequestInit from undici types
+ */
+export interface RequestInitCrossPlatform {
+  method?: string
+  referrer?: string
+  keepalive?: boolean
+}
+
+/**
+ * A subset of Response type that matches both dom and undici types.
+ */
+export interface ResponseCrossPlatform {
+  ok: boolean
+  status: number
+  statusText: string
+}
 
 export type GraphQLResponse<DATA> = GraphQLSuccessResponse<DATA> | GraphQLErrorResponse
 

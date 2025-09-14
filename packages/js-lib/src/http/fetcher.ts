@@ -49,6 +49,7 @@ import type {
   FetcherResponse,
   FetcherResponseType,
   FetcherRetryOptions,
+  FetchFunction,
   GraphQLResponse,
   RequestInitNormalized,
 } from './fetcher.model.js'
@@ -369,11 +370,7 @@ export class Fetcher {
       }
 
       try {
-        // Calls cfg.fetchFn if set, otherwise Fetcher.callNativeFetch
-        res.fetchResponse = await (this.cfg.fetchFn || Fetcher.callNativeFetch)(
-          req.fullUrl,
-          req.init,
-        )
+        res.fetchResponse = await Fetcher.callNativeFetch(req.fullUrl, req.init, this.cfg.fetchFn)
         res.ok = res.fetchResponse.ok
         // important to set it to undefined, otherwise it can keep the previous value (from previous try)
         res.err = undefined
@@ -502,8 +499,12 @@ export class Fetcher {
    * This method exists to be able to easily mock it.
    * It is static, so mocking applies to ALL instances (even future ones) of Fetcher at once.
    */
-  static async callNativeFetch(url: string, init: RequestInitNormalized): Promise<Response> {
-    return await globalThis.fetch(url, init)
+  static async callNativeFetch(
+    url: string,
+    init: RequestInitNormalized,
+    fetchFn: FetchFunction = globalThis.fetch,
+  ): Promise<Response> {
+    return (await fetchFn(url, init)) as Response
   }
 
   private async onNotOkResponse(res: FetcherResponse): Promise<void> {
