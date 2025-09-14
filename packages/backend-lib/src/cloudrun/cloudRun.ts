@@ -1,4 +1,6 @@
+import { _filterUndefinedValues } from '@naturalcycles/js-lib/object'
 import type {
+  AnyObject,
   NonNegativeInteger,
   NumberOfMilliseconds,
   NumberOfSeconds,
@@ -6,7 +8,7 @@ import type {
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
 
-export interface CloudRunDeployInfo {
+export interface CloudRunConfig {
   //
   // GCP settings
   //
@@ -15,7 +17,7 @@ export interface CloudRunDeployInfo {
    * Name of the Cloud Run service.
    */
   cloudRunService: string
-  cloudRunServiceBase: string // todo: review
+  cloudRunServiceBase?: string // todo: review
   runtimeServiceAccount: string
   /**
    * GCP region where the Cloud Run service is deployed. Example: 'europe-west1'
@@ -89,18 +91,6 @@ export interface CloudRunStartupProbeConfig {
   periodSeconds: NumberOfSeconds
 }
 
-/**
- * Experimental, subject to change.
- */
-export const defaultStartupProbeConfig: CloudRunStartupProbeConfig = {
-  'httpGet.path': '/',
-  'httpGet.port': 8080,
-  initialDelaySeconds: 3,
-  failureThreshold: 50,
-  timeoutSeconds: 1,
-  periodSeconds: 2,
-}
-
 export interface CloudRunEnv {
   APP_ENV: string
   /**
@@ -138,3 +128,30 @@ export interface CloudRunEnv {
   OTEL_EXPORTER_OTLP_ENDPOINT?: string
   OTEL_LOG_LEVEL?: 'INFO' | 'DEBUG'
 }
+
+/**
+ * @experimental
+ */
+class CloudRunService {
+  /**
+   * Turns an object into a string representation where each
+   * key-value pair is represented as `key1=value1,key2=value2,...`.
+   */
+  stringifyObject(obj: AnyObject): string {
+    const filteredObj = _filterUndefinedValues(obj)
+    return Object.entries(filteredObj)
+      .map(([key, value]) => `${key}=${value}`)
+      .join(',')
+  }
+
+  readonly defaultStartupProbeConfig: CloudRunStartupProbeConfig = {
+    'httpGet.path': '/',
+    'httpGet.port': 8080,
+    initialDelaySeconds: 3,
+    failureThreshold: 50,
+    timeoutSeconds: 1,
+    periodSeconds: 2,
+  }
+}
+
+export const cloudRunService = new CloudRunService()
