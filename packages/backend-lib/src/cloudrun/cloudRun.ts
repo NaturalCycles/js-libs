@@ -132,7 +132,7 @@ export interface CloudRunEnv {
 /**
  * @experimental
  */
-class CloudRunService {
+class CloudRunUtil {
   /**
    * Turns an object into a string representation where each
    * key-value pair is represented as `key1=value1,key2=value2,...`.
@@ -154,4 +154,4 @@ class CloudRunService {
   }
 }
 
-export const cloudRunService = new CloudRunService()
+export const cloudRunUtil = new CloudRunUtil()
