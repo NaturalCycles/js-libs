@@ -290,9 +290,24 @@ export interface FetcherOptions {
   debug?: boolean
 
   /**
-   * If provided - will be used instead of static `Fetcher.callNativeFetch`.
+   * If provided - will be used instead of `globalThis.fetch`.
+   * Can be used e.g to pass a `fetch` function from `undici` (in Node.js).
+   *
+   * This function IS called from `Fetcher.callNativeFetch`, so
+   * when `callNativeFetch` is mocked - fetchFn is NOT called.
    */
   fetchFn?: FetchFunction
+
+  /**
+   * Allows to provide a fetch function that is NOT mocked by `Fetcher.callNativeFetch`.
+   *
+   * By default - consider `fetchFn`, that's what you would need most of the time.
+   *
+   * If you want to pass a fetch function that is NOT mockable - use `overrideFetchFn`.
+   * Example of where it is useful: in backend resourceTestService, which still needs to call
+   * native fetch, while allowing unit tests' fetch calls to be mocked.
+   */
+  overrideFetchFn?: FetchFunction
 
   /**
    * Default to true.
@@ -364,10 +379,7 @@ export type FetcherResponseType =
  * Used to be able to override and provide a different implementation,
  * e.g when mocking.
  */
-export type FetchFunction = (
-  url: string,
-  init: RequestInitCrossPlatform,
-) => Promise<ResponseCrossPlatform>
+export type FetchFunction = (url: string, init: RequestInit) => Promise<Response>
 
 /**
  * A subset of RequestInit that would match both:
@@ -375,7 +387,7 @@ export type FetchFunction = (
  * 1. RequestInit from dom types
  * 2. RequestInit from undici types
  */
-export interface RequestInitCrossPlatform {
+export interface RequestInitLike {
   method?: string
   referrer?: string
   keepalive?: boolean
@@ -384,7 +396,7 @@ export interface RequestInitCrossPlatform {
 /**
  * A subset of Response type that matches both dom and undici types.
  */
-export interface ResponseCrossPlatform {
+export interface ResponseLike {
   ok: boolean
   status: number
   statusText: string

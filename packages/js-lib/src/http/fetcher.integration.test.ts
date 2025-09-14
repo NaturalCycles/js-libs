@@ -235,7 +235,7 @@ test('with custom Agent', async () => {
 
   // Fetch with Undici fetch
   await fetcher.get(`https://kg-backend3.appspot.com`, {
-    fetchFn: undiciFetch,
+    fetchFn: undiciFetch as any, // undiciFetch types are not compatible, todo: fix it
   })
 
   console.log(dispatcher.stats)

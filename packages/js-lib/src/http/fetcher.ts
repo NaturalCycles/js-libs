@@ -370,7 +370,11 @@ export class Fetcher {
       }
 
       try {
-        res.fetchResponse = await Fetcher.callNativeFetch(req.fullUrl, req.init, this.cfg.fetchFn)
+        res.fetchResponse = await (this.cfg.overrideFetchFn || Fetcher.callNativeFetch)(
+          req.fullUrl,
+          req.init,
+          this.cfg.fetchFn,
+        )
         res.ok = res.fetchResponse.ok
         // important to set it to undefined, otherwise it can keep the previous value (from previous try)
         res.err = undefined
@@ -502,9 +506,9 @@ export class Fetcher {
   static async callNativeFetch(
     url: string,
     init: RequestInitNormalized,
-    fetchFn: FetchFunction = globalThis.fetch,
+    fetchFn?: FetchFunction,
   ): Promise<Response> {
-    return (await fetchFn(url, init)) as Response
+    return await (fetchFn || globalThis.fetch)(url, init)
   }
 
   private async onNotOkResponse(res: FetcherResponse): Promise<void> {
