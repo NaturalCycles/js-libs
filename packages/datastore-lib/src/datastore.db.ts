@@ -16,6 +16,7 @@ import type {
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
 import { _round } from '@naturalcycles/js-lib'
 import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
+import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _errorDataAppend, TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
 import type {
@@ -182,7 +183,9 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
           throw err
         }
 
-        this.cfg.logger.log('datastore recreated on error')
+        this.cfg.logger.log(
+          `datastore recreated on timeout (${_ms(this.cfg.timeout)}) while loading ${table}`,
+        )
 
         // This is to debug "GCP Datastore Timeout issue"
         const datastoreLib = await this.getDatastoreLib()
