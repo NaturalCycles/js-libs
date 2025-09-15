@@ -105,6 +105,12 @@ const commands: (Command | Separator)[] = [
   },
   { name: 'prettier', fn: runPrettier, desc: 'Run prettier on all files.' },
   { name: 'stylelint', fn: stylelintAll, desc: 'Run stylelint on all files.' },
+  {
+    name: 'stylelint --no-fix',
+    fn: () => stylelintAll(false),
+    desc: 'Run stylelint with auto-fix disabled.',
+  },
+  { name: 'stylelint-no-fix', deprecated: true, fn: () => stylelintAll(false) },
   { name: 'commitlint', fn: runCommitlintCommand, desc: 'Run commitlint.', cliOnly: true },
   new Separator(), // interactive-only
   {
