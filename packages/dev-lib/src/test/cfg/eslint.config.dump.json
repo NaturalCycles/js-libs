@@ -19,7 +19,7 @@
     "@typescript-eslint:@typescript-eslint/eslint-plugin@8.43.0",
     "unicorn:eslint-plugin-unicorn@61.0.2",
     "vue:eslint-plugin-vue@10.4.0",
-    "vitest:vitest@1.3.9",
+    "vitest:vitest@1.3.10",
     "import-x:eslint-plugin-import-x@4.16.1",
     "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1",
     "jsdoc",
