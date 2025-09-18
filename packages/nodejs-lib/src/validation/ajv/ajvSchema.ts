@@ -8,7 +8,6 @@ import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib/json-s
 import { JsonSchemaAnyBuilder } from '@naturalcycles/js-lib/json-schema'
 import { _deepCopy, _filterNullishValues } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
-import { _typeCast } from '@naturalcycles/js-lib/types'
 import { z, ZodType } from '@naturalcycles/js-lib/zod'
 import type { Ajv } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
