@@ -228,8 +228,8 @@ export class AjvSchema<T = unknown> {
 
 const separator = '\n'
 
-const HIDDEN_AJV_SCHEMA = Symbol('HIDDEN_AJV_SCHEMA')
+export const HIDDEN_AJV_SCHEMA = Symbol('HIDDEN_AJV_SCHEMA')
 
-interface ZodTypeWithAjvSchema<T> extends ZodType<T> {
+export interface ZodTypeWithAjvSchema<T> extends ZodType<T> {
   [HIDDEN_AJV_SCHEMA]: AjvSchema<T>
 }
