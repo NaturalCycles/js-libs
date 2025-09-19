@@ -1,4 +1,4 @@
-import { getAjv } from '@naturalcycles/nodejs-lib/ajv'
+import { AjvSchema, getAjv } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, test } from 'vitest'
 import type { IsoDate, UnixTimestamp } from '../types.js'
 import { customZodSchemas, z, type zInfer } from './index.js'
@@ -48,12 +48,16 @@ describe('z.dbEntity', () => {
     const zodSchema = z.dbEntity()
     const data = {
       id: '123',
-      created: 1622547800,
-      updated: 1622547800,
+      created: 1622547800 as UnixTimestamp,
+      updated: 1622547800 as UnixTimestamp,
     }
     const result = zodSchema.parse(data)
     expect(result).toEqual(data)
     expect(result.id).toBe('123')
+
+    const ajvResult = AjvSchema.createFromZod(zodSchema).getValidationResult(data)
+    expect(ajvResult[0]).toBeNull()
+    expect(ajvResult[1]).toBe(data)
   })
 
   test('should be extensible with additional fields', () => {
@@ -62,43 +66,71 @@ describe('z.dbEntity', () => {
     })
     const data = {
       id: '123',
-      created: 1622547800,
-      updated: 1622547800,
+      created: 1622547800 as UnixTimestamp,
+      updated: 1622547800 as UnixTimestamp,
       name: 'Test Entity',
     }
     const result = zodSchema.parse(data)
     expect(result).toEqual(data)
     expect(result.id).toBe('123')
     expect(result.name).toBe('Test Entity')
+
+    const ajvResult = AjvSchema.createFromZod(zodSchema).getValidationResult(data)
+    expect(ajvResult[0]).toBeNull()
+    expect(ajvResult[1]).toBe(data)
   })
 })
 
 describe('z.email', () => {
   test('should accept a valid email address', () => {
     const email = 'test@example.com'
-    const result = z.email().parse(email)
+    const schema = z.email()
+
+    const result = schema.parse(email)
     expect(result).toBe(email)
+
+    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(email)
+    expect(ajvResult[0]).toBeNull()
+    expect(ajvResult[1]).toBe(email)
   })
 
   test('should not lowercase an email', () => {
     const email = 'Test@example.com'
-    const result = z.email().safeParse(email)
+    const schema = z.email()
+
+    const result = schema.safeParse(email)
     expect(result.success).toBe(true)
     expect(result.data).toBe(email)
+
+    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(email)
+    expect(ajvResult[0]).toBeNull()
+    expect(ajvResult[1]).toBe(email)
   })
 
   test('should not trim before validation', () => {
     const email = ' test@example.com '
-    const result = z.email().safeParse(email)
+    const schema = z.email()
+
+    const result = schema.safeParse(email)
     expect(result.success).toBe(false)
+
+    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(email)
+    expect(ajvResult[0]).not.toBeNull()
+    expect(ajvResult[1]).toBe(email)
   })
 })
 
 describe('z.isoDate', () => {
   test('should accept 2001-01-01 ISO date format', () => {
     const date = '2001-01-01'
-    const result = z.isoDate().parse(date)
+    const schema = z.isoDate()
+
+    const result = schema.parse(date)
     expect(result).toBe(date)
+
+    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(date)
+    expect(ajvResult[0]).toBeNull()
+    expect(ajvResult[1]).toBe(date)
   })
 
   const invalidCases = [
@@ -111,7 +143,13 @@ describe('z.isoDate', () => {
     '2001-01-1', // invalid
   ]
   test.each(invalidCases)('should not accept %s format', date => {
-    const result = z.isoDate().safeParse(date)
+    const schema = z.isoDate()
+
+    const result = schema.safeParse(date)
     expect(result.success).toBe(false)
+
+    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(date)
+    expect(ajvResult[0]).not.toBeNull()
+    expect(ajvResult[1]).toBe(date)
   })
 })
