@@ -399,7 +399,7 @@ export default {
     'unicorn/no-nested-ternary': 0,
     'unicorn/consistent-function-scoping': 0, // todo: consider enabling later
     'unicorn/no-this-assignment': 0,
-    'unicorn/prefer-string-slice': 0,
+    'unicorn/prefer-string-slice': 0, // todo: consider?
     'unicorn/prefer-number-properties': 0,
     'unicorn/prefer-negative-index': 0,
     'unicorn/prefer-regexp-test': 0,
