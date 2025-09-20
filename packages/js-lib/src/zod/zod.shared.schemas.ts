@@ -6,6 +6,7 @@ type ZodBranded<T, B> = T & Record<'_zod', Record<'output', B>>
 export type ZodBrandedString<B> = ZodBranded<z.ZodString, B>
 export type ZodBrandedInt<B> = ZodBranded<z.ZodInt, B>
 export type ZodBrandedNumber<B> = ZodBranded<z.ZodNumber, B>
+export type ZodBrandedIsoDate = ZodBranded<z.ZodISODate, IsoDate>
 
 const TS_2500 = 16725225600 // 2500-01-01
 const TS_2000 = 946684800 // 2000-01-01
@@ -56,9 +57,7 @@ function semVer(): z.ZodString {
 function isoDate(): ZodBrandedString<IsoDate> {
   return z
     .string()
-    .refine(v => {
-      return /^\d{4}-\d{2}-\d{2}$/.test(v)
-    }, 'Must be a YYYY-MM-DD string')
+    .regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Must be a YYYY-MM-DD string' })
     .describe('IsoDate') as ZodBrandedString<IsoDate>
 }
 
