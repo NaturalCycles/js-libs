@@ -1,0 +1,9 @@
+//
+// tsconfig.scripts.json
+//
+{
+  "extends": "./cfg/tsconfig.scripts.json",
+  "compilerOptions": {},
+  "include": ["scripts"],
+  "exclude": ["**/__exclude"]
+}

@@ -19,18 +19,23 @@ import eslintVueRules from './eslint-vue-rules.js'
 import eslintVitestRules from './eslint-vitest-rules.js'
 import eslintPrettierRules from './eslint-prettier-rules.js'
 import eslintBiomeRules from './eslint-biome-rules.js'
+import fs from 'node:fs'
 
 const defaultFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts']
+const srcFiles = ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.cts', 'src/**/*.mts']
+const scriptsFiles = ['scripts/**/*.ts', 'scripts/**/*.tsx', 'scripts/**/*.cts', 'scripts/**/*.mts']
+const e2eFiles = ['e2e/**/*.ts', 'e2e/**/*.tsx', 'e2e/**/*.cts', 'e2e/**/*.mts']
 const testFiles = ['**/*.test.ts', '**/*.test.tsx', '**/*.test.cts', '**/*.test.mts']
 
-const config = getEslintConfigForDir(process.cwd())
+const cwd = process.cwd()
+const config = getEslintConfigForDir()
 export default config
 
 /**
  * This function only exists, because typescript-eslint started to have an issue with auto-detecting tsconfigRootDir.
  * If the issue is fixed - we can remove this and come back to having just a single config.
  */
-export function getEslintConfigForDir(dir) {
+function getEslintConfigForDir() {
   return [
     {
       ...eslint.configs.recommended,
@@ -52,7 +57,6 @@ export function getEslintConfigForDir(dir) {
       files: defaultFiles,
     },
     // https://eslint.vuejs.org/user-guide/#user-guide
-    // ...require('eslint-plugin-vue').configs['flat/recommended'],
     ...eslintPluginVue.configs['flat/recommended'].map(c => ({
       ...c,
       files: defaultFiles,
@@ -73,8 +77,16 @@ export function getEslintConfigForDir(dir) {
       },
     },
     {
-      files: defaultFiles,
-      ...getConfig(dir),
+      files: srcFiles,
+      ...getConfig(`${cwd}/tsconfig.json`),
+    },
+    {
+      files: scriptsFiles,
+      ...getConfig(`${cwd}/tsconfig.scripts.json`),
+    },
+    {
+      files: e2eFiles,
+      ...getConfig(`${cwd}/tsconfig.e2e.json`),
     },
     {
       ignores: ['**/__exclude/**', '**/*.scss', '**/*.js'],
@@ -82,7 +94,7 @@ export function getEslintConfigForDir(dir) {
   ].filter(Boolean)
 }
 
-function getConfig(dir) {
+function getConfig(tsconfigPath) {
   return {
     plugins: {
       '@typescript-eslint': tseslint.plugin,
@@ -100,9 +112,8 @@ function getConfig(dir) {
         ...globals.vitest,
         NodeJS: 'readonly',
       },
-      // parser: tseslint.parser,
       parserOptions: {
-        project: `${dir}/tsconfig.json`,
+        project: fs.existsSync(tsconfigPath) ? tsconfigPath : undefined,
         // tsconfigRootDir: cwd,
         parser: tseslint.parser,
         extraFileExtensions: ['.vue', '.html'],

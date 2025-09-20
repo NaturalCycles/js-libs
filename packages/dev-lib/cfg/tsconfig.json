@@ -5,7 +5,7 @@
 //
 {
   "compilerOptions": {
-    "rootDir": "${configDir}/src",
+    "rootDir": "${configDir}",
     "baseUrl": "${configDir}/src",
     "outDir": "${configDir}/dist",
     // Target/module

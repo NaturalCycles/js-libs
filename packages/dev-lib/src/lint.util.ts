@@ -127,58 +127,33 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
   }
 
   const extensions = ext.split(',')
-  // The only time we don't parallelize is when run locally with no-fix,
-  // so errors can be seen properly
-  const runInParallel = fix || !!CI
 
-  if (runInParallel) {
-    await Promise.all([
-      runESLint(`src`, extensions, fix),
-      runESLint(`scripts`, extensions, fix),
-      runESLint(`e2e`, extensions, fix),
-    ])
-  } else {
-    await runESLint(`src`, extensions, fix)
-    await runESLint(`scripts`, extensions, fix)
-    await runESLint(`e2e`, extensions, fix)
-  }
+  await runESLint(extensions, fix)
 
   console.log(`${check(true)}${white(`eslint-all`)} ${dimGrey(`took ` + _since(started))}`)
 }
 
-async function runESLint(
-  dir: string,
-  extensions = eslintExtensions.split(','),
-  fix = true,
-): Promise<void> {
-  let configDir = dir
-  if (dir === 'src') {
-    configDir = '.'
-  }
-
-  const cwd = process.cwd()
-  const eslintConfigPath = `${configDir}/eslint.config.js`
-  const tsconfigPath = [cwd, configDir !== '.' && configDir, 'tsconfig.json']
-    .filter(Boolean)
-    .join('/')
-  if (!existsSync(dir) || !existsSync(eslintConfigPath) || !existsSync(tsconfigPath)) {
+async function runESLint(extensions = eslintExtensions.split(','), fix = true): Promise<void> {
+  const eslintConfigPath = `eslint.config.js`
+  const tsconfigPath = 'tsconfig.json'
+  if (!existsSync(eslintConfigPath) || !existsSync(tsconfigPath)) {
     // faster to bail-out like this
     return
   }
 
   // const tsconfigRootDir = [cwd, configDir !== '.' && configDir].filter(Boolean).join('/')
   const eslintPath = findPackageBinPath('eslint', 'eslint')
-  const cacheLocation = `node_modules/.cache/eslint_${dir}`
+  const cacheLocation = `node_modules/.cache/eslint`
   const cacheFound = existsSync(cacheLocation)
-  console.log(dimGrey(`${check(cacheFound)}eslint ${dir} cache found: ${cacheFound}`))
+  console.log(dimGrey(`${check(cacheFound)}eslint cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(eslintPath, {
-    name: ['eslint', dir, !fix && '--no-fix'].filter(Boolean).join(' '),
+    name: ['eslint', !fix && '--no-fix'].filter(Boolean).join(' '),
     args: [
       `--config`,
       eslintConfigPath,
-      `${dir}/**/*.{${extensions.join(',')}}`,
-      `--parser-options=project:${tsconfigPath}`,
+      `{src,scripts,e2e}/**/*.{${extensions.join(',')}}`,
+      // `--parser-options=project:${tsconfigPath}`,
       // The next line fixes the `typescript-eslint` 8.37 bug of resolving tsconfig.json
       // `--parser-options=tsconfigRootDir:${tsconfigRootDir}`,
       ESLINT_CONCURRENCY && `--concurrency=${ESLINT_CONCURRENCY}`,
@@ -186,7 +161,6 @@ async function runESLint(
       '--cache-location',
       cacheLocation,
       `--no-error-on-unmatched-pattern`,
-      `--report-unused-disable-directives`, // todo: unnecessary with flat, as it's defined in the config
       fix ? `--fix` : '--no-fix',
     ].filter(_isTruthy),
     shell: false,
