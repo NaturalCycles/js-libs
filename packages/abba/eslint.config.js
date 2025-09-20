@@ -4,7 +4,7 @@ export default [
   ...sharedConfig,
   {
     rules: {
-      '@typescript-eslint/consistent-type-imports': 2,
+      //
     },
   },
 ]

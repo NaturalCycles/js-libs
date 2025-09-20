@@ -1,0 +1,9 @@
+//
+// tsconfig.scripts.json
+//
+{
+  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.scripts.json",
+  "compilerOptions": {},
+  "include": ["scripts"],
+  "exclude": ["**/__exclude"]
+}

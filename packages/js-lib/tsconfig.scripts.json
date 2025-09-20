@@ -1,10 +1,11 @@
 //
-// tsconfig.json for /scripts
+// tsconfig.scripts.json
 //
 {
   "extends": "@naturalcycles/dev-lib/cfg/tsconfig.scripts.json",
   "compilerOptions": {
-    // "skipLibCheck": true, // because of https://github.com/dcodeIO/long.js/issues/109
+    "lib": ["esnext", "dom.iterable"]
   },
+  "include": ["scripts"],
   "exclude": ["**/__exclude"]
 }
