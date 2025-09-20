@@ -9,6 +9,13 @@ onlyBuiltDependencies:
   - esbuild
   - sqlite3
   - unrs-resolver
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - '@naturalcycles/*'
+auditConfig:
+  ignoreGhsas:
+    - GHSA-h755-8qp9-cq85
+    - GHSA-67mh-4wv8-2f99
 strictDepBuilds: true
 ignoreWorkspaceCycles: true
 ignorePatchFailures: false
