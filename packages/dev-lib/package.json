@@ -49,7 +49,7 @@
   "peerDependencies": {
     "husky": "^9",
     "stylelint": "^16",
-    "stylelint-config-standard-scss": "^15",
+    "stylelint-config-standard-scss": "^16",
     "typescript": "^5"
   },
   "peerDependenciesMeta": {
