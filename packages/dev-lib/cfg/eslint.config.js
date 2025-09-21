@@ -28,6 +28,10 @@ const e2eFiles = ['e2e/**/*.ts', 'e2e/**/*.tsx', 'e2e/**/*.cts', 'e2e/**/*.mts']
 const testFiles = ['**/*.test.ts', '**/*.test.tsx', '**/*.test.cts', '**/*.test.mts']
 
 const cwd = process.cwd()
+const tsconfigSrcPath = `${cwd}/tsconfig.json`
+const tsconfigScriptsPath = `${cwd}/tsconfig.scripts.json`
+const tsconfigE2ePath = `${cwd}/tsconfig.e2e.json`
+
 const config = getEslintConfigForDir()
 export default config
 
@@ -76,17 +80,17 @@ function getEslintConfigForDir() {
         ...eslintVitestRules.rules,
       },
     },
-    {
+    fs.existsSync(tsconfigSrcPath) && {
       files: srcFiles,
-      ...getConfig(`${cwd}/tsconfig.json`),
+      ...getConfig(tsconfigSrcPath),
     },
-    {
+    fs.existsSync(tsconfigScriptsPath) && {
       files: scriptsFiles,
-      ...getConfig(`${cwd}/tsconfig.scripts.json`),
+      ...getConfig(tsconfigScriptsPath),
     },
-    {
+    fs.existsSync(tsconfigE2ePath) && {
       files: e2eFiles,
-      ...getConfig(`${cwd}/tsconfig.e2e.json`),
+      ...getConfig(tsconfigE2ePath),
     },
     {
       ignores: ['**/__exclude/**', '**/*.scss', '**/*.js'],

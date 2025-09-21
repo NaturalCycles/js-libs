@@ -132,8 +132,7 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
 
 async function runESLint(extensions = eslintExtensions.split(','), fix = true): Promise<void> {
   const eslintConfigPath = `eslint.config.js`
-  const tsconfigPath = 'tsconfig.json'
-  if (!existsSync(eslintConfigPath) || !existsSync(tsconfigPath)) {
+  if (!existsSync(eslintConfigPath)) {
     // faster to bail-out like this
     return
   }
