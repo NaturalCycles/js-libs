@@ -4,13 +4,13 @@
 {
   "extends": "./tsconfig.src.json",
   "compilerOptions": {
-    "rootDir": "${configDir}",
-    "baseUrl": "${configDir}",
-    "outDir": "${configDir}/dist/e2e",
+    "rootDir": "${configDir}/..",
+    "baseUrl": "${configDir}/..",
+    "outDir": "${configDir}/../dist/e2e",
     "paths": {
-      "@src/*": ["${configDir}/src/*"]
+      "@src/*": ["${configDir}/../src/*"]
     },
-    "tsBuildInfoFile": "${configDir}/node_modules/.cache/e2e.tsbuildinfo",
+    "tsBuildInfoFile": "${configDir}/../node_modules/.cache/e2e.tsbuildinfo",
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["esnext", "dom", "dom.iterable"]
@@ -21,5 +21,5 @@
     //      "@src/*": ["./src/*"],
     //    },
   },
-  "include": ["${configDir}/e2e"]
+  "include": ["${configDir}"]
 }

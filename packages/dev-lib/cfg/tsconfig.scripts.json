@@ -4,13 +4,13 @@
 {
   "extends": "./tsconfig.src.json",
   "compilerOptions": {
-    "rootDir": "${configDir}",
-    "baseUrl": "${configDir}",
-    "outDir": "${configDir}/dist/scripts",
+    "rootDir": "${configDir}/..",
+    "baseUrl": "${configDir}/..",
+    "outDir": "${configDir}/../dist/scripts",
     "paths": {
-      "@src/*": ["${configDir}/src/*"]
+      "@src/*": ["${configDir}/../src/*"]
     },
-    "tsBuildInfoFile": "${configDir}/node_modules/.cache/scripts.tsbuildinfo"
+    "tsBuildInfoFile": "${configDir}/../node_modules/.cache/scripts.tsbuildinfo"
   },
-  "include": ["${configDir}/scripts"]
+  "include": ["${configDir}"]
 }

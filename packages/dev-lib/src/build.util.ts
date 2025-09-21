@@ -15,15 +15,15 @@ export async function buildProd(): Promise<void> {
  * Use 'src' to indicate root.
  */
 export async function runTSCInFolders(
-  tsconfigPaths: string[],
+  dirs: string[],
   args: string[] = [],
   parallel = true,
 ): Promise<void> {
   if (parallel) {
-    await Promise.all(tsconfigPaths.map(p => runTSCInFolder(p, args)))
+    await Promise.all(dirs.map(dir => runTSCInFolder(dir, args)))
   } else {
-    for (const p of tsconfigPaths) {
-      await runTSCInFolder(p, args)
+    for (const dir of dirs) {
+      await runTSCInFolder(dir, args)
     }
   }
 }
@@ -32,11 +32,11 @@ export async function runTSCInFolders(
  * Pass 'src' to run in root.
  */
 export async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
-  let mod = dir
+  let configDir = dir
   if (dir === 'src') {
-    mod = ''
+    configDir = ''
   }
-  const tsconfigPath = ['tsconfig', mod, `json`].filter(Boolean).join('.')
+  const tsconfigPath = [configDir, 'tsconfig.json'].filter(Boolean).join('/')
 
   if (!fs2.pathExists(tsconfigPath) || !fs2.pathExists(dir)) {
     // console.log(`Skipping to run tsc for ${tsconfigPath}, as it doesn't exist`)

@@ -29,8 +29,8 @@ const testFiles = ['**/*.test.ts', '**/*.test.tsx', '**/*.test.cts', '**/*.test.
 
 const cwd = process.cwd()
 const tsconfigSrcPath = `${cwd}/tsconfig.json`
-const tsconfigScriptsPath = `${cwd}/tsconfig.scripts.json`
-const tsconfigE2ePath = `${cwd}/tsconfig.e2e.json`
+const tsconfigScriptsPath = `${cwd}/scripts/tsconfig.json`
+const tsconfigE2ePath = `${cwd}/e2e/tsconfig.json`
 
 const config = getEslintConfigForDir()
 export default config
