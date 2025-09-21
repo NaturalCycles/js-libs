@@ -117,7 +117,7 @@ function getConfig(tsconfigPath) {
         NodeJS: 'readonly',
       },
       parserOptions: {
-        project: fs.existsSync(tsconfigPath) ? tsconfigPath : undefined,
+        project: tsconfigPath,
         // tsconfigRootDir: cwd,
         parser: tseslint.parser,
         extraFileExtensions: ['.vue', '.html'],
