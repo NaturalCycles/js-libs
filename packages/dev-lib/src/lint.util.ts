@@ -109,7 +109,6 @@ interface EslintAllOptions {
  * Runs `eslint` command for all predefined paths (e.g /src, /scripts, etc).
  */
 export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
-  const started = Date.now() as UnixTimestampMillis
   const { argv } = _yargs().options({
     ext: {
       type: 'string',
@@ -129,8 +128,6 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
   const extensions = ext.split(',')
 
   await runESLint(extensions, fix)
-
-  console.log(`${check(true)}${white(`eslint-all`)} ${dimGrey(`took ` + _since(started))}`)
 }
 
 async function runESLint(extensions = eslintExtensions.split(','), fix = true): Promise<void> {

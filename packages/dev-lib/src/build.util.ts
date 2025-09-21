@@ -32,13 +32,13 @@ export async function runTSCInFolders(
  * Pass 'src' to run in root.
  */
 export async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
-  let configDir = dir
+  let mod = dir
   if (dir === 'src') {
-    configDir = ''
+    mod = ''
   }
-  const tsconfigPath = [configDir, `tsconfig.json`].filter(Boolean).join('/')
+  const tsconfigPath = ['tsconfig', mod, `json`].filter(Boolean).join('.')
 
-  if (!fs2.pathExists(tsconfigPath)) {
+  if (!fs2.pathExists(tsconfigPath) || !fs2.pathExists(dir)) {
     // console.log(`Skipping to run tsc for ${tsconfigPath}, as it doesn't exist`)
     return
   }
