@@ -1,9 +1,4 @@
 {
-  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.json",
-  "compilerOptions": {
-    "outDir": "dist",
-    "lib": ["esnext", "dom"]
-  },
-  "include": ["src"],
-  "exclude": ["**/__exclude"]
+  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.src.json",
+  "compilerOptions": {}
 }

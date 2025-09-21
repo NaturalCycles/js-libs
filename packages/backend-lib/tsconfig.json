@@ -1,6 +1,4 @@
 {
-  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.json",
-  "compilerOptions": {},
-  "include": ["src"],
-  "exclude": ["**/__exclude"]
+  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.src.json",
+  "compilerOptions": {}
 }

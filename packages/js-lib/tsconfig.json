@@ -1,9 +1,7 @@
 {
-  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.json",
+  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.src.json",
   "compilerOptions": {
     "target": "es2023",
     "lib": ["esnext", "dom", "dom.iterable"]
-  },
-  "include": ["src"],
-  "exclude": ["**/__exclude"]
+  }
 }

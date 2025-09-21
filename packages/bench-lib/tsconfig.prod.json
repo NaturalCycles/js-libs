@@ -5,5 +5,5 @@
     "declaration": true,
     "sourceMap": false
   },
-  "exclude": ["**/__exclude", "src/test", "src/**/*.test.*"]
+  "exclude": ["**/__exclude", "src/test", "**/*.test.*"]
 }

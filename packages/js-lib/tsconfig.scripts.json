@@ -5,7 +5,5 @@
   "extends": "@naturalcycles/dev-lib/cfg/tsconfig.scripts.json",
   "compilerOptions": {
     "lib": ["esnext", "dom.iterable"]
-  },
-  "include": ["scripts"],
-  "exclude": ["**/__exclude"]
+  }
 }
