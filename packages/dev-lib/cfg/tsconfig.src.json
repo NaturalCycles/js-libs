@@ -1,5 +1,5 @@
 //
-// @naturalcycles/dev-lib/cfg/tsconfig.json
+// @naturalcycles/dev-lib/cfg/tsconfig.src.json
 //
 // Shared tsconfig for Node.js projects
 //
@@ -54,8 +54,7 @@
     "pretty": true,
     "newLine": "lf",
     "experimentalDecorators": true
-  }
-  // Need to be specified in the project tsconfig
-  // "include": ["src"],
-  // "exclude": ["**/__exclude"]
+  },
+  "include": ["${configDir}/src"],
+  "exclude": ["${configDir}/**/__exclude"]
 }

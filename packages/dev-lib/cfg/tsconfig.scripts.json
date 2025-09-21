@@ -2,7 +2,7 @@
 // @naturalcycles/dev-lib/cfg/tsconfig.scripts.json
 //
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.src.json",
   "compilerOptions": {
     "rootDir": "${configDir}",
     "baseUrl": "${configDir}",
@@ -12,6 +12,5 @@
     },
     "tsBuildInfoFile": "${configDir}/node_modules/.cache/scripts.tsbuildinfo"
   },
-  // "include": ["scripts"],
-  "exclude": ["**/__exclude"]
+  "include": ["${configDir}/scripts"]
 }

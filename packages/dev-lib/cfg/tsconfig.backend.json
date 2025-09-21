@@ -4,13 +4,10 @@
 // Shared tsconfig for Backend services
 //
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.src.json",
   "compilerOptions": {
     "paths": {
       "@src/*": ["${configDir}/src/*"]
     }
   }
-  // Need to be specified in the project tsconfig
-  // "include": ["src"],
-  // "exclude": ["**/__exclude"]
 }

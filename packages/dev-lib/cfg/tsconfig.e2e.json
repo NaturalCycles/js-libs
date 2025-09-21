@@ -2,7 +2,7 @@
 // @naturalcycles/dev-lib/cfg/tsconfig.e2e.json
 //
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.src.json",
   "compilerOptions": {
     "rootDir": "${configDir}",
     "baseUrl": "${configDir}",
@@ -21,6 +21,5 @@
     //      "@src/*": ["./src/*"],
     //    },
   },
-  // "include": ["e2e"],
-  "exclude": ["**/__exclude"]
+  "include": ["${configDir}/e2e"]
 }

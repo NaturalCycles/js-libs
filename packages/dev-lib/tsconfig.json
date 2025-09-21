@@ -1,8 +1,4 @@
 {
-  "extends": "./cfg/tsconfig.json",
-  "compilerOptions": {
-    "erasableSyntaxOnly": true
-  },
-  "include": ["src"],
-  "exclude": ["**/__exclude"]
+  "extends": "./cfg/tsconfig.src.json",
+  "compilerOptions": {}
 }

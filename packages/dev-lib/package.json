@@ -71,7 +71,7 @@
     "./cfg/eslint.config.js": "./cfg/eslint.config.js",
     "./cfg/prettier.config.js": "./cfg/prettier.config.js",
     "./cfg/stylelint.config.js": "./cfg/stylelint.config.js",
-    "./cfg/tsconfig.json": "./cfg/tsconfig.json",
+    "./cfg/tsconfig.src.json": "./cfg/tsconfig.src.json",
     "./cfg/tsconfig.scripts.json": "./cfg/tsconfig.scripts.json",
     "./cfg/tsconfig.e2e.json": "./cfg/tsconfig.e2e.json",
     "./cfg/tsconfig.backend.json": "./cfg/tsconfig.backend.json",

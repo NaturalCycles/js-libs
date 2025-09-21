@@ -4,7 +4,7 @@
 // Shared tsconfig for Frontend applications
 //
 {
-  "extends": "./tsconfig.json",
+  "extends": "./tsconfig.src.json",
   "compilerOptions": {
     "target": "es2023", // es2023+ browsers, adjust to your requirements!
     "lib": ["esnext", "dom", "dom.iterable"],
@@ -14,7 +14,4 @@
       "@src/*": ["${configDir}/src/*"]
     }
   }
-  // Need to be specified in the project tsconfig
-  // "include": ["src"],
-  // "exclude": ["**/__exclude"]
 }
