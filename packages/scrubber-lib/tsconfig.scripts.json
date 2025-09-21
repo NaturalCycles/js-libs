@@ -1,7 +1,0 @@
-//
-// tsconfig.scripts.json
-//
-{
-  "extends": "@naturalcycles/dev-lib/cfg/tsconfig.scripts.json",
-  "compilerOptions": {}
-}
