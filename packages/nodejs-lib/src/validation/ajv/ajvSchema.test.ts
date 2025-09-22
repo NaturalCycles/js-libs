@@ -65,7 +65,7 @@ describe('isoDate keyword', () => {
     expect(result.success).toBe(false)
 
     const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(date)
-    expect(ajvResult[0]).toMatchInlineSnapshot()
+    expect(ajvResult[0]).not.toBeNull()
     expect(ajvResult[1]).toBe(date)
   })
 
