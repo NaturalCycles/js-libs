@@ -141,6 +141,10 @@ describe('z.isoDate', () => {
     '2001-W01', // valid ISO 8601 YYYY-Www
     '2001W01', // valid ISO 8601 YYYYWww
     '2001-01-1', // invalid
+    '2001-13-01',
+    '2001-21-01',
+    '2001-08-32',
+    '2001-08-32',
   ]
   test.each(invalidCases)('should not accept %s format', date => {
     const schema = z.isoDate()

@@ -4,12 +4,13 @@ import { _first } from '../array/array.util.js'
 import { localDate } from '../datetime/localDate.js'
 import { _assert } from '../error/assert.js'
 import { _isEmpty } from '../is.util.js'
-import type {
-  IANATimezone,
-  Inclusiveness,
-  IsoDate,
-  UnixTimestamp,
-  UnixTimestampMillis,
+import {
+  _typeCast,
+  type IANATimezone,
+  type Inclusiveness,
+  type IsoDate,
+  type UnixTimestamp,
+  type UnixTimestampMillis,
 } from '../types.js'
 
 type ZodBranded<T, B> = T & Record<'_zod', Record<'output', B>>
@@ -100,7 +101,10 @@ function isoDate(params?: CustomZodIsoDateParams): ZodBrandedString<IsoDate> {
 
   schema = schema.refine(
     dateString => {
-      const ld = localDate.fromString(dateString as IsoDate)
+      if (!localDate.isValidString(dateString)) return false
+      _typeCast<IsoDate>(dateString)
+
+      const ld = localDate.fromString(dateString)
 
       if (before) return ld.isBefore(before)
       if (sameOrBefore) return ld.isSameOrBefore(sameOrBefore)
