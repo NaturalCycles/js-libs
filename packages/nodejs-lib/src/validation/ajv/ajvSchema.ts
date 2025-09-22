@@ -262,9 +262,11 @@ function handleIsoDateSchemas(schema: any): any {
       Object.values(schema.properties).forEach(handleIsoDateSchemas)
     }
     if (schema.items) {
-      Array.isArray(schema.items)
-        ? schema.items.forEach(handleIsoDateSchemas)
-        : handleIsoDateSchemas(schema.items)
+      if (Array.isArray(schema.items)) {
+        schema.items.forEach(handleIsoDateSchemas)
+      } else {
+        handleIsoDateSchemas(schema.items)
+      }
     }
     if (schema.anyOf) schema.anyOf.forEach(handleIsoDateSchemas)
     if (schema.allOf) schema.allOf.forEach(handleIsoDateSchemas)
