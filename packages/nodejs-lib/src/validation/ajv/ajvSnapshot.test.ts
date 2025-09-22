@@ -23,16 +23,16 @@ test('snapshot ajv schema', async () => {
   const code = await prettify(rawCode)
   expect(code).toMatchInlineSnapshot(`
     "'use strict'
-    export const validate = validate13
-    export default validate13
-    const schema14 = {
+    export const validate = validate14
+    export default validate14
+    const schema15 = {
       $schema: 'http://json-schema.org/draft-07/schema#',
       type: 'object',
       properties: { s: { type: 'string' } },
       required: ['s'],
       additionalProperties: false,
     }
-    function validate13(
+    function validate14(
       data,
       { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
     ) {
@@ -91,7 +91,7 @@ test('snapshot ajv schema', async () => {
         }
         errors++
       }
-      validate13.errors = vErrors
+      validate14.errors = vErrors
       return errors === 0
     }
     "
