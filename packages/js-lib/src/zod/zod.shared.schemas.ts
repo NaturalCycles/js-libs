@@ -79,19 +79,16 @@ export interface JsonSchemaDescriptionParams {
 function isoDate(params: CustomZodIsoDateParams = {}): ZodBrandedString<IsoDate> {
   const { before, sameOrBefore, after, sameOrAfter, between } = params
 
-  const conditions = Object.entries(params)
-  _assert(conditions.length <= 1, 'Only one condition is allowed in `isoDate()`!')
+  _assert(Object.keys(params).length <= 1, 'Only one condition is allowed in `isoDate()`!')
 
-  let error = 'Must be a YYYY-MM-DD string'
-  if (conditions.length) {
-    if (after) error = `should be after ${after}`
-    if (sameOrAfter) error = `should be on or after ${sameOrAfter}`
-    if (before) error = `should be before ${before}`
-    if (sameOrBefore) error = `should be on or before ${sameOrBefore}`
-    if (between) {
-      const { min, max, incl } = between
-      error = `Should be between ${min} and ${max} (incl: ${incl})`
-    }
+  let error = 'Should be be a YYYY-MM-DD string'
+  if (after) error = `Should be after ${after}`
+  if (sameOrAfter) error = `Should be on or after ${sameOrAfter}`
+  if (before) error = `Should be before ${before}`
+  if (sameOrBefore) error = `Should be on or before ${sameOrBefore}`
+  if (between) {
+    const { min, max, incl } = between
+    error = `Should be between ${min} and ${max} (incl: ${incl})`
   }
 
   let schema = z.string().refine(

@@ -178,7 +178,7 @@ export function addIsoDateKeyword(ajv: Ajv): void {
           const { min, max, incl } = schema.between
           return str`should be between ${min} and ${max} (incl: ${incl})`
         }
-        return str`invalid isoDate`
+        return str`should be a YYYY-MM-DD string`
       },
     },
 
