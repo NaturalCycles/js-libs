@@ -4,12 +4,12 @@ import { _first } from '../array/array.util.js'
 import { localDate } from '../datetime/localDate.js'
 import { _assert } from '../error/assert.js'
 import { _isEmpty } from '../is.util.js'
-import {
-  type IANATimezone,
-  type Inclusiveness,
-  type IsoDate,
-  type UnixTimestamp,
-  type UnixTimestampMillis,
+import type {
+  IANATimezone,
+  Inclusiveness,
+  IsoDate,
+  UnixTimestamp,
+  UnixTimestampMillis,
 } from '../types.js'
 
 type ZodBranded<T, B> = T & Record<'_zod', Record<'output', B>>
