@@ -4,10 +4,7 @@ import { _first } from '../array/array.util.js'
 import { localDate } from '../datetime/localDate.js'
 import { _assert } from '../error/assert.js'
 import { _isEmpty } from '../is.util.js'
-import { _stringify } from '../string/stringify.js'
 import {
-  _stringMapEntries,
-  _typeCast,
   type IANATimezone,
   type Inclusiveness,
   type IsoDate,
