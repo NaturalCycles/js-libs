@@ -1,9 +1,7 @@
 import type { ZodString } from 'zod'
 import { z } from 'zod'
-import { _first } from '../array/array.util.js'
 import { localDate } from '../datetime/localDate.js'
 import { _assert } from '../error/assert.js'
-import { _isEmpty } from '../is.util.js'
 import {
   _typeCast,
   type IANATimezone,
@@ -78,28 +76,25 @@ export interface JsonSchemaDescriptionParams {
   params: CustomZodIsoDateParams
 }
 
-function isoDate(params?: CustomZodIsoDateParams): ZodBrandedString<IsoDate> {
-  let schema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Must be a YYYY-MM-DD string' })
-
-  if (!params || _isEmpty(params)) return schema as ZodBrandedString<IsoDate>
-
-  const conditions = Object.entries(params)
-  _assert(conditions.length === 1, 'Only one condition is allowed in `isoDate()`!')
-
-  const [key, value] = _first(conditions)
+function isoDate(params: CustomZodIsoDateParams = {}): ZodBrandedString<IsoDate> {
   const { before, sameOrBefore, after, sameOrAfter, between } = params
 
-  let message = `Must be ${key} ${value}`
-  if (between) {
-    if (between.incl === '[]') {
-      message = `Must be ${between.min} or later but no later than ${between.max}`
-    }
-    if (between.incl === '[)') {
-      message = `Must be ${between.min} or later but before ${between.max}`
+  const conditions = Object.entries(params)
+  _assert(conditions.length <= 1, 'Only one condition is allowed in `isoDate()`!')
+
+  let error = 'Must be a YYYY-MM-DD string'
+  if (conditions.length) {
+    if (after) error = `should be after ${after}`
+    if (sameOrAfter) error = `should be on or after ${sameOrAfter}`
+    if (before) error = `should be before ${before}`
+    if (sameOrBefore) error = `should be on or before ${sameOrBefore}`
+    if (between) {
+      const { min, max, incl } = between
+      error = `Should be between ${min} and ${max} (incl: ${incl})`
     }
   }
 
-  schema = schema.refine(
+  let schema = z.string().refine(
     dateString => {
       if (!localDate.isValidString(dateString)) return false
       _typeCast<IsoDate>(dateString)
@@ -114,9 +109,12 @@ function isoDate(params?: CustomZodIsoDateParams): ZodBrandedString<IsoDate> {
 
       return true
     },
-    { message },
+    { error },
   )
 
+  // Here we hide the instructions in the description that Ajv will understand
+  // For some reason, if I add the `.describe()` earlier to support early-return when no conditions are specified,
+  // then the description is lost. It seems it must be the last call in the call chain.
   const description = { schema: 'isoDate', params } satisfies JsonSchemaDescriptionParams
   schema = schema.describe(JSON.stringify(description))
 

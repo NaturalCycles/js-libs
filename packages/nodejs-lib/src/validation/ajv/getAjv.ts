@@ -148,7 +148,7 @@ export function addIsoDateKeyword(ajv: Ajv): void {
     metaSchema: {
       type: 'object',
       additionalProperties: false,
-      minProperties: 1,
+      minProperties: 0,
       maxProperties: 1,
       properties: {
         before: { type: 'string' },
@@ -175,8 +175,8 @@ export function addIsoDateKeyword(ajv: Ajv): void {
         if (schema.before) return str`should be before ${schema.before}`
         if (schema.sameOrBefore) return str`should be on or before ${schema.sameOrBefore}`
         if (schema.between) {
-          const b = schema.between
-          return str`should be between ${b.min} and ${b.max} (incl: ${b.incl})`
+          const { min, max, incl } = schema.between
+          return str`should be between ${min} and ${max} (incl: ${incl})`
         }
         return str`invalid isoDate`
       },
@@ -221,13 +221,7 @@ export function addIsoDateKeyword(ajv: Ajv): void {
 
       if (schema.between) {
         const { min, max, incl } = schema.between
-
-        if (incl === '[]') {
-          cxt.fail(_`${d}.isBefore(${min}) || ${d}.isAfter(${max})`)
-        } else if (incl === '[)') {
-          cxt.fail(_`${d}.isBefore(${min}) || ${d}.isSameOrAfter(${max})`)
-        }
-
+        cxt.fail(_`!${d}.isBetween(${min}, ${max}, ${incl})`)
         return
       }
     },
