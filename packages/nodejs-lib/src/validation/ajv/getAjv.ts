@@ -139,7 +139,7 @@ function addCustomAjvFormats(ajv: Ajv): Ajv {
   )
 }
 
-export function addIsoDateKeyword(ajv: Ajv): void {
+function addIsoDateKeyword(ajv: Ajv): void {
   ajv.addKeyword({
     keyword: 'isoDate',
     type: 'string',
