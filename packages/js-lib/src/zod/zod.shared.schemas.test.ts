@@ -152,4 +152,116 @@ describe('z.isoDate', () => {
     expect(ajvResult[0]).not.toBeNull()
     expect(ajvResult[1]).toBe(date)
   })
+
+  test('should accept valid dates when `before` param is defined', () => {
+    const date = '2001-01-01' as IsoDate
+    const schema = z.isoDate({ before: date })
+
+    expect(schema.safeParse('2000-12-30').success).toBe(true)
+    expect(schema.safeParse('2000-12-31').success).toBe(true)
+    expect(schema.safeParse('2001-01-01').success).toBe(false)
+    expect(schema.safeParse('2001-01-02').success).toBe(false)
+
+    const ajvSchema = AjvSchema.createFromZod(schema)
+
+    expect(ajvSchema.getValidationResult('2000-12-30')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2000-12-31')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-01')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-02')[0]).not.toBeNull()
+  })
+
+  test('should accept valid dates when `sameOrBefore` param is defined', () => {
+    const date = '2001-01-01' as IsoDate
+    const schema = z.isoDate({ sameOrBefore: date })
+
+    expect(schema.safeParse('2000-12-30').success).toBe(true)
+    expect(schema.safeParse('2000-12-31').success).toBe(true)
+    expect(schema.safeParse('2001-01-01').success).toBe(true)
+    expect(schema.safeParse('2001-01-02').success).toBe(false)
+
+    const ajvSchema = AjvSchema.createFromZod(schema)
+
+    expect(ajvSchema.getValidationResult('2000-12-30')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2000-12-31')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-01')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-02')[0]).not.toBeNull()
+  })
+
+  test('should accept valid dates when `after` param is defined', () => {
+    const date = '2001-01-01' as IsoDate
+    const schema = z.isoDate({ after: date })
+
+    expect(schema.safeParse('2000-12-30').success).toBe(false)
+    expect(schema.safeParse('2000-12-31').success).toBe(false)
+    expect(schema.safeParse('2001-01-01').success).toBe(false)
+    expect(schema.safeParse('2001-01-02').success).toBe(true)
+
+    const ajvSchema = AjvSchema.createFromZod(schema)
+
+    expect(ajvSchema.getValidationResult('2000-12-30')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2000-12-31')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-01')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-02')[0]).toBeNull()
+  })
+
+  test('should accept valid dates when `sameOrAfter` param is defined', () => {
+    const date = '2001-01-01' as IsoDate
+    const schema = z.isoDate({ sameOrAfter: date })
+
+    expect(schema.safeParse('2000-12-30').success).toBe(false)
+    expect(schema.safeParse('2000-12-31').success).toBe(false)
+    expect(schema.safeParse('2001-01-01').success).toBe(true)
+    expect(schema.safeParse('2001-01-02').success).toBe(true)
+
+    const ajvSchema = AjvSchema.createFromZod(schema)
+
+    expect(ajvSchema.getValidationResult('2000-12-30')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2000-12-31')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-01')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-02')[0]).toBeNull()
+  })
+
+  test('should accept valid dates when `between` param is defined with `[]`', () => {
+    const date1 = '2001-01-01' as IsoDate
+    const date2 = '2001-01-03' as IsoDate
+    const schema = z.isoDate({ between: { min: date1, max: date2, incl: '[]' } })
+
+    expect(schema.safeParse('2000-12-30').success).toBe(false)
+    expect(schema.safeParse('2000-12-31').success).toBe(false)
+    expect(schema.safeParse('2001-01-01').success).toBe(true)
+    expect(schema.safeParse('2001-01-02').success).toBe(true)
+    expect(schema.safeParse('2001-01-03').success).toBe(true)
+    expect(schema.safeParse('2001-01-04').success).toBe(false)
+
+    const ajvSchema = AjvSchema.createFromZod(schema)
+
+    expect(ajvSchema.getValidationResult('2000-12-30')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2000-12-31')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-01')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-02')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-03')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-04')[0]).not.toBeNull()
+  })
+
+  test('should accept valid dates when `between` param is defined with `[)`', () => {
+    const date1 = '2001-01-01' as IsoDate
+    const date2 = '2001-01-03' as IsoDate
+    const schema = z.isoDate({ between: { min: date1, max: date2, incl: '[)' } })
+
+    expect(schema.safeParse('2000-12-30').success).toBe(false)
+    expect(schema.safeParse('2000-12-31').success).toBe(false)
+    expect(schema.safeParse('2001-01-01').success).toBe(true)
+    expect(schema.safeParse('2001-01-02').success).toBe(true)
+    expect(schema.safeParse('2001-01-03').success).toBe(false)
+    expect(schema.safeParse('2001-01-04').success).toBe(false)
+
+    const ajvSchema = AjvSchema.createFromZod(schema)
+
+    expect(ajvSchema.getValidationResult('2000-12-30')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2000-12-31')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-01')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-02')[0]).toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-03')[0]).not.toBeNull()
+    expect(ajvSchema.getValidationResult('2001-01-04')[0]).not.toBeNull()
+  })
 })

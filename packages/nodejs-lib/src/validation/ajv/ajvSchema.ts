@@ -125,6 +125,7 @@ export class AjvSchema<T = unknown> {
     }
 
     const jsonSchema = z.toJSONSchema(zodSchema, { target: 'draft-7' })
+    handleIsoDateSchemas(jsonSchema)
     const ajvSchema = new AjvSchema<T>(jsonSchema as JsonSchema<T>, cfg)
 
     AjvSchema.cacheAjvSchemaInZodSchema(zodSchema, ajvSchema)
@@ -232,4 +233,43 @@ export const HIDDEN_AJV_SCHEMA = Symbol('HIDDEN_AJV_SCHEMA')
 
 export interface ZodTypeWithAjvSchema<T> extends ZodType<T> {
   [HIDDEN_AJV_SCHEMA]: AjvSchema<T>
+}
+
+/**
+ * This function iterates over the schema and updates every property with the schema `isoDate`.
+ *
+ * This is because our custom `isoDate` schema comes with logic
+ * that does not survive the JSONSchema translation between Ajv and Zod.
+ * We hide the parameters of the logic in the `description` field of the given field,
+ * which Ajv will pick up and execute.
+ */
+function handleIsoDateSchemas(schema: any): any {
+  if (schema && typeof schema === 'object') {
+    if (typeof schema.description === 'string') {
+      try {
+        const desc = JSON.parse(schema.description)
+        if (desc.schema === 'isoDate') {
+          schema.isoDate = desc.params // with this we instruct Ajv to execute the `isoDate` keyword logic
+          delete schema.description
+        }
+      } catch {
+        /* not our description */
+      }
+    }
+
+    // recurse into nested structures
+    if (schema.properties) {
+      Object.values(schema.properties).forEach(handleIsoDateSchemas)
+    }
+    if (schema.items) {
+      Array.isArray(schema.items)
+        ? schema.items.forEach(handleIsoDateSchemas)
+        : handleIsoDateSchemas(schema.items)
+    }
+    if (schema.anyOf) schema.anyOf.forEach(handleIsoDateSchemas)
+    if (schema.allOf) schema.allOf.forEach(handleIsoDateSchemas)
+    if (schema.oneOf) schema.oneOf.forEach(handleIsoDateSchemas)
+  }
+
+  return schema
 }

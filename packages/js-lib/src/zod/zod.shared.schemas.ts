@@ -1,6 +1,19 @@
 import type { ZodString } from 'zod'
 import { z } from 'zod'
-import type { IANATimezone, IsoDate, UnixTimestamp, UnixTimestampMillis } from '../types.js'
+import { _first } from '../array/array.util.js'
+import { localDate } from '../datetime/localDate.js'
+import { _assert } from '../error/assert.js'
+import { _isEmpty } from '../is.util.js'
+import { _stringify } from '../string/stringify.js'
+import {
+  _stringMapEntries,
+  _typeCast,
+  type IANATimezone,
+  type Inclusiveness,
+  type IsoDate,
+  type UnixTimestamp,
+  type UnixTimestampMillis,
+} from '../types.js'
 
 type ZodBranded<T, B> = T & Record<'_zod', Record<'output', B>>
 export type ZodBrandedString<B> = ZodBranded<z.ZodString, B>
@@ -54,11 +67,59 @@ function semVer(): z.ZodString {
     .describe('SemVer')
 }
 
-function isoDate(): ZodBrandedString<IsoDate> {
-  return z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Must be a YYYY-MM-DD string' })
-    .describe('IsoDate') as ZodBrandedString<IsoDate>
+export interface CustomZodIsoDateParams {
+  before?: IsoDate
+  sameOrBefore?: IsoDate
+  after?: IsoDate
+  sameOrAfter?: IsoDate
+  between?: { min: IsoDate; max: IsoDate; incl: Inclusiveness }
+}
+
+export interface JsonSchemaDescriptionParams {
+  schema: 'isoDate'
+  params: CustomZodIsoDateParams
+}
+
+function isoDate(params?: CustomZodIsoDateParams): ZodBrandedString<IsoDate> {
+  let schema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { error: 'Must be a YYYY-MM-DD string' })
+
+  if (!params || _isEmpty(params)) return schema as ZodBrandedString<IsoDate>
+
+  const conditions = Object.entries(params)
+  _assert(conditions.length === 1, 'Only one condition is allowed in `isoDate()`!')
+
+  const [key, value] = _first(conditions)
+  const { before, sameOrBefore, after, sameOrAfter, between } = params
+
+  let message = `Must be ${key} ${value}`
+  if (between) {
+    if (between.incl === '[]') {
+      message = `Must be ${between.min} or later but no later than ${between.max}`
+    }
+    if (between.incl === '[)') {
+      message = `Must be ${between.min} or later but before ${between.max}`
+    }
+  }
+
+  schema = schema.refine(
+    dateString => {
+      const ld = localDate.fromString(dateString as IsoDate)
+
+      if (before) return ld.isBefore(before)
+      if (sameOrBefore) return ld.isSameOrBefore(sameOrBefore)
+      if (after) return ld.isAfter(after)
+      if (sameOrAfter) return ld.isSameOrAfter(sameOrAfter)
+      if (between) return ld.isBetween(between.min, between.max, between.incl)
+
+      return true
+    },
+    { message },
+  )
+
+  const description = { schema: 'isoDate', params } satisfies JsonSchemaDescriptionParams
+  schema = schema.describe(JSON.stringify(description))
+
+  return schema as ZodBrandedString<IsoDate>
 }
 
 function email(): z.ZodEmail {
