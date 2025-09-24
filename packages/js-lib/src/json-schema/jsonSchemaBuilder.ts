@@ -1,7 +1,7 @@
 import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
-import type { AnyObject, BaseDBEntity, IsoDate, UnixTimestamp } from '../types.js'
+import type { AnyObject, BaseDBEntity, Branded, IsoDate, UnixTimestamp } from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
@@ -275,6 +275,10 @@ export class JsonSchemaNumberBuilder<T extends number = number> extends JsonSche
 
   utcOffset = (): this => this.format('utcOffset')
   utcOffsetHours = (): this => this.format('utcOffsetHours')
+
+  branded<B extends number>(): JsonSchemaNumberBuilder<B> {
+    return this as unknown as JsonSchemaNumberBuilder<B>
+  }
 }
 
 export class JsonSchemaStringBuilder<T extends string = string> extends JsonSchemaAnyBuilder<
@@ -328,6 +332,10 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
   trim = (trim = true): this => this.transformModify('trim', trim)
   toLowerCase = (toLowerCase = true): this => this.transformModify('toLowerCase', toLowerCase)
   toUpperCase = (toUpperCase = true): this => this.transformModify('toUpperCase', toUpperCase)
+
+  branded<B extends string>(): JsonSchemaStringBuilder<B> {
+    return this as unknown as JsonSchemaStringBuilder<B>
+  }
 
   private transformModify(t: 'trim' | 'toLowerCase' | 'toUpperCase', add: boolean): this {
     if (add) {
