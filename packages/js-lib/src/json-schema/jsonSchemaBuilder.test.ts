@@ -242,7 +242,7 @@ describe('optional', () => {
 
     result satisfies Foo
 
-    const [, resultOfBadSchema] = AjvSchema.create(schema.build()).getValidationResult({} as any)
+    const [, resultOfBadSchema] = AjvSchema.create(badSchema.build()).getValidationResult({} as any)
 
     // @ts-expect-error
     resultOfBadSchema satisfies Foo
