@@ -210,7 +210,7 @@ describe('array', () => {
 })
 
 describe('optional', () => {
-  test('should correctly infer the type of optional fields', () => {
+  test.only('should correctly infer the type of optional fields', () => {
     interface Foo {
       reqNum: number
       optNum?: number

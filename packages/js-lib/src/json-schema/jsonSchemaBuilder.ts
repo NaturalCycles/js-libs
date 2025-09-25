@@ -1,7 +1,13 @@
 import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
-import type { AnyObject, BaseDBEntity, IsoDate, UnixTimestamp } from '../types.js'
+import {
+  _typeCast,
+  type AnyObject,
+  type BaseDBEntity,
+  type IsoDate,
+  type UnixTimestamp,
+} from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
@@ -196,7 +202,15 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
    * Same as if it would be JSON.stringified.
    */
   build(): SCHEMA_TYPE {
-    return _sortObject(JSON.parse(JSON.stringify(this.schema)), JSON_SCHEMA_ORDER)
+    return _sortObject(
+      JSON.parse(
+        JSON.stringify(this.schema, (key, value) => {
+          if (key === 'optionalField') return undefined
+          return value
+        }),
+      ),
+      JSON_SCHEMA_ORDER,
+    )
   }
 
   clone(): JsonSchemaAnyBuilder<T, SCHEMA_TYPE> {
