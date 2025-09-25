@@ -77,6 +77,10 @@ export function arraySchema<T>(items: AnySchema<T>): ArraySchema<T[]> {
   return Joi.array().items(items)
 }
 
+export function anyObjectSchema<T extends AnyObject>(): ObjectSchema<T> {
+  return Joi.object().options({ stripUnknown: false })
+}
+
 export function objectSchema<T extends AnyObject>(schema: {
   [key in keyof Partial<T>]: AnySchema<T[key]>
 }): ObjectSchema<T> {
@@ -88,7 +92,6 @@ export function oneOfSchema<T = any>(...schemas: AnySchema[]): AlternativesSchem
 }
 
 export const anySchema = Joi.any()
-export const anyObjectSchema: ObjectSchema = Joi.object().options({ stripUnknown: false })
 
 export const BASE62_REGEX = /^[a-zA-Z0-9]+$/
 export const BASE64_REGEX = /^[a-zA-Z0-9+/]+={0,2}$/

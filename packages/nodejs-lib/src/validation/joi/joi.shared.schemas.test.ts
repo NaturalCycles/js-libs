@@ -273,7 +273,7 @@ test('empty objectSchema strips away everything', () => {
 
 test('anyObjectSchema preserves the object as is', () => {
   const obj = { a: 'a' }
-  const result = validate(obj, anyObjectSchema)
+  const result = validate(obj, anyObjectSchema())
   expect(result).toEqual(obj)
 })
 
