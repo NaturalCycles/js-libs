@@ -181,13 +181,18 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
     return this
   }
 
-  optional(optional = true): this {
+  optional(): JsonSchemaAnyBuilder<T | undefined, JsonSchema<T | undefined>>
+  optional(optional: true): JsonSchemaAnyBuilder<T | undefined, JsonSchema<T | undefined>>
+  optional(
+    optional: false,
+  ): JsonSchemaAnyBuilder<Exclude<T, undefined>, JsonSchema<Exclude<T, undefined>>>
+  optional(optional?: boolean): JsonSchemaAnyBuilder<any, JsonSchema<any>> {
     if (optional) {
       this.schema.optionalField = true
     } else {
       this.schema.optionalField = undefined
     }
-    return this
+    return this as any
   }
 
   /**

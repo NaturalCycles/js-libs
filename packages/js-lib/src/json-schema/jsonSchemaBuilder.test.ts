@@ -1,5 +1,5 @@
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, expectTypeOf, test } from 'vitest'
 import type { BaseDBEntity, Branded, IsoDate, UnixTimestamp } from '../types.js'
 import { z } from '../zod/index.js'
 import { j } from './jsonSchemaBuilder.js'
@@ -162,7 +162,7 @@ describe('integer', () => {
         Input: { foo: 10 }]
       `)
       expect(result).toEqual({ foo: 10 })
-      result satisfies { foo: BPM }
+      expectTypeOf(result).toEqualTypeOf<{ foo: BPM }>()
     })
   })
 })
@@ -178,7 +178,7 @@ describe('string', () => {
       const [, result] = AjvSchema.create(schema.build()).getValidationResult({
         foo: 'bingbong' as AccountId,
       })
-      result satisfies { foo: AccountId }
+      expectTypeOf(result).toEqualTypeOf<{ foo: AccountId }>()
     })
 
     test('should be chainable with other commands', () => {
@@ -195,7 +195,7 @@ describe('string', () => {
         Input: { foo: 'bingbong' }]
       `)
       expect(result).toEqual({ foo: 'bingbong' })
-      result satisfies { foo: AccountId }
+      expectTypeOf(result).toEqualTypeOf<{ foo: AccountId }>()
     })
   })
 })
@@ -204,7 +204,7 @@ describe('array', () => {
   test('should correctly infer the type from the type of the items', () => {
     const schema = j.object({ foo: j.array(j.number()) })
     const [, result] = AjvSchema.create(schema.build()).getValidationResult({ foo: 1 })
-    result satisfies { foo: number[] }
+    expectTypeOf(result).toEqualTypeOf<{ foo: number[] }>()
   })
 })
 
@@ -212,9 +212,9 @@ describe('optional', () => {
   test('should correctly infer the type of optional fields', () => {
     interface Foo {
       reqNum: number
-      optNum?: number | undefined
+      optNum?: number
       reqStr: string
-      optStr?: string | undefined
+      optStr?: string
       // TODO: uncomment when `j.array()` is fixed
       // reqArrOfReqNum: number[]
       // reqArrOfOptNum: (number | undefined)[]
@@ -246,5 +246,19 @@ describe('optional', () => {
 
     // @ts-expect-error
     resultOfBadSchema satisfies Foo
+  })
+
+  test('should correctly require an optional property', () => {
+    interface Foo {
+      reqProp: string
+    }
+    const optionalString = j.string().optional()
+    const schema = j.object({
+      reqProp: optionalString.optional(false),
+    })
+
+    const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
+
+    result satisfies Foo
   })
 })
