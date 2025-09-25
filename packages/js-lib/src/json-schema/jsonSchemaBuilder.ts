@@ -1,7 +1,7 @@
 import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
-import type { AnyObject, BaseDBEntity, Branded, IsoDate, UnixTimestamp } from '../types.js'
+import type { AnyObject, BaseDBEntity, IsoDate, UnixTimestamp } from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
@@ -182,7 +182,7 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
   optional(
     optional: false,
   ): JsonSchemaAnyBuilder<Exclude<T, undefined>, JsonSchema<Exclude<T, undefined>>>
-  optional(optional: boolean = true): JsonSchemaAnyBuilder<any, JsonSchema<any>> {
+  optional(optional = true): JsonSchemaAnyBuilder<any, JsonSchema<any>> {
     if (optional) {
       this.schema.optionalField = true
     } else {
