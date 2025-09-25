@@ -1,5 +1,6 @@
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, expectTypeOf, test } from 'vitest'
+import { _stringify } from '../string/stringify.js'
 import type { BaseDBEntity, Branded, IsoDate, UnixTimestamp } from '../types.js'
 import { z } from '../zod/index.js'
 import { j } from './jsonSchemaBuilder.js'
@@ -210,16 +211,14 @@ describe('array', () => {
 })
 
 describe('optional', () => {
-  test.only('should correctly infer the type of optional fields', () => {
+  test('should correctly infer the type of optional fields', () => {
     interface Foo {
       reqNum: number
       optNum?: number
       reqStr: string
       optStr?: string
       reqArrOfReqNum: number[]
-      reqArrOfOptNum: (number | undefined)[]
       optArrOfReqNum?: number[] | undefined
-      optArrOfOptNum?: (number | undefined)[] | undefined
     }
     const schema = j.object({
       reqNum: j.number(),
@@ -227,9 +226,7 @@ describe('optional', () => {
       reqStr: j.string(),
       optStr: j.string().optional(),
       reqArrOfReqNum: j.array(j.number()),
-      reqArrOfOptNum: j.array(j.number().optional()),
       optArrOfReqNum: j.array(j.number()).optional(),
-      optArrOfOptNum: j.array(j.number().optional()).optional(),
     })
     const badSchema = j.object({
       reqNum: j.number().optional(),
@@ -257,8 +254,23 @@ describe('optional', () => {
       reqProp: optionalString.optional(false),
     })
 
-    const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
-
+    const [err, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
     result satisfies Foo
+    expect(err).not.toBeNull()
+  })
+
+  test('should mark the property as optional', () => {
+    const schema = j.object({
+      foo: j.string().optional(),
+      bar: j.boolean().optional(),
+    })
+    const jsonSchema = schema.build()
+    const testCases = [{} as any, { foo: undefined }, { foo: 'bar' }, { foo: 'bar', bar: true }]
+
+    testCases.forEach(test => {
+      const [err] = AjvSchema.create(jsonSchema).getValidationResult(test)
+      // eslint-disable-next-line vitest/valid-expect
+      expect(err, _stringify(test)).toBeNull()
+    })
   })
 })

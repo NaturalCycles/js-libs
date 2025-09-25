@@ -202,15 +202,7 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
    * Same as if it would be JSON.stringified.
    */
   build(): SCHEMA_TYPE {
-    return _sortObject(
-      JSON.parse(
-        JSON.stringify(this.schema, (key, value) => {
-          if (key === 'optionalField') return undefined
-          return value
-        }),
-      ),
-      JSON_SCHEMA_ORDER,
-    )
+    return _sortObject(JSON.parse(JSON.stringify(this.schema)), JSON_SCHEMA_ORDER)
   }
 
   clone(): JsonSchemaAnyBuilder<T, SCHEMA_TYPE> {
