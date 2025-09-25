@@ -5,6 +5,7 @@ import {
   _stringEnumValues,
 } from '@naturalcycles/js-lib'
 import type {
+  AnyObject,
   BaseDBEntity,
   IANATimezone,
   IsoDate,
@@ -72,11 +73,11 @@ export const numberEnumKeySchema = <ENUM extends NumberEnum>(en: ENUM): StringSc
 export const urlSchema = (scheme: string | string[] = 'https'): StringSchema =>
   Joi.string().uri({ scheme })
 
-export function arraySchema<T>(items?: AnySchema<T>): ArraySchema<T[]> {
-  return items ? Joi.array().items(items) : Joi.array()
+export function arraySchema<T>(items: AnySchema<T>): ArraySchema<T[]> {
+  return Joi.array().items(items)
 }
 
-export function objectSchema<T>(schema?: {
+export function objectSchema<T extends AnyObject>(schema: {
   [key in keyof Partial<T>]: AnySchema<T[key]>
 }): ObjectSchema<T> {
   return Joi.object(schema)

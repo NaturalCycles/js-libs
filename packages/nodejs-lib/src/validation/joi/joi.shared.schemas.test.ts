@@ -3,6 +3,7 @@ import type { BaseDBEntity, IsoDateTime } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import { testValidation } from '../../test/validation.test.util.js'
 import {
+  anyObjectSchema,
   baseDBEntitySchema,
   binarySchema,
   dateIntervalStringSchema,
@@ -260,5 +261,33 @@ describe('dateTimeStringSchema', () => {
   test.each(invalidDateTimes)('invalid dateTime: %s', s => {
     expect(isValid(s, dateTimeStringSchema)).toBe(false)
     expect(localTime.isValid(s)).toBe(false)
+  })
+})
+
+test('empty objectSchema strips away everything', () => {
+  const schema = objectSchema({})
+  const obj = { a: 'a' }
+  const result = validate(obj, schema)
+  expect(result).toEqual({})
+})
+
+test('anyObjectSchema preserves the object as is', () => {
+  const obj = { a: 'a' }
+  const result = validate(obj, anyObjectSchema)
+  expect(result).toEqual(obj)
+})
+
+test('objectSchema with pattern', () => {
+  const schema = objectSchema({}).pattern(stringSchema.regex(/^\d{3}$/), numberSchema)
+
+  const obj = {
+    123: 1123,
+    124: 1124,
+    extra: 'extra',
+  }
+  const result = validate(obj, schema)
+  expect(result).toEqual({
+    123: 1123,
+    124: 1124,
   })
 })

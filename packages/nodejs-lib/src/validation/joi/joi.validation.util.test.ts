@@ -5,6 +5,7 @@ import { expect, test } from 'vitest'
 import { testValidation } from '../../test/validation.test.util.js'
 import { Joi } from './joi.extensions.js'
 import {
+  anySchema,
   arraySchema,
   booleanDefaultToFalseSchema,
   booleanSchema,
@@ -268,7 +269,7 @@ test('should convert null to undefined and strip', () => {
   // null is invalid
   expect(isValid(null, numberSchema.optional())).toBe(false)
   expect(isValid(null, integerSchema.optional())).toBe(false)
-  expect(isValid(null, arraySchema().optional())).toBe(false)
+  expect(isValid(null, arraySchema(anySchema).optional())).toBe(false)
 
   // this is how to make null valid
   const numberPermissiveSchema = numberSchema.empty(null).optional()
@@ -288,9 +289,9 @@ test('null is not a valid value when required', () => {
 })
 
 test('default to empty array', () => {
-  expect(validate(undefined, arraySchema().optional())).toBeUndefined()
-  expect(validate(undefined, arraySchema().optional().default([]))).toEqual([])
-  // expect(validate(null, arraySchema().optional().default([]))).toEqual([])
+  expect(validate(undefined, arraySchema(anySchema).optional())).toBeUndefined()
+  expect(validate(undefined, arraySchema(anySchema).optional().default([]))).toEqual([])
+  // expect(validate(null, arraySchema(anySchema).optional().default([]))).toEqual([])
 })
 
 // Checking that partial schema is allowed (not all keys of Obj1 are required)
