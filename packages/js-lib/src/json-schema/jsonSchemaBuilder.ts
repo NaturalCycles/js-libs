@@ -86,18 +86,19 @@ export const j = {
   },
   // email: () => new JsonSchemaStringBuilder().email(),
   // complex types
-  object<T extends AnyObject>(props: {
-    [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
-  }) {
-    return new JsonSchemaObjectBuilder<T>().addProperties(props)
+  object<T extends Record<string, JsonSchemaAnyBuilder<any>>>(props: T) {
+    type InferBuilder<T> = T extends JsonSchemaAnyBuilder<infer U, any> ? U : never
+    return new JsonSchemaObjectBuilder<{ [K in keyof T]: InferBuilder<T[K]> }>().addProperties(
+      props,
+    )
   },
   rootObject<T extends AnyObject>(props: {
     [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
   }) {
     return new JsonSchemaObjectBuilder<T>().addProperties(props).$schemaDraft7()
   },
-  array<ITEM = unknown>(itemSchema: JsonSchemaAnyBuilder<ITEM>) {
-    return new JsonSchemaArrayBuilder<ITEM>(itemSchema)
+  array<T extends JsonSchemaAnyBuilder<any>>(itemSchema: T) {
+    return new JsonSchemaArrayBuilder<T['infer']>(itemSchema)
   },
   tuple<T extends any[] = unknown[]>(items: JsonSchemaAnyBuilder[]) {
     return new JsonSchemaTupleBuilder<T>(items)

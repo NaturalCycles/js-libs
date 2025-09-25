@@ -203,7 +203,8 @@ describe('string', () => {
 describe('array', () => {
   test('should correctly infer the type from the type of the items', () => {
     const schema = j.object({ foo: j.array(j.number()) })
-    const [, result] = AjvSchema.create(schema.build()).getValidationResult({ foo: 1 })
+    const [, result] = AjvSchema.create(schema.build()).getValidationResult({ foo: [1, 2, 3] })
+    result satisfies { foo: number[] }
     expectTypeOf(result).toEqualTypeOf<{ foo: number[] }>()
   })
 })
