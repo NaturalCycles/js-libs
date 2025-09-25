@@ -86,12 +86,7 @@ export const j = {
   },
   // email: () => new JsonSchemaStringBuilder().email(),
   // complex types
-  object<T extends Record<string, JsonSchemaAnyBuilder<any>>>(props: T) {
-    type InferBuilder<T> = T extends JsonSchemaAnyBuilder<infer U, any> ? U : never
-    return new JsonSchemaObjectBuilder<{ [K in keyof T]: InferBuilder<T[K]> }>().addProperties(
-      props,
-    )
-  },
+  object,
   rootObject<T extends AnyObject>(props: {
     [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
   }) {
@@ -470,4 +465,22 @@ export class JsonSchemaTupleBuilder<T extends any[]> extends JsonSchemaAnyBuilde
       maxItems: items.length,
     })
   }
+}
+
+// TODO and Notes
+// The issue is that in `j` we mix two approaches:
+// 1) the builder driven approach
+// 2) the type driven approach.
+
+function object<P extends Record<string, JsonSchemaAnyBuilder<any, any>>>(
+  props: P,
+): JsonSchemaObjectBuilder<{
+  [K in keyof P]: P[K] extends JsonSchemaAnyBuilder<infer U, any> ? U : never
+}>
+function object<T extends AnyObject>(props: {
+  [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
+}): JsonSchemaObjectBuilder<T>
+
+function object(props: any): any {
+  return new JsonSchemaObjectBuilder<any>().addProperties(props)
 }
