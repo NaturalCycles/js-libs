@@ -1,13 +1,7 @@
 import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
-import {
-  _typeCast,
-  type AnyObject,
-  type BaseDBEntity,
-  type IsoDate,
-  type UnixTimestamp,
-} from '../types.js'
+import type { AnyObject, BaseDBEntity, IsoDate, UnixTimestamp } from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
