@@ -6,7 +6,7 @@ import {
   HttpRequestError,
   pExpectedError,
 } from '@naturalcycles/js-lib/error'
-import { arraySchema, objectSchema } from '@naturalcycles/nodejs-lib/joi'
+import { anySchema, arraySchema, objectSchema } from '@naturalcycles/nodejs-lib/joi'
 import { deflateString } from '@naturalcycles/nodejs-lib/zip'
 import { afterAll, expect, test } from 'vitest'
 import { getDefaultRouter } from './express/getDefaultRouter.js'
@@ -28,7 +28,7 @@ router.post('/compressedBody', async (req, res) => {
   const body = validateRequest.body(
     req,
     objectSchema({
-      items: arraySchema(),
+      items: arraySchema(anySchema),
     }),
   )
 
