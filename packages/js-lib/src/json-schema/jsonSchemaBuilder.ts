@@ -188,7 +188,7 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
     } else {
       this.schema.optionalField = undefined
     }
-    return this as any
+    return this
   }
 
   /**
