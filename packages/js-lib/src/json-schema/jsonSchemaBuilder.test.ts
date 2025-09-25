@@ -216,21 +216,20 @@ describe('optional', () => {
       optNum?: number
       reqStr: string
       optStr?: string
-      // TODO: uncomment when `j.array()` is fixed
-      // reqArrOfReqNum: number[]
-      // reqArrOfOptNum: (number | undefined)[]
-      // optArrOfReqNum?: number[] | undefined
-      // optArrOfOptNum?: (number | undefined)[] | undefined
+      reqArrOfReqNum: number[]
+      reqArrOfOptNum: (number | undefined)[]
+      optArrOfReqNum?: number[] | undefined
+      optArrOfOptNum?: (number | undefined)[] | undefined
     }
     const schema = j.object({
       reqNum: j.number(),
       optNum: j.number().optional(),
       reqStr: j.string(),
       optStr: j.string().optional(),
-      // reqArrOfReqNum: j.array(j.number()),
-      // reqArrOfOptNum: j.array(j.number().optional()),
-      // optArrOfReqNum: j.array(j.number()).optional(),
-      // optArrOfOptNum: j.array(j.number().optional()).optional(),
+      reqArrOfReqNum: j.array(j.number()),
+      reqArrOfOptNum: j.array(j.number().optional()),
+      optArrOfReqNum: j.array(j.number()).optional(),
+      optArrOfOptNum: j.array(j.number().optional()).optional(),
     })
     const badSchema = j.object({
       reqNum: j.number().optional(),
