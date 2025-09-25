@@ -182,7 +182,7 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
   optional(
     optional: false,
   ): JsonSchemaAnyBuilder<Exclude<T, undefined>, JsonSchema<Exclude<T, undefined>>>
-  optional(optional?: boolean): JsonSchemaAnyBuilder<any, JsonSchema<any>> {
+  optional(optional: boolean = true): JsonSchemaAnyBuilder<any, JsonSchema<any>> {
     if (optional) {
       this.schema.optionalField = true
     } else {
