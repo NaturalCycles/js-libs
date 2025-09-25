@@ -47,7 +47,7 @@ export interface SaveBatchInput {
 
 const saveBatchInputSchema = objectSchema<SaveBatchInput>({
   table: stringSchema,
-  rows: arraySchema(anyObjectSchema),
+  rows: arraySchema(anyObjectSchema()),
   opt: commonDBSaveOptionsSchema.optional(),
 })
 
