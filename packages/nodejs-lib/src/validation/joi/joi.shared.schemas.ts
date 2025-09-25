@@ -12,6 +12,7 @@ import type {
   IsoDateTime,
   NumberEnum,
   StringEnum,
+  StringMap,
   UnixTimestamp,
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
@@ -85,6 +86,13 @@ export function objectSchema<T extends AnyObject>(schema: {
   [key in keyof Partial<T>]: AnySchema<T[key]>
 }): ObjectSchema<T> {
   return Joi.object(schema)
+}
+
+export function stringMapSchema<T>(
+  key: AnySchema,
+  value: AnySchema<T>,
+): ObjectSchema<StringMap<T>> {
+  return Joi.object().pattern(key, value)
 }
 
 export function oneOfSchema<T = any>(...schemas: AnySchema[]): AlternativesSchema<T> {

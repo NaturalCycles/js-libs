@@ -22,6 +22,7 @@ import {
   semVerSchema,
   stringEnumKeySchema,
   stringEnumValueSchema,
+  stringMapSchema,
   stringSchema,
   stringSchemaTyped,
   urlSchema,
@@ -279,6 +280,21 @@ test('anyObjectSchema preserves the object as is', () => {
 
 test('objectSchema with pattern', () => {
   const schema = objectSchema({}).pattern(stringSchema.regex(/^\d{3}$/), numberSchema)
+
+  const obj = {
+    123: 1123,
+    124: 1124,
+    extra: 'extra',
+  }
+  const result = validate(obj, schema)
+  expect(result).toEqual({
+    123: 1123,
+    124: 1124,
+  })
+})
+
+test('stringMapSchema', () => {
+  const schema = stringMapSchema(stringSchema.regex(/^\d{3}$/), numberSchema)
 
   const obj = {
     123: 1123,
