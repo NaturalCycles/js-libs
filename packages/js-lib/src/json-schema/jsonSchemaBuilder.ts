@@ -86,18 +86,14 @@ export const j = {
   },
   // email: () => new JsonSchemaStringBuilder().email(),
   // complex types
-  object<T extends AnyObject>(props: {
-    [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
-  }) {
-    return new JsonSchemaObjectBuilder<T>().addProperties(props)
-  },
+  object,
   rootObject<T extends AnyObject>(props: {
     [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
   }) {
     return new JsonSchemaObjectBuilder<T>().addProperties(props).$schemaDraft7()
   },
-  array<ITEM = unknown>(itemSchema: JsonSchemaAnyBuilder<ITEM>) {
-    return new JsonSchemaArrayBuilder<ITEM>(itemSchema)
+  array<T extends JsonSchemaAnyBuilder<any>>(itemSchema: T) {
+    return new JsonSchemaArrayBuilder<T['infer']>(itemSchema)
   },
   tuple<T extends any[] = unknown[]>(items: JsonSchemaAnyBuilder[]) {
     return new JsonSchemaTupleBuilder<T>(items)
@@ -181,7 +177,12 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
     return this
   }
 
-  optional(optional = true): this {
+  optional(): JsonSchemaAnyBuilder<T | undefined, JsonSchema<T | undefined>>
+  optional(optional: true): JsonSchemaAnyBuilder<T | undefined, JsonSchema<T | undefined>>
+  optional(
+    optional: false,
+  ): JsonSchemaAnyBuilder<Exclude<T, undefined>, JsonSchema<Exclude<T, undefined>>>
+  optional(optional = true): JsonSchemaAnyBuilder<any, JsonSchema<any>> {
     if (optional) {
       this.schema.optionalField = true
     } else {
@@ -275,6 +276,10 @@ export class JsonSchemaNumberBuilder<T extends number = number> extends JsonSche
 
   utcOffset = (): this => this.format('utcOffset')
   utcOffsetHours = (): this => this.format('utcOffsetHours')
+
+  branded<B extends number>(): JsonSchemaNumberBuilder<B> {
+    return this as unknown as JsonSchemaNumberBuilder<B>
+  }
 }
 
 export class JsonSchemaStringBuilder<T extends string = string> extends JsonSchemaAnyBuilder<
@@ -328,6 +333,10 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
   trim = (trim = true): this => this.transformModify('trim', trim)
   toLowerCase = (toLowerCase = true): this => this.transformModify('toLowerCase', toLowerCase)
   toUpperCase = (toUpperCase = true): this => this.transformModify('toUpperCase', toUpperCase)
+
+  branded<B extends string>(): JsonSchemaStringBuilder<B> {
+    return this as unknown as JsonSchemaStringBuilder<B>
+  }
 
   private transformModify(t: 'trim' | 'toLowerCase' | 'toUpperCase', add: boolean): this {
     if (add) {
@@ -456,4 +465,22 @@ export class JsonSchemaTupleBuilder<T extends any[]> extends JsonSchemaAnyBuilde
       maxItems: items.length,
     })
   }
+}
+
+// TODO and Notes
+// The issue is that in `j` we mix two approaches:
+// 1) the builder driven approach
+// 2) the type driven approach.
+
+function object<P extends Record<string, JsonSchemaAnyBuilder<any, any>>>(
+  props: P,
+): JsonSchemaObjectBuilder<{
+  [K in keyof P]: P[K] extends JsonSchemaAnyBuilder<infer U, any> ? U : never
+}>
+function object<T extends AnyObject>(props: {
+  [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
+}): JsonSchemaObjectBuilder<T>
+
+function object(props: any): any {
+  return new JsonSchemaObjectBuilder<any>().addProperties(props)
 }
