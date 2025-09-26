@@ -1,6 +1,9 @@
 import { _lazyValue } from '@naturalcycles/js-lib'
-import type { Options } from 'ajv'
-import { Ajv } from 'ajv'
+import { localDate as localDateImport } from '@naturalcycles/js-lib/datetime'
+import { _typeCast } from '@naturalcycles/js-lib/types'
+import type { CustomZodIsoDateParams } from '@naturalcycles/js-lib/zod'
+import type { KeywordCxt, Options } from 'ajv'
+import { _, Ajv, str } from 'ajv'
 import ajvFormats from 'ajv-formats'
 import ajvKeywords from 'ajv-keywords'
 
@@ -65,6 +68,8 @@ export function createAjv(opt?: Options): Ajv {
     'uniqueItemProperties',
     'instanceof',
   ])
+
+  addIsoDateKeyword(ajv)
 
   // Adds $merge, $patch keywords
   // https://github.com/ajv-validator/ajv-merge-patch
@@ -132,4 +137,93 @@ function addCustomAjvFormats(ajv: Ajv): Ajv {
         },
       })
   )
+}
+
+function addIsoDateKeyword(ajv: Ajv): void {
+  ajv.addKeyword({
+    keyword: 'isoDate',
+    type: 'string',
+    schemaType: 'object',
+
+    metaSchema: {
+      type: 'object',
+      additionalProperties: false,
+      minProperties: 0,
+      maxProperties: 1,
+      properties: {
+        before: { type: 'string' },
+        sameOrBefore: { type: 'string' },
+        after: { type: 'string' },
+        sameOrAfter: { type: 'string' },
+        between: {
+          type: 'object',
+          required: ['min', 'max', 'incl'],
+          additionalProperties: false,
+          properties: {
+            min: { type: 'string' },
+            max: { type: 'string' },
+            incl: { enum: ['[]', '[)'] },
+          },
+        },
+      },
+    },
+
+    error: {
+      message: ({ schema }) => {
+        if (schema.after) return str`should be after ${schema.after}`
+        if (schema.sameOrAfter) return str`should be on or after ${schema.sameOrAfter}`
+        if (schema.before) return str`should be before ${schema.before}`
+        if (schema.sameOrBefore) return str`should be on or before ${schema.sameOrBefore}`
+        if (schema.between) {
+          const { min, max, incl } = schema.between
+          return str`should be between ${min} and ${max} (incl: ${incl})`
+        }
+        return str`should be a YYYY-MM-DD string`
+      },
+    },
+
+    code(cxt: KeywordCxt) {
+      const { gen, data, schema } = cxt
+      _typeCast<CustomZodIsoDateParams>(schema)
+
+      // Put the helper in Ajv's external "keyword" scope. The `key` isolates the entry.
+      const localDate = gen.scopeValue('keyword', {
+        key: str`nc:localDate`,
+        ref: localDateImport, // use the already-imported value when not generating standalone
+        code: _`require("@naturalcycles/js-lib/datetime").localDate`, // used for standalone code
+      })
+
+      gen.if(_`!${localDate}.isValidString(${data})`, () => {
+        cxt.fail(_`true`)
+      })
+
+      const d = gen.const('d', _`${localDate}.fromString(${data})`)
+
+      if (schema.after) {
+        cxt.fail(_`!${d}.isAfter(${schema.after})`)
+        return
+      }
+
+      if (schema.sameOrAfter) {
+        cxt.fail(_`!${d}.isSameOrAfter(${schema.sameOrAfter})`)
+        return
+      }
+
+      if (schema.before) {
+        cxt.fail(_`!${d}.isBefore(${schema.before})`)
+        return
+      }
+
+      if (schema.sameOrBefore) {
+        cxt.fail(_`!${d}.isSameOrBefore(${schema.sameOrBefore})`)
+        return
+      }
+
+      if (schema.between) {
+        const { min, max, incl } = schema.between
+        cxt.fail(_`!${d}.isBetween(${min}, ${max}, ${incl})`)
+        return
+      }
+    },
+  })
 }
