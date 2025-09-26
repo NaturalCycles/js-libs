@@ -23,8 +23,8 @@
   },
   "dependencies": {
     "@biomejs/biome": "^2",
-    "@commitlint/cli": "^19",
-    "@commitlint/config-conventional": "^19",
+    "@commitlint/cli": "^20",
+    "@commitlint/config-conventional": "^20",
     "@eslint/js": "^9",
     "@inquirer/prompts": "^7",
     "@naturalcycles/js-lib": "workspace:^15",
