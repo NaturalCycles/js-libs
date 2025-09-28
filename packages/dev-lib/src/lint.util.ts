@@ -182,9 +182,8 @@ export function runOxlint(fix = true): void {
     args: [
       // '--report-unused-disable-directives',
       '--max-warnings=1',
-      fix ? '--fix' : '--no-fix',
+      fix && '--fix',
     ].filter(_isTruthy),
-    logFinish: false,
     shell: false,
   })
 }
@@ -358,7 +357,6 @@ export function runBiome(fix = true): void {
     args: [`lint`, fix && '--write', fix && '--unsafe', '--no-errors-on-unmatched', ...dirs].filter(
       _isTruthy,
     ),
-    logFinish: false,
     shell: false,
   })
 }

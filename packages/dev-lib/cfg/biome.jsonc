@@ -33,17 +33,17 @@
       "recommended": true,
       "performance": {
         // "useTopLevelRegex": "error" // consider
-        "noDelete": "off" // todo
+        "noDelete": "off" // oxlint
       },
       "correctness": {
-        "useImportExtensions": "error",
+        "useImportExtensions": "off", // oxlint
         "useParseIntRadix": "off",
-        "noUnusedFunctionParameters": "error",
+        "noUnusedFunctionParameters": "off", // oxlint
         // noUnusedImports + noUnusedVariables can replace eslint-plugin-unused-vars!
-        "noUnusedImports": "error",
+        "noUnusedImports": "off", // oxlint
         "noUnusedVariables": {
           "fix": "none",
-          "level": "error",
+          "level": "off", // oxlint
           "options": {}
         }
       },
@@ -55,9 +55,9 @@
         "noDoneCallback": "error",
         "useShorthandFunctionType": "error",
         "useShorthandAssign": "error",
-        "useForOf": "error",
+        "useForOf": "off", // oxlint
         "useConsistentArrayType": "error",
-        "noDefaultExport": "error",
+        "noDefaultExport": "off", // oxlint
         "noNonNullAssertion": "off",
         "useImportType": "error",
         "noParameterAssign": "off",
@@ -71,8 +71,8 @@
         "useSingleVarDeclarator": "error",
         "noInferrableTypes": "error",
         "noUselessElse": "error",
-        "useArrayLiterals": "error",
-        "noCommonJs": "error"
+        "useArrayLiterals": "error"
+        // "noCommonJs": "error" // oxlint
       },
       "suspicious": {
         "useNumberToFixedDigitsArgument": "error",
@@ -85,6 +85,7 @@
         "noGlobalIsNan": "off", // todo,
         "noThenProperty": "off",
         "noImportAssign": "off",
+        "noDoubleEquals": "off", // oxlint
         "noEmptyInterface": "off"
       },
       "complexity": {

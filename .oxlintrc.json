@@ -1,4 +1,5 @@
 {
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
   "extends": ["packages/dev-lib/cfg/oxlint.config.json"],
   "ignorePatterns": ["__exclude", "docs"],
   "rules": {
@@ -11,5 +12,13 @@
         "experimental": "experimental"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "files": ["packages/js-lib/**"],
+      "rules": {
+        "typescript/prefer-for-of": 0
+      }
+    }
+  ]
 }

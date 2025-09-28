@@ -2,6 +2,7 @@
   "plugins": ["unicorn", "typescript", "oxc", "import", "jsdoc", "vitest", "promise", "node"],
   "categories": {},
   "rules": {
+    "eqeqeq": ["deny", ["smart"]],
     "for-direction": "warn",
     "no-async-promise-executor": "allow",
     "no-bitwise": "deny",
@@ -32,6 +33,8 @@
     "no-empty-static-block": "warn",
     "no-eval": "warn",
     "no-ex-assign": "warn",
+    "no-extend-native": "deny",
+    "no-extra-bind": "deny",
     "no-extra-boolean-cast": "warn",
     "no-func-assign": "warn",
     "no-global-assign": "warn",
@@ -39,6 +42,7 @@
     "no-invalid-regexp": "warn",
     "no-irregular-whitespace": "warn",
     "no-loss-of-precision": "warn",
+    "no-new": "deny",
     "no-new-native-nonconstructor": "warn",
     "no-nonoctal-decimal-escape": "warn",
     "no-obj-calls": "warn",
@@ -50,6 +54,8 @@
     "no-sparse-arrays": "warn",
     "no-this-before-super": "warn",
     "no-unassigned-vars": "warn",
+    "no-unexpected-multiline": "deny",
+    "no-unneeded-ternary": "deny",
     "no-unsafe-finally": "warn",
     "no-unsafe-negation": "warn",
     "no-unsafe-optional-chaining": "warn",
@@ -60,10 +66,13 @@
     "no-useless-backreference": "warn",
     "no-useless-call": "deny",
     "no-useless-catch": "warn",
+    "no-useless-concat": "deny",
+    "no-useless-constructor": "deny",
     "no-useless-escape": "warn",
     "no-useless-rename": "warn",
     "no-var": "deny",
     "no-with": "warn",
+    "preserve-caught-error": "deny",
     "require-yield": "warn",
     "unicode-bom": "deny",
     "use-isnan": "warn",
@@ -71,10 +80,20 @@
     "import/default": "warn",
     "import/extensions": ["deny", ["always"]],
     "import/namespace": "warn",
+    "import/no-absolute-path": "deny",
     "import/no-amd": "deny",
     "import/no-commonjs": "deny",
     "import/no-cycle": "deny",
     "import/no-default-export": "deny",
+    "import/no-duplicates": [
+      "deny",
+      [
+        {
+          "prefer-inline": false
+        }
+      ]
+    ],
+    "import/no-empty-named-blocks": "deny",
     "import/no-webpack-loader-syntax": "deny",
     "jest/expect-expect": "allow",
     "jest/no-conditional-expect": "allow",
@@ -157,6 +176,7 @@
     "typescript/no-wrapper-object-types": "warn",
     "typescript/non-nullable-type-assertion-style": "deny",
     "typescript/prefer-as-const": "warn",
+    "typescript/prefer-for-of": "deny",
     "typescript/prefer-literal-enum-member": "deny",
     "typescript/promise-function-async": [
       "deny",
@@ -173,6 +193,15 @@
     "typescript/restrict-template-expressions": "warn",
     "typescript/triple-slash-reference": "warn",
     "typescript/unbound-method": "warn",
+    "unicorn/catch-error-name": [
+      "deny",
+      [
+        {
+          "name": "err",
+          "ignore": ["^err\\d*$", "^_"]
+        }
+      ]
+    ],
     "unicorn/no-anonymous-default-export": "deny",
     "unicorn/no-array-reduce": [
       "deny",

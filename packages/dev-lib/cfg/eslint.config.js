@@ -9,10 +9,10 @@ import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import eslintPluginUnicorn from 'eslint-plugin-unicorn'
 import eslintPluginVue from 'eslint-plugin-vue'
+import eslintPluginOxlint from 'eslint-plugin-oxlint'
 import eslintPluginVitest from '@vitest/eslint-plugin'
 import eslintPluginImportX from 'eslint-plugin-import-x'
 import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort'
-import eslintPluginJsdoc from 'eslint-plugin-jsdoc'
 import eslintPluginStylistic from '@stylistic/eslint-plugin'
 import eslintRules from './eslint-rules.js'
 import eslintVueRules from './eslint-vue-rules.js'
@@ -105,7 +105,7 @@ function getConfig(tsconfigPath) {
       'import-x': eslintPluginImportX,
       // 'unused-imports': require('eslint-plugin-unused-imports'), // disabled in favor of biome rules
       'simple-import-sort': eslintPluginSimpleImportSort,
-      jsdoc: eslintPluginJsdoc,
+      // jsdoc: eslintPluginJsdoc, // oxlint
       '@stylistic': eslintPluginStylistic,
     },
     languageOptions: {
@@ -131,6 +131,7 @@ function getConfig(tsconfigPath) {
       ...eslintVueRules.rules,
       ...eslintPrettierRules.rules, // disable eslint rules already covered by prettier
       ...eslintBiomeRules.rules, // disable eslint rules already covered by biome
+      ...eslintPluginOxlint.configs['flat/all'].rules, // disable eslint rules already covered by oxlint
     },
   }
 }

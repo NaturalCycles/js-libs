@@ -140,9 +140,9 @@ export default {
     '@typescript-eslint/no-misused-new': 2,
     '@typescript-eslint/no-misused-spread': 2,
     '@typescript-eslint/no-non-null-asserted-optional-chain': 2,
-    '@typescript-eslint/no-unused-expressions': 2,
+    '@typescript-eslint/no-unused-expressions': 0, // oxlint
     '@typescript-eslint/prefer-as-const': 2,
-    '@typescript-eslint/prefer-for-of': 2,
+    '@typescript-eslint/prefer-for-of': 0, // oxlint
     '@typescript-eslint/prefer-function-type': 2,
     '@typescript-eslint/prefer-namespace-keyword': 2,
     '@typescript-eslint/promise-function-async': [
@@ -162,7 +162,7 @@ export default {
       },
     ],
     'constructor-super': 2,
-    eqeqeq: [2, 'smart'],
+    // eqeqeq: [2, 'smart'], // oxlint
     'for-direction': 2,
     'getter-return': 2,
     'id-blacklist': [
@@ -189,10 +189,10 @@ export default {
     // 'import-x/order': 0, // disabled in favor of `simple-import-sort`
     // 'import-x/namespace': 0, // issues with e.g globby
     // 'import-x/no-unresolved': 0, // breaks for type-aliases, e.g '@/store'
-    'import-x/no-anonymous-default-export': 2,
-    'import-x/no-duplicates': [2, { 'prefer-inline': false }],
-    'import-x/export': 2,
-    'import-x/no-empty-named-blocks': 2,
+    'import-x/no-anonymous-default-export': 0, // oxlint
+    'import-x/no-duplicates': [0, { 'prefer-inline': false }], // oxlint
+    'import-x/export': 2, // todo: oxlint when it matures
+    'import-x/no-empty-named-blocks': 0, // oxlint
     // Disabling no-cycle as the slowest rule. Oxlint is to be adopted instead
     // 'import-x/no-cycle': [
     //   2,
@@ -203,12 +203,9 @@ export default {
     //   },
     // ],
     'import-x/no-useless-path-segments': 2,
-    'import-x/no-default-export': 0, // biome
+    'import-x/no-default-export': 0, // biome, oxlint
     // 'import-x/no-commonjs': 2, // biome `noCommonJs`
     // 'import-x/extensions': [2, 'always'], // biome useImportExtensions
-    'jsdoc/check-alignment': 2,
-    // "jsdoc/check-indentation": "error",
-    // 'jsdoc/newline-after-description': 2,
     'no-array-constructor': 0,
     'no-async-promise-executor': 2,
     'no-bitwise': 2,
@@ -298,7 +295,7 @@ export default {
     'no-useless-catch': 2,
     'no-useless-escape': 2,
     'no-useless-assignment': 2,
-    'no-unneeded-ternary': 2,
+    'no-unneeded-ternary': 0, // oxlint
     'no-duplicate-imports': 0, // too many false-positives (with e.g import type + import on next line)
     'no-var': 2,
     'no-with': 2,
@@ -321,7 +318,7 @@ export default {
     'use-isnan': 2,
     'valid-typeof': 2,
     'no-await-in-loop': 0, // it's actually often ok
-    'no-extend-native': 2,
+    'no-extend-native': 0, // oxlint
     'guard-for-in': 2,
     '@typescript-eslint/no-namespace': [
       2,
@@ -348,7 +345,7 @@ export default {
     '@typescript-eslint/no-empty-function': 0,
     '@typescript-eslint/no-var-requires': 0,
     '@typescript-eslint/no-require-imports': 0,
-    '@typescript-eslint/no-explicit-any': 0,
+    '@typescript-eslint/no-explicit-any': 0, // oxlint
     '@typescript-eslint/no-non-null-assertion': 0,
     '@typescript-eslint/explicit-module-boundary-types': [
       2,
@@ -386,7 +383,7 @@ export default {
     'unicorn/better-regex': 0, // we still believe that [0-9] is clearer than [\d]
     'unicorn/no-object-as-default-parameter': 0, // doesn't allow e.g method (opt = { skipValidation: true })
     'unicorn/catch-error-name': [
-      2,
+      0, // oxlint
       {
         name: 'err',
         ignore: [/^err\d*$/, /^_/],
@@ -448,7 +445,7 @@ export default {
     'max-params': [2, { max: 5 }],
     'no-else-return': 2,
     'no-sequences': 2,
-    'no-useless-concat': 2,
+    'no-useless-concat': 0, // oxlint
     '@typescript-eslint/ban-tslint-comment': 2,
     '@typescript-eslint/explicit-function-return-type': [
       2,

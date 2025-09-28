@@ -22,7 +22,6 @@
     "vitest:vitest@1.3.13",
     "import-x:eslint-plugin-import-x@4.16.1",
     "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1",
-    "jsdoc",
     "@stylistic"
   ],
   "processor": "vue/vue",
@@ -212,18 +211,9 @@
     "@typescript-eslint/no-unnecessary-type-assertion": [2],
     "@typescript-eslint/no-unsafe-function-type": [2],
     "@typescript-eslint/no-unsafe-unary-minus": [2],
-    "@typescript-eslint/no-unused-expressions": [
-      2,
-      {
-        "allowShortCircuit": false,
-        "allowTaggedTemplates": false,
-        "allowTernary": false
-      }
-    ],
     "@typescript-eslint/no-wrapper-object-types": [2],
     "@typescript-eslint/non-nullable-type-assertion-style": [2],
     "@typescript-eslint/prefer-find": [2],
-    "@typescript-eslint/prefer-for-of": [2],
     "@typescript-eslint/prefer-includes": [2],
     "@typescript-eslint/prefer-promise-reject-errors": [2],
     "@typescript-eslint/prefer-string-starts-ends-with": [2],
@@ -270,16 +260,7 @@
       }
     ],
     "import-x/export": [2],
-    "import-x/no-anonymous-default-export": [2],
-    "import-x/no-duplicates": [
-      2,
-      {
-        "prefer-inline": false
-      }
-    ],
-    "import-x/no-empty-named-blocks": [2],
     "import-x/no-useless-path-segments": [2],
-    "jsdoc/check-alignment": [2],
     "logical-assignment-operators": [
       2,
       "always",
@@ -304,12 +285,6 @@
     "no-constant-binary-expression": [2],
     "no-dupe-else-if": [2],
     "no-empty-static-block": [2],
-    "no-extend-native": [
-      2,
-      {
-        "exceptions": []
-      }
-    ],
     "no-implicit-coercion": [
       2,
       {
@@ -379,7 +354,6 @@
     "no-unused-private-class-members": [2],
     "no-useless-assignment": [2],
     "no-useless-backreference": [2],
-    "no-useless-concat": [2],
     "no-useless-escape": [
       2,
       {
@@ -400,13 +374,6 @@
       "always",
       {
         "markers": ["/"]
-      }
-    ],
-    "unicorn/catch-error-name": [
-      2,
-      {
-        "ignore": [{}, {}],
-        "name": "err"
       }
     ],
     "unicorn/consistent-assert": [2],

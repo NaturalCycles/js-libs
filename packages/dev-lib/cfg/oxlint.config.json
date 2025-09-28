@@ -1,4 +1,5 @@
 {
+  "$schema": "../node_modules/oxlint/configuration_schema.json",
   "plugins": [
     "oxc",
     "eslint",
@@ -32,12 +33,25 @@
     "no-unused-expressions": 2,
     "no-var": 2,
     "unicode-bom": 2,
+    "no-extend-native": 2,
+    "no-extra-bind": 2,
+    "no-new": 2,
+    "no-unexpected-multiline": 2,
+    "no-unneeded-ternary": 2,
+    "no-useless-concat": 2,
+    "no-useless-constructor": 2,
+    "preserve-caught-error": 2,
+    "eqeqeq": [2, "smart"],
     "import/extensions": [2, "always"],
     "import/no-amd": 2,
     "import/no-commonjs": 2,
     "import/no-cycle": 2,
     "import/no-default-export": 2,
     "import/no-webpack-loader-syntax": 2,
+    "import/no-duplicates": [2, { "prefer-inline": false }],
+    // "import/export": 2, // todo: adopt when it graduates
+    "import/no-empty-named-blocks": 2,
+    "import/no-absolute-path": 2,
     "oxc/bad-bitwise-operator": 2,
     "oxc/no-const-enum": 2,
     "promise/spec-only": 2,
@@ -60,6 +74,7 @@
         "checkMethodDeclarations": true
       }
     ],
+    "typescript/prefer-for-of": 2,
     "unicorn/no-anonymous-default-export": 2,
     "unicorn/no-array-reduce": [
       2,
@@ -72,6 +87,13 @@
     "unicorn/no-magic-array-flat-depth": 2,
     "unicorn/prefer-modern-math-apis": 2,
     "unicorn/prefer-node-protocol": 2,
+    "unicorn/catch-error-name": [
+      2,
+      {
+        "name": "err",
+        "ignore": ["^err\\d*$", "^_"]
+      }
+    ],
     "vue/no-multiple-slot-args": 2
   },
   "settings": {
