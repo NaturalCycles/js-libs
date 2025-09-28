@@ -2,6 +2,7 @@ import { j } from '@naturalcycles/js-lib/json-schema'
 import prettier from 'prettier'
 import { expect, test } from 'vitest'
 import { createAjv } from './getAjv.js'
+// oxlint-disable no-var-requires, no-require-imports, no-commonjs, extensions
 // biome-ignore lint/style/noCommonJs: ok
 const standaloneCode = require('ajv/dist/standalone')
 

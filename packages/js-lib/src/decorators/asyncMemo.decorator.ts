@@ -36,12 +36,12 @@ export interface AsyncMemoInstance {
 }
 
 /**
- * Like @_Memo, but allowing async MemoCache implementation.
+ * Like `@_Memo`, but allowing async MemoCache implementation.
  *
- * Implementation is more complex than @_Memo, because it needs to handle "in-flight" Promises
+ * Implementation is more complex than `@_Memo`, because it needs to handle "in-flight" Promises
  * while waiting for cache to resolve, to prevent "async swarm" issue.
  *
- * @experimental consider normal @_Memo for most of the cases, it's stable and predictable
+ * @experimental consider normal `@_Memo` for most of the cases, it's stable and predictable
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const _AsyncMemo =

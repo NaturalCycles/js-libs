@@ -126,7 +126,7 @@ export async function pMap<IN, OUT>(
 
             ret[i] = value
             resolvingCount--
-            next()
+            next() // oxlint-disable-line no-callback-in-promise
           },
           (err: Error) => {
             if (errorMode === ErrorMode.THROW_IMMEDIATELY) {
@@ -140,7 +140,7 @@ export async function pMap<IN, OUT>(
                 logger?.error(err)
               }
               resolvingCount--
-              next()
+              next() // oxlint-disable-line no-callback-in-promise
             }
           },
         )

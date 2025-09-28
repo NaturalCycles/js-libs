@@ -396,7 +396,7 @@ export type FalsyValue = false | '' | 0 | null | undefined
  *   err.data = {} // can be done, because it was casted
  * }
  */
-export function _typeCast<T>(v: any): asserts v is T {}
+export function _typeCast<T>(_v: any): asserts _v is T {}
 
 /**
  * Type-safe Object.assign that checks that part is indeed a Partial<T>
@@ -469,8 +469,6 @@ export type Class<T = any> = new (...args: any[]) => T
  data.foo.push('bar');
  //=> error TS2339: Property 'push' does not exist on type 'readonly string[]'
  ```
- 
- @category Utilities
  */
 /* eslint-disable @typescript-eslint/no-restricted-types */
 export type ReadonlyDeep<T> = T extends Primitive | ((...args: any[]) => unknown)

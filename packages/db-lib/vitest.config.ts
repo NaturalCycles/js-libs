@@ -1,4 +1,4 @@
-import { defineVitestConfig, CollectReporter } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
+import { defineVitestConfig } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
 
 // pnpm --filter @naturalcycles/db-lib run test collect.test.ts
 

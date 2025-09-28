@@ -8,7 +8,7 @@ export type LRUMemoCacheOptions<KEY, VALUE> = Partial<LRUCache.Options<KEY, VALU
  * @example
  * Use it like this:
  *
- * @_Memo({ cacheFactory: () => new LRUMemoCache({...}) })
+ * `@_Memo({ cacheFactory: () => new LRUMemoCache({...}) })`
  * method1 ()
  */
 export class LRUMemoCache<KEY = any, VALUE = any> implements MemoCache<KEY, VALUE> {

@@ -14,8 +14,10 @@ export enum AirtableErrorCode {
   AIRTABLE_ERROR = 'AIRTABLE_ERROR',
 }
 
+// oxlint-disable no-unused-vars
 // biome-ignore lint/correctness/noUnusedVariables: ok
 export type AirtableId<T = any> = string
+// oxlint-enable
 
 export const airtableIdSchema = stringSchema // todo: apply certain restrictions
 

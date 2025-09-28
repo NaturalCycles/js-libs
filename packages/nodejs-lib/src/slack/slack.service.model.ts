@@ -51,7 +51,7 @@ export interface SlackMessage<CTX = any> extends SlackMessageProps {
   kv?: AnyObject
 
   /**
-   * If specified - adds @name1, @name2 in the end of the message
+   * If specified - adds `@name1`, `@name2` in the end of the message
    */
   mentions?: string[]
 

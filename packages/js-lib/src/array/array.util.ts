@@ -15,7 +15,7 @@ import { END } from '../types.js'
  *
  * @param array The array to process.
  * @param size The length of each chunk.
- * @return Returns the new array containing chunks.
+ * @returns Returns the new array containing chunks.
  *
  * https://lodash.com/docs#chunk
  *

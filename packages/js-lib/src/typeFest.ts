@@ -42,8 +42,6 @@ type Filter<KeyType, ExcludeType> =
  type FooWithoutA = Except<Foo, 'a' | 'c'>;
  //=> {b: string};
  ```
-
- @category Utilities
  */
 export type Except<ObjectType, KeysType extends keyof ObjectType> = {
   [KeyType in keyof ObjectType as Filter<KeyType, KeysType>]: ObjectType[KeyType]
@@ -94,8 +92,6 @@ export type OmitIndexSignature<ObjectType> = {
 
  const ab: Merge<Foo, Bar> = {a: 1, b: 2};
  ```
-
- @category Utilities
  */
 export type Merge<Destination, Source> = {
   [Key in keyof OmitIndexSignature<Destination & Source>]: Key extends keyof Source
@@ -126,7 +122,6 @@ export type Merge<Destination, Source> = {
  type StringKeysAndUndefined = ConditionalKeys<Example, string | undefined>;
  //=> 'a' | 'c'
  ```
- @category Utilities
  */
 export type ConditionalKeys<Base, Condition> = NonNullable<
   // Wrap in `NonNullable` to strip away the `undefined` type from the produced union.
@@ -169,7 +164,6 @@ export type ConditionalKeys<Base, Condition> = NonNullable<
  type NonStringKeysOnly = ConditionalExcept<Example, string>;
  //=> {b: string | number; c: () => void; d: {}}
  ```
- @category Utilities
  */
 export type ConditionalExcept<Base, Condition> = Except<Base, ConditionalKeys<Base, Condition>>
 
@@ -200,7 +194,6 @@ export type ConditionalExcept<Base, Condition> = Except<Base, ConditionalKeys<Ba
  type StringKeysOnly = ConditionalPick<Example, string>;
  //=> {a: string}
  ```
- @category Utilities
  */
 export type ConditionalPick<Base, Condition> = Pick<Base, ConditionalKeys<Base, Condition>>
 

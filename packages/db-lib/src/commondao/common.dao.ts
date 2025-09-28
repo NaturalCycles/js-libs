@@ -857,7 +857,7 @@ export class CommonDao<
    * Load rows (by their ids) from Multiple tables at once.
    * An optimized way to load data, minimizing DB round-trips.
    *
-   * @experimental.
+   * @experimental
    */
   static async multiGet<MAP extends Record<string, DaoWithIds<AnyDao> | DaoWithId<AnyDao>>>(
     inputMap: MAP,
@@ -953,7 +953,7 @@ export class CommonDao<
   }
 
   /**
-   * @experimental.
+   * @experimental
    */
   static async multiDelete(
     inputs: (DaoWithId<AnyDao> | DaoWithIds<AnyDao>)[],

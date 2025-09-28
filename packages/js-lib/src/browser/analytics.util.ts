@@ -1,6 +1,8 @@
 import { isServerSide } from '../env.js'
 import { loadScript } from './script.util.js'
 
+// oxlint-disable no-var
+
 declare global {
   var dataLayer: any[]
   var gtag: (...args: any[]) => void

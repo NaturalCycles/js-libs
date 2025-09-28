@@ -31,7 +31,7 @@ export function _lowerFirst(s: string): Uncapitalize<string> {
 /**
  * Like String.split(), but with limit, returning the tail together with last element.
  *
- * @return Returns the new array of string segments.
+ * @returns Returns the new array of string segments.
  */
 export function _split(str: string, separator: string, limit: number): string[] {
   const parts = str.split(separator)

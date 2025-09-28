@@ -162,7 +162,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       }
 
       // Don't save to cache if it was a projection query
-      if (!opt.skipCache && !opt.skipCache && !q._selectedFieldNames) {
+      if (!opt.skipCache && !this.cfg.skipCache && !q._selectedFieldNames) {
         const cacheResult = this.cfg.cacheDB.saveBatch(q.table, rows as any, opt)
         if (this.cfg.awaitCache) await cacheResult
       }

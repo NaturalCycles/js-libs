@@ -54,8 +54,8 @@ export function transformThrottle<T>(opt: TransformThrottleOptions): TransformTy
     async transform(item: T, _, cb) {
       // console.log('incoming', item, { paused: !!paused, count })
       if (!start) {
-        start = Date.now() as UnixTimestampMillis
-        timeout = setTimeout(() => onInterval(this), interval * 1000)
+        start = localTime.nowUnixMillis()
+        timeout = setTimeout(() => onInterval(), interval * 1000)
         logger.log(`${localTime.now().toPretty()} transformThrottle started with`, {
           throughput,
           interval,
@@ -84,7 +84,7 @@ export function transformThrottle<T>(opt: TransformThrottleOptions): TransformTy
     },
   })
 
-  function onInterval(transform: Transform): void {
+  function onInterval(): void {
     if (lock) {
       logger.log(`${localTime.now().toPretty()} transformThrottle resumed`)
       lock.resolve()
@@ -97,6 +97,6 @@ export function transformThrottle<T>(opt: TransformThrottleOptions): TransformTy
 
     count = 0
     start = localTime.nowUnixMillis()
-    timeout = setTimeout(() => onInterval(transform), interval * 1000)
+    timeout = setTimeout(() => onInterval(), interval * 1000)
   }
 }

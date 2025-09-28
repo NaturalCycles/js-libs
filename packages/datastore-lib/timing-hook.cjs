@@ -1,3 +1,5 @@
+// oxlint-disable
+
 const Module = require('node:module')
 const path = require('node:path')
 const originalLoad = Module._load

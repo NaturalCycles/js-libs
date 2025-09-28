@@ -4,6 +4,8 @@ pn tsx scripts/cannon.ts
 
  */
 
+// oxlint-disable no-unused-vars
+
 import { expressFunctionFactory, runCannon } from '@naturalcycles/bench-lib'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { stringId } from '@naturalcycles/nodejs-lib'

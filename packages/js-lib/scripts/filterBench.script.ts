@@ -54,6 +54,7 @@ function filterNullishCandidate<T extends AnyObject>(obj: T, _mutate = false): T
   return o
 }
 
+// oxlint-disable no-unused-vars
 // biome-ignore lint: ok
 function filterNullishCandidate2<T extends AnyObject>(obj: T, _mutate = false): T {
   const o: any = {}

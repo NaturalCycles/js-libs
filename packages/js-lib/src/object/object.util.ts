@@ -292,7 +292,6 @@ export function _filterEmptyValues<T extends AnyObject>(obj: T, opt: MutateOptio
  *
  * **Note:** This method mutates `object`.
  *
- * @category Object
  * @param target The destination object.
  * @param sources The source objects.
  * @returns Returns `object`.
@@ -417,7 +416,7 @@ type PropertyPath = Many<PropertyKey>
  * @param obj The object to modify.
  * @param path The path of the property to set.
  * @param value The value to set.
- * @return Returns object.
+ * @returns Returns object.
  *
  * Based on: https://stackoverflow.com/a/54733755/4919972
  */
@@ -458,7 +457,6 @@ export function _set<T extends AnyObject>(obj: T, path: PropertyPath, value: any
 /**
  * Checks if `path` is a direct property of `object` (not null, not undefined).
  *
- * @category Object
  * @param obj The object to query.
  * @param path The path to check.
  * @returns Returns `true` if `path` exists, else `false`.

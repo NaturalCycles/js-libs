@@ -146,6 +146,7 @@ describe('integer', () => {
         foo: j.number().branded<BPM>(),
       })
       const [, result] = AjvSchema.create(schema.build()).getValidationResult({ foo: 1 as BPM })
+      // oxlint-disable-next-line no-unused-expressions
       result satisfies { foo: BPM }
     })
 
@@ -205,6 +206,7 @@ describe('array', () => {
   test('should correctly infer the type from the type of the items', () => {
     const schema = j.object({ foo: j.array(j.number()) })
     const [, result] = AjvSchema.create(schema.build()).getValidationResult({ foo: [1, 2, 3] })
+    // oxlint-disable-next-line no-unused-expressions
     result satisfies { foo: number[] }
     expectTypeOf(result).toEqualTypeOf<{ foo: number[] }>()
   })
@@ -237,12 +239,13 @@ describe('optional', () => {
 
     const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
 
+    // oxlint-disable-next-line no-unused-expressions
     result satisfies Foo
 
     const [, resultOfBadSchema] = AjvSchema.create(badSchema.build()).getValidationResult({} as any)
 
     // @ts-expect-error
-    resultOfBadSchema satisfies Foo
+    resultOfBadSchema satisfies Foo // oxlint-disable-line no-unused-expressions
   })
 
   test('should correctly require an optional property', () => {
@@ -255,6 +258,7 @@ describe('optional', () => {
     })
 
     const [err, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
+    // oxlint-disable-next-line no-unused-expressions
     result satisfies Foo
     expect(err).not.toBeNull()
   })
