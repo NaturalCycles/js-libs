@@ -12,6 +12,7 @@ import {
   lintStagedCommand,
   runBiome,
   runCommitlintCommand,
+  runOxlint,
   runPrettier,
   stylelintAll,
 } from '../lint.util.js'
@@ -84,11 +85,19 @@ const commands: (Command | Separator)[] = [
     desc: 'Run "lint-staged", which runs linter on git staged files.',
   },
   { name: 'eslint', fn: eslintAll, desc: 'Run eslint on all files.' },
-  { name: 'eslint-no-fix', deprecated: true, fn: async () => await eslintAll({ fix: false }) },
+  { name: 'eslint-no-fix', deprecated: true, fn: () => eslintAll({ fix: false }) },
   {
     name: 'eslint --no-fix',
-    fn: async () => await eslintAll({ fix: false }),
+    fn: () => eslintAll({ fix: false }),
     desc: 'Run eslint on all files with "auto-fix" disabled. Useful for debugging.',
+    interactiveOnly: true,
+  },
+  { name: 'oxlint', fn: runOxlint, desc: 'Run oxlint on all files.' },
+  { name: 'oxlint-no-fix', deprecated: true, fn: () => runOxlint(false) },
+  {
+    name: 'oxlint --no-fix',
+    fn: () => runOxlint(false),
+    desc: 'Run oxlint on all files with "auto-fix" disabled. Useful for debugging.',
     interactiveOnly: true,
   },
   {

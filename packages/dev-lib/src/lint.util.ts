@@ -57,12 +57,14 @@ export async function lintAllCommand(): Promise<void> {
 
   runActionLint()
 
+  runOxlint(fix)
+
   runBiome(fix)
 
   // From this point we start the "slow" linters, with ESLint leading the way
 
   // We run eslint BEFORE Prettier, because eslint can delete e.g unused imports.
-  await eslintAll({
+  eslintAll({
     fix,
   })
 
@@ -108,7 +110,7 @@ interface EslintAllOptions {
 /**
  * Runs `eslint` command for all predefined paths (e.g /src, /scripts, etc).
  */
-export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
+export function eslintAll(opt?: EslintAllOptions): void {
   const { argv } = _yargs().options({
     ext: {
       type: 'string',
@@ -127,10 +129,10 @@ export async function eslintAll(opt?: EslintAllOptions): Promise<void> {
 
   const extensions = ext.split(',')
 
-  await runESLint(extensions, fix)
+  runESLint(extensions, fix)
 }
 
-async function runESLint(extensions = eslintExtensions.split(','), fix = true): Promise<void> {
+function runESLint(extensions = eslintExtensions.split(','), fix = true): void {
   const eslintConfigPath = `eslint.config.js`
   if (!existsSync(eslintConfigPath)) {
     // faster to bail-out like this
@@ -143,10 +145,10 @@ async function runESLint(extensions = eslintExtensions.split(','), fix = true): 
   const cacheFound = existsSync(cacheLocation)
   console.log(dimGrey(`${check(cacheFound)}eslint cache found: ${cacheFound}`))
 
-  await exec2.spawnAsync(eslintPath, {
+  exec2.spawn(eslintPath, {
     name: ['eslint', !fix && '--no-fix'].filter(Boolean).join(' '),
     args: [
-      `--config`,
+      '--config',
       eslintConfigPath,
       `{src,scripts,e2e}/**/*.{${extensions.join(',')}}`,
       // `--parser-options=project:${tsconfigPath}`,
@@ -156,14 +158,34 @@ async function runESLint(extensions = eslintExtensions.split(','), fix = true): 
       '--cache',
       '--cache-location',
       cacheLocation,
-      `--no-error-on-unmatched-pattern`,
-      fix ? `--fix` : '--no-fix',
+      '--no-error-on-unmatched-pattern',
+      fix ? '--fix' : '--no-fix',
     ].filter(_isTruthy),
     shell: false,
     env: _filterFalsyValues({
       // Print eslint plugin timing, but only in CI
       TIMING: CI ? 'true' : '',
     }),
+  })
+}
+
+export function runOxlint(fix = true): void {
+  const oxlintConfigPath = `.oxlintrc.json`
+  if (!existsSync(oxlintConfigPath)) {
+    return
+  }
+
+  const oxlintPath = findPackageBinPath('oxlint', 'oxlint')
+
+  exec2.spawn(oxlintPath, {
+    name: ['oxlintPath', !fix && '--no-fix'].filter(Boolean).join(' '),
+    args: [
+      // '--report-unused-disable-directives',
+      '--max-warnings=1',
+      fix ? '--fix' : '--no-fix',
+    ].filter(_isTruthy),
+    logFinish: false,
+    shell: false,
   })
 }
 

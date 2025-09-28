@@ -1,5 +1,5 @@
 /**
- * @naturalcycles/dev-lib/cfg/eslint.config.js
+ * `@naturalcycles/dev-lib/cfg/eslint.config.js`
  *
  * Shared eslint FLAT config.
  */

@@ -5,8 +5,8 @@
   "scripts": {
     "tsx-debug": "tsx scripts/testScript.ts",
     "dev-lib": "tsx ./src/bin/dev-lib.ts",
-    "bt": "tsx ./src/bin/dev-lib.ts bt && tsx scripts/eslintPrintConfig.script.ts",
-    "check": "tsx ./src/bin/dev-lib.ts check && tsx scripts/eslintPrintConfig.script.ts",
+    "bt": "tsx ./src/bin/dev-lib.ts bt && tsx scripts/eslintPrintConfig.script.ts && tsx scripts/oxlintPrintConfig.script.ts",
+    "check": "tsx ./src/bin/dev-lib.ts check && tsx scripts/eslintPrintConfig.script.ts && tsx scripts/oxlintPrintConfig.script.ts",
     "typecheck": "tsx ./src/bin/dev-lib.ts typecheck",
     "clean": "tsx ./src/bin/dev-lib.ts clean",
     "build": "tsx ./src/bin/dev-lib.ts build",
@@ -15,10 +15,12 @@
     "test-leaks": "tsx ./src/bin/dev-lib.ts test-leaks",
     "test-integration": "tsx ./src/bin/dev-lib.ts test-integration",
     "test-manual": "tsx ./src/bin/dev-lib.ts test-manual",
-    "lint": "tsx scripts/eslintPrintConfig.script.ts && tsx ./src/bin/dev-lib.ts lint",
+    "lint": "tsx scripts/eslintPrintConfig.script.ts && tsx scripts/oxlintPrintConfig.script.ts && tsx ./src/bin/dev-lib.ts lint",
     "eslint": "tsx ./src/bin/dev-lib.ts eslint",
     "eslint-no-fix": "tsx ./src/bin/dev-lib.ts eslint-no-fix",
     "biome-no-fix": "tsx ./src/bin/dev-lib.ts biome-no-fix",
+    "oxlint": "tsx ./src/bin/dev-lib.ts oxlint",
+    "oxlint-no-fix": "tsx ./src/bin/dev-lib.ts oxlint-no-fix",
     "lint-staged-debug": "tsx ./src/bin/dev-lib.ts lint-staged"
   },
   "dependencies": {
@@ -42,6 +44,7 @@
     "lint-staged": "^16",
     "micromatch": "^4",
     "mitm": "^1",
+    "oxlint": "^1",
     "prettier": "^3",
     "typescript-eslint": "^8",
     "vue-eslint-parser": "^10"
@@ -61,14 +64,15 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^24",
-    "@types/mitm": "^1"
+    "@types/mitm": "^1",
+    "@types/node": "^24"
   },
   "exports": {
     "./cfg/": "./cfg/",
     "./cfg/biome.jsonc": "./cfg/biome.jsonc",
     "./cfg/commitlint.config.js": "./cfg/commitlint.config.js",
     "./cfg/eslint.config.js": "./cfg/eslint.config.js",
+    "./cfg/oxlint.config.json": "./cfg/oxlint.config.json",
     "./cfg/prettier.config.js": "./cfg/prettier.config.js",
     "./cfg/stylelint.config.js": "./cfg/stylelint.config.js",
     "./cfg/tsconfig.src.json": "./cfg/tsconfig.src.json",

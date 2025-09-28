@@ -271,14 +271,6 @@
     ],
     "import-x/export": [2],
     "import-x/no-anonymous-default-export": [2],
-    "import-x/no-cycle": [
-      2,
-      {
-        "allowUnsafeDynamicCyclicDependency": true,
-        "ignoreExternal": true,
-        "maxDepth": 10
-      }
-    ],
     "import-x/no-duplicates": [
       2,
       {

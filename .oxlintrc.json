@@ -1,0 +1,15 @@
+{
+  "extends": ["packages/dev-lib/cfg/oxlint.config.json"],
+  "ignorePatterns": ["__exclude", "docs"],
+  "rules": {
+    "import/extensions": 0,
+    "import/no-default-export": 0
+  },
+  "settings": {
+    "jsdoc": {
+      "tagNamePreference": {
+        "experimental": "experimental"
+      }
+    }
+  }
+}

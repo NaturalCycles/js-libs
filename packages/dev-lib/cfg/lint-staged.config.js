@@ -1,7 +1,6 @@
 /*
   Default config for `lint-staged`.
   Extendable.
-  Supports default configs for `prettier`, `stylelint`, `eslint`, if they are not found in target project.
 */
 
 const {
@@ -27,6 +26,8 @@ const prettierConfigPath = [`prettier.config.js`].find(fs.existsSync)
 const stylelintConfigPath = [`stylelint.config.js`].find(fs.existsSync)
 
 const eslintConfigPath = ['eslint.config.js'].find(fs.existsSync)
+
+const oxlintConfigPath = ['.oxlintrc.json'].find(fs.existsSync)
 
 let prettierCmd = undefined
 
@@ -61,6 +62,12 @@ if (eslintConfigPath) {
     .join(' ')
 }
 
+let oxlintCmd = undefined
+
+if (oxlintConfigPath) {
+  oxlintCmd = ['oxlint', '--fix', '--max-warnings=1'].filter(Boolean).join(' ')
+}
+
 const stylelintExists =
   !!stylelintConfigPath &&
   fs.existsSync('node_modules/stylelint') &&
@@ -71,7 +78,7 @@ const biomeConfigPath = ['biome.jsonc'].find(p => fs.existsSync(p))
 const biomeCmd = biomeConfigPath && `biome lint --write --unsafe --no-errors-on-unmatched`
 
 const linters = {
-  // biome, eslint, stylelint, prettier
+  // biome, oxlint, eslint, stylelint, prettier
   [`./{src,scripts,e2e}/**/*.{${prettierExtensionsAll}}`]: match =>
     runBiomeEslintStylelintPrettier(match),
 
@@ -88,9 +95,15 @@ export function runBiomeEslintStylelintPrettier(match) {
   const filesList = getFilesList(match)
   if (!filesList) return []
 
-  return [biomeCmd, eslintCmd, stylelintCmd, prettierCmd]
+  return [biomeCmd, oxlintCmd, eslintCmd, stylelintCmd, prettierCmd]
     .filter(Boolean)
     .map(s => `${s} ${filesList}`)
+}
+
+export function runOxlintPrettier(match) {
+  const filesList = getFilesList(match)
+  if (!filesList) return []
+  return [oxlintCmd, prettierCmd].filter(Boolean).map(s => `${s} ${filesList}`)
 }
 
 export function runPrettier(match) {

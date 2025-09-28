@@ -2,7 +2,7 @@ import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { red } from '@naturalcycles/nodejs-lib/colors'
 import createMitm from 'mitm'
 
-const LOCAL_HOSTS = ['localhost', '127.0.0.1']
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
 
 const detectLeaks = process.argv.some(a => a.includes('detectLeaks'))
 
@@ -24,7 +24,7 @@ export function testOffline(opt?: TestOfflineOptions): void {
   mitm.on('connect', (socket, socketOptions) => {
     const { host } = socketOptions
 
-    if (!LOCAL_HOSTS.includes(host!)) {
+    if (!LOCAL_HOSTS.has(host!)) {
       process.stderr.write(red(`Network request forbidden by testOffline: ${host}\n`))
       opt?.onForbiddenRequest?.(host!)
       throw new AppError(`Network request forbidden by testOffline: ${host}`, {
