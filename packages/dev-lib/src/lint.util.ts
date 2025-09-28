@@ -178,11 +178,11 @@ export function runOxlint(fix = true): void {
   const oxlintPath = findPackageBinPath('oxlint', 'oxlint')
 
   exec2.spawn(oxlintPath, {
-    name: ['oxlintPath', !fix && '--no-fix'].filter(Boolean).join(' '),
+    name: ['oxlint', !fix && '--no-fix'].filter(Boolean).join(' '),
     args: [
       // '--report-unused-disable-directives',
       '--max-warnings=1',
-      fix && '--fix',
+      fix && '--fix --fix-suggestions',
     ].filter(_isTruthy),
     shell: false,
   })

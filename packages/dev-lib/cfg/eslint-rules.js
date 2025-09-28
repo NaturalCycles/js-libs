@@ -381,6 +381,10 @@ export default {
     'unicorn/prefer-spread': 0, // fails on joiSchema.concat() which is not an array!
     'unicorn/prefer-structured-clone': 0, // no real advantage, plus in most of the cases we want JSON to remove undefined, etc.
     'unicorn/better-regex': 0, // we still believe that [0-9] is clearer than [\d]
+    'unicorn/no-for-loop': 0, // oxlint has similar
+    'unicorn/no-array-reduce': 0, // oxlint
+    'unicorn/no-accessor-recursion': 0, // oxlint
+    'unicorn/no-anonymous-default-export': 0, // oxlint
     'unicorn/no-object-as-default-parameter': 0, // doesn't allow e.g method (opt = { skipValidation: true })
     'unicorn/catch-error-name': [
       0, // oxlint

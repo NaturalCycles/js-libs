@@ -52,8 +52,14 @@
     // "import/export": 2, // todo: adopt when it graduates
     "import/no-empty-named-blocks": 2,
     "import/no-absolute-path": 2,
+    "import/no-named-as-default": 2,
+    "import/no-named-as-default-member": 0,
+    "import/no-self-import": 2,
+    "import/no-unassigned-import": 0,
     "oxc/bad-bitwise-operator": 2,
     "oxc/no-const-enum": 2,
+    "oxc/approx-constant": 2,
+    "oxc/misrefactored-assign-op": 2,
     "promise/spec-only": 2,
     "typescript/explicit-function-return-type": [2, { "allowExpressions": true }],
     // "typescript/explicit-module-boundary-types": [2, {"allowArgumentsExplicitlyTypedAsAny": true}]
@@ -76,12 +82,7 @@
     ],
     "typescript/prefer-for-of": 2,
     "unicorn/no-anonymous-default-export": 2,
-    "unicorn/no-array-reduce": [
-      2,
-      {
-        "allowSimpleOperations": true
-      }
-    ],
+    "unicorn/no-array-reduce": 2,
     "unicorn/no-document-cookie": 2,
     "unicorn/no-length-as-slice-end": 2,
     "unicorn/no-magic-array-flat-depth": 2,
@@ -94,6 +95,7 @@
         "ignore": ["^err\\d*$", "^_"]
       }
     ],
+    "unicorn/no-accessor-recursion": 2,
     "vue/no-multiple-slot-args": 2
   },
   "settings": {

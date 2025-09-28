@@ -94,6 +94,10 @@
       ]
     ],
     "import/no-empty-named-blocks": "deny",
+    "import/no-named-as-default": "deny",
+    "import/no-named-as-default-member": "allow",
+    "import/no-self-import": "deny",
+    "import/no-unassigned-import": "allow",
     "import/no-webpack-loader-syntax": "deny",
     "jest/expect-expect": "allow",
     "jest/no-conditional-expect": "allow",
@@ -114,6 +118,7 @@
     "jsdoc/require-property-name": "warn",
     "jsdoc/require-property-type": "warn",
     "jsdoc/require-yields": "warn",
+    "oxc/approx-constant": "deny",
     "oxc/bad-array-method-on-arguments": "warn",
     "oxc/bad-bitwise-operator": "deny",
     "oxc/bad-char-at-comparison": "warn",
@@ -124,6 +129,7 @@
     "oxc/const-comparisons": "warn",
     "oxc/double-comparisons": "warn",
     "oxc/erasing-op": "warn",
+    "oxc/misrefactored-assign-op": "deny",
     "oxc/missing-throw": "warn",
     "oxc/no-accumulating-spread": "deny",
     "oxc/no-const-enum": "deny",
@@ -202,15 +208,9 @@
         }
       ]
     ],
+    "unicorn/no-accessor-recursion": "deny",
     "unicorn/no-anonymous-default-export": "deny",
-    "unicorn/no-array-reduce": [
-      "deny",
-      [
-        {
-          "allowSimpleOperations": true
-        }
-      ]
-    ],
+    "unicorn/no-array-reduce": "deny",
     "unicorn/no-await-in-promise-methods": "warn",
     "unicorn/no-document-cookie": "deny",
     "unicorn/no-empty-file": "warn",
