@@ -12,7 +12,7 @@ export class NDJsonStats {
   }
 
   static createCombined(stats: NDJsonStats[]): NDJsonStats {
-    // eslint-disable-next-line unicorn/no-array-reduce
+    // oxlint-disable-next-line unicorn/no-array-reduce
     return stats.reduce((statsTotal, stats) => statsTotal.add(stats), new NDJsonStats())
   }
 

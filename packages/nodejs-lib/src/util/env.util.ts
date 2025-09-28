@@ -11,7 +11,7 @@ import { fs2 } from '../fs/fs2.js'
 export function requireEnvKeys<T extends readonly string[]>(
   ...keys: T
 ): { [k in ValuesOf<T>]: string } {
-  // eslint-disable-next-line unicorn/no-array-reduce
+  // oxlint-disable-next-line unicorn/no-array-reduce
   return keys.reduce(
     (r, k) => {
       const v = process.env[k]

@@ -4,6 +4,8 @@ pn tsx scripts/sortByBench.ts
 
  */
 
+// oxlint-disable
+
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import { _range } from '../src/array/index.js'
 import type { Mapper, SortDirection } from '../src/types.js'

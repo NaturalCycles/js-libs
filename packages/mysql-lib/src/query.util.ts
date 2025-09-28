@@ -60,7 +60,7 @@ export function insertSQL(
   // INSERT INTO table_name (column1, column2, column3, ...)
   // VALUES (value1, value2, value3, ...);
 
-  // eslint-disable-next-line unicorn/no-array-reduce
+  // oxlint-disable-next-line unicorn/no-array-reduce
   const fieldSet = rows.reduce((set: Set<string>, row) => {
     for (const field of Object.keys(row)) {
       set.add(field)

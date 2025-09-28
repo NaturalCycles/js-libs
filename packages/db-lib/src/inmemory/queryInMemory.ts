@@ -21,7 +21,7 @@ const FILTER_FNS: Record<DBQueryFilterOperator, FilterFn> = {
 // But should be careful here..
 export function queryInMemory<ROW extends ObjectWithId>(q: DBQuery<ROW>, rows: ROW[] = []): ROW[] {
   // .filter
-  // eslint-disable-next-line unicorn/no-array-reduce
+  // oxlint-disable-next-line unicorn/no-array-reduce
   rows = q._filters.reduce((rows, filter) => {
     return rows.filter(row => {
       const value = _get(row, filter.name as string)

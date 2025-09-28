@@ -21,7 +21,7 @@ function sortObjectKeys<T extends AnyObject>(o: T): T {
   return (
     Object.keys(o)
       .sort()
-      // eslint-disable-next-line unicorn/no-array-reduce
+      // oxlint-disable-next-line unicorn/no-array-reduce
       .reduce((r, k) => {
         r[k as keyof T] = o[k]
         return r

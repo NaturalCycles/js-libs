@@ -161,7 +161,7 @@ export function createAppYaml(
   const passEnv = appYamlPassEnv
     .split(',')
     .filter(Boolean)
-    // eslint-disable-next-line unicorn/no-array-reduce
+    // oxlint-disable-next-line unicorn/no-array-reduce
     .reduce(
       (map, key) => {
         const v = process.env[key]

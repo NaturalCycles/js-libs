@@ -27,7 +27,7 @@ export function dbQueryToMongoQuery<ROW extends ObjectWithId>(
   const options = {} as FindOptions<ROW>
 
   // filter
-  // eslint-disable-next-line unicorn/no-array-reduce
+  // oxlint-disable-next-line unicorn/no-array-reduce
   const query = dbQuery._filters.reduce((q, f) => {
     const fname = FNAME_MAP[f.name as string] || f.name
     q[fname as keyof Filter<ROW>] = {
@@ -38,7 +38,7 @@ export function dbQueryToMongoQuery<ROW extends ObjectWithId>(
   }, {} as Filter<ROW>)
 
   // order
-  // eslint-disable-next-line unicorn/no-array-reduce
+  // oxlint-disable-next-line unicorn/no-array-reduce
   options.sort = dbQuery._orders.reduce(
     (map, ord) => {
       map[FNAME_MAP[ord.name as string] || (ord.name as string)] = ord.descending ? -1 : 1
@@ -52,7 +52,7 @@ export function dbQueryToMongoQuery<ROW extends ObjectWithId>(
 
   // selectedFields
   if (dbQuery._selectedFieldNames) {
-    // eslint-disable-next-line unicorn/no-array-reduce
+    // oxlint-disable-next-line unicorn/no-array-reduce
     options.projection = dbQuery._selectedFieldNames.reduce(
       (map, field) => {
         map[FNAME_MAP[field as string] || (field as string)] = 1

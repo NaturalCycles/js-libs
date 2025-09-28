@@ -91,8 +91,7 @@ export function _pushUniqBy<T>(a: T[], mapper: Mapper<T, any>, ...items: T[]): T
  */
 export function _uniqBy<T>(arr: readonly T[], mapper: Mapper<T, any>): T[] {
   const map = new Map<any, T>()
-  for (let i = 0; i < arr.length; i++) {
-    const item = arr[i]!
+  for (const item of arr) {
     const key = item === undefined || item === null ? item : mapper(item)
     if (!map.has(key)) map.set(key, item)
   }
@@ -121,8 +120,7 @@ export function _uniqBy<T>(arr: readonly T[], mapper: Mapper<T, any>): T[] {
  */
 export function _by<T>(items: readonly T[], mapper: Mapper<T, any>): StringMap<T> {
   const map: StringMap<T> = {}
-  for (let i = 0; i < items.length; i++) {
-    const v = items[i]!
+  for (const v of items) {
     const k = mapper(v)
     if (k !== undefined) {
       map[k] = v
@@ -140,8 +138,7 @@ export function _mapBy<ITEM, KEY>(
   mapper: Mapper<ITEM, KEY>,
 ): Map<KEY, ITEM> {
   const map = new Map<KEY, ITEM>()
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]!
+  for (const item of items) {
     const key = mapper(item)
     if (key !== undefined) {
       map.set(key, item)
@@ -164,8 +161,7 @@ export function _mapBy<ITEM, KEY>(
 export function _groupBy<T>(items: readonly T[], mapper: Mapper<T, any>): StringMap<T[]> {
   const map: StringMap<T[]> = {}
 
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]!
+  for (const item of items) {
     const key = mapper(item)
     if (key !== undefined) {
       ;(map[key] ||= []).push(item)
@@ -531,8 +527,7 @@ export function _maxByOrUndefined<T>(
   let maxItem: T | undefined
   let max: number | string | undefined
 
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i]!
+  for (const item of array) {
     const v = mapper(item)
     if (v !== undefined && (max === undefined || v > max)) {
       maxItem = item
@@ -551,8 +546,7 @@ export function _minByOrUndefined<T>(
   let minItem: T | undefined
   let min: number | string | undefined
 
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i]!
+  for (const item of array) {
     const v = mapper(item)
     if (v !== undefined && (min === undefined || v < min)) {
       minItem = item

@@ -19,7 +19,7 @@ declare global {
   }
 }
 
-/* eslint-disable unicorn/no-anonymous-default-export */
+/* oxlint-disable unicorn/no-anonymous-default-export */
 export default async (): Promise<void> => {
   const resources = [debugResource]
 

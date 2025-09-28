@@ -401,7 +401,7 @@ export function _get<T extends AnyObject>(obj = {} as T, path = ''): unknown {
     path
       .replaceAll(/\[([^\]]+)]/g, '.$1')
       .split('.')
-      // eslint-disable-next-line unicorn/no-array-reduce
+      // oxlint-disable-next-line unicorn/no-array-reduce
       .reduce((o, p) => o?.[p], obj)
   )
 }
@@ -431,7 +431,7 @@ export function _set<T extends AnyObject>(obj: T, path: PropertyPath, value: any
     return obj as any
   }
 
-  // eslint-disable-next-line unicorn/no-array-reduce
+  // oxlint-disable-next-line unicorn/no-array-reduce
   ;(path as any[]).slice(0, -1).reduce(
     (
       a,

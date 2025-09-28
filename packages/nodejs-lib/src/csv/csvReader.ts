@@ -48,7 +48,7 @@ export function csvStringParse<T extends AnyObject = any>(
   _assert(header, `firstRowIsHeader or columns is required`)
 
   return arr.map(row => {
-    // eslint-disable-next-line unicorn/no-array-reduce
+    // oxlint-disable-next-line unicorn/no-array-reduce
     return header.reduce((obj, col, i) => {
       ;(obj as any)[col] = row[i]
       return obj

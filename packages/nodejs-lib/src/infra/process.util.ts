@@ -96,7 +96,7 @@ class ProcessUtil {
     idle: number
     total: number
   } {
-    // eslint-disable-next-line unicorn/no-array-reduce
+    // oxlint-disable-next-line unicorn/no-array-reduce
     return os.cpus().reduce(
       (r, cpu) => {
         r['idle'] += cpu.times.idle
