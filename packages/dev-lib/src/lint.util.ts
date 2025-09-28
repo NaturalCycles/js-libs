@@ -182,7 +182,8 @@ export function runOxlint(fix = true): void {
     args: [
       // '--report-unused-disable-directives',
       '--max-warnings=1',
-      fix && '--fix --fix-suggestions',
+      fix && '--fix',
+      fix && '--fix-suggestions',
     ].filter(_isTruthy),
     shell: false,
   })
