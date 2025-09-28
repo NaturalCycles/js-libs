@@ -39,7 +39,7 @@ export function queryInMemory<ROW extends ObjectWithId>(q: DBQuery<ROW>, rows: R
   if (order) {
     const { name, descending } = order
     rows = rows.sort((a, b) => {
-      // biome-ignore lint/suspicious/noDoubleEquals: ok
+      // oxlint-disable-next-line eqeqeq
       if (a[name] == b[name]) return 0
 
       if (descending) {

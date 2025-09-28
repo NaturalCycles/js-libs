@@ -30,7 +30,6 @@ import { stripQueryStringFromAttachments } from './airtable.util.js'
 import { dbQueryToAirtableSelectOptions } from './query.util.js'
 
 // oxlint-disable no-unused-vars
-// biome-ignore lint/correctness/noUnusedVariables: ok
 export interface AirtableDBCfg<BASE = any> {
   /**
    * Airtable apiKey

@@ -1,8 +1,7 @@
 import { Readable, type Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { ReadableStream as WebReadableStream } from 'node:stream/web'
-import { createUnzip, type ZlibOptions } from 'node:zlib'
-import { createGzip } from 'node:zlib'
+import { createGzip, createUnzip, type ZlibOptions } from 'node:zlib'
 import { createAbortableSignal } from '@naturalcycles/js-lib'
 import {
   _passthroughPredicate,

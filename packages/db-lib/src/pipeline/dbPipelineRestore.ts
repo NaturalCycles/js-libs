@@ -9,11 +9,11 @@ import { _passthroughMapper } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
+  NDJsonStats,
   Pipeline,
   type TransformLogProgressOptions,
   type TransformMapOptions,
 } from '@naturalcycles/nodejs-lib/stream'
-import { NDJsonStats } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBSaveOptions } from '../db.model.js'
 

@@ -50,10 +50,8 @@ export interface ReadableTyped<T = unknown> extends Readable {
 }
 
 // oxlint-disable no-unused-vars
-// biome-ignore lint/correctness/noUnusedVariables: ok
 export interface WritableTyped<T> extends Writable {}
 
-// biome-ignore lint/correctness/noUnusedVariables: ok
 export interface TransformTyped<IN = unknown, OUT = unknown> extends Transform {}
 // oxlint-enable
 

@@ -412,8 +412,8 @@ export async function runCommonDaoTest(
           await tx.deleteById(dao, items[2]!.id)
           await tx.save(dao, { ...items[0]!, k1: 5 as any }) // it should fail here
         })
-      } catch (err_) {
-        err = err_
+      } catch (err2) {
+        err = err2
       }
 
       expect(err).toBeDefined()
@@ -433,8 +433,8 @@ export async function runCommonDaoTest(
           await tx.deleteById(dao, items[2]!.id)
           await tx.save(dao, { ...items[0]!, k1: 5 as any }) // it should fail here
           await tx.commit()
-        } catch (err_) {
-          err = err_
+        } catch (err2) {
+          err = err2
         }
 
         expect(err).toBeDefined()

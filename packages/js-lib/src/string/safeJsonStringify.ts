@@ -20,8 +20,8 @@ export function _safeJsonStringify(
   }
 }
 
-/* eslint-disable @typescript-eslint/no-unused-expressions, no-bitwise, no-implicit-coercion */
-
+/* eslint-disable no-bitwise, no-implicit-coercion */
+// oxlint-disable no-unused-expressions
 function serializer(replacer?: Reviver, cycleReplacer?: Reviver): Reviver {
   const stack: any[] = []
   const keys: string[] = []

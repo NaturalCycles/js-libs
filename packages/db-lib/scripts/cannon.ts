@@ -42,14 +42,12 @@ const dao = new CommonDao({
   validateBM: getJoiValidationFunction(testItemBMSchema),
 })
 
-// biome-ignore lint: ok
 async function register1(): Promise<any> {
   const item = createTestItemsBM(1).map(r => _omit(r, ['id']))[0]!
   item.id = stringId()
   return { item }
 }
 
-// biome-ignore lint: ok
 async function register2(): Promise<any> {
   const item = createTestItemsBM(1).map(r => _omit(r, ['id']))[0]!
   item.id = stringId()

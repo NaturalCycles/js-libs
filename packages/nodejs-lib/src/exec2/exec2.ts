@@ -129,6 +129,7 @@ class Exec2 {
         process.stdout.write((err as any).stdout)
       }
       this.logFinish(cmd, opt, started, false)
+      // oxlint-disable-next-line preserve-caught-error
       throw new Error(`exec exited with code ${(err as any).status}: ${cmd}`)
     }
   }

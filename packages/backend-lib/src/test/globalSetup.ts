@@ -19,8 +19,7 @@ declare global {
   }
 }
 
-/* eslint-disable import-x/no-anonymous-default-export, unicorn/no-anonymous-default-export */
-// biome-ignore lint/style/noDefaultExport: ok
+/* eslint-disable unicorn/no-anonymous-default-export */
 export default async (): Promise<void> => {
   const resources = [debugResource]
 

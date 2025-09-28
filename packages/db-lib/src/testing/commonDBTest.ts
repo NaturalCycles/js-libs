@@ -354,8 +354,8 @@ export async function runCommonDBTest(
           // It should fail on id == null
           await tx.saveBatch(TEST_TABLE, [{ ...items[0]!, k1: 5, id: null as any }])
         })
-      } catch (err_) {
-        err = err_
+      } catch (err2) {
+        err = err2
       }
 
       expect(err).toBeDefined()

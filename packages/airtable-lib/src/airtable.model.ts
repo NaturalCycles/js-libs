@@ -15,7 +15,6 @@ export enum AirtableErrorCode {
 }
 
 // oxlint-disable no-unused-vars
-// biome-ignore lint/correctness/noUnusedVariables: ok
 export type AirtableId<T = any> = string
 // oxlint-enable
 
