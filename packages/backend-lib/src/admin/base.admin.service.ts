@@ -71,7 +71,7 @@ export class BaseAdminService {
   /**
    * To be extended.
    */
-  // eslint-disable-next-line max-params
+  // oxlint-disable-next-line max-params
   protected async onPermissionCheck(
     req: BackendRequest,
     email: string,

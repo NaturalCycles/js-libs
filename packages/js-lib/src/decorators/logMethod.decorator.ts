@@ -138,7 +138,7 @@ export function _LogMethod(opt: LogMethodOptions = {}): MethodDecorator {
   }
 }
 
-// eslint-disable-next-line max-params
+// oxlint-disable-next-line max-params
 function logFinished(
   logger: CommonLogger,
   callSignature: string,
