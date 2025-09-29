@@ -347,6 +347,60 @@ describe('object', () => {
       result satisfies { id: string; created: UnixTimestamp; updated: UnixTimestamp; foo: number[] }
     })
   })
+
+  describe('additionalProps', () => {
+    test('should not remove unspecified properties when set to `true`', () => {
+      const schema = j.object({ foo: j.array(j.number()) }).additionalProps(true)
+
+      const [err, result] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: [1, 2, 3],
+        // @ts-expect-error
+        bar: 'keep me',
+      })
+
+      expect(err).toBeNull()
+      // oxlint-disable-next-line no-unused-expressions
+      result satisfies { foo: number[] }
+      expect(result).toEqual({
+        foo: [1, 2, 3],
+        bar: 'keep me',
+      })
+    })
+
+    test('should remove unspecified properties when set to `false`', () => {
+      const schema = j.object({ foo: j.array(j.number()) }).additionalProps(false)
+
+      const [err, result] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: [1, 2, 3],
+        // @ts-expect-error
+        bar: 'keep me',
+      })
+
+      expect(err).toBeNull()
+      // oxlint-disable-next-line no-unused-expressions
+      result satisfies { foo: number[] }
+      expect(result).toEqual({
+        foo: [1, 2, 3],
+      })
+    })
+
+    test('should remove unspecified properties when not set', () => {
+      const schema = j.object({ foo: j.array(j.number()) })
+
+      const [err, result] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: [1, 2, 3],
+        // @ts-expect-error
+        bar: 'keep me',
+      })
+
+      expect(err).toBeNull()
+      // oxlint-disable-next-line no-unused-expressions
+      result satisfies { foo: number[] }
+      expect(result).toEqual({
+        foo: [1, 2, 3],
+      })
+    })
+  })
 })
 
 describe('array', () => {
