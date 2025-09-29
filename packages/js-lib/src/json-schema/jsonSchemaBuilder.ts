@@ -1,7 +1,7 @@
 import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
-import type { AnyObject, BaseDBEntity, IsoDate, UnixTimestamp } from '../types.js'
+import type { AnyObject, BaseDBEntity, IsoDate, IsoDateTime, UnixTimestamp } from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
@@ -77,16 +77,40 @@ export const j = {
   unixTimestamp2000() {
     return new JsonSchemaNumberBuilder<UnixTimestamp>().unixTimestamp2000()
   },
+
   // string types
   string<T extends string = string>() {
     return new JsonSchemaStringBuilder<T>()
   },
+
+  /**
+   * Accepts only the `YYYY-MM-DD` shape from all ISO 8601 variants.
+   */
   isoDate() {
     return new JsonSchemaStringBuilder<IsoDate>().isoDate()
   },
+
+  /**
+   * Accepts strings that start with the `YYYY-MM-DDTHH:MM:SS` shape
+   * and optionally end with either a `Z` or a `+/-hh:mm` timezone part.
+   */
+  isoDateTime() {
+    return new JsonSchemaStringBuilder<IsoDateTime>().isoDateTime()
+  },
+
   // email: () => new JsonSchemaStringBuilder().email(),
   // complex types
   object,
+  dbEntity<T extends AnyObject>(props: T) {
+    return j
+      .object<BaseDBEntity>({
+        id: j.string(),
+        created: j.unixTimestamp2000(),
+        updated: j.unixTimestamp2000(),
+      })
+      .extend(j.object(props))
+  },
+
   rootObject<T extends AnyObject>(props: {
     [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
   }) {
@@ -318,7 +342,6 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
   }
 
   email = (): this => this.format('email')
-  isoDate = (): this => this.format('date').description('IsoDate') // todo: make it custom isoDate instead
   url = (): this => this.format('url')
   ipv4 = (): this => this.format('ipv4')
   ipv6 = (): this => this.format('ipv6')
@@ -336,6 +359,21 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
 
   branded<B extends string>(): JsonSchemaStringBuilder<B> {
     return this as unknown as JsonSchemaStringBuilder<B>
+  }
+
+  /**
+   * Accepts only the `YYYY-MM-DD` shape from all ISO 8601 variants.
+   */
+  isoDate(): JsonSchemaStringBuilder<IsoDate> {
+    return this.format('isoDate').branded<IsoDate>().description('IsoDate')
+  }
+
+  /**
+   * Accepts strings that start with the `YYYY-MM-DDTHH:MM:SS` shape
+   * and optionally end with either a `Z` or a `+/-hh:mm` timezone part.
+   */
+  isoDateTime(): JsonSchemaStringBuilder<IsoDateTime> {
+    return this.format('isoDateTime').branded<IsoDateTime>().description('IsoDateTime')
   }
 
   private transformModify(t: 'trim' | 'toLowerCase' | 'toUpperCase', add: boolean): this {

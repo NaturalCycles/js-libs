@@ -30,7 +30,7 @@ exports[`addressBMJsonSchema 1`] = `
     },
     "createdDate": {
       "description": "IsoDate",
-      "format": "date",
+      "format": "isoDate",
       "type": "string",
     },
     "id": {
@@ -93,7 +93,7 @@ exports[`addressSchema 1`] = `
     },
     "createdDate": {
       "description": "IsoDate",
-      "format": "date",
+      "format": "isoDate",
       "type": "string",
     },
     "phone": {
