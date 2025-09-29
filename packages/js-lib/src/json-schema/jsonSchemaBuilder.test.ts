@@ -201,6 +201,30 @@ describe('string', () => {
     })
   })
 
+  describe('regex', () => {
+    test('should accept RegExp and use it as "pattern"', () => {
+      const schema = j.object({
+        foo: j.string().regex(/^\d{1,2}$/),
+      })
+      const ajvSchema = AjvSchema.create(schema.build())
+
+      const [err1] = ajvSchema.getValidationResult({
+        foo: 'bingbong' as any,
+      })
+      expect(err1).not.toBeNull()
+
+      const [err2] = ajvSchema.getValidationResult({
+        foo: '1' as any,
+      })
+      expect(err2).toBeNull()
+
+      const [err3] = ajvSchema.getValidationResult({
+        foo: '12' as any,
+      })
+      expect(err3).toBeNull()
+    })
+  })
+
   describe('isoDate', () => {
     const schema = j.object({
       foo: j.string().isoDate(),

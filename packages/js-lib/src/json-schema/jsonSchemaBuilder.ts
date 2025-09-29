@@ -316,6 +316,10 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
     })
   }
 
+  regex(pattern: RegExp): this {
+    return this.pattern(pattern.source)
+  }
+
   pattern(pattern: string): this {
     Object.assign(this.schema, { pattern })
     return this
