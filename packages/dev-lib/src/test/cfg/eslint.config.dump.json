@@ -235,8 +235,6 @@
         "max": 40
       }
     ],
-    "curly": [2, "multi-line"],
-    "guard-for-in": [2],
     "id-blacklist": [
       2,
       "any",
@@ -266,12 +264,6 @@
       "always",
       {
         "enforceForIfStatements": true
-      }
-    ],
-    "max-params": [
-      2,
-      {
-        "max": 5
       }
     ],
     "no-bitwise": [
@@ -510,7 +502,6 @@
     "vitest/no-alias-methods": [2],
     "vitest/no-duplicate-hooks": [2],
     "vitest/no-identical-title": [2],
-    "vitest/no-import-node-test": [2],
     "vitest/no-test-return-statement": [2],
     "vitest/padding-around-after-all-blocks": [2],
     "vitest/padding-around-after-each-blocks": [2],

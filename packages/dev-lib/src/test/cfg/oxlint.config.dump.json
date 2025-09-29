@@ -2,8 +2,18 @@
   "plugins": ["unicorn", "typescript", "oxc", "import", "jsdoc", "vitest", "promise", "node"],
   "categories": {},
   "rules": {
+    "curly": ["deny", ["multi-line"]],
     "eqeqeq": ["deny", ["smart"]],
     "for-direction": "warn",
+    "guard-for-in": "deny",
+    "max-params": [
+      "deny",
+      [
+        {
+          "max": 5
+        }
+      ]
+    ],
     "no-async-promise-executor": "allow",
     "no-bitwise": "deny",
     "no-caller": "warn",
@@ -233,6 +243,7 @@
     "unicorn/prefer-set-size": "warn",
     "unicorn/prefer-string-starts-ends-with": "warn",
     "vitest/no-conditional-tests": "warn",
+    "vitest/no-import-node-test": "deny",
     "vitest/require-local-test-context-for-concurrent-snapshots": "warn"
   },
   "settings": {

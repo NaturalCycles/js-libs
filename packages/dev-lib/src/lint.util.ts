@@ -57,9 +57,9 @@ export async function lintAllCommand(): Promise<void> {
 
   runActionLint()
 
-  runOxlint(fix)
-
   runBiome(fix)
+
+  runOxlint(fix)
 
   // From this point we start the "slow" linters, with ESLint leading the way
 
@@ -184,6 +184,7 @@ export function runOxlint(fix = true): void {
       '--max-warnings=1',
       fix && '--fix',
       fix && '--fix-suggestions',
+      fix && '--fix-dangerously',
     ].filter(_isTruthy),
     shell: false,
   })

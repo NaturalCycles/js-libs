@@ -278,7 +278,7 @@ export default {
       'rxjs/observable/interval',
       'rxjs/observable/forkJoin',
     ],
-    curly: [2, 'multi-line'], // this one is an exception that can conflict with prettier
+    curly: [0, 'multi-line'], // this one is an exception that can conflict with prettier, oxlint
     'no-self-assign': 2,
     'no-setter-return': 2,
     'no-shadow': 0, // it is buggy with TypeScript enums
@@ -319,7 +319,7 @@ export default {
     'valid-typeof': 2,
     'no-await-in-loop': 0, // it's actually often ok
     'no-extend-native': 0, // oxlint
-    'guard-for-in': 2,
+    'guard-for-in': 0, // oxlint
     '@typescript-eslint/no-namespace': [
       2,
       {
@@ -446,7 +446,7 @@ export default {
         enforceForIfStatements: true,
       },
     ],
-    'max-params': [2, { max: 5 }],
+    'max-params': [0, { max: 5 }], // oxlint
     'no-else-return': 2,
     'no-sequences': 2,
     'no-useless-concat': 0, // oxlint

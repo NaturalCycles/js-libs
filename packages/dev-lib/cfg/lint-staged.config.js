@@ -65,7 +65,9 @@ if (eslintConfigPath) {
 let oxlintCmd = undefined
 
 if (oxlintConfigPath) {
-  oxlintCmd = ['oxlint', '--fix', '--fix-suggestions', '--max-warnings=1'].filter(Boolean).join(' ')
+  oxlintCmd = ['oxlint', '--fix', '--fix-suggestions', '--fix-dangerously', '--max-warnings=1']
+    .filter(Boolean)
+    .join(' ')
 }
 
 const stylelintExists =

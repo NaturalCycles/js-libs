@@ -14,6 +14,7 @@ export default {
     'vitest/no-commented-out-tests': 0,
     'vitest/no-duplicate-hooks': 2,
     'vitest/no-test-return-statement': 2,
+    'vitest/no-import-node-test': 0, // oxlint
     'vitest/padding-around-before-all-blocks': 2,
     'vitest/padding-around-after-all-blocks': 2,
     'vitest/padding-around-before-each-blocks': 2,

@@ -42,6 +42,9 @@
     "no-useless-constructor": 2,
     "preserve-caught-error": 2,
     "eqeqeq": [2, "smart"],
+    "curly": [2, "multi-line"],
+    "guard-for-in": 2,
+    "max-params": [2, { "max": 5 }],
     "import/extensions": [2, "always"],
     "import/no-amd": 2,
     "import/no-commonjs": 2,
@@ -96,6 +99,7 @@
       }
     ],
     "unicorn/no-accessor-recursion": 2,
+    "vitest/no-import-node-test": 2,
     "vue/no-multiple-slot-args": 2
   },
   "settings": {
