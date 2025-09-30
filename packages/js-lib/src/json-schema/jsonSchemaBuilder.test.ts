@@ -1,5 +1,7 @@
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, expectTypeOf, test } from 'vitest'
+import { localDate } from '../datetime/localDate.js'
+import { localTime } from '../datetime/localTime.js'
 import { _stringify } from '../string/stringify.js'
 import type { BaseDBEntity, Branded, IsoDate, IsoDateTime, UnixTimestamp } from '../types.js'
 import { z } from '../zod/index.js'
@@ -238,7 +240,12 @@ describe('string', () => {
       expectTypeOf(result).toEqualTypeOf<{ foo: IsoDate }>()
     })
 
-    const validCases = ['2001-01-01', '1984-02-29', '2026-08-08']
+    const validCases = ['2001-01-01', '1984-02-29', '2026-08-08', '2000-02-29']
+    const d = localDate.fromString('2001-01-01' as IsoDate)
+    for (let i = 1; i < 366; ++i) {
+      validCases.push(d.plusDays(i).toISODate())
+    }
+
     test.each(validCases)('should accept valid case: %s', input => {
       const [err, result] = ajvSchema.getValidationResult({
         foo: input as any,
@@ -258,6 +265,7 @@ describe('string', () => {
       '2001-06-31', // invalid day for 30 day month
       '2001-09-31', // invalid day for 30 day month
       '2001-11-31', // invalid day for 30 day month
+      '2100-02-29', // not leap year b/c div. by 100 but not div. by 400
     ]
     test.each(invalidCases)('should reject invalid case: %s', input => {
       const [err, result] = ajvSchema.getValidationResult({
@@ -291,7 +299,13 @@ describe('string', () => {
       '2001-01-01T01:01:01.001Z',
       '2001-01-01T01:01:01.001+14:00',
       '2001-01-01T01:01:01.001-12:00',
+      '2000-02-29T01:01:01',
     ]
+    const t = localTime.fromIsoDateTimeString('2001-01-01T01:01:01Z' as IsoDateTime)
+    for (let i = 1; i < 366; ++i) {
+      validCases.push(t.plusDays(i).toISODateTime())
+    }
+
     test.each(validCases)('should accept valid case: %s', input => {
       const [err, result] = ajvSchema.getValidationResult({
         foo: input as any,
@@ -321,6 +335,7 @@ describe('string', () => {
       '2001-06-31T01:01:01', // invalid day for 30 day month
       '2001-09-31T01:01:01', // invalid day for 30 day month
       '2001-11-31T01:01:01', // invalid day for 30 day month
+      '2100-02-29T01:01:01', // not leap year b/c div. by 100 but not div. by 400
     ]
     test.each(invalidCases)('should reject invalid case: %s', input => {
       const [err, result] = ajvSchema.getValidationResult({
