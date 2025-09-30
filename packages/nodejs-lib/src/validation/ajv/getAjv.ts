@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
+/* eslint-disable unicorn/prefer-code-point */
 import { _lazyValue } from '@naturalcycles/js-lib'
 import type { Options } from 'ajv'
 import { Ajv } from 'ajv'
@@ -79,6 +81,8 @@ const TS_2500_MILLIS = TS_2500 * 1000
 const TS_2000 = 946684800 // 2000-01-01
 const TS_2000_MILLIS = TS_2000 * 1000
 
+const monthLengths = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
 function addCustomAjvFormats(ajv: Ajv): Ajv {
   return (
     ajv
@@ -131,5 +135,131 @@ function addCustomAjvFormats(ajv: Ajv): Ajv {
           return n >= -14 && n <= 14 && Number.isInteger(n)
         },
       })
+      .addFormat('IsoDate', {
+        type: 'string',
+        validate: isIsoDateValid,
+      })
+      .addFormat('IsoDateTime', {
+        type: 'string',
+        validate: isIsoDateTimeValid,
+      })
   )
+}
+
+const DASH_CODE = '-'.charCodeAt(0)
+const ZERO_CODE = '0'.charCodeAt(0)
+const PLUS_CODE = '+'.charCodeAt(0)
+const COLON_CODE = ':'.charCodeAt(0)
+
+/**
+ * This is a performance optimized correct validation
+ * for ISO dates formatted as YYYY-MM-DD.
+ *
+ * - Slightly more performant than using `localDate`.
+ * - More performant than string splitting and `Number()` conversions
+ * - Less performant than regex, but it does not allow invalid dates.
+ */
+function isIsoDateValid(s: string): boolean {
+  // must be exactly "YYYY-MM-DD"
+  if (s.length !== 10) return false
+  if (s.charCodeAt(4) !== DASH_CODE || s.charCodeAt(7) !== DASH_CODE) return false
+
+  // fast parse numbers without substrings/Number()
+  const year =
+    (s.charCodeAt(0) - ZERO_CODE) * 1000 +
+    (s.charCodeAt(1) - ZERO_CODE) * 100 +
+    (s.charCodeAt(2) - ZERO_CODE) * 10 +
+    (s.charCodeAt(3) - ZERO_CODE)
+
+  const month = (s.charCodeAt(5) - ZERO_CODE) * 10 + (s.charCodeAt(6) - ZERO_CODE)
+  const day = (s.charCodeAt(8) - ZERO_CODE) * 10 + (s.charCodeAt(9) - ZERO_CODE)
+
+  if (month < 1 || month > 12 || day < 1) return false
+
+  if (month !== 2) {
+    return day <= monthLengths[month]!
+  }
+
+  const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+  return day <= (isLeap ? 29 : 28)
+}
+
+/**
+ * This is a performance optimized correct validation
+ * for ISO datetimes formatted as "YYYY-MM-DDTHH:MM:SS" followed by
+ * nothing, "Z" or "+hh:mm" or "-hh:mm".
+ *
+ * - Slightly more performant than using `localTime`.
+ * - More performant than string splitting and `Number()` conversions
+ * - Less performant than regex, but it does not allow invalid dates.
+ */
+function isIsoDateTimeValid(s: string): boolean {
+  if (s.length < 19 || s.length > 25) return false
+  if (s.charCodeAt(10) !== 84) return false // 'T'
+
+  const datePart = s.slice(0, 10) // YYYY-MM-DD
+  if (!isIsoDateValid(datePart)) return false
+
+  const timePart = s.slice(11, 19) // HH:MM:SS
+  if (!isIsoTimeValid(timePart)) return false
+
+  const zonePart = s.slice(19) // nothing or Z or +/-hh:mm
+  if (!isIsoTimezoneValid(zonePart)) return false
+
+  return true
+}
+
+/**
+ * This is a performance optimized correct validation
+ * for ISO times formatted as "HH:MM:SS".
+ *
+ * - Slightly more performant than using `localTime`.
+ * - More performant than string splitting and `Number()` conversions
+ * - Less performant than regex, but it does not allow invalid dates.
+ */
+function isIsoTimeValid(s: string): boolean {
+  if (s.length !== 8) return false
+  if (s.charCodeAt(2) !== COLON_CODE || s.charCodeAt(5) !== COLON_CODE) return false
+
+  const hour = (s.charCodeAt(0) - ZERO_CODE) * 10 + (s.charCodeAt(1) - ZERO_CODE)
+  if (hour < 0 || hour > 23) return false
+
+  const minute = (s.charCodeAt(3) - ZERO_CODE) * 10 + (s.charCodeAt(4) - ZERO_CODE)
+  if (minute < 0 || minute > 59) return false
+
+  const second = (s.charCodeAt(6) - ZERO_CODE) * 10 + (s.charCodeAt(7) - ZERO_CODE)
+  if (second < 0 || second > 59) return false
+
+  return true
+}
+
+/**
+ * This is a performance optimized correct validation
+ * for the timezone suffix of ISO times
+ * formatted as "Z" or "+HH:MM" or "-HH:MM".
+ *
+ * It also accepts an empty string.
+ */
+function isIsoTimezoneValid(s: string): boolean {
+  if (s === '') return true
+  if (s === 'Z') return true
+  if (s.length !== 6) return false
+  if (s.charCodeAt(0) !== PLUS_CODE && s.charCodeAt(0) !== DASH_CODE) return false
+  if (s.charCodeAt(3) !== COLON_CODE) return false
+
+  const isWestern = s[0] === '-'
+  const isEastern = s[0] === '+'
+
+  const hour = (s.charCodeAt(1) - ZERO_CODE) * 10 + (s.charCodeAt(2) - ZERO_CODE)
+  if (hour < 0) return false
+  if (isWestern && hour > 12) return false
+  if (isEastern && hour > 14) return false
+
+  const minute = (s.charCodeAt(4) - ZERO_CODE) * 10 + (s.charCodeAt(5) - ZERO_CODE)
+  if (minute < 0 || minute > 59) return false
+
+  if (isEastern && hour === 14 && minute > 0) return false // max is +14:00
+  if (isWestern && hour === 12 && minute > 0) return false // min is -12:00
+
+  return true
 }
