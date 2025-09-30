@@ -369,7 +369,7 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
    * Accepts only the `YYYY-MM-DD` shape from all ISO 8601 variants.
    */
   isoDate(): JsonSchemaStringBuilder<IsoDate> {
-    return this.format('isoDate').branded<IsoDate>().description('IsoDate')
+    return this.format('IsoDate').branded<IsoDate>().description('IsoDate')
   }
 
   /**
@@ -377,7 +377,7 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
    * and optionally end with either a `Z` or a `+/-hh:mm` timezone part.
    */
   isoDateTime(): JsonSchemaStringBuilder<IsoDateTime> {
-    return this.format('isoDateTime').branded<IsoDateTime>().description('IsoDateTime')
+    return this.format('IsoDateTime').branded<IsoDateTime>().description('IsoDateTime')
   }
 
   private transformModify(t: 'trim' | 'toLowerCase' | 'toUpperCase', add: boolean): this {

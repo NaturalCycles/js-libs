@@ -135,31 +135,44 @@ function addCustomAjvFormats(ajv: Ajv): Ajv {
           return n >= -14 && n <= 14 && Number.isInteger(n)
         },
       })
-      .addFormat('isoDate', {
+      .addFormat('IsoDate', {
         type: 'string',
-        validate: isoDate,
+        validate: isIsoDateValid,
       })
-      .addFormat('isoDateTime', {
+      .addFormat('IsoDateTime', {
         type: 'string',
-        validate: isoDateTime,
+        validate: isIsoDateTimeValid,
       })
   )
 }
 
-function isoDate(s: string): boolean {
+const DASH_CODE = '-'.charCodeAt(0)
+const ZERO_CODE = '0'.charCodeAt(0)
+const PLUS_CODE = '+'.charCodeAt(0)
+const COLON_CODE = ':'.charCodeAt(0)
+
+/**
+ * This is a performance optimized correct validation
+ * for ISO dates formatted as YYYY-MM-DD.
+ *
+ * - Slightly more performant than using `localDate`.
+ * - More performant than string splitting and `Number()` conversions
+ * - Less performant than regex, but it does not allow invalid dates.
+ */
+function isIsoDateValid(s: string): boolean {
   // must be exactly "YYYY-MM-DD"
   if (s.length !== 10) return false
-  if (s.charCodeAt(4) !== 45 || s.charCodeAt(7) !== 45) return false // '-'
+  if (s.charCodeAt(4) !== DASH_CODE || s.charCodeAt(7) !== DASH_CODE) return false
 
   // fast parse numbers without substrings/Number()
   const year =
-    (s.charCodeAt(0) - 48) * 1000 +
-    (s.charCodeAt(1) - 48) * 100 +
-    (s.charCodeAt(2) - 48) * 10 +
-    (s.charCodeAt(3) - 48)
+    (s.charCodeAt(0) - ZERO_CODE) * 1000 +
+    (s.charCodeAt(1) - ZERO_CODE) * 100 +
+    (s.charCodeAt(2) - ZERO_CODE) * 10 +
+    (s.charCodeAt(3) - ZERO_CODE)
 
-  const month = (s.charCodeAt(5) - 48) * 10 + (s.charCodeAt(6) - 48)
-  const day = (s.charCodeAt(8) - 48) * 10 + (s.charCodeAt(9) - 48)
+  const month = (s.charCodeAt(5) - ZERO_CODE) * 10 + (s.charCodeAt(6) - ZERO_CODE)
+  const day = (s.charCodeAt(8) - ZERO_CODE) * 10 + (s.charCodeAt(9) - ZERO_CODE)
 
   if (month < 1 || month > 12 || day < 1) return false
 
@@ -171,69 +184,78 @@ function isoDate(s: string): boolean {
   return day <= (isLeap ? 29 : 28)
 }
 
-export function isoDateTime(s: string): boolean {
-  // "YYYY-MM-DDTHH:MM:SS" followed by
-  // optional ".mmm" and
-  // nothing, "Z" or "+hh:mm" or "-hh:mm"
-  if (s.length < 19 || s.length > 29) return false
+/**
+ * This is a performance optimized correct validation
+ * for ISO datetimes formatted as "YYYY-MM-DDTHH:MM:SS" followed by
+ * nothing, "Z" or "+hh:mm" or "-hh:mm".
+ *
+ * - Slightly more performant than using `localTime`.
+ * - More performant than string splitting and `Number()` conversions
+ * - Less performant than regex, but it does not allow invalid dates.
+ */
+function isIsoDateTimeValid(s: string): boolean {
+  if (s.length < 19 || s.length > 25) return false
   if (s.charCodeAt(10) !== 84) return false // 'T'
 
-  const hasMsPart = s.charCodeAt(19) === 46 // '.'
-
   const datePart = s.slice(0, 10) // YYYY-MM-DD
-  if (!isoDate(datePart)) return false
+  if (!isIsoDateValid(datePart)) return false
 
-  const timePart = hasMsPart ? s.slice(11, 23) : s.slice(11, 19) // HH:MM:SS.mmm
-  if (!isoTime(timePart)) return false
+  const timePart = s.slice(11, 19) // HH:MM:SS
+  if (!isIsoTimeValid(timePart)) return false
 
-  const zonePart = hasMsPart ? s.slice(23) : s.slice(19) // nothing or Z or +/-hh:mm
-  if (!isoTimezone(zonePart)) return false
+  const zonePart = s.slice(19) // nothing or Z or +/-hh:mm
+  if (!isIsoTimezoneValid(zonePart)) return false
 
   return true
 }
 
-function isoTime(s: string): boolean {
-  // "HH:MM:SS"
-  // optional ".mmm"
-  const hasMsPart = s.charCodeAt(8) === 46 // '.'
-  const hasProperLength = (hasMsPart && s.length === 12) || (!hasMsPart && s.length === 8)
-  if (!hasProperLength) return false
-  if (s.charCodeAt(2) !== 58 || s.charCodeAt(5) !== 58) return false // ':'
+/**
+ * This is a performance optimized correct validation
+ * for ISO times formatted as "HH:MM:SS".
+ *
+ * - Slightly more performant than using `localTime`.
+ * - More performant than string splitting and `Number()` conversions
+ * - Less performant than regex, but it does not allow invalid dates.
+ */
+function isIsoTimeValid(s: string): boolean {
+  if (s.length !== 8) return false
+  if (s.charCodeAt(2) !== COLON_CODE || s.charCodeAt(5) !== COLON_CODE) return false
 
-  const hour = (s.charCodeAt(0) - 48) * 10 + (s.charCodeAt(1) - 48)
+  const hour = (s.charCodeAt(0) - ZERO_CODE) * 10 + (s.charCodeAt(1) - ZERO_CODE)
   if (hour < 0 || hour > 23) return false
 
-  const minute = (s.charCodeAt(3) - 48) * 10 + (s.charCodeAt(4) - 48)
+  const minute = (s.charCodeAt(3) - ZERO_CODE) * 10 + (s.charCodeAt(4) - ZERO_CODE)
   if (minute < 0 || minute > 59) return false
 
-  const second = (s.charCodeAt(6) - 48) * 10 + (s.charCodeAt(7) - 48)
+  const second = (s.charCodeAt(6) - ZERO_CODE) * 10 + (s.charCodeAt(7) - ZERO_CODE)
   if (second < 0 || second > 59) return false
-
-  const ms = hasMsPart
-    ? (s.charCodeAt(9) - 48) * 100 + (s.charCodeAt(10) - 48) * 10 + (s.charCodeAt(11) - 48)
-    : 0
-  if (ms < 0 || ms > 999) return false
 
   return true
 }
 
-function isoTimezone(s: string): boolean {
-  // "Z" or "+hh:mm" or "-hh:mm"
+/**
+ * This is a performance optimized correct validation
+ * for the timezone suffix of ISO times
+ * formatted as "Z" or "+HH:MM" or "-HH:MM".
+ *
+ * It also accepts an empty string.
+ */
+function isIsoTimezoneValid(s: string): boolean {
   if (s === '') return true
   if (s === 'Z') return true
   if (s.length !== 6) return false
-  if (s.charCodeAt(0) !== 43 && s.charCodeAt(0) !== 45) return false // + or -
-  if (s.charCodeAt(3) !== 58) return false // :
+  if (s.charCodeAt(0) !== PLUS_CODE && s.charCodeAt(0) !== DASH_CODE) return false
+  if (s.charCodeAt(3) !== COLON_CODE) return false
 
   const isWestern = s[0] === '-'
   const isEastern = s[0] === '+'
 
-  const hour = (s.charCodeAt(1) - 48) * 10 + (s.charCodeAt(2) - 48)
+  const hour = (s.charCodeAt(1) - ZERO_CODE) * 10 + (s.charCodeAt(2) - ZERO_CODE)
   if (hour < 0) return false
   if (isWestern && hour > 12) return false
   if (isEastern && hour > 14) return false
 
-  const minute = (s.charCodeAt(4) - 48) * 10 + (s.charCodeAt(5) - 48)
+  const minute = (s.charCodeAt(4) - ZERO_CODE) * 10 + (s.charCodeAt(5) - ZERO_CODE)
   if (minute < 0 || minute > 59) return false
 
   if (isEastern && hour === 14 && minute > 0) return false // max is +14:00

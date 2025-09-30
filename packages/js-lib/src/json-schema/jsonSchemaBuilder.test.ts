@@ -300,10 +300,6 @@ describe('string', () => {
       '2001-01-01T01:01:01Z',
       '2001-01-01T01:01:01+14:00',
       '2001-01-01T01:01:01-12:00',
-      '2001-01-01T01:01:01.001',
-      '2001-01-01T01:01:01.001Z',
-      '2001-01-01T01:01:01.001+14:00',
-      '2001-01-01T01:01:01.001-12:00',
       '2000-02-29T01:01:01',
     ]
     const t = localTime.fromIsoDateTimeString('2001-01-01T01:01:01Z' as IsoDateTime)
@@ -323,6 +319,11 @@ describe('string', () => {
     const invalidCases = [
       'abcd',
       '20250930T070629Z', // valid ISO6801 but we don't support it
+      '2001-01-01T01:01:01.001', // valid ISO6801 but we don't support it
+      '2001-01-01T01:01:01.001', // valid ISO6801 but we don't support it
+      '2001-01-01T01:01:01.001Z', // valid ISO6801 but we don't support it
+      '2001-01-01T01:01:01.001+14:00', // valid ISO6801 but we don't support it
+      '2001-01-01T01:01:01.001-12:00', // valid ISO6801 but we don't support it
       '20010-01-01T01:01:01', // 5 digit year
       '2001-13-01T01:01:01', // invalid month
       '2001-01-32T01:01:01', // invalid day
