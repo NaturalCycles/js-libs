@@ -256,6 +256,11 @@ describe('string', () => {
     })
 
     const invalidCases = [
+      'abcd',
+      '0-0-0',
+      '20250930', // valid ISO6801 but we don't support it
+      '2025-W40-2', // valid ISO6801 but we don't support it
+      '2025‐273', // valid ISO6801 but we don't support it
       '20010-01-01', // 5 digit year
       '2001-13-01', // invalid month
       '2001-01-32', // invalid day
@@ -316,6 +321,8 @@ describe('string', () => {
     })
 
     const invalidCases = [
+      'abcd',
+      '20250930T070629Z', // valid ISO6801 but we don't support it
       '20010-01-01T01:01:01', // 5 digit year
       '2001-13-01T01:01:01', // invalid month
       '2001-01-32T01:01:01', // invalid day
