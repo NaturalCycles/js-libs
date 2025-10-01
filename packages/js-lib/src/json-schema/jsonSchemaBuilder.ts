@@ -1,7 +1,15 @@
 import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
-import type { AnyObject, BaseDBEntity, IsoDate, IsoDateTime, UnixTimestamp } from '../types.js'
+import {
+  type AnyObject,
+  type BaseDBEntity,
+  type IsoDate,
+  type IsoDateTime,
+  JWT_REGEX,
+  type JWTString,
+  type UnixTimestamp,
+} from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
@@ -35,7 +43,7 @@ export const j = {
   any<T = unknown>() {
     return new JsonSchemaAnyBuilder<T, JsonSchemaAny<T>>({})
   },
-  const<T = unknown>(value: T) {
+  const<T extends string | number | boolean | null>(value: T) {
     return new JsonSchemaAnyBuilder<T, JsonSchemaConst<T>>({
       const: value,
     })
@@ -81,6 +89,9 @@ export const j = {
   // string types
   string<T extends string = string>() {
     return new JsonSchemaStringBuilder<T>()
+  },
+  jwt() {
+    return new JsonSchemaStringBuilder<JWTString>().jwt()
   },
 
   /**
@@ -382,6 +393,10 @@ export class JsonSchemaStringBuilder<
    */
   isoDateTime(): JsonSchemaStringBuilder<IsoDateTime> {
     return this.format('IsoDateTime').branded<IsoDateTime>().description('IsoDateTime')
+  }
+
+  jwt(): this {
+    return this.regex(JWT_REGEX)
   }
 
   private transformModify(t: 'trim' | 'toLowerCase' | 'toUpperCase', add: boolean): this {
