@@ -122,10 +122,15 @@ export const j = {
   tuple<T extends any[] = unknown[]>(items: JsonSchemaAnyBuilder[]) {
     return new JsonSchemaTupleBuilder<T>(items)
   },
-  oneOf<T = unknown>(items: JsonSchemaAnyBuilder[]) {
-    return new JsonSchemaAnyBuilder<T, JsonSchemaOneOf<T>>({
+  oneOf<Builders extends JsonSchemaAnyBuilder<any, any, any>[]>(
+    items: [...Builders],
+  ): JsonSchemaAnyBuilder<
+    Builders[number] extends JsonSchemaAnyBuilder<infer U, any, any> ? U : never,
+    JsonSchemaOneOf<Builders[number] extends JsonSchemaAnyBuilder<infer U, any, any> ? U : never>
+  > {
+    return new JsonSchemaAnyBuilder({
       oneOf: items.map(b => b.build()),
-    })
+    }) as any
   },
   allOf<T = unknown>(items: JsonSchemaAnyBuilder[]) {
     return new JsonSchemaAnyBuilder<T, JsonSchemaAllOf<T>>({
@@ -189,16 +194,6 @@ export class JsonSchemaAnyBuilder<
     return this
   }
 
-  oneOf(schemas: JsonSchema[]): this {
-    Object.assign(this.schema, { oneOf: schemas })
-    return this
-  }
-
-  allOf(schemas: JsonSchema[]): this {
-    Object.assign(this.schema, { allOf: schemas })
-    return this
-  }
-
   instanceof(of: string): this {
     this.schema.instanceof = of
     return this
@@ -216,6 +211,12 @@ export class JsonSchemaAnyBuilder<
       this.schema.optionalField = undefined
     }
     return this
+  }
+
+  nullable(): JsonSchemaAnyBuilder<T | null, JsonSchema<T | null>, Opt> {
+    return new JsonSchemaAnyBuilder<T | null, JsonSchema<T | null>, Opt>({
+      anyOf: [this.build(), { type: 'null' }],
+    })
   }
 
   /**

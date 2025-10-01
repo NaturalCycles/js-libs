@@ -13,7 +13,7 @@ export type JsonSchema<T = unknown> =
   | JsonSchemaNumber
   | JsonSchemaBoolean
   | JsonSchemaNull
-  | JsonSchemaObject // cannot use <T>, because T needs to extend AnyObject
+  | JsonSchemaObject<T extends AnyObject ? T : AnyObject>
   | JsonSchemaArray<T>
   | JsonSchemaTuple<T>
 
@@ -28,7 +28,7 @@ export interface JsonSchemaAny<T = unknown> {
   readOnly?: boolean
   writeOnly?: boolean
 
-  type?: string
+  type?: string | string[]
 
   default?: T
 
