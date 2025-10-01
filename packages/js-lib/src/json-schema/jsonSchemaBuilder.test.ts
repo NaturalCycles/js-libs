@@ -8,13 +8,6 @@ import { z } from '../zod/index.js'
 import { j } from './jsonSchemaBuilder.js'
 import { baseDBEntityJsonSchema } from './jsonSchemas.js'
 
-const schema = j.object({
-  req: j.string(),
-  opt: j.string().optional(),
-})
-
-type T = (typeof schema)['infer']
-
 interface Address {
   createdAt: UnixTimestamp
   createdDate: IsoDate
