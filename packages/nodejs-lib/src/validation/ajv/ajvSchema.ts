@@ -15,6 +15,8 @@ import { AjvValidationError } from './ajvValidationError.js'
 import { getAjv } from './getAjv.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 
+export type SchemaHandledByAjv<T> = JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T> | ZodType<T>
+
 export interface AjvValidationOptions {
   /**
    * Defaults to true,
@@ -105,10 +107,7 @@ export class AjvSchema<T = unknown> {
    * Implementation note: JsonSchemaBuilder goes first in the union type, otherwise TypeScript fails to infer <T> type
    * correctly for some reason.
    */
-  static create<T>(
-    schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T> | ZodType<T>,
-    cfg?: Partial<AjvSchemaCfg>,
-  ): AjvSchema<T> {
+  static create<T>(schema: SchemaHandledByAjv<T>, cfg?: Partial<AjvSchemaCfg>): AjvSchema<T> {
     if (schema instanceof AjvSchema) return schema
 
     if (AjvSchema.isSchemaWithCachedAjvSchema<typeof schema, T>(schema)) {
