@@ -131,7 +131,9 @@ export class AjvSchema<T = unknown> {
   }
 
   /**
-   * @experimental
+   * @deprecated
+   *
+   * Use `AjvSchema.create`
    */
   static createFromZod<T>(zodSchema: ZodType<T>, cfg?: Partial<AjvSchemaCfg>): AjvSchema<T> {
     return AjvSchema.create(zodSchema, cfg)
