@@ -1,8 +1,8 @@
+import { j, type JsonSchema, type JsonSchemaObjectBuilder } from '@naturalcycles/js-lib/json-schema'
 import { _typeCast } from '@naturalcycles/js-lib/types'
-import { z, ZodType } from '@naturalcycles/js-lib/zod'
+import { z, type ZodType } from '@naturalcycles/js-lib/zod'
 import { describe, expect, test } from 'vitest'
 import { AjvSchema, HIDDEN_AJV_SCHEMA, type WithCachedAjvSchema } from './ajvSchema.js'
-import { j, JsonSchemaObjectBuilder, type JsonSchema } from '@naturalcycles/js-lib/json-schema'
 
 describe('create', () => {
   test('should cache the compiled AjvSchema in the ZodSchema', () => {
