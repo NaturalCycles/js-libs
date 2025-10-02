@@ -1,7 +1,7 @@
 import { Transform } from 'node:stream'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import { type DeferredPromise, pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
-import type { Predicate } from '@naturalcycles/js-lib/types'
+import type { NonNegativeInteger, Predicate } from '@naturalcycles/js-lib/types'
 import { Pipeline } from '../pipeline.js'
 import { createReadable } from '../readable/createReadable.js'
 import type { ReadableTyped, TransformOptions, TransformTyped } from '../stream.model.js'
@@ -18,7 +18,7 @@ import type { ReadableTyped, TransformOptions, TransformTyped } from '../stream.
  */
 export function transformMultiFork<T>(
   splitPredicate: Predicate<T>,
-  fn: (pipeline: Pipeline<T>) => Promise<void>,
+  fn: (pipeline: Pipeline<T>, splitIndex: NonNegativeInteger) => Promise<void>,
   opt: TransformOptions = {},
 ): TransformTyped<T, T> {
   const { objectMode = true, highWaterMark } = opt
@@ -76,20 +76,20 @@ export function transformMultiFork<T>(
   })
 
   function createNewFork(): ReadableTyped<T> {
-    const mySplitIndex = splitIndex
+    const currentSplitIndex = splitIndex
 
     const readable = createReadable<T>([], {}, () => {
       // `_read` is called
       if (!lock) return
       // We had a lock - let's Resume
-      logger.debug(`TransformMultiFork(${mySplitIndex}): resume`)
+      logger.debug(`TransformMultiFork(${currentSplitIndex}): resume`)
       const lockCopy = lock
       lock = undefined
       lockCopy.resolve()
     })
 
-    void fn(Pipeline.from<T>(readable)).then(() => {
-      logger.log(`TransformMultiFork(${mySplitIndex}): done`)
+    void fn(Pipeline.from<T>(readable), currentSplitIndex).then(() => {
+      logger.log(`TransformMultiFork(${currentSplitIndex}): done`)
     })
 
     return readable
