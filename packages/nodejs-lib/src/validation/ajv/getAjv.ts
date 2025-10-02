@@ -93,25 +93,25 @@ function addCustomAjvFormats(ajv: Ajv): Ajv {
       .addFormat('languageTag', /^[a-z]{2}(-[A-Z]{2})?$/)
       .addFormat('countryCode', /^[A-Z]{2}$/)
       .addFormat('currency', /^[A-Z]{3}$/)
-      .addFormat('UnixTimestamp', {
+      .addFormat('unixTimestamp', {
         type: 'number',
         validate: (n: number) => {
           return n >= 0 && n < TS_2500
         },
       })
-      .addFormat('UnixTimestamp2000', {
+      .addFormat('unixTimestamp2000', {
         type: 'number',
         validate: (n: number) => {
           return n >= TS_2000 && n < TS_2500
         },
       })
-      .addFormat('UnixTimestampMillis', {
+      .addFormat('unixTimestampMillis', {
         type: 'number',
         validate: (n: number) => {
           return n >= 0 && n < TS_2500_MILLIS
         },
       })
-      .addFormat('UnixTimestampMillis2000', {
+      .addFormat('unixTimestampMillis2000', {
         type: 'number',
         validate: (n: number) => {
           return n >= TS_2000_MILLIS && n < TS_2500_MILLIS

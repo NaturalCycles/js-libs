@@ -314,18 +314,18 @@ export class JsonSchemaNumberBuilder<
   double = (): this => this.format('double')
 
   unixTimestamp = (): JsonSchemaNumberBuilder<UnixTimestamp> =>
-    this.integer().branded<UnixTimestamp>().format('UnixTimestamp').description('UnixTimestamp')
+    this.integer().branded<UnixTimestamp>().format('unixTimestamp').description('UnixTimestamp')
 
   unixTimestamp2000 = (): JsonSchemaNumberBuilder<UnixTimestamp> =>
     this.integer()
       .branded<UnixTimestamp>()
-      .format('UnixTimestamp2000')
+      .format('unixTimestamp2000')
       .description('UnixTimestamp2000')
 
   unixTimestampMillis = (): JsonSchemaNumberBuilder<UnixTimestampMillis> =>
     this.integer()
       .branded<UnixTimestampMillis>()
-      .format('UnixTimestampMillis')
+      .format('unixTimestampMillis')
       .description('UnixTimestampMillis')
 
   unixTimestampMillis2000 = (): JsonSchemaNumberBuilder<UnixTimestampMillis> =>
