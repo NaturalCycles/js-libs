@@ -58,7 +58,7 @@ export const testItemBMJsonSchema: JsonSchemaObject<TestItemBM> = j
     created: j.unixTimestamp(),
     updated: j.unixTimestamp(),
     k1: j.string(),
-    k2: j.oneOf<string | null>([j.string(), j.null()]).optional(),
+    k2: j.oneOf([j.string(), j.null()]).optional(),
     k3: j.number().optional(),
     even: j.boolean().optional(),
     b1: j.buffer().optional(),

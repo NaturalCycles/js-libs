@@ -1,13 +1,16 @@
 import { _deepCopy } from '@naturalcycles/js-lib/object'
-import type { ZodType } from '@naturalcycles/js-lib/zod'
-import { AjvSchema, type AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
+import {
+  AjvSchema,
+  type AjvValidationError,
+  type SchemaHandledByAjv,
+} from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../../server/server.model.js'
 import { handleValidationError, type ReqValidationOptions } from '../validateRequest.util.js'
 
 class AjvValidateRequest {
   body<T>(
     req: BackendRequest,
-    schema: AjvSchema<T> | ZodType<T>,
+    schema: SchemaHandledByAjv<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
     return this.validate(req, 'body', schema, opt)
@@ -15,7 +18,7 @@ class AjvValidateRequest {
 
   query<T>(
     req: BackendRequest,
-    schema: AjvSchema<T> | ZodType<T>,
+    schema: SchemaHandledByAjv<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
     return this.validate(req, 'query', schema, opt)
@@ -23,7 +26,7 @@ class AjvValidateRequest {
 
   params<T>(
     req: BackendRequest,
-    schema: AjvSchema<T> | ZodType<T>,
+    schema: SchemaHandledByAjv<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
     return this.validate(req, 'params', schema, opt)
@@ -39,7 +42,7 @@ class AjvValidateRequest {
    */
   headers<T>(
     req: BackendRequest,
-    schema: AjvSchema<T>,
+    schema: SchemaHandledByAjv<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
     const originalHeaders = _deepCopy(req.headers)
@@ -51,7 +54,7 @@ class AjvValidateRequest {
   private validate<T>(
     req: BackendRequest,
     reqProperty: 'body' | 'params' | 'query' | 'headers',
-    schema: AjvSchema<T> | ZodType<T>,
+    schema: SchemaHandledByAjv<T>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): T {
     const input: T = req[reqProperty] || {}

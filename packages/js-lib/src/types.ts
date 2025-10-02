@@ -335,6 +335,7 @@ export type ShortBoolean = '1'
 export type Base64String = string
 export type Base64UrlString = string
 export type JWTString = string
+export const JWT_REGEX = /^[\w-]+\.[\w-]+\.[\w-]+$/
 
 export type SemVerString = string
 

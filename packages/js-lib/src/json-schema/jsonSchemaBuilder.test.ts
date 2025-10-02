@@ -2,6 +2,7 @@ import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import { localDate } from '../datetime/localDate.js'
 import { localTime } from '../datetime/localTime.js'
+import { _numberEnumValues } from '../enum.util.js'
 import { _stringify } from '../string/stringify.js'
 import type { BaseDBEntity, Branded, IsoDate, IsoDateTime, UnixTimestamp } from '../types.js'
 import { z } from '../zod/index.js'
@@ -500,5 +501,134 @@ describe('optional', () => {
       // eslint-disable-next-line vitest/valid-expect
       expect(err, _stringify(test)).toBeNull()
     })
+  })
+})
+
+describe('nullable', () => {
+  test('should correctly infer the type of nullable fields', () => {
+    type BPM = Branded<number, 'BPM'>
+    interface Foo {
+      num: number | null
+      str: string | null
+      arr: string[] | null
+      arr2: (string | null)[]
+      brand: BPM | null
+    }
+    const schema = j.object({
+      num: j.number().nullable(),
+      str: j.string().nullable(),
+      arr: j.array(j.string()).nullable(),
+      arr2: j.array(j.string().nullable()),
+      brand: j.number().branded<BPM>().nullable(),
+    })
+
+    const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
+
+    // oxlint-disable-next-line no-unused-expressions
+    result satisfies Foo
+  })
+
+  test('should correctly accept null values', () => {
+    const schema = j.object({
+      num: j.number().nullable(),
+      str: j.string().nullable(),
+      arr: j.array(j.string()).nullable(),
+      arr2: j.array(j.string().nullable()),
+    })
+
+    const [err] = AjvSchema.create(schema.build()).getValidationResult({
+      num: null,
+      str: null,
+      arr: null,
+      arr2: [null],
+    } as any)
+
+    expect(err).toBeNull()
+  })
+})
+
+describe('oneOf', () => {
+  test('should correctly infer the type of its constituents', () => {
+    interface Foo {
+      foo: string | null
+    }
+    const schema = j.object({
+      foo: j.oneOf([j.string(), j.null()]),
+    })
+
+    const [, result] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: null,
+    })
+
+    // oxlint-disable-next-line no-unused-expressions
+    result satisfies Foo
+  })
+
+  test('should accept any of the listed types', () => {
+    const schema = j.object({
+      foo: j.oneOf([j.string(), j.null()]),
+      bar: j.oneOf([j.number(), j.null()]),
+      arr: j.array(j.oneOf([j.string(), j.number()])),
+    })
+
+    const [err] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: null,
+      bar: null,
+      arr: ['foo', 1, 'bar', 2],
+    })
+
+    expect(err).toBeNull()
+  })
+})
+
+describe('const', () => {
+  test('should correctly infer the type', () => {
+    enum Bar {
+      FOO = 1,
+      BAR = 2,
+    }
+    interface Foo {
+      foo: Bar.FOO
+      bar: Bar
+      n: null
+    }
+    const schema = j.object({
+      foo: j.const(Bar.FOO),
+      bar: j.enum(_numberEnumValues(Bar)),
+      n: j.const(null),
+    })
+
+    const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
+
+    // oxlint-disable-next-line no-unused-expressions
+    result satisfies Foo
+  })
+
+  test('should accept only the given value', () => {
+    const schema = j.object({
+      foo: j.const(1),
+      n: j.const(null),
+    })
+
+    const [err] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: 1,
+      n: null,
+    } as any)
+
+    expect(err).toBeNull()
+
+    const [err1] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: 2,
+      n: null,
+    } as any)
+
+    expect(err1).not.toBeNull()
+
+    const [err2] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: 1,
+      n: 1,
+    } as any)
+
+    expect(err2).not.toBeNull()
   })
 })

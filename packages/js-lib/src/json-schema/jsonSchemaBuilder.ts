@@ -1,7 +1,15 @@
 import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
-import type { AnyObject, BaseDBEntity, IsoDate, IsoDateTime, UnixTimestamp } from '../types.js'
+import {
+  type AnyObject,
+  type BaseDBEntity,
+  type IsoDate,
+  type IsoDateTime,
+  JWT_REGEX,
+  type JWTString,
+  type UnixTimestamp,
+} from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
   JsonSchema,
@@ -35,7 +43,7 @@ export const j = {
   any<T = unknown>() {
     return new JsonSchemaAnyBuilder<T, JsonSchemaAny<T>>({})
   },
-  const<T = unknown>(value: T) {
+  const<T extends string | number | boolean | null>(value: T) {
     return new JsonSchemaAnyBuilder<T, JsonSchemaConst<T>>({
       const: value,
     })
@@ -82,6 +90,9 @@ export const j = {
   string<T extends string = string>() {
     return new JsonSchemaStringBuilder<T>()
   },
+  jwt() {
+    return new JsonSchemaStringBuilder<JWTString>().jwt()
+  },
 
   /**
    * Accepts only the `YYYY-MM-DD` shape from all ISO 8601 variants.
@@ -122,10 +133,15 @@ export const j = {
   tuple<T extends any[] = unknown[]>(items: JsonSchemaAnyBuilder[]) {
     return new JsonSchemaTupleBuilder<T>(items)
   },
-  oneOf<T = unknown>(items: JsonSchemaAnyBuilder[]) {
-    return new JsonSchemaAnyBuilder<T, JsonSchemaOneOf<T>>({
+  oneOf<Builders extends JsonSchemaAnyBuilder<any, any, any>[]>(
+    items: [...Builders],
+  ): JsonSchemaAnyBuilder<
+    Builders[number] extends JsonSchemaAnyBuilder<infer U, any, any> ? U : never,
+    JsonSchemaOneOf<Builders[number] extends JsonSchemaAnyBuilder<infer U, any, any> ? U : never>
+  > {
+    return new JsonSchemaAnyBuilder({
       oneOf: items.map(b => b.build()),
-    })
+    }) as any
   },
   allOf<T = unknown>(items: JsonSchemaAnyBuilder[]) {
     return new JsonSchemaAnyBuilder<T, JsonSchemaAllOf<T>>({
@@ -134,8 +150,11 @@ export const j = {
   },
 }
 
-export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T> = JsonSchema<T>>
-  implements JsonSchemaBuilder<T>
+export class JsonSchemaAnyBuilder<
+  T = unknown,
+  SCHEMA_TYPE extends JsonSchema<T> = JsonSchema<T>,
+  Opt extends boolean = false,
+> implements JsonSchemaBuilder<T>
 {
   constructor(protected schema: SCHEMA_TYPE) {}
 
@@ -186,33 +205,29 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
     return this
   }
 
-  oneOf(schemas: JsonSchema[]): this {
-    Object.assign(this.schema, { oneOf: schemas })
-    return this
-  }
-
-  allOf(schemas: JsonSchema[]): this {
-    Object.assign(this.schema, { allOf: schemas })
-    return this
-  }
-
   instanceof(of: string): this {
     this.schema.instanceof = of
     return this
   }
 
-  optional(): JsonSchemaAnyBuilder<T | undefined, JsonSchema<T | undefined>>
-  optional(optional: true): JsonSchemaAnyBuilder<T | undefined, JsonSchema<T | undefined>>
+  optional(): JsonSchemaAnyBuilder<T | undefined, JsonSchema<T | undefined>, true>
+  optional(optional: true): JsonSchemaAnyBuilder<T | undefined, JsonSchema<T | undefined>, true>
   optional(
     optional: false,
-  ): JsonSchemaAnyBuilder<Exclude<T, undefined>, JsonSchema<Exclude<T, undefined>>>
-  optional(optional = true): JsonSchemaAnyBuilder<any, JsonSchema<any>> {
+  ): JsonSchemaAnyBuilder<Exclude<T, undefined>, JsonSchema<Exclude<T, undefined>>, false>
+  optional(optional = true): JsonSchemaAnyBuilder<any, JsonSchema<any>, false> {
     if (optional) {
       this.schema.optionalField = true
     } else {
       this.schema.optionalField = undefined
     }
     return this
+  }
+
+  nullable(): JsonSchemaAnyBuilder<T | null, JsonSchema<T | null>, Opt> {
+    return new JsonSchemaAnyBuilder<T | null, JsonSchema<T | null>, Opt>({
+      anyOf: [this.build(), { type: 'null' }],
+    })
   }
 
   /**
@@ -223,8 +238,8 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
     return _sortObject(JSON.parse(JSON.stringify(this.schema)), JSON_SCHEMA_ORDER)
   }
 
-  clone(): JsonSchemaAnyBuilder<T, SCHEMA_TYPE> {
-    return new JsonSchemaAnyBuilder<T, SCHEMA_TYPE>(_deepCopy(this.schema))
+  clone(): JsonSchemaAnyBuilder<T, SCHEMA_TYPE, Opt> {
+    return new JsonSchemaAnyBuilder<T, SCHEMA_TYPE, Opt>(_deepCopy(this.schema))
   }
 
   /**
@@ -233,10 +248,10 @@ export class JsonSchemaAnyBuilder<T = unknown, SCHEMA_TYPE extends JsonSchema<T>
   infer!: T
 }
 
-export class JsonSchemaNumberBuilder<T extends number = number> extends JsonSchemaAnyBuilder<
-  T,
-  JsonSchemaNumber<T>
-> {
+export class JsonSchemaNumberBuilder<
+  T extends number = number,
+  Opt extends boolean = false,
+> extends JsonSchemaAnyBuilder<T, JsonSchemaNumber<T>, Opt> {
   constructor() {
     super({
       type: 'number',
@@ -306,10 +321,10 @@ export class JsonSchemaNumberBuilder<T extends number = number> extends JsonSche
   }
 }
 
-export class JsonSchemaStringBuilder<T extends string = string> extends JsonSchemaAnyBuilder<
-  T,
-  JsonSchemaString<T>
-> {
+export class JsonSchemaStringBuilder<
+  T extends string = string,
+  Opt extends boolean = false,
+> extends JsonSchemaAnyBuilder<T, JsonSchemaString<T>, Opt> {
   constructor() {
     super({
       type: 'string',
@@ -380,6 +395,10 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
     return this.format('IsoDateTime').branded<IsoDateTime>().description('IsoDateTime')
   }
 
+  jwt(): this {
+    return this.regex(JWT_REGEX)
+  }
+
   private transformModify(t: 'trim' | 'toLowerCase' | 'toUpperCase', add: boolean): this {
     if (add) {
       this.schema.transform = _uniq([...(this.schema.transform || []), t])
@@ -393,10 +412,10 @@ export class JsonSchemaStringBuilder<T extends string = string> extends JsonSche
   // contentEncoding?: string
 }
 
-export class JsonSchemaObjectBuilder<T extends AnyObject> extends JsonSchemaAnyBuilder<
-  T,
-  JsonSchemaObject<T>
-> {
+export class JsonSchemaObjectBuilder<
+  T extends AnyObject,
+  Opt extends boolean = false,
+> extends JsonSchemaAnyBuilder<T, JsonSchemaObject<T>, Opt> {
   constructor() {
     super({
       type: 'object',
@@ -460,17 +479,20 @@ export class JsonSchemaObjectBuilder<T extends AnyObject> extends JsonSchemaAnyB
     return this.addRequired(['id', 'created', 'updated']) as any
   }
 
-  extend<T2 extends AnyObject>(s2: JsonSchemaObjectBuilder<T2>): JsonSchemaObjectBuilder<T & T2> {
-    const builder = new JsonSchemaObjectBuilder<T & T2>()
+  extend<T2 extends AnyObject>(
+    s2: JsonSchemaObjectBuilder<T2>,
+  ): JsonSchemaObjectBuilder<T & T2 extends infer O ? { [K in keyof O]: O[K] } : never> {
+    const builder = new JsonSchemaObjectBuilder<any>()
     Object.assign(builder.schema, _deepCopy(this.schema))
     mergeJsonSchemaObjects(builder.schema, s2.schema)
     return builder
   }
 }
 
-export class JsonSchemaArrayBuilder<ITEM> extends JsonSchemaAnyBuilder<
+export class JsonSchemaArrayBuilder<ITEM, Opt extends boolean = false> extends JsonSchemaAnyBuilder<
   ITEM[],
-  JsonSchemaArray<ITEM>
+  JsonSchemaArray<ITEM>,
+  Opt
 > {
   constructor(itemsSchema: JsonSchemaBuilder<ITEM>) {
     super({
@@ -509,16 +531,25 @@ export class JsonSchemaTupleBuilder<T extends any[]> extends JsonSchemaAnyBuilde
   }
 }
 
-// TODO and Notes
-// The issue is that in `j` we mix two approaches:
-// 1) the builder driven approach
-// 2) the type driven approach.
-
-function object<P extends Record<string, JsonSchemaAnyBuilder<any, any>>>(
+function object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
   props: P,
-): JsonSchemaObjectBuilder<{
-  [K in keyof P]: P[K] extends JsonSchemaAnyBuilder<infer U, any> ? U : never
-}>
+): JsonSchemaObjectBuilder<
+  {
+    [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer Opt>
+      ? Opt extends true
+        ? never
+        : K
+      : never]: P[K] extends JsonSchemaAnyBuilder<infer U, any, any> ? U : never
+  } & {
+    [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer Opt>
+      ? Opt extends true
+        ? K
+        : never
+      : never]?: P[K] extends JsonSchemaAnyBuilder<infer U, any, any> ? U : never
+  } extends infer O
+    ? { [K in keyof O]: O[K] }
+    : never
+>
 function object<T extends AnyObject>(props: {
   [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
 }): JsonSchemaObjectBuilder<T>
