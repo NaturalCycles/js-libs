@@ -2,7 +2,7 @@ import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import { localDate } from '../datetime/localDate.js'
 import { localTime } from '../datetime/localTime.js'
-import { _numberEnumValues } from '../enum.util.js'
+import { _numberEnumValues, _stringEnumValues } from '../enum.util.js'
 import { _stringify } from '../string/stringify.js'
 import type { BaseDBEntity, Branded, IsoDate, IsoDateTime, UnixTimestamp } from '../types.js'
 import { z } from '../zod/index.js'
@@ -24,8 +24,8 @@ interface Address {
 // interface AddressBM extends Address, BaseDBEntity {}
 
 const addressJsonSchema = j.rootObject<Address>({
-  createdAt: j.unixTimestamp2000(),
-  createdDate: j.isoDate(),
+  createdAt: j.integer().unixTimestamp2000(),
+  createdDate: j.string().isoDate(),
   countryCode: j.string().countryCode(),
   zip: j.string().length(1, 40),
   city: j.string(),
@@ -59,8 +59,8 @@ const addressBMJsonSchema2 = j
 const addressBMJsonSchema3 = addressJsonSchema.extend(
   j.object<BaseDBEntity>({
     id: j.string(),
-    created: j.unixTimestamp2000(),
-    updated: j.unixTimestamp2000(),
+    created: j.integer().unixTimestamp2000(),
+    updated: j.integer().unixTimestamp2000(),
   }),
 )
 
@@ -630,5 +630,134 @@ describe('const', () => {
     } as any)
 
     expect(err2).not.toBeNull()
+  })
+})
+
+describe('enum', () => {
+  describe('receiving StringEnum object', () => {
+    test('should infer the type properly', () => {
+      enum StringFoo {
+        MAD_HATTER = 'mad hatter',
+        MARCH_HARE = 'march hare',
+      }
+      interface Foo {
+        en: StringFoo
+      }
+      const schema = j.object({
+        en: j.enum(StringFoo),
+      })
+
+      const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
+
+      // oxlint-disable-next-line no-unused-expressions
+      result satisfies Foo
+    })
+
+    test('should accept the listed values', () => {
+      enum StringFoo {
+        MAD_HATTER = 'mad hatter',
+        MARCH_HARE = 'march hare',
+      }
+      const schema = j.object({
+        en: j.enum(StringFoo),
+      })
+
+      _stringEnumValues(StringFoo).forEach(value => {
+        const [err] = AjvSchema.create(schema.build()).getValidationResult({
+          en: value,
+        } as any)
+
+        // eslint-disable-next-line vitest/valid-expect
+        expect(err, value).toBeNull()
+      })
+
+      const [err] = AjvSchema.create(schema.build()).getValidationResult({
+        en: 'queen of hearts',
+      } as any)
+
+      expect(err).not.toBeNull()
+    })
+  })
+
+  describe('receiving NumberEnum object', () => {
+    test('should infer the type properly', () => {
+      enum NumFoo {
+        THE_DODO = 1,
+        THE_CHESIRE_CAT = 2,
+      }
+      interface Foo {
+        en: NumFoo
+      }
+      const schema = j.object({
+        en: j.enum(NumFoo),
+      })
+
+      const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
+
+      // oxlint-disable-next-line no-unused-expressions
+      result satisfies Foo
+    })
+
+    test('should accept the listed values', () => {
+      enum NumFoo {
+        THE_DODO = 1,
+        THE_CHESIRE_CAT = 2,
+      }
+      const schema = j.object({
+        en: j.enum(NumFoo),
+      })
+
+      _numberEnumValues(NumFoo).forEach(value => {
+        const [err] = AjvSchema.create(schema.build()).getValidationResult({
+          en: value,
+        } as any)
+
+        // eslint-disable-next-line vitest/valid-expect
+        expect(err, String(value)).toBeNull()
+      })
+
+      const [err] = AjvSchema.create(schema.build()).getValidationResult({
+        en: 3,
+      } as any)
+
+      expect(err).not.toBeNull()
+    })
+  })
+
+  describe('receiving an array of values', () => {
+    test('should infer the type properly', () => {
+      const schema = j.object({
+        en: j.enum(['a', 'b', 1]),
+      })
+
+      const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
+
+      // oxlint-disable-next-line no-unused-expressions
+      result satisfies { en: 'a' | 'b' | 1 }
+    })
+
+    test('should accept the listed values', () => {
+      const values = ['a', 'b', 1]
+      const schema = j.object({
+        en: j.enum(values),
+      })
+
+      values.forEach(value => {
+        const [err] = AjvSchema.create(schema.build()).getValidationResult({
+          en: value,
+        } as any)
+
+        // eslint-disable-next-line vitest/valid-expect
+        expect(err, String(value)).toBeNull()
+      })
+      ;['c', 2].forEach(value => {
+        const [err] = AjvSchema.create(schema.build()).getValidationResult({
+          en: value,
+        } as any)
+
+        // eslint-disable-next-line vitest/valid-expect
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
   })
 })

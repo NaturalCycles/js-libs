@@ -20,13 +20,13 @@ exports[`addressBMJsonSchema 1`] = `
     },
     "created": {
       "description": "UnixTimestamp2000",
-      "format": "unixTimestamp2000",
-      "type": "number",
+      "format": "UnixTimestamp2000",
+      "type": "integer",
     },
     "createdAt": {
       "description": "UnixTimestamp2000",
-      "format": "unixTimestamp2000",
-      "type": "number",
+      "format": "UnixTimestamp2000",
+      "type": "integer",
     },
     "createdDate": {
       "description": "IsoDate",
@@ -44,8 +44,8 @@ exports[`addressBMJsonSchema 1`] = `
     },
     "updated": {
       "description": "UnixTimestamp2000",
-      "format": "unixTimestamp2000",
-      "type": "number",
+      "format": "UnixTimestamp2000",
+      "type": "integer",
     },
     "zip": {
       "maxLength": 40,
@@ -88,8 +88,8 @@ exports[`addressSchema 1`] = `
     },
     "createdAt": {
       "description": "UnixTimestamp2000",
-      "format": "unixTimestamp2000",
-      "type": "number",
+      "format": "UnixTimestamp2000",
+      "type": "integer",
     },
     "createdDate": {
       "description": "IsoDate",

@@ -1,4 +1,34 @@
-import type { NumberEnum, StringEnum } from './types.js'
+import type { AnyObject, NumberEnum, StringEnum } from './types.js'
+
+export function isNumberEnum(en: AnyObject): en is NumberEnum {
+  /*
+   * enum Foo { A = 1, B = 2 }
+   * becomes
+   * { "1": "A", "2": "B", "A": 1, "B": 2}
+   */
+
+  return Object.values(en).every(value => {
+    const isValueString = isNaN(Number(value))
+    const isValueNumber = !isValueString
+
+    if (isValueNumber) {
+      return en[value] !== undefined
+    }
+
+    if (isValueString) {
+      return !isNaN(Number(en[value]))
+    }
+  })
+}
+
+export function isStringEnum(en: AnyObject): en is StringEnum {
+  /*
+   * enum Foo { A = "K1", B = "K2" }
+   * becomes
+   * { "K1": "A", "K2": "B", "A": 1, "B": 2}
+   */
+  return Object.values(en).every(value => isNaN(Number(value)))
+}
 
 /**
  * Returns all String keys of a number-enum.
