@@ -1,5 +1,6 @@
 {
   "plugins": ["unicorn", "typescript", "oxc", "import", "jsdoc", "vitest", "promise", "node"],
+  "jsPlugins": null,
   "categories": {},
   "rules": {
     "curly": ["deny", ["multi-line"]],
