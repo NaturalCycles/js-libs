@@ -8,11 +8,14 @@ import type { JsonSchema, JsonSchemaBuilder } from '@naturalcycles/js-lib/json-s
 import { JsonSchemaAnyBuilder } from '@naturalcycles/js-lib/json-schema'
 import { _deepCopy, _filterNullishValues } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { z, ZodType } from '@naturalcycles/js-lib/zod'
 import type { Ajv } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
 import { AjvValidationError } from './ajvValidationError.js'
 import { getAjv } from './getAjv.js'
+
+export type SchemaHandledByAjv<T> = JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T> | ZodType<T>
 
 export interface AjvValidationOptions {
   /**
@@ -104,32 +107,44 @@ export class AjvSchema<T = unknown> {
    * Implementation note: JsonSchemaBuilder goes first in the union type, otherwise TypeScript fails to infer <T> type
    * correctly for some reason.
    */
-  static create<T>(
-    schema: JsonSchemaBuilder<T> | JsonSchema<T> | AjvSchema<T> | ZodType<T>,
-    cfg?: Partial<AjvSchemaCfg>,
-  ): AjvSchema<T> {
+  static create<T>(schema: SchemaHandledByAjv<T>, cfg?: Partial<AjvSchemaCfg>): AjvSchema<T> {
     if (schema instanceof AjvSchema) return schema
-    if (schema instanceof JsonSchemaAnyBuilder) {
-      return new AjvSchema<T>(schema.build(), cfg)
+
+    if (AjvSchema.isSchemaWithCachedAjvSchema<typeof schema, T>(schema)) {
+      return AjvSchema.requireCachedAjvSchema<typeof schema, T>(schema)
     }
-    if (schema instanceof ZodType) return AjvSchema.createFromZod(schema)
-    return new AjvSchema<T>(schema as JsonSchema<T>, cfg)
+
+    let jsonSchema: JsonSchema<T>
+
+    if (AjvSchema.isJsonSchemaBuilder(schema)) {
+      jsonSchema = schema.build()
+    } else if (AjvSchema.isZodSchema(schema)) {
+      jsonSchema = z.toJSONSchema(schema, { target: 'draft-7' }) as JsonSchema<T>
+    } else {
+      jsonSchema = schema
+    }
+
+    const ajvSchema = new AjvSchema<T>(jsonSchema, cfg)
+    AjvSchema.cacheAjvSchema(schema, ajvSchema)
+
+    return ajvSchema
   }
 
   /**
-   * @experimental
+   * @deprecated
+   *
+   * Use `AjvSchema.create`
    */
   static createFromZod<T>(zodSchema: ZodType<T>, cfg?: Partial<AjvSchemaCfg>): AjvSchema<T> {
-    if (AjvSchema.isZodSchemaWithAjvSchema(zodSchema)) {
-      return AjvSchema.requireCachedAjvSchemaFromZodSchema(zodSchema)
-    }
+    return AjvSchema.create(zodSchema, cfg)
+  }
 
-    const jsonSchema = z.toJSONSchema(zodSchema, { target: 'draft-7' })
-    const ajvSchema = new AjvSchema<T>(jsonSchema as JsonSchema<T>, cfg)
+  static isJsonSchemaBuilder<T>(schema: unknown): schema is JsonSchemaBuilder<T> {
+    return schema instanceof JsonSchemaAnyBuilder
+  }
 
-    AjvSchema.cacheAjvSchemaInZodSchema(zodSchema, ajvSchema)
-
-    return ajvSchema
+  static isZodSchema<T>(schema: unknown): schema is ZodType<T> {
+    return schema instanceof ZodType
   }
 
   readonly cfg: AjvSchemaCfg
@@ -208,19 +223,21 @@ export class AjvSchema<T = unknown> {
     }
   }
 
-  static isZodSchemaWithAjvSchema<T>(schema: ZodType<T>): schema is ZodTypeWithAjvSchema<T> {
-    return !!(schema as any)[HIDDEN_AJV_SCHEMA]
+  static isSchemaWithCachedAjvSchema<Base, T>(
+    schema: Base,
+  ): schema is WithCachedAjvSchema<Base, T> {
+    return !!(schema as any)?.[HIDDEN_AJV_SCHEMA]
   }
 
-  static cacheAjvSchemaInZodSchema<T>(
-    zodSchema: ZodType<T>,
+  static cacheAjvSchema<Base extends AnyObject, T>(
+    schema: Base,
     ajvSchema: AjvSchema<T>,
-  ): ZodTypeWithAjvSchema<T> {
-    return Object.assign(zodSchema, { [HIDDEN_AJV_SCHEMA]: ajvSchema })
+  ): WithCachedAjvSchema<Base, T> {
+    return Object.assign(schema, { [HIDDEN_AJV_SCHEMA]: ajvSchema })
   }
 
-  static requireCachedAjvSchemaFromZodSchema<T>(zodSchema: ZodTypeWithAjvSchema<T>): AjvSchema<T> {
-    return zodSchema[HIDDEN_AJV_SCHEMA]
+  static requireCachedAjvSchema<Base, T>(schema: WithCachedAjvSchema<Base, T>): AjvSchema<T> {
+    return schema[HIDDEN_AJV_SCHEMA]
   }
 
   private getAJVValidateFunction = _lazyValue(() => this.cfg.ajv.compile<T>(this.schema))
@@ -230,6 +247,6 @@ const separator = '\n'
 
 export const HIDDEN_AJV_SCHEMA = Symbol('HIDDEN_AJV_SCHEMA')
 
-export interface ZodTypeWithAjvSchema<T> extends ZodType<T> {
+export type WithCachedAjvSchema<Base, T> = Base & {
   [HIDDEN_AJV_SCHEMA]: AjvSchema<T>
 }

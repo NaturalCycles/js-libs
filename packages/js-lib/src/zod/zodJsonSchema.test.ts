@@ -1,4 +1,4 @@
-import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { AjvSchema, HIDDEN_AJV_SCHEMA } from '@naturalcycles/nodejs-lib/ajv'
 import { expect, test } from 'vitest'
 import { _stringify } from '../string/stringify.js'
 import type { UnixTimestamp } from '../types.js'
@@ -78,6 +78,7 @@ test('happy case (just zod)', () => {
 })
 
 test('account json schema', () => {
+  delete (accountJsonSchema as any)[HIDDEN_AJV_SCHEMA]
   expect(accountJsonSchema).toMatchInlineSnapshot(`
     {
       "$schema": "http://json-schema.org/draft-07/schema#",
