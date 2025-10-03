@@ -1,5 +1,6 @@
 import { _uniq } from '../array/array.util.js'
-import { _numberEnumValues, _stringEnumValues, isNumberEnum, isStringEnum } from '../enum.util.js'
+import { _numberEnumValues, _stringEnumValues, getEnumType } from '../enum.util.js'
+import { _assert } from '../error/assert.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
 import {
@@ -63,21 +64,22 @@ export const j = {
   },
 
   enum<const T extends readonly (string | number | boolean | null)[] | StringEnum | NumberEnum>(
-    values: T,
+    input: T,
   ) {
     let enumValues: readonly (string | number | boolean | null)[] | undefined
 
-    if (Array.isArray(values)) {
-      enumValues = values
-    } else if (typeof values === 'object') {
-      if (isNumberEnum(values)) {
-        enumValues = _numberEnumValues(values)
-      } else if (isStringEnum(values)) {
-        enumValues = _stringEnumValues(values)
+    if (Array.isArray(input)) {
+      enumValues = input
+    } else if (typeof input === 'object') {
+      const enumType = getEnumType(input)
+      if (enumType === 'NumberEnum') {
+        enumValues = _numberEnumValues(input as NumberEnum)
+      } else if (enumType === 'StringEnum') {
+        enumValues = _stringEnumValues(input as StringEnum)
       }
     }
 
-    if (!enumValues) throw new TypeError('Unsupported enum input')
+    _assert(enumValues, 'Unsupported enum input')
 
     return new JsonSchemaAnyBuilder<
       T extends readonly (infer U)[]

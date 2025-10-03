@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test } from 'vitest'
+import { describe, expect, expectTypeOf, test } from 'vitest'
 import {
   _numberEnumAsMap,
   _numberEnumAsMapReversed,
@@ -20,6 +20,7 @@ import {
   _stringEnumKeyOrUndefined,
   _stringEnumKeys,
   _stringEnumValues,
+  getEnumType,
 } from './enum.util.js'
 
 enum MyNumberEnum {
@@ -210,4 +211,45 @@ test('_stringEnumKey', () => {
   ).toThrowErrorMatchingInlineSnapshot(`[Error: _stringEnumKey not found for: non-existing]`)
   expect(_stringEnumKeyOrUndefined(MyStringEnum, 'K1_VALUE')).toBe('K1_KEY')
   expect(_stringEnumKey(MyStringEnum, 'K2_VALUE')).toBe('K2_KEY')
+})
+
+describe('getEnumType', () => {
+  test('should return "NumberEnum" for NumberEnum objects', () => {
+    enum Foo {
+      A = 1,
+      B = 2,
+      C = 3,
+    }
+
+    expect(getEnumType(Foo)).toBe('NumberEnum')
+  })
+
+  test('should return "NumberEnum" for objects with only numeric values', () => {
+    expect(getEnumType({ a: 1, b: 2 })).toBe('NumberEnum')
+  })
+
+  test('should return "StringEnum" for StringEnum objects', () => {
+    enum Foo {
+      A = 'a',
+      B = 'b',
+      C = 'c',
+    }
+
+    expect(getEnumType(Foo)).toBe('StringEnum')
+  })
+
+  test('should return "StringEnum" for objects with only string values', () => {
+    expect(getEnumType({ a: 'a', b: 'b' })).toBe('StringEnum')
+  })
+
+  test('should return "undefined" for empty enums', () => {
+    enum Foo {}
+
+    expect(getEnumType(Foo)).toBeUndefined()
+  })
+
+  const testCases = [{}, { a: [1] }, { a: 1, b: 'b' }]
+  test.each(testCases)('should return "undefined" for other objects: %s', value => {
+    expect(getEnumType(value)).toBeUndefined()
+  })
 })

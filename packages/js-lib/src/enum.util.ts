@@ -1,32 +1,35 @@
 import type { AnyObject, NumberEnum, StringEnum } from './types.js'
 
-export function isNumberEnum(en: AnyObject): en is NumberEnum {
+export function getEnumType(en: AnyObject): 'StringEnum' | 'NumberEnum' | undefined {
   /*
    * enum Foo { A = 1, B = 2 }
    * becomes
    * { "1": "A", "2": "B", "A": 1, "B": 2}
-   */
-
-  return Object.entries(en).every(([key, value]) => {
-    // A numeric value as expected
-    if (typeof value === 'number') return true
-
-    // A backlink produced by TS
-    if (typeof value === 'string') {
-      return String(en[value]) === key
-    }
-
-    return false
-  })
-}
-
-export function isStringEnum(en: AnyObject): en is StringEnum {
-  /*
+   *
    * enum Foo { A = "V1", B = "V2" }
    * becomes
    * { "V1": "A", "V2": "B", "A": "V1", "B": "V2"}
    */
-  return Object.values(en).every(value => typeof value === 'string')
+
+  const entries = Object.entries(en)
+  if (!entries.length) return
+
+  const [, value] = entries.pop()!
+
+  let isNumberEnum = typeof value === 'number'
+  let isStringEnum = typeof value === 'string'
+
+  for (const [key, value] of entries) {
+    const isValueNumber = typeof value === 'number'
+    const isValueString = typeof value === 'string'
+
+    isStringEnum &&= isValueString
+    isNumberEnum &&= isValueNumber || String(en[value]) === key
+    if (!isStringEnum && !isNumberEnum) break
+  }
+
+  if (isNumberEnum) return 'NumberEnum'
+  if (isStringEnum) return 'StringEnum'
 }
 
 /**
