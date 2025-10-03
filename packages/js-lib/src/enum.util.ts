@@ -7,27 +7,26 @@ export function isNumberEnum(en: AnyObject): en is NumberEnum {
    * { "1": "A", "2": "B", "A": 1, "B": 2}
    */
 
-  return Object.values(en).every(value => {
-    const isValueString = isNaN(Number(value))
-    const isValueNumber = !isValueString
+  return Object.entries(en).every(([key, value]) => {
+    // A numeric value as expected
+    if (typeof value === 'number') return true
 
-    if (isValueNumber) {
-      return en[value] !== undefined
+    // A backlink produced by TS
+    if (typeof value === 'string') {
+      return String(en[value]) === key
     }
 
-    if (isValueString) {
-      return !isNaN(Number(en[value]))
-    }
+    return false
   })
 }
 
 export function isStringEnum(en: AnyObject): en is StringEnum {
   /*
-   * enum Foo { A = "K1", B = "K2" }
+   * enum Foo { A = "V1", B = "V2" }
    * becomes
-   * { "K1": "A", "K2": "B", "A": 1, "B": 2}
+   * { "V1": "A", "V2": "B", "A": "V1", "B": "V2"}
    */
-  return Object.values(en).every(value => isNaN(Number(value)))
+  return Object.values(en).every(value => typeof value === 'string')
 }
 
 /**
