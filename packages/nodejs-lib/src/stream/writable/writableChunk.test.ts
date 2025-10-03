@@ -3,7 +3,6 @@ import type { Predicate } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import { writableChunk } from './writableChunk.js'
-import { writablePushToArray } from './writablePushToArray.js'
 
 test('writableChunk', async () => {
   const splitPredicate: Predicate<number> = (_, i) => {
@@ -12,13 +11,9 @@ test('writableChunk', async () => {
   const arrays: number[][] = []
 
   await Pipeline.fromArray(_range(10)).to(
-    writableChunk({
-      splitPredicate,
-      writableFactory: _splitIndex => {
-        const array: number[] = []
-        arrays.push(array)
-        return writablePushToArray(array)
-      },
+    writableChunk(splitPredicate, async (pipeline, _splitIndex) => {
+      const array = await pipeline.toArray()
+      arrays.push(array)
     }),
   )
 

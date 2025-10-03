@@ -1,104 +1,91 @@
 import { Writable } from 'node:stream'
-import { _first, _last } from '@naturalcycles/js-lib/array'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
-import { _deepCopy } from '@naturalcycles/js-lib/object'
-import type { Predicate } from '@naturalcycles/js-lib/types'
-import {
-  transformNoOp,
-  type TransformOptions,
-  type TransformTyped,
-  type WritableTyped,
-} from '../index.js'
-
-export interface WritableChunkOptions<T> extends TransformOptions {
-  splitPredicate: Predicate<T>
-  transformFactories?: (() => TransformTyped<T, T>)[]
-  writableFactory: (splitIndex: number) => WritableTyped<T>
-}
+import { type DeferredPromise, pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
+import type { NonNegativeInteger, Predicate } from '@naturalcycles/js-lib/types'
+import { Pipeline } from '../pipeline.js'
+import { createReadable } from '../readable/createReadable.js'
+import type { ReadableTyped, TransformOptions, WritableTyped } from '../stream.model.js'
 
 /**
- * Allows to split the output to multiple files by splitting into chunks
- * based on `shouldSplitFn`.
- * `transformFactories` are used to create a chain of transforms for each chunk.
- * It was meant to be used with createGzip, which needs a proper start and end for each chunk
- * for the output file to be a valid gzip file.
+ * Allows to "split the stream" into chunks, and attach a new Pipeline to
+ * each of the chunks.
+ *
+ * Example use case: you want to write to Cloud Storage, 1000 rows per file,
+ * each file needs its own destination Pipeline.
+ *
+ * @experimental
  */
-export function writableChunk<T>(opt: WritableChunkOptions<T>): WritableTyped<T> {
-  const { highWaterMark, splitPredicate, transformFactories = [], writableFactory } = opt
+export function writableChunk<T>(
+  splitPredicate: Predicate<T>,
+  fn: (pipeline: Pipeline<T>, splitIndex: NonNegativeInteger) => Promise<void>,
+  opt: TransformOptions = {},
+): WritableTyped<T> {
+  const { objectMode = true, highWaterMark } = opt
   const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
-
   let indexWritten = 0
-  let currentSplitIndex = 0
-  // We don't want to have an empty chain, so we add a no-op transform
-  if (transformFactories.length === 0) {
-    transformFactories.push(transformNoOp<T>)
-  }
+  let splitIndex = 0
 
-  // Create the transforms as well as the Writable, and pipe them together
-  let currentWritable = writableFactory(currentSplitIndex)
-  let transforms = transformFactories.map(f => f())
-  generateTuples(transforms).forEach(([t1, t2]) => t1.pipe(t2))
-  _last(transforms).pipe(currentWritable)
-
-  // We keep track of all the pending writables, so we can await them in the final method
-  const writablesFinish: Promise<void>[] = [awaitFinish(currentWritable)]
+  let lock: DeferredPromise | undefined
+  let fork = createNewFork()
 
   return new Writable({
-    objectMode: true,
+    objectMode,
     highWaterMark,
-    write(chunk: T, _, cb) {
-      // pipe will take care of piping the data through the different streams correctly
-      transforms[0]!.write(chunk, cb)
+    async write(chunk: T, _, cb) {
+      if (lock) {
+        // Forked pipeline is locked - let's wait for it to call _read
+        await lock
+        // lock is undefined at this point
+      }
+
+      // pass to the "forked" pipeline
+      const shouldContinue = fork.push(chunk)
+      if (!shouldContinue && !lock) {
+        // Forked pipeline indicates that we should Pause
+        lock = pDefer()
+        logger.debug(`WritableChunk(${splitIndex}): pause`)
+      }
 
       if (splitPredicate(chunk, ++indexWritten)) {
-        logger.log(`writableChunk: splitting at index ${currentSplitIndex}`)
-        currentSplitIndex++
-        transforms[0]!.end()
-
-        currentWritable = writableFactory(currentSplitIndex)
-        transforms = transformFactories.map(f => f())
-        generateTuples(transforms).forEach(([t1, t2]) => t1.pipe(t2))
-        _last(transforms).pipe(currentWritable)
-
-        writablesFinish.push(awaitFinish(currentWritable))
+        logger.log(`WritableChunk(${splitIndex}): splitting to ${splitIndex + 1}`)
+        splitIndex++
+        fork.push(null)
+        lock?.resolve()
+        lock = undefined
+        fork = createNewFork()
       }
+
+      // acknowledge that we've finished processing the input chunk
+      cb()
     },
     async final(cb) {
-      try {
-        transforms[0]!.end()
-        await Promise.all(writablesFinish)
-        logger.log('writableChunk: all writables are finished')
-        cb()
-      } catch (err) {
-        cb(err as Error)
-      }
+      logger.log(`WritableChunk: final`)
+
+      // Pushing null "closes"/ends the secondary pipeline correctly
+      fork.push(null)
+
+      // Acknowledge that we've received `null` and passed it through to the fork
+      cb()
     },
   })
-}
 
-/**
- * This is a helper function to create a promise which resolves when the stream emits a 'finish'
- * event.
- * This is used to await all the writables in the final method of the writableChunk
- */
-async function awaitFinish(stream: Writable): Promise<void> {
-  return await new Promise(resolve => {
-    stream.on('finish', resolve)
-  })
-}
+  function createNewFork(): ReadableTyped<T> {
+    const currentSplitIndex = splitIndex
 
-/**
- * Generates an array of [arr[i], arr[i+1]] tuples from the input array.
- * The resulting array will have a length of `arr.length - 1`.
- * ```ts
- * generateTuples([1, 2, 3, 4]) // [[1, 2], [2, 3], [3, 4]]
- * ```
- */
-function generateTuples<T>(arr: T[]): [T, T][] {
-  const tuples: [T, T][] = []
-  const arrCopy = _deepCopy(arr)
-  for (let i = 1; i < arrCopy.length; i++) {
-    tuples.push([arrCopy[i - 1]!, arrCopy[i]!])
+    const readable = createReadable<T>([], {}, () => {
+      // `_read` is called
+      if (!lock) return
+      // We had a lock - let's Resume
+      logger.debug(`WritableChunk(${currentSplitIndex}): resume`)
+      const lockCopy = lock
+      lock = undefined
+      lockCopy.resolve()
+    })
+
+    void fn(Pipeline.from<T>(readable), currentSplitIndex).then(() => {
+      logger.log(`WritableChunk(${currentSplitIndex}): done`)
+    })
+
+    return readable
   }
-  return tuples
 }
