@@ -26,6 +26,7 @@ export default {
     'vitest/prefer-spy-on': 2,
     'vitest/prefer-strict-boolean-matchers': 2,
     'vitest/prefer-to-be': 2,
+    'vitest/prefer-called-exactly-once-with': 0, // todo: enable
     'vitest/prefer-to-contain': 2,
     'vitest/prefer-to-have-length': 2,
     'vitest/prefer-vi-mocked': 2,

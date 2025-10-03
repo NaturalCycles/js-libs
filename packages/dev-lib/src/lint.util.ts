@@ -181,7 +181,7 @@ export function runOxlint(fix = true): void {
     name: ['oxlint', !fix && '--no-fix'].filter(Boolean).join(' '),
     args: [
       // '--report-unused-disable-directives',
-      '--max-warnings=1',
+      '--max-warnings=0',
       fix && '--fix',
       fix && '--fix-suggestions',
       fix && '--fix-dangerously',
