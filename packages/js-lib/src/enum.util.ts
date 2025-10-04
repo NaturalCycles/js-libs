@@ -1,4 +1,36 @@
-import type { NumberEnum, StringEnum } from './types.js'
+import type { AnyObject, NumberEnum, StringEnum } from './types.js'
+
+export function getEnumType(en: AnyObject): 'StringEnum' | 'NumberEnum' | undefined {
+  /*
+   * enum Foo { A = 1, B = 2 }
+   * becomes
+   * { "1": "A", "2": "B", "A": 1, "B": 2}
+   *
+   * enum Foo { A = "V1", B = "V2" }
+   * becomes
+   * { "V1": "A", "V2": "B", "A": "V1", "B": "V2"}
+   */
+
+  const entries = Object.entries(en)
+  if (!entries.length) return
+
+  const [, value] = entries.pop()!
+
+  let isNumberEnum = typeof value === 'number'
+  let isStringEnum = typeof value === 'string'
+
+  for (const [key, value] of entries) {
+    const isValueNumber = typeof value === 'number'
+    const isValueString = typeof value === 'string'
+
+    isStringEnum &&= isValueString
+    isNumberEnum &&= isValueNumber || String(en[value]) === key
+    if (!isStringEnum && !isNumberEnum) break
+  }
+
+  if (isNumberEnum) return 'NumberEnum'
+  if (isStringEnum) return 'StringEnum'
+}
 
 /**
  * Returns all String keys of a number-enum.

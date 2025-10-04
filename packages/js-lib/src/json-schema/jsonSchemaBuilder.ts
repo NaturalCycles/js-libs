@@ -1,4 +1,6 @@
 import { _uniq } from '../array/array.util.js'
+import { _numberEnumValues, _stringEnumValues, getEnumType } from '../enum.util.js'
+import { _assert } from '../error/assert.js'
 import { _deepCopy } from '../object/object.util.js'
 import { _sortObject } from '../object/sortObject.js'
 import {
@@ -7,8 +9,10 @@ import {
   type IsoDate,
   type IsoDateTime,
   JWT_REGEX,
-  type JWTString,
+  type NumberEnum,
+  type StringEnum,
   type UnixTimestamp,
+  type UnixTimestampMillis,
 } from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 import type {
@@ -58,9 +62,39 @@ export const j = {
       $ref,
     })
   },
-  enum<T = unknown>(enumValues: T[]) {
-    return new JsonSchemaAnyBuilder<T, JsonSchemaEnum<T>>({ enum: enumValues })
+
+  enum<const T extends readonly (string | number | boolean | null)[] | StringEnum | NumberEnum>(
+    input: T,
+  ) {
+    let enumValues: readonly (string | number | boolean | null)[] | undefined
+
+    if (Array.isArray(input)) {
+      enumValues = input
+    } else if (typeof input === 'object') {
+      const enumType = getEnumType(input)
+      if (enumType === 'NumberEnum') {
+        enumValues = _numberEnumValues(input as NumberEnum)
+      } else if (enumType === 'StringEnum') {
+        enumValues = _stringEnumValues(input as StringEnum)
+      }
+    }
+
+    _assert(enumValues, 'Unsupported enum input')
+
+    return new JsonSchemaAnyBuilder<
+      T extends readonly (infer U)[]
+        ? U
+        : T extends StringEnum
+          ? T[keyof T]
+          : T extends NumberEnum
+            ? T[keyof T]
+            : never,
+      JsonSchemaEnum<any>
+    >({
+      enum: enumValues as any[],
+    })
   },
+
   boolean() {
     return new JsonSchemaAnyBuilder<boolean, JsonSchemaBoolean>({
       type: 'boolean',
@@ -79,45 +113,20 @@ export const j = {
   integer<T extends number = number>() {
     return new JsonSchemaNumberBuilder<T>().integer()
   },
-  unixTimestamp() {
-    return new JsonSchemaNumberBuilder<UnixTimestamp>().unixTimestamp()
-  },
-  unixTimestamp2000() {
-    return new JsonSchemaNumberBuilder<UnixTimestamp>().unixTimestamp2000()
-  },
 
   // string types
   string<T extends string = string>() {
     return new JsonSchemaStringBuilder<T>()
   },
-  jwt() {
-    return new JsonSchemaStringBuilder<JWTString>().jwt()
-  },
 
-  /**
-   * Accepts only the `YYYY-MM-DD` shape from all ISO 8601 variants.
-   */
-  isoDate() {
-    return new JsonSchemaStringBuilder<IsoDate>().isoDate()
-  },
-
-  /**
-   * Accepts strings that start with the `YYYY-MM-DDTHH:MM:SS` shape
-   * and optionally end with either a `Z` or a `+/-hh:mm` timezone part.
-   */
-  isoDateTime() {
-    return new JsonSchemaStringBuilder<IsoDateTime>().isoDateTime()
-  },
-
-  // email: () => new JsonSchemaStringBuilder().email(),
   // complex types
   object,
   dbEntity<T extends AnyObject>(props: T) {
     return j
       .object<BaseDBEntity>({
         id: j.string(),
-        created: j.unixTimestamp2000(),
-        updated: j.unixTimestamp2000(),
+        created: j.integer().unixTimestamp2000(),
+        updated: j.integer().unixTimestamp2000(),
       })
       .extend(j.object(props))
   },
@@ -305,13 +314,27 @@ export class JsonSchemaNumberBuilder<
   int64 = (): this => this.format('int64')
   float = (): this => this.format('float')
   double = (): this => this.format('double')
-  unixTimestamp = (): this => this.format('unixTimestamp').description('UnixTimestamp')
-  unixTimestamp2000 = (): this => this.format('unixTimestamp2000').description('UnixTimestamp2000')
-  unixTimestampMillis = (): this =>
-    this.format('unixTimestampMillis').description('UnixTimestampMillis')
 
-  unixTimestampMillis2000 = (): this =>
-    this.format('unixTimestampMillis2000').description('UnixTimestampMillis2000')
+  unixTimestamp = (): JsonSchemaNumberBuilder<UnixTimestamp> =>
+    this.integer().branded<UnixTimestamp>().format('unixTimestamp').description('UnixTimestamp')
+
+  unixTimestamp2000 = (): JsonSchemaNumberBuilder<UnixTimestamp> =>
+    this.integer()
+      .branded<UnixTimestamp>()
+      .format('unixTimestamp2000')
+      .description('UnixTimestamp2000')
+
+  unixTimestampMillis = (): JsonSchemaNumberBuilder<UnixTimestampMillis> =>
+    this.integer()
+      .branded<UnixTimestampMillis>()
+      .format('unixTimestampMillis')
+      .description('UnixTimestampMillis')
+
+  unixTimestampMillis2000 = (): JsonSchemaNumberBuilder<UnixTimestampMillis> =>
+    this.integer()
+      .branded<UnixTimestampMillis>()
+      .format('unixTimestampMillis2000')
+      .description('UnixTimestampMillis2000')
 
   utcOffset = (): this => this.format('utcOffset')
   utcOffsetHours = (): this => this.format('utcOffsetHours')
