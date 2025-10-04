@@ -63,7 +63,7 @@ export async function runTSCProd(args: string[] = []): Promise<void> {
   console.log(dimGrey(`   tsc src cache found: ${cacheFound}`))
 
   await exec2.spawnAsync(tscPath, {
-    args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', ...args],
+    args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', '--incremental', 'false', ...args],
     shell: false,
   })
 }
