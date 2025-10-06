@@ -20,7 +20,6 @@ export function _safeJsonStringify(
   }
 }
 
-/* eslint-disable no-bitwise, no-implicit-coercion */
 // oxlint-disable no-unused-expressions
 function serializer(replacer?: Reviver, cycleReplacer?: Reviver): Reviver {
   const stack: any[] = []
@@ -34,9 +33,15 @@ function serializer(replacer?: Reviver, cycleReplacer?: Reviver): Reviver {
   return function (key, value) {
     if (stack.length > 0) {
       const thisPos = stack.indexOf(this)
-      ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
-      ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
-      if (~stack.indexOf(value)) {
+      if (thisPos !== -1) {
+        stack.splice(thisPos + 1)
+        keys.splice(thisPos, Infinity, key)
+      } else {
+        stack.push(this)
+        keys.push(key)
+      }
+
+      if (stack.includes(value)) {
         value = cycleReplacer.call(this, key, value)
       }
     } else {

@@ -1,5 +1,3 @@
-/* eslint-disable no-bitwise */
-
 /**
  * Function that returns a random number between 0 and 1.
  * Exactly same signature as Math.random function.
@@ -13,6 +11,7 @@ export type RandomFunction = () => number
  */
 export function _createDeterministicRandom(seed = 0x2f6e2b1): RandomFunction {
   return () => {
+    // oxlint-disable no-bitwise
     // Robert Jenkins’ 32 bit integer hash function
     seed = (seed + 0x7ed55d16 + (seed << 12)) & 0xffffffff
     seed = (seed ^ 0xc761c23c ^ (seed >>> 19)) & 0xffffffff

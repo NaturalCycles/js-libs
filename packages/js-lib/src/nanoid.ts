@@ -4,8 +4,6 @@
 
 /// <reference lib="dom" preserve="true" />
 
-/* eslint-disable no-bitwise */
-
 // "0-9a-zA-Z-_", same as base64url alphabet
 const urlAlphabet = 'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict'
 
@@ -16,6 +14,7 @@ export type NanoidFunction = (length?: number) => string
 
 type NanoidRandomFunction = (bytes: number) => Uint8Array
 
+// oxlint-disable no-bitwise -- NanoID uses bit operations to build compact IDs
 export function nanoidBrowser(length = 21): string {
   let id = ''
   const bytes = globalThis.crypto.getRandomValues(new Uint8Array(length))

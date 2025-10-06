@@ -5,7 +5,7 @@ https://github.com/ai/nanoid/
 
  */
 
-/* eslint-disable */
+// oxlint-disable no-bitwise -- NanoID implementation relies on bitwise operations
 
 import { randomFillSync } from 'node:crypto'
 

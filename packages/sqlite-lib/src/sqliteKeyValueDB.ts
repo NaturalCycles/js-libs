@@ -74,7 +74,7 @@ export class SqliteKeyValueDB implements CommonKeyValueDB {
 
     this._db = await open({
       driver: sqlite3.Database,
-      // eslint-disable-next-line no-bitwise
+      // oxlint-disable-next-line no-bitwise
       mode: OPEN_READWRITE | OPEN_CREATE,
       ...this.cfg,
     })

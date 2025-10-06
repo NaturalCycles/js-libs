@@ -1,5 +1,7 @@
 import type { Integer } from '../types.js'
 
+// oxlint-disable no-bitwise -- hash implementations use bit-level operations for speed
+
 const BASE62 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 // const BASE64 = BASE62 + '+/'
 const BASE64URL = BASE62 + '-_'
@@ -54,7 +56,7 @@ export function hashCode(s: string): Integer {
   let i = 0
   const len = s.length
   while (i < len) {
-    // eslint-disable-next-line no-bitwise, unicorn/prefer-math-trunc, unicorn/prefer-code-point
+    // eslint-disable-next-line unicorn/prefer-math-trunc, unicorn/prefer-code-point
     hash = ((hash << 5) - hash + s.charCodeAt(i++)) << 0
   }
   return hash + 2147483647 + 1

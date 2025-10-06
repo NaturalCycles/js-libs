@@ -1,7 +1,8 @@
 const array: number[] = []
 const characterCodeCache: number[] = []
 
-/* eslint-disable unicorn/prefer-code-point, no-bitwise */
+/* eslint-disable unicorn/prefer-code-point */
+// oxlint-disable no-bitwise
 
 /**
  * Modified version of: https://github.com/sindresorhus/leven/
