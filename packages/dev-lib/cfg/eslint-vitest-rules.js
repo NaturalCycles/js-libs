@@ -30,6 +30,7 @@ export default {
     'vitest/prefer-to-contain': 2,
     'vitest/prefer-to-have-length': 2,
     'vitest/prefer-vi-mocked': 2,
+    'vitest/require-local-test-context-for-concurrent-snapshots': 0, // oxlint
     'vitest/require-to-throw-message': 2,
     'vitest/valid-title': 0, // noisy
     'vitest/valid-expect-in-promise': 2,

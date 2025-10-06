@@ -2,17 +2,7 @@ export default {
   rules: {
     '@typescript-eslint/adjacent-overload-signatures': 2,
     '@typescript-eslint/ban-ts-comment': 0,
-    'no-restricted-globals': [
-      2,
-      {
-        name: '__dirname',
-        message: '__dirname is not available in ESM. Use import.meta.dirname instead.',
-      },
-      {
-        name: '__filename',
-        message: '__filename is not available in ESM. Use import.meta.filename instead.',
-      },
-    ],
+    'no-restricted-globals': 0, // oxlint
     '@typescript-eslint/no-restricted-types': [
       2,
       {
@@ -208,22 +198,23 @@ export default {
     // 'import-x/extensions': [2, 'always'], // biome useImportExtensions
     'no-array-constructor': 0,
     'no-async-promise-executor': 2,
-    'no-bitwise': 2,
-    'no-caller': 2,
+    'no-bitwise': 0, // oxlint
+    'no-caller': 0, // oxlint
     'no-case-declarations': 2,
     'no-class-assign': 2,
     'no-compare-neg-zero': 2,
     'no-cond-assign': 2,
     'no-const-assign': 2,
     'no-constant-condition': 2,
-    'no-constant-binary-expression': 2,
+    'no-constant-binary-expression': 0, // oxlint
     'no-control-regex': 2,
     'no-debugger': 2,
     'no-delete-var': 2,
     'no-dupe-args': 2,
-    'no-dupe-else-if': 2,
+    'no-dupe-else-if': 0, // oxlint
     'no-dupe-keys': 2,
     'no-duplicate-case': 2,
+    'no-empty-static-block': 0, // oxlint
     'no-empty': [2, { allowEmptyCatch: true }],
     'no-empty-character-class': 2,
     'no-empty-function': 0,
@@ -242,9 +233,9 @@ export default {
     'no-global-assign': 2,
     'no-import-assign': 0, // used in some unit tests
     'no-inner-declarations': 2,
-    'no-invalid-regexp': 2,
+    'no-invalid-regexp': 0, // oxlint
     'no-invalid-this': 0, // too many false positives in valid classes
-    'no-irregular-whitespace': 2,
+    'no-irregular-whitespace': 0, // oxlint
     'no-misleading-character-class': 2,
     'no-new-symbol': 2,
     'no-obj-calls': 2,
@@ -283,7 +274,7 @@ export default {
     'no-setter-return': 2,
     'no-shadow': 0, // it is buggy with TypeScript enums
     'no-shadow-restricted-names': 2,
-    'no-sparse-arrays': 2,
+    'no-sparse-arrays': 0, // oxlint
     'no-this-before-super': 2,
     '@typescript-eslint/only-throw-error': 0, // biome
     'no-undef': 0, // covered by TS, conflicts with typescript-eslint
@@ -292,8 +283,10 @@ export default {
     'no-unsafe-finally': 2,
     'no-unsafe-negation': 2,
     'no-unused-labels': 2,
+    'no-unused-private-class-members': 0, // oxlint
+    'no-useless-backreference': 0, // oxlint
     'no-useless-catch': 2,
-    'no-useless-escape': 2,
+    'no-useless-escape': 0, // oxlint
     'no-useless-assignment': 2,
     'no-unneeded-ternary': 0, // oxlint
     'no-duplicate-imports': 0, // too many false-positives (with e.g import type + import on next line)
@@ -408,6 +401,22 @@ export default {
     'unicorn/prefer-query-selector': 0,
     'unicorn/prefer-prototype-methods': 0, // false-positive on node promisify() of callback functions
     'unicorn/expiring-todo-comments': 1, // warning, instead of error
+    'unicorn/no-await-in-promise-methods': 0, // oxlint
+    'unicorn/no-document-cookie': 0, // oxlint
+    'unicorn/no-empty-file': 0, // oxlint
+    'unicorn/no-invalid-fetch-options': 0, // oxlint
+    'unicorn/no-invalid-remove-event-listener': 0, // oxlint
+    'unicorn/no-magic-array-flat-depth': 0, // oxlint
+    'unicorn/no-new-array': 0, // oxlint
+    'unicorn/no-single-promise-in-promise-methods': 0, // oxlint
+    'unicorn/no-unnecessary-await': 0, // oxlint
+    'unicorn/no-useless-fallback-in-spread': 0, // oxlint
+    'unicorn/no-useless-length-check': 0, // oxlint
+    'unicorn/no-useless-spread': 0, // oxlint
+    'unicorn/prefer-array-find': 0, // oxlint
+    'unicorn/prefer-modern-math-apis': 0, // oxlint
+    'unicorn/prefer-set-size': 0, // oxlint
+    'unicorn/prefer-string-starts-ends-with': 0, // oxlint
     '@typescript-eslint/return-await': [2, 'always'],
     '@typescript-eslint/require-await': 0,
     'unicorn/no-array-reverse': 0, // too early
