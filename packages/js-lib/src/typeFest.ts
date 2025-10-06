@@ -198,6 +198,21 @@ export type ConditionalExcept<Base, Condition> = Except<Base, ConditionalKeys<Ba
 export type ConditionalPick<Base, Condition> = Pick<Base, ConditionalKeys<Base, Condition>>
 
 /**
+ Makes one property of T required instead of optional.
+ @example
+ ```
+ import {RequireProp} from 'type-fest';
+ interface Example {
+   a?: string
+   b?: string
+ };
+ type ExampleA = RequireProp<Example, 'a'>;
+ //=> {a: string; b?: string};
+ ```
+ */
+export type RequireProp<T, K extends keyof T> = Required<Pick<T, K>> & T
+
+/**
  Matches any [typed array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray), like `Uint8Array` or `Float64Array`.
  */
 export type TypedArray =
