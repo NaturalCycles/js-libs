@@ -34,7 +34,7 @@ test('defaults', () => {
         "credentials": undefined,
         "dispatcher": undefined,
         "headers": {
-          "user-agent": "fetcher/2",
+          "user-agent": "fetcher/3",
         },
         "method": "GET",
         "redirect": undefined,
@@ -79,7 +79,7 @@ test('defaults', () => {
         "dispatcher": undefined,
         "headers": {
           "accept": "application/json",
-          "user-agent": "fetcher/2",
+          "user-agent": "fetcher/3",
         },
         "method": "GET",
         "redirect": "follow",
@@ -426,13 +426,13 @@ test('should not mutate headers', async () => {
     {
       "a": "a",
       "accept": "application/json",
-      "user-agent": "fetcher/2",
+      "user-agent": "fetcher/3",
     }
   `)
   expect(a[1]).toMatchInlineSnapshot(`
     {
       "accept": "application/json",
-      "user-agent": "fetcher/2",
+      "user-agent": "fetcher/3",
     }
   `)
   expect(a[0]).not.toBe(a[1])
@@ -526,4 +526,23 @@ test('errorData', async () => {
     },
   })
   expect(err.data['b']).toBe('bb')
+})
+
+test('should allow to change user-agent', async () => {
+  let headers: any
+  vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(async (_url, init) => {
+    headers = init.headers
+    return new Response(JSON.stringify({ ok: 1 }))
+  })
+  const fetcher = getNonRetryFetcher()
+  const backup = Fetcher.userAgent
+  Fetcher.userAgent = 'abcd'
+
+  await fetcher.doFetch({
+    url: 'https://example.com',
+  })
+
+  expect(headers['user-agent']).toBe('abcd')
+
+  Fetcher.userAgent = backup
 })

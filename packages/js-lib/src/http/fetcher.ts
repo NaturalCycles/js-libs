@@ -56,22 +56,6 @@ import type {
 import type { HttpStatusFamily } from './http.model.js'
 import { HTTP_METHODS } from './http.model.js'
 
-const acceptByResponseType: Record<FetcherResponseType, string> = {
-  text: 'text/plain',
-  json: 'application/json',
-  void: '*/*',
-  readableStream: 'application/octet-stream',
-  arrayBuffer: 'application/octet-stream',
-  blob: 'application/octet-stream',
-}
-
-const defRetryOptions: FetcherRetryOptions = {
-  count: 2,
-  timeout: 1000,
-  timeoutMax: 30_000,
-  timeoutMultiplier: 2,
-}
-
 /**
  * Experimental wrapper around Fetch.
  * Works in both Browser and Node, using `globalThis.fetch`.
@@ -83,8 +67,12 @@ export class Fetcher {
    *
    * Version is to be incremented every time a difference in behaviour (or a bugfix) is done.
    */
-  static readonly VERSION = 2
-  static readonly userAgent = isServerSide() ? `fetcher/${this.VERSION}` : undefined
+  private static readonly VERSION = 3
+  /**
+   * userAgent is statically exposed as Fetcher.userAgent.
+   * It can be modified globally, and will be used (read) at the start of every request.
+   */
+  static userAgent = isServerSide() ? `fetcher/${this.VERSION}` : undefined
 
   private constructor(cfg: FetcherCfg & FetcherOptions = {}) {
     if (typeof globalThis.fetch !== 'function') {
@@ -750,7 +738,7 @@ export class Fetcher {
         logResponseBody: debug,
         logWithBaseUrl: isServerSide(),
         logWithSearchParams: true,
-        retry: { ...defRetryOptions },
+        retry: { ...defaultRetryOptions },
         init: {
           method: cfg.method || 'GET',
           headers: _filterNullishValues({
@@ -801,7 +789,10 @@ export class Fetcher {
       init: _merge(
         {
           ...this.cfg.init,
-          headers: { ...this.cfg.init.headers }, // this avoids mutation
+          headers: {
+            ...this.cfg.init.headers, // this avoids mutation
+            'user-agent': Fetcher.userAgent, // re-load it here, to support setting it globally post-fetcher-creation
+          },
           method: opt.method || this.cfg.init.method,
           credentials: opt.credentials || this.cfg.init.credentials,
           redirect: opt.redirect || this.cfg.init.redirect || 'follow',
@@ -863,4 +854,20 @@ export class Fetcher {
 
 export function getFetcher(cfg: FetcherCfg & FetcherOptions = {}): Fetcher {
   return Fetcher.create(cfg)
+}
+
+const acceptByResponseType: Record<FetcherResponseType, string> = {
+  text: 'text/plain',
+  json: 'application/json',
+  void: '*/*',
+  readableStream: 'application/octet-stream',
+  arrayBuffer: 'application/octet-stream',
+  blob: 'application/octet-stream',
+}
+
+const defaultRetryOptions: FetcherRetryOptions = {
+  count: 2,
+  timeout: 1000,
+  timeoutMax: 30_000,
+  timeoutMultiplier: 2,
 }
