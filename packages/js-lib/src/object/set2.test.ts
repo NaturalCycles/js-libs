@@ -17,4 +17,7 @@ test('set2', () => {
   expect(s2 instanceof Set).toBe(true)
 
   expect(JSON.stringify(s2)).toMatchInlineSnapshot(`"[1,2,3]"`)
+
+  s2.addMany([4, 5])
+  expect(s2.toArray()).toEqual([1, 2, 3, 4, 5])
 })

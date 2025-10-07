@@ -28,4 +28,9 @@ test('map2', () => {
   expectTypeOf(m3).toEqualTypeOf<Map2<string, number>>()
 
   expect(_deepEquals(m2, m3)).toBe(true)
+
+  m3.setMany({
+    c: 3,
+  })
+  expect(m3.toObject()).toEqual({ a: 1, b: 2, c: 3 })
 })

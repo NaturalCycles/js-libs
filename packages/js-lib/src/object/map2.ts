@@ -13,6 +13,16 @@ export class Map2<K = any, V = any> extends Map<K, V> {
     return new Map2(Object.entries(obj))
   }
 
+  /**
+   * Allows to set multiple key-value pairs at once.
+   */
+  setMany(obj: Record<any, V>): this {
+    for (const [k, v] of Object.entries(obj)) {
+      this.set(k as K, v)
+    }
+    return this
+  }
+
   toObject(): Record<string, V> {
     return Object.fromEntries(this)
   }
