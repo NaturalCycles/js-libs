@@ -9,7 +9,6 @@ const hasUnicodeWord = RegExp.prototype.test.bind(
 )
 
 /** Used to match words composed of alphanumeric characters. */
-// biome-ignore lint/suspicious/noControlCharactersInRegex: ok
 const reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g
 
 function asciiWords(s: string): RegExpMatchArray | null {

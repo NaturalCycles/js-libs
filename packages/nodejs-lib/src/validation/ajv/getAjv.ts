@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
-/* eslint-disable unicorn/prefer-code-point */
 import { _lazyValue } from '@naturalcycles/js-lib'
 import type { Options } from 'ajv'
 import { Ajv } from 'ajv'
 import ajvFormats from 'ajv-formats'
 import ajvKeywords from 'ajv-keywords'
+
+/* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
+// oxlint-disable unicorn/prefer-code-point
 
 const AJV_OPTIONS: Options = {
   removeAdditional: true,

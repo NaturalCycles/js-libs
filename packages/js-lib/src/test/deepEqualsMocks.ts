@@ -26,9 +26,9 @@ export const deepEqualsMocks: [
   [0, '', false, false, false],
   [0, -0, true, true, true],
   [5, 5, true, true, true],
-  // eslint-disable-next-line unicorn/no-zero-fractions
+  // oxlint-disable-next-line unicorn/no-zero-fractions
   [-1, -1.0, true, true, true],
-  // eslint-disable-next-line unicorn/no-zero-fractions
+  // oxlint-disable-next-line unicorn/no-zero-fractions
   [-1.01, -1.0, false, false, false],
   [true, true, true, true, true],
   [true, false, false, false, false],

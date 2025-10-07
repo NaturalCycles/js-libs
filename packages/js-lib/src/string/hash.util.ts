@@ -56,7 +56,7 @@ export function hashCode(s: string): Integer {
   let i = 0
   const len = s.length
   while (i < len) {
-    // eslint-disable-next-line unicorn/prefer-math-trunc, unicorn/prefer-code-point
+    // oxlint-disable-next-line unicorn/prefer-math-trunc, unicorn/prefer-code-point
     hash = ((hash << 5) - hash + s.charCodeAt(i++)) << 0
   }
   return hash + 2147483647 + 1

@@ -15,6 +15,6 @@ export function isServerSide(): boolean {
  * Will return `false` in Node.js.
  */
 export function isClientSide(): boolean {
-  // eslint-disable-next-line unicorn/prefer-global-this
+  // oxlint-disable-next-line unicorn/prefer-global-this
   return typeof window !== 'undefined' && !!window?.document
 }

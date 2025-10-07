@@ -36,7 +36,7 @@ export class Iterable2<T> implements Iterable<T> {
   }
 
   some(cb: AbortablePredicate<T>): boolean {
-    // eslint-disable-next-line unicorn/prefer-array-some
+    // oxlint-disable-next-line unicorn/prefer-array-some
     return !!this.find(cb)
   }
 

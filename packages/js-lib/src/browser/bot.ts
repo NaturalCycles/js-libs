@@ -132,12 +132,10 @@ export class BotDetectionService {
     let cdpCheck1 = false
     try {
       /* eslint-disable */
-      // biome-ignore lint/suspicious/useErrorMessage: ok
       const e = new window.Error()
       window.Object.defineProperty(e, 'stack', {
         configurable: false,
         enumerable: false,
-        // biome-ignore lint/complexity/useArrowFunction: ok
         get: function () {
           cdpCheck1 = true
           return ''
