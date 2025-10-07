@@ -5,9 +5,9 @@ import type { StringSchema } from './string.extensions.js'
 import { stringExtensions } from './string.extensions.js'
 
 export interface ExtendedJoi extends JoiLib.Root {
-  // eslint-disable-next-line id-blacklist
+  // eslint-disable-next-line id-denylist
   string: <TSchema = string>() => StringSchema<TSchema>
-  // eslint-disable-next-line id-blacklist
+  // eslint-disable-next-line id-denylist
   number: <TSchema = number>() => NumberSchema<TSchema>
 }
 

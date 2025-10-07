@@ -100,7 +100,7 @@ export enum SegmentationRuleOperator {
   NotEqualsText = 'notEqualsText',
   Semver = 'semver',
   Regex = 'regex',
-  /* eslint-disable id-blacklist*/
+  /* eslint-disable id-denylist */
   Boolean = 'boolean',
 }
 

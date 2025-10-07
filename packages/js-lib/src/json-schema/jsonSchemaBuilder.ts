@@ -33,7 +33,7 @@ import type {
 } from './jsonSchema.model.js'
 import { mergeJsonSchemaObjects } from './jsonSchema.util.js'
 
-/* eslint-disable id-blacklist, @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable id-denylist, @typescript-eslint/explicit-module-boundary-types */
 
 export interface JsonSchemaBuilder<T = unknown> {
   build: () => JsonSchema<T>

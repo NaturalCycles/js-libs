@@ -27,6 +27,7 @@ console.log({
   count,
   error,
 })
+// oxlint-disable-next-line unicorn/prefer-top-level-await
 ;(async () => {
   for (let i = 1; i <= count; i++) {
     await pDelay(1000)

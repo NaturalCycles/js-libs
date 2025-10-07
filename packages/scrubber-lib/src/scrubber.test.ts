@@ -190,7 +190,7 @@ test('scrubs different types of data', () => {
   const result = scrub([
     {
       null: null,
-      undefined, // eslint-disable-line id-blacklist
+      undefined, // eslint-disable-line id-denylist
       array: [1, 2, { pw: 'secret' }],
       function: () => 1,
       symbol: Symbol(42),

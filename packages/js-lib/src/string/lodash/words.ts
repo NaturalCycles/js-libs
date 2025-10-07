@@ -1,8 +1,8 @@
 // from: https://github.com/lodash/lodash/blob/master/words.js
 
-/* eslint-disable */
-
 import { unicodeWords } from './unicodeWords.js'
+
+// oxlint-disable
 
 const hasUnicodeWord = RegExp.prototype.test.bind(
   /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/,

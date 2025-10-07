@@ -102,5 +102,6 @@ function decamelize(s: string): string {
 function escapeStringRegexp(s: string): string {
   // Escape characters with special meaning either inside or outside character sets.
   // Use a simple backslash escape when it’s always valid, and a `\xnn` escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
+  // oxlint-disable-next-line unicorn/escape-case, unicorn/no-hex-escape
   return s.replaceAll(/[|\\{}()[\]^$+*?.]/g, String.raw`\$&`).replaceAll('-', String.raw`\x2d`)
 }
