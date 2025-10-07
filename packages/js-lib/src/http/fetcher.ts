@@ -67,7 +67,7 @@ export class Fetcher {
    *
    * Version is to be incremented every time a difference in behaviour (or a bugfix) is done.
    */
-  private static readonly VERSION = 3
+  static readonly VERSION = 3
   /**
    * userAgent is statically exposed as Fetcher.userAgent.
    * It can be modified globally, and will be used (read) at the start of every request.
