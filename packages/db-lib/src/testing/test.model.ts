@@ -55,8 +55,8 @@ export const testItemBMJsonSchema: JsonSchemaObject<TestItemBM> = j
   .rootObject<TestItemBM>({
     // todo: figure out how to not copy-paste these 3 fields
     id: j.string(), // todo: not strictly needed here
-    created: j.unixTimestamp(),
-    updated: j.unixTimestamp(),
+    created: j.integer().unixTimestamp(),
+    updated: j.integer().unixTimestamp(),
     k1: j.string(),
     k2: j.oneOf([j.string(), j.null()]).optional(),
     k3: j.number().optional(),
