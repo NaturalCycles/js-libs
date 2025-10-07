@@ -169,7 +169,6 @@
     "@typescript-eslint/no-floating-promises": [2],
     "@typescript-eslint/no-for-in-array": [2],
     "@typescript-eslint/no-implied-eval": [2],
-    "@typescript-eslint/no-misused-spread": [2],
     "@typescript-eslint/no-mixed-enums": [2],
     "@typescript-eslint/no-namespace": [
       2,
