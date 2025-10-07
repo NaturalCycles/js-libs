@@ -365,6 +365,14 @@ export default {
     'unicorn/no-new-buffer': 0, // oxlint
     'unicorn/no-accessor-recursion': 0, // oxlint
     'unicorn/no-anonymous-default-export': 0, // oxlint
+    'unicorn/prefer-string-replace-all': 0, // oxlint
+    'unicorn/prefer-math-min-max': 0, // oxlint
+    'unicorn/prefer-code-point': 0, // oxlint
+    'unicorn/prefer-global-this': 0, // oxlint
+    'unicorn/error-message': 0, // oxlint
+    'unicorn/no-zero-fractions': 0, // oxlint
+    'unicorn/prefer-array-some': 0, // oxlint
+    'unicorn/prefer-math-trunc': 0, // oxlint
     'unicorn/no-object-as-default-parameter': 0, // doesn't allow e.g method (opt = { skipValidation: true })
     'unicorn/catch-error-name': [
       0, // oxlint

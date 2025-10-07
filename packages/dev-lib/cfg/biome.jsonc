@@ -39,6 +39,7 @@
         "useImportExtensions": "off", // oxlint
         "useParseIntRadix": "off",
         "noUnusedFunctionParameters": "off", // oxlint
+        "noConstantCondition": "off", // ox
         // noUnusedImports + noUnusedVariables can replace eslint-plugin-unused-vars!
         "noUnusedImports": "off", // oxlint
         "noUnusedVariables": {
@@ -77,7 +78,8 @@
       "suspicious": {
         "useNumberToFixedDigitsArgument": "error",
         "useIterableCallbackReturn": "off",
-        "useErrorMessage": "error",
+        "useErrorMessage": "off", // ox
+        "noControlCharactersInRegex": "off", // ox
         "noEvolvingTypes": "error",
         "noExplicitAny": "off",
         "noAssignInExpressions": "off",
@@ -86,11 +88,14 @@
         "noThenProperty": "off",
         "noImportAssign": "off",
         "noDoubleEquals": "off", // oxlint
+        "noDocumentCookie": "off", // ox
         "noEmptyInterface": "off"
       },
       "complexity": {
         "useDateNow": "error",
+        "useArrowFunction": "off", // ox
         "noUselessUndefinedInitialization": "error",
+        "noUselessEscapeInRegex": "off", // ox
         "noUselessStringConcat": "error",
         "noForEach": "off",
         "noUselessThisAlias": "off",
