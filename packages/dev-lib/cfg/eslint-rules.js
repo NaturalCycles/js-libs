@@ -155,7 +155,7 @@ export default {
     // eqeqeq: [2, 'smart'], // oxlint
     'for-direction': 2,
     'getter-return': 2,
-    'id-blacklist': [
+    'id-denylist': [
       2,
       'any',
       'Number',
@@ -243,32 +243,6 @@ export default {
     'no-prototype-builtins': 2,
     'no-redeclare': 2,
     'no-regex-spaces': 2,
-    'no-restricted-imports': [
-      2,
-      'rxjs/Rx',
-      'rxjs/internals',
-      'rxjs/Observable',
-      'rxjs/Observer',
-      'rxjs/Subject',
-      'rxjs/observable/defer',
-      'rxjs/observable/merge',
-      'rxjs/observable/of',
-      'rxjs/observable/timer',
-      'rxjs/observable/combineLatest',
-      'rxjs/add/observable/combineLatest',
-      'rxjs/add/observable/of',
-      'rxjs/add/observable/merge',
-      'rxjs/add/operator/debounceTime',
-      'rxjs/add/operator/distinctUntilChanged',
-      'rxjs/add/operator/do',
-      'rxjs/add/operator/filter',
-      'rxjs/add/operator/map',
-      'rxjs/add/operator/retry',
-      'rxjs/add/operator/startWith',
-      'rxjs/add/operator/switchMap',
-      'rxjs/observable/interval',
-      'rxjs/observable/forkJoin',
-    ],
     curly: [0, 'multi-line'], // this one is an exception that can conflict with prettier, oxlint
     'no-self-assign': 2,
     'no-setter-return': 2,
@@ -313,6 +287,7 @@ export default {
     'no-await-in-loop': 0, // it's actually often ok
     'no-extend-native': 0, // oxlint
     'guard-for-in': 0, // oxlint
+    'prefer-spread': 0, // oxlint
     '@typescript-eslint/no-namespace': [
       2,
       {
@@ -369,13 +344,25 @@ export default {
     'unicorn/prefer-set-has': 0,
     'unicorn/explicit-length-check': 0,
     'unicorn/no-array-for-each': 0,
-    'unicorn/prefer-at': 0, // iOS 15.4+
+    'unicorn/prefer-at': 0, // iOS 15.4+, oxlint
     'unicorn/import-style': 0, // todo: fix
     'unicorn/prefer-spread': 0, // fails on joiSchema.concat() which is not an array!
     'unicorn/prefer-structured-clone': 0, // no real advantage, plus in most of the cases we want JSON to remove undefined, etc.
     'unicorn/better-regex': 0, // we still believe that [0-9] is clearer than [\d]
     'unicorn/no-for-loop': 0, // oxlint has similar
     'unicorn/no-array-reduce': 0, // oxlint
+    'unicorn/consistent-assert': 0, // oxlint
+    'unicorn/consistent-date-clone': 0, // oxlint
+    'unicorn/consistent-empty-array-spread': 0, // oxlint
+    'unicorn/consistent-existence-index-check': 0, // oxlint
+    'unicorn/escape-case': 0, // oxlint
+    'unicorn/no-console-spaces': 0, // oxlint
+    'unicorn/no-hex-escape': 0, // oxlint
+    'unicorn/no-instanceof-builtins': 0, // oxlint
+    'unicorn/no-lonely-if': 0, // oxlint
+    'unicorn/no-named-default': 0, // oxlint
+    'unicorn/no-negation-in-equality-check': 0, // oxlint
+    'unicorn/no-new-buffer': 0, // oxlint
     'unicorn/no-accessor-recursion': 0, // oxlint
     'unicorn/no-anonymous-default-export': 0, // oxlint
     'unicorn/no-object-as-default-parameter': 0, // doesn't allow e.g method (opt = { skipValidation: true })
@@ -440,6 +427,12 @@ export default {
     '@typescript-eslint/unbound-method': 0,
     '@typescript-eslint/no-unsafe-argument': 0, // prevents "legit" use of `any`
     'unicorn/prefer-export-from': 0, // breaks auto-imports in IntelliJ Idea
+    'unicorn/require-module-specifiers': 0, // oxlint
+    'unicorn/prefer-classlist-toggle': 0, // oxlint
+    'unicorn/no-unnecessary-array-splice-count': 0, // oxlint
+    'unicorn/no-useless-error-capture-stack-trace': 0, // oxlint
+    'unicorn/prefer-top-level-await': 0, // oxlint
+    'unicorn/prefer-class-fields': 0, // oxlint
     'unicorn/no-await-expression-member': 0, // some cases are better as-is
     'unicorn/no-array-sort': 0,
     'unicorn/prefer-json-parse-buffer': 0, // typescript doesn't allow it
