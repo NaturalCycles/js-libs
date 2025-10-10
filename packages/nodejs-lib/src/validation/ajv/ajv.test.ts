@@ -287,7 +287,7 @@ test('transform string', () => {
     properties: {
       s: {
         type: 'string',
-        transform: ['trim', 'toLowerCase'],
+        transform: { trim: true, toLowerCase: true },
       },
     },
   } as JsonSchema)
@@ -333,6 +333,7 @@ test('types', () => {
 test('buffer', () => {
   const schema = AjvSchema.create({
     instanceof: 'Buffer',
+    type: 'object',
   })
   schema.validate(Buffer.from('abc'), { mutateInput: true })
 
