@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
 import { _omit } from '../object/index.js'
+import { _stringify } from '../string/index.js'
 import { expectResults } from '../test/test.util.js'
 import {
   _anyToError,
@@ -203,6 +204,17 @@ test('_errorDataAppend', () => {
   "code": "B",
 }
 `)
+})
+
+test('_errorDataAppend should not fail if input is not error', () => {
+  const err = _errorDataAppend(undefined, { a: 'a' })
+  expect(err).toMatchInlineSnapshot(`[Error: undefined]`)
+  expect((err as any).data).toEqual({ a: 'a' })
+  // these should not throw
+  _errorDataAppend(0, { a: 'a' })
+  _errorDataAppend(5, { a: 'a' })
+  _errorDataAppend('abc', { a: 'a' })
+  _errorDataAppend(['abc'], { a: 'a' })
 })
 
 test('_errorSnippet', () => {

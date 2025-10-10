@@ -36,10 +36,9 @@ export function _anyToError<ERROR_TYPE extends Error = Error>(
   }
 
   if (errorData) {
-    ;(e as any).data = {
-      ...(e as any).data,
-      ...errorData,
-    }
+    ;(e as any).data ||= {}
+    // Using Object.assign instead of ...data to not override err.data's non-enumerable properties
+    Object.assign((e as any).data, errorData)
   }
 
   return e
@@ -266,12 +265,12 @@ export function _isErrorLike(o: any): o is ErrorLike {
  *   })
  * }
  */
-export function _errorDataAppend<ERR>(err: ERR, data?: ErrorData): ERR {
-  if (!data) return err
-  ;(err as any).data ||= {} // create err.data if it doesn't exist
-  // Using Object.assign instead of ...data to not override err.data's non-enumerable properties
-  Object.assign((err as any).data, data)
-  return err
+export function _errorDataAppend<ERR, OUT extends Error = ERR extends Error ? ERR : Error>(
+  err: ERR,
+  data?: ErrorData,
+): OUT {
+  if (!data) return err as any
+  return _anyToError<OUT>(err, undefined, data)
 }
 
 export interface AppErrorComponents<DATA_TYPE extends ErrorData = ErrorData> {
