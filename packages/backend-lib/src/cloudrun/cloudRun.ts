@@ -66,6 +66,7 @@ export interface CloudRunConfig {
    * Example: httpGet.path='/',httpGet.port=8080,initialDelaySeconds=3,failureThreshold=50,timeoutSeconds=1,periodSeconds=2
    */
   startupProbeConfigString: string
+  livenessProbeConfigString?: string
   minInstances: NonNegativeInteger
   maxInstances: PositiveInteger
   /**
@@ -79,7 +80,7 @@ export interface CloudRunConfig {
   memoryPerInstance: string
 }
 
-export interface CloudRunStartupProbeConfig {
+export interface CloudRunProbeConfig {
   /**
    * Example: '/'
    */
@@ -144,13 +145,26 @@ class CloudRunUtil {
       .join(',')
   }
 
-  readonly defaultStartupProbeConfig: CloudRunStartupProbeConfig = {
+  readonly defaultStartupProbeConfig: CloudRunProbeConfig = {
     'httpGet.path': '/',
     'httpGet.port': 8080,
     initialDelaySeconds: 3,
     failureThreshold: 50,
     timeoutSeconds: 1,
     periodSeconds: 2,
+  }
+
+  readonly defaultLivenessProbeConfig: CloudRunProbeConfig = {
+    'httpGet.path': '/',
+    'httpGet.port': 8080,
+    // how long to wait before doing the first check, AFTER the startup probe has succeeded
+    initialDelaySeconds: 60,
+    // after how many failure it should kill/restart the container
+    failureThreshold: 5,
+    // how long to wait until liveness probe considers the endpoint unhealthy
+    timeoutSeconds: 30,
+    // check every periodSeconds
+    periodSeconds: 60,
   }
 }
 
