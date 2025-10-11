@@ -761,3 +761,130 @@ describe('enum', () => {
     })
   })
 })
+
+describe('transform', () => {
+  describe('toLowerCase', () => {
+    test('should transform the input to lowercase', () => {
+      const schema = j.object({
+        foo: j.string().toLowerCase(),
+      })
+
+      const [, result] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: 'ShOuLd TrAnSfOrM',
+      })
+
+      expect(result).toEqual({ foo: 'should transform' })
+    })
+  })
+
+  describe('toUpperCase', () => {
+    test('should transform the input to uppercase', () => {
+      const schema = j.object({
+        foo: j.string().toUpperCase(),
+      })
+
+      const [, result] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: 'ShOuLd TrAnSfOrM',
+      })
+
+      expect(result).toEqual({ foo: 'SHOULD TRANSFORM' })
+    })
+  })
+
+  describe('trim', () => {
+    test('should trim the input', () => {
+      const schema = j.object({
+        foo: j.string().trim(),
+      })
+
+      const [, result] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: '  should  trim  ',
+      })
+
+      expect(result).toEqual({ foo: 'should  trim' })
+    })
+  })
+
+  describe('truncate', () => {
+    test('should truncate the input', () => {
+      const schema = j.object({
+        foo: j.string().truncate(5),
+      })
+
+      const [, result] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: '0123456789',
+      })
+
+      expect(result).toEqual({ foo: '01234' })
+    })
+
+    test('should trim after truncating if trim was part of the chain', () => {
+      const schema = j.object({
+        foo: j.string().truncate(5).trim(),
+      })
+
+      const [, result] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: '  01234  56789  ',
+      })
+
+      expect(result).toEqual({ foo: '01234' })
+    })
+  })
+
+  test('should truncate after trimming, regardless of the chaining order', () => {
+    const schema = j.object({
+      foo: j.string().truncate(5).trim(),
+    })
+
+    const [, result] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: '  0123456789  ',
+    })
+
+    expect(result).toEqual({ foo: '01234' })
+  })
+})
+
+describe('instanceof', () => {
+  test('should pass when the value is an instance of X', () => {
+    const schema = j.object({
+      foo: j.object().instanceof('Buffer'),
+    })
+
+    const [err, result] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: Buffer.from('abcd'),
+    })
+
+    expect(err).toBeNull()
+    expect(result).toEqual({ foo: Buffer.from('abcd') })
+  })
+
+  test.each(['a', {}, [], 1])('should fail the value is %s', value => {
+    const schema = j.object({
+      foo: j.object().instanceof('Buffer'),
+    })
+
+    const [err] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: value,
+    })
+
+    expect(err).not.toBeNull()
+  })
+
+  test('should pass when the value is a descendent of X', () => {
+    class Foo {}
+
+    class Bar extends Foo {}
+
+    class Sho extends Bar {}
+
+    const schema = j.object({
+      foo: j.object().instanceof('Foo'),
+    })
+
+    const [err] = AjvSchema.create(schema.build()).getValidationResult({
+      foo: new Sho(),
+    })
+
+    expect(err).toBeNull()
+  })
+})

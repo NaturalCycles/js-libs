@@ -101,9 +101,7 @@ export const j = {
     })
   },
   buffer() {
-    return new JsonSchemaAnyBuilder<Buffer, JsonSchemaAny<Buffer>>({
-      instanceof: 'Buffer',
-    })
+    return new JsonSchemaAnyBuilder<Buffer, JsonSchemaAny<Buffer>>({ instanceof: 'Buffer' })
   },
 
   // number types
@@ -215,7 +213,7 @@ export class JsonSchemaAnyBuilder<
   }
 
   instanceof(of: string): this {
-    this.schema.instanceof = of
+    Object.assign(this.schema, { type: 'object', instanceof: of })
     return this
   }
 
@@ -395,9 +393,25 @@ export class JsonSchemaStringBuilder<
   countryCode = (): this => this.format('countryCode')
   currency = (): this => this.format('currency')
 
-  trim = (trim = true): this => this.transformModify('trim', trim)
-  toLowerCase = (toLowerCase = true): this => this.transformModify('toLowerCase', toLowerCase)
-  toUpperCase = (toUpperCase = true): this => this.transformModify('toUpperCase', toUpperCase)
+  trim(trim = true): this {
+    Object.assign(this.schema, { transform: { ...this.schema.transform, trim } })
+    return this
+  }
+
+  toLowerCase(toLowerCase = true): this {
+    Object.assign(this.schema, { transform: { ...this.schema.transform, toLowerCase } })
+    return this
+  }
+
+  toUpperCase(toUpperCase = true): this {
+    Object.assign(this.schema, { transform: { ...this.schema.transform, toUpperCase } })
+    return this
+  }
+
+  truncate(toLength: number): this {
+    Object.assign(this.schema, { transform: { ...this.schema.transform, truncate: toLength } })
+    return this
+  }
 
   branded<B extends string>(): JsonSchemaStringBuilder<B> {
     return this as unknown as JsonSchemaStringBuilder<B>
@@ -422,15 +436,6 @@ export class JsonSchemaStringBuilder<
     return this.regex(JWT_REGEX)
   }
 
-  private transformModify(t: 'trim' | 'toLowerCase' | 'toUpperCase', add: boolean): this {
-    if (add) {
-      this.schema.transform = _uniq([...(this.schema.transform || []), t])
-    } else {
-      this.schema.transform = this.schema.transform?.filter(s => s !== t)
-    }
-    return this
-  }
-
   // contentMediaType?: string
   // contentEncoding?: string
 }
@@ -448,7 +453,9 @@ export class JsonSchemaObjectBuilder<
     })
   }
 
-  addProperties(props: { [k in keyof T]: JsonSchemaBuilder<T[k]> }): this {
+  addProperties(props?: { [k in keyof T]: JsonSchemaBuilder<T[k]> }): this {
+    if (!props) return this
+
     Object.entries(props).forEach(([k, builder]: [keyof T, JsonSchemaBuilder]) => {
       const schema = builder.build()
       if (!schema.optionalField) {
@@ -555,7 +562,7 @@ export class JsonSchemaTupleBuilder<T extends any[]> extends JsonSchemaAnyBuilde
 }
 
 function object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
-  props: P,
+  props?: P,
 ): JsonSchemaObjectBuilder<
   {
     [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer Opt>
@@ -573,10 +580,10 @@ function object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
     ? { [K in keyof O]: O[K] }
     : never
 >
-function object<T extends AnyObject>(props: {
+function object<T extends AnyObject>(props?: {
   [K in keyof T]: JsonSchemaAnyBuilder<T[K]>
 }): JsonSchemaObjectBuilder<T>
 
-function object(props: any): any {
+function object(props?: any): any {
   return new JsonSchemaObjectBuilder<any>().addProperties(props)
 }
