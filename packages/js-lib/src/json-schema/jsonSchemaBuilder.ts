@@ -119,14 +119,18 @@ export const j = {
 
   // complex types
   object,
-  dbEntity<T extends AnyObject>(props: T) {
+  dbEntity<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(props: P) {
     return j
       .object<BaseDBEntity>({
         id: j.string(),
         created: j.integer().unixTimestamp2000(),
         updated: j.integer().unixTimestamp2000(),
       })
-      .extend(j.object(props))
+      .extend(j.object(props)) as JsonSchemaObjectBuilder<
+      BaseDBEntity & {
+        [K in keyof P]: P[K] extends JsonSchemaAnyBuilder<infer U, any, any> ? U : never
+      }
+    >
   },
 
   rootObject<T extends AnyObject>(props: {
@@ -561,9 +565,9 @@ export class JsonSchemaTupleBuilder<T extends any[]> extends JsonSchemaAnyBuilde
   }
 }
 
-function object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
-  props?: P,
-): JsonSchemaObjectBuilder<
+function object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(props?: {
+  [K in keyof P]: P[K] & JsonSchemaAnyBuilder<any, any, any>
+}): JsonSchemaObjectBuilder<
   {
     [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer Opt>
       ? Opt extends true
