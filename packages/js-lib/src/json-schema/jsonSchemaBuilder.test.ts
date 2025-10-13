@@ -475,7 +475,7 @@ describe('array', () => {
       expect(err).not.toBeNull()
     })
 
-    test.only('should correctly handle non-primitve items as well', () => {
+    test('should correctly handle non-primitve items as well', () => {
       const schema = j.object({ foo: j.array(j.object({ bar: j.number() })).unique() })
 
       const [err] = AjvSchema.create(schema.build()).getValidationResult({
