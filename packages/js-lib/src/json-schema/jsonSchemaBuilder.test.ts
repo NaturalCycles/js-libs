@@ -435,6 +435,36 @@ describe('array', () => {
     result satisfies { foo: number[] }
     expectTypeOf(result).toEqualTypeOf<{ foo: number[] }>()
   })
+
+  describe('unique', () => {
+    test('should correctly accept a list of unique values', () => {
+      const schema = j.object({ foo: j.array(j.number()).unique() })
+
+      const [err] = AjvSchema.create(schema.build()).getValidationResult({ foo: [1, 2, 3] })
+
+      expect(err).toBeNull()
+    })
+
+    test('should reject a list with repeating values', () => {
+      const schema = j.object({ foo: j.array(j.number()).unique() })
+
+      const [err] = AjvSchema.create(schema.build()).getValidationResult({ foo: [1, 2, 1] })
+
+      expect(err).not.toBeNull()
+    })
+
+    test.only('should correctly handle non-primitve items as well', () => {
+      const schema = j.object({ foo: j.array(j.object({ foo: j.number() })).unique() })
+
+      const [err] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: [{ foo: 1 }, { foo: 2 }, { foo: 1 }],
+      })
+
+      console.log(schema.build())
+
+      expect(err).not.toBeNull()
+    })
+  })
 })
 
 describe('optional', () => {

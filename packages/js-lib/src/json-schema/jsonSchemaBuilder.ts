@@ -541,7 +541,7 @@ export class JsonSchemaArrayBuilder<ITEM, Opt extends boolean = false> extends J
     return this
   }
 
-  unique(uniqueItems: number): this {
+  unique(uniqueItems = true): this {
     Object.assign(this.schema, { uniqueItems })
     return this
   }
