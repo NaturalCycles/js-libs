@@ -26,7 +26,6 @@
     "@types/yargs": "^16",
     "ajv": "^8",
     "ajv-formats": "^3",
-    "ajv-keywords": "^5",
     "chalk": "^5",
     "dotenv": "^17",
     "joi": "^18",

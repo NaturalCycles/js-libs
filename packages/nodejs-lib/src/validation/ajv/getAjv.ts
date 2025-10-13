@@ -1,8 +1,7 @@
 import { _lazyValue } from '@naturalcycles/js-lib'
 import type { Options } from 'ajv'
-import { Ajv } from 'ajv'
+import { _, Ajv } from 'ajv'
 import ajvFormats from 'ajv-formats'
-import ajvKeywords from 'ajv-keywords'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 // oxlint-disable unicorn/prefer-code-point
@@ -61,18 +60,63 @@ export function createAjv(opt?: Options): Ajv {
   // @ts-expect-error types are wrong
   ajvFormats(ajv)
 
-  // https://ajv.js.org/packages/ajv-keywords.html
-  // @ts-expect-error types are wrong
-  ajvKeywords(ajv, [
-    'transform', // trim, toLowerCase, etc.
-    'uniqueItemProperties',
-    'instanceof',
-  ])
-
   // Adds $merge, $patch keywords
   // https://github.com/ajv-validator/ajv-merge-patch
   // Kirill: temporarily disabled, as it creates a noise of CVE warnings
   // require('ajv-merge-patch')(ajv)
+
+  ajv.addKeyword({
+    keyword: 'transform',
+    type: 'string',
+    modifying: true,
+    schemaType: 'object',
+    code(cxt) {
+      const { gen, data, schema, it } = cxt
+      const { parentData, parentDataProperty } = it
+
+      if (schema.trim) {
+        gen.assign(_`${data}`, _`${data}.trim()`)
+      }
+
+      if (schema.toLowerCase) {
+        gen.assign(_`${data}`, _`${data}.toLowerCase()`)
+      }
+
+      if (schema.toUpperCase) {
+        gen.assign(_`${data}`, _`${data}.toUpperCase()`)
+      }
+
+      if (typeof schema.truncate === 'number' && schema.truncate >= 0) {
+        gen.assign(_`${data}`, _`${data}.slice(0, ${schema.truncate})`)
+
+        if (schema.trim) {
+          gen.assign(_`${data}`, _`${data}.trim()`)
+        }
+      }
+
+      gen.if(_`${parentData} !== undefined`, () => {
+        gen.assign(_`${parentData}[${parentDataProperty}]`, data)
+      })
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'instanceof',
+    modifying: true,
+    schemaType: 'string',
+    validate(instanceOf: string, data: unknown, _schema, _ctx) {
+      if (typeof data !== 'object') return false
+      if (data === null) return false
+
+      let proto = Object.getPrototypeOf(data)
+      while (proto) {
+        if (proto.constructor?.name === instanceOf) return true
+        proto = Object.getPrototypeOf(proto)
+      }
+
+      return false
+    },
+  })
 
   return ajv
 }
