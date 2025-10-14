@@ -1,5 +1,6 @@
 /* eslint-disable id-denylist */
 
+import { _uniq } from 'array/array.util.js'
 import { _deepCopy } from 'object/object.util.js'
 import type { Set2 } from 'object/set2.js'
 import { _sortObject } from 'object/sortObject.js'
@@ -9,6 +10,12 @@ import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 export const j2 = {
   string(): JsonSchemaStringBuilder<string, string, false> {
     return new JsonSchemaStringBuilder()
+  },
+
+  object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
+    props: P,
+  ): JsonSchemaObjectBuilder<P, false> {
+    return new JsonSchemaObjectBuilder<P, false>(props)
   },
 
   array<IN, OUT, Opt>(
@@ -142,6 +149,66 @@ export class JsonSchemaStringBuilder<
   }
 }
 
+export class JsonSchemaObjectBuilder<
+  PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>,
+  Opt extends boolean = false,
+> extends JsonSchemaAnyBuilder<
+  {
+    [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+      ? IsOpt extends true
+        ? never
+        : K
+      : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+  } & {
+    [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+      ? IsOpt extends true
+        ? K
+        : never
+      : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+  },
+  {
+    [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+      ? IsOpt extends true
+        ? never
+        : K
+      : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+  } & {
+    [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+      ? IsOpt extends true
+        ? K
+        : never
+      : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+  },
+  Opt
+> {
+  constructor(private props?: PROPS) {
+    super({
+      type: 'object',
+      properties: {},
+      required: [],
+      additionalProperties: false,
+    })
+
+    if (props) this.addProperties(props)
+  }
+
+  addProperties(props: PROPS): this {
+    const properties: Record<string, JsonSchema> = {}
+    const required: string[] = []
+
+    for (const [key, builder] of Object.entries(props)) {
+      const schema = builder.build()
+      if (!schema.optionalField) required.push(key)
+      properties[key] = schema
+    }
+
+    this.schema.properties = properties
+    this.schema.required = _uniq(required).sort()
+
+    return this
+  }
+}
+
 export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<IN[], OUT[], Opt> {
   constructor(itemsSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>) {
     super({
@@ -205,6 +272,13 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
 
   type?: string | string[]
   items?: JsonSchema
+  properties?: {
+    [K in keyof IN & keyof OUT]: JsonSchema<IN[K], OUT[K]>
+  }
+  required?: string[]
+  additionalProperties?: boolean
+  minProperties?: number
+  maxProperties?: number
 
   default?: IN
 
