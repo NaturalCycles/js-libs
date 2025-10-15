@@ -8,7 +8,7 @@ import { _deepCopy, _filterNullishValues } from '../object/object.util.js'
 import { _inspect } from '../string/inspect.js'
 import { _substringBefore } from '../string/string.util.js'
 import { _typeCast, type AnyObject } from '../types.js'
-import type { ValidationFunction2, ValidationFunctionResult2 } from '../validation/validation.js'
+import type { ValidationFunction, ValidationFunctionResult } from '../validation/validation.js'
 import { getAjv } from './getAjv.js'
 
 /**
@@ -111,7 +111,7 @@ export class AjvSchema<IN, OUT> {
   getValidationResult(
     input: IN,
     opt: AjvValidationOptions = {},
-  ): ValidationFunctionResult2<OUT, AjvValidationError> {
+  ): ValidationFunctionResult<OUT, AjvValidationError> {
     const fn = this.getAJVValidateFunction()
 
     const item =
@@ -152,7 +152,7 @@ export class AjvSchema<IN, OUT> {
     return [err, item]
   }
 
-  getValidationFunction(): ValidationFunction2<IN, OUT, AjvValidationError> {
+  getValidationFunction(): ValidationFunction<IN, OUT, AjvValidationError> {
     return (input, opt) => {
       return this.getValidationResult(input, {
         mutateInput: opt?.mutateInput,

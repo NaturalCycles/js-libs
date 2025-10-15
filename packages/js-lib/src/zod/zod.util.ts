@@ -7,7 +7,7 @@ import type { ValidationFunction, ValidationFunctionResult } from '../validation
 
 export function getZodValidationFunction<T>(
   schema: ZodType<T>,
-): ValidationFunction<T, ZodValidationError> {
+): ValidationFunction<T, T, ZodValidationError> {
   return (input, opt) => {
     _assert(!opt?.mutateInput, 'mutateInput=true is not yet supported with Zod')
     return zSafeValidate(input, schema)

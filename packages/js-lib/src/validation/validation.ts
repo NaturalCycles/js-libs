@@ -15,19 +15,12 @@ import type { AppError } from '../error/error.util.js'
  *
  * @experimental
  */
-export type ValidationFunction<T, ERR extends AppError> = (
-  input: T,
-  opt?: ValidationFunctionOptions,
-) => ValidationFunctionResult<T, ERR>
-
-export type ValidationFunctionResult<T, ERR extends AppError> = [err: ERR | null, output: T]
-
-export type ValidationFunction2<IN, OUT, ERR extends AppError> = (
+export type ValidationFunction<IN, OUT, ERR extends AppError> = (
   input: IN,
   opt?: ValidationFunctionOptions,
 ) => ValidationFunctionResult<OUT, ERR>
 
-export type ValidationFunctionResult2<OUT, ERR extends AppError> = [err: ERR | null, output: OUT]
+export type ValidationFunctionResult<OUT, ERR extends AppError> = [err: ERR | null, output: OUT]
 
 export interface ValidationFunctionOptions {
   /**

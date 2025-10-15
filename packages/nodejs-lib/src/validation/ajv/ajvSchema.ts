@@ -213,7 +213,7 @@ export class AjvSchema<T = unknown> {
     return [err, item]
   }
 
-  getValidationFunction(): ValidationFunction<T, AjvValidationError> {
+  getValidationFunction(): ValidationFunction<T, T, AjvValidationError> {
     return (input, opt) => {
       return this.getValidationResult(input, {
         mutateInput: opt?.mutateInput,
