@@ -368,14 +368,14 @@ export const _stringMapValues = Object.values as <T>(map: StringMap<T>) => T[]
 export const _stringMapEntries = Object.entries as <T>(map: StringMap<T>) => [k: string, v: T][]
 
 /**
- * Resolves to a more specific type if `keyof T` is a specific string type.
- * Otherwise, because object keys are always strings, it resolves to `string`.
+ * Resolves to a string literal union of the keys of T, meaning they are
+ * always keys of T and always strings (never numbers or symbols).
  */
-export type ObjectKey<T> = keyof T extends string ? keyof T : string
+export type ObjectKey<T> = `${Extract<keyof T, string | number>}`
 
 /**
- * Alias of `Object.keys`, but returns keys typed as `keyof T` when
- * `keyof T` extends string, not as just `string`.
+ * Alias of `Object.keys`, but returns keys with a string type that's as
+ * narrow as possible.
  * This is how TypeScript should work, actually.
  */
 export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => ObjectKey<T>[]

@@ -185,12 +185,16 @@ test('_objectKeys', () => {
   const o = { b: 2, c: 3, d: 4 } as const
   const keys = _objectKeys(o)
   expectTypeOf(keys).toEqualTypeOf<('b' | 'c' | 'd')[]>()
+  expectTypeOf(o[keys[0]!]).toEqualTypeOf<2 | 3 | 4>()
   expect(keys).toEqual(['b', 'c', 'd'])
+  expectTypeOf(keys).not.toEqualTypeOf<(string | number)[]>()
 
   const o2 = { 1: 'b', 2: 'c', 3: 'd' } as const
   const keys2 = _objectKeys(o2)
-  expectTypeOf(keys2).toEqualTypeOf<string[]>()
+  expectTypeOf(keys2).toEqualTypeOf<('1' | '2' | '3')[]>()
+  expectTypeOf(o2[keys2[0]!]).toEqualTypeOf<'b' | 'c' | 'd'>()
   expect(keys2).toEqual(['1', '2', '3'])
+  expectTypeOf(keys2).not.toEqualTypeOf<(string | number)[]>()
 })
 
 test('_typeCast', () => {
