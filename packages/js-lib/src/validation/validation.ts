@@ -22,6 +22,13 @@ export type ValidationFunction<T, ERR extends AppError> = (
 
 export type ValidationFunctionResult<T, ERR extends AppError> = [err: ERR | null, output: T]
 
+export type ValidationFunction2<IN, OUT, ERR extends AppError> = (
+  input: IN,
+  opt?: ValidationFunctionOptions,
+) => ValidationFunctionResult<OUT, ERR>
+
+export type ValidationFunctionResult2<OUT, ERR extends AppError> = [err: ERR | null, output: OUT]
+
 export interface ValidationFunctionOptions {
   /**
    * Defaults to undefined.

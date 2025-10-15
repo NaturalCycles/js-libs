@@ -1,4 +1,6 @@
 /* eslint-disable id-denylist */
+// oxlint-disable no-unused-expressions
+
 import type { Set2 } from 'object/set2.js'
 import { describe, test } from 'vitest'
 import { j2 } from './jsonSchemaBuilder2.js'

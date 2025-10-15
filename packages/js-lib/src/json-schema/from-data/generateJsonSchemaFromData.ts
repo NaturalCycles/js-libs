@@ -1,7 +1,7 @@
 import { _uniq } from '../../array/index.js'
 import { _stringMapEntries, type AnyObject, type StringMap } from '../../types.js'
 import type {
-  JsonSchema,
+  JsonSchema2,
   JsonSchemaArray,
   JsonSchemaBoolean,
   JsonSchemaNull,
@@ -56,7 +56,7 @@ function objectToJsonSchema(rows: AnyObject[]): JsonSchemaObject {
   return s
 }
 
-function mergeTypes(types: Type[], samples: any[]): JsonSchema | undefined {
+function mergeTypes(types: Type[], samples: any[]): JsonSchema2 | undefined {
   // skip "undefined" types
   types = types.filter(t => t !== 'undefined')
 
