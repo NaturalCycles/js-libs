@@ -387,7 +387,7 @@ export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => Objec
  */
 export const _objectEntries = Object.entries as <T extends AnyObject>(
   obj: T,
-) => [k: ObjectKey<T>, v: T[keyof T]][]
+) => [k: ObjectKey<T>, v: T[ObjectKey<T>]][]
 
 export type NullishValue = null | undefined
 export type FalsyValue = false | '' | 0 | null | undefined
