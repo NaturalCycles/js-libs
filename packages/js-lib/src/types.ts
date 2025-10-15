@@ -374,7 +374,8 @@ export const _stringMapEntries = Object.entries as <T>(map: StringMap<T>) => [k:
 export type ObjectKey<T> = keyof T extends string ? keyof T : string
 
 /**
- * Alias of `Object.keys`, but returns keys typed as `keyof T`, not as just `string`.
+ * Alias of `Object.keys`, but returns keys typed as `keyof T` when
+ * `keyof T` extends string, not as just `string`.
  * This is how TypeScript should work, actually.
  */
 export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => ObjectKey<T>[]
