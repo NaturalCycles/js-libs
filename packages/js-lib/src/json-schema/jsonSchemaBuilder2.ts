@@ -4,7 +4,7 @@ import { _uniq } from '../array/array.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import type { Set2 } from '../object/set2.js'
 import { _sortObject } from '../object/sortObject.js'
-import type { AnyObject } from '../types.js'
+import { type AnyObject, type IsoDate, type IsoDateTime, JWT_REGEX } from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 
 export const j2 = {
@@ -156,38 +156,150 @@ export class JsonSchemaStringBuilder2<
     Object.assign(this.schema, { minLength, maxLength })
     return this
   }
+
+  email(opt?: Partial<JsonSchemaStringEmailOptions>): this {
+    const defaultOptions: JsonSchemaStringEmailOptions = { checkTLD: true }
+    Object.assign(this.schema, { email: { ...defaultOptions, ...opt } })
+
+    // from `ajv-formats`
+    const regex =
+      /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i
+    return this.regex(regex).trim().toLowerCase()
+  }
+
+  trim(): this {
+    Object.assign(this.schema, { transform: { ...this.schema.transform, trim: true } })
+    return this
+  }
+
+  toLowerCase(): this {
+    Object.assign(this.schema, { transform: { ...this.schema.transform, toLowerCase: true } })
+    return this
+  }
+
+  toUpperCase(): this {
+    Object.assign(this.schema, { transform: { ...this.schema.transform, toUpperCase: true } })
+    return this
+  }
+
+  truncate(toLength: number): this {
+    Object.assign(this.schema, { transform: { ...this.schema.transform, truncate: toLength } })
+    return this
+  }
+
+  branded<B extends string>(): JsonSchemaStringBuilder2<B | IN, B, Opt> {
+    return this as unknown as JsonSchemaStringBuilder2<B | IN, B, Opt>
+  }
+
+  isoDate(): JsonSchemaStringBuilder2<IsoDate | IN, IsoDate, Opt> {
+    Object.assign(this.schema, { IsoDate: true })
+    return this.branded<IsoDate>()
+  }
+
+  isoDateTime(): JsonSchemaStringBuilder2<IsoDateTime | IN, IsoDateTime, Opt> {
+    Object.assign(this.schema, { IsoDateTime: true })
+    return this.branded<IsoDateTime>()
+  }
+
+  /**
+   * Validates the string format to be JWT.
+   * Expects the JWT to be signed!
+   */
+  jwt(): this {
+    return this.regex(JWT_REGEX)
+  }
+
+  url(): this {
+    // from `ajv-formats`
+    const regex =
+      /^(?:https?|ftp):\/\/(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u{00a1}-\u{ffff}]+-)*[a-z0-9\u{00a1}-\u{ffff}]+)(?:\.(?:[a-z0-9\u{00a1}-\u{ffff}]+-)*[a-z0-9\u{00a1}-\u{ffff}]+)*(?:\.(?:[a-z\u{00a1}-\u{ffff}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu
+    return this.regex(regex)
+  }
+
+  ipv4(): this {
+    // from `ajv-formats`
+    const regex =
+      /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/
+    return this.regex(regex)
+  }
+
+  ipv6(): this {
+    // from `ajv-formats`
+    const regex =
+      /^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))$/i
+    return this.regex(regex)
+  }
+
+  id(): this {
+    const regex = /^[a-z0-9_]{6,64}$/
+    return this.regex(regex)
+  }
+
+  slug(): this {
+    const regex = /^[a-z0-9-]+$/
+    return this.regex(regex)
+  }
+
+  semVer(): this {
+    const regex = /^[0-9]+\.[0-9]+\.[0-9]+$/
+    return this.regex(regex)
+  }
+
+  languageTag(): this {
+    // IETF language tag (https://en.wikipedia.org/wiki/IETF_language_tag)
+    const regex = /^[a-z]{2}(-[A-Z]{2})?$/
+    return this.regex(regex)
+  }
+
+  countryCode(): this {
+    const regex = /^[A-Z]{2}$/
+    return this.regex(regex)
+  }
+
+  currency(): this {
+    const regex = /^[A-Z]{3}$/
+    return this.regex(regex)
+  }
+}
+
+export interface JsonSchemaStringEmailOptions {
+  checkTLD: boolean
 }
 
 export class JsonSchemaObjectBuilder2<
   PROPS extends Record<string, JsonSchemaAnyBuilder2<any, any, any>>,
   Opt extends boolean = false,
 > extends JsonSchemaAnyBuilder2<
-  {
-    [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
-      ? IsOpt extends true
-        ? never
-        : K
-      : never]: PROPS[K] extends JsonSchemaAnyBuilder2<infer IN, any, any> ? IN : never
-  } & {
-    [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
-      ? IsOpt extends true
-        ? K
-        : never
-      : never]?: PROPS[K] extends JsonSchemaAnyBuilder2<infer IN, any, any> ? IN : never
-  },
-  {
-    [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
-      ? IsOpt extends true
-        ? never
-        : K
-      : never]: PROPS[K] extends JsonSchemaAnyBuilder2<any, infer OUT, any> ? OUT : never
-  } & {
-    [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
-      ? IsOpt extends true
-        ? K
-        : never
-      : never]?: PROPS[K] extends JsonSchemaAnyBuilder2<any, infer OUT, any> ? OUT : never
-  },
+  Expand<
+    {
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
+        ? IsOpt extends true
+          ? never
+          : K
+        : never]: PROPS[K] extends JsonSchemaAnyBuilder2<infer IN, any, any> ? IN : never
+    } & {
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
+        ? IsOpt extends true
+          ? K
+          : never
+        : never]?: PROPS[K] extends JsonSchemaAnyBuilder2<infer IN, any, any> ? IN : never
+    }
+  >,
+  Expand<
+    {
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
+        ? IsOpt extends true
+          ? never
+          : K
+        : never]: PROPS[K] extends JsonSchemaAnyBuilder2<any, infer OUT, any> ? OUT : never
+    } & {
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
+        ? IsOpt extends true
+          ? K
+          : never
+        : never]?: PROPS[K] extends JsonSchemaAnyBuilder2<any, infer OUT, any> ? OUT : never
+    }
+  >,
   Opt
 > {
   constructor(private props?: PROPS) {
@@ -254,7 +366,7 @@ export class JsonSchemaSet2Builder2<IN, OUT, Opt> extends JsonSchemaAnyBuilder2<
   constructor(itemsSchema: JsonSchemaAnyBuilder2<IN, OUT, Opt>) {
     super({
       type: ['array', 'object'],
-      items: itemsSchema.build(),
+      Set2: itemsSchema.build(),
     })
   }
 
@@ -278,7 +390,6 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
   title?: string
   description?: string
   // $comment?: string
-  // nullable?: boolean // not sure about that field
   deprecated?: boolean
   readOnly?: boolean
   writeOnly?: boolean
@@ -303,14 +414,6 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
   anyOf?: JsonSchema2[]
 
   /**
-   * https://ajv.js.org/packages/ajv-keywords.html#instanceof
-   *
-   * Useful for Node.js Buffer, you can use it like:
-   * `instanceof: 'Buffer'`
-   */
-  instanceof?: string | string[]
-
-  /**
    * This is a temporary "intermediate AST" field that is used inside the parser.
    * In the final schema this field will NOT be present.
    */
@@ -324,5 +427,13 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
   contentMediaType?: string
   contentEncoding?: string // e.g 'base64'
 
+  // Below we add custom Ajv keywords
+
+  Set2?: JsonSchema2
+  IsoDate?: true
+  IsoDateTime?: true
+  instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
 }
+
+type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never

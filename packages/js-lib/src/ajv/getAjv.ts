@@ -1,6 +1,9 @@
-import type { Options } from 'ajv'
+import type { Options, ValidateFunction } from 'ajv'
 import { _, Ajv } from 'ajv'
 import { _lazyValue } from '../define.js'
+import type { JsonSchemaStringEmailOptions } from '../json-schema/jsonSchemaBuilder2.js'
+import { Set2 } from '../object/set2.js'
+import { validTLDs } from './tlds.js'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 // oxlint-disable unicorn/prefer-code-point
@@ -63,8 +66,9 @@ export function createAjv(opt?: Options): Ajv {
     type: 'string',
     modifying: true,
     schemaType: 'object',
-    code(cxt) {
-      const { gen, data, schema, it } = cxt
+    errors: true,
+    code(ctx) {
+      const { gen, data, schema, it } = ctx
       const { parentData, parentDataProperty } = it
 
       if (schema.trim) {
@@ -111,6 +115,128 @@ export function createAjv(opt?: Options): Ajv {
     },
   })
 
+  ajv.addKeyword({
+    keyword: 'Set2',
+    type: ['array', 'object'],
+    modifying: true,
+    errors: true,
+    schemaType: 'object',
+    compile(innerSchema, _parentSchema, _it) {
+      const validateItem: ValidateFunction = ajv.compile(innerSchema)
+
+      function validateSet(data: any, ctx: any): boolean {
+        let set: Set2
+
+        if (data instanceof Set2) {
+          set = data
+        } else if (Array.isArray(data) && ctx?.parentData) {
+          set = new Set2(data)
+        } else if (Array.isArray(data) && !ctx?.parentData) {
+          ;(validateSet as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message:
+                'can only transform an Array into a Set2 when the schema is in an object or an array schema. This is an Ajv limitation.',
+            },
+          ]
+          return false
+        } else {
+          ;(validateSet as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message: 'must be an Array or Set',
+            },
+          ]
+          return false
+        }
+
+        let idx = 0
+        for (const value of set.values()) {
+          if (!validateItem(value)) {
+            ;(validateSet as any).errors = [
+              {
+                instancePath: (ctx?.instancePath ?? '') + '/' + idx,
+                message: `invalid set item at index ${idx}`,
+                params: { errors: validateItem.errors },
+              },
+            ]
+            return false
+          }
+          idx++
+        }
+
+        if (ctx?.parentData && ctx.parentDataProperty) {
+          ctx.parentData[ctx.parentDataProperty] = set
+        }
+
+        return true
+      }
+
+      return validateSet
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'email',
+    type: 'string',
+    modifying: false,
+    errors: true,
+    schemaType: 'object',
+    validate: function validate(opt: JsonSchemaStringEmailOptions, data: string, _schema, ctx) {
+      const { checkTLD } = opt
+
+      if (!checkTLD) return true
+
+      const isProbablyValidTld = validTLDs.values().some(tld => data.endsWith(`.${tld}`))
+      if (isProbablyValidTld) return true
+      ;(validate as any).errors = [
+        {
+          instancePath: ctx?.instancePath ?? '',
+          message: `has an invalid TLD`,
+        },
+      ]
+      return false
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'IsoDate',
+    type: 'string',
+    modifying: false,
+    errors: true,
+    schemaType: 'boolean',
+    validate: function validate(_opt: true, data: string, _schema, ctx) {
+      const isValid = isIsoDateValid(data)
+      if (isValid) return true
+      ;(validate as any).errors = [
+        {
+          instancePath: ctx?.instancePath ?? '',
+          message: `is an invalid IsoDate`,
+        },
+      ]
+      return false
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'IsoDateTime',
+    type: 'string',
+    modifying: false,
+    errors: true,
+    schemaType: 'boolean',
+    validate: function validate(_opt: true, data: string, _schema, ctx) {
+      const isValid = isIsoDateTimeValid(data)
+      if (isValid) return true
+      ;(validate as any).errors = [
+        {
+          instancePath: ctx?.instancePath ?? '',
+          message: `is an invalid IsoDateTime`,
+        },
+      ]
+      return false
+    },
+  })
+
   return ajv
 }
 
@@ -124,6 +250,7 @@ const monthLengths = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 function addCustomAjvFormats(ajv: Ajv): Ajv {
   return (
     ajv
+      // TODO: remove the formats, because they can be re-implemented in JsonSchema
       .addFormat('id', /^[a-z0-9_]{6,64}$/)
       .addFormat('slug', /^[a-z0-9-]+$/)
       .addFormat('semVer', /^[0-9]+\.[0-9]+\.[0-9]+$/)
