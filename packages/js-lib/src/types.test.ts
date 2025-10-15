@@ -180,6 +180,19 @@ test('_stringMapValues, _stringMapEntries', () => {
   expect(_stringMapValuesSorted(o, v => v, 'desc')).toEqual([4, 3, 2])
 })
 
+// This test will only fail on a compile-time level, not at runtime
+test('_objectKeys', () => {
+  const o = { b: 2, c: 3, d: 4 } as const
+  const keys = _objectKeys(o)
+  expectTypeOf(keys).toEqualTypeOf<('b' | 'c' | 'd')[]>()
+  expect(keys).toEqual(['b', 'c', 'd'])
+
+  const o2 = { 1: 'b', 2: 'c', 3: 'd' } as const
+  const keys2 = _objectKeys(o2)
+  expectTypeOf(keys2).toEqualTypeOf<string[]>()
+  expect(keys2).toEqual(['1', '2', '3'])
+})
+
 test('_typeCast', () => {
   const err = _expectedError(() => {
     throw new Error('yo')

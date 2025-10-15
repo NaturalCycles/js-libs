@@ -368,10 +368,16 @@ export const _stringMapValues = Object.values as <T>(map: StringMap<T>) => T[]
 export const _stringMapEntries = Object.entries as <T>(map: StringMap<T>) => [k: string, v: T][]
 
 /**
+ * Resolves to a more specific type if `keyof T` is a specific string type.
+ * Otherwise, because object keys are always strings, it resolves to `string`.
+ */
+export type ObjectKey<T> = keyof T extends string ? keyof T : string
+
+/**
  * Alias of `Object.keys`, but returns keys typed as `keyof T`, not as just `string`.
  * This is how TypeScript should work, actually.
  */
-export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => (keyof T)[]
+export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => ObjectKey<T>[]
 
 /**
  * Alias of `Object.entries`, but returns better-typed output.
@@ -381,7 +387,7 @@ export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => (keyo
  */
 export const _objectEntries = Object.entries as <T extends AnyObject>(
   obj: T,
-) => [k: keyof T, v: T[keyof T]][]
+) => [k: ObjectKey<T>, v: T[keyof T]][]
 
 export type NullishValue = null | undefined
 export type FalsyValue = false | '' | 0 | null | undefined
