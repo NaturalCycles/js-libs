@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test } from 'vitest'
+import { describe, expect, expectTypeOf, test } from 'vitest'
 import { localTime } from './datetime/index.js'
 import { type AppError, asUnixTimestamp, asUnixTimestamp2000 } from './error/index.js'
 import { _expectedError } from './error/try.js'
@@ -26,6 +26,7 @@ import {
   type UnixTimestamp,
   type Unsaved,
   type UnsavedId,
+  type ValueOf,
 } from './types.js'
 
 interface Item extends BaseDBEntity {
@@ -180,21 +181,43 @@ test('_stringMapValues, _stringMapEntries', () => {
   expect(_stringMapValuesSorted(o, v => v, 'desc')).toEqual([4, 3, 2])
 })
 
-// This test will only fail on a compile-time level, not at runtime
-test('_objectKeys', () => {
-  const o = { b: 2, c: 3, d: 4 } as const
-  const keys = _objectKeys(o)
-  expectTypeOf(keys).toEqualTypeOf<('b' | 'c' | 'd')[]>()
-  expectTypeOf(o[keys[0]!]).toEqualTypeOf<2 | 3 | 4>()
-  expect(keys).toEqual(['b', 'c', 'd'])
-  expectTypeOf(keys).not.toEqualTypeOf<(string | number)[]>()
+describe('_objectKeys', () => {
+  test('should have return type that is an array of a union of the keys for const object with string keys', () => {
+    const o = { b: 2, c: 3, d: 4 } as const
+    const keys = _objectKeys(o)
+    expectTypeOf(keys).toEqualTypeOf<('b' | 'c' | 'd')[]>()
+  })
 
-  const o2 = { 1: 'b', 2: 'c', 3: 'd' } as const
-  const keys2 = _objectKeys(o2)
-  expectTypeOf(keys2).toEqualTypeOf<('1' | '2' | '3')[]>()
-  expectTypeOf(o2[keys2[0]!]).toEqualTypeOf<'b' | 'c' | 'd'>()
-  expect(keys2).toEqual(['1', '2', '3'])
-  expectTypeOf(keys2).not.toEqualTypeOf<(string | number)[]>()
+  test('should have return type that results in ValueOf<o> when used to index into o for const object with string keys', () => {
+    const o = { apple: 1, banana: 2, cherry: 3 } as const
+    const keys = _objectKeys(o)
+    expectTypeOf(o[keys[0]!]).toEqualTypeOf<ValueOf<typeof o>>()
+  })
+
+  test('should have return type narrower than `string[]` for const object with string keys', () => {
+    const o = { apple: 1, banana: 2, cherry: 3 } as const
+    const keys = _objectKeys(o)
+    expectTypeOf(keys).not.toEqualTypeOf<string[]>()
+  })
+
+  test('should have return type that is an array of a union of the stringified keys for object with number keys', () => {
+    const o = { 1: 'b', 2: 'c', 3: 'd' } as const
+    const keys = _objectKeys(o)
+    expectTypeOf(keys).toEqualTypeOf<('1' | '2' | '3')[]>()
+  })
+
+  test('should have return type that results in ValueOf<o> when used to index into o for const object with number keys', () => {
+    const o = { 10: 'b', 20: 'c', 30: 'd' } as const
+    const keys = _objectKeys(o)
+    expectTypeOf(o[keys[0]!]).toEqualTypeOf<ValueOf<typeof o>>()
+  })
+
+  test('should have return type narrower than `string[]` or `number[]` for const object with number keys', () => {
+    const o = { 10: 'b', 20: 'c', 30: 'd' } as const
+    const keys = _objectKeys(o)
+    expectTypeOf(keys).not.toEqualTypeOf<string[]>()
+    expectTypeOf(keys).not.toEqualTypeOf<number[]>()
+  })
 })
 
 test('_typeCast', () => {
