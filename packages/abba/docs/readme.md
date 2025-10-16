@@ -193,23 +193,59 @@ async getExperimentAssignmentStatistics(
 
 Experiments can be configured to target specific audiences using segmentation rules. When generating
 assignments it is possible to test these rules using user segmentation data which is an object
-containing key/value pairs unique to each user. (Allowed value types: `string`, `number`,
-`boolean`). A segmentation rule consist of the following properties:
+containing key/value pairs unique to each user. A segmentation rule consist of the following
+properties:
 
 ```js
   key: string, // the key of the corresponding segmentationData property.
-  operator: '==' | '!=' | 'semver' | 'regex' | 'boolean', // the operator that will be used to execute the rule
-  value: string | number | boolean, // the value the operator will be executed against
+  operator: SegmentationRuleOperator, // ('isSet' | 'isNotSet' | 'equalsText' | 'notEqualsText' | 'semver' | 'regex' | 'boolean' | 'isBeforeDate' | 'isAfterDate')
+  value: string, // the value the operator will be executed against
 ```
 
 ## Segmentation rule operators
 
-### Equals (==)
+### Equals (SegmentationRuleOperator.IsSet)
 
 Rule:
 
 ```js
-  { key: 'country', operator: '==', value: 'SE }
+  { key: 'country', operator: 'isSet', value: '' }
+```
+
+Example segmentation data:
+
+```js
+{
+  country: 'SE', // valid
+  country: '' // not valid
+  country: undefined // not valid
+}
+```
+
+### Equals (SegmentationRuleOperator.IsNotSet)
+
+Rule:
+
+```js
+  { key: 'country', operator: 'isNotSet', value: '' }
+```
+
+Example segmentation data:
+
+```js
+{
+  country: 'SE', // not valid
+  country: '' // valid
+  country: undefined // valid
+}
+```
+
+### Equals (SegmentationRuleOperator.EqualsText)
+
+Rule:
+
+```js
+  { key: 'country', operator: 'equalsText', value: 'SE' }
 ```
 
 Example segmentation data:
@@ -221,12 +257,12 @@ Example segmentation data:
 }
 ```
 
-### Not equals (!=)
+### Not equals (SegmentationRuleOperator.NotEqualsText)
 
 Rule:
 
 ```js
-  { key: 'country', operator: '!=', value: 'SE' }
+  { key: 'country', operator: 'notEqualsText', value: 'SE' }
 ```
 
 Example segmentation data:
@@ -238,7 +274,7 @@ Example segmentation data:
 }
 ```
 
-### Boolean (boolean)
+### Boolean (SegmentationRuleOperator.Boolean)
 
 Rule:
 
@@ -255,7 +291,7 @@ Example segmentation data:
 }
 ```
 
-### Semver (semver)
+### Semver (SegmentationRuleOperator.Semver)
 
 Rule:
 
@@ -272,7 +308,7 @@ Example segmentation data:
 }
 ```
 
-### Regex (regex)
+### Regex (SegmentationRuleOperator.Regex)
 
 Rule:
 
@@ -287,6 +323,40 @@ Example segmentation data:
   country: 'SE', // valid
   country: 'NO', // valid
   country: 'GB' // not valid
+}
+```
+
+### Regex (SegmentationRuleOperator.IsBeforeDate)
+
+Rule:
+
+```js
+  { key: 'registrationDate', operator: 'isBeforeDate', value: '2021-01-11' }
+```
+
+Example segmentation data:
+
+```js
+{
+  registrationDate: '2021-01-01', // valid
+  registrationDate: '2022-01-01', // not valid
+}
+```
+
+### Regex (SegmentationRuleOperator.IsAfterDate)
+
+Rule:
+
+```js
+  { key: 'registrationDate', operator: 'isAfterDate', value: '2021-01-11' }
+```
+
+Example segmentation data:
+
+```js
+{
+  registrationDate: '2021-01-01', // not valid
+  registrationDate: '2022-01-01', // valid
 }
 ```
 
