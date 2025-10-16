@@ -107,7 +107,7 @@ export enum SegmentationRuleOperator {
 }
 
 export type SegmentationRuleFn = (
-  segmentationProp: string | boolean | number | null | undefined | IsoDate,
+  segmentationProp: string | boolean | number | null | undefined,
   ruleValue: SegmentationRule['value'],
 ) => boolean
 
