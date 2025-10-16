@@ -150,6 +150,12 @@ describe('validateSegmentationRules', () => {
       invalid: 'non-iso-date-string',
     },
     {
+      operator: SegmentationRuleOperator.IsBeforeDate,
+      ruleValue: '2021-01-11',
+      valid: '2021-01-01',
+      invalid: '20210101', // not IsoDate
+    },
+    {
       operator: SegmentationRuleOperator.IsAfterDate,
       ruleValue: '2021-01-11',
       valid: '2021-01-21',
@@ -160,6 +166,12 @@ describe('validateSegmentationRules', () => {
       ruleValue: '2021-01-11',
       valid: '2021-01-21',
       invalid: 'non-iso-date-string',
+    },
+    {
+      operator: SegmentationRuleOperator.IsAfterDate,
+      ruleValue: '2021-01-11',
+      valid: '2021-01-21',
+      invalid: '20210121', // not IsoDate
     },
   ]
 
