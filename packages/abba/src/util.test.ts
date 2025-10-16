@@ -137,6 +137,30 @@ describe('validateSegmentationRules', () => {
       valid: false,
       invalid: true,
     },
+    {
+      operator: SegmentationRuleOperator.IsBeforeDate,
+      ruleValue: '2021-01-11',
+      valid: '2021-01-01',
+      invalid: '2021-01-21',
+    },
+    {
+      operator: SegmentationRuleOperator.IsBeforeDate,
+      ruleValue: '2021-01-11',
+      valid: '2021-01-01',
+      invalid: 'non-iso-date-string',
+    },
+    {
+      operator: SegmentationRuleOperator.IsAfterDate,
+      ruleValue: '2021-01-11',
+      valid: '2021-01-21',
+      invalid: '2021-01-01',
+    },
+    {
+      operator: SegmentationRuleOperator.IsAfterDate,
+      ruleValue: '2021-01-11',
+      valid: '2021-01-21',
+      invalid: 'non-iso-date-string',
+    },
   ]
 
   for (const testcase of cases) {

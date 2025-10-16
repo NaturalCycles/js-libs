@@ -102,10 +102,12 @@ export enum SegmentationRuleOperator {
   Regex = 'regex',
   /* eslint-disable id-denylist */
   Boolean = 'boolean',
+  IsBeforeDate = 'isBeforeDate',
+  IsAfterDate = 'isAfterDate',
 }
 
 export type SegmentationRuleFn = (
-  segmentationProp: string | boolean | number | null | undefined,
+  segmentationProp: string | boolean | number | null | undefined | IsoDate,
   ruleValue: SegmentationRule['value'],
 ) => boolean
 
