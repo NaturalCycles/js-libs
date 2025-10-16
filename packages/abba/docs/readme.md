@@ -204,7 +204,7 @@ properties:
 
 ## Segmentation rule operators
 
-### Equals (SegmentationRuleOperator.IsSet)
+### SegmentationRuleOperator.IsSet
 
 Rule:
 
@@ -222,7 +222,7 @@ Example segmentation data:
 }
 ```
 
-### Equals (SegmentationRuleOperator.IsNotSet)
+### SegmentationRuleOperator.IsNotSet
 
 Rule:
 
@@ -240,7 +240,7 @@ Example segmentation data:
 }
 ```
 
-### Equals (SegmentationRuleOperator.EqualsText)
+### SegmentationRuleOperator.EqualsText
 
 Rule:
 
@@ -257,7 +257,7 @@ Example segmentation data:
 }
 ```
 
-### Not equals (SegmentationRuleOperator.NotEqualsText)
+### SegmentationRuleOperator.NotEqualsText
 
 Rule:
 
@@ -274,7 +274,7 @@ Example segmentation data:
 }
 ```
 
-### Boolean (SegmentationRuleOperator.Boolean)
+### SegmentationRuleOperator.Boolean
 
 Rule:
 
@@ -291,7 +291,7 @@ Example segmentation data:
 }
 ```
 
-### Semver (SegmentationRuleOperator.Semver)
+### SegmentationRuleOperator.Semver
 
 Rule:
 
@@ -308,7 +308,7 @@ Example segmentation data:
 }
 ```
 
-### Regex (SegmentationRuleOperator.Regex)
+### SegmentationRuleOperator.Regex
 
 Rule:
 
@@ -326,7 +326,7 @@ Example segmentation data:
 }
 ```
 
-### Regex (SegmentationRuleOperator.IsBeforeDate)
+### SegmentationRuleOperator.IsBeforeDate
 
 Rule:
 
@@ -343,7 +343,7 @@ Example segmentation data:
 }
 ```
 
-### Regex (SegmentationRuleOperator.IsAfterDate)
+### SegmentationRuleOperator.IsAfterDate
 
 Rule:
 
