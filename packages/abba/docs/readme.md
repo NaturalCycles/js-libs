@@ -198,7 +198,7 @@ properties:
 
 ```js
   key: string, // the key of the corresponding segmentationData property.
-  operator: SegmentationRuleOperator, // ('isSet' | 'isNotSet' | 'equalsText' | 'notEqualsText' | 'semver' | 'regex' | 'boolean' | 'isBeforeDate' | 'isAfterDate')
+  operator: SegmentationRuleOperator, // ('isSet' | 'isNotSet' | 'equalsText' | 'notEqualsText' | 'semver' | 'regex' | 'boolean' | 'greaterThan' | 'lessThan')
   value: string, // the value the operator will be executed against
 ```
 
@@ -326,12 +326,12 @@ Example segmentation data:
 }
 ```
 
-### SegmentationRuleOperator.IsBeforeDate
+### SegmentationRuleOperator.LessThan
 
 Rule:
 
 ```js
-  { key: 'registrationDate', operator: 'isBeforeDate', value: '2021-01-11' }
+  { key: 'registrationDate', operator: 'lessThan', value: '2021-01-11' }
 ```
 
 Example segmentation data:
@@ -340,15 +340,34 @@ Example segmentation data:
 {
   registrationDate: '2021-01-01', // valid
   registrationDate: '2022-01-01', // not valid
+
+  // null and undefined is always invalid when using 'lessThan'
+  registrationDate: null, // not valid
+  registrationDate: undefined, // not valid
 }
 ```
-
-### SegmentationRuleOperator.IsAfterDate
 
 Rule:
 
 ```js
-  { key: 'registrationDate', operator: 'isAfterDate', value: '2021-01-11' }
+  { key: 'age', operator: 'lessThan', value: '18' }
+```
+
+Example segmentation data:
+
+```js
+{
+  age: '17', // valid
+  age: '19', // not valid
+}
+```
+
+### SegmentationRuleOperator.GreaterThan
+
+Rule:
+
+```js
+  { key: 'registrationDate', operator: 'greaterThan', value: '2021-01-11' }
 ```
 
 Example segmentation data:
@@ -357,6 +376,25 @@ Example segmentation data:
 {
   registrationDate: '2021-01-01', // not valid
   registrationDate: '2022-01-01', // valid
+
+  // null and undefined is always invalid when using 'greaterThan'
+  registrationDate: null, // not valid
+  registrationDate: undefined, // not valid
+}
+```
+
+Rule:
+
+```js
+  { key: 'age', operator: 'greaterThan', value: '18' }
+```
+
+Example segmentation data:
+
+```js
+{
+  age: '17', // not valid
+  age: '19', // valid
 }
 ```
 

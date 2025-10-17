@@ -1,5 +1,5 @@
 import { localDate } from '@naturalcycles/js-lib/datetime'
-import type { IsoDate, Unsaved } from '@naturalcycles/js-lib/types'
+import type { Unsaved } from '@naturalcycles/js-lib/types'
 import { satisfies } from 'semver'
 import type {
   Bucket,
@@ -140,17 +140,13 @@ export const segmentationRuleMap: Record<SegmentationRuleOperator, SegmentationR
     // Anything else cannot be true
     return keyValue?.toString() !== 'true'
   },
-  [SegmentationRuleOperator.IsBeforeDate](keyValue, ruleValue) {
-    const date1 = localDate.try(keyValue as IsoDate)
-    const date2 = localDate.try(ruleValue as IsoDate)
-    if (!date1 || !date2) return false
-    return date1.isBefore(date2)
+  [SegmentationRuleOperator.GreaterThan](keyValue, ruleValue) {
+    if (keyValue === null || keyValue === undefined) return false
+    return keyValue > ruleValue
   },
-  [SegmentationRuleOperator.IsAfterDate](keyValue, ruleValue) {
-    const date1 = localDate.try(keyValue as IsoDate)
-    const date2 = localDate.try(ruleValue as IsoDate)
-    if (!date1 || !date2) return false
-    return date1.isAfter(date2)
+  [SegmentationRuleOperator.LessThan](keyValue, ruleValue) {
+    if (keyValue === null || keyValue === undefined) return false
+    return keyValue < ruleValue
   },
 }
 

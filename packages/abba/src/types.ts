@@ -102,8 +102,8 @@ export enum SegmentationRuleOperator {
   Regex = 'regex',
   /* eslint-disable id-denylist */
   Boolean = 'boolean',
-  IsBeforeDate = 'isBeforeDate',
-  IsAfterDate = 'isAfterDate',
+  GreaterThan = 'greaterThan',
+  LessThan = 'lessThan',
 }
 
 export type SegmentationRuleFn = (

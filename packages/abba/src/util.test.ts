@@ -6,7 +6,7 @@ import {
   mockExperiment,
   mockUserExperiment,
 } from './test/mocks.js'
-import type { Bucket, ExclusionSet, SegmentationRule } from './types.js'
+import type { Bucket, ExclusionSet, SegmentationRule, SegmentationRuleFn } from './types.js'
 import { AssignmentStatus, SegmentationRuleOperator } from './types.js'
 import { randomService } from './util.js'
 import * as util from './util.js'
@@ -66,8 +66,8 @@ describe('validateSegmentationRules', () => {
   interface TestCase {
     operator: SegmentationRuleOperator
     ruleValue: SegmentationRule['value']
-    valid: string | number | boolean
-    invalid: string | number | boolean
+    valid: Parameters<SegmentationRuleFn>[0]
+    invalid: Parameters<SegmentationRuleFn>[0]
   }
 
   const cases: TestCase[] = [
@@ -138,40 +138,76 @@ describe('validateSegmentationRules', () => {
       invalid: true,
     },
     {
-      operator: SegmentationRuleOperator.IsBeforeDate,
+      operator: SegmentationRuleOperator.LessThan,
       ruleValue: '2021-01-11',
       valid: '2021-01-01',
       invalid: '2021-01-21',
     },
     {
-      operator: SegmentationRuleOperator.IsBeforeDate,
-      ruleValue: '2021-01-11',
-      valid: '2021-01-01',
-      invalid: 'non-iso-date-string',
+      operator: SegmentationRuleOperator.LessThan,
+      ruleValue: '2',
+      valid: '1',
+      invalid: '3',
     },
     {
-      operator: SegmentationRuleOperator.IsBeforeDate,
-      ruleValue: '2021-01-11',
-      valid: '2021-01-01',
-      invalid: '20210101', // not IsoDate
+      operator: SegmentationRuleOperator.LessThan,
+      ruleValue: '2',
+      valid: 1,
+      invalid: 3,
     },
     {
-      operator: SegmentationRuleOperator.IsAfterDate,
+      operator: SegmentationRuleOperator.LessThan,
+      ruleValue: 'b',
+      valid: 'a',
+      invalid: 'c',
+    },
+    {
+      operator: SegmentationRuleOperator.LessThan,
+      ruleValue: '2',
+      valid: '1',
+      invalid: null,
+    },
+    {
+      operator: SegmentationRuleOperator.LessThan,
+      ruleValue: '2',
+      valid: '1',
+      invalid: undefined,
+    },
+    {
+      operator: SegmentationRuleOperator.GreaterThan,
       ruleValue: '2021-01-11',
       valid: '2021-01-21',
       invalid: '2021-01-01',
     },
     {
-      operator: SegmentationRuleOperator.IsAfterDate,
-      ruleValue: '2021-01-11',
-      valid: '2021-01-21',
-      invalid: 'non-iso-date-string',
+      operator: SegmentationRuleOperator.GreaterThan,
+      ruleValue: '2',
+      valid: '3',
+      invalid: '1',
     },
     {
-      operator: SegmentationRuleOperator.IsAfterDate,
-      ruleValue: '2021-01-11',
-      valid: '2021-01-21',
-      invalid: '20210121', // not IsoDate
+      operator: SegmentationRuleOperator.GreaterThan,
+      ruleValue: '2',
+      valid: 3,
+      invalid: 1,
+    },
+    {
+      operator: SegmentationRuleOperator.GreaterThan,
+      ruleValue: 'b',
+      valid: 'c',
+      invalid: 'a',
+    },
+    {
+      operator: SegmentationRuleOperator.GreaterThan,
+      ruleValue: '2',
+      valid: '3',
+      invalid: null,
+    },
+    {
+      operator: SegmentationRuleOperator.GreaterThan,
+      ruleValue: '2',
+      valid: '3',
+      invalid: undefined,
     },
   ]
 
