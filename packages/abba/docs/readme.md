@@ -193,23 +193,59 @@ async getExperimentAssignmentStatistics(
 
 Experiments can be configured to target specific audiences using segmentation rules. When generating
 assignments it is possible to test these rules using user segmentation data which is an object
-containing key/value pairs unique to each user. (Allowed value types: `string`, `number`,
-`boolean`). A segmentation rule consist of the following properties:
+containing key/value pairs unique to each user. A segmentation rule consist of the following
+properties:
 
 ```js
   key: string, // the key of the corresponding segmentationData property.
-  operator: '==' | '!=' | 'semver' | 'regex' | 'boolean', // the operator that will be used to execute the rule
-  value: string | number | boolean, // the value the operator will be executed against
+  operator: SegmentationRuleOperator, // ('isSet' | 'isNotSet' | 'equalsText' | 'notEqualsText' | 'semver' | 'regex' | 'boolean' | 'greaterThan' | 'lessThan')
+  value: string, // the value the operator will be executed against
 ```
 
 ## Segmentation rule operators
 
-### Equals (==)
+### SegmentationRuleOperator.IsSet
 
 Rule:
 
 ```js
-  { key: 'country', operator: '==', value: 'SE }
+  { key: 'country', operator: 'isSet', value: '' }
+```
+
+Example segmentation data:
+
+```js
+{
+  country: 'SE', // valid
+  country: '' // not valid
+  country: undefined // not valid
+}
+```
+
+### SegmentationRuleOperator.IsNotSet
+
+Rule:
+
+```js
+  { key: 'country', operator: 'isNotSet', value: '' }
+```
+
+Example segmentation data:
+
+```js
+{
+  country: 'SE', // not valid
+  country: '' // valid
+  country: undefined // valid
+}
+```
+
+### SegmentationRuleOperator.EqualsText
+
+Rule:
+
+```js
+  { key: 'country', operator: 'equalsText', value: 'SE' }
 ```
 
 Example segmentation data:
@@ -221,12 +257,12 @@ Example segmentation data:
 }
 ```
 
-### Not equals (!=)
+### SegmentationRuleOperator.NotEqualsText
 
 Rule:
 
 ```js
-  { key: 'country', operator: '!=', value: 'SE' }
+  { key: 'country', operator: 'notEqualsText', value: 'SE' }
 ```
 
 Example segmentation data:
@@ -238,7 +274,7 @@ Example segmentation data:
 }
 ```
 
-### Boolean (boolean)
+### SegmentationRuleOperator.Boolean
 
 Rule:
 
@@ -255,7 +291,7 @@ Example segmentation data:
 }
 ```
 
-### Semver (semver)
+### SegmentationRuleOperator.Semver
 
 Rule:
 
@@ -272,7 +308,7 @@ Example segmentation data:
 }
 ```
 
-### Regex (regex)
+### SegmentationRuleOperator.Regex
 
 Rule:
 
@@ -287,6 +323,78 @@ Example segmentation data:
   country: 'SE', // valid
   country: 'NO', // valid
   country: 'GB' // not valid
+}
+```
+
+### SegmentationRuleOperator.LessThan
+
+Rule:
+
+```js
+  { key: 'registrationDate', operator: 'lessThan', value: '2021-01-11' }
+```
+
+Example segmentation data:
+
+```js
+{
+  registrationDate: '2021-01-01', // valid
+  registrationDate: '2022-01-01', // not valid
+
+  // null and undefined is always invalid when using 'lessThan'
+  registrationDate: null, // not valid
+  registrationDate: undefined, // not valid
+}
+```
+
+Rule:
+
+```js
+  { key: 'age', operator: 'lessThan', value: '18' }
+```
+
+Example segmentation data:
+
+```js
+{
+  age: '17', // valid
+  age: '19', // not valid
+}
+```
+
+### SegmentationRuleOperator.GreaterThan
+
+Rule:
+
+```js
+  { key: 'registrationDate', operator: 'greaterThan', value: '2021-01-11' }
+```
+
+Example segmentation data:
+
+```js
+{
+  registrationDate: '2021-01-01', // not valid
+  registrationDate: '2022-01-01', // valid
+
+  // null and undefined is always invalid when using 'greaterThan'
+  registrationDate: null, // not valid
+  registrationDate: undefined, // not valid
+}
+```
+
+Rule:
+
+```js
+  { key: 'age', operator: 'greaterThan', value: '18' }
+```
+
+Example segmentation data:
+
+```js
+{
+  age: '17', // not valid
+  age: '19', // valid
 }
 ```
 
