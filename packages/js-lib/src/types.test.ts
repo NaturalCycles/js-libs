@@ -220,6 +220,20 @@ describe('_objectKeys', () => {
   })
 })
 
+describe('_objectEntries', () => {
+  test('should have return type that is an array of [{union of the keys}, ValueOf<typeof o>] for const object with string keys', () => {
+    const o = { b: 2, c: 3, d: 4 } as const
+    const entries = _objectEntries(o)
+    expectTypeOf(entries).toEqualTypeOf<[k: 'b' | 'c' | 'd', v: ValueOf<typeof o>][]>()
+  })
+
+  test('should have return type that is an array of [{union of the stringified keys}, ValueOf<typeof o>] for const object with number keys', () => {
+    const o = { 1: 'b', 2: 'c', 3: 'd' } as const
+    const entries = _objectEntries(o)
+    expectTypeOf(entries).toEqualTypeOf<['1' | '2' | '3', ValueOf<typeof o>][]>()
+  })
+})
+
 test('_typeCast', () => {
   const err = _expectedError(() => {
     throw new Error('yo')
