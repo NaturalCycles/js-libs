@@ -221,16 +221,28 @@ describe('_objectKeys', () => {
 })
 
 describe('_objectEntries', () => {
-  test('should have return type that is an array of [{union of the keys}, ValueOf<typeof o>] for const object with string keys', () => {
+  test('should have return type that is an array of [{union of the keys}, {union of the values}] for const object with string keys', () => {
     const o = { b: 2, c: 3, d: 4 } as const
     const entries = _objectEntries(o)
-    expectTypeOf(entries).toEqualTypeOf<[k: 'b' | 'c' | 'd', v: ValueOf<typeof o>][]>()
+    expectTypeOf(entries).toEqualTypeOf<[k: 'b' | 'c' | 'd', v: 2 | 3 | 4][]>()
   })
 
-  test('should have return type that is an array of [{union of the stringified keys}, ValueOf<typeof o>] for const object with number keys', () => {
+  test('should have return type that is an array of [{union of the stringified keys}, {union of the values}] for const object with number keys', () => {
     const o = { 1: 'b', 2: 'c', 3: 'd' } as const
     const entries = _objectEntries(o)
-    expectTypeOf(entries).toEqualTypeOf<['1' | '2' | '3', ValueOf<typeof o>][]>()
+    expectTypeOf(entries).toEqualTypeOf<[k: '1' | '2' | '3', v: 'b' | 'c' | 'd'][]>()
+  })
+
+  test('should have return type narrower than [string, {union of the values}][] for const object with string keys', () => {
+    const o = { b: 2, c: 3, d: 4 } as const
+    const entries = _objectEntries(o)
+    expectTypeOf(entries).not.toEqualTypeOf<[string, 2 | 3 | 4][]>()
+  })
+
+  test('should have return type narrower than [string, {union of the values}][] for const object with number keys', () => {
+    const o = { 1: 'b', 2: 'c', 3: 'd' } as const
+    const entries = _objectEntries(o)
+    expectTypeOf(entries).not.toEqualTypeOf<[string, 'b' | 'c' | 'd'][]>()
   })
 })
 
