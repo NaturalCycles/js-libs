@@ -44,6 +44,10 @@ export const j2 = {
 export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
   constructor(protected schema: JsonSchema2) {}
 
+  expectType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
+    return this as any
+  }
+
   getSchema(): JsonSchema2 {
     return this.schema
   }
@@ -95,7 +99,7 @@ export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
 
   optional(): JsonSchemaAnyBuilder2<IN | undefined, OUT | undefined, true> {
     this.schema.optionalField = true
-    return this
+    return this as unknown as JsonSchemaAnyBuilder2<IN | undefined, OUT | undefined, true>
   }
 
   nullable(): JsonSchemaAnyBuilder2<IN | null, OUT | null, Opt> {
@@ -438,3 +442,6 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
 }
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
+
+type ExactMatch<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false

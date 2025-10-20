@@ -986,4 +986,22 @@ describe('object', () => {
       }
     }
   })
+
+  test('should work correctly with type assignment', () => {
+    interface Foo {
+      string: string
+      stringOptional?: string
+    }
+
+    const schema = j2
+      .object({
+        string: j2.string(),
+        stringOptional: j2.string().optional(),
+      })
+      .expectType<Foo>()
+
+    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+
+    result satisfies Foo
+  })
 })

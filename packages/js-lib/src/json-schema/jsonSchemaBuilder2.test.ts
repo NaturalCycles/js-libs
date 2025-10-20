@@ -2,7 +2,7 @@
 // oxlint-disable no-unused-expressions
 
 import type { Set2 } from 'object/set2.js'
-import { describe, test } from 'vitest'
+import { describe, expectTypeOf, test } from 'vitest'
 import { j2 } from './jsonSchemaBuilder2.js'
 
 describe('string', () => {
@@ -15,6 +15,20 @@ describe('string', () => {
 
     const schema3 = j2.string().nullable().optional()
     schema3.in satisfies string | null | undefined
+  })
+
+  test('should check the passed in type', () => {
+    // Ok
+    const schema = j2.string().expectType<string>()
+    expectTypeOf(schema).not.toBeNever()
+
+    // string vs string | undefined
+    const schema1 = j2.string().expectType<string | undefined>()
+    expectTypeOf(schema1).toBeNever()
+
+    // string | undefined vs string
+    const schema2 = j2.string().optional().expectType<string>()
+    expectTypeOf(schema2).toBeNever()
   })
 })
 
@@ -67,6 +81,39 @@ describe('object', () => {
 
     schema1.in satisfies Schema1In
     schema1.out satisfies Schema1Out
+  })
+
+  test('should check the passed-in type', () => {
+    const schema = j2
+      .object({
+        foo: j2.string().optional(),
+      })
+      .expectType<{ foo?: string }>()
+    expectTypeOf(schema).not.toBeNever()
+
+    // Different base type: string vs number
+    const schema1 = j2
+      .object({
+        foo: j2.string().optional(),
+      })
+      .expectType<{ foo?: number }>()
+    expectTypeOf(schema1).toBeNever()
+
+    // Type expects optional, schema expects non-optional
+    const schema2 = j2
+      .object({
+        foo: j2.string().optional(),
+      })
+      .expectType<{ foo: string }>()
+    expectTypeOf(schema2).toBeNever()
+
+    // Type expects optional, schema expects non-optional with undefined
+    const schema3 = j2
+      .object({
+        foo: j2.string().optional(),
+      })
+      .expectType<{ foo: string | undefined }>()
+    expectTypeOf(schema3).toBeNever()
   })
 })
 

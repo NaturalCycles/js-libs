@@ -68,9 +68,9 @@ export class AjvSchema<IN, OUT> {
     let jsonSchema: JsonSchema2<IN, OUT>
 
     if (AjvSchema.isJsonSchemaBuilder(schema)) {
-      jsonSchema = schema.build()
+      jsonSchema = (schema as JsonSchemaAnyBuilder2<IN, OUT, any>).build()
     } else {
-      jsonSchema = schema
+      jsonSchema = schema as JsonSchema2<IN, OUT>
     }
 
     const ajvSchema = new AjvSchema<IN, OUT>(jsonSchema, cfg)
