@@ -1,3 +1,5 @@
+// oxlint-disable no-unused-expressions
+
 import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import { localDate } from '../datetime/localDate.js'
@@ -149,7 +151,7 @@ describe('integer', () => {
         foo: j.number().branded<BPM>(),
       })
       const [, result] = AjvSchema.create(schema.build()).getValidationResult({ foo: 1 as BPM })
-      // oxlint-disable-next-line no-unused-expressions
+
       result satisfies { foo: BPM }
     })
 
@@ -367,7 +369,7 @@ describe('object', () => {
         updated: 12313123 as any,
         foo: [1, 2, 3],
       })
-      // oxlint-disable-next-line no-unused-expressions
+
       result satisfies { id: string; created: UnixTimestamp; updated: UnixTimestamp; foo: number[] }
     })
   })
@@ -383,7 +385,7 @@ describe('object', () => {
       })
 
       expect(err).toBeNull()
-      // oxlint-disable-next-line no-unused-expressions
+
       result satisfies { foo: number[] }
       expect(result).toEqual({
         foo: [1, 2, 3],
@@ -401,7 +403,7 @@ describe('object', () => {
       })
 
       expect(err).toBeNull()
-      // oxlint-disable-next-line no-unused-expressions
+
       result satisfies { foo: number[] }
       expect(result).toEqual({
         foo: [1, 2, 3],
@@ -418,7 +420,7 @@ describe('object', () => {
       })
 
       expect(err).toBeNull()
-      // oxlint-disable-next-line no-unused-expressions
+
       result satisfies { foo: number[] }
       expect(result).toEqual({
         foo: [1, 2, 3],
@@ -431,9 +433,57 @@ describe('array', () => {
   test('should correctly infer the type from the type of the items', () => {
     const schema = j.object({ foo: j.array(j.number()) })
     const [, result] = AjvSchema.create(schema.build()).getValidationResult({ foo: [1, 2, 3] })
-    // oxlint-disable-next-line no-unused-expressions
+
     result satisfies { foo: number[] }
     expectTypeOf(result).toEqualTypeOf<{ foo: number[] }>()
+  })
+
+  test('should correctly infer the type from non-primitive items as well', () => {
+    const schema = j.array(j.object({ foo: j.number() }))
+
+    const [, result] = AjvSchema.create(schema.build()).getValidationResult([] as any)
+
+    result satisfies { foo: number }[]
+    // @ts-expect-error This is to ensure we did not infer { foo: any }[]
+    result satisfies { foo: string }[]
+  })
+
+  test('should correctly infer the type from non-primitive nested items as well', () => {
+    const schema = j.array(j.object({ foo: j.object({ foo: j.number() }) }))
+
+    const [, result] = AjvSchema.create(schema.build()).getValidationResult([] as any)
+
+    result satisfies { foo: { foo: number } }[]
+    // @ts-expect-error This is to ensure we did not infer { foo: any }[]
+    result satisfies { foo: { foo: string } }[]
+  })
+
+  describe('unique', () => {
+    test('should correctly accept a list of unique values', () => {
+      const schema = j.object({ foo: j.array(j.number()).unique() })
+
+      const [err] = AjvSchema.create(schema.build()).getValidationResult({ foo: [1, 2, 3] })
+
+      expect(err).toBeNull()
+    })
+
+    test('should reject a list with repeating values', () => {
+      const schema = j.object({ foo: j.array(j.number()).unique() })
+
+      const [err] = AjvSchema.create(schema.build()).getValidationResult({ foo: [1, 2, 1] })
+
+      expect(err).not.toBeNull()
+    })
+
+    test('should correctly handle non-primitve items as well', () => {
+      const schema = j.object({ foo: j.array(j.object({ bar: j.number() })).unique() })
+
+      const [err] = AjvSchema.create(schema.build()).getValidationResult({
+        foo: [{ bar: 1 }, { bar: 2 }, { bar: 1 }],
+      })
+
+      expect(err).not.toBeNull()
+    })
   })
 })
 
@@ -464,7 +514,6 @@ describe('optional', () => {
 
     const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
 
-    // oxlint-disable-next-line no-unused-expressions
     result satisfies Foo
 
     const [, resultOfBadSchema] = AjvSchema.create(badSchema.build()).getValidationResult({} as any)
@@ -483,7 +532,7 @@ describe('optional', () => {
     })
 
     const [err, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
-    // oxlint-disable-next-line no-unused-expressions
+
     result satisfies Foo
     expect(err).not.toBeNull()
   })
@@ -524,7 +573,6 @@ describe('nullable', () => {
 
     const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
 
-    // oxlint-disable-next-line no-unused-expressions
     result satisfies Foo
   })
 
@@ -560,7 +608,6 @@ describe('oneOf', () => {
       foo: null,
     })
 
-    // oxlint-disable-next-line no-unused-expressions
     result satisfies Foo
   })
 
@@ -600,7 +647,6 @@ describe('const', () => {
 
     const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
 
-    // oxlint-disable-next-line no-unused-expressions
     result satisfies Foo
   })
 
@@ -649,7 +695,6 @@ describe('enum', () => {
 
       const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
 
-      // oxlint-disable-next-line no-unused-expressions
       result satisfies Foo
     })
 
@@ -694,7 +739,6 @@ describe('enum', () => {
 
       const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
 
-      // oxlint-disable-next-line no-unused-expressions
       result satisfies Foo
     })
 
@@ -732,7 +776,6 @@ describe('enum', () => {
 
       const [, result] = AjvSchema.create(schema.build()).getValidationResult({} as any)
 
-      // oxlint-disable-next-line no-unused-expressions
       result satisfies { en: 'a' | 'b' | 1 }
     })
 
