@@ -29,6 +29,7 @@
     "dev-lib:typecheck": "pnpm --filter @naturalcycles/dev-lib run typecheck",
     "dev-lib:bt": "pnpm --filter @naturalcycles/dev-lib run bt",
     "js-lib:check": "pnpm --filter @naturalcycles/js-lib run check",
+    "js-lib:lint": "pnpm --filter @naturalcycles/js-lib run lint",
     "js-lib:build": "pnpm --filter @naturalcycles/js-lib run build",
     "js-lib:bt": "pnpm --filter @naturalcycles/js-lib run bt",
     "js-lib:test": "pnpm --filter @naturalcycles/js-lib run test",

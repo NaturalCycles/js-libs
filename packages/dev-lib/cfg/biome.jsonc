@@ -52,7 +52,7 @@
         // "useDefaultSwitchClause": "error", // consider`
         "useThrowNewError": "error",
         "useThrowOnlyError": "error",
-        "useConsistentBuiltinInstantiation": "error",
+        "useConsistentBuiltinInstantiation": "off", // disallows Array()
         "noDoneCallback": "error",
         "useShorthandFunctionType": "error",
         "useShorthandAssign": "error",
