@@ -421,7 +421,6 @@ type PropertyPath = Many<PropertyKey>
  * Based on: https://stackoverflow.com/a/54733755/4919972
  */
 export function _set<T extends AnyObject>(obj: T, path: PropertyPath, value: any): T {
-  // biome-ignore lint/style/useConsistentBuiltinInstantiation: ok
   if (!obj || Object(obj) !== obj || !path) return obj as any // When obj is not an object
 
   // If not yet an array, get the keys from the string-path
@@ -438,7 +437,6 @@ export function _set<T extends AnyObject>(obj: T, path: PropertyPath, value: any
       c,
       i, // Iterate all of them except the last one
     ) =>
-      // biome-ignore lint/style/useConsistentBuiltinInstantiation: ok
       Object(a[c]) === a[c] // Does the key exist and is its value an object?
         ? // Yes: then follow that path
           a[c]

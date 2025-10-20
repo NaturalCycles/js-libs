@@ -1,4 +1,5 @@
 export * from './deepEquals.js'
+export * from './keySortedMap.js'
 export * from './map2.js'
 export * from './object.util.js'
 export * from './set2.js'
