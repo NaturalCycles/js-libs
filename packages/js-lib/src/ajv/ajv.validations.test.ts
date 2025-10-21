@@ -1038,3 +1038,18 @@ describe('object', () => {
     }
   }
 })
+
+describe('errors', () => {
+  test('should properly display the path to the erronous value', () => {
+    const schema = j2.object({ foo: j2.array(j2.string()) }).isOfType<{ foo: string[] }>()
+
+    const [err] = AjvSchema.create(schema).getValidationResult({
+      foo: ['a', 'b', 'c', 1, 'e'],
+    } as any)
+
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object.foo[3] must be string
+      Input: { foo: [ 'a', 'b', 'c', 1, 'e' ] }]
+    `)
+  })
+})

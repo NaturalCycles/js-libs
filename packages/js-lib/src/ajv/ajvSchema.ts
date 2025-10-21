@@ -134,7 +134,7 @@ export class AjvSchema<IN, OUT> {
     } = opt
     const dataVar = [inputName, inputId].filter(Boolean).join('.')
 
-    this.replaceWithCustomErrorMessages(errors)
+    this.applyImprovementsOnErrorMessages(errors)
 
     let message = this.cfg.ajv.errorsText(errors, {
       dataVar,
@@ -198,19 +198,21 @@ export class AjvSchema<IN, OUT> {
     )
   }
 
-  private replaceWithCustomErrorMessages(
+  private applyImprovementsOnErrorMessages(
     errors: ErrorObject<string, Record<string, any>, unknown>[] | null | undefined,
   ): void {
     if (!errors) return
 
     const { errorMessages } = this.schema
-    if (!errorMessages) return
 
     for (let i = 0; i < errors.length; i++) {
       const error = errors[i]!
-      if (!errorMessages[error.keyword]) continue
 
-      error.message = errorMessages[error.keyword]
+      if (errorMessages?.[error.keyword]) {
+        error.message = errorMessages[error.keyword]
+      }
+
+      error.instancePath = error.instancePath.replaceAll(/\/(\d+)/g, `[$1]`).replaceAll('/', '.')
     }
   }
 }
