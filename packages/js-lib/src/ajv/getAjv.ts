@@ -237,6 +237,14 @@ export function createAjv(opt?: Options): Ajv {
     },
   })
 
+  ajv.addKeyword({
+    keyword: 'errorMessages',
+    schemaType: 'object',
+    validate(_foo: string, _data: unknown, _schema, _ctx) {
+      return true
+    },
+  })
+
   return ajv
 }
 

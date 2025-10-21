@@ -2,10 +2,17 @@
 // oxlint-disable max-lines
 
 import { _uniq } from '../array/array.util.js'
+import { _isUndefined } from '../is.util.js'
 import { _deepCopy } from '../object/object.util.js'
 import type { Set2 } from '../object/set2.js'
 import { _sortObject } from '../object/sortObject.js'
-import { type AnyObject, type IsoDate, type IsoDateTime, JWT_REGEX } from '../types.js'
+import {
+  type AnyObject,
+  type IsoDate,
+  type IsoDateTime,
+  JWT_REGEX,
+  type StringMap,
+} from '../types.js'
 import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
 
 export const j2 = {
@@ -43,6 +50,13 @@ export const j2 = {
 
 export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
   constructor(protected schema: JsonSchema2) {}
+
+  protected setErrorMessage(ruleName: string, errorMessage: string | undefined): void {
+    if (_isUndefined(errorMessage)) return
+
+    this.schema.errorMessages ||= {}
+    this.schema.errorMessages[ruleName] = errorMessage
+  }
 
   expectType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
     return this as any
@@ -138,11 +152,12 @@ export class JsonSchemaStringBuilder2<
     })
   }
 
-  regex(pattern: RegExp): this {
-    return this.pattern(pattern.source)
+  regex(pattern: RegExp, opt?: JsonBuilderRuleOpt): this {
+    return this.pattern(pattern.source, opt)
   }
 
-  pattern(pattern: string): this {
+  pattern(pattern: string, opt?: JsonBuilderRuleOpt): this {
+    if (opt?.msg) this.setErrorMessage('pattern', opt.msg)
     Object.assign(this.schema, { pattern })
     return this
   }
@@ -439,9 +454,14 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
   IsoDateTime?: true
   instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
+  errorMessages?: StringMap<string>
 }
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
 
 type ExactMatch<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
+
+interface JsonBuilderRuleOpt {
+  msg?: string
+}
