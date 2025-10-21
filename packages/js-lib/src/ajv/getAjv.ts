@@ -127,16 +127,18 @@ export function createAjv(opt?: Options): Ajv {
       function validateSet(data: any, ctx: any): boolean {
         let set: Set2
 
+        const isIterable = data === null || typeof data[Symbol.iterator] === 'function'
+
         if (data instanceof Set2) {
           set = data
-        } else if (Array.isArray(data) && ctx?.parentData) {
+        } else if (isIterable && ctx?.parentData) {
           set = new Set2(data)
-        } else if (Array.isArray(data) && !ctx?.parentData) {
+        } else if (isIterable && !ctx?.parentData) {
           ;(validateSet as any).errors = [
             {
               instancePath: ctx?.instancePath ?? '',
               message:
-                'can only transform an Array into a Set2 when the schema is in an object or an array schema. This is an Ajv limitation.',
+                'can only transform an Iterable into a Set2 when the schema is in an object or an array schema. This is an Ajv limitation.',
             },
           ]
           return false
@@ -144,7 +146,7 @@ export function createAjv(opt?: Options): Ajv {
           ;(validateSet as any).errors = [
             {
               instancePath: ctx?.instancePath ?? '',
-              message: 'must be an Array or Set',
+              message: 'must be a Set2 object (or optionally an Iterable in some cases)',
             },
           ]
           return false

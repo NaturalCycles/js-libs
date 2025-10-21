@@ -37,13 +37,13 @@ describe('object', () => {
     interface Schema1In {
       string: string
       array: string[]
-      set: Set2<string> | string[]
+      set: Iterable<string>
       optional?: string
       nullable: string | null
       object: {
         string: string
         array: string[]
-        set: Set2<string> | string[]
+        set: Iterable<string>
         optional?: string
         nullable: string | null
       }
@@ -132,7 +132,7 @@ describe('array', () => {
 describe('set', () => {
   test('should correctly infer the type', () => {
     const schema1 = j2.set(j2.string())
-    schema1.in satisfies Set2<string> | string[]
+    schema1.in satisfies Iterable<string>
     schema1.out satisfies Set2<string>
   })
 })

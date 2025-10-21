@@ -922,7 +922,7 @@ describe('set', () => {
     const [err] = AjvSchema.create(schema).getValidationResult(['foo', 'bar'])
 
     expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object can only transform an Array into a Set2 when the schema is in an object or an array schema. This is an Ajv limitation.
+      [AjvValidationError: Object can only transform an Iterable into a Set2 when the schema is in an object or an array schema. This is an Ajv limitation.
       Input: [ 'foo', 'bar' ]]
     `)
   })

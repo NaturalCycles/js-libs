@@ -393,7 +393,7 @@ export class JsonSchemaArrayBuilder2<IN, OUT, Opt> extends JsonSchemaAnyBuilder2
 }
 
 export class JsonSchemaSet2Builder2<IN, OUT, Opt> extends JsonSchemaAnyBuilder2<
-  IN[] | Set2<IN>,
+  Iterable<IN>,
   Set2<OUT>,
   Opt
 > {
