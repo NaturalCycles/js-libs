@@ -131,6 +131,8 @@ export class AjvSchema<IN, OUT> {
     } = opt
     const dataVar = [inputName, inputId].filter(Boolean).join('.')
 
+    this.replaceWithCustomErrorMessages(errors)
+
     let message = this.cfg.ajv.errorsText(errors, {
       dataVar,
       separator,
@@ -182,6 +184,22 @@ export class AjvSchema<IN, OUT> {
   }
 
   private getAJVValidateFunction = _lazyValue(() => this.cfg.ajv.compile(this.schema as any))
+
+  private replaceWithCustomErrorMessages(
+    errors: ErrorObject<string, Record<string, any>, unknown>[] | null | undefined,
+  ): void {
+    if (!errors) return
+
+    const { errorMessages } = this.schema
+    if (!errorMessages) return
+
+    for (let i = 0; i < errors.length; i++) {
+      const error = errors[i]!
+      if (!errorMessages[error.keyword]) continue
+
+      error.message = errorMessages[error.keyword]
+    }
+  }
 }
 
 const separator = '\n'

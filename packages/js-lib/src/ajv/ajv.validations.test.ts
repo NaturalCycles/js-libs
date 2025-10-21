@@ -36,7 +36,7 @@ describe('string', () => {
       expect(err12).not.toBeNull()
     })
 
-    test.fails('should allow setting custom error message', () => {
+    test('should allow setting custom error message', () => {
       const schema = j2.string().regex(/^[0-9]{2}$/, { msg: 'is not a valid Oompa-loompa' })
 
       const [err11] = AjvSchema.create(schema).getValidationResult('000')
