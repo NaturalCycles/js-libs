@@ -58,7 +58,21 @@ export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
     this.schema.errorMessages[ruleName] = errorMessage
   }
 
-  expectType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
+  /**
+   * A helper function that takes a type parameter and compares it with the type inferred from the schema.
+   *
+   * When the type inferred from the schema differs from the passed-in type,
+   * the schema becomes unusable, by turning its type into `never`.
+   *
+   * ```ts
+   * const schemaGood = j.string().isOfType<string>() // ✅
+   *
+   * const schemaBad = j.string().isOfType<number>() // ❌
+   * schemaBad.build() // TypeError: property "build" does not exist on type "never"
+   * ```
+   */
+  isOfType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
+    Object.assign(this.schema, { hasIsOfTypeCheck: true })
     return this as any
   }
 
@@ -455,6 +469,7 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
   instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
   errorMessages?: StringMap<string>
+  hasIsOfTypeCheck?: boolean
 }
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never

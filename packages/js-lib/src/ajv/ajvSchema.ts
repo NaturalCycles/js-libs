@@ -1,6 +1,7 @@
 import type { Ajv, ErrorObject } from 'ajv'
 import type { ErrorData } from 'error/error.model.js'
 import { _lazyValue } from '../define.js'
+import { _assert } from '../error/assert.js'
 import { AppError } from '../error/error.util.js'
 import { _isObject } from '../is.util.js'
 import { type JsonSchema2, JsonSchemaAnyBuilder2 } from '../json-schema/jsonSchemaBuilder2.js'
@@ -72,6 +73,8 @@ export class AjvSchema<IN, OUT> {
     } else {
       jsonSchema = schema as JsonSchema2<IN, OUT>
     }
+
+    AjvSchema.requireValidJsonSchema(jsonSchema)
 
     const ajvSchema = new AjvSchema<IN, OUT>(jsonSchema, cfg)
     AjvSchema.cacheAjvSchema(schema, ajvSchema)
@@ -184,6 +187,16 @@ export class AjvSchema<IN, OUT> {
   }
 
   private getAJVValidateFunction = _lazyValue(() => this.cfg.ajv.compile(this.schema as any))
+
+  private static requireValidJsonSchema(schema: JsonSchema2): void {
+    // For object schemas we require that it is type checked against an external type, e.g.:
+    // interface Foo { name: string }
+    // const schema = j.object({ name: j.string() }).ofType<Foo>()
+    _assert(
+      schema.type !== 'object' || schema.hasIsOfTypeCheck,
+      'The schema must be type checked against a type or interface, using the `.ofType()` helper in `j`.',
+    )
+  }
 
   private replaceWithCustomErrorMessages(
     errors: ErrorObject<string, Record<string, any>, unknown>[] | null | undefined,

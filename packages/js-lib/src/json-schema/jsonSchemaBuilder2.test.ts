@@ -19,15 +19,15 @@ describe('string', () => {
 
   test('should check the passed in type', () => {
     // Ok
-    const schema = j2.string().expectType<string>()
+    const schema = j2.string().isOfType<string>()
     expectTypeOf(schema).not.toBeNever()
 
     // string vs string | undefined
-    const schema1 = j2.string().expectType<string | undefined>()
+    const schema1 = j2.string().isOfType<string | undefined>()
     expectTypeOf(schema1).toBeNever()
 
     // string | undefined vs string
-    const schema2 = j2.string().optional().expectType<string>()
+    const schema2 = j2.string().optional().isOfType<string>()
     expectTypeOf(schema2).toBeNever()
   })
 })
@@ -88,7 +88,7 @@ describe('object', () => {
       .object({
         foo: j2.string().optional(),
       })
-      .expectType<{ foo?: string }>()
+      .isOfType<{ foo?: string }>()
     expectTypeOf(schema).not.toBeNever()
 
     // Different base type: string vs number
@@ -96,7 +96,7 @@ describe('object', () => {
       .object({
         foo: j2.string().optional(),
       })
-      .expectType<{ foo?: number }>()
+      .isOfType<{ foo?: number }>()
     expectTypeOf(schema1).toBeNever()
 
     // Type expects optional, schema expects non-optional
@@ -104,7 +104,7 @@ describe('object', () => {
       .object({
         foo: j2.string().optional(),
       })
-      .expectType<{ foo: string }>()
+      .isOfType<{ foo: string }>()
     expectTypeOf(schema2).toBeNever()
 
     // Type expects optional, schema expects non-optional with undefined
@@ -112,7 +112,7 @@ describe('object', () => {
       .object({
         foo: j2.string().optional(),
       })
-      .expectType<{ foo: string | undefined }>()
+      .isOfType<{ foo: string | undefined }>()
     expectTypeOf(schema3).toBeNever()
   })
 })

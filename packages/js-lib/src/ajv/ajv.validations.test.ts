@@ -109,7 +109,7 @@ describe('string', () => {
 
   describe('trim', () => {
     test('should trim the input string - when inside an object schema', () => {
-      const schema = j2.object({ trim: j2.string().trim() })
+      const schema = j2.object({ trim: j2.string().trim() }).isOfType<{ trim: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
         trim: '  trimmed  string  ',
@@ -140,7 +140,9 @@ describe('string', () => {
 
   describe('toLowerCase', () => {
     test('should toLowerCase the input string - when inside an object schema', () => {
-      const schema = j2.object({ toLowerCase: j2.string().toLowerCase() })
+      const schema = j2
+        .object({ toLowerCase: j2.string().toLowerCase() })
+        .isOfType<{ toLowerCase: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
         toLowerCase: 'lOwErCaSe StRiNg',
@@ -171,7 +173,9 @@ describe('string', () => {
 
   describe('toUpperCase', () => {
     test('should toUpperCase the input string - when inside an object schema', () => {
-      const schema = j2.object({ toUpperCase: j2.string().toUpperCase() })
+      const schema = j2
+        .object({ toUpperCase: j2.string().toUpperCase() })
+        .isOfType<{ toUpperCase: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
         toUpperCase: 'UpPeRcAsE StRiNg',
@@ -202,7 +206,9 @@ describe('string', () => {
 
   describe('truncate', () => {
     test('should truncate the input string - when inside an object schema', () => {
-      const schema = j2.object({ truncate: j2.string().truncate(5) })
+      const schema = j2
+        .object({ truncate: j2.string().truncate(5) })
+        .isOfType<{ truncate: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
         truncate: '0123456',
@@ -231,7 +237,9 @@ describe('string', () => {
     })
 
     test('should trim the result when trim is part of the chain', () => {
-      const schema = j2.object({ truncate: j2.string().trim().truncate(5) })
+      const schema = j2
+        .object({ truncate: j2.string().trim().truncate(5) })
+        .isOfType<{ truncate: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
         truncate: '  01234 56  ',
@@ -288,7 +296,7 @@ describe('string', () => {
     })
 
     test('should convert the email to lowercase - when inside an object schema', () => {
-      const schema = j2.object({ email: j2.string().email() })
+      const schema = j2.object({ email: j2.string().email() }).isOfType<{ email: string }>()
 
       const [, result] = AjvSchema.create(schema).getValidationResult({ email: 'LOWERCASE@nc.COM' })
 
@@ -296,7 +304,7 @@ describe('string', () => {
     })
 
     test('should trim the email - when inside an object schema', () => {
-      const schema = j2.object({ email: j2.string().email() })
+      const schema = j2.object({ email: j2.string().email() }).isOfType<{ email: string }>()
 
       const [, result] = AjvSchema.create(schema).getValidationResult({
         email: '  trimmed@nc.com  ',
@@ -920,7 +928,7 @@ describe('set', () => {
   })
 
   test('should accept an Array and produce a Set2 - when it is a property of an object', () => {
-    const schema = j2.object({ set: j2.set(j2.string()) })
+    const schema = j2.object({ set: j2.set(j2.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({ set: ['foo', 'bar'] })
 
@@ -931,7 +939,7 @@ describe('set', () => {
   })
 
   test('should automagically make an Array unique', () => {
-    const schema = j2.object({ set: j2.set(j2.string()) })
+    const schema = j2.object({ set: j2.set(j2.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({
       set: ['foo', 'bar', 'foo'],
@@ -944,18 +952,20 @@ describe('set', () => {
 
 describe('object', () => {
   test('should work correctly with type inference', () => {
-    const schema = j2.object({
-      string: j2.string(),
-      stringOptional: j2.string().optional(),
-      array: j2.array(j2.string().nullable()),
-      arrayOptional: j2.array(j2.string()),
-      nested: j2.object({
+    const schema = j2
+      .object({
         string: j2.string(),
         stringOptional: j2.string().optional(),
         array: j2.array(j2.string().nullable()),
-        arrayOptional: j2.array(j2.string()),
-      }),
-    })
+        arrayOptional: j2.array(j2.string()).optional(),
+        nested: j2.object({
+          string: j2.string(),
+          stringOptional: j2.string().optional(),
+          array: j2.array(j2.string().nullable()),
+          arrayOptional: j2.array(j2.string()).optional(),
+        }),
+      })
+      .isOfType<TestEverythingObject>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({
       string: 'string',
@@ -1008,10 +1018,23 @@ describe('object', () => {
         string: j2.string(),
         stringOptional: j2.string().optional(),
       })
-      .expectType<Foo>()
+      .isOfType<Foo>()
 
     const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
 
     result satisfies Foo
   })
+
+  interface TestEverythingObject {
+    string: string
+    stringOptional?: string
+    array: (string | null)[]
+    arrayOptional?: string[]
+    nested: {
+      string: string
+      stringOptional?: string
+      array: (string | null)[]
+      arrayOptional?: string[]
+    }
+  }
 })
