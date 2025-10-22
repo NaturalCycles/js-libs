@@ -1,43 +1,53 @@
 /* eslint-disable id-denylist */
 // oxlint-disable max-lines
 
-import { _uniq } from '../array/array.util.js'
-import { _isUndefined } from '../is.util.js'
-import { _deepCopy } from '../object/object.util.js'
-import type { Set2 } from '../object/set2.js'
-import { _sortObject } from '../object/sortObject.js'
+import { _isUndefined } from '@naturalcycles/js-lib'
+import { _uniq } from '@naturalcycles/js-lib/array'
+import { JSON_SCHEMA_ORDER } from '@naturalcycles/js-lib/json-schema'
+import type { Set2 } from '@naturalcycles/js-lib/object'
+import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
 import {
   type AnyObject,
   type IsoDate,
   type IsoDateTime,
   JWT_REGEX,
   type StringMap,
-} from '../types.js'
-import { JSON_SCHEMA_ORDER } from './jsonSchema.cnst.js'
+  type UnixTimestamp,
+  type UnixTimestampMillis,
+} from '@naturalcycles/js-lib/types'
 
-export const j2 = {
-  string(): JsonSchemaStringBuilder2<string, string, false> {
-    return new JsonSchemaStringBuilder2()
+export const j = {
+  string(): JsonSchemaStringBuilder<string, string, false> {
+    return new JsonSchemaStringBuilder()
   },
 
-  object<P extends Record<string, JsonSchemaAnyBuilder2<any, any, any>>>(
+  number(): JsonSchemaNumberBuilder<number, number, false> {
+    return new JsonSchemaNumberBuilder()
+  },
+
+  object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
     props: P,
-  ): JsonSchemaObjectBuilder2<P, false> {
-    return new JsonSchemaObjectBuilder2<P, false>(props)
+  ): JsonSchemaObjectBuilder<P, false> {
+    return new JsonSchemaObjectBuilder<P, false>(props)
   },
 
   array<IN, OUT, Opt>(
-    itemSchema: JsonSchemaAnyBuilder2<IN, OUT, Opt>,
-  ): JsonSchemaArrayBuilder2<IN, OUT, Opt> {
-    return new JsonSchemaArrayBuilder2(itemSchema)
+    itemSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>,
+  ): JsonSchemaArrayBuilder<IN, OUT, Opt> {
+    return new JsonSchemaArrayBuilder(itemSchema)
   },
 
   set<IN, OUT, Opt>(
-    itemSchema: JsonSchemaAnyBuilder2<IN, OUT, Opt>,
-  ): JsonSchemaSet2Builder2<IN, OUT, Opt> {
-    return new JsonSchemaSet2Builder2(itemSchema)
+    itemSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>,
+  ): JsonSchemaSet2Builder<IN, OUT, Opt> {
+    return new JsonSchemaSet2Builder(itemSchema)
   },
 }
+
+const TS_2500 = 16725225600 // 2500-01-01
+const TS_2500_MILLIS = TS_2500 * 1000
+const TS_2000 = 946684800 // 2000-01-01
+const TS_2000_MILLIS = TS_2000 * 1000
 
 /*
   Notes for future reference
@@ -48,8 +58,8 @@ export const j2 = {
      With `Opt`, we can infer it as `{ foo?: string | undefined }`.
 */
 
-export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
-  constructor(protected schema: JsonSchema2) {}
+export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
+  constructor(protected schema: JsonSchema) {}
 
   protected setErrorMessage(ruleName: string, errorMessage: string | undefined): void {
     if (_isUndefined(errorMessage)) return
@@ -76,7 +86,7 @@ export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
     return this as any
   }
 
-  getSchema(): JsonSchema2 {
+  getSchema(): JsonSchema {
     return this.schema
   }
 
@@ -125,13 +135,13 @@ export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
     return this
   }
 
-  optional(): JsonSchemaAnyBuilder2<IN | undefined, OUT | undefined, true> {
+  optional(): JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true> {
     this.schema.optionalField = true
-    return this as unknown as JsonSchemaAnyBuilder2<IN | undefined, OUT | undefined, true>
+    return this as unknown as JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true>
   }
 
-  nullable(): JsonSchemaAnyBuilder2<IN | null, OUT | null, Opt> {
-    return new JsonSchemaAnyBuilder2({
+  nullable(): JsonSchemaAnyBuilder<IN | null, OUT | null, Opt> {
+    return new JsonSchemaAnyBuilder({
       anyOf: [this.build(), { type: 'null' }],
     })
   }
@@ -140,12 +150,12 @@ export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
    * Produces a "clean schema object" without methods.
    * Same as if it would be JSON.stringified.
    */
-  build(): JsonSchema2<IN, OUT> {
+  build(): JsonSchema<IN, OUT> {
     return _sortObject(JSON.parse(JSON.stringify(this.schema)), JSON_SCHEMA_ORDER)
   }
 
-  clone(): JsonSchemaAnyBuilder2<IN, OUT, Opt> {
-    return new JsonSchemaAnyBuilder2<IN, OUT, Opt>(_deepCopy(this.schema))
+  clone(): JsonSchemaAnyBuilder<IN, OUT, Opt> {
+    return new JsonSchemaAnyBuilder<IN, OUT, Opt>(_deepCopy(this.schema))
   }
 
   /**
@@ -155,11 +165,11 @@ export class JsonSchemaAnyBuilder2<IN, OUT, Opt> {
   out!: OUT
 }
 
-export class JsonSchemaStringBuilder2<
+export class JsonSchemaStringBuilder<
   IN extends string = string,
   OUT = IN,
   Opt extends boolean = false,
-> extends JsonSchemaAnyBuilder2<IN, OUT, Opt> {
+> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
   constructor() {
     super({
       type: 'string',
@@ -221,16 +231,16 @@ export class JsonSchemaStringBuilder2<
     return this
   }
 
-  branded<B extends string>(): JsonSchemaStringBuilder2<B | IN, B, Opt> {
-    return this as unknown as JsonSchemaStringBuilder2<B | IN, B, Opt>
+  branded<B extends string>(): JsonSchemaStringBuilder<B | IN, B, Opt> {
+    return this as unknown as JsonSchemaStringBuilder<B | IN, B, Opt>
   }
 
-  isoDate(): JsonSchemaStringBuilder2<IsoDate | IN, IsoDate, Opt> {
+  isoDate(): JsonSchemaStringBuilder<IsoDate | IN, IsoDate, Opt> {
     Object.assign(this.schema, { IsoDate: true })
     return this.branded<IsoDate>()
   }
 
-  isoDateTime(): JsonSchemaStringBuilder2<IsoDateTime | IN, IsoDateTime, Opt> {
+  isoDateTime(): JsonSchemaStringBuilder<IsoDateTime | IN, IsoDateTime, Opt> {
     Object.assign(this.schema, { IsoDateTime: true })
     return this.branded<IsoDateTime>()
   }
@@ -300,38 +310,153 @@ export interface JsonSchemaStringEmailOptions {
   checkTLD: boolean
 }
 
-export class JsonSchemaObjectBuilder2<
-  PROPS extends Record<string, JsonSchemaAnyBuilder2<any, any, any>>,
+export class JsonSchemaNumberBuilder<
+  IN extends number = number,
+  OUT = IN,
   Opt extends boolean = false,
-> extends JsonSchemaAnyBuilder2<
+> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
+  constructor() {
+    super({
+      type: 'number',
+    })
+  }
+
+  integer(): this {
+    Object.assign(this.schema, { type: 'integer' })
+    return this
+  }
+
+  branded<B extends number>(): JsonSchemaNumberBuilder<B | IN, B, Opt> {
+    return this as unknown as JsonSchemaNumberBuilder<B | IN, B, Opt>
+  }
+
+  multipleOf(multipleOf: number): this {
+    Object.assign(this.schema, { multipleOf })
+    return this
+  }
+
+  min(minimum: number): this {
+    Object.assign(this.schema, { minimum })
+    return this
+  }
+
+  exclusiveMin(exclusiveMinimum: number): this {
+    Object.assign(this.schema, { exclusiveMinimum })
+    return this
+  }
+
+  max(maximum: number): this {
+    Object.assign(this.schema, { maximum })
+    return this
+  }
+
+  exclusiveMax(exclusiveMaximum: number): this {
+    Object.assign(this.schema, { exclusiveMaximum })
+    return this
+  }
+
+  /**
+   * Both ranges are inclusive.
+   */
+  range(minimum: number, maximum: number): this {
+    Object.assign(this.schema, { minimum, maximum })
+    return this
+  }
+
+  int32(): this {
+    const MIN_INT32 = -(2 ** 31)
+    const MAX_INT32 = 2 ** 31 - 1
+    const currentMin = this.schema.minimum ?? Number.MIN_SAFE_INTEGER
+    const currentMax = this.schema.maximum ?? Number.MAX_SAFE_INTEGER
+    const newMin = Math.max(MIN_INT32, currentMin)
+    const newMax = Math.min(MAX_INT32, currentMax)
+    return this.integer().min(newMin).max(newMax)
+  }
+
+  int64(): this {
+    const currentMin = this.schema.minimum ?? Number.MIN_SAFE_INTEGER
+    const currentMax = this.schema.maximum ?? Number.MAX_SAFE_INTEGER
+    const newMin = Math.max(Number.MIN_SAFE_INTEGER, currentMin)
+    const newMax = Math.min(Number.MAX_SAFE_INTEGER, currentMax)
+    return this.integer().min(newMin).max(newMax)
+  }
+
+  float(): this {
+    return this
+  }
+
+  double(): this {
+    return this
+  }
+
+  unixTimestamp(): JsonSchemaNumberBuilder<UnixTimestamp | number, UnixTimestamp, Opt> {
+    return this.integer().min(0).max(TS_2500).branded<UnixTimestamp>()
+  }
+
+  unixTimestamp2000(): JsonSchemaNumberBuilder<UnixTimestamp | number, UnixTimestamp, Opt> {
+    return this.integer().min(TS_2000).max(TS_2500).branded<UnixTimestamp>()
+  }
+
+  unixTimestampMillis(): JsonSchemaNumberBuilder<
+    UnixTimestampMillis | number,
+    UnixTimestampMillis,
+    Opt
+  > {
+    return this.integer().min(0).max(TS_2500_MILLIS).branded<UnixTimestampMillis>()
+  }
+
+  unixTimestamp2000Millis(): JsonSchemaNumberBuilder<
+    UnixTimestampMillis | number,
+    UnixTimestampMillis,
+    Opt
+  > {
+    return this.integer().min(TS_2000_MILLIS).max(TS_2500_MILLIS).branded<UnixTimestampMillis>()
+  }
+
+  utcOffset(): this {
+    return this.integer()
+      .multipleOf(15)
+      .min(-12 * 60)
+      .max(14 * 60)
+  }
+
+  utcOffsetHour(): this {
+    return this.integer().min(-12).max(14)
+  }
+}
+
+export class JsonSchemaObjectBuilder<
+  PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>,
+  Opt extends boolean = false,
+> extends JsonSchemaAnyBuilder<
   Expand<
     {
-      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
         ? IsOpt extends true
           ? never
           : K
-        : never]: PROPS[K] extends JsonSchemaAnyBuilder2<infer IN, any, any> ? IN : never
+        : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
     } & {
-      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
         ? IsOpt extends true
           ? K
           : never
-        : never]?: PROPS[K] extends JsonSchemaAnyBuilder2<infer IN, any, any> ? IN : never
+        : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
     }
   >,
   Expand<
     {
-      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
         ? IsOpt extends true
           ? never
           : K
-        : never]: PROPS[K] extends JsonSchemaAnyBuilder2<any, infer OUT, any> ? OUT : never
+        : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
     } & {
-      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder2<any, any, infer IsOpt>
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
         ? IsOpt extends true
           ? K
           : never
-        : never]?: PROPS[K] extends JsonSchemaAnyBuilder2<any, infer OUT, any> ? OUT : never
+        : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
     }
   >,
   Opt
@@ -348,7 +473,7 @@ export class JsonSchemaObjectBuilder2<
   }
 
   addProperties(props: PROPS): this {
-    const properties: Record<string, JsonSchema2> = {}
+    const properties: Record<string, JsonSchema> = {}
     const required: string[] = []
 
     for (const [key, builder] of Object.entries(props)) {
@@ -368,8 +493,8 @@ export class JsonSchemaObjectBuilder2<
   }
 }
 
-export class JsonSchemaArrayBuilder2<IN, OUT, Opt> extends JsonSchemaAnyBuilder2<IN[], OUT[], Opt> {
-  constructor(itemsSchema: JsonSchemaAnyBuilder2<IN, OUT, Opt>) {
+export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<IN[], OUT[], Opt> {
+  constructor(itemsSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>) {
     super({
       type: 'array',
       items: itemsSchema.build(),
@@ -392,12 +517,12 @@ export class JsonSchemaArrayBuilder2<IN, OUT, Opt> extends JsonSchemaAnyBuilder2
   }
 }
 
-export class JsonSchemaSet2Builder2<IN, OUT, Opt> extends JsonSchemaAnyBuilder2<
+export class JsonSchemaSet2Builder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<
   Iterable<IN>,
   Set2<OUT>,
   Opt
 > {
-  constructor(itemsSchema: JsonSchemaAnyBuilder2<IN, OUT, Opt>) {
+  constructor(itemsSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>) {
     super({
       type: ['array', 'object'],
       Set2: itemsSchema.build(),
@@ -415,7 +540,7 @@ export class JsonSchemaSet2Builder2<IN, OUT, Opt> extends JsonSchemaAnyBuilder2<
   }
 }
 
-export interface JsonSchema2<IN = unknown, OUT = IN> {
+export interface JsonSchema<IN = unknown, OUT = IN> {
   readonly in?: IN
   readonly out?: OUT
 
@@ -429,9 +554,9 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
   writeOnly?: boolean
 
   type?: string | string[]
-  items?: JsonSchema2
+  items?: JsonSchema
   properties?: {
-    [K in keyof IN & keyof OUT]: JsonSchema2<IN[K], OUT[K]>
+    [K in keyof IN & keyof OUT]: JsonSchema<IN[K], OUT[K]>
   }
   required?: string[]
   additionalProperties?: boolean
@@ -441,11 +566,11 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
   default?: IN
 
   // https://json-schema.org/understanding-json-schema/reference/conditionals.html#id6
-  if?: JsonSchema2
-  then?: JsonSchema2
-  else?: JsonSchema2
+  if?: JsonSchema
+  then?: JsonSchema
+  else?: JsonSchema
 
-  anyOf?: JsonSchema2[]
+  anyOf?: JsonSchema[]
 
   /**
    * This is a temporary "intermediate AST" field that is used inside the parser.
@@ -461,9 +586,15 @@ export interface JsonSchema2<IN = unknown, OUT = IN> {
   contentMediaType?: string
   contentEncoding?: string // e.g 'base64'
 
+  multipleOf?: number
+  minimum?: number
+  exclusiveMinimum?: number
+  maximum?: number
+  exclusiveMaximum?: number
+
   // Below we add custom Ajv keywords
 
-  Set2?: JsonSchema2
+  Set2?: JsonSchema
   IsoDate?: true
   IsoDateTime?: true
   instanceof?: string | string[]

@@ -1,6 +1,7 @@
-import { Set2 } from '../object/set2.js'
-
 // https://data.iana.org/TLD/tlds-alpha-by-domain.txt
+
+import { Set2 } from '@naturalcycles/js-lib/object'
+
 // # Version 2025101500, Last Updated Wed Oct 15 07:07:01 2025 UTC
 const listOfValidTlds = [
   'aaa',

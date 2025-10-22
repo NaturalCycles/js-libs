@@ -433,9 +433,6 @@ importers:
 
   packages/js-lib:
     dependencies:
-      ajv:
-        specifier: ^8.17.1
-        version: 8.17.1
       tslib:
         specifier: ^2
         version: 2.8.1

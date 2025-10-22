@@ -15,7 +15,6 @@
     "test-ny": "TZ=GMT-0500 yarn test localTime"
   },
   "dependencies": {
-    "ajv": "^8.17.1",
     "tslib": "^2",
     "undici": "^7",
     "zod": "^4"

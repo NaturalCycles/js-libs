@@ -2,17 +2,22 @@
 /* eslint-disable id-denylist */
 // oxlint-disable no-unused-expressions
 
+import { localDate, localTime } from '@naturalcycles/js-lib/datetime'
+import { Set2 } from '@naturalcycles/js-lib/object'
+import type {
+  Branded,
+  IsoDate,
+  IsoDateTime,
+  UnixTimestamp,
+  UnixTimestampMillis,
+} from '@naturalcycles/js-lib/types'
 import { describe, expect, test } from 'vitest'
-import { localDate } from '../datetime/localDate.js'
-import { localTime } from '../datetime/localTime.js'
-import { j2 } from '../json-schema/jsonSchemaBuilder2.js'
-import { Set2 } from '../object/set2.js'
-import type { Branded, IsoDate, IsoDateTime } from '../types.js'
 import { AjvSchema } from './ajvSchema.js'
+import { j } from './jsonSchemaBuilder.js'
 
 describe('string', () => {
   test('should work correctly with type inference', () => {
-    const schema = j2.string()
+    const schema = j.string()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult('foo')
 
@@ -23,7 +28,7 @@ describe('string', () => {
 
   describe('regex', () => {
     test('should correctly validate against the regex', () => {
-      const schema = j2.string().regex(/^[0-9]{2}$/)
+      const schema = j.string().regex(/^[0-9]{2}$/)
 
       const [err01] = AjvSchema.create(schema).getValidationResult('00')
       expect(err01).toBeNull()
@@ -37,7 +42,7 @@ describe('string', () => {
     })
 
     test('should allow setting custom error message', () => {
-      const schema = j2.string().regex(/^[0-9]{2}$/, { msg: 'is not a valid Oompa-loompa' })
+      const schema = j.string().regex(/^[0-9]{2}$/, { msg: 'is not a valid Oompa-loompa' })
 
       const [err11] = AjvSchema.create(schema).getValidationResult('000')
       expect(err11).toMatchInlineSnapshot(`
@@ -49,7 +54,7 @@ describe('string', () => {
 
   describe('pattern', () => {
     test('should correctly validate against the pattern', () => {
-      const schema = j2.string().pattern('^[0-9]{2}$')
+      const schema = j.string().pattern('^[0-9]{2}$')
 
       const [err01] = AjvSchema.create(schema).getValidationResult('00')
       expect(err01).toBeNull()
@@ -65,7 +70,7 @@ describe('string', () => {
 
   describe('min', () => {
     test('should correctly validate the minimum length of the string', () => {
-      const schema = j2.string().min(5)
+      const schema = j.string().min(5)
 
       const [err01] = AjvSchema.create(schema).getValidationResult('01234')
       expect(err01).toBeNull()
@@ -79,7 +84,7 @@ describe('string', () => {
 
   describe('max', () => {
     test('should correctly validate the maximum length of the string', () => {
-      const schema = j2.string().max(5)
+      const schema = j.string().max(5)
 
       const [err01] = AjvSchema.create(schema).getValidationResult('0123')
       expect(err01).toBeNull()
@@ -93,7 +98,7 @@ describe('string', () => {
 
   describe('length', () => {
     test('should correctly validate the length of the string', () => {
-      const schema = j2.string().length(4, 5)
+      const schema = j.string().length(4, 5)
 
       const [err01] = AjvSchema.create(schema).getValidationResult('0123')
       expect(err01).toBeNull()
@@ -109,7 +114,7 @@ describe('string', () => {
 
   describe('trim', () => {
     test('should trim the input string - when inside an object schema', () => {
-      const schema = j2.object({ trim: j2.string().trim() }).isOfType<{ trim: string }>()
+      const schema = j.object({ trim: j.string().trim() }).isOfType<{ trim: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
         trim: '  trimmed  string  ',
@@ -120,7 +125,7 @@ describe('string', () => {
     })
 
     test('should trim the input string - when inside an array schema', () => {
-      const schema = j2.array(j2.string().trim())
+      const schema = j.array(j.string().trim())
 
       const [err, result] = AjvSchema.create(schema).getValidationResult(['  trimmed  string  '])
 
@@ -129,7 +134,7 @@ describe('string', () => {
     })
 
     test('should silently fail when not inside a parent schema', () => {
-      const schema = j2.string().trim()
+      const schema = j.string().trim()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult('  trimmed  string  ')
 
@@ -140,8 +145,8 @@ describe('string', () => {
 
   describe('toLowerCase', () => {
     test('should toLowerCase the input string - when inside an object schema', () => {
-      const schema = j2
-        .object({ toLowerCase: j2.string().toLowerCase() })
+      const schema = j
+        .object({ toLowerCase: j.string().toLowerCase() })
         .isOfType<{ toLowerCase: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
@@ -153,7 +158,7 @@ describe('string', () => {
     })
 
     test('should toLowerCase the input string - when inside an array schema', () => {
-      const schema = j2.array(j2.string().toLowerCase())
+      const schema = j.array(j.string().toLowerCase())
 
       const [err, result] = AjvSchema.create(schema).getValidationResult(['lOwErCaSe StRiNg'])
 
@@ -162,7 +167,7 @@ describe('string', () => {
     })
 
     test('should silently fail when not inside a parent schema', () => {
-      const schema = j2.string().toLowerCase()
+      const schema = j.string().toLowerCase()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult('lOwErCaSe StRiNg')
 
@@ -173,8 +178,8 @@ describe('string', () => {
 
   describe('toUpperCase', () => {
     test('should toUpperCase the input string - when inside an object schema', () => {
-      const schema = j2
-        .object({ toUpperCase: j2.string().toUpperCase() })
+      const schema = j
+        .object({ toUpperCase: j.string().toUpperCase() })
         .isOfType<{ toUpperCase: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
@@ -186,7 +191,7 @@ describe('string', () => {
     })
 
     test('should toUpperCase the input string - when inside an array schema', () => {
-      const schema = j2.array(j2.string().toUpperCase())
+      const schema = j.array(j.string().toUpperCase())
 
       const [err, result] = AjvSchema.create(schema).getValidationResult(['UpPeRcAsE StRiNg'])
 
@@ -195,7 +200,7 @@ describe('string', () => {
     })
 
     test('should silently fail when not inside a parent schema', () => {
-      const schema = j2.string().toUpperCase()
+      const schema = j.string().toUpperCase()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult('UpPeRcAsE StRiNg')
 
@@ -206,9 +211,7 @@ describe('string', () => {
 
   describe('truncate', () => {
     test('should truncate the input string - when inside an object schema', () => {
-      const schema = j2
-        .object({ truncate: j2.string().truncate(5) })
-        .isOfType<{ truncate: string }>()
+      const schema = j.object({ truncate: j.string().truncate(5) }).isOfType<{ truncate: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
         truncate: '0123456',
@@ -219,7 +222,7 @@ describe('string', () => {
     })
 
     test('should truncate the input string - when inside an array schema', () => {
-      const schema = j2.array(j2.string().truncate(5))
+      const schema = j.array(j.string().truncate(5))
 
       const [err, result] = AjvSchema.create(schema).getValidationResult(['0123456'])
 
@@ -228,7 +231,7 @@ describe('string', () => {
     })
 
     test('should silently fail when not inside a parent schema', () => {
-      const schema = j2.string().truncate(5)
+      const schema = j.string().truncate(5)
 
       const [err, result] = AjvSchema.create(schema).getValidationResult('0123456')
 
@@ -237,8 +240,8 @@ describe('string', () => {
     })
 
     test('should trim the result when trim is part of the chain', () => {
-      const schema = j2
-        .object({ truncate: j2.string().trim().truncate(5) })
+      const schema = j
+        .object({ truncate: j.string().trim().truncate(5) })
         .isOfType<{ truncate: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
@@ -253,7 +256,7 @@ describe('string', () => {
   describe('branded', () => {
     test('should work correctly with type inference', () => {
       type AccountId = Branded<string, 'AccountId'>
-      const schema = j2.string().branded<AccountId>()
+      const schema = j.string().branded<AccountId>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult('AccountId') // no type-cast needed
 
@@ -266,7 +269,7 @@ describe('string', () => {
   describe('email', () => {
     test('should accept valid email address - %s', () => {
       const testCases: string[] = ['david@nc.se', 'paul-louis@nc.co.uk']
-      const schema = j2.string().email()
+      const schema = j.string().email()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(email => {
@@ -276,7 +279,7 @@ describe('string', () => {
     })
 
     test('should reject invalid email address', () => {
-      const schema = j2.string().email()
+      const schema = j.string().email()
       const ajvSchema = AjvSchema.create(schema)
 
       const invalidTestCases: any[] = [
@@ -296,7 +299,7 @@ describe('string', () => {
     })
 
     test('should convert the email to lowercase - when inside an object schema', () => {
-      const schema = j2.object({ email: j2.string().email() }).isOfType<{ email: string }>()
+      const schema = j.object({ email: j.string().email() }).isOfType<{ email: string }>()
 
       const [, result] = AjvSchema.create(schema).getValidationResult({ email: 'LOWERCASE@nc.COM' })
 
@@ -304,7 +307,7 @@ describe('string', () => {
     })
 
     test('should trim the email - when inside an object schema', () => {
-      const schema = j2.object({ email: j2.string().email() }).isOfType<{ email: string }>()
+      const schema = j.object({ email: j.string().email() }).isOfType<{ email: string }>()
 
       const [, result] = AjvSchema.create(schema).getValidationResult({
         email: '  trimmed@nc.com  ',
@@ -316,7 +319,7 @@ describe('string', () => {
 
   describe('the checkTLD option', () => {
     test('should validate the TLD part strictly by default', () => {
-      const schema = j2.string().email()
+      const schema = j.string().email()
 
       const [err01] = AjvSchema.create(schema).getValidationResult('david@nc.se')
       expect(err01).toBeNull()
@@ -331,7 +334,7 @@ describe('string', () => {
     })
 
     test('should not validate the TLD part strictly when `checkTLD` is `false`', () => {
-      const schema = j2.string().email({ checkTLD: false })
+      const schema = j.string().email({ checkTLD: false })
 
       const [err01] = AjvSchema.create(schema).getValidationResult('david@nc.se')
       expect(err01).toBeNull()
@@ -345,7 +348,7 @@ describe('string', () => {
 
   describe('IsoDate', () => {
     test('should work correctly with type inference', () => {
-      const schema = j2.string().isoDate()
+      const schema = j.string().isoDate()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult('2025-10-15')
 
@@ -355,7 +358,7 @@ describe('string', () => {
     })
 
     test('should reject with proper error message', () => {
-      const schema = j2.string().isoDate()
+      const schema = j.string().isoDate()
 
       const [err] = AjvSchema.create(schema).getValidationResult(
         'Second day of the second month of the year of the snake',
@@ -373,7 +376,7 @@ describe('string', () => {
       for (let i = 1; i < 366; ++i) {
         testCases.push(d.plusDays(i).toISODate())
       }
-      const schema = j2.string().isoDate()
+      const schema = j.string().isoDate()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(date => {
@@ -400,7 +403,7 @@ describe('string', () => {
         '2001-11-31', // invalid day for 30 day month
         '2100-02-29', // not leap year b/c div. by 100 but not div. by 400
       ]
-      const schema = j2.string().isoDate()
+      const schema = j.string().isoDate()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(date => {
@@ -412,7 +415,7 @@ describe('string', () => {
 
   describe('IsoDateTime', () => {
     test('should work correctly with type inference', () => {
-      const schema = j2.string().isoDateTime()
+      const schema = j.string().isoDateTime()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult('2025-10-15T01:01:01Z')
 
@@ -422,7 +425,7 @@ describe('string', () => {
     })
 
     test('should reject with proper error message', () => {
-      const schema = j2.string().isoDateTime()
+      const schema = j.string().isoDateTime()
 
       const [err] = AjvSchema.create(schema).getValidationResult(
         'Second day of the second month of the year of the snake two candles after sunrise',
@@ -446,7 +449,7 @@ describe('string', () => {
       for (let i = 1; i < 366; ++i) {
         testCases.push(t.plusDays(i).toISODateTime())
       }
-      const schema = j2.string().isoDateTime()
+      const schema = j.string().isoDateTime()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(date => {
@@ -485,7 +488,7 @@ describe('string', () => {
         '2001-11-31T01:01:01', // invalid day for 30 day month
         '2100-02-29T01:01:01', // not leap year b/c div. by 100 but not div. by 400
       ]
-      const schema = j2.string().isoDateTime()
+      const schema = j.string().isoDateTime()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(date => {
@@ -500,7 +503,7 @@ describe('string', () => {
       const testCases = [
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
       ]
-      const schema = j2.string().jwt()
+      const schema = j.string().jwt()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach((jwt, i) => {
@@ -519,7 +522,7 @@ describe('string', () => {
         [],
         {},
       ]
-      const schema = j2.string().jwt()
+      const schema = j.string().jwt()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach((jwt, i) => {
@@ -532,7 +535,7 @@ describe('string', () => {
   describe('url', () => {
     test('should accept string with valid URL', () => {
       const testCases = ['https://nevergonna.giveyou.up']
-      const schema = j2.string().url()
+      const schema = j.string().url()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(url => {
@@ -543,7 +546,7 @@ describe('string', () => {
 
     test('should reject string with invalid URL', () => {
       const invalidCases: any[] = ['not a URL', 0, true, [], {}]
-      const schema = j2.string().url()
+      const schema = j.string().url()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(url => {
@@ -556,7 +559,7 @@ describe('string', () => {
   describe('ipv4', () => {
     test('should accept string with valid IPv4', () => {
       const testCases = ['127.0.0.1', '192.168.0.1']
-      const schema = j2.string().ipv4()
+      const schema = j.string().ipv4()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(ipv4 => {
@@ -567,7 +570,7 @@ describe('string', () => {
 
     test('should reject string with invalid IPv4', () => {
       const invalidCases: any[] = ['192.168.0.1/255.255.255.0', 'not a ipv4', 0, true, [], {}]
-      const schema = j2.string().ipv4()
+      const schema = j.string().ipv4()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(ipv4 => {
@@ -586,7 +589,7 @@ describe('string', () => {
         '0000:0000:0000:0000:0000:0000:0000:0001',
         '::1',
       ]
-      const schema = j2.string().ipv6()
+      const schema = j.string().ipv6()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(ipv6 => {
@@ -606,7 +609,7 @@ describe('string', () => {
         [],
         {},
       ]
-      const schema = j2.string().ipv6()
+      const schema = j.string().ipv6()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(ipv6 => {
@@ -619,7 +622,7 @@ describe('string', () => {
   describe('id', () => {
     test('should accept string with valid ID', () => {
       const testCases = ['alphanumericwith0123_', '012345']
-      const schema = j2.string().id()
+      const schema = j.string().id()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(id => {
@@ -640,7 +643,7 @@ describe('string', () => {
         [],
         {},
       ]
-      const schema = j2.string().id()
+      const schema = j.string().id()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(id => {
@@ -653,7 +656,7 @@ describe('string', () => {
   describe('slug', () => {
     test('should accept string with valid slug', () => {
       const testCases = ['some-slug', '012345']
-      const schema = j2.string().slug()
+      const schema = j.string().slug()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(slug => {
@@ -672,7 +675,7 @@ describe('string', () => {
         [],
         {},
       ]
-      const schema = j2.string().slug()
+      const schema = j.string().slug()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(slug => {
@@ -685,7 +688,7 @@ describe('string', () => {
   describe('semVer', () => {
     test('should accept string with valid semver', () => {
       const testCases = ['0.0.0', '1.2.3']
-      const schema = j2.string().semVer()
+      const schema = j.string().semVer()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(semver => {
@@ -706,7 +709,7 @@ describe('string', () => {
         [],
         {},
       ]
-      const schema = j2.string().semVer()
+      const schema = j.string().semVer()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(semver => {
@@ -719,7 +722,7 @@ describe('string', () => {
   describe('languageTag', () => {
     test('should accept string with valid languageTag', () => {
       const testCases = ['hu-HU', 'en-US', 'se-SE', 'se']
-      const schema = j2.string().languageTag()
+      const schema = j.string().languageTag()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(languageTag => {
@@ -738,7 +741,7 @@ describe('string', () => {
         [],
         {},
       ]
-      const schema = j2.string().languageTag()
+      const schema = j.string().languageTag()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(languageTag => {
@@ -751,7 +754,7 @@ describe('string', () => {
   describe('countryCode', () => {
     test('should accept string with valid countryCode', () => {
       const testCases = ['SE', 'HU']
-      const schema = j2.string().countryCode()
+      const schema = j.string().countryCode()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(countryCode => {
@@ -771,7 +774,7 @@ describe('string', () => {
         [],
         {},
       ]
-      const schema = j2.string().countryCode()
+      const schema = j.string().countryCode()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(countryCode => {
@@ -784,7 +787,7 @@ describe('string', () => {
   describe('currency', () => {
     test('should accept string with valid currency', () => {
       const testCases = ['SEK', 'HUF', 'EUR', 'USD']
-      const schema = j2.string().currency()
+      const schema = j.string().currency()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(currency => {
@@ -804,7 +807,7 @@ describe('string', () => {
         [],
         {},
       ]
-      const schema = j2.string().currency()
+      const schema = j.string().currency()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(currency => {
@@ -815,9 +818,461 @@ describe('string', () => {
   })
 })
 
+describe('number', () => {
+  test('should work correctly with type inference', () => {
+    const schema = j.number()
+
+    const [err, result] = AjvSchema.create(schema).getValidationResult(0)
+
+    expect(err).toBeNull()
+    expect(result).toBe(0)
+    result satisfies number
+  })
+
+  test('should accept a number with a valid value', () => {
+    const testCases = [-2, 0, 2, 3.14]
+    const schema = j.number()
+    const ajvSchema = AjvSchema.create(schema)
+
+    testCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err, String(value)).toBeNull()
+    })
+  })
+
+  test('should reject a number with an invalid value', () => {
+    const invalidCases: any[] = [Number.NaN, Number.POSITIVE_INFINITY, 'a', true, {}, []]
+    const schema = j.number()
+    const ajvSchema = AjvSchema.create(schema)
+
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err, String(value)).not.toBeNull()
+    })
+  })
+
+  describe('multipleOf', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [-2, 0, 2, 4]
+      const schema = j.number().multipleOf(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [1, 3]
+      const schema = j.number().multipleOf(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('min', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [2, 3, 4]
+      const schema = j.number().min(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [1, 1.9999]
+      const schema = j.number().min(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('exclusiveMin', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [2.0001, 3, 4]
+      const schema = j.number().exclusiveMin(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [1, 1.9999, 2]
+      const schema = j.number().exclusiveMin(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('max', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [0, 1, 2]
+      const schema = j.number().max(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [2.0001, 3, 4]
+      const schema = j.number().max(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('exclusiveMax', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [0, 1, 1.9999]
+      const schema = j.number().exclusiveMax(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [2, 3, 4]
+      const schema = j.number().exclusiveMax(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('range', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [2, 2.5, 3]
+      const schema = j.number().range(2, 3)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [1, 1.999, 3.001, 4]
+      const schema = j.number().range(2, 3)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('int32', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [-(2 ** 31), 0, 2 ** 31 - 1]
+      const schema = j.number().int32()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [-(2 ** 31) - 1, 2 ** 31]
+      const schema = j.number().int32()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+
+    test('should not update already set min or max within valid boundaries', () => {
+      const testCases = [2, 3]
+      const schema = j.number().min(2).max(3).int32()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+
+      const invalidCases = [1, 4]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('int64', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
+      const schema = j.number().int64()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [Number.MIN_SAFE_INTEGER - 1, Number.MAX_SAFE_INTEGER + 1]
+      const schema = j.number().int64()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  // empty, because float is all JS numbers
+  // describe('float', () => {})
+
+  // empty, because double is all JS numbers
+  // describe('double', () => {})
+
+  describe('unixTimestamp', () => {
+    test('should brand the value', () => {
+      const schema = j.number().unixTimestamp()
+      const ajvSchema = AjvSchema.create(schema)
+      const [, result] = ajvSchema.getValidationResult(0)
+      result satisfies UnixTimestamp
+    })
+
+    test('should accept a number with a valid value', () => {
+      const testCases = [0, localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix]
+      const schema = j.number().unixTimestamp()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [
+        -1,
+        0.1,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unix,
+      ]
+      const schema = j.number().unixTimestamp()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('unixTimestamp2000', () => {
+    test('should brand the value', () => {
+      const schema = j.number().unixTimestamp2000()
+      const ajvSchema = AjvSchema.create(schema)
+      const [, result] = ajvSchema.getValidationResult(0)
+      result satisfies UnixTimestamp
+    })
+
+    test('should accept a number with a valid value', () => {
+      const testCases = [
+        localTime('2000-01-01T00:00:00Z' as IsoDateTime).unix,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix,
+      ]
+      const schema = j.number().unixTimestamp2000()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [
+        localTime('2000-01-01T00:00:00Z' as IsoDateTime).minusSeconds(1).unix,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unix,
+        0.1,
+      ]
+      const schema = j.number().unixTimestamp2000()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('unixTimestampMillis', () => {
+    test('should brand the value', () => {
+      const schema = j.number().unixTimestampMillis()
+      const ajvSchema = AjvSchema.create(schema)
+      const [, result] = ajvSchema.getValidationResult(0)
+      result satisfies UnixTimestampMillis
+    })
+
+    test('should accept a number with a valid value', () => {
+      const testCases = [0, localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis]
+      const schema = j.number().unixTimestampMillis()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [
+        -1,
+        0.1,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unixMillis,
+      ]
+      const schema = j.number().unixTimestampMillis()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('unixTimestamp2000Millis', () => {
+    test('should brand the value', () => {
+      const schema = j.number().unixTimestamp2000Millis()
+      const ajvSchema = AjvSchema.create(schema)
+      const [, result] = ajvSchema.getValidationResult(0)
+      result satisfies UnixTimestampMillis
+    })
+
+    test('should accept a number with a valid value', () => {
+      const testCases = [
+        localTime('2000-01-01T00:00:00Z' as IsoDateTime).unixMillis,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis,
+      ]
+      const schema = j.number().unixTimestamp2000Millis()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [
+        localTime('2000-01-01T00:00:00Z' as IsoDateTime).minusSeconds(1).unixMillis,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unixMillis,
+        0.1,
+      ]
+      const schema = j.number().unixTimestamp2000Millis()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('utcOffset', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [-12 * 60, 0, 14 * 60]
+      const schema = j.number().utcOffset()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [
+        0.1, // non-integer
+        14, // not a multiple of 15
+        -13 * 60, // out of lower bound
+        15 * 60, // out of upper bound
+      ]
+      const schema = j.number().utcOffset()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('utcOffsetHour', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [-12, 0, 14]
+      const schema = j.number().utcOffsetHour()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [
+        0.1, // non-integer
+        -13, // out of lower bound
+        15, // out of upper bound
+      ]
+      const schema = j.number().utcOffsetHour()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+})
+
 describe('array', () => {
   test('should work correctly with type inference', () => {
-    const schema = j2.array(j2.string().nullable())
+    const schema = j.array(j.string().nullable())
 
     const [err, result] = AjvSchema.create(schema).getValidationResult(['foo', null])
 
@@ -828,13 +1283,13 @@ describe('array', () => {
 
   test('should accept valid data', () => {
     const testCases: any[] = [
-      [j2.string(), []],
-      [j2.string(), ['foo', 'bar']],
-      [j2.string().nullable(), ['foo', null]],
+      [j.string(), []],
+      [j.string(), ['foo', 'bar']],
+      [j.string().nullable(), ['foo', null]],
     ]
 
     testCases.forEach(([itemSchema, input]) => {
-      const schema = j2.array(itemSchema)
+      const schema = j.array(itemSchema)
 
       const [err, result] = AjvSchema.create(schema).getValidationResult(input)
 
@@ -846,18 +1301,18 @@ describe('array', () => {
   test('should reject invalid data', () => {
     const invalidTestCases: any[] = [
       // Invalid items
-      [j2.string(), ['foo', 1]],
-      [j2.string(), ['foo', undefined]],
-      [j2.string(), {}],
+      [j.string(), ['foo', 1]],
+      [j.string(), ['foo', undefined]],
+      [j.string(), {}],
       // Invalid array
-      [j2.string(), 1],
-      [j2.string(), 'foo'],
-      [j2.string(), true],
-      [j2.string(), {}],
+      [j.string(), 1],
+      [j.string(), 'foo'],
+      [j.string(), true],
+      [j.string(), {}],
     ]
 
     invalidTestCases.forEach(([itemSchema, input]) => {
-      const schema = j2.array(itemSchema)
+      const schema = j.array(itemSchema)
 
       const [err] = AjvSchema.create(schema).getValidationResult(input)
 
@@ -868,7 +1323,7 @@ describe('array', () => {
 
 describe('set', () => {
   test('should work correctly with type inference', () => {
-    const schema = j2.set(j2.string())
+    const schema = j.set(j.string())
 
     const [err, result] = AjvSchema.create(schema).getValidationResult(new Set2(['foo', 'bar']))
 
@@ -880,13 +1335,13 @@ describe('set', () => {
 
   test('should accept valid data', () => {
     const testCases: any[] = [
-      [j2.string(), new Set2(['foo', 'bar'])],
-      [j2.string().nullable(), new Set2(['foo', null])],
-      [j2.array(j2.string()), new Set2([['foo'], ['bar']])],
+      [j.string(), new Set2(['foo', 'bar'])],
+      [j.string().nullable(), new Set2(['foo', null])],
+      [j.array(j.string()), new Set2([['foo'], ['bar']])],
     ]
 
     testCases.forEach(([itemSchema, input]) => {
-      const schema = j2.set(itemSchema)
+      const schema = j.set(itemSchema)
 
       const [err] = AjvSchema.create(schema).getValidationResult(input)
 
@@ -897,18 +1352,18 @@ describe('set', () => {
   test('should reject invalid data', () => {
     const invalidTestCases: any[] = [
       // Invalid items
-      [j2.string(), new Set2(['foo', 1])],
-      [j2.string().nullable(), new Set2(['foo', undefined])],
+      [j.string(), new Set2(['foo', 1])],
+      [j.string().nullable(), new Set2(['foo', undefined])],
       // Invalid Set2
-      [j2.string(), 1],
-      [j2.string(), 'foo'],
-      [j2.string(), true],
-      [j2.string(), {}],
-      [j2.string(), []],
+      [j.string(), 1],
+      [j.string(), 'foo'],
+      [j.string(), true],
+      [j.string(), {}],
+      [j.string(), []],
     ]
 
     invalidTestCases.forEach(([itemSchema, input]) => {
-      const schema = j2.set(itemSchema)
+      const schema = j.set(itemSchema)
 
       const [err] = AjvSchema.create(schema).getValidationResult(input)
 
@@ -917,7 +1372,7 @@ describe('set', () => {
   })
 
   test('should NOT accept an Array - when it is a standalone schema', () => {
-    const schema = j2.set(j2.string())
+    const schema = j.set(j.string())
 
     const [err] = AjvSchema.create(schema).getValidationResult(['foo', 'bar'])
 
@@ -928,7 +1383,7 @@ describe('set', () => {
   })
 
   test('should accept an Array and produce a Set2 - when it is a property of an object', () => {
-    const schema = j2.object({ set: j2.set(j2.string()) }).isOfType<{ set: Set2<string> }>()
+    const schema = j.object({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({ set: ['foo', 'bar'] })
 
@@ -939,7 +1394,7 @@ describe('set', () => {
   })
 
   test('should automagically make an Array unique', () => {
-    const schema = j2.object({ set: j2.set(j2.string()) }).isOfType<{ set: Set2<string> }>()
+    const schema = j.object({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({
       set: ['foo', 'bar', 'foo'],
@@ -952,17 +1407,17 @@ describe('set', () => {
 
 describe('object', () => {
   test('should work correctly with type inference', () => {
-    const schema = j2
+    const schema = j
       .object({
-        string: j2.string(),
-        stringOptional: j2.string().optional(),
-        array: j2.array(j2.string().nullable()),
-        arrayOptional: j2.array(j2.string()).optional(),
-        nested: j2.object({
-          string: j2.string(),
-          stringOptional: j2.string().optional(),
-          array: j2.array(j2.string().nullable()),
-          arrayOptional: j2.array(j2.string()).optional(),
+        string: j.string(),
+        stringOptional: j.string().optional(),
+        array: j.array(j.string().nullable()),
+        arrayOptional: j.array(j.string()).optional(),
+        nested: j.object({
+          string: j.string(),
+          stringOptional: j.string().optional(),
+          array: j.array(j.string().nullable()),
+          arrayOptional: j.array(j.string()).optional(),
         }),
       })
       .isOfType<TestEverythingObject>()
@@ -1013,10 +1468,10 @@ describe('object', () => {
       stringOptional?: string
     }
 
-    const schema = j2
+    const schema = j
       .object({
-        string: j2.string(),
-        stringOptional: j2.string().optional(),
+        string: j.string(),
+        stringOptional: j.string().optional(),
       })
       .isOfType<Foo>()
 
@@ -1041,7 +1496,7 @@ describe('object', () => {
 
 describe('errors', () => {
   test('should properly display the path to the erronous value', () => {
-    const schema = j2.object({ foo: j2.array(j2.string()) }).isOfType<{ foo: string[] }>()
+    const schema = j.object({ foo: j.array(j.string()) }).isOfType<{ foo: string[] }>()
 
     const [err] = AjvSchema.create(schema).getValidationResult({
       foo: ['a', 'b', 'c', 1, 'e'],
