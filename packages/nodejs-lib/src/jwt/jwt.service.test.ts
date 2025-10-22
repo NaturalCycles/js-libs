@@ -17,7 +17,7 @@ interface Data {
   num: number
 }
 
-const dataSchema = AjvSchema.createFromZod<Data>(
+const dataSchema = AjvSchema.createFromZod(
   z.object({
     accountId: z.string(),
     num: z.number(),

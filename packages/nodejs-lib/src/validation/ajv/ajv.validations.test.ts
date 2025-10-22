@@ -1270,6 +1270,40 @@ describe('number', () => {
   })
 })
 
+describe('boolean', () => {
+  test('should work correctly with type inference', () => {
+    const schema = j.boolean()
+
+    const [err, result] = AjvSchema.create(schema).getValidationResult(true)
+
+    expect(err).toBeNull()
+    expect(result).toBe(true)
+    result satisfies boolean
+  })
+
+  test('should accept a boolean with a valid value', () => {
+    const testCases = [true, false]
+    const schema = j.boolean()
+    const ajvSchema = AjvSchema.create(schema)
+
+    testCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err, String(value)).toBeNull()
+    })
+  })
+
+  test('should reject a boolean with an invalid value', () => {
+    const invalidCases: any[] = ['a', 0, {}, []]
+    const schema = j.boolean()
+    const ajvSchema = AjvSchema.create(schema)
+
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err, String(value)).not.toBeNull()
+    })
+  })
+})
+
 describe('array', () => {
   test('should work correctly with type inference', () => {
     const schema = j.array(j.string().nullable())
@@ -1480,6 +1514,25 @@ describe('object', () => {
     result satisfies Foo
   })
 
+  test('should reject when required properties are missing', () => {
+    const schema = j
+      .object({ foo: j.string(), bar: j.string().optional() })
+      .isOfType<{ foo: string; bar?: string }>()
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1] = ajvSchema.getValidationResult({ foo: 'foo', bar: 'bar' })
+    expect(err1).toBeNull()
+
+    const [err2] = ajvSchema.getValidationResult({ foo: 'foo' })
+    expect(err2).toBeNull()
+
+    const [err3] = ajvSchema.getValidationResult({ bar: 'bar' } as any)
+    expect(err3).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must have required property 'foo'
+      Input: { bar: 'bar' }]
+    `)
+  })
+
   interface TestEverythingObject {
     string: string
     stringOptional?: string
@@ -1492,6 +1545,186 @@ describe('object', () => {
       arrayOptional?: string[]
     }
   }
+
+  describe('extend', () => {
+    test('should work correctly with type assignment', () => {
+      interface Foo {
+        foo: string | null
+        bar?: number
+      }
+      const schema1 = j.object({ foo: j.string().nullable() })
+      const schema2 = schema1.extend({ bar: j.number().optional() }).isOfType<Foo>()
+
+      const [, result] = AjvSchema.create(schema2).getValidationResult({
+        foo: 'asdf',
+        bar: 0,
+      })
+
+      result satisfies Foo
+    })
+  })
+})
+
+describe('enum', () => {
+  test('should work correctly with type inference', () => {
+    const schema = j.enum([0, 'foo', false])
+
+    const [err, result] = AjvSchema.create(schema).getValidationResult(0)
+
+    expect(err).toBeNull()
+    expect(result).toBe(0)
+    result satisfies 0 | 'foo' | false
+  })
+
+  test('should accept a valid value', () => {
+    const testCases = [0, 'foo', false] as const
+    const schema = j.enum([0, 'foo', false])
+    const ajvSchema = AjvSchema.create(schema)
+
+    testCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err, String(value)).toBeNull()
+    })
+  })
+
+  test('should reject an invalid value', () => {
+    const invalidCases: any[] = [1, 'abc', true, [], {}]
+    const schema = j.enum([0, 'foo', false])
+    const ajvSchema = AjvSchema.create(schema)
+
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err, String(value)).not.toBeNull()
+    })
+  })
+
+  test('should support typescript string enums', () => {
+    enum OompaLoompa {
+      Foo = 'foo',
+      Bar = 'bar',
+    }
+    const schema = j.enum(OompaLoompa)
+    const [err, result] = AjvSchema.create(schema).getValidationResult(OompaLoompa.Bar)
+
+    expect(err).toBeNull()
+    expect(result).toBe(OompaLoompa.Bar)
+    result satisfies OompaLoompa
+  })
+
+  test('should support typescript numeric enums', () => {
+    enum OompaLoompa {
+      Foo = 0,
+      Bar = 1,
+    }
+    const schema = j.enum(OompaLoompa)
+    const [err, result] = AjvSchema.create(schema).getValidationResult(OompaLoompa.Bar)
+
+    expect(err).toBeNull()
+    expect(result).toBe(OompaLoompa.Bar)
+    result satisfies OompaLoompa
+  })
+})
+
+describe('buffer', () => {
+  test('should work correctly with type inference', () => {
+    const schema = j.buffer()
+
+    const [err, result] = AjvSchema.create(schema).getValidationResult(Buffer.from('asdf'))
+
+    expect(err).toBeNull()
+    expect(result).toBeInstanceOf(Buffer)
+    expect(result).toEqual(Buffer.from('asdf'))
+    result satisfies Buffer
+  })
+
+  test('should accept valid data', () => {
+    const testCases: any[] = ['foobar', [0, 1, 2]]
+
+    const schema = j.buffer()
+    const ajvSchema = AjvSchema.create(schema)
+
+    testCases.forEach(input => {
+      const [err] = ajvSchema.getValidationResult(Buffer.from(input))
+      expect(err, String(input)).toBeNull()
+    })
+  })
+
+  test('should reject invalid data', () => {
+    const invalidTestCases: any[] = [
+      // Invalid input for Buffer
+      null,
+      0,
+      ['foo', 'bar'],
+    ]
+    const schema = j.buffer()
+    const ajvSchema = AjvSchema.create(schema)
+
+    invalidTestCases.forEach(input => {
+      const [err] = ajvSchema.getValidationResult(input)
+      expect(err, String(input)).not.toBeNull()
+    })
+  })
+
+  test('should NOT accept an Array - when it is a standalone schema', () => {
+    const schema = j.buffer()
+
+    const [err] = AjvSchema.create(schema).getValidationResult(['foo', 'bar'])
+
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object can only transform data into a Buffer when the schema is in an object or an array schema. This is an Ajv limitation.
+      Input: [ 'foo', 'bar' ]]
+    `)
+  })
+
+  test('should accept an Array and produce a Buffer - when it is a property of an object', () => {
+    const schema = j.object({ buffer: j.buffer() }).isOfType<{ buffer: Buffer }>()
+
+    const [err, result] = AjvSchema.create(schema).getValidationResult({ buffer: 'foobar' })
+
+    expect(err).toBeNull()
+    expect(result.buffer).toBeInstanceOf(Buffer)
+    expect(result.buffer).toEqual(Buffer.from('foobar'))
+    result satisfies { buffer: Buffer }
+  })
+
+  test('should automagically make an Array unique', () => {
+    const schema = j.object({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
+
+    const [err, result] = AjvSchema.create(schema).getValidationResult({
+      set: ['foo', 'bar', 'foo'],
+    })
+
+    expect(err).toBeNull()
+    expect(result.set.toArray()).toEqual(['foo', 'bar'])
+  })
+})
+
+describe('oneOf', () => {
+  test('should correctly infer the type', () => {
+    const schema = j.oneOf([j.string().nullable(), j.number()])
+    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+    result satisfies string | number | null
+  })
+
+  test('should accept valid values', () => {
+    const testCases = ['a', 1, null]
+    const schema = j.oneOf([j.string().nullable(), j.number()])
+
+    testCases.forEach(value => {
+      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      expect(err).toBeNull()
+    })
+  })
+
+  test('should reject invalid values', () => {
+    const invalidCases: any[] = [undefined, true, [], {}]
+    const schema = j.oneOf([j.string().nullable(), j.number()])
+
+    invalidCases.forEach(value => {
+      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      expect(err).not.toBeNull()
+    })
+  })
 })
 
 describe('errors', () => {

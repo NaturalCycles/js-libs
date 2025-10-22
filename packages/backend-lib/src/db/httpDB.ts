@@ -9,8 +9,8 @@ import type {
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
 import type { Fetcher, FetcherOptions } from '@naturalcycles/js-lib/http'
 import { getFetcher } from '@naturalcycles/js-lib/http'
-import type { JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 
 export interface HttpDBCfg extends FetcherOptions {
   baseUrl: string
@@ -51,9 +51,7 @@ export class HttpDB extends BaseCommonDB implements CommonDB {
     return await this.fetcher.get(`tables`)
   }
 
-  override async getTableSchema<ROW extends ObjectWithId>(
-    table: string,
-  ): Promise<JsonSchemaRootObject<ROW>> {
+  override async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<JsonSchema<ROW>> {
     return await this.fetcher.get(`${table}/schema`)
   }
 

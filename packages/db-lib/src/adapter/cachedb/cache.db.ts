@@ -1,6 +1,6 @@
 import { _isTruthy } from '@naturalcycles/js-lib'
-import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { BaseCommonDB } from '../../commondb/base.common.db.js'
 import type { CommonDB, CommonDBSupport } from '../../commondb/common.db.js'
@@ -55,15 +55,13 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return await this.cfg.downstreamDB.getTables()
   }
 
-  override async getTableSchema<ROW extends ObjectWithId>(
-    table: string,
-  ): Promise<JsonSchemaRootObject<ROW>> {
+  override async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<JsonSchema<ROW>> {
     return await this.cfg.downstreamDB.getTableSchema<ROW>(table)
   }
 
   override async createTable<ROW extends ObjectWithId>(
     table: string,
-    schema: JsonSchemaObject<ROW>,
+    schema: JsonSchema<ROW>,
     opt: CacheDBCreateOptions = {},
   ): Promise<void> {
     if (!opt.onlyCache && !this.cfg.onlyCache) {

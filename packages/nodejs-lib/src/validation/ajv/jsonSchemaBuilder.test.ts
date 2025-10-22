@@ -59,6 +59,19 @@ describe('number', () => {
   })
 })
 
+describe('boolean', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.boolean()
+    schema1.in satisfies boolean
+
+    const schema2 = j.boolean().nullable()
+    schema2.in satisfies boolean | null
+
+    const schema3 = j.boolean().nullable().optional()
+    schema3.in satisfies boolean | null | undefined
+  })
+})
+
 describe('object', () => {
   test('should correctly infer the type', () => {
     interface Schema1In {
@@ -142,6 +155,24 @@ describe('object', () => {
       .isOfType<{ foo: string | undefined }>()
     expectTypeOf(schema3).toBeNever()
   })
+
+  describe('extend', () => {
+    test('should correctly infer the type', () => {
+      interface Foo {
+        a: string | null
+      }
+      interface Bar {
+        b?: number
+      }
+
+      const schema1 = j.object({ a: j.string().nullable() })
+
+      const schema2 = schema1.extend({ b: j.number().optional() })
+
+      schema2.in satisfies Foo | Bar
+      schema2.out satisfies { a: string | null; b?: number }
+    })
+  })
 })
 
 describe('array', () => {
@@ -161,5 +192,21 @@ describe('set', () => {
     const schema1 = j.set(j.string())
     schema1.in satisfies Iterable<string>
     schema1.out satisfies Set2<string>
+  })
+})
+
+describe('buffer', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.buffer()
+    schema1.in satisfies string | any[] | ArrayBuffer | Buffer
+    schema1.out satisfies Buffer
+  })
+})
+
+describe('oneOf', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.oneOf([j.string().nullable(), j.number()])
+    schema1.in satisfies string | number | null
+    schema1.out satisfies string | number | null
   })
 })

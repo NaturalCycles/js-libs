@@ -6,8 +6,8 @@ pn tsx packages/nodejs-lib/scripts/bench/schemaCompilation.bench.script.ts
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { j } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { AjvSchema } from '../../src/validation/ajv/index.js'
 import {
   arraySchema,
@@ -36,13 +36,14 @@ const item: Item = {
 let _sink: any
 
 const jsonSchema2 = j
-  .object<Item>({
+  .object({
     s: j.string(),
     n1: j.number(),
     n2: j.number().optional(),
     b1: j.boolean().optional(),
     a: j.array(j.number()),
   })
+  .isOfType<Item>()
   .build()
 
 // const ajv = getAjv()

@@ -1,7 +1,6 @@
-import { j } from '@naturalcycles/js-lib/json-schema'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
-import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { getDefaultRouter } from '../../express/getDefaultRouter.js'
 import { debugResource } from '../../test/debug.resource.js'
@@ -40,7 +39,7 @@ test('ajvValidateRequest', async () => {
         "backendResponseStatusCode": 400,
         "errors": [
           {
-            "instancePath": "/pw",
+            "instancePath": ".pw",
             "keyword": "minLength",
             "message": "must NOT have fewer than 8 characters",
             "params": {
@@ -51,14 +50,14 @@ test('ajvValidateRequest', async () => {
         ],
         "inputName": "request body",
       },
-      "message": "request body/pw must NOT have fewer than 8 characters
+      "message": "request body.pw must NOT have fewer than 8 characters
     Input: { pw: 'REDACTED' }",
       "name": "AppError",
     }
   `)
 
   expect(_inspect(err.cause)).toMatchInlineSnapshot(`
-    "AppError: request body/pw must NOT have fewer than 8 characters
+    "AppError: request body.pw must NOT have fewer than 8 characters
     Input: { pw: 'REDACTED' }"
   `)
 })
@@ -77,12 +76,14 @@ describe('ajvValidateRequest.headers', () => {
       ajvValidateRequest.headers(
         req,
         AjvSchema.create(
-          j.object({
-            shortstring: j.string().min(8).max(16),
-            numeric: j.string(),
-            bool: j.string(),
-            sessionid: j.string(),
-          }),
+          j
+            .object({
+              shortstring: j.string().min(8).max(16),
+              numeric: j.string(),
+              bool: j.string(),
+              sessionid: j.string(),
+            })
+            .isOfType<{ shortstring: string; numeric: string; bool: string; sessionid: string }>(),
         ),
         { redactPaths: ['sessionid'] },
       )
@@ -129,7 +130,7 @@ describe('ajvValidateRequest.headers', () => {
 
     expect(err.data.responseStatusCode).toBe(400)
     expect(err.cause.message).toContain(
-      `request headers/shortstring must NOT have fewer than 8 characters`,
+      `request headers.shortstring must NOT have fewer than 8 characters`,
     )
   })
 
@@ -155,10 +156,12 @@ describe('ajvValidateRequest.headers', () => {
       const validatedHeaders = ajvValidateRequest.headers(
         req,
         AjvSchema.create(
-          j.object({
-            shortstring: j.string().min(8).max(16),
-            numeric: j.string(),
-          }),
+          j
+            .object({
+              shortstring: j.string().min(8).max(16),
+              numeric: j.string(),
+            })
+            .isOfType<{ shortstring: string; numeric: string }>(),
         ),
       )
 

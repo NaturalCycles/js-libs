@@ -178,6 +178,59 @@ export function createAjv(opt?: Options): Ajv {
   })
 
   ajv.addKeyword({
+    keyword: 'Buffer',
+    modifying: true,
+    errors: true,
+    schemaType: 'boolean',
+    compile(_innerSchema, _parentSchema, _it) {
+      function validateBuffer(data: any, ctx: any): boolean {
+        let buffer: Buffer
+
+        if (data === null) return false
+
+        const isValid =
+          data instanceof Buffer ||
+          data instanceof ArrayBuffer ||
+          Array.isArray(data) ||
+          typeof data === 'string'
+        if (!isValid) return false
+
+        if (data instanceof Buffer) {
+          buffer = data
+        } else if (isValid && ctx?.parentData) {
+          buffer = Buffer.from(data as any)
+        } else if (isValid && !ctx?.parentData) {
+          ;(validateBuffer as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message:
+                'can only transform data into a Buffer when the schema is in an object or an array schema. This is an Ajv limitation.',
+            },
+          ]
+          return false
+        } else {
+          ;(validateBuffer as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message:
+                'must be a Buffer object (or optionally an Array-like object or ArrayBuffer in some cases)',
+            },
+          ]
+          return false
+        }
+
+        if (ctx?.parentData && ctx.parentDataProperty) {
+          ctx.parentData[ctx.parentDataProperty] = buffer
+        }
+
+        return true
+      }
+
+      return validateBuffer
+    },
+  })
+
+  ajv.addKeyword({
     keyword: 'email',
     type: 'string',
     modifying: false,

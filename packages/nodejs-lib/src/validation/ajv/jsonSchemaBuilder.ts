@@ -1,9 +1,15 @@
 /* eslint-disable id-denylist */
 // oxlint-disable max-lines
 
-import { _isUndefined } from '@naturalcycles/js-lib'
+import {
+  _isUndefined,
+  _numberEnumValues,
+  _stringEnumValues,
+  getEnumType,
+} from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
-import { JSON_SCHEMA_ORDER } from '@naturalcycles/js-lib/json-schema'
+import { _assert } from '@naturalcycles/js-lib/error'
+import { JSON_SCHEMA_ORDER, mergeJsonSchemaObjects } from '@naturalcycles/js-lib/json-schema'
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
 import {
@@ -11,6 +17,8 @@ import {
   type IsoDate,
   type IsoDateTime,
   JWT_REGEX,
+  type NumberEnum,
+  type StringEnum,
   type StringMap,
   type UnixTimestamp,
   type UnixTimestampMillis,
@@ -23,6 +31,10 @@ export const j = {
 
   number(): JsonSchemaNumberBuilder<number, number, false> {
     return new JsonSchemaNumberBuilder()
+  },
+
+  boolean(): JsonSchemaBooleanBuilder<boolean, boolean, false> {
+    return new JsonSchemaBooleanBuilder()
   },
 
   object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
@@ -41,6 +53,49 @@ export const j = {
     itemSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>,
   ): JsonSchemaSet2Builder<IN, OUT, Opt> {
     return new JsonSchemaSet2Builder(itemSchema)
+  },
+
+  buffer(): JsonSchemaBufferBuilder {
+    return new JsonSchemaBufferBuilder()
+  },
+
+  enum<const T extends readonly (string | number | boolean | null)[] | StringEnum | NumberEnum>(
+    input: T,
+  ): JsonSchemaEnumBuilder<
+    T extends readonly (infer U)[]
+      ? U
+      : T extends StringEnum
+        ? T[keyof T]
+        : T extends NumberEnum
+          ? T[keyof T]
+          : never
+  > {
+    let enumValues: readonly (string | number | boolean | null)[] | undefined
+
+    if (Array.isArray(input)) {
+      enumValues = input
+    } else if (typeof input === 'object') {
+      const enumType = getEnumType(input)
+      if (enumType === 'NumberEnum') {
+        enumValues = _numberEnumValues(input as NumberEnum)
+      } else if (enumType === 'StringEnum') {
+        enumValues = _stringEnumValues(input as StringEnum)
+      }
+    }
+
+    _assert(enumValues, 'Unsupported enum input')
+    return new JsonSchemaEnumBuilder(enumValues as any)
+  },
+
+  oneOf<
+    B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
+    IN = BuilderInUnion<B>,
+    OUT = BuilderOutUnion<B>,
+  >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
+    const schemas = items.map(b => b.build())
+    return new JsonSchemaAnyBuilder<IN, OUT, false>({
+      oneOf: schemas,
+    })
   },
 }
 
@@ -425,6 +480,18 @@ export class JsonSchemaNumberBuilder<
   }
 }
 
+export class JsonSchemaBooleanBuilder<
+  IN extends boolean = boolean,
+  OUT = IN,
+  Opt extends boolean = false,
+> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
+  constructor() {
+    super({
+      type: 'boolean',
+    })
+  }
+}
+
 export class JsonSchemaObjectBuilder<
   PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>,
   Opt extends boolean = false,
@@ -491,6 +558,48 @@ export class JsonSchemaObjectBuilder<
 
     return this
   }
+
+  extend<NEW_PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
+    props: NEW_PROPS,
+  ): JsonSchemaObjectBuilder<
+    {
+      [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
+        ? NEW_PROPS[K]
+        : K extends keyof PROPS
+          ? PROPS[K]
+          : never
+    },
+    Opt
+  > {
+    const newBuilder = new JsonSchemaObjectBuilder<PROPS, Opt>()
+    Object.assign(newBuilder.schema, _deepCopy(this.schema))
+
+    const incomingSchemaBuilder = new JsonSchemaObjectBuilder<NEW_PROPS, false>(props)
+    mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
+
+    return newBuilder as JsonSchemaObjectBuilder<
+      {
+        [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
+          ? NEW_PROPS[K]
+          : K extends keyof PROPS
+            ? PROPS[K]
+            : never
+      },
+      Opt
+    >
+  }
+
+  /**
+   * Extends the current schema with `id`, `created` and `updated` according to NC DB conventions.
+   */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+  dbEntity() {
+    return this.extend({
+      id: j.string(),
+      created: j.number().unixTimestamp2000(),
+      updated: j.number().unixTimestamp2000(),
+    })
+  }
 }
 
 export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<IN[], OUT[], Opt> {
@@ -540,6 +649,28 @@ export class JsonSchemaSet2Builder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<
   }
 }
 
+export class JsonSchemaBufferBuilder extends JsonSchemaAnyBuilder<
+  string | any[] | ArrayBuffer | Buffer,
+  Buffer,
+  false
+> {
+  constructor() {
+    super({
+      Buffer: true,
+    })
+  }
+}
+
+export class JsonSchemaEnumBuilder<
+  IN extends string | number | boolean | null,
+  OUT extends IN = IN,
+  Opt extends boolean = false,
+> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
+  constructor(enumValues: readonly IN[]) {
+    super({ enum: enumValues })
+  }
+}
+
 export interface JsonSchema<IN = unknown, OUT = IN> {
   readonly in?: IN
   readonly out?: OUT
@@ -571,6 +702,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   else?: JsonSchema
 
   anyOf?: JsonSchema[]
+  oneOf?: JsonSchema[]
 
   /**
    * This is a temporary "intermediate AST" field that is used inside the parser.
@@ -592,9 +724,12 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   maximum?: number
   exclusiveMaximum?: number
 
+  enum?: any
+
   // Below we add custom Ajv keywords
 
   Set2?: JsonSchema
+  Buffer?: true
   IsoDate?: true
   IsoDateTime?: true
   instanceof?: string | string[]
@@ -607,6 +742,14 @@ type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
 
 type ExactMatch<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
+
+type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
+  [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
+}[number]
+
+type BuilderInUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
+  [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<infer I, any, any> ? I : never
+}[number]
 
 interface JsonBuilderRuleOpt {
   msg?: string

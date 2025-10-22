@@ -1,12 +1,6 @@
-import type {
-  JsonSchemaBoolean,
-  JsonSchemaNumber,
-  JsonSchemaObject,
-  JsonSchemaRootObject,
-  JsonSchemaString,
-} from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import * as mysql from 'mysql'
 
 export interface MySQLTableStats {
@@ -27,14 +21,14 @@ export interface MySQLSchemaOptions {
  */
 export function jsonSchemaToMySQLDDL(
   table: string,
-  schema: JsonSchemaObject<any>,
+  schema: JsonSchema<any>,
   opt: MySQLSchemaOptions = {},
 ): string {
   const { engine = 'InnoDB' } = opt
 
   const lines: string[] = [`CREATE TABLE ${mysql.escapeId(table)} (`]
 
-  const innerLines = Object.entries(schema.properties).map(([k, s]) => {
+  const innerLines = Object.entries(schema.properties!).map(([k, s]) => {
     if (k === 'id') {
       return `id VARCHAR(255) NOT NULL`
     }
@@ -47,7 +41,7 @@ export function jsonSchemaToMySQLDDL(
     } else if (s.type === 'integer') {
       type = 'INT(11)'
     } else if (s.type === 'number') {
-      if (['unixTimestamp', 'int32'].includes((s as JsonSchemaNumber).format!)) {
+      if (['unixTimestamp', 'int32'].includes((s as JsonSchema<number>).format!)) {
         type = 'INT(11)'
       } else {
         type = 'FLOAT(11)'
@@ -84,8 +78,8 @@ export function mysqlTableStatsToJsonSchemaField<T extends AnyObject = any>(
   table: string,
   stats: MySQLTableStats[],
   logger: CommonLogger,
-): JsonSchemaRootObject<T> {
-  const s: JsonSchemaRootObject<T> = {
+): JsonSchema<T> {
+  const s: JsonSchema<T> = {
     $id: `${table}.schema.json`,
     type: 'object',
     properties: {} as any,
@@ -98,19 +92,19 @@ export function mysqlTableStatsToJsonSchemaField<T extends AnyObject = any>(
     const t = stat.Type.toLowerCase()
     const notNull = stat.Null?.toUpperCase() !== 'YES'
     if (notNull) {
-      s.required.push(name as any)
+      s.required!.push(name as any)
     }
 
     if (t.includes('text') || t.includes('char')) {
-      s.properties[name] = { type: 'string' } as JsonSchemaString
+      s.properties![name] = { type: 'string' } as JsonSchema<T[keyof T]>
     } else if (t.includes('lob')) {
-      s.properties[name] = { instanceof: 'Buffer' }
+      s.properties![name] = { instanceof: 'Buffer' }
     } else if (t.startsWith('tinyint') || t.includes('(1)')) {
-      s.properties[name] = { type: 'boolean' } as JsonSchemaBoolean
+      s.properties![name] = { type: 'boolean' } as JsonSchema<T[keyof T]>
     } else if (t === 'int' || t.startsWith('int(')) {
-      s.properties[name] = { type: 'integer' } as JsonSchemaNumber
+      s.properties![name] = { type: 'integer' } as JsonSchema<T[keyof T]>
     } else if (t.startsWith('float')) {
-      s.properties[name] = { type: 'number' } as JsonSchemaNumber
+      s.properties![name] = { type: 'number' } as JsonSchema<T[keyof T]>
     } else {
       logger.log(s)
       throw new Error(`Unknown mysql field type ${name as string} ${stat.Type}`)
