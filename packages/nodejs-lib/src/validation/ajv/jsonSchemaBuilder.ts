@@ -286,8 +286,8 @@ export class JsonSchemaStringBuilder<
     return this
   }
 
-  branded<B extends string>(): JsonSchemaStringBuilder<B | IN, B, Opt> {
-    return this as unknown as JsonSchemaStringBuilder<B | IN, B, Opt>
+  branded<B extends string>(): JsonSchemaStringBuilder<B, B, Opt> {
+    return this as unknown as JsonSchemaStringBuilder<B, B, Opt>
   }
 
   isoDate(): JsonSchemaStringBuilder<IsoDate | IN, IsoDate, Opt> {
@@ -381,8 +381,8 @@ export class JsonSchemaNumberBuilder<
     return this
   }
 
-  branded<B extends number>(): JsonSchemaNumberBuilder<B | IN, B, Opt> {
-    return this as unknown as JsonSchemaNumberBuilder<B | IN, B, Opt>
+  branded<B extends number>(): JsonSchemaNumberBuilder<B, B, Opt> {
+    return this as unknown as JsonSchemaNumberBuilder<B, B, Opt>
   }
 
   multipleOf(multipleOf: number): this {
@@ -444,24 +444,20 @@ export class JsonSchemaNumberBuilder<
     return this
   }
 
-  unixTimestamp(): JsonSchemaNumberBuilder<UnixTimestamp | number, UnixTimestamp, Opt> {
+  unixTimestamp(): JsonSchemaNumberBuilder<UnixTimestamp, UnixTimestamp, Opt> {
     return this.integer().min(0).max(TS_2500).branded<UnixTimestamp>()
   }
 
-  unixTimestamp2000(): JsonSchemaNumberBuilder<UnixTimestamp | number, UnixTimestamp, Opt> {
+  unixTimestamp2000(): JsonSchemaNumberBuilder<UnixTimestamp, UnixTimestamp, Opt> {
     return this.integer().min(TS_2000).max(TS_2500).branded<UnixTimestamp>()
   }
 
-  unixTimestampMillis(): JsonSchemaNumberBuilder<
-    UnixTimestampMillis | number,
-    UnixTimestampMillis,
-    Opt
-  > {
+  unixTimestampMillis(): JsonSchemaNumberBuilder<UnixTimestampMillis, UnixTimestampMillis, Opt> {
     return this.integer().min(0).max(TS_2500_MILLIS).branded<UnixTimestampMillis>()
   }
 
   unixTimestamp2000Millis(): JsonSchemaNumberBuilder<
-    UnixTimestampMillis | number,
+    UnixTimestampMillis,
     UnixTimestampMillis,
     Opt
   > {

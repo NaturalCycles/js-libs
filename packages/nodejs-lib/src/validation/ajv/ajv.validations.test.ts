@@ -257,7 +257,7 @@ describe('string', () => {
       type AccountId = Branded<string, 'AccountId'>
       const schema = j.string().branded<AccountId>()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('AccountId') // no type-cast needed
+      const [err, result] = AjvSchema.create(schema).getValidationResult('AccountId' as AccountId)
 
       expect(err).toBeNull()
       expect(result).toBe('AccountId')
@@ -1069,7 +1069,7 @@ describe('number', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp()
       const ajvSchema = AjvSchema.create(schema)
-      const [, result] = ajvSchema.getValidationResult(0)
+      const [, result] = ajvSchema.getValidationResult(0 as UnixTimestamp)
       expectTypeOf(result).toEqualTypeOf<UnixTimestamp>()
     })
 
@@ -1079,7 +1079,7 @@ describe('number', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = ajvSchema.getValidationResult(value as UnixTimestamp)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1094,7 +1094,7 @@ describe('number', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = ajvSchema.getValidationResult(value as UnixTimestamp)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1104,7 +1104,7 @@ describe('number', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp2000()
       const ajvSchema = AjvSchema.create(schema)
-      const [, result] = ajvSchema.getValidationResult(0)
+      const [, result] = ajvSchema.getValidationResult(0 as UnixTimestamp)
       expectTypeOf(result).toEqualTypeOf<UnixTimestamp>()
     })
 
@@ -1132,7 +1132,7 @@ describe('number', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = ajvSchema.getValidationResult(value as UnixTimestamp)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1142,7 +1142,7 @@ describe('number', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestampMillis()
       const ajvSchema = AjvSchema.create(schema)
-      const [, result] = ajvSchema.getValidationResult(0)
+      const [, result] = ajvSchema.getValidationResult(0 as UnixTimestampMillis)
       expectTypeOf(result).toEqualTypeOf<UnixTimestampMillis>()
     })
 
@@ -1152,7 +1152,7 @@ describe('number', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = ajvSchema.getValidationResult(value as UnixTimestampMillis)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1167,7 +1167,7 @@ describe('number', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = ajvSchema.getValidationResult(value as UnixTimestampMillis)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1177,7 +1177,7 @@ describe('number', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp2000Millis()
       const ajvSchema = AjvSchema.create(schema)
-      const [, result] = ajvSchema.getValidationResult(0)
+      const [, result] = ajvSchema.getValidationResult(0 as UnixTimestampMillis)
       expectTypeOf(result).toEqualTypeOf<UnixTimestampMillis>()
     })
 
@@ -1205,7 +1205,7 @@ describe('number', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = ajvSchema.getValidationResult(value as UnixTimestampMillis)
         expect(err, String(value)).not.toBeNull()
       })
     })
