@@ -1,6 +1,5 @@
 /* eslint-disable vitest/valid-expect */
 /* eslint-disable id-denylist */
-// oxlint-disable no-unused-expressions
 
 import { localDate, localTime } from '@naturalcycles/js-lib/datetime'
 import { Set2 } from '@naturalcycles/js-lib/object'
@@ -11,7 +10,7 @@ import type {
   UnixTimestamp,
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, expectTypeOf, test } from 'vitest'
 import { AjvSchema } from './ajvSchema.js'
 import { j } from './jsonSchemaBuilder.js'
 
@@ -23,7 +22,7 @@ describe('string', () => {
 
     expect(err).toBeNull()
     expect(result).toBe('foo')
-    result satisfies string
+    expectTypeOf(result).toEqualTypeOf<string>()
   })
 
   describe('regex', () => {
@@ -262,7 +261,7 @@ describe('string', () => {
 
       expect(err).toBeNull()
       expect(result).toBe('AccountId')
-      result satisfies AccountId
+      expectTypeOf(result).toEqualTypeOf<AccountId>()
     })
   })
 
@@ -354,7 +353,7 @@ describe('string', () => {
 
       expect(err).toBeNull()
       expect(result).toBe('2025-10-15')
-      result satisfies IsoDate
+      expectTypeOf(result).toEqualTypeOf<IsoDate>()
     })
 
     test('should reject with proper error message', () => {
@@ -421,7 +420,7 @@ describe('string', () => {
 
       expect(err).toBeNull()
       expect(result).toBe('2025-10-15T01:01:01Z')
-      result satisfies IsoDateTime
+      expectTypeOf(result).toEqualTypeOf<IsoDateTime>()
     })
 
     test('should reject with proper error message', () => {
@@ -826,7 +825,7 @@ describe('number', () => {
 
     expect(err).toBeNull()
     expect(result).toBe(0)
-    result satisfies number
+    expectTypeOf(result).toEqualTypeOf<number>()
   })
 
   test('should accept a number with a valid value', () => {
@@ -1071,7 +1070,7 @@ describe('number', () => {
       const schema = j.number().unixTimestamp()
       const ajvSchema = AjvSchema.create(schema)
       const [, result] = ajvSchema.getValidationResult(0)
-      result satisfies UnixTimestamp
+      expectTypeOf(result).toEqualTypeOf<UnixTimestamp>()
     })
 
     test('should accept a number with a valid value', () => {
@@ -1106,7 +1105,7 @@ describe('number', () => {
       const schema = j.number().unixTimestamp2000()
       const ajvSchema = AjvSchema.create(schema)
       const [, result] = ajvSchema.getValidationResult(0)
-      result satisfies UnixTimestamp
+      expectTypeOf(result).toEqualTypeOf<UnixTimestamp>()
     })
 
     test('should accept a number with a valid value', () => {
@@ -1144,7 +1143,7 @@ describe('number', () => {
       const schema = j.number().unixTimestampMillis()
       const ajvSchema = AjvSchema.create(schema)
       const [, result] = ajvSchema.getValidationResult(0)
-      result satisfies UnixTimestampMillis
+      expectTypeOf(result).toEqualTypeOf<UnixTimestampMillis>()
     })
 
     test('should accept a number with a valid value', () => {
@@ -1179,7 +1178,7 @@ describe('number', () => {
       const schema = j.number().unixTimestamp2000Millis()
       const ajvSchema = AjvSchema.create(schema)
       const [, result] = ajvSchema.getValidationResult(0)
-      result satisfies UnixTimestampMillis
+      expectTypeOf(result).toEqualTypeOf<UnixTimestampMillis>()
     })
 
     test('should accept a number with a valid value', () => {
@@ -1278,7 +1277,7 @@ describe('boolean', () => {
 
     expect(err).toBeNull()
     expect(result).toBe(true)
-    result satisfies boolean
+    expectTypeOf(result).toEqualTypeOf<boolean>()
   })
 
   test('should accept a boolean with a valid value', () => {
@@ -1312,7 +1311,7 @@ describe('array', () => {
 
     expect(err).toBeNull()
     expect(result).toEqual(['foo', null])
-    result satisfies (string | null)[]
+    expectTypeOf(result).toEqualTypeOf<(string | null)[]>()
   })
 
   test('should accept valid data', () => {
@@ -1364,7 +1363,7 @@ describe('set', () => {
     expect(err).toBeNull()
     expect(result).toBeInstanceOf(Set2)
     expect(result.toArray()).toEqual(['foo', 'bar'])
-    result satisfies Set2
+    expectTypeOf(result).toEqualTypeOf<Set2<string>>()
   })
 
   test('should accept valid data', () => {
@@ -1424,7 +1423,7 @@ describe('set', () => {
     expect(err).toBeNull()
     expect(result.set).toBeInstanceOf(Set2)
     expect(result.set.toArray()).toEqual(['foo', 'bar'])
-    result satisfies { set: Set2<string> }
+    expectTypeOf(result).toEqualTypeOf<{ set: Set2<string> }>()
   })
 
   test('should automagically make an Array unique', () => {
@@ -1482,7 +1481,7 @@ describe('object', () => {
         arrayOptional: ['array'],
       },
     })
-    result satisfies {
+    expectTypeOf(result).toEqualTypeOf<{
       string: string
       stringOptional?: string
       array: (string | null)[]
@@ -1493,7 +1492,7 @@ describe('object', () => {
         array: (string | null)[]
         arrayOptional?: string[]
       }
-    }
+    }>()
   })
 
   test('should work correctly with type assignment', () => {
@@ -1511,7 +1510,7 @@ describe('object', () => {
 
     const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
 
-    result satisfies Foo
+    expectTypeOf(result).toEqualTypeOf<Foo>()
   })
 
   test('should reject when required properties are missing', () => {
@@ -1560,7 +1559,7 @@ describe('object', () => {
         bar: 0,
       })
 
-      result satisfies Foo
+      expectTypeOf(result).toEqualTypeOf<Foo>()
     })
   })
 })
@@ -1573,7 +1572,7 @@ describe('enum', () => {
 
     expect(err).toBeNull()
     expect(result).toBe(0)
-    result satisfies 0 | 'foo' | false
+    expectTypeOf(result).toEqualTypeOf<0 | 'foo' | false>()
   })
 
   test('should accept a valid value', () => {
@@ -1608,7 +1607,7 @@ describe('enum', () => {
 
     expect(err).toBeNull()
     expect(result).toBe(OompaLoompa.Bar)
-    result satisfies OompaLoompa
+    expectTypeOf(result).toEqualTypeOf<OompaLoompa>()
   })
 
   test('should support typescript numeric enums', () => {
@@ -1621,7 +1620,7 @@ describe('enum', () => {
 
     expect(err).toBeNull()
     expect(result).toBe(OompaLoompa.Bar)
-    result satisfies OompaLoompa
+    expectTypeOf(result).toEqualTypeOf<OompaLoompa>()
   })
 })
 
@@ -1634,7 +1633,7 @@ describe('buffer', () => {
     expect(err).toBeNull()
     expect(result).toBeInstanceOf(Buffer)
     expect(result).toEqual(Buffer.from('asdf'))
-    result satisfies Buffer
+    expectTypeOf(result).toEqualTypeOf<Buffer>()
   })
 
   test('should accept valid data', () => {
@@ -1684,7 +1683,7 @@ describe('buffer', () => {
     expect(err).toBeNull()
     expect(result.buffer).toBeInstanceOf(Buffer)
     expect(result.buffer).toEqual(Buffer.from('foobar'))
-    result satisfies { buffer: Buffer }
+    expectTypeOf(result).toEqualTypeOf<{ buffer: Buffer }>()
   })
 
   test('should automagically make an Array unique', () => {
@@ -1703,7 +1702,7 @@ describe('oneOf', () => {
   test('should correctly infer the type', () => {
     const schema = j.oneOf([j.string().nullable(), j.number()])
     const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
-    result satisfies string | number | null
+    expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
   test('should accept valid values', () => {

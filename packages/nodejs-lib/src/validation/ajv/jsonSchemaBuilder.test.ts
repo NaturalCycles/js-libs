@@ -1,5 +1,4 @@
 /* eslint-disable id-denylist */
-// oxlint-disable no-unused-expressions
 
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import { describe, expectTypeOf, test } from 'vitest'
@@ -8,13 +7,13 @@ import { j } from './jsonSchemaBuilder.js'
 describe('string', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.string()
-    schema1.in satisfies string
+    expectTypeOf(schema1.in).toEqualTypeOf<string>()
 
     const schema2 = j.string().nullable()
-    schema2.in satisfies string | null
+    expectTypeOf(schema2.in).toEqualTypeOf<string | null>()
 
     const schema3 = j.string().nullable().optional()
-    schema3.in satisfies string | null | undefined
+    expectTypeOf(schema3.in).toEqualTypeOf<string | null | undefined>()
   })
 
   test('should check the passed in type', () => {
@@ -35,13 +34,13 @@ describe('string', () => {
 describe('number', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.number()
-    schema1.in satisfies number
+    expectTypeOf(schema1.in).toEqualTypeOf<number>()
 
     const schema2 = j.number().nullable()
-    schema2.in satisfies number | null
+    expectTypeOf(schema2.in).toEqualTypeOf<number | null>()
 
     const schema3 = j.number().nullable().optional()
-    schema3.in satisfies number | null | undefined
+    expectTypeOf(schema3.in).toEqualTypeOf<number | null | undefined>()
   })
 
   test('should check the passed in type', () => {
@@ -62,13 +61,13 @@ describe('number', () => {
 describe('boolean', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.boolean()
-    schema1.in satisfies boolean
+    expectTypeOf(schema1.in).toEqualTypeOf<boolean>()
 
     const schema2 = j.boolean().nullable()
-    schema2.in satisfies boolean | null
+    expectTypeOf(schema2.in).toEqualTypeOf<boolean | null>()
 
     const schema3 = j.boolean().nullable().optional()
-    schema3.in satisfies boolean | null | undefined
+    expectTypeOf(schema3.in).toEqualTypeOf<boolean | null | undefined>()
   })
 })
 
@@ -119,8 +118,8 @@ describe('object', () => {
       }),
     })
 
-    schema1.in satisfies Schema1In
-    schema1.out satisfies Schema1Out
+    expectTypeOf(schema1.in).toEqualTypeOf<Schema1In>()
+    expectTypeOf(schema1.out).toEqualTypeOf<Schema1Out>()
   })
 
   test('should check the passed-in type', () => {
@@ -158,19 +157,12 @@ describe('object', () => {
 
   describe('extend', () => {
     test('should correctly infer the type', () => {
-      interface Foo {
-        a: string | null
-      }
-      interface Bar {
-        b?: number
-      }
-
       const schema1 = j.object({ a: j.string().nullable() })
 
       const schema2 = schema1.extend({ b: j.number().optional() })
 
-      schema2.in satisfies Foo | Bar
-      schema2.out satisfies { a: string | null; b?: number }
+      expectTypeOf(schema2.in).toEqualTypeOf<{ a: string | null; b?: number }>()
+      expectTypeOf(schema2.out).toEqualTypeOf<{ a: string | null; b?: number }>()
     })
   })
 })
@@ -178,35 +170,35 @@ describe('object', () => {
 describe('array', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.array(j.string())
-    schema1.in satisfies string[]
-    schema1.out satisfies string[]
+    expectTypeOf(schema1.in).toEqualTypeOf<string[]>()
+    expectTypeOf(schema1.out).toEqualTypeOf<string[]>()
 
     const schema2 = j.array(j.string().optional())
-    schema2.in satisfies (string | undefined)[]
-    schema2.out satisfies (string | undefined)[]
+    expectTypeOf(schema2.in).toEqualTypeOf<(string | undefined)[]>()
+    expectTypeOf(schema2.out).toEqualTypeOf<(string | undefined)[]>()
   })
 })
 
 describe('set', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.set(j.string())
-    schema1.in satisfies Iterable<string>
-    schema1.out satisfies Set2<string>
+    expectTypeOf(schema1.in).toEqualTypeOf<Iterable<string>>()
+    expectTypeOf(schema1.out).toEqualTypeOf<Set2<string>>()
   })
 })
 
 describe('buffer', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.buffer()
-    schema1.in satisfies string | any[] | ArrayBuffer | Buffer
-    schema1.out satisfies Buffer
+    expectTypeOf(schema1.in).toEqualTypeOf<string | any[] | ArrayBuffer | Buffer>()
+    expectTypeOf(schema1.out).toEqualTypeOf<Buffer>()
   })
 })
 
 describe('oneOf', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.oneOf([j.string().nullable(), j.number()])
-    schema1.in satisfies string | number | null
-    schema1.out satisfies string | number | null
+    expectTypeOf(schema1.in).toEqualTypeOf<string | number | null>()
+    expectTypeOf(schema1.out).toEqualTypeOf<string | number | null>()
   })
 })
