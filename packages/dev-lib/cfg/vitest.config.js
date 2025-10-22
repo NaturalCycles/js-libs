@@ -14,7 +14,6 @@ const isCI = !!process.env['CI']
 const coverageEnabled = isCI && testType === 'unit'
 const junitReporterEnabled = isCI && testType !== 'manual'
 const maxWorkers = getMaxWorkers()
-const minWorkers = maxWorkers
 // threads are tested to be ~10% faster than forks in CI (and no change locally)
 // UPD: it was not statistically significant, so, reverting back to forks which is more stable
 // UPD2: in a different experiment, threads show ~10% faster locally, consistently
@@ -69,7 +68,6 @@ export function defineVitestConfig(config) {
  */
 export const sharedConfig = {
   pool,
-  minWorkers,
   maxWorkers,
   isolate: false,
   watch: false,

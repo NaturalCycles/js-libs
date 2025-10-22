@@ -12,6 +12,8 @@ onlyBuiltDependencies:
 minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - '@naturalcycles/*'
+  - vitest
+  - '@vitest/*'
 auditConfig:
   ignoreGhsas:
     - GHSA-h755-8qp9-cq85
