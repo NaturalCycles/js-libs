@@ -21,6 +21,8 @@
     "valid-expect": 0,
     "valid-title": 0,
     "valid-describe-callback": 0,
+    "jsdoc/require-yields": 0,
+    "no-new-wrappers": 2,
     "no-useless-call": 2,
     "no-accumulating-spread": 2,
     "prefer-array-find": 2,

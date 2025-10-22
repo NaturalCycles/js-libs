@@ -29,6 +29,7 @@
     "dev-lib:typecheck": "pnpm --filter @naturalcycles/dev-lib run typecheck",
     "dev-lib:bt": "pnpm --filter @naturalcycles/dev-lib run bt",
     "js-lib:check": "pnpm --filter @naturalcycles/js-lib run check",
+    "js-lib:lint": "pnpm --filter @naturalcycles/js-lib run lint",
     "js-lib:build": "pnpm --filter @naturalcycles/js-lib run build",
     "js-lib:bt": "pnpm --filter @naturalcycles/js-lib run bt",
     "js-lib:test": "pnpm --filter @naturalcycles/js-lib run test",
@@ -92,7 +93,7 @@
     "husky": "^9",
     "oxlint": "^1",
     "prettier": "^3",
-    "semantic-release": "^24",
+    "semantic-release": "^25",
     "semantic-release-monorepo": "^8",
     "semantic-release-pnpm": "^1",
     "tsx": "^4",
@@ -103,5 +104,5 @@
   "engines": {
     "node": ">=22.12.0"
   },
-  "packageManager": "pnpm@10.18.1"
+  "packageManager": "pnpm@10.18.3"
 }

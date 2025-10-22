@@ -140,6 +140,14 @@ export const segmentationRuleMap: Record<SegmentationRuleOperator, SegmentationR
     // Anything else cannot be true
     return keyValue?.toString() !== 'true'
   },
+  [SegmentationRuleOperator.GreaterThan](keyValue, ruleValue) {
+    if (keyValue === null || keyValue === undefined) return false
+    return keyValue > ruleValue
+  },
+  [SegmentationRuleOperator.LessThan](keyValue, ruleValue) {
+    if (keyValue === null || keyValue === undefined) return false
+    return keyValue < ruleValue
+  },
 }
 
 /**
