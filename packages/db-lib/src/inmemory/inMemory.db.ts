@@ -1,10 +1,6 @@
 import { _isEmptyObject } from '@naturalcycles/js-lib'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import {
-  generateJsonSchemaFromData,
-  type JsonSchemaObject,
-  type JsonSchemaRootObject,
-} from '@naturalcycles/js-lib/json-schema'
+import { generateJsonSchemaFromData } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _deepCopy, _sortObjectDeep } from '@naturalcycles/js-lib/object'
 import {
@@ -14,6 +10,7 @@ import {
   type ObjectWithId,
   type StringMap,
 } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { bufferReviver } from '@naturalcycles/nodejs-lib/stream/ndjson/transformJsonParse.js'
 import type { CommonDB, CommonDBSupport } from '../commondb/common.db.js'
@@ -111,19 +108,17 @@ export class InMemoryDB implements CommonDB {
     return Object.keys(this.data).filter(t => t.startsWith(this.cfg.tablesPrefix))
   }
 
-  async getTableSchema<ROW extends ObjectWithId>(
-    _table: string,
-  ): Promise<JsonSchemaRootObject<ROW>> {
+  async getTableSchema<ROW extends ObjectWithId>(_table: string): Promise<JsonSchema<ROW>> {
     const table = this.cfg.tablesPrefix + _table
     return {
       ...generateJsonSchemaFromData(_stringMapValues(this.data[table] || {})),
       $id: `${table}.schema.json`,
-    }
+    } as any
   }
 
   async createTable<ROW extends ObjectWithId>(
     _table: string,
-    _schema: JsonSchemaObject<ROW>,
+    _schema: JsonSchema<ROW>,
     opt: CommonDBCreateOptions = {},
   ): Promise<void> {
     const table = this.cfg.tablesPrefix + _table

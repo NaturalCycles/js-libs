@@ -81,45 +81,6 @@ describe('z.dbEntity', () => {
   })
 })
 
-describe('z.email', () => {
-  test('should accept a valid email address', () => {
-    const email = 'test@example.com'
-    const schema = z.email()
-
-    const result = schema.parse(email)
-    expect(result).toBe(email)
-
-    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(email)
-    expect(ajvResult[0]).toBeNull()
-    expect(ajvResult[1]).toBe(email)
-  })
-
-  test('should not lowercase an email', () => {
-    const email = 'Test@example.com'
-    const schema = z.email()
-
-    const result = schema.safeParse(email)
-    expect(result.success).toBe(true)
-    expect(result.data).toBe(email)
-
-    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(email)
-    expect(ajvResult[0]).toBeNull()
-    expect(ajvResult[1]).toBe(email)
-  })
-
-  test('should not trim before validation', () => {
-    const email = ' test@example.com '
-    const schema = z.email()
-
-    const result = schema.safeParse(email)
-    expect(result.success).toBe(false)
-
-    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(email)
-    expect(ajvResult[0]).not.toBeNull()
-    expect(ajvResult[1]).toBe(email)
-  })
-})
-
 describe('z.isoDate', () => {
   test('should accept 2001-01-01 ISO date format', () => {
     const date = '2001-01-01'

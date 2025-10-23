@@ -237,7 +237,7 @@ export interface AirtableTableCfg<T extends AirtableRecord = any> {
    */
   idField: string
 
-  validationFn?: ValidationFunction<T, any>
+  validationFn?: ValidationFunction<T, T, any>
   sort?: AirtableApiSort<T>[]
 
   /**

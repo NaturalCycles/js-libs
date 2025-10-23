@@ -439,9 +439,6 @@ export class JsonSchemaStringBuilder<
   jwt(): this {
     return this.regex(JWT_REGEX)
   }
-
-  // contentMediaType?: string
-  // contentEncoding?: string
 }
 
 export class JsonSchemaObjectBuilder<

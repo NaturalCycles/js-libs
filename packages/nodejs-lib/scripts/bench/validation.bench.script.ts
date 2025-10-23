@@ -11,8 +11,8 @@ joi x 874 ops/sec ±1.55% (95 runs sampled)
 
 import { runBench } from '@naturalcycles/bench-lib'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { j } from '@naturalcycles/js-lib/json-schema'
 import { z } from '@naturalcycles/js-lib/zod'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { runScript } from '../../src/script/runScript.js'
 import { AjvSchema } from '../../src/validation/ajv/index.js'
 import {
@@ -54,13 +54,14 @@ const joiSchema = objectSchema<Item>({
 // }
 
 const jsonSchema2 = j
-  .object<Item>({
+  .object({
     s: j.string(),
     n1: j.number(),
     n2: j.number().optional(),
     b1: j.boolean().optional(),
     a: j.array(j.number()),
   })
+  .isOfType<Item>()
   .build()
 
 const ajvSchema = AjvSchema.create(jsonSchema2)

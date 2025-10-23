@@ -1,5 +1,5 @@
-import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   CommonDBOptions,
@@ -32,15 +32,13 @@ export class BaseCommonDB implements CommonDB {
     throw new Error('getTables is not implemented')
   }
 
-  async getTableSchema<ROW extends ObjectWithId>(
-    _table: string,
-  ): Promise<JsonSchemaRootObject<ROW>> {
+  async getTableSchema<ROW extends ObjectWithId>(_table: string): Promise<JsonSchema<ROW>> {
     throw new Error('getTableSchema is not implemented')
   }
 
   async createTable<ROW extends ObjectWithId>(
     _table: string,
-    _schema: JsonSchemaObject<ROW>,
+    _schema: JsonSchema<ROW>,
   ): Promise<void> {
     // no-op
   }

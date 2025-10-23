@@ -9,6 +9,7 @@ import {
   TEST_TABLE,
   testItemBMJsonSchema,
 } from '@naturalcycles/db-lib/testing'
+import type { JsonSchema } from '@naturalcycles/js-lib/json-schema'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
@@ -88,7 +89,7 @@ test('fieldName with dot', async () => {
 
   const items = createTestItemsDBM(5).map(r => ({ ...r, [fieldName]: 'vv' }))
   const schema = testItemBMJsonSchema
-  schema.properties[fieldName as keyof TestItemDBM] = { type: 'string' }
+  ;(schema.properties as Record<string, JsonSchema>)[fieldName] = { type: 'string' }
 
   await db.createTable(table, schema, { dropIfExists: true })
   await db.saveBatch(table, items)
@@ -105,7 +106,10 @@ test('buffer', async () => {
   const items = createTestItemsDBM(5).map(r => ({ ...r, extra }))
 
   const schema = testItemBMJsonSchema
-  schema.properties['extra' as keyof TestItemDBM] = { instanceof: 'Buffer' }
+  ;(schema.properties as Record<string, JsonSchema>)['extra'] = {
+    type: 'object',
+    instanceof: 'Buffer',
+  }
 
   await db.createTable(table, schema, { dropIfExists: true })
   await db.saveBatch(table, items)

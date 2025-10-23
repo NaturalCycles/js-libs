@@ -1,5 +1,5 @@
-import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { NonNegativeInteger, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   CommonDBCreateOptions,
@@ -44,7 +44,7 @@ export interface CommonDB {
    *
    * This is important for the code to rely on it, and it's verified by dbTest
    */
-  getTableSchema: <ROW extends ObjectWithId>(table: string) => Promise<JsonSchemaRootObject<ROW>>
+  getTableSchema: <ROW extends ObjectWithId>(table: string) => Promise<JsonSchema<ROW>>
 
   /**
    * Will do like `create table ...` for mysql.
@@ -52,7 +52,7 @@ export interface CommonDB {
    */
   createTable: <ROW extends ObjectWithId>(
     table: string,
-    schema: JsonSchemaObject<ROW>,
+    schema: JsonSchema<ROW>,
     opt?: CommonDBCreateOptions,
   ) => Promise<void>
 

@@ -1,11 +1,11 @@
 import { _hb } from '@naturalcycles/js-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { ErrorMode } from '@naturalcycles/js-lib/error/errorMode.js'
-import type { JsonSchemaObject } from '@naturalcycles/js-lib/json-schema'
 import { _mapValues } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { AsyncMapper, BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { _passthroughMapper } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { boldWhite, dimWhite, grey, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import {
@@ -166,7 +166,7 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
         return
       }
 
-      const schema = await fs2.readJsonAsync<JsonSchemaObject<any>>(schemaFilePath)
+      const schema = await fs2.readJsonAsync<JsonSchema<any>>(schemaFilePath)
       await db.createTable(table, schema, { dropIfExists: true })
     })
   }

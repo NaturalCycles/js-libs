@@ -45,7 +45,7 @@ const defaultOptions: ValidationOptions = {
 
 export function getJoiValidationFunction<T>(
   schema: AnySchema<T>,
-): ValidationFunction<T, JoiValidationError> {
+): ValidationFunction<T, T, JoiValidationError> {
   return (input, opt) => {
     _assert(!opt?.mutateInput, 'mutateInput=true is not yet supported with Joi')
     return getValidationResult(input, schema, opt?.inputName)
