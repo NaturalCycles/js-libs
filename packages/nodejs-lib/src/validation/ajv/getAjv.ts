@@ -52,9 +52,6 @@ export function createAjv(opt?: Options): Ajv {
     ...opt,
   })
 
-  // Add custom formats
-  addCustomAjvFormats(ajv)
-
   // Adds $merge, $patch keywords
   // https://github.com/ajv-validator/ajv-merge-patch
   // Kirill: temporarily disabled, as it creates a noise of CVE warnings
@@ -304,76 +301,7 @@ export function createAjv(opt?: Options): Ajv {
   return ajv
 }
 
-const TS_2500 = 16725225600 // 2500-01-01
-const TS_2500_MILLIS = TS_2500 * 1000
-const TS_2000 = 946684800 // 2000-01-01
-const TS_2000_MILLIS = TS_2000 * 1000
-
 const monthLengths = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-
-function addCustomAjvFormats(ajv: Ajv): Ajv {
-  return (
-    ajv
-      // TODO: remove the formats, because they can be re-implemented in JsonSchema
-      .addFormat('id', /^[a-z0-9_]{6,64}$/)
-      .addFormat('slug', /^[a-z0-9-]+$/)
-      .addFormat('semVer', /^[0-9]+\.[0-9]+\.[0-9]+$/)
-      // IETF language tag (https://en.wikipedia.org/wiki/IETF_language_tag)
-      .addFormat('languageTag', /^[a-z]{2}(-[A-Z]{2})?$/)
-      .addFormat('countryCode', /^[A-Z]{2}$/)
-      .addFormat('currency', /^[A-Z]{3}$/)
-      .addFormat('unixTimestamp', {
-        type: 'number',
-        validate: (n: number) => {
-          return n >= 0 && n < TS_2500
-        },
-      })
-      .addFormat('unixTimestamp2000', {
-        type: 'number',
-        validate: (n: number) => {
-          return n >= TS_2000 && n < TS_2500
-        },
-      })
-      .addFormat('unixTimestampMillis', {
-        type: 'number',
-        validate: (n: number) => {
-          return n >= 0 && n < TS_2500_MILLIS
-        },
-      })
-      .addFormat('unixTimestampMillis2000', {
-        type: 'number',
-        validate: (n: number) => {
-          return n >= TS_2000_MILLIS && n < TS_2500_MILLIS
-        },
-      })
-      .addFormat('utcOffset', {
-        type: 'number',
-        validate: (n: number) => {
-          // min: -14 hours
-          // max +14 hours
-          // multipleOf 15 (minutes)
-          return n >= -14 * 60 && n <= 14 * 60 && Number.isInteger(n)
-        },
-      })
-      .addFormat('utcOffsetHours', {
-        type: 'number',
-        validate: (n: number) => {
-          // min: -14 hours
-          // max +14 hours
-          // multipleOf 15 (minutes)
-          return n >= -14 && n <= 14 && Number.isInteger(n)
-        },
-      })
-      .addFormat('IsoDate', {
-        type: 'string',
-        validate: isIsoDateValid,
-      })
-      .addFormat('IsoDateTime', {
-        type: 'string',
-        validate: isIsoDateTimeValid,
-      })
-  )
-}
 
 const DASH_CODE = '-'.charCodeAt(0)
 const ZERO_CODE = '0'.charCodeAt(0)
