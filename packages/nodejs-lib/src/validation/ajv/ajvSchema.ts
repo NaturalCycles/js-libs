@@ -210,7 +210,7 @@ export class AjvSchema<IN, OUT = IN> {
     // const schema = j.object({ name: j.string() }).ofType<Foo>()
     _assert(
       schema.type !== 'object' || schema.hasIsOfTypeCheck,
-      'The schema must be type checked against a type or interface, using the `.ofType()` helper in `j`.',
+      'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
     )
   }
 
