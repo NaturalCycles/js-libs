@@ -61,18 +61,10 @@ export const testItemBMJsonSchema = j
     k3: j.number().optional(),
     even: j.boolean().optional(),
     b1: j.buffer().optional(),
+    nested: j.object({ foo: j.number() }).optional(),
   })
   .dbEntity()
-  .isOfType<{
-    id: string
-    created: UnixTimestamp
-    updated: UnixTimestamp
-    k1: string
-    k2?: string | null
-    k3?: number
-    even?: boolean
-    b1?: Buffer
-  }>()
+  .isOfType<TestItemBM>()
   .build()
 
 export function createTestItemDBM(num = 1): TestItemDBM {

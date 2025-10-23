@@ -20,7 +20,7 @@ import { type JsonSchema, JsonSchemaAnyBuilder } from './jsonSchemaBuilder.js'
  * On creation - compiles ajv validation function.
  * Provides convenient methods, error reporting, etc.
  */
-export class AjvSchema<IN, OUT = IN> {
+export class AjvSchema<IN = unknown, OUT = IN> {
   private constructor(
     public schema: JsonSchema<IN, OUT>,
     cfg: Partial<AjvSchemaCfg> = {},
@@ -42,7 +42,7 @@ export class AjvSchema<IN, OUT = IN> {
    * Shortcut for AjvSchema.create(schema, { lazy: true })
    */
   static createLazy<IN, OUT>(
-    schema: JsonSchema<IN, OUT>,
+    schema: SchemaHandledByAjv<IN, OUT>,
     cfg?: Partial<AjvSchemaCfg>,
   ): AjvSchema<IN, OUT> {
     return AjvSchema.create(schema, {
