@@ -1,5 +1,7 @@
 import { _lazyValue } from '@naturalcycles/js-lib'
+import { _last } from '@naturalcycles/js-lib/array'
 import { Set2 } from '@naturalcycles/js-lib/object'
+import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import { _, Ajv, type Options, type ValidateFunction } from 'ajv'
 import type { JsonSchemaStringEmailOptions } from './jsonSchemaBuilder.js'
 import { validTLDs } from './tlds.js'
@@ -235,11 +237,10 @@ export function createAjv(opt?: Options): Ajv {
     schemaType: 'object',
     validate: function validate(opt: JsonSchemaStringEmailOptions, data: string, _schema, ctx) {
       const { checkTLD } = opt
-
       if (!checkTLD) return true
 
-      const isProbablyValidTld = validTLDs.values().some(tld => data.endsWith(`.${tld}`))
-      if (isProbablyValidTld) return true
+      const tld = _substringAfterLast(data, '.')
+      if (validTLDs.has(tld)) return true
       ;(validate as any).errors = [
         {
           instancePath: ctx?.instancePath ?? '',
