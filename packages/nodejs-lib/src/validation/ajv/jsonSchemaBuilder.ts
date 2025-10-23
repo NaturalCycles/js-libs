@@ -263,7 +263,7 @@ export class JsonSchemaStringBuilder<
     // from `ajv-formats`
     const regex =
       /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i
-    return this.regex(regex).trim().toLowerCase()
+    return this.regex(regex, { msg: 'is not a valid email address' }).trim().toLowerCase()
   }
 
   trim(): this {
@@ -305,59 +305,59 @@ export class JsonSchemaStringBuilder<
    * Expects the JWT to be signed!
    */
   jwt(): this {
-    return this.regex(JWT_REGEX)
+    return this.regex(JWT_REGEX, { msg: 'is not a valid JWT format' })
   }
 
   url(): this {
     // from `ajv-formats`
     const regex =
       /^(?:https?|ftp):\/\/(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u{00A1}-\u{FFFF}]+-)*[a-z0-9\u{00A1}-\u{FFFF}]+)(?:\.(?:[a-z0-9\u{00A1}-\u{FFFF}]+-)*[a-z0-9\u{00A1}-\u{FFFF}]+)*(?:\.(?:[a-z\u{00A1}-\u{FFFF}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid URL format' })
   }
 
   ipv4(): this {
     // from `ajv-formats`
     const regex =
       /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid IPv4 format' })
   }
 
   ipv6(): this {
     // from `ajv-formats`
     const regex =
       /^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))$/i
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid IPv6 format' })
   }
 
   id(): this {
     const regex = /^[a-z0-9_]{6,64}$/
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid ID format' })
   }
 
   slug(): this {
     const regex = /^[a-z0-9-]+$/
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid slug format' })
   }
 
   semVer(): this {
     const regex = /^[0-9]+\.[0-9]+\.[0-9]+$/
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid semver format' })
   }
 
   languageTag(): this {
     // IETF language tag (https://en.wikipedia.org/wiki/IETF_language_tag)
     const regex = /^[a-z]{2}(-[A-Z]{2})?$/
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid language format' })
   }
 
   countryCode(): this {
     const regex = /^[A-Z]{2}$/
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid country code format' })
   }
 
   currency(): this {
     const regex = /^[A-Z]{3}$/
-    return this.regex(regex)
+    return this.regex(regex, { msg: 'is not a valid currency format' })
   }
 }
 
