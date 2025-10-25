@@ -49,16 +49,16 @@ test('ajvValidateRequest', async () => {
             "schemaPath": "#/properties/pw/minLength",
           },
         ],
-        "inputName": "request body",
+        "inputName": "request.body",
       },
-      "message": "request body/pw must NOT have fewer than 8 characters
+      "message": "request.body/pw must NOT have fewer than 8 characters
     Input: { pw: 'REDACTED' }",
       "name": "AppError",
     }
   `)
 
   expect(_inspect(err.cause)).toMatchInlineSnapshot(`
-    "AppError: request body/pw must NOT have fewer than 8 characters
+    "AppError: request.body/pw must NOT have fewer than 8 characters
     Input: { pw: 'REDACTED' }"
   `)
 })
@@ -129,7 +129,7 @@ describe('ajvValidateRequest.headers', () => {
 
     expect(err.data.responseStatusCode).toBe(400)
     expect(err.cause.message).toContain(
-      `request headers/shortstring must NOT have fewer than 8 characters`,
+      `request.headers/shortstring must NOT have fewer than 8 characters`,
     )
   })
 

@@ -54,7 +54,7 @@ class ValidateRequest {
     const originalProperty = req[reqProperty] || {}
 
     // Joi does not mutate the input
-    const [error, value] = getValidationResult(originalProperty, schema, `request ${reqProperty}`)
+    const [error, value] = getValidationResult(originalProperty, schema, `request.${reqProperty}`)
 
     if (error) {
       if (opt.redactPaths) {

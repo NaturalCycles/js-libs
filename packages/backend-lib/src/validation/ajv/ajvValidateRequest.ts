@@ -61,7 +61,7 @@ class AjvValidateRequest {
     const ajvSchema = AjvSchema.create(schema)
 
     const [error, output] = ajvSchema.getValidationResult(input, {
-      inputName: `request ${reqProperty}`,
+      inputName: `request.${reqProperty}`,
     })
 
     if (error) {
