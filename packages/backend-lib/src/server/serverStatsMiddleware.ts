@@ -87,7 +87,7 @@ export const serverStatsHTMLHandler: BackendRequestHandler = (req, res) => {
         '<tr>',
         `<td><pre>${endpoint}</pre></td>`,
         `<td align="right"><pre>${stat.total}</pre></td>`,
-        // eslint-disable-next-line @typescript-eslint/no-base-to-string
+
         ...families.map(f => `<td align="right"><pre>${stat[f]}</pre></td>`),
         ...percentiles.map(pc => `<td align="right"><pre>${stat.pc![pc]}</pre></td>`),
         '</tr>',

@@ -62,6 +62,7 @@
     "import/no-named-as-default-member": 0,
     "import/no-self-import": 2,
     "import/no-unassigned-import": 0,
+    "import/no-unused-imports": 2,
     "oxc/bad-bitwise-operator": 2,
     "oxc/no-const-enum": 2,
     "oxc/approx-constant": 2,
