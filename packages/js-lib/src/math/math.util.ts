@@ -1,5 +1,5 @@
+import { comparators } from '../array/sort.js'
 import { _assert } from '../error/assert.js'
-import { _sortNumbers } from '../number/number.util.js'
 
 /**
  * @returns Average of the array of numbers
@@ -49,7 +49,7 @@ export function _averageWeighted(values: number[], weights: number[]): number {
  * // 3
  */
 export function _percentile(values: number[], pc: number): number {
-  const sorted = _sortNumbers(values)
+  const sorted = values.sort(comparators.numericAsc)
 
   // Floating pos in the range of [0; length - 1]
   const pos = ((values.length - 1) * pc) / 100
@@ -66,7 +66,7 @@ export function _percentile(values: number[], pc: number): number {
 export function _percentiles(values: number[], pcs: number[]): Record<number, number> {
   const r = {} as Record<number, number>
 
-  const sorted = _sortNumbers(values)
+  const sorted = values.sort(comparators.numericAsc)
 
   for (const pc of pcs) {
     // Floating pos in the range of [0; length - 1]

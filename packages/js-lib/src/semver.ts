@@ -1,6 +1,6 @@
-import type { SortOptions } from './array/array.util.js'
 import { _range } from './array/range.js'
 import { _assert } from './error/assert.js'
+import type { SortOptions } from './types.js'
 
 export type SemverInput = string | Semver
 export type SemverInputNullable = SemverInput | null | undefined

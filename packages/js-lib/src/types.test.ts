@@ -1,4 +1,5 @@
 import { expect, expectTypeOf, test } from 'vitest'
+import { _stringMapValuesSorted } from './array/index.js'
 import { localTime } from './datetime/index.js'
 import { type AppError, asUnixTimestamp, asUnixTimestamp2000 } from './error/index.js'
 import { _expectedError } from './error/try.js'
@@ -13,7 +14,6 @@ import {
   _passUndefinedMapper,
   _stringMapEntries,
   _stringMapValues,
-  _stringMapValuesSorted,
   _typeCast,
   type AnyObject,
   type BaseDBEntity,

@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+import { comparators } from '../array/sort.js'
 import { KeySortedMap } from './keySortedMap.js'
 
 test('constructs with sorted keys and keeps last value for duplicates', () => {
@@ -49,7 +50,7 @@ test('numeric keys stay numerically sorted when enabled', () => {
       [5, 'five'],
       [10, 'ten'],
     ],
-    { numericKeys: true },
+    { comparator: comparators.numericAsc },
   )
 
   expect(Array.from(map.keys())).toEqual([1, 5, 10, 15])

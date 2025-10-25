@@ -3,8 +3,8 @@ import type {
   AbortablePredicate,
   FalsyValue,
   Mapper,
+  MutateOptions,
   Predicate,
-  SortDirection,
   StringMap,
 } from '../types.js'
 import { END } from '../types.js'
@@ -168,47 +168,6 @@ export function _groupBy<T>(items: readonly T[], mapper: Mapper<T, any>): String
     }
   }
   return map
-}
-
-export interface MutateOptions {
-  /**
-   * Defaults to false.
-   */
-  mutate?: boolean
-}
-
-export interface SortOptions extends MutateOptions {
-  /**
-   * Defaults to 'asc'.
-   */
-  dir?: SortDirection
-}
-
-/**
- * _sortBy([{age: 20}, {age: 10}], 'age')
- * // => [{age: 10}, {age: 20}]
- *
- * Same:
- * _sortBy([{age: 20}, {age: 10}], o => o.age)
- */
-export function _sortBy<T, COMPARE_TYPE extends string | number>(
-  items: T[],
-  mapper: Mapper<T, COMPARE_TYPE>,
-  opt: SortOptions = {},
-): T[] {
-  const mod = opt.dir === 'desc' ? -1 : 1
-
-  return (opt.mutate ? items : [...items]).sort((_a, _b) => {
-    // This implementation may call mapper more than once per item,
-    // but the benchmarks show no significant difference in performance.
-    const a = mapper(_a)
-    const b = mapper(_b)
-    // if (typeof a === 'number' && typeof b === 'number') return (a - b) * mod
-    // return String(a).localeCompare(String(b)) * mod
-    if (a > b) return mod
-    if (a < b) return -mod
-    return 0
-  })
 }
 
 /**

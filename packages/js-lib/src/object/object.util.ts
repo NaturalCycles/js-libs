@@ -1,8 +1,8 @@
-import type { MutateOptions } from '../array/array.util.js'
 import { _isEmpty, _isObject } from '../is.util.js'
 import type {
   AnyObject,
   KeyValueTuple,
+  MutateOptions,
   ObjectMapper,
   ObjectPredicate,
   Reviver,
