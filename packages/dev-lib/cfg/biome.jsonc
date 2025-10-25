@@ -41,7 +41,7 @@
         "noUnusedFunctionParameters": "off", // oxlint
         "noConstantCondition": "off", // ox
         // noUnusedImports + noUnusedVariables can replace eslint-plugin-unused-vars!
-        "noUnusedImports": "off", // oxlint
+        "noUnusedImports": "error", // oxlint ignoreVars ^_ pattern also applies to imports named with _ prefix. Support for no-unused-imports tracked here https://github.com/oxc-project/oxc/issues/1117
         "noUnusedVariables": {
           "fix": "none",
           "level": "off", // oxlint
