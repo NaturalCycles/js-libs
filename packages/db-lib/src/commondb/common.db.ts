@@ -26,7 +26,7 @@ export interface CommonDB {
   support: CommonDBSupport
 
   /**
-   * Checks that connection/credentials/etc is ok.
+   * Checks that connection/credentials/etc is okay.
    * Also acts as a "warmup request" for a DB.
    * It SHOULD fail if DB setup is wrong (e.g on wrong credentials).
    * It SHOULD succeed if e.g getByIds(['nonExistingKey']) doesn't throw.

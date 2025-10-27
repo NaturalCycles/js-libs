@@ -118,6 +118,7 @@ test('getAirtableCacheFromJson', async () => {
   await baseDao.fetch(AIRTABLE_CONNECTOR_JSON)
 
   // console.log(cache.getBase())
+  //
   console.log(await baseDao.getTableRecords('categories'))
   console.log(await baseDao.getByAirtableId('recKD4dQ5UVWxBFhT'))
   console.log(await baseDao.getByAirtableIds(['recKD4dQ5UVWxBFhT', 'recL8ZPFiCjTivovL']))

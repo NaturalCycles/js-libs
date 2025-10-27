@@ -20,7 +20,7 @@ test('dbQueryToSQLSelect', () => {
       .order('bbb', true)
       .limit(15),
   )
-  // console.log(sql)
+  // console.log(sql) //
   expect(sql).toMatchSnapshot()
 
   sql = dbQueryToSQLSelect(new DBQuery<any>('TBL1').filter('num', '>', 15))

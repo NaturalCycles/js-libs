@@ -3,7 +3,7 @@ import { afterAll, expect, test, vi } from 'vitest'
 import { DatastoreDB } from './datastore.db.js'
 
 afterAll(() => {
-  process.env['APP_ENV'] = 'test' // restore
+  process.env['APP_ENV'] = 'test' // restore original value
 })
 
 test('should throw on missing id', async () => {

@@ -180,7 +180,7 @@ test('_numberEnumNormalize', () => {
   expect(_numberEnumNormalizeOrUndefined(MyNumberEnum, 'K2')).toBe(2)
   expect(_numberEnumNormalizeOrUndefined(MyNumberEnum, MyNumberEnum.K2)).toBe(2)
 
-  // Pass-through case, even if 4 is an invalid value
+  // Pass-through case, even if 4 is an invalid value!
   expect(_numberEnumNormalizeOrUndefined(MyNumberEnum, 4)).toBe(4)
 
   // String types are attempted to be converted and return undefined
