@@ -202,3 +202,15 @@ describe('oneOf', () => {
     expectTypeOf(schema1.out).toEqualTypeOf<string | number | null>()
   })
 })
+
+describe('castAs', () => {
+  test('should correctly infer the new type', () => {
+    const schema1 = j.string().castAs<number>()
+    expectTypeOf(schema1.in).toEqualTypeOf<number>()
+    expectTypeOf(schema1.out).toEqualTypeOf<number>()
+
+    const schema2 = j.object({}).castAs<{ foo: string }>()
+    expectTypeOf(schema2.in).toEqualTypeOf<{ foo: string }>()
+    expectTypeOf(schema2.out).toEqualTypeOf<{ foo: string }>()
+  })
+})

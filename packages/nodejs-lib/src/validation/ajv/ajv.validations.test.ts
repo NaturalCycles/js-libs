@@ -1562,6 +1562,42 @@ describe('object', () => {
       expectTypeOf(result).toEqualTypeOf<Foo>()
     })
   })
+
+  describe('allowAdditionalProperties', () => {
+    test('should strip away unspecified properties during validation when not set', () => {
+      const schema = j
+        .object({
+          string: j.string(),
+        })
+        .isOfType<{ string: string }>()
+
+      const [, result] = AjvSchema.create(schema).getValidationResult({
+        string: 'hello',
+        foo: 'world',
+      } as any)
+
+      expect(result).toEqual({ string: 'hello' })
+    })
+
+    test('should not strip away unspecified properties during validation when set', () => {
+      const schema = j
+        .object({
+          string: j.string(),
+        })
+        .allowAdditionalProperties()
+        .isOfType<{ string: string }>()
+
+      const [, result] = AjvSchema.create(schema).getValidationResult({
+        string: 'hello',
+        foo: 'world',
+      } as any)
+
+      expect(result).toEqual({
+        string: 'hello',
+        foo: 'world',
+      })
+    })
+  })
 })
 
 describe('enum', () => {
@@ -1738,5 +1774,20 @@ describe('errors', () => {
       [AjvValidationError: Object.foo[3] must be string
       Input: { foo: [ 'a', 'b', 'c', 1, 'e' ] }]
     `)
+  })
+})
+
+describe('castAs', () => {
+  test('should correctly infer the new type', () => {
+    const schema = j
+      .object({ foo: j.string() })
+      .castAs<{ bar: number }>()
+      .isOfType<{ bar: number }>()
+
+    const [err, result] = AjvSchema.create(schema).getValidationResult({ foo: 'hello' } as any)
+
+    expect(err).toBeNull()
+    expect(result).toEqual({ foo: 'hello' })
+    expectTypeOf(result).toEqualTypeOf<{ bar: number }>()
   })
 })

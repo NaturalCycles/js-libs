@@ -214,6 +214,14 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
   }
 
   /**
+   * @deprecated
+   * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
+   */
+  castAs<T>(): JsonSchemaAnyBuilder<T, T, Opt> {
+    return this as unknown as JsonSchemaAnyBuilder<T, T, Opt>
+  }
+
+  /**
    * @experimental
    */
   in!: IN
@@ -552,6 +560,14 @@ export class JsonSchemaObjectBuilder<
     this.schema.properties = properties
     this.schema.required = _uniq(required).sort()
 
+    return this
+  }
+
+  /**
+   * When set, the validation will not strip away properties that are not specified explicitly in the schema.
+   */
+  allowAdditionalProperties(): this {
+    Object.assign(this.schema, { additionalProperties: true })
     return this
   }
 
