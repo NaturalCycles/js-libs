@@ -2,7 +2,6 @@ import { Readable } from 'node:stream'
 import { _by, _sortBy } from '@naturalcycles/js-lib/array'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import type { JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import { generateJsonSchemaFromData } from '@naturalcycles/js-lib/json-schema'
 import { _deepEquals, _filterUndefinedValues, _sortObjectDeep } from '@naturalcycles/js-lib/object'
 import {
@@ -10,6 +9,7 @@ import {
   type ObjectWithId,
   type UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { BaseCommonDB } from '../../commondb/base.common.db.js'
@@ -174,14 +174,12 @@ export class FileDB extends BaseCommonDB implements CommonDB {
     return deleted
   }
 
-  override async getTableSchema<ROW extends ObjectWithId>(
-    table: string,
-  ): Promise<JsonSchemaRootObject<ROW>> {
+  override async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<JsonSchema<ROW>> {
     const rows = await this.loadFile(table)
     return {
       ...generateJsonSchemaFromData(rows),
       $id: `${table}.schema.json`,
-    }
+    } as any
   }
 
   // wrapper, to handle logging

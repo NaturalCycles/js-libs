@@ -3,7 +3,6 @@ import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _assert, ErrorMode } from '@naturalcycles/js-lib/error'
-import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import { _deepJsonEquals } from '@naturalcycles/js-lib/object/deepEquals.js'
 import {
   _filterUndefinedValues,
@@ -22,6 +21,7 @@ import {
   type Unsaved,
 } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import {
   type Pipeline,
   transformChunk,
@@ -810,11 +810,11 @@ export class CommonDao<
     return convertedValue
   }
 
-  async getTableSchema(): Promise<JsonSchemaRootObject<DBM>> {
+  async getTableSchema(): Promise<JsonSchema<any, DBM>> {
     return await this.cfg.db.getTableSchema<DBM>(this.cfg.table)
   }
 
-  async createTable(schema: JsonSchemaObject<DBM>, opt?: CommonDaoCreateOptions): Promise<void> {
+  async createTable(schema: JsonSchema<any, DBM>, opt?: CommonDaoCreateOptions): Promise<void> {
     this.requireWriteAccess()
     await this.cfg.db.createTable(this.cfg.table, schema, opt)
   }

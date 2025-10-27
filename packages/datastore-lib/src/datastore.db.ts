@@ -20,15 +20,6 @@ import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _errorDataAppend, TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
-import type {
-  JsonSchemaAny,
-  JsonSchemaBoolean,
-  JsonSchemaNull,
-  JsonSchemaNumber,
-  JsonSchemaObject,
-  JsonSchemaRootObject,
-  JsonSchemaString,
-} from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import type { PRetryOptions } from '@naturalcycles/js-lib/promise'
@@ -41,6 +32,7 @@ import {
   type ObjectWithId,
   type StringMap,
 } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
@@ -585,7 +577,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
 
   override async createTable<ROW extends ObjectWithId>(
     _table: string,
-    _schema: JsonSchemaObject<ROW>,
+    _schema: JsonSchema<ROW>,
   ): Promise<void> {}
 
   override async getTables(): Promise<string[]> {
@@ -594,12 +586,10 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     return statsArray.map(stats => stats.kind_name).filter(table => table && !table.startsWith('_'))
   }
 
-  override async getTableSchema<ROW extends ObjectWithId>(
-    table: string,
-  ): Promise<JsonSchemaRootObject<ROW>> {
+  override async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<JsonSchema<ROW>> {
     const stats = await this.getTableProperties(table)
 
-    const s: JsonSchemaRootObject<ROW> = {
+    const s: JsonSchema<ROW> = {
       $id: `${table}.schema.json`,
       type: 'object',
       properties: {
@@ -616,40 +606,40 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
         const name = stats.property_name as keyof ROW
 
         if (dtype === DatastoreType.Blob) {
-          s.properties[name] = {
+          s.properties![name] = {
             instanceof: 'Buffer',
-          } as JsonSchemaAny
+          } as JsonSchema<any, ROW[typeof name]>
         } else if (dtype === DatastoreType.Text || dtype === DatastoreType.String) {
-          s.properties[name] = {
+          s.properties![name] = {
             type: 'string',
-          } as JsonSchemaString
+          } as JsonSchema<ROW[typeof name]>
         } else if (dtype === DatastoreType.EmbeddedEntity) {
-          s.properties[name] = {
+          s.properties![name] = {
             type: 'object',
             additionalProperties: true,
-            properties: {},
+            properties: {} as any,
             required: [],
-          } as JsonSchemaObject
+          } as JsonSchema<ROW[typeof name]>
         } else if (dtype === DatastoreType.Integer) {
-          s.properties[name] = {
+          s.properties![name] = {
             type: 'integer',
-          } as JsonSchemaNumber
+          } as JsonSchema<ROW[typeof name]>
         } else if (dtype === DatastoreType.Float) {
-          s.properties[name] = {
+          s.properties![name] = {
             type: 'number',
-          } as JsonSchemaNumber
+          } as JsonSchema<ROW[typeof name]>
         } else if (dtype === DatastoreType.Boolean) {
-          s.properties[name] = {
+          s.properties![name] = {
             type: 'boolean',
-          } as JsonSchemaBoolean
+          } as JsonSchema<ROW[typeof name]>
         } else if (dtype === DatastoreType.DATE_TIME) {
           // Don't know how to map it properly
-          s.properties[name] = {} as JsonSchemaAny
+          s.properties![name] = {} as JsonSchema<any>
         } else if (dtype === DatastoreType.NULL) {
           // check, maybe we can just skip this type and do nothing?
-          s.properties[name] ||= {
+          s.properties![name] ||= {
             type: 'null',
-          } as JsonSchemaNull
+          } as JsonSchema<ROW[typeof name]>
         } else {
           throw new Error(
             `Unknown Datastore Type '${stats.property_type}' for ${table}.${name as string}`,
