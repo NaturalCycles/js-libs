@@ -34,24 +34,24 @@ test('validateRequest', async () => {
   expect(err.cause.message).not.toContain(pw)
   expect(err.cause.message).toContain('REDACTED')
   expect(err.cause).toMatchInlineSnapshot(`
-{
-  "data": {
-    "backendResponseStatusCode": 400,
-    "joiValidationErrorItems": [],
-    "joiValidationInputName": "request body",
-  },
-  "message": "Invalid request body
-{
-  "pw" [1]: "REDACTED"
-}
+    {
+      "data": {
+        "backendResponseStatusCode": 400,
+        "joiValidationErrorItems": [],
+        "joiValidationInputName": "request.body",
+      },
+      "message": "Invalid request.body
+    {
+      "pw" [1]: "REDACTED"
+    }
 
-[1] "pw" length must be at least 8 characters long",
-  "name": "AppError",
-}
-`)
+    [1] "pw" length must be at least 8 characters long",
+      "name": "AppError",
+    }
+  `)
 
   expect(_inspect(err.cause)).toMatchInlineSnapshot(`
-    "AppError: Invalid request body
+    "AppError: Invalid request.body
     {
       "pw" [1]: "REDACTED"
     }

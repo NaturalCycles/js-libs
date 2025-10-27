@@ -1,5 +1,6 @@
 import { _mb } from '@naturalcycles/js-lib'
-import { _sortBy, _sum } from '@naturalcycles/js-lib/array/array.util.js'
+import { _sum } from '@naturalcycles/js-lib/array/array.util.js'
+import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _percentile } from '@naturalcycles/js-lib/math/math.util.js'
 import { NumberStack } from '@naturalcycles/js-lib/math/stack.util.js'

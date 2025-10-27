@@ -1,4 +1,4 @@
-import { _sortBy } from '@naturalcycles/js-lib/array/array.util.js'
+import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _deepFreeze, _filterObject, _pick } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'

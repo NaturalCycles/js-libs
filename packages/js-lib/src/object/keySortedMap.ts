@@ -1,10 +1,13 @@
-export interface KeySortedMapOptions {
+import type { Comparator } from '../types.js'
+
+export interface KeySortedMapOptions<K> {
   /**
-   * Defaults to false.
-   * Set to true if your keys are numeric,
-   * so it would sort correctly.
+   * Defaults to undefined.
+   * Undefined (default comparator) works well for String keys.
+   * For Number keys - use comparators.numericAsc (or desc),
+   * otherwise sorting will be wrong (lexicographic).
    */
-  numericKeys?: boolean
+  comparator?: Comparator<K>
 }
 
 /**
@@ -24,7 +27,7 @@ export class KeySortedMap<K, V> implements Map<K, V> {
 
   constructor(
     entries: [K, V][] = [],
-    public opt: KeySortedMapOptions = {},
+    public opt: KeySortedMapOptions<K> = {},
   ) {
     this.map = new Map(entries)
     this.sortedKeys = [...this.map.keys()]
@@ -220,15 +223,6 @@ export class KeySortedMap<K, V> implements Map<K, V> {
   }
 
   private sortKeys(): void {
-    if (this.opt.numericKeys) {
-      ;(this.sortedKeys as number[]).sort(numericAscCompare)
-    } else {
-      // Default sort - fastest for Strings
-      this.sortedKeys.sort()
-    }
+    this.sortedKeys.sort(this.opt.comparator)
   }
-}
-
-function numericAscCompare(a: number, b: number): number {
-  return a - b
 }

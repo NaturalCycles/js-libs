@@ -1,6 +1,5 @@
 import { expect, test } from 'vitest'
 import { _omit } from '../object/index.js'
-import { _stringify } from '../string/index.js'
 import { expectResults } from '../test/test.util.js'
 import {
   _anyToError,

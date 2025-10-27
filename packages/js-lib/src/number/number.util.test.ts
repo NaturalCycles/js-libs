@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import { _range } from '../array/index.js'
-import { _isBetween, _randomInt, _runLessOften, _sortNumbers } from '../index.js'
+import { _isBetween, _randomInt, _runLessOften } from '../index.js'
 import { _clamp, _randomArrayItem, _round, _toFixed, _toPrecision } from './number.util.js'
 
 test('_randomInt', () => {
@@ -88,37 +88,6 @@ test.each([
   [1634.567, 8, 1634.567],
 ])('_toPrecision(%s, %s) === %s', (n, precision, result) => {
   expect(_toPrecision(n, precision)).toBe(result)
-})
-
-test.each([
-  [[], []],
-  [[3], [3]],
-  [
-    [3, 1],
-    [1, 3],
-  ],
-  [
-    [1, 2, 3, 4],
-    [1, 2, 3, 4],
-  ],
-  [
-    [1, 2, 4, 3],
-    [1, 2, 3, 4],
-  ],
-  [
-    [4, 3, 2, 3],
-    [2, 3, 3, 4],
-  ],
-  [
-    [4, 3, 3, 3],
-    [3, 3, 3, 4],
-  ],
-  [
-    [4, 1, 3, 1],
-    [1, 1, 3, 4],
-  ],
-])('_sortNumbers %s', (numbers, result) => {
-  expect(_sortNumbers(numbers)).toEqual(result)
 })
 
 test.each([

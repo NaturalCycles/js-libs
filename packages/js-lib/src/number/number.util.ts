@@ -1,4 +1,3 @@
-import type { SortOptions } from '../array/array.util.js'
 import type { Inclusiveness } from '../types.js'
 
 export function _randomInt(minIncl: number, maxIncl: number): number {
@@ -53,20 +52,6 @@ export function _isBetween<T extends number | string>(
 export function _clamp(x: number, minIncl: number, maxIncl: number): number {
   // oxlint-disable-next-line unicorn/prefer-math-min-max
   return x <= minIncl ? minIncl : x >= maxIncl ? maxIncl : x
-}
-
-/**
- * This function exists, because in JS you cannot just .sort() numbers,
- * as .sort() function first maps everything to String.
- *
- * @example
- *
- * _sortNumbers([1, 3, 2])
- * // [1, 2, 3]
- */
-export function _sortNumbers(numbers: number[], opt: SortOptions = {}): number[] {
-  const mod = opt.dir === 'desc' ? -1 : 1
-  return (opt.mutate ? numbers : [...numbers]).sort((a, b) => (a - b) * mod)
 }
 
 /**

@@ -1,4 +1,4 @@
-import type { MutateOptions } from '../array/array.util.js'
+import type { MutateOptions } from '../types.js'
 
 // copy-pasted to avoid weird circular dependency
 const _noop = (..._args: any[]): undefined => undefined

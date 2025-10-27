@@ -1,4 +1,3 @@
-import type { MutateOptions, SortOptions } from '../array/array.util.js'
 import { _assert } from '../error/assert.js'
 import { Iterable2 } from '../iter/iterable2.js'
 import type {
@@ -6,6 +5,8 @@ import type {
   IsoDate,
   IsoDateTime,
   MonthId,
+  MutateOptions,
+  SortOptions,
   UnixTimestamp,
   UnixTimestampMillis,
 } from '../types.js'
