@@ -1,5 +1,4 @@
 import { _lazyValue } from '@naturalcycles/js-lib'
-import { _last } from '@naturalcycles/js-lib/array'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import { _, Ajv, type Options, type ValidateFunction } from 'ajv'

@@ -1,6 +1,4 @@
 import { expect, test } from 'vitest'
-import { _numberEnumValues, _stringEnumValues } from '../enum.util.js'
-import { _stringify } from '../string/stringify.js'
 import type { BaseDBEntity, IsoDate, UnixTimestamp } from '../types.js'
 import { z } from '../zod/index.js'
 import { j } from './jsonSchemaBuilder.js'
