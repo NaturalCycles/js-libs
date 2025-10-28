@@ -37,7 +37,9 @@ export const j = {
     return new JsonSchemaBooleanBuilder()
   },
 
-  object,
+  object: Object.assign(object, {
+    dbEntity: objectDbEntity,
+  }),
 
   objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
     props: P,
@@ -831,6 +833,22 @@ function object<IN extends AnyObject>(props: {
   [key in keyof IN]: JsonSchemaAnyBuilder<any, IN[key], any>
 }): JsonSchemaObjectBuilder<IN, IN, false> {
   return new JsonSchemaObjectBuilder<IN, IN, false>(props)
+}
+
+function objectDbEntity(props?: AnyObject): never
+function objectDbEntity<IN extends AnyObject>(
+  props?: AnyObject,
+): JsonSchemaObjectBuilder<IN, IN, false>
+
+function objectDbEntity<IN extends AnyObject>(
+  props?: AnyObject,
+): JsonSchemaObjectBuilder<IN, IN, false> {
+  return j.object({
+    id: j.string(),
+    created: j.number().unixTimestamp2000(),
+    updated: j.number().unixTimestamp2000(),
+    ...props,
+  })
 }
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
