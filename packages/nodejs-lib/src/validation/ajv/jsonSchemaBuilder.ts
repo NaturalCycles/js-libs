@@ -40,6 +40,9 @@ export const j = {
   object: Object.assign(object, {
     dbEntity: objectDbEntity,
     infer: objectInfer,
+    any() {
+      return j.object<AnyObject>({}).allowAdditionalProperties()
+    },
   }),
 
   array<IN, OUT, Opt>(

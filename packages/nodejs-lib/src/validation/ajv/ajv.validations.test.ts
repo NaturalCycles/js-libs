@@ -5,6 +5,7 @@ import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { localDate, localTime } from '@naturalcycles/js-lib/datetime'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import type {
+  AnyObject,
   BaseDBEntity,
   Branded,
   IsoDate,
@@ -1775,6 +1776,18 @@ describe('object', () => {
           foo: 'world',
         })
       })
+    })
+  })
+
+  describe('.any', () => {
+    test('should work correctly with type inference', () => {
+      const schema = j.object.any()
+
+      const [err, result] = AjvSchema.create(schema).getValidationResult({ foo: 'bar' })
+
+      expect(err).toBeNull()
+      expect(result).toEqual({ foo: 'bar' })
+      expectTypeOf(result).toEqualTypeOf<AnyObject>()
     })
   })
 })

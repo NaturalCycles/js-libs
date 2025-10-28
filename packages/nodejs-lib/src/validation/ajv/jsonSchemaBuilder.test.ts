@@ -1,7 +1,7 @@
 /* eslint-disable id-denylist */
 
 import type { Set2 } from '@naturalcycles/js-lib/object'
-import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type { AnyObject, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { describe, expectTypeOf, test } from 'vitest'
 import { j } from './jsonSchemaBuilder.js'
 
@@ -281,6 +281,16 @@ describe('object', () => {
         expectTypeOf(schema2.in).toEqualTypeOf<{ a: string | null; b?: number }>()
         expectTypeOf(schema2.out).toEqualTypeOf<{ a: string | null; b?: number }>()
       })
+    })
+  })
+
+  describe('.any', () => {
+    test('should corretly infer the type', () => {
+      const schema1 = j.object.any()
+
+      expectTypeOf(schema1).not.toBeNever()
+      expectTypeOf(schema1.in).toEqualTypeOf<AnyObject>()
+      expectTypeOf(schema1.out).toEqualTypeOf<AnyObject>()
     })
   })
 })
