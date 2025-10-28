@@ -1768,7 +1768,7 @@ describe('object', () => {
       })
 
       expect(err).toBeNull()
-      expect(result).toBe({
+      expect(result).toEqual({
         id: 'asdf',
         created: MOCK_TS_2018_06_21,
         updated: MOCK_TS_2018_06_21,
