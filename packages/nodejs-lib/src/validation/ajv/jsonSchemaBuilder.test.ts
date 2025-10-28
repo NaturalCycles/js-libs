@@ -130,6 +130,23 @@ describe('object', () => {
     expectTypeOf(schema1).toBeNever()
   })
 
+  test('should work with enums', () => {
+    // Special test case due to how j.objectInfer().isOfType<>() lead to errors
+    // when the schema contained an enum property
+    enum Bar {
+      a = 'A',
+    }
+    interface Foo {
+      e: Bar
+    }
+
+    const schema1 = j.object<Foo>({ e: j.enum(Bar) })
+
+    expectTypeOf(schema1).not.toBeNever()
+    expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
+    expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+  })
+
   describe('extend', () => {
     test('should correctly infer the type', () => {
       interface Foo {
@@ -256,44 +273,37 @@ describe('array', () => {
   })
 })
 
-// describe('enum', () => {
-//   test('should correctly infer the type - for NumberEnums', () => {
-//     enum Foo {
-//       BAR = 1,
-//       SHU = 2,
-//     }
-//     const schema1 = j.enum(Foo)
-//     expectTypeOf(schema1).not.toBeNever()
-//     expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
-//     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+describe('enum', () => {
+  test('should correctly infer the type - for NumberEnums', () => {
+    enum Foo {
+      BAR = 1,
+      SHU = 2,
+    }
+    const schema1 = j.enum(Foo)
+    expectTypeOf(schema1).not.toBeNever()
+    expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
+    expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+  })
 
-//     const schema2 = j.enum(Foo).isOfType<Foo>()
-//     expectTypeOf(schema2).not.toBeNever()
+  test('should correctly infer the type - for StringEnums', () => {
+    enum Foo {
+      BAR = 'bar',
+      SHU = 'shu',
+    }
+    const schema1 = j.enum(Foo)
+    expectTypeOf(schema1).not.toBeNever()
+    expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
+    expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+  })
 
-//     let schema3 = j.enum(Foo)
-//     schema3 = schema3.isOfType<Foo>()
-//     expectTypeOf(schema3).not.toBeNever()
-//   })
-
-//   test('should correctly infer the type - for StringEnums', () => {
-//     enum Foo {
-//       BAR = 'bar',
-//       SHU = 'shu',
-//     }
-//     const schema1 = j.enum(Foo)
-//     expectTypeOf(schema1).not.toBeNever()
-//     expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
-//     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
-//   })
-
-//   test('should correctly infer the type - for listed values', () => {
-//     type Foo = 1 | 2 | 'foo' | 'bar'
-//     const schema1 = j.enum([1, 2, 'foo', 'bar'])
-//     expectTypeOf(schema1).not.toBeNever()
-//     expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
-//     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
-//   })
-// })
+  test('should correctly infer the type - for listed values', () => {
+    type Foo = 1 | 2 | 'foo' | 'bar'
+    const schema1 = j.enum([1, 2, 'foo', 'bar'])
+    expectTypeOf(schema1).not.toBeNever()
+    expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
+    expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+  })
+})
 
 describe('set', () => {
   test('should correctly infer the type', () => {
