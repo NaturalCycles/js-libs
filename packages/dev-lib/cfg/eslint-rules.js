@@ -308,7 +308,7 @@ export default {
     //   2,
     //   { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
     // ],
-    '@typescript-eslint/no-duplicate-enum-values': 2,
+    '@typescript-eslint/no-duplicate-enum-values': 0, // oxlint
     '@typescript-eslint/no-redundant-type-constituents': 0, // `'a' | string` is still useful for DX
     '@typescript-eslint/no-empty-function': 0,
     '@typescript-eslint/no-var-requires': 0,

@@ -242,7 +242,7 @@
     "unicorn/no-lonely-if": "deny",
     "unicorn/no-magic-array-flat-depth": "deny",
     "unicorn/no-negation-in-equality-check": "deny",
-    "unicorn/no-new-array": "warn",
+    "unicorn/no-new-array": "allow",
     "unicorn/no-new-buffer": "deny",
     "unicorn/no-single-promise-in-promise-methods": "warn",
     "unicorn/no-thenable": "warn",
