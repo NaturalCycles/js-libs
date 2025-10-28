@@ -36,14 +36,13 @@ const item: Item = {
 let _sink: any
 
 const jsonSchema2 = j
-  .object({
+  .object<Item>({
     s: j.string(),
     n1: j.number(),
     n2: j.number().optional(),
     b1: j.boolean().optional(),
     a: j.array(j.number()),
   })
-  .isOfType<Item>()
   .build()
 
 // const ajv = getAjv()

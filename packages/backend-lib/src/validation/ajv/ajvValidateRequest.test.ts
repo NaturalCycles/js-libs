@@ -76,14 +76,12 @@ describe('ajvValidateRequest.headers', () => {
       ajvValidateRequest.headers(
         req,
         AjvSchema.create(
-          j
-            .object({
-              shortstring: j.string().min(8).max(16),
-              numeric: j.string(),
-              bool: j.string(),
-              sessionid: j.string(),
-            })
-            .isOfType<{ shortstring: string; numeric: string; bool: string; sessionid: string }>(),
+          j.object<{ shortstring: string; numeric: string; bool: string; sessionid: string }>({
+            shortstring: j.string().min(8).max(16),
+            numeric: j.string(),
+            bool: j.string(),
+            sessionid: j.string(),
+          }),
         ),
         { redactPaths: ['sessionid'] },
       )
@@ -156,12 +154,10 @@ describe('ajvValidateRequest.headers', () => {
       const validatedHeaders = ajvValidateRequest.headers(
         req,
         AjvSchema.create(
-          j
-            .object({
-              shortstring: j.string().min(8).max(16),
-              numeric: j.string(),
-            })
-            .isOfType<{ shortstring: string; numeric: string }>(),
+          j.object<{ shortstring: string; numeric: string }>({
+            shortstring: j.string().min(8).max(16),
+            numeric: j.string(),
+          }),
         ),
       )
 

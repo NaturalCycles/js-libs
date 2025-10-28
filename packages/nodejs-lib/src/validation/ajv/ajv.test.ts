@@ -225,11 +225,9 @@ interface Item {
 }
 
 test('types', () => {
-  const rawSchema = j
-    .object({
-      id: j.string(),
-    })
-    .isOfType<{ id: string }>()
+  const rawSchema = j.object<{ id: string }>({
+    id: j.string(),
+  })
 
   // Type of ajvSchema must be AjvSchema<Item> (not AjvSchema<any> !)
   // todo: make it work without explicit <Item>
