@@ -1,9 +1,11 @@
 /* eslint-disable vitest/valid-expect */
 /* eslint-disable id-denylist */
 
+import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { localDate, localTime } from '@naturalcycles/js-lib/datetime'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import type {
+  BaseDBEntity,
   Branded,
   IsoDate,
   IsoDateTime,
@@ -1748,6 +1750,31 @@ describe('object', () => {
         string: 'hello',
         foo: 'world',
       })
+    })
+  })
+
+  describe('.dbEntity', () => {
+    test('should work correctly with type inference', () => {
+      interface DB extends BaseDBEntity {
+        foo: string
+      }
+      const schema = j.object.dbEntity<DB>({ foo: j.string() })
+
+      const [err, result] = AjvSchema.create(schema).getValidationResult({
+        id: 'asdf',
+        created: MOCK_TS_2018_06_21,
+        updated: MOCK_TS_2018_06_21,
+        foo: 'hello',
+      })
+
+      expect(err).toBeNull()
+      expect(result).toEqual({
+        id: 'asdf',
+        created: MOCK_TS_2018_06_21,
+        updated: MOCK_TS_2018_06_21,
+        foo: 'hello',
+      })
+      expectTypeOf(result).toEqualTypeOf<DB>()
     })
   })
 })

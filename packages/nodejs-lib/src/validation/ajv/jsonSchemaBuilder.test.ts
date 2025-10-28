@@ -1,6 +1,7 @@
 /* eslint-disable id-denylist */
 
 import type { Set2 } from '@naturalcycles/js-lib/object'
+import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { describe, expectTypeOf, test } from 'vitest'
 import { j } from './jsonSchemaBuilder.js'
 
@@ -161,6 +162,29 @@ describe('object', () => {
 
       expectTypeOf(schema2.in).toEqualTypeOf<Foo & Bar>()
       expectTypeOf(schema2.out).toEqualTypeOf<Foo & Bar>()
+    })
+  })
+
+  describe('.dbEntity', () => {
+    test('should correctly infer the type', () => {
+      interface DB {
+        id: string
+        created: UnixTimestamp
+        updated: UnixTimestamp
+        foo: string
+      }
+
+      const schema1 = j.object.dbEntity<DB>({ foo: j.string() })
+
+      expectTypeOf(schema1).not.toBeNever()
+      expectTypeOf(schema1.in).toEqualTypeOf<DB>()
+      expectTypeOf(schema1.out).toEqualTypeOf<DB>()
+    })
+
+    test('should collapse to never when no type is passed in', () => {
+      const schema1 = j.object.dbEntity({ foo: j.string() })
+
+      expectTypeOf(schema1).toBeNever()
     })
   })
 })
