@@ -41,8 +41,8 @@ export class Set2<T = any> extends Set<T> {
     return [...this]
   }
 
-  override get [Symbol.toStringTag](): string {
-    return 'Set'
+  override toString(): string {
+    return `Set2(${this.size}) ${JSON.stringify([...this])}`
   }
 
   // todo: consider more helpful .toString() ?

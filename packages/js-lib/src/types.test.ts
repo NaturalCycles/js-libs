@@ -71,10 +71,8 @@ test('saved/unsaved', () => {
     id: '5', // should only allow string, but not number
     created: 1 as UnixTimestamp,
     updated: 1 as UnixTimestamp,
-    a: 5,
+    a: undefined,
   }
-
-  itemDBM.a = undefined
 
   expectTypeOf(itemDBM).toEqualTypeOf<{
     id: string
@@ -91,11 +89,12 @@ test('saved/unsaved', () => {
     a?: number
   }>()
 
-  const unsavedItem: Unsaved<Item> = {}
-  unsavedItem.id = undefined
-  unsavedItem.created = undefined
-  unsavedItem.updated = undefined
-  unsavedItem.a = undefined
+  const unsavedItem: Unsaved<Item> = {
+    id: undefined,
+    created: undefined,
+    updated: undefined,
+    a: undefined,
+  }
 
   expectTypeOf(unsavedItem).toMatchTypeOf<{
     id?: string
@@ -104,14 +103,13 @@ test('saved/unsaved', () => {
     a?: number
   }>()
 
+  // setting to undefined verifies that these props exist and are optional
   const unsavedItemDBM: Unsaved<ItemDBM> = {
-    a: 5,
+    id: undefined,
+    created: undefined,
+    updated: undefined,
+    a: undefined,
   }
-  // deletions test that these props exist and are optional
-  unsavedItemDBM.id = undefined
-  unsavedItemDBM.created = undefined
-  unsavedItemDBM.updated = undefined
-  unsavedItemDBM.a = undefined
 
   expectTypeOf(unsavedItemDBM).toMatchTypeOf<{
     a?: number

@@ -31,5 +31,9 @@ export class Map2<K = any, V = any> extends Map<K, V> {
     return Object.fromEntries(this)
   }
 
+  override toString(): string {
+    return `Map2(${this.size}) ${JSON.stringify(Object.fromEntries(this))}`
+  }
+
   // consider more helpful .toString() ?
 }

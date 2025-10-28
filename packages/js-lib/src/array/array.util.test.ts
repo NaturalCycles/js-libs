@@ -238,7 +238,7 @@ test('_intersection', () => {
   // expect(f([1, 2], [1, 2, 3], [1, 2, 3, 4])).toEqual([1, 2])
 
   expect(f([], new Set([1]))).toEqual([])
-  expect(f([1], new Set([]))).toEqual([])
+  expect(f([1], new Set())).toEqual([])
   expect(f([1], new Set([1]))).toEqual([1])
   expect(f([1], new Set([1, 2]))).toEqual([1])
   expect(f([1], new Set([2]))).toEqual([])

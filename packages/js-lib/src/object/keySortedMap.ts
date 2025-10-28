@@ -1,3 +1,4 @@
+import { _assert } from '../error/index.js'
 import type { Comparator } from '../types.js'
 
 export interface KeySortedMapOptions<K> {
@@ -23,16 +24,16 @@ export interface KeySortedMapOptions<K> {
  */
 export class KeySortedMap<K, V> implements Map<K, V> {
   private readonly map: Map<K, V>
-  private readonly sortedKeys: K[]
+  readonly #sortedKeys: K[]
 
-  constructor(
-    entries: [K, V][] = [],
-    public opt: KeySortedMapOptions<K> = {},
-  ) {
+  constructor(entries: [K, V][] = [], opt: KeySortedMapOptions<K> = {}) {
+    this.#comparator = opt.comparator
     this.map = new Map(entries)
-    this.sortedKeys = [...this.map.keys()]
+    this.#sortedKeys = [...this.map.keys()]
     this.sortKeys()
   }
+
+  readonly #comparator: Comparator<K> | undefined
 
   /**
    * Convenience way to create KeySortedMap from object.
@@ -47,7 +48,7 @@ export class KeySortedMap<K, V> implements Map<K, V> {
 
   clear(): void {
     this.map.clear()
-    this.sortedKeys.length = 0
+    this.#sortedKeys.length = 0
   }
 
   has(key: K): boolean {
@@ -64,7 +65,7 @@ export class KeySortedMap<K, V> implements Map<K, V> {
   setMany(obj: Record<any, V>): this {
     for (const [k, v] of Object.entries(obj)) {
       this.map.set(k as K, v)
-      this.sortedKeys.push(k as K)
+      this.#sortedKeys.push(k as K)
     }
     // Resort all at once
     this.sortKeys()
@@ -84,7 +85,7 @@ export class KeySortedMap<K, V> implements Map<K, V> {
     // Find insertion index (lower_bound).
     const i = this.lowerBound(key)
     // Only insert into keys when actually new.
-    this.sortedKeys.splice(i, 0, key)
+    this.#sortedKeys.splice(i, 0, key)
     this.map.set(key, value)
     return this
   }
@@ -98,13 +99,13 @@ export class KeySortedMap<K, V> implements Map<K, V> {
     // Remove from keys using binary search to avoid O(n) find.
     const i = this.lowerBound(key)
     // Because key existed, it must be at i.
-    if (i < this.sortedKeys.length && this.sortedKeys[i] === key) {
-      this.sortedKeys.splice(i, 1)
+    if (i < this.#sortedKeys.length && this.#sortedKeys[i] === key) {
+      this.#sortedKeys.splice(i, 1)
     } else {
       // Extremely unlikely if external mutation happened; safe guard.
       // Fall back to linear search (shouldn't happen).
-      const j = this.sortedKeys.indexOf(key)
-      if (j !== -1) this.sortedKeys.splice(j, 1)
+      const j = this.#sortedKeys.indexOf(key)
+      if (j !== -1) this.#sortedKeys.splice(j, 1)
     }
     return true
   }
@@ -113,20 +114,19 @@ export class KeySortedMap<K, V> implements Map<K, V> {
    * Iterables (Map-compatible), all in sorted order.
    */
   *keys(): MapIterator<K> {
-    for (let i = 0; i < this.sortedKeys.length; i++) {
-      yield this.sortedKeys[i]!
+    for (const key of this.#sortedKeys) {
+      yield key
     }
   }
 
   *values(): MapIterator<V> {
-    for (let i = 0; i < this.sortedKeys.length; i++) {
-      yield this.map.get(this.sortedKeys[i]!)!
+    for (const key of this.#sortedKeys) {
+      yield this.map.get(key)!
     }
   }
 
   *entries(): MapIterator<[K, V]> {
-    for (let i = 0; i < this.sortedKeys.length; i++) {
-      const k = this.sortedKeys[i]!
+    for (const k of this.#sortedKeys) {
       yield [k, this.map.get(k)!]
     }
   }
@@ -135,64 +135,82 @@ export class KeySortedMap<K, V> implements Map<K, V> {
     return this.entries()
   }
 
+  toString(): string {
+    console.log('toString called !!!!!!!!!!!!!!!!!!!!!')
+    return 'abc'
+  }
+
   [Symbol.toStringTag] = 'KeySortedMap'
 
   /**
    * Zero-allocation callbacks over sorted data (faster than spreading to arrays).
    */
   forEach(cb: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void {
-    const m = this.map
-    for (let i = 0; i < this.sortedKeys.length; i++) {
-      const k = this.sortedKeys[i]!
-      cb.call(thisArg, m.get(k)!, k, this)
+    const { map } = this
+    for (const k of this.#sortedKeys) {
+      cb.call(thisArg, map.get(k)!, k, this)
     }
   }
 
-  /**
-   * Convenience methods that MATERIALIZE arrays (if you really want arrays).
-   * These allocate; use iterators/forEach for maximum performance.
-   */
-  keysArray(): K[] {
-    return this.sortedKeys.slice()
+  firstKeyOrUndefined(): K | undefined {
+    return this.#sortedKeys[0]
   }
 
-  valuesArray(): V[] {
-    // oxlint-disable-next-line unicorn/no-new-array
-    const a = Array<V>(this.sortedKeys.length)
-    for (let i = 0; i < this.sortedKeys.length; i++) {
-      a[i] = this.map.get(this.sortedKeys[i]!)!
-    }
-    return a
+  firstKey(): K {
+    _assert(this.#sortedKeys.length, 'Map.firstKey called on empty map')
+    return this.#sortedKeys[0]!
   }
 
-  entriesArray(): [K, V][] {
-    // oxlint-disable-next-line unicorn/no-new-array
-    const out = Array<[K, V]>(this.sortedKeys.length)
-    for (let i = 0; i < this.sortedKeys.length; i++) {
-      const k = this.sortedKeys[i]!
-      out[i] = [k, this.map.get(k)!]
-    }
-    return out
+  lastKeyOrUndefined(): K | undefined {
+    return this.#sortedKeys.length ? this.#sortedKeys[this.#sortedKeys.length - 1] : undefined
   }
 
-  /** Fast helpers */
-  firstKey(): K | undefined {
-    return this.sortedKeys[0]
+  lastKey(): K {
+    _assert(this.#sortedKeys.length, 'Map.lastKey called on empty map')
+    return this.#sortedKeys[this.#sortedKeys.length - 1]!
   }
 
-  lastKey(): K | undefined {
-    return this.sortedKeys.length ? this.sortedKeys[this.sortedKeys.length - 1] : undefined
+  firstValueOrUndefined(): V | undefined {
+    return this.map.get(this.#sortedKeys[0]!)
   }
 
-  firstEntry(): [K, V] | undefined {
-    if (!this.sortedKeys.length) return
-    const k = this.sortedKeys[0]!
+  firstValue(): V {
+    _assert(this.#sortedKeys.length, 'Map.firstValue called on empty map')
+    return this.map.get(this.#sortedKeys[0]!)!
+  }
+
+  lastValueOrUndefined(): V | undefined {
+    return this.#sortedKeys.length
+      ? this.map.get(this.#sortedKeys[this.#sortedKeys.length - 1]!)
+      : undefined
+  }
+
+  lastValue(): V {
+    _assert(this.#sortedKeys.length, 'Map.lastValue called on empty map')
+    return this.map.get(this.#sortedKeys[this.#sortedKeys.length - 1]!)!
+  }
+
+  firstEntryOrUndefined(): [K, V] | undefined {
+    if (!this.#sortedKeys.length) return
+    const k = this.#sortedKeys[0]!
     return [k, this.map.get(k)!]
   }
 
-  lastEntry(): [K, V] | undefined {
-    if (!this.sortedKeys.length) return
-    const k = this.sortedKeys[this.sortedKeys.length - 1]!
+  firstEntry(): [K, V] {
+    _assert(this.#sortedKeys.length, 'Map.firstEntry called on empty map')
+    const k = this.#sortedKeys[0]!
+    return [k, this.map.get(k)!]
+  }
+
+  lastEntryOrUndefined(): [K, V] | undefined {
+    if (!this.#sortedKeys.length) return
+    const k = this.#sortedKeys[this.#sortedKeys.length - 1]!
+    return [k, this.map.get(k)!]
+  }
+
+  lastEntry(): [K, V] {
+    _assert(this.#sortedKeys.length, 'Map.lastEntry called on empty map')
+    const k = this.#sortedKeys[this.#sortedKeys.length - 1]!
     return [k, this.map.get(k)!]
   }
 
@@ -201,7 +219,14 @@ export class KeySortedMap<K, V> implements Map<K, V> {
   }
 
   toObject(): Record<string, V> {
-    return Object.fromEntries(this.map)
+    return Object.fromEntries(this.entries())
+  }
+
+  /**
+   * Clones the KeySortedMap into ordinary Map.
+   */
+  toMap(): Map<K, V> {
+    return new Map(this.entries())
   }
 
   /**
@@ -209,11 +234,11 @@ export class KeySortedMap<K, V> implements Map<K, V> {
    */
   private lowerBound(target: K): number {
     let lo = 0
-    let hi = this.sortedKeys.length
+    let hi = this.#sortedKeys.length
     while (lo < hi) {
       // oxlint-disable-next-line no-bitwise
       const mid = (lo + hi) >>> 1
-      if (this.sortedKeys[mid]! < target) {
+      if (this.#sortedKeys[mid]! < target) {
         lo = mid + 1
       } else {
         hi = mid
@@ -223,6 +248,6 @@ export class KeySortedMap<K, V> implements Map<K, V> {
   }
 
   private sortKeys(): void {
-    this.sortedKeys.sort(this.opt.comparator)
+    this.#sortedKeys.sort(this.#comparator)
   }
 }

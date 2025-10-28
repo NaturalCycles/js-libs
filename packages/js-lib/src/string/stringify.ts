@@ -1,4 +1,5 @@
 import { _isBackendErrorResponseObject, _isErrorLike, _isErrorObject } from '../error/error.util.js'
+import type { ErrorLike } from '../error/index.js'
 import type { Reviver } from '../types.js'
 import { _jsonParseIfPossible } from './json.util.js'
 import { _safeJsonStringify } from './safeJsonStringify.js'
@@ -101,65 +102,27 @@ export function _stringify(obj: any, opt: StringifyOptions = {}): string {
   }
 
   if (obj instanceof Error || _isErrorLike(obj)) {
-    const { includeErrorCause = true } = opt
-    //
-    // Error or ErrorLike
-    //
-
-    // Omit "default" error name as non-informative
-    // UPD: no, it's still important to understand that we're dealing with Error and not just some string
-    // if (obj?.name === 'Error') {
-    //   s = obj.message
-    // }
-    // if (_isErrorObject(obj) && _isHttpErrorObject(obj)) {
-    //   // Printing (0) to avoid ambiguity
-    //   s = `${obj.name}(${obj.data.backendResponseStatusCode}): ${obj.message}`
-    // }
-
-    s = [obj.name, obj.message].filter(Boolean).join(': ')
-
-    if (typeof (obj as any).code === 'string') {
-      // Error that has no `data`, but has `code` property
-      s += `\ncode: ${(obj as any).code}`
-    }
-
-    if (opt.includeErrorData && _isErrorObject(obj) && Object.keys(obj.data).length) {
-      s += '\n' + _stringify(obj.data, opt)
-    }
-
-    if (opt.includeErrorStack && obj.stack) {
-      // Here we're using the previously-generated "title line" (e.g "Error: some_message"),
-      // concatenating it with the Stack (but without the title line of the Stack)
-      // This is to fix the rare error (happened with Got) where `err.message` was changed,
-      // but err.stack had "old" err.message
-      // This should "fix" that
-      const sLines = s.split('\n').length
-
-      s = [s, ...obj.stack.split('\n').slice(sLines)].join('\n')
-    }
-
-    if (supportsAggregateError && obj instanceof AggregateError && obj.errors.length) {
-      s = [
-        s,
-        `${obj.errors.length} error(s):`,
-        ...obj.errors.map((err, i) => `${i + 1}. ${_stringify(err, opt)}`),
-      ].join('\n')
-    }
-
-    if (obj.cause && includeErrorCause) {
-      s = s + '\nCaused by: ' + _stringify(obj.cause, opt)
-    }
+    s = stringifyErrorLike(obj, opt)
   } else if (typeof obj === 'string') {
-    //
-    // String
-    //
-
     s = obj.trim() || 'empty_string'
+    // todo: think about it more
+    // Stringifying it like a JSON would.
+    // To highlight that it's a String (and not a Number) - using double-quotes, JSON-like.
+    // s = `"${obj}"`
+  } else if (typeof obj === 'number') {
+    s = String(obj)
+    // todo: support RegExp and Date, when split between Browser and Node stringification is implemented
+    // } else if (obj instanceof RegExp) {
+    //   s = String(obj)
+    // } else if (obj instanceof Date) {
+    //   s = `Date (${obj.toISOString()})`
   } else {
     //
     // Other
     //
     if (obj instanceof Map) {
+      // todo: double-check it, maybe Node's inspect has good built-in stringification
+
       obj = Object.fromEntries(obj)
     } else if (obj instanceof Set) {
       obj = [...obj]
@@ -187,5 +150,44 @@ export function _stringify(obj: any, opt: StringifyOptions = {}): string {
     )
   }
 
+  return s
+}
+
+function stringifyErrorLike(obj: Error | ErrorLike, opt: StringifyOptions): string {
+  const { includeErrorCause = true } = opt
+
+  let s = [obj.name, obj.message].filter(Boolean).join(': ')
+
+  if (typeof (obj as any).code === 'string') {
+    // Error that has no `data`, but has `code` property
+    s += `\ncode: ${(obj as any).code}`
+  }
+
+  if (opt.includeErrorData && _isErrorObject(obj) && Object.keys(obj.data).length) {
+    s += '\n' + _stringify(obj.data, opt)
+  }
+
+  if (opt.includeErrorStack && obj.stack) {
+    // Here we're using the previously-generated "title line" (e.g "Error: some_message"),
+    // concatenating it with the Stack (but without the title line of the Stack)
+    // This is to fix the rare error (happened with Got) where `err.message` was changed,
+    // but err.stack had "old" err.message
+    // This should "fix" that
+    const sLines = s.split('\n').length
+
+    s = [s, ...obj.stack.split('\n').slice(sLines)].join('\n')
+  }
+
+  if (supportsAggregateError && obj instanceof AggregateError && obj.errors.length) {
+    s = [
+      s,
+      `${obj.errors.length} error(s):`,
+      ...obj.errors.map((err, i) => `${i + 1}. ${_stringify(err, opt)}`),
+    ].join('\n')
+  }
+
+  if (obj.cause && includeErrorCause) {
+    s = s + '\nCaused by: ' + _stringify(obj.cause, opt)
+  }
   return s
 }

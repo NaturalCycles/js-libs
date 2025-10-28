@@ -2,6 +2,8 @@ import { expect, test } from 'vitest'
 import { comparators } from '../array/sort.js'
 import { KeySortedMap } from './keySortedMap.js'
 
+// todo: stringification test
+
 test('constructs with sorted keys and keeps last value for duplicates', () => {
   const map = new KeySortedMap([
     ['beta', 1],
@@ -12,7 +14,7 @@ test('constructs with sorted keys and keeps last value for duplicates', () => {
   expect(map.size).toBe(2)
   expect(map.get('alpha')).toBe(2)
   expect(map.get('beta')).toBe(3)
-  expect(map.keysArray()).toEqual(['alpha', 'beta'])
+  expect(map.keys().toArray()).toEqual(['alpha', 'beta'])
   expect(Array.from(map.entries())).toEqual([
     ['alpha', 2],
     ['beta', 3],
@@ -31,9 +33,11 @@ test('set inserts keys in sorted order and exposes sorted views', () => {
   expect(map.size).toBe(5)
   expect(map.firstKey()).toBe(1)
   expect(map.lastKey()).toBe(5)
-  expect(map.keysArray()).toEqual([1, 2, 3, 4, 5])
-  expect(map.valuesArray()).toEqual(['one', 'two', 'three', 'four', 'five'])
-  expect(map.entriesArray()).toEqual([
+  expect(map.firstValue()).toBe('one')
+  expect(map.lastValue()).toBe('five')
+  expect(map.keys().toArray()).toEqual([1, 2, 3, 4, 5])
+  expect(map.values().toArray()).toEqual(['one', 'two', 'three', 'four', 'five'])
+  expect(map.entries().toArray()).toEqual([
     [1, 'one'],
     [2, 'two'],
     [3, 'three'],
@@ -104,7 +108,7 @@ test('updates existing keys without duplicating or reordering', () => {
   expect(result).toBe(map)
   expect(map.size).toBe(2)
   expect(map.get(2)).toBe('two updated')
-  expect(map.keysArray()).toEqual([1, 2])
+  expect(map.keys().toArray()).toEqual([1, 2])
 })
 
 test('delete handles present and missing keys while keeping order', () => {
@@ -117,7 +121,7 @@ test('delete handles present and missing keys while keeping order', () => {
   expect(map.delete(99)).toBe(false)
   expect(map.delete(5)).toBe(true)
   expect(map.has(5)).toBe(false)
-  expect(map.keysArray()).toEqual([1, 10])
+  expect(map.keys().toArray()).toEqual([1, 10])
   expect(map.firstEntry()).toEqual([1, 'one'])
   expect(map.lastEntry()).toEqual([10, 'ten'])
 
@@ -125,8 +129,8 @@ test('delete handles present and missing keys while keeping order', () => {
   map.delete(10)
 
   expect(map.size).toBe(0)
-  expect(map.firstKey()).toBeUndefined()
-  expect(map.lastEntry()).toBeUndefined()
+  expect(map.firstKeyOrUndefined()).toBeUndefined()
+  expect(map.lastEntryOrUndefined()).toBeUndefined()
 })
 
 test('clear removes all entries and iteration helpers reflect emptiness', () => {
@@ -139,14 +143,16 @@ test('clear removes all entries and iteration helpers reflect emptiness', () => 
   map.clear()
 
   expect(map.size).toBe(0)
-  expect(map.keysArray()).toEqual([])
+  expect(map.keys().toArray()).toEqual([])
   expect(Array.from(map.keys())).toEqual([])
   expect(Array.from(map.values())).toEqual([])
   expect(Array.from(map)).toEqual([])
-  expect(map.firstKey()).toBeUndefined()
-  expect(map.lastKey()).toBeUndefined()
-  expect(map.firstEntry()).toBeUndefined()
-  expect(map.lastEntry()).toBeUndefined()
+  expect(map.firstKeyOrUndefined()).toBeUndefined()
+  expect(map.lastKeyOrUndefined()).toBeUndefined()
+  expect(map.firstValueOrUndefined()).toBeUndefined()
+  expect(map.lastValueOrUndefined()).toBeUndefined()
+  expect(map.firstEntryOrUndefined()).toBeUndefined()
+  expect(map.lastEntryOrUndefined()).toBeUndefined()
 })
 
 test('iterators and forEach use sorted order and pass the map and thisArg', () => {
