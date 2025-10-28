@@ -23,11 +23,9 @@ const pwInputSchema = objectSchema<PwInput>({
 })
 
 const pwInputSchemaAjv = AjvSchema.create<PwInput>(
-  j
-    .object({
-      pw: j.string().min(6),
-    })
-    .isOfType<PwInput>(),
+  j.object<PwInput>({
+    pw: j.string().min(6),
+  }),
 )
 
 function createApp(): BackendApplication {

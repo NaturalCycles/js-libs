@@ -72,6 +72,83 @@ describe('boolean', () => {
 })
 
 describe('object', () => {
+  test('should correctly use the passed-in type', () => {
+    interface Schema1 {
+      string: string
+      array: string[]
+      set: Set2<string>
+      optional?: string
+      nullable: string | null
+      object: {
+        string: string
+        array: string[]
+        set: Set2<string>
+        optional?: string
+        nullable: string | null
+      }
+    }
+
+    const schema1 = j.object<Schema1>({
+      string: j.string(),
+      array: j.array(j.string()),
+      set: j.set(j.string()),
+      optional: j.string().optional(),
+      nullable: j.string().nullable(),
+      object: j.objectInfer({
+        string: j.string(),
+        array: j.array(j.string()),
+        set: j.set(j.string()),
+        optional: j.string().optional(),
+        nullable: j.string().nullable(),
+      }),
+    })
+
+    expectTypeOf(schema1.in).toEqualTypeOf<Schema1>()
+    expectTypeOf(schema1.out).toEqualTypeOf<Schema1>()
+  })
+
+  test('should produce a type error when the generic mismatches the schema', () => {
+    interface Schema1 {
+      foo: string
+    }
+
+    const schema1 = j.object<Schema1>({
+      // @ts-expect-error There is already a warning here
+      foo: j.number(),
+    })
+
+    // And  the schema is never
+    expectTypeOf(schema1).toBeNever()
+  })
+
+  test('the schema should be never when the caller does not pass in the generic', () => {
+    // That's only how I could make the generic required - open to better suggestions
+    const schema1 = j.object({
+      foo: j.number(),
+    })
+
+    expectTypeOf(schema1).toBeNever()
+  })
+
+  describe('extend', () => {
+    test('should correctly infer the type', () => {
+      interface Foo {
+        a: string | null
+      }
+      const schema1 = j.object<Foo>({ a: j.string().nullable() })
+
+      interface Bar {
+        b?: number
+      }
+      const schema2 = schema1.extend<Bar>({ b: j.number().optional() })
+
+      expectTypeOf(schema2.in).toEqualTypeOf<Foo & Bar>()
+      expectTypeOf(schema2.out).toEqualTypeOf<Foo & Bar>()
+    })
+  })
+})
+
+describe('objectInfer', () => {
   test('should correctly infer the type', () => {
     interface Schema1In {
       string: string
@@ -103,13 +180,13 @@ describe('object', () => {
       }
     }
 
-    const schema1 = j.object({
+    const schema1 = j.objectInfer({
       string: j.string(),
       array: j.array(j.string()),
       set: j.set(j.string()),
       optional: j.string().optional(),
       nullable: j.string().nullable(),
-      object: j.object({
+      object: j.objectInfer({
         string: j.string(),
         array: j.array(j.string()),
         set: j.set(j.string()),
@@ -124,7 +201,7 @@ describe('object', () => {
 
   test('should check the passed-in type', () => {
     const schema = j
-      .object({
+      .objectInfer({
         foo: j.string().optional(),
       })
       .isOfType<{ foo?: string }>()
@@ -132,7 +209,7 @@ describe('object', () => {
 
     // Different base type: string vs number
     const schema1 = j
-      .object({
+      .objectInfer({
         foo: j.string().optional(),
       })
       .isOfType<{ foo?: number }>()
@@ -140,7 +217,7 @@ describe('object', () => {
 
     // Type expects optional, schema expects non-optional
     const schema2 = j
-      .object({
+      .objectInfer({
         foo: j.string().optional(),
       })
       .isOfType<{ foo: string }>()
@@ -148,7 +225,7 @@ describe('object', () => {
 
     // Type expects optional, schema expects non-optional with undefined
     const schema3 = j
-      .object({
+      .objectInfer({
         foo: j.string().optional(),
       })
       .isOfType<{ foo: string | undefined }>()
@@ -157,7 +234,7 @@ describe('object', () => {
 
   describe('extend', () => {
     test('should correctly infer the type', () => {
-      const schema1 = j.object({ a: j.string().nullable() })
+      const schema1 = j.objectInfer({ a: j.string().nullable() })
 
       const schema2 = schema1.extend({ b: j.number().optional() })
 
@@ -178,6 +255,45 @@ describe('array', () => {
     expectTypeOf(schema2.out).toEqualTypeOf<(string | undefined)[]>()
   })
 })
+
+// describe('enum', () => {
+//   test('should correctly infer the type - for NumberEnums', () => {
+//     enum Foo {
+//       BAR = 1,
+//       SHU = 2,
+//     }
+//     const schema1 = j.enum(Foo)
+//     expectTypeOf(schema1).not.toBeNever()
+//     expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
+//     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+
+//     const schema2 = j.enum(Foo).isOfType<Foo>()
+//     expectTypeOf(schema2).not.toBeNever()
+
+//     let schema3 = j.enum(Foo)
+//     schema3 = schema3.isOfType<Foo>()
+//     expectTypeOf(schema3).not.toBeNever()
+//   })
+
+//   test('should correctly infer the type - for StringEnums', () => {
+//     enum Foo {
+//       BAR = 'bar',
+//       SHU = 'shu',
+//     }
+//     const schema1 = j.enum(Foo)
+//     expectTypeOf(schema1).not.toBeNever()
+//     expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
+//     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+//   })
+
+//   test('should correctly infer the type - for listed values', () => {
+//     type Foo = 1 | 2 | 'foo' | 'bar'
+//     const schema1 = j.enum([1, 2, 'foo', 'bar'])
+//     expectTypeOf(schema1).not.toBeNever()
+//     expectTypeOf(schema1.in).toEqualTypeOf<Foo>()
+//     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+//   })
+// })
 
 describe('set', () => {
   test('should correctly infer the type', () => {
@@ -209,7 +325,7 @@ describe('castAs', () => {
     expectTypeOf(schema1.in).toEqualTypeOf<number>()
     expectTypeOf(schema1.out).toEqualTypeOf<number>()
 
-    const schema2 = j.object({}).castAs<{ foo: string }>()
+    const schema2 = j.objectInfer({}).castAs<{ foo: string }>()
     expectTypeOf(schema2.in).toEqualTypeOf<{ foo: string }>()
     expectTypeOf(schema2.out).toEqualTypeOf<{ foo: string }>()
   })

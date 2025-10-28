@@ -51,7 +51,7 @@ export const testItemTMSchema: ObjectSchema<TestItemTM> = objectSchema<TestItemT
 })
 
 export const testItemBMJsonSchema = j
-  .object({
+  .object<TestItemBM>({
     // todo: figure out how to not copy-paste these 3 fields
     id: j.string(), // todo: not strictly needed here
     created: j.number().integer().unixTimestamp(),
@@ -61,10 +61,9 @@ export const testItemBMJsonSchema = j
     k3: j.number().optional(),
     even: j.boolean().optional(),
     b1: j.buffer().optional(),
-    nested: j.object({ foo: j.number() }).optional(),
+    nested: j.objectInfer({ foo: j.number() }).optional(),
   })
   .dbEntity()
-  .isOfType<TestItemBM>()
   .build()
 
 export function createTestItemDBM(num = 1): TestItemDBM {

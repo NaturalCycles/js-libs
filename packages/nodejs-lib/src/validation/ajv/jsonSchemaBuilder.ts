@@ -37,10 +37,12 @@ export const j = {
     return new JsonSchemaBooleanBuilder()
   },
 
-  object<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
+  object,
+
+  objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
     props: P,
-  ): JsonSchemaObjectBuilder<P, false> {
-    return new JsonSchemaObjectBuilder<P, false>(props)
+  ): JsonSchemaObjectInferringBuilder<P, false> {
+    return new JsonSchemaObjectInferringBuilder<P, false>(props)
   },
 
   array<IN, OUT, Opt>(
@@ -497,6 +499,76 @@ export class JsonSchemaBooleanBuilder<
 }
 
 export class JsonSchemaObjectBuilder<
+  IN extends AnyObject,
+  OUT extends AnyObject,
+  Opt extends boolean = false,
+> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
+  constructor(props?: AnyObject) {
+    super({
+      type: 'object',
+      properties: {},
+      required: [],
+      additionalProperties: false,
+      hasIsOfTypeCheck: true,
+    })
+
+    if (props) this.addProperties(props)
+  }
+
+  addProperties(props: AnyObject): this {
+    const properties: Record<string, JsonSchema> = {}
+    const required: string[] = []
+
+    for (const [key, builder] of Object.entries(props)) {
+      const schema = builder.build()
+      if (!schema.optionalField) {
+        required.push(key)
+      } else {
+        schema.optionalField = undefined
+      }
+      properties[key] = schema
+    }
+
+    this.schema.properties = properties
+    this.schema.required = _uniq(required).sort()
+
+    return this
+  }
+
+  /**
+   * When set, the validation will not strip away properties that are not specified explicitly in the schema.
+   */
+  allowAdditionalProperties(): this {
+    Object.assign(this.schema, { additionalProperties: true })
+    return this
+  }
+
+  extend<IN2 extends AnyObject>(
+    props: AnyObject,
+  ): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt> {
+    const newBuilder = new JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt>()
+    Object.assign(newBuilder.schema, _deepCopy(this.schema))
+
+    const incomingSchemaBuilder = new JsonSchemaObjectBuilder<IN2, IN2, false>(props)
+    mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
+
+    return newBuilder
+  }
+
+  /**
+   * Extends the current schema with `id`, `created` and `updated` according to NC DB conventions.
+   */
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+  dbEntity() {
+    return this.extend({
+      id: j.string(),
+      created: j.number().unixTimestamp2000(),
+      updated: j.number().unixTimestamp2000(),
+    })
+  }
+}
+
+export class JsonSchemaObjectInferringBuilder<
   PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>,
   Opt extends boolean = false,
 > extends JsonSchemaAnyBuilder<
@@ -573,7 +645,7 @@ export class JsonSchemaObjectBuilder<
 
   extend<NEW_PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
     props: NEW_PROPS,
-  ): JsonSchemaObjectBuilder<
+  ): JsonSchemaObjectInferringBuilder<
     {
       [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
         ? NEW_PROPS[K]
@@ -583,13 +655,13 @@ export class JsonSchemaObjectBuilder<
     },
     Opt
   > {
-    const newBuilder = new JsonSchemaObjectBuilder<PROPS, Opt>()
+    const newBuilder = new JsonSchemaObjectInferringBuilder<PROPS, Opt>()
     Object.assign(newBuilder.schema, _deepCopy(this.schema))
 
-    const incomingSchemaBuilder = new JsonSchemaObjectBuilder<NEW_PROPS, false>(props)
+    const incomingSchemaBuilder = new JsonSchemaObjectInferringBuilder<NEW_PROPS, false>(props)
     mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
 
-    return newBuilder as JsonSchemaObjectBuilder<
+    return newBuilder as JsonSchemaObjectInferringBuilder<
       {
         [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
           ? NEW_PROPS[K]
@@ -748,6 +820,17 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
   errorMessages?: StringMap<string>
   hasIsOfTypeCheck?: boolean
+}
+
+function object(props: AnyObject): never
+function object<IN extends AnyObject>(props: {
+  [key in keyof IN]: JsonSchemaAnyBuilder<any, IN[key], any>
+}): JsonSchemaObjectBuilder<IN, IN, false>
+
+function object<IN extends AnyObject>(props: {
+  [key in keyof IN]: JsonSchemaAnyBuilder<any, IN[key], any>
+}): JsonSchemaObjectBuilder<IN, IN, false> {
+  return new JsonSchemaObjectBuilder<IN, IN, false>(props)
 }
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
