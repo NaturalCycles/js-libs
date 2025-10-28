@@ -234,8 +234,7 @@ describe('validateSegmentationRules', () => {
 describe('canGenerateNewAssignments', () => {
   const experiment = mockExperiment()
   test('returns false if exclusionSet contains experimentId', () => {
-    const exclusionSet: ExclusionSet = new Set()
-    exclusionSet.add(experiment.id)
+    const exclusionSet: ExclusionSet = new Set([experiment.id])
 
     const result = util.canGenerateNewAssignments(experiment, exclusionSet)
     expect(result).toBe(false)
