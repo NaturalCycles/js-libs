@@ -115,7 +115,7 @@ describe('string', () => {
 
   describe('trim', () => {
     test('should trim the input string - when inside an object schema', () => {
-      const schema = j.objectInfer({ trim: j.string().trim() }).isOfType<{ trim: string }>()
+      const schema = j.object.infer({ trim: j.string().trim() }).isOfType<{ trim: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
         trim: '  trimmed  string  ',
@@ -146,8 +146,8 @@ describe('string', () => {
 
   describe('toLowerCase', () => {
     test('should toLowerCase the input string - when inside an object schema', () => {
-      const schema = j
-        .objectInfer({ toLowerCase: j.string().toLowerCase() })
+      const schema = j.object
+        .infer({ toLowerCase: j.string().toLowerCase() })
         .isOfType<{ toLowerCase: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
@@ -179,8 +179,8 @@ describe('string', () => {
 
   describe('toUpperCase', () => {
     test('should toUpperCase the input string - when inside an object schema', () => {
-      const schema = j
-        .objectInfer({ toUpperCase: j.string().toUpperCase() })
+      const schema = j.object
+        .infer({ toUpperCase: j.string().toUpperCase() })
         .isOfType<{ toUpperCase: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
@@ -212,8 +212,8 @@ describe('string', () => {
 
   describe('truncate', () => {
     test('should truncate the input string - when inside an object schema', () => {
-      const schema = j
-        .objectInfer({ truncate: j.string().truncate(5) })
+      const schema = j.object
+        .infer({ truncate: j.string().truncate(5) })
         .isOfType<{ truncate: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
@@ -243,8 +243,8 @@ describe('string', () => {
     })
 
     test('should trim the result when trim is part of the chain', () => {
-      const schema = j
-        .objectInfer({ truncate: j.string().trim().truncate(5) })
+      const schema = j.object
+        .infer({ truncate: j.string().trim().truncate(5) })
         .isOfType<{ truncate: string }>()
 
       const [err, result] = AjvSchema.create(schema).getValidationResult({
@@ -302,7 +302,7 @@ describe('string', () => {
     })
 
     test('should convert the email to lowercase - when inside an object schema', () => {
-      const schema = j.objectInfer({ email: j.string().email() }).isOfType<{ email: string }>()
+      const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
 
       const [, result] = AjvSchema.create(schema).getValidationResult({ email: 'LOWERCASE@nc.COM' })
 
@@ -310,7 +310,7 @@ describe('string', () => {
     })
 
     test('should trim the email - when inside an object schema', () => {
-      const schema = j.objectInfer({ email: j.string().email() }).isOfType<{ email: string }>()
+      const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
 
       const [, result] = AjvSchema.create(schema).getValidationResult({
         email: '  trimmed@nc.com  ',
@@ -1420,7 +1420,7 @@ describe('set', () => {
   })
 
   test('should accept an Array and produce a Set2 - when it is a property of an object', () => {
-    const schema = j.objectInfer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
+    const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({ set: ['foo', 'bar'] })
 
@@ -1431,7 +1431,7 @@ describe('set', () => {
   })
 
   test('should automagically make an Array unique', () => {
-    const schema = j.objectInfer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
+    const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({
       set: ['foo', 'bar', 'foo'],
@@ -1442,168 +1442,6 @@ describe('set', () => {
   })
 })
 
-describe('objectInfer', () => {
-  test('should work correctly with type inference', () => {
-    const schema = j
-      .objectInfer({
-        string: j.string(),
-        stringOptional: j.string().optional(),
-        array: j.array(j.string().nullable()),
-        arrayOptional: j.array(j.string()).optional(),
-        nested: j.objectInfer({
-          string: j.string(),
-          stringOptional: j.string().optional(),
-          array: j.array(j.string().nullable()),
-          arrayOptional: j.array(j.string()).optional(),
-        }),
-      })
-      .isOfType<TestEverythingObject>()
-
-    const [err, result] = AjvSchema.create(schema).getValidationResult({
-      string: 'string',
-      stringOptional: 'stringOptional',
-      array: ['array', null],
-      arrayOptional: ['array'],
-      nested: {
-        string: 'string',
-        stringOptional: 'stringOptional',
-        array: ['array', null],
-        arrayOptional: ['array'],
-      },
-    })
-
-    expect(err).toBeNull()
-    expect(result).toEqual({
-      string: 'string',
-      stringOptional: 'stringOptional',
-      array: ['array', null],
-      arrayOptional: ['array'],
-      nested: {
-        string: 'string',
-        stringOptional: 'stringOptional',
-        array: ['array', null],
-        arrayOptional: ['array'],
-      },
-    })
-    expectTypeOf(result).toEqualTypeOf<{
-      string: string
-      stringOptional?: string
-      array: (string | null)[]
-      arrayOptional?: string[]
-      nested: {
-        string: string
-        stringOptional?: string
-        array: (string | null)[]
-        arrayOptional?: string[]
-      }
-    }>()
-  })
-
-  test('should work correctly with type assignment', () => {
-    interface Foo {
-      string: string
-      stringOptional?: string
-    }
-
-    const schema = j
-      .objectInfer({
-        string: j.string(),
-        stringOptional: j.string().optional(),
-      })
-      .isOfType<Foo>()
-
-    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
-
-    expectTypeOf(result).toEqualTypeOf<Foo>()
-  })
-
-  test('should reject when required properties are missing', () => {
-    const schema = j
-      .objectInfer({ foo: j.string(), bar: j.string().optional() })
-      .isOfType<{ foo: string; bar?: string }>()
-    const ajvSchema = AjvSchema.create(schema)
-
-    const [err1] = ajvSchema.getValidationResult({ foo: 'foo', bar: 'bar' })
-    expect(err1).toBeNull()
-
-    const [err2] = ajvSchema.getValidationResult({ foo: 'foo' })
-    expect(err2).toBeNull()
-
-    const [err3] = ajvSchema.getValidationResult({ bar: 'bar' } as any)
-    expect(err3).toMatchInlineSnapshot(`
-      [AjvValidationError: Object must have required property 'foo'
-      Input: { bar: 'bar' }]
-    `)
-  })
-
-  interface TestEverythingObject {
-    string: string
-    stringOptional?: string
-    array: (string | null)[]
-    arrayOptional?: string[]
-    nested: {
-      string: string
-      stringOptional?: string
-      array: (string | null)[]
-      arrayOptional?: string[]
-    }
-  }
-
-  describe('extend', () => {
-    test('should work correctly with type assignment', () => {
-      interface Foo {
-        foo: string | null
-        bar?: number
-      }
-      const schema1 = j.objectInfer({ foo: j.string().nullable() })
-      const schema2 = schema1.extend({ bar: j.number().optional() }).isOfType<Foo>()
-
-      const [, result] = AjvSchema.create(schema2).getValidationResult({
-        foo: 'asdf',
-        bar: 0,
-      })
-
-      expectTypeOf(result).toEqualTypeOf<Foo>()
-    })
-  })
-
-  describe('allowAdditionalProperties', () => {
-    test('should strip away unspecified properties during validation when not set', () => {
-      const schema = j
-        .objectInfer({
-          string: j.string(),
-        })
-        .isOfType<{ string: string }>()
-
-      const [, result] = AjvSchema.create(schema).getValidationResult({
-        string: 'hello',
-        foo: 'world',
-      } as any)
-
-      expect(result).toEqual({ string: 'hello' })
-    })
-
-    test('should not strip away unspecified properties during validation when set', () => {
-      const schema = j
-        .objectInfer({
-          string: j.string(),
-        })
-        .allowAdditionalProperties()
-        .isOfType<{ string: string }>()
-
-      const [, result] = AjvSchema.create(schema).getValidationResult({
-        string: 'hello',
-        foo: 'world',
-      } as any)
-
-      expect(result).toEqual({
-        string: 'hello',
-        foo: 'world',
-      })
-    })
-  })
-})
-
 describe('object', () => {
   test('should work correctly with the passed-in type', () => {
     const schema = j.object<TestEverythingObject>({
@@ -1611,7 +1449,7 @@ describe('object', () => {
       stringOptional: j.string().optional(),
       array: j.array(j.string().nullable()),
       arrayOptional: j.array(j.string()).optional(),
-      nested: j.objectInfer({
+      nested: j.object.infer({
         string: j.string(),
         stringOptional: j.string().optional(),
         array: j.array(j.string().nullable()),
@@ -1719,8 +1557,8 @@ describe('object', () => {
 
   describe('allowAdditionalProperties', () => {
     test('should strip away unspecified properties during validation when not set', () => {
-      const schema = j
-        .objectInfer({
+      const schema = j.object
+        .infer({
           string: j.string(),
         })
         .isOfType<{ string: string }>()
@@ -1734,8 +1572,8 @@ describe('object', () => {
     })
 
     test('should not strip away unspecified properties during validation when set', () => {
-      const schema = j
-        .objectInfer({
+      const schema = j.object
+        .infer({
           string: j.string(),
         })
         .allowAdditionalProperties()
@@ -1775,6 +1613,168 @@ describe('object', () => {
         foo: 'hello',
       })
       expectTypeOf(result).toEqualTypeOf<DB>()
+    })
+  })
+
+  describe('.infer', () => {
+    test('should work correctly with type inference', () => {
+      const schema = j.object
+        .infer({
+          string: j.string(),
+          stringOptional: j.string().optional(),
+          array: j.array(j.string().nullable()),
+          arrayOptional: j.array(j.string()).optional(),
+          nested: j.object.infer({
+            string: j.string(),
+            stringOptional: j.string().optional(),
+            array: j.array(j.string().nullable()),
+            arrayOptional: j.array(j.string()).optional(),
+          }),
+        })
+        .isOfType<TestEverythingObject>()
+
+      const [err, result] = AjvSchema.create(schema).getValidationResult({
+        string: 'string',
+        stringOptional: 'stringOptional',
+        array: ['array', null],
+        arrayOptional: ['array'],
+        nested: {
+          string: 'string',
+          stringOptional: 'stringOptional',
+          array: ['array', null],
+          arrayOptional: ['array'],
+        },
+      })
+
+      expect(err).toBeNull()
+      expect(result).toEqual({
+        string: 'string',
+        stringOptional: 'stringOptional',
+        array: ['array', null],
+        arrayOptional: ['array'],
+        nested: {
+          string: 'string',
+          stringOptional: 'stringOptional',
+          array: ['array', null],
+          arrayOptional: ['array'],
+        },
+      })
+      expectTypeOf(result).toEqualTypeOf<{
+        string: string
+        stringOptional?: string
+        array: (string | null)[]
+        arrayOptional?: string[]
+        nested: {
+          string: string
+          stringOptional?: string
+          array: (string | null)[]
+          arrayOptional?: string[]
+        }
+      }>()
+    })
+
+    test('should work correctly with type assignment', () => {
+      interface Foo {
+        string: string
+        stringOptional?: string
+      }
+
+      const schema = j.object
+        .infer({
+          string: j.string(),
+          stringOptional: j.string().optional(),
+        })
+        .isOfType<Foo>()
+
+      const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+
+      expectTypeOf(result).toEqualTypeOf<Foo>()
+    })
+
+    test('should reject when required properties are missing', () => {
+      const schema = j.object
+        .infer({ foo: j.string(), bar: j.string().optional() })
+        .isOfType<{ foo: string; bar?: string }>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1] = ajvSchema.getValidationResult({ foo: 'foo', bar: 'bar' })
+      expect(err1).toBeNull()
+
+      const [err2] = ajvSchema.getValidationResult({ foo: 'foo' })
+      expect(err2).toBeNull()
+
+      const [err3] = ajvSchema.getValidationResult({ bar: 'bar' } as any)
+      expect(err3).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must have required property 'foo'
+      Input: { bar: 'bar' }]
+    `)
+    })
+
+    interface TestEverythingObject {
+      string: string
+      stringOptional?: string
+      array: (string | null)[]
+      arrayOptional?: string[]
+      nested: {
+        string: string
+        stringOptional?: string
+        array: (string | null)[]
+        arrayOptional?: string[]
+      }
+    }
+
+    describe('extend', () => {
+      test('should work correctly with type assignment', () => {
+        interface Foo {
+          foo: string | null
+          bar?: number
+        }
+        const schema1 = j.object.infer({ foo: j.string().nullable() })
+        const schema2 = schema1.extend({ bar: j.number().optional() }).isOfType<Foo>()
+
+        const [, result] = AjvSchema.create(schema2).getValidationResult({
+          foo: 'asdf',
+          bar: 0,
+        })
+
+        expectTypeOf(result).toEqualTypeOf<Foo>()
+      })
+    })
+
+    describe('allowAdditionalProperties', () => {
+      test('should strip away unspecified properties during validation when not set', () => {
+        const schema = j.object
+          .infer({
+            string: j.string(),
+          })
+          .isOfType<{ string: string }>()
+
+        const [, result] = AjvSchema.create(schema).getValidationResult({
+          string: 'hello',
+          foo: 'world',
+        } as any)
+
+        expect(result).toEqual({ string: 'hello' })
+      })
+
+      test('should not strip away unspecified properties during validation when set', () => {
+        const schema = j.object
+          .infer({
+            string: j.string(),
+          })
+          .allowAdditionalProperties()
+          .isOfType<{ string: string }>()
+
+        const [, result] = AjvSchema.create(schema).getValidationResult({
+          string: 'hello',
+          foo: 'world',
+        } as any)
+
+        expect(result).toEqual({
+          string: 'hello',
+          foo: 'world',
+        })
+      })
     })
   })
 })
@@ -1891,7 +1891,7 @@ describe('buffer', () => {
   })
 
   test('should accept an Array and produce a Buffer - when it is a property of an object', () => {
-    const schema = j.objectInfer({ buffer: j.buffer() }).isOfType<{ buffer: Buffer }>()
+    const schema = j.object.infer({ buffer: j.buffer() }).isOfType<{ buffer: Buffer }>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({ buffer: 'foobar' })
 
@@ -1902,7 +1902,7 @@ describe('buffer', () => {
   })
 
   test('should automagically make an Array unique', () => {
-    const schema = j.objectInfer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
+    const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = AjvSchema.create(schema).getValidationResult({
       set: ['foo', 'bar', 'foo'],
@@ -1943,7 +1943,7 @@ describe('oneOf', () => {
 
 describe('errors', () => {
   test('should properly display the path to the erronous value', () => {
-    const schema = j.objectInfer({ foo: j.array(j.string()) }).isOfType<{ foo: string[] }>()
+    const schema = j.object.infer({ foo: j.array(j.string()) }).isOfType<{ foo: string[] }>()
 
     const [err] = AjvSchema.create(schema).getValidationResult({
       foo: ['a', 'b', 'c', 1, 'e'],
@@ -1958,8 +1958,8 @@ describe('errors', () => {
 
 describe('castAs', () => {
   test('should correctly infer the new type', () => {
-    const schema = j
-      .objectInfer({ foo: j.string() })
+    const schema = j.object
+      .infer({ foo: j.string() })
       .castAs<{ bar: number }>()
       .isOfType<{ bar: number }>()
 

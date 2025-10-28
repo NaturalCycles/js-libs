@@ -39,13 +39,8 @@ export const j = {
 
   object: Object.assign(object, {
     dbEntity: objectDbEntity,
+    infer: objectInfer,
   }),
-
-  objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
-    props: P,
-  ): JsonSchemaObjectInferringBuilder<P, false> {
-    return new JsonSchemaObjectInferringBuilder<P, false>(props)
-  },
 
   array<IN, OUT, Opt>(
     itemSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>,
@@ -833,6 +828,12 @@ function object<IN extends AnyObject>(props: {
   [key in keyof IN]: JsonSchemaAnyBuilder<any, IN[key], any>
 }): JsonSchemaObjectBuilder<IN, IN, false> {
   return new JsonSchemaObjectBuilder<IN, IN, false>(props)
+}
+
+function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
+  props: P,
+): JsonSchemaObjectInferringBuilder<P, false> {
+  return new JsonSchemaObjectInferringBuilder<P, false>(props)
 }
 
 function objectDbEntity(props?: AnyObject): never

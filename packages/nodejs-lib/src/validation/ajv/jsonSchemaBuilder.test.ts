@@ -95,7 +95,7 @@ describe('object', () => {
       set: j.set(j.string()),
       optional: j.string().optional(),
       nullable: j.string().nullable(),
-      object: j.objectInfer({
+      object: j.object.infer({
         string: j.string(),
         array: j.array(j.string()),
         set: j.set(j.string()),
@@ -132,7 +132,7 @@ describe('object', () => {
   })
 
   test('should work with enums', () => {
-    // Special test case due to how j.objectInfer().isOfType<>() lead to errors
+    // Special test case due to how j.object.infer().isOfType<>() lead to errors
     // when the schema contained an enum property
     enum Bar {
       a = 'A',
@@ -187,100 +187,100 @@ describe('object', () => {
       expectTypeOf(schema1).toBeNever()
     })
   })
-})
 
-describe('objectInfer', () => {
-  test('should correctly infer the type', () => {
-    interface Schema1In {
-      string: string
-      array: string[]
-      set: Iterable<string>
-      optional?: string
-      nullable: string | null
-      object: {
+  describe('.infer', () => {
+    test('should correctly infer the type', () => {
+      interface Schema1In {
         string: string
         array: string[]
         set: Iterable<string>
         optional?: string
         nullable: string | null
+        object: {
+          string: string
+          array: string[]
+          set: Iterable<string>
+          optional?: string
+          nullable: string | null
+        }
       }
-    }
 
-    interface Schema1Out {
-      string: string
-      array: string[]
-      set: Set2<string>
-      optional?: string
-      nullable: string | null
-      object: {
+      interface Schema1Out {
         string: string
         array: string[]
         set: Set2<string>
         optional?: string
         nullable: string | null
+        object: {
+          string: string
+          array: string[]
+          set: Set2<string>
+          optional?: string
+          nullable: string | null
+        }
       }
-    }
 
-    const schema1 = j.objectInfer({
-      string: j.string(),
-      array: j.array(j.string()),
-      set: j.set(j.string()),
-      optional: j.string().optional(),
-      nullable: j.string().nullable(),
-      object: j.objectInfer({
+      const schema1 = j.object.infer({
         string: j.string(),
         array: j.array(j.string()),
         set: j.set(j.string()),
         optional: j.string().optional(),
         nullable: j.string().nullable(),
-      }),
+        object: j.object.infer({
+          string: j.string(),
+          array: j.array(j.string()),
+          set: j.set(j.string()),
+          optional: j.string().optional(),
+          nullable: j.string().nullable(),
+        }),
+      })
+
+      expectTypeOf(schema1.in).toEqualTypeOf<Schema1In>()
+      expectTypeOf(schema1.out).toEqualTypeOf<Schema1Out>()
     })
 
-    expectTypeOf(schema1.in).toEqualTypeOf<Schema1In>()
-    expectTypeOf(schema1.out).toEqualTypeOf<Schema1Out>()
-  })
+    test('should check the passed-in type', () => {
+      const schema = j.object
+        .infer({
+          foo: j.string().optional(),
+        })
+        .isOfType<{ foo?: string }>()
+      expectTypeOf(schema).not.toBeNever()
 
-  test('should check the passed-in type', () => {
-    const schema = j
-      .objectInfer({
-        foo: j.string().optional(),
+      // Different base type: string vs number
+      const schema1 = j.object
+        .infer({
+          foo: j.string().optional(),
+        })
+        .isOfType<{ foo?: number }>()
+      expectTypeOf(schema1).toBeNever()
+
+      // Type expects optional, schema expects non-optional
+      const schema2 = j.object
+        .infer({
+          foo: j.string().optional(),
+        })
+        .isOfType<{ foo: string }>()
+      expectTypeOf(schema2).toBeNever()
+
+      // Type expects optional, schema expects non-optional with undefined
+      const schema3 = j.object
+        .infer({
+          foo: j.string().optional(),
+        })
+        .isOfType<{ foo: string | undefined }>()
+      expectTypeOf(schema3).toBeNever()
+    })
+
+    describe('extend', () => {
+      test('should correctly infer the type', () => {
+        const schema1 = j.object.infer({ a: j.string().nullable() })
+
+        const schema2 = schema1.extend({ b: j.number().optional() })
+
+        expectTypeOf(schema2.in).toEqualTypeOf<{ a: string | null; b?: number }>()
+        expectTypeOf(schema2.out).toEqualTypeOf<{ a: string | null; b?: number }>()
       })
-      .isOfType<{ foo?: string }>()
-    expectTypeOf(schema).not.toBeNever()
-
-    // Different base type: string vs number
-    const schema1 = j
-      .objectInfer({
-        foo: j.string().optional(),
-      })
-      .isOfType<{ foo?: number }>()
-    expectTypeOf(schema1).toBeNever()
-
-    // Type expects optional, schema expects non-optional
-    const schema2 = j
-      .objectInfer({
-        foo: j.string().optional(),
-      })
-      .isOfType<{ foo: string }>()
-    expectTypeOf(schema2).toBeNever()
-
-    // Type expects optional, schema expects non-optional with undefined
-    const schema3 = j
-      .objectInfer({
-        foo: j.string().optional(),
-      })
-      .isOfType<{ foo: string | undefined }>()
-    expectTypeOf(schema3).toBeNever()
-  })
-
-  describe('extend', () => {
-    test('should correctly infer the type', () => {
-      const schema1 = j.objectInfer({ a: j.string().nullable() })
-
-      const schema2 = schema1.extend({ b: j.number().optional() })
-
-      expectTypeOf(schema2.in).toEqualTypeOf<{ a: string | null; b?: number }>()
-      expectTypeOf(schema2.out).toEqualTypeOf<{ a: string | null; b?: number }>()
     })
   })
 })
@@ -359,7 +359,7 @@ describe('castAs', () => {
     expectTypeOf(schema1.in).toEqualTypeOf<number>()
     expectTypeOf(schema1.out).toEqualTypeOf<number>()
 
-    const schema2 = j.objectInfer({}).castAs<{ foo: string }>()
+    const schema2 = j.object.infer({}).castAs<{ foo: string }>()
     expectTypeOf(schema2.in).toEqualTypeOf<{ foo: string }>()
     expectTypeOf(schema2.out).toEqualTypeOf<{ foo: string }>()
   })
