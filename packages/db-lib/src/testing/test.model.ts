@@ -61,7 +61,7 @@ export const testItemBMJsonSchema = j
     k3: j.number().optional(),
     even: j.boolean().optional(),
     b1: j.buffer().optional(),
-    nested: j.objectInfer({ foo: j.number() }).optional(),
+    nested: j.object.infer({ foo: j.number() }).optional(),
   })
   .dbEntity()
   .build()
