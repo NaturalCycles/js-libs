@@ -840,13 +840,21 @@ function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any
 }
 
 function objectDbEntity(props?: AnyObject): never
-function objectDbEntity<IN extends AnyObject>(
-  props?: AnyObject,
-): JsonSchemaObjectBuilder<IN, IN, false>
+function objectDbEntity<IN extends AnyObject>(props?: {
+  [key in keyof PartiallyOptional<IN, 'id' | 'created' | 'updated'>]: JsonSchemaAnyBuilder<
+    any,
+    IN[key],
+    any
+  >
+}): JsonSchemaObjectBuilder<IN, IN, false>
 
-function objectDbEntity<IN extends AnyObject>(
-  props?: AnyObject,
-): JsonSchemaObjectBuilder<IN, IN, false> {
+function objectDbEntity<IN extends AnyObject>(props?: {
+  [key in keyof PartiallyOptional<IN, 'id' | 'created' | 'updated'>]: JsonSchemaAnyBuilder<
+    any,
+    IN[key],
+    any
+  >
+}): JsonSchemaObjectBuilder<IN, IN, false> {
   return j.object({
     id: j.string(),
     created: j.number().unixTimestamp2000(),
@@ -859,6 +867,8 @@ type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
 
 type ExactMatch<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
+
+type PartiallyOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
