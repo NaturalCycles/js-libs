@@ -1,4 +1,4 @@
-/// <reference lib="es2022" preserve="true" />
+/// <reference lib="es2023" preserve="true" />
 /// <reference lib="dom" preserve="true" />
 
 import type { StringMap } from './types.js'

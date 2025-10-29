@@ -87,7 +87,7 @@
     "directory": "packages/backend-lib"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "description": "Standard library for making Express.js / AppEngine based backend services",
   "author": "Natural Cycles Team",

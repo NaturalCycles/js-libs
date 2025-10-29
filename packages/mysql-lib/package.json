@@ -45,7 +45,7 @@
     "directory": "packages/mysql-lib"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "version": "3.8.1",
   "description": "MySQL client implementing CommonDB interface",
