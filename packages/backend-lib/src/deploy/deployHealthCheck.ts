@@ -2,7 +2,10 @@ import type { InspectOptions } from 'node:util'
 import { inspect } from 'node:util'
 import { _ms, _since } from '@naturalcycles/js-lib/datetime'
 import { getFetcher } from '@naturalcycles/js-lib/http'
-import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
+import {
+  _filterFalsyValues,
+  _filterUndefinedValues,
+} from '@naturalcycles/js-lib/object/object.util.js'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { dimGrey, red } from '@naturalcycles/nodejs-lib/colors'
@@ -20,6 +23,7 @@ export interface DeployHealthCheckOptions {
   gaeProject?: string
   gaeService?: string
   gaeVersion?: string
+  authHeader?: string
 }
 
 export const deployHealthCheckYargsOptions = {
@@ -62,6 +66,9 @@ export const deployHealthCheckYargsOptions = {
   gaeVersion: {
     type: 'string',
   },
+  authHeader: {
+    type: 'string',
+  },
 } as const
 
 const inspectOpt: InspectOptions = {
@@ -89,6 +96,7 @@ export async function deployHealthCheck(
     gaeProject,
     gaeService,
     gaeVersion,
+    authHeader,
   } = opt
 
   let attempt = 0
@@ -134,15 +142,20 @@ export async function deployHealthCheck(
 
     const started = Date.now() as UnixTimestampMillis
 
-    const { err, statusCode = 0 } = await fetcher.doFetch({
-      url,
-      responseType: 'json',
-      timeoutSeconds: timeoutSec,
-      retry: {
-        count: 0,
-      },
-      redirect: 'error',
-    })
+    const { err, statusCode = 0 } = await fetcher.doFetch(
+      _filterUndefinedValues({
+        url,
+        responseType: 'json',
+        timeoutSeconds: timeoutSec,
+        retry: {
+          count: 0,
+        },
+        redirect: 'error',
+        headers: {
+          Authorization: authHeader,
+        },
+      }),
+    )
 
     if (err) {
       console.log(err)
