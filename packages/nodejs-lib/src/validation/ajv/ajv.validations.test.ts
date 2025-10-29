@@ -8,6 +8,7 @@ import type {
   AnyObject,
   BaseDBEntity,
   Branded,
+  IANATimezone,
   IsoDate,
   IsoDateTime,
   UnixTimestamp,
@@ -820,6 +821,61 @@ describe('string', () => {
       })
     })
   })
+
+  describe('ianaTimezone', () => {
+    test('should work correctly with type inference', () => {
+      const schema = j.string().ianaTimezone()
+
+      const [err, result] = AjvSchema.create(schema).getValidationResult('Europe/Stockholm')
+
+      expect(err).toBeNull()
+      expect(result).toBe('Europe/Stockholm')
+      expectTypeOf(result).toEqualTypeOf<IANATimezone>()
+    })
+
+    test('should support "UTC" as we sometimes use it in unit tests', () => {
+      const schema = j.string().ianaTimezone()
+
+      const [err] = AjvSchema.create(schema).getValidationResult('UTC')
+
+      expect(err).toBeNull()
+    })
+
+    test('should reject with proper error message', () => {
+      const schema = j.string().ianaTimezone()
+
+      const [err] = AjvSchema.create(schema).getValidationResult(
+        'Second day of the second month of the year of the snake',
+      )
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object is an invalid IANA timezone
+        Input: Second day of the second month of the year of the snake]
+      `)
+    })
+
+    test('should accept valid data', () => {
+      const testCases = [...Intl.supportedValuesOf('timeZone'), 'UTC']
+      const schema = j.string().ianaTimezone()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(tz => {
+        const [err] = ajvSchema.getValidationResult(tz)
+        expect(err, String(tz)).toBeNull()
+      })
+    })
+
+    test('should reject invalid data', () => {
+      const invalidCases: any[] = ['abcd', 0, null, [], {}]
+      const schema = j.string().isoDate()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
 })
 
 describe('number', () => {
@@ -1355,6 +1411,63 @@ describe('array', () => {
       const [err] = AjvSchema.create(schema).getValidationResult(input)
 
       expect(err, String(input)).not.toBeNull()
+    })
+  })
+
+  describe('min', () => {
+    test('should accept valid data', () => {
+      const testCases: any[] = [
+        ['foo', 'bar'],
+        ['foo', 'bar', 'shu'],
+      ]
+      const schema = j.array(j.string()).min(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(input => {
+        const [err, result] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).toBeNull()
+        expect(result).toEqual(input)
+      })
+    })
+
+    test('should reject invalid data', () => {
+      const testCases: any[] = [[], ['foo'], 0, 'foo', {}, true]
+      const schema = j.array(j.string()).min(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(input => {
+        const [err] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('max', () => {
+    test('should accept valid data', () => {
+      const testCases: any[] = [[], ['foo'], ['foo', 'bar']]
+      const schema = j.array(j.string()).max(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(input => {
+        const [err, result] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).toBeNull()
+        expect(result).toEqual(input)
+      })
+    })
+
+    test('should reject invalid data', () => {
+      const testCases: any[] = [['foo', 'bar', 'shu'], 0, 'foo', {}, true]
+      const schema = j.array(j.string()).max(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(input => {
+        const [err] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).not.toBeNull()
+      })
     })
   })
 })

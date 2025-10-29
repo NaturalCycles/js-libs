@@ -13,6 +13,7 @@ import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
 import {
   type AnyObject,
+  type IANATimezone,
   type IsoDate,
   type IsoDateTime,
   JWT_REGEX,
@@ -63,6 +64,7 @@ export const j = {
 
   enum<const T extends readonly (string | number | boolean | null)[] | StringEnum | NumberEnum>(
     input: T,
+    opt?: JsonBuilderRuleOpt,
   ): JsonSchemaEnumBuilder<
     T extends readonly (infer U)[]
       ? U
@@ -86,7 +88,7 @@ export const j = {
     }
 
     _assert(enumValues, 'Unsupported enum input')
-    return new JsonSchemaEnumBuilder(enumValues as any)
+    return new JsonSchemaEnumBuilder(enumValues as any, opt)
   },
 
   oneOf<
@@ -368,6 +370,19 @@ export class JsonSchemaStringBuilder<
   currency(): this {
     const regex = /^[A-Z]{3}$/
     return this.regex(regex, { msg: 'is not a valid currency format' })
+  }
+
+  /**
+   * Validates that the input is a valid IANATimzone value.
+   *
+   * All previous expectations in the schema chain are dropped - including `.optional()` -
+   * because this call effectively starts a new schema chain as an `enum` validation.
+   */
+  ianaTimezone(): JsonSchemaEnumBuilder<string | IANATimezone, IANATimezone, false> {
+    // UTC is added to assist unit-testing, which uses UTC by default (not technically a valid Iana timezone identifier)
+    return j
+      .enum([...Intl.supportedValuesOf('timeZone'), 'UTC'], { msg: 'is an invalid IANA timezone' })
+      .branded<IANATimezone>()
   }
 }
 
@@ -750,8 +765,14 @@ export class JsonSchemaEnumBuilder<
   OUT extends IN = IN,
   Opt extends boolean = false,
 > extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
-  constructor(enumValues: readonly IN[]) {
+  constructor(enumValues: readonly IN[], opt?: JsonBuilderRuleOpt) {
     super({ enum: enumValues })
+
+    if (opt?.msg) this.setErrorMessage('enum', opt.msg)
+  }
+
+  branded<B extends IN>(): JsonSchemaEnumBuilder<B | IN, B, Opt> {
+    return this as unknown as JsonSchemaEnumBuilder<B | IN, B, Opt>
   }
 }
 

@@ -1,7 +1,7 @@
 /* eslint-disable id-denylist */
 
 import type { Set2 } from '@naturalcycles/js-lib/object'
-import type { AnyObject, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type { AnyObject, IANATimezone, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { describe, expectTypeOf, test } from 'vitest'
 import { j } from './jsonSchemaBuilder.js'
 
@@ -29,6 +29,14 @@ describe('string', () => {
     // string | undefined vs string
     const schema2 = j.string().optional().isOfType<string>()
     expectTypeOf(schema2).toBeNever()
+  })
+
+  describe('ianaTimezone', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.string().ianaTimezone()
+      expectTypeOf(schema1.in).toEqualTypeOf<string | IANATimezone>()
+      expectTypeOf(schema1.out).toEqualTypeOf<IANATimezone>()
+    })
   })
 })
 
