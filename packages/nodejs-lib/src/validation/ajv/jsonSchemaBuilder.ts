@@ -9,7 +9,6 @@ import {
 } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
 import { _assert } from '@naturalcycles/js-lib/error'
-import { JSON_SCHEMA_ORDER, mergeJsonSchemaObjects } from '@naturalcycles/js-lib/json-schema'
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
 import {
@@ -23,6 +22,7 @@ import {
   type UnixTimestamp,
   type UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
+import { JSON_SCHEMA_ORDER, mergeJsonSchemaObjects } from './jsonSchemaBuilder.util.js'
 
 export const j = {
   string(): JsonSchemaStringBuilder<string, string, false> {
