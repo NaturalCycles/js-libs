@@ -9,7 +9,7 @@ import type {
   JsonSchemaObject,
   JsonSchemaOneOf,
   JsonSchemaString,
-} from '../index.js'
+} from '../jsonSchema.model.js'
 
 type PrimitiveType = 'undefined' | 'null' | 'boolean' | 'string' | 'number'
 type Type = PrimitiveType | 'array' | 'object'

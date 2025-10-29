@@ -1,7 +1,8 @@
-import { j } from '@naturalcycles/js-lib/json-schema'
+import type { JSONSchemaType } from 'ajv'
 import prettier from 'prettier'
 import { expect, test } from 'vitest'
 import { createAjv } from './getAjv.js'
+import { j } from './jsonSchemaBuilder.js'
 // oxlint-disable no-var-requires, no-require-imports, no-commonjs, extensions
 const standaloneCode = require('ajv/dist/standalone')
 
@@ -13,12 +14,12 @@ const ajv = createAjv({
 })
 
 test('snapshot ajv schema', async () => {
-  const jsonSchema = j
-    .rootObject({
+  const jsonSchema = j.object
+    .infer({
       s: j.string(),
     })
     .build()
-  const fn = ajv.compile(jsonSchema)
+  const fn = ajv.compile(jsonSchema as JSONSchemaType<any>)
   const rawCode = standaloneCode(ajv, fn)
   const code = await prettify(rawCode)
   expect(code).toMatchInlineSnapshot(`
@@ -26,7 +27,6 @@ test('snapshot ajv schema', async () => {
     export const validate = validate10
     export default validate10
     const schema11 = {
-      $schema: 'http://json-schema.org/draft-07/schema#',
       type: 'object',
       properties: { s: { type: 'string' } },
       required: ['s'],
