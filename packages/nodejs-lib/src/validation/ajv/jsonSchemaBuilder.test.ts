@@ -186,6 +186,20 @@ describe('object', () => {
 
       expectTypeOf(schema1).toBeNever()
     })
+
+    test('should collapse to never when the passed in type does not match the schema', () => {
+      interface DB {
+        id: string
+        created: UnixTimestamp
+        updated: UnixTimestamp
+        foo: string
+      }
+
+      // @ts-expect-error
+      const schema1 = j.object.dbEntity<DB>({ foo: j.number() })
+
+      expectTypeOf(schema1).toBeNever()
+    })
   })
 
   describe('.infer', () => {
