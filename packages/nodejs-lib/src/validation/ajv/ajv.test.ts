@@ -1,15 +1,11 @@
-import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _try } from '@naturalcycles/js-lib/error'
-import type { JsonSchema } from '@naturalcycles/js-lib/json-schema'
-import { j } from '@naturalcycles/js-lib/json-schema'
 import { _deepFreeze } from '@naturalcycles/js-lib/object'
-import type { IsoDate } from '@naturalcycles/js-lib/types'
 import { expect, test } from 'vitest'
 import { fs2 } from '../../fs/fs2.js'
-import { _inspect } from '../../index.js'
 import { testDir } from '../../test/paths.cnst.js'
 import { AjvSchema } from './ajvSchema.js'
 import { AjvValidationError } from './ajvValidationError.js'
+import { j, type JsonSchema } from './jsonSchemaBuilder.js'
 
 interface Simple {
   s: string
@@ -23,7 +19,7 @@ interface TestType {
 }
 
 const jsonSchemaSimple = fs2.readJson<JsonSchema<Simple>>(`${testDir}/schema/simple.schema.json`)
-const schema = AjvSchema.create(jsonSchemaSimple)
+const schema = AjvSchema.create<any>(jsonSchemaSimple)
 
 test('simple', () => {
   // Valid
@@ -143,93 +139,6 @@ test('TestType', () => {
   `)
 })
 
-// todo:
-// email TLD! (as in Joi)
-// url format (require https?)
-
-test.each([
-  [{ type: 'string' }, ['', 'lo']],
-  [{ type: 'string', format: 'email' }, ['a@b.com']],
-  [{ type: 'string', format: 'date' }, ['1984-06-21']], // exactly same as our IsoDate
-  [{ type: 'string', format: 'url' }, ['http://ya.ru']],
-  [{ type: 'string', format: 'ipv4' }, ['1.1.1.1']],
-  [{ type: 'string', format: 'regex' }, ['abc', '^abc$']],
-  [{ type: 'string', format: 'uuid' }, ['123e4567-e89b-12d3-a456-426614174000']],
-  [{ type: 'string', format: 'byte' }, ['aGVsbG8gd29ybGQ=']],
-  [{ type: 'string', format: 'binary' }, ['any string']],
-  [{ instanceof: 'Buffer' }, [Buffer.from('a b c'), Buffer.alloc(1)]],
-  [{ type: 'string', format: 'password' }, ['any string']],
-  [{ type: 'number' }, [1, -5, 1059]],
-  [{ type: 'integer' }, [1, -5, 1059]],
-  [{ type: 'number', format: 'int32' }, [1, 1059]],
-  [{ type: 'number', format: 'int64' }, [1, 1059]],
-  [{ type: 'number', format: 'float' }, [1.1]],
-  [{ type: 'number', format: 'double' }, [1.1]],
-  // custom
-  [{ type: 'string', format: 'id' }, ['abcd12']],
-  [{ type: 'string', format: 'slug' }, ['hello-world']],
-  [{ type: 'string', format: 'semVer' }, ['1.2.30']],
-  [{ type: 'string', format: 'languageTag' }, ['en', 'en-US', 'sv-SE']],
-  [{ type: 'string', format: 'countryCode' }, ['SE', 'US']],
-  [{ type: 'string', format: 'currency' }, ['SEK', 'USD']],
-  [{ type: 'number', format: 'unixTimestamp' }, [1232342342]],
-  [{ type: 'number', format: 'unixTimestamp2000' }, [1232342342]],
-  [{ type: 'number', format: 'unixTimestampMillis' }, [1232342342 * 1000]],
-  [{ type: 'number', format: 'unixTimestampMillis2000' }, [1232342342 * 1000]],
-  [{ type: 'number', format: 'utcOffset' }, [-14 * 60, -12 * 60, 0, 12 * 60, 14 * 60]],
-  [{ type: 'number', format: 'utcOffsetHours' }, [-14, -12, 0, 12, 14]],
-] as [JsonSchema, any[]][])('%s should be valid', (schema, objects: any[]) => {
-  const ajvSchema = AjvSchema.create(schema)
-  objects.forEach(obj => {
-    // should not throw
-    ajvSchema.validate(obj, { mutateInput: true })
-  })
-})
-
-test.each([
-  [{ type: 'string' }, [undefined, null, 4, () => {}, NaN]],
-  [{ type: 'string', format: 'email' }, ['', 'lo', 'a@b', 'a@b.com.']],
-  [{ type: 'string', format: 'date' }, ['1984-06-2', '1984-6-21', '1984-06-21T']],
-  [{ type: 'string', format: 'url' }, ['http://ya.r', 'ya.ru', 'abc://a.ru']],
-  [{ type: 'string', format: 'ipv4' }, ['1.1.1.']],
-  [{ type: 'string', format: 'regex' }, ['[', '[]++']],
-  [{ type: 'string', format: 'uuid' }, ['123e4567-e89b-12d3-a456-4266141740']],
-  [{ type: 'string', format: 'byte' }, ['123']],
-  [{ instanceof: 'Buffer' }, ['not a buffer', 1, {}, [], null, () => {}]],
-  [{ type: 'number' }, ['1']],
-  [{ type: 'integer' }, [1.1]],
-  [{ type: 'number', format: 'int32' }, [Number.MAX_VALUE, 1.1]],
-  [{ type: 'number', format: 'float' }, [Number.POSITIVE_INFINITY]],
-  [{ type: 'number', format: 'double' }, [Number.NaN]],
-  // custom
-  [{ type: 'string', format: 'id' }, ['short', 's'.repeat(65), 'Aasdasasd']],
-  [{ type: 'string', format: 'slug' }, ['hello_world']],
-  [{ type: 'string', format: 'semVer' }, ['1.2']],
-  [{ type: 'string', format: 'languageTag' }, ['en-U', 'en_US', 'sv_SE']],
-  [{ type: 'string', format: 'countryCode' }, ['se', 'sve']],
-  [{ type: 'string', format: 'currency' }, ['sek', 'us']],
-  [{ type: 'number', format: 'unixTimestamp' }, [1232342342000, -1]],
-  [
-    { type: 'number', format: 'unixTimestamp2000' },
-    [1232342342000, localTime('1999-01-01' as IsoDate).unix],
-  ],
-  [{ type: 'number', format: 'unixTimestampMillis' }, [-1]],
-  [
-    { type: 'number', format: 'unixTimestampMillis2000' },
-    [-1, localTime('1999-01-01' as IsoDate).unixMillis],
-  ],
-  [{ type: 'number', format: 'utcOffset' }, [-15 * 60]],
-  [{ type: 'number', format: 'utcOffsetHours' }, [-15, 15]],
-] as [JsonSchema, any[]][])('%s should be invalid', (schema, objects: any[]) => {
-  const ajvSchema = AjvSchema.create(schema)
-  objects.forEach(obj => {
-    if (ajvSchema.isValid(obj)) {
-      console.log(obj, 'should be invalid for schema:', schema)
-      throw new Error(`${_inspect(obj)} should be invalid for ${_inspect(schema)}`)
-    }
-  })
-})
-
 test('default string', () => {
   const schema = AjvSchema.create({
     type: 'object',
@@ -316,7 +225,7 @@ interface Item {
 }
 
 test('types', () => {
-  const rawSchema = j.object<Item>({
+  const rawSchema = j.object<{ id: string }>({
     id: j.string(),
   })
 

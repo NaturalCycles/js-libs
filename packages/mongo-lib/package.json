@@ -44,7 +44,7 @@
     "directory": "packages/mongo-lib"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "version": "3.4.16",
   "description": "MongoDB implementation of CommonDB interface",

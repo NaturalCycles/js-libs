@@ -32,13 +32,13 @@
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
     "@stylistic/eslint-plugin": "^5",
-    "@vitest/coverage-v8": "^3",
+    "@vitest/coverage-v8": "^4",
     "@vitest/eslint-plugin": "^1",
     "eslint": "^9",
     "eslint-plugin-import-x": "^4",
     "eslint-plugin-oxlint": "^1",
     "eslint-plugin-simple-import-sort": "^12",
-    "eslint-plugin-unicorn": "^61",
+    "eslint-plugin-unicorn": "^62",
     "eslint-plugin-vue": "^10",
     "globals": "^16",
     "lint-staged": "^16",
@@ -99,7 +99,7 @@
     "dev-lib": "dist/bin/dev-lib.js"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "publishConfig": {
     "provenance": true,

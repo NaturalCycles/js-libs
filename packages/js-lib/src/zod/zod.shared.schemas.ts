@@ -61,10 +61,6 @@ function isoDate(): ZodBrandedString<IsoDate> {
     .describe('IsoDate') as ZodBrandedString<IsoDate>
 }
 
-function email(): z.ZodEmail {
-  return z.email().describe('Email')
-}
-
 const BASE62_REGEX = /^[a-zA-Z0-9]+$/
 const BASE64_REGEX = /^[A-Za-z0-9+/]+={0,2}$/
 const BASE64URL_REGEX = /^[\w\-/]+$/
@@ -131,7 +127,6 @@ export const customZodSchemas = {
   base64,
   base64Url,
   dbEntity,
-  email,
   ianaTimezone,
   isoDate,
   jwt,

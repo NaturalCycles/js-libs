@@ -11,11 +11,3 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 # [Documentation](https://naturalcycles.github.io/js-libs/)
-
-# Packaging
-
-- `engines.node >= Node.js LTS`
-- `main: dist/index.js`: commonjs, es2022 - targeting Node.js
-- `module: dist-esm/index.js`: esm, es2017 - targeting Browsers
-- `types: dist/index.d.ts`: typescript types
-- `/src` folder with source `*.ts` files included

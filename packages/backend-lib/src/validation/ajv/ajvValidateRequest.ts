@@ -8,27 +8,27 @@ import type { BackendRequest } from '../../server/server.model.js'
 import { handleValidationError, type ReqValidationOptions } from '../validateRequest.util.js'
 
 class AjvValidateRequest {
-  body<T>(
+  body<IN, OUT>(
     req: BackendRequest,
-    schema: SchemaHandledByAjv<T>,
+    schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
-  ): T {
+  ): OUT {
     return this.validate(req, 'body', schema, opt)
   }
 
-  query<T>(
+  query<IN, OUT>(
     req: BackendRequest,
-    schema: SchemaHandledByAjv<T>,
+    schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
-  ): T {
+  ): OUT {
     return this.validate(req, 'query', schema, opt)
   }
 
-  params<T>(
+  params<IN, OUT>(
     req: BackendRequest,
-    schema: SchemaHandledByAjv<T>,
+    schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
-  ): T {
+  ): OUT {
     return this.validate(req, 'params', schema, opt)
   }
 
@@ -40,28 +40,28 @@ class AjvValidateRequest {
    * We want to non-mutate the `req.headers`, because we anticipate that
    * there may be additional consumers for `req.headers` (e.g middlewares, etc).
    */
-  headers<T>(
+  headers<IN, OUT>(
     req: BackendRequest,
-    schema: SchemaHandledByAjv<T>,
+    schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
-  ): T {
+  ): OUT {
     const originalHeaders = _deepCopy(req.headers)
     const headers = this.validate(req, 'headers', schema, opt)
     req.headers = originalHeaders
     return headers
   }
 
-  private validate<T>(
+  private validate<IN, OUT>(
     req: BackendRequest,
     reqProperty: 'body' | 'params' | 'query' | 'headers',
-    schema: SchemaHandledByAjv<T>,
+    schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
-  ): T {
-    const input: T = req[reqProperty] || {}
+  ): OUT {
+    const input: IN = req[reqProperty] || {}
     const ajvSchema = AjvSchema.create(schema)
 
     const [error, output] = ajvSchema.getValidationResult(input, {
-      inputName: `request ${reqProperty}`,
+      inputName: `request.${reqProperty}`,
     })
 
     if (error) {

@@ -36,7 +36,6 @@ export function _range(fromIncl: Integer, toExcl?: Integer, step = 1): number[] 
  * If it was an object - it'll paste the same object reference, which can create bugs.
  */
 export function _arrayFilled<T extends Primitive>(length: Integer, fill: T): T[] {
-  // biome-ignore lint/style/useConsistentBuiltinInstantiation: ok
   return Array(length).fill(fill)
 }
 

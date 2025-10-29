@@ -1,4 +1,4 @@
-import { _sortBy } from '@naturalcycles/js-lib/array/array.util.js'
+import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _deepCopy, _filterObject, _omit, _pick } from '@naturalcycles/js-lib/object'
 import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'

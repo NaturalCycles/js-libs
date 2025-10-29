@@ -1,5 +1,3 @@
-import { _sortBy } from './array/array.util.js'
-
 declare const __brand: unique symbol
 
 interface Brand<B> {
@@ -345,15 +343,10 @@ export type SemVerString = string
 export type Reviver = (this: any, key: string, value: any) => any
 
 /**
- * Like _stringMapValues, but values are sorted.
+ * Function to be passed to the `sort` method.
+ * Returns -1 | 0 | 1 canonically, but any positive/negative number is supported.
  */
-export function _stringMapValuesSorted<T>(
-  map: StringMap<T>,
-  mapper: Mapper<T, any>,
-  dir: SortDirection = 'asc',
-): T[] {
-  return _sortBy(_stringMapValues(map), mapper, { dir })
-}
+export type Comparator<T> = (a: T, b: T) => number
 
 /**
  * Needed due to https://github.com/microsoft/TypeScript/issues/13778
@@ -428,6 +421,20 @@ export type ErrorDataTuple<T = unknown, ERR = Error> = [err: null, data: T] | [e
 
 export type SortDirection = 'asc' | 'desc'
 
+export interface MutateOptions {
+  /**
+   * Defaults to false.
+   */
+  mutate?: boolean
+}
+
+export interface SortOptions extends MutateOptions {
+  /**
+   * Defaults to 'asc'.
+   */
+  dir?: SortDirection
+}
+
 export type Inclusiveness = '[]' | '[)'
 
 /**
@@ -451,29 +458,29 @@ export type Class<T = any> = new (...args: any[]) => T
 
 /**
  Convert `object`s, `Map`s, `Set`s, and `Array`s and all of their keys/elements into immutable structures recursively.
- 
+
  This is useful when a deeply nested structure needs to be exposed as completely immutable, for example, an imported JSON module or when receiving an API response that is passed around.
- 
+
  Please upvote [this issue](https://github.com/microsoft/TypeScript/issues/13923) if you want to have this type as a built-in in TypeScript.
- 
+
  @example
  ```
  // data.json
  {
  "foo": ["bar"]
  }
- 
+
  // main.ts
  import {ReadonlyDeep} from 'type-fest';
  import dataJson = require('./data.json');
- 
+
  const data: ReadonlyDeep<typeof dataJson> = dataJson;
- 
+
  export default data;
- 
+
  // test.ts
  import data from './main';
- 
+
  data.foo.push('bar');
  //=> error TS2339: Property 'push' does not exist on type 'readonly string[]'
  ```

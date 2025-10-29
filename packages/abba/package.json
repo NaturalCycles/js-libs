@@ -44,7 +44,7 @@
     "directory": "packages/abba"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "description": "AB test assignment configuration tool for Node.js",
   "author": "Natural Cycles Team",

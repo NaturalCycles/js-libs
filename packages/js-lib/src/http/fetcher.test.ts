@@ -129,14 +129,14 @@ test('mocking fetch', async () => {
   })
   expect(fetcher.cfg.logResponse).toBe(true)
   vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(async () => {
-    return new Response(
-      JSON.stringify({
+    return Response.json(
+      {
         error: _errorLikeToErrorObject(
           new AppError('aya-baya', {
             some: 'key',
           }),
         ),
-      } satisfies BackendErrorResponseObject),
+      } satisfies BackendErrorResponseObject,
       {
         status: 500,
       },
@@ -197,7 +197,7 @@ test('mocking fetch', async () => {
   expect(response.status).toBe(500)
   expect(Object.fromEntries(response.headers)).toMatchInlineSnapshot(`
     {
-      "content-type": "text/plain;charset=UTF-8",
+      "content-type": "application/json",
     }
   `)
   expect(Object.getOwnPropertyDescriptor(err.data, 'response')).toMatchObject({
@@ -210,7 +210,7 @@ test('mocking fetch', async () => {
 test('fetchFn', async () => {
   const fetcher = getNonRetryFetcher({
     fetchFn: async (url, _init) => {
-      return new Response(JSON.stringify({ url }))
+      return Response.json({ url })
     },
   })
 
@@ -231,10 +231,10 @@ test('throwHttpErrors = false', async () => {
   }
 
   vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(
-    new Response(
-      JSON.stringify({
+    Response.json(
+      {
         error,
-      } satisfies BackendErrorResponseObject),
+      } satisfies BackendErrorResponseObject,
       { status: 500 },
     ),
   )
@@ -280,8 +280,8 @@ test('paginate', async () => {
   vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(async url => {
     const u = new URL(url)
     const page = Number(u.searchParams.get('page'))
-    if (page > pageSize) return new Response(JSON.stringify([]))
-    return new Response(JSON.stringify(_range((page - 1) * pageSize, page * pageSize)))
+    if (page > pageSize) return Response.json([])
+    return Response.json(_range((page - 1) * pageSize, page * pageSize))
   })
 
   const results: number[] = []
@@ -391,7 +391,7 @@ test('tryFetch', async () => {
     expectTypeOf(data).toEqualTypeOf<{ ok: boolean }>()
   }
 
-  vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(new Response(JSON.stringify({ ok: true })))
+  vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(Response.json({ ok: true }))
 
   const [err2, data2] = await getFetcher().tryFetch<{ ok: boolean }>({ url: 'https://example.com' })
   if (err2) {
@@ -406,7 +406,7 @@ test('should not mutate headers', async () => {
   const a: any[] = []
   vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(async (_url, init) => {
     a.push(init.headers)
-    return new Response(JSON.stringify({ ok: 1 }))
+    return Response.json({ ok: 1 })
   })
 
   const fetcher = getNonRetryFetcher()
@@ -441,12 +441,12 @@ test('should not mutate headers', async () => {
 test('fetcher response headers', async () => {
   const fetcher = getNonRetryFetcher()
 
-  vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(new Response(JSON.stringify({ ok: 1 })))
+  vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(Response.json({ ok: 1 }))
 
   const { fetchResponse } = await fetcher.doFetch({})
   expect(Object.fromEntries(fetchResponse!.headers)).toMatchInlineSnapshot(`
     {
-      "content-type": "text/plain;charset=UTF-8",
+      "content-type": "application/json",
     }
   `)
 })
@@ -464,7 +464,7 @@ test('expectError', async () => {
   `)
 
   // 2. Pass should throw
-  vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(new Response(JSON.stringify({ ok: true })))
+  vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(Response.json({ ok: true }))
 
   expect(
     await pExpectedErrorString(
@@ -478,14 +478,14 @@ test('expectError', async () => {
 
 function mockFetcherWithError(): void {
   vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(
-    new Response(
-      JSON.stringify({
+    Response.json(
+      {
         error: {
           name: 'AppError',
           message: 'some',
           data: {},
         },
-      } satisfies BackendErrorResponseObject),
+      } satisfies BackendErrorResponseObject,
       { status: 500 },
     ),
   )
@@ -532,7 +532,7 @@ test('should allow to change user-agent', async () => {
   let headers: any
   vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(async (_url, init) => {
     headers = init.headers
-    return new Response(JSON.stringify({ ok: 1 }))
+    return Response.json({ ok: 1 })
   })
   const fetcher = getNonRetryFetcher()
   const backup = Fetcher.userAgent

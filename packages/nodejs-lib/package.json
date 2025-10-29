@@ -25,7 +25,6 @@
     "@types/jsonwebtoken": "^9",
     "@types/yargs": "^16",
     "ajv": "^8",
-    "ajv-formats": "^3",
     "chalk": "^5",
     "dotenv": "^17",
     "joi": "^18",
@@ -89,7 +88,7 @@
     "directory": "packages/nodejs-lib"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "description": "Standard library for Node.js",
   "author": "Natural Cycles Team",

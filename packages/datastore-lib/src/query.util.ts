@@ -1,4 +1,4 @@
-import type { PropertyFilter, Query } from '@google-cloud/datastore'
+import { PropertyFilter, type Query } from '@google-cloud/datastore'
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 
@@ -15,7 +15,6 @@ const OP_MAP: Partial<Record<DBQueryFilterOperator, string>> = {
 export function dbQueryToDatastoreQuery<ROW extends ObjectWithId>(
   dbQuery: Readonly<DBQuery<ROW>>,
   emptyQuery: Query,
-  propertyFilterClass: typeof PropertyFilter,
 ): Query {
   let q = emptyQuery
 
@@ -31,7 +30,7 @@ export function dbQueryToDatastoreQuery<ROW extends ObjectWithId>(
     // `a == null` will return just that - rows with null values
     let { op, val } = f
     if (val === undefined) val = null
-    q = q.filter(new propertyFilterClass(f.name as string, OP_MAP[op] || (op as any), val))
+    q = q.filter(new PropertyFilter(f.name as string, OP_MAP[op] || (op as any), val))
   }
 
   // limit

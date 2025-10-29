@@ -1,4 +1,3 @@
-import type { MutateOptions } from '../array/array.util.js'
 import { _assert } from '../error/assert.js'
 import type {
   IANATimezone,
@@ -6,6 +5,7 @@ import type {
   IsoDate,
   IsoDateTime,
   MonthId,
+  MutateOptions,
   NumberOfHours,
   NumberOfMinutes,
   SortDirection,

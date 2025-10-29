@@ -1,6 +1,5 @@
 {
   "plugins": ["unicorn", "typescript", "oxc", "import", "jsdoc", "vitest", "promise", "node"],
-  "jsPlugins": null,
   "categories": {},
   "rules": {
     "curly": ["deny", ["multi-line"]],
@@ -55,6 +54,7 @@
     "no-loss-of-precision": "warn",
     "no-new": "deny",
     "no-new-native-nonconstructor": "warn",
+    "no-new-wrappers": "deny",
     "no-nonoctal-decimal-escape": "warn",
     "no-obj-calls": "warn",
     "no-regex-spaces": "deny",
@@ -130,7 +130,7 @@
     "jsdoc/require-property-description": "warn",
     "jsdoc/require-property-name": "warn",
     "jsdoc/require-property-type": "warn",
-    "jsdoc/require-yields": "warn",
+    "jsdoc/require-yields": "allow",
     "oxc/approx-constant": "deny",
     "oxc/bad-array-method-on-arguments": "warn",
     "oxc/bad-bitwise-operator": "deny",
@@ -242,7 +242,7 @@
     "unicorn/no-lonely-if": "deny",
     "unicorn/no-magic-array-flat-depth": "deny",
     "unicorn/no-negation-in-equality-check": "deny",
-    "unicorn/no-new-array": "warn",
+    "unicorn/no-new-array": "allow",
     "unicorn/no-new-buffer": "deny",
     "unicorn/no-single-promise-in-promise-methods": "warn",
     "unicorn/no-thenable": "warn",

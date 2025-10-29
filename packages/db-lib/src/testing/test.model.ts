@@ -1,7 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import type { JsonSchemaObject } from '@naturalcycles/js-lib/json-schema'
-import { j } from '@naturalcycles/js-lib/json-schema'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import {
   baseDBEntitySchema,
   binarySchema,
@@ -51,19 +50,20 @@ export const testItemTMSchema: ObjectSchema<TestItemTM> = objectSchema<TestItemT
   even: booleanSchema.optional(),
 })
 
-export const testItemBMJsonSchema: JsonSchemaObject<TestItemBM> = j
-  .rootObject<TestItemBM>({
+export const testItemBMJsonSchema = j
+  .object<TestItemBM>({
     // todo: figure out how to not copy-paste these 3 fields
     id: j.string(), // todo: not strictly needed here
-    created: j.integer().unixTimestamp(),
-    updated: j.integer().unixTimestamp(),
+    created: j.number().integer().unixTimestamp(),
+    updated: j.number().integer().unixTimestamp(),
     k1: j.string(),
-    k2: j.oneOf([j.string(), j.null()]).optional(),
+    k2: j.string().nullable().optional(),
     k3: j.number().optional(),
     even: j.boolean().optional(),
     b1: j.buffer().optional(),
+    nested: j.object.infer({ foo: j.number() }).optional(),
   })
-  .baseDBEntity()
+  .dbEntity()
   .build()
 
 export function createTestItemDBM(num = 1): TestItemDBM {

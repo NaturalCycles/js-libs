@@ -45,7 +45,7 @@
     "directory": "packages/firestore-lib"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "version": "1.1.9",
   "description": "Firestore implementation of CommonDB interface",

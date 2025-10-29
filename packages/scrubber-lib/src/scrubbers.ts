@@ -392,9 +392,9 @@ export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn 
       domain: '@example.com',
       ...additionalParams,
     }
-    return `REGEXP_REPLACE(
+    return String.raw`REGEXP_REPLACE(
     ${sqlValueToReplace},
-    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,63}',
+    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,63}',
     RANDSTR(${length}, ${randomGeneratorSeed})
   ) || '${domain}'`
   }

@@ -1,2 +1,6 @@
 export * from './array.util.js'
+export * from './array2.js'
 export * from './range.js'
+export * from './sort.js'
+export * from './sortedArray.js'
+export * from './sortedSet.js'

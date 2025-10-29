@@ -44,7 +44,7 @@
     "directory": "packages/airtable-lib"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "version": "2.11.5",
   "description": "High-level API and CLI for Airtable",

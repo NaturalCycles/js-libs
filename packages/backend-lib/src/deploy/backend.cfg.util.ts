@@ -1,7 +1,6 @@
 import { _lazyValue } from '@naturalcycles/js-lib'
-import type { JsonSchema } from '@naturalcycles/js-lib/json-schema'
 import type { StringMap } from '@naturalcycles/js-lib/types'
-import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { AjvSchema, type JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { yaml2 } from '@naturalcycles/nodejs-lib/yaml2'
 import { resourcesDir } from '../paths.cnst.js'

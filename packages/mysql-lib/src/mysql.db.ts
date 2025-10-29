@@ -10,11 +10,11 @@ import type {
 import { BaseCommonDB, commonDBFullSupport, CommonDBType, DBQuery } from '@naturalcycles/db-lib'
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import type { JsonSchemaObject, JsonSchemaRootObject } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { commonLoggerPrefix } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _mapKeys, _mapValues, _omit } from '@naturalcycles/js-lib/object'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { white } from '@naturalcycles/nodejs-lib/colors'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
@@ -386,7 +386,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
    */
   override async createTable<ROW extends ObjectWithId>(
     table: string,
-    schema: JsonSchemaObject<ROW>,
+    schema: JsonSchema<ROW>,
     opt: CommonDBCreateOptions = {},
   ): Promise<void> {
     if (opt.dropIfExists) await this.dropTable(table)
@@ -401,9 +401,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
       .filter(Boolean)
   }
 
-  override async getTableSchema<ROW extends ObjectWithId>(
-    table: string,
-  ): Promise<JsonSchemaRootObject<ROW>> {
+  override async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<JsonSchema<ROW>> {
     const stats = await this.runSQL<MySQLTableStats[]>({
       sql: `describe ${mysql.escapeId(table)}`,
     })

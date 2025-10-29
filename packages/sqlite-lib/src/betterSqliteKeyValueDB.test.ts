@@ -7,7 +7,7 @@ const db = new BetterSqliteKeyValueDB({
 })
 
 beforeAll(async () => {
-  // await db.ping()
+  // await db.ping() //
 
   // await db.getTables()
   await db.createTable(TEST_TABLE, { dropIfExists: true })

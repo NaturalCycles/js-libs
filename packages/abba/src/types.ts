@@ -102,6 +102,8 @@ export enum SegmentationRuleOperator {
   Regex = 'regex',
   /* eslint-disable id-denylist */
   Boolean = 'boolean',
+  GreaterThan = 'greaterThan',
+  LessThan = 'lessThan',
 }
 
 export type SegmentationRuleFn = (

@@ -11,10 +11,3 @@
 [![Actions](https://github.com/NaturalCycles/nodejs-lib/workflows/ci/badge.svg)](https://github.com/NaturalCycles/nodejs-lib/actions)
 
 # [Documentation](https://naturalcycles.github.io/nodejs-lib/)
-
-# Packaging
-
-- `engines.node`: Latest Node.js LTS
-- `main: dist/index.js`: commonjs, es2020
-- `types: dist/index.d.ts`: typescript types
-- `/src` folder with source `*.ts` files included

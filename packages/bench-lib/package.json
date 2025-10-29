@@ -46,7 +46,7 @@
     "directory": "packages/bench-lib"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=24.10.0"
   },
   "version": "1.6.1",
   "description": "Benchmarking library, based on Benchmark.js and Autocannon",

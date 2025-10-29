@@ -1,6 +1,5 @@
 import { expect, test, vi } from 'vitest'
 import { _createDeterministicRandom } from '../number/createDeterministicRandom.js'
-import { _deepFreeze } from '../object/object.util.js'
 import type { AbortablePredicate, Mapper } from '../types.js'
 import { END } from '../types.js'
 import {
@@ -34,7 +33,6 @@ import {
   _pushUniq,
   _pushUniqBy,
   _shuffle,
-  _sortBy,
   _sum,
   _sumBy,
   _takeRightWhile,
@@ -145,21 +143,6 @@ test('_groupBy', () => {
   })
 })
 
-test('_sortBy', () => {
-  const a = [{ age: 20 }, { age: 10 }]
-  _deepFreeze(a)
-  expect(_sortBy(a, r => r.age)).toEqual([{ age: 10 }, { age: 20 }])
-  expect(_sortBy(a, o => o.age)).toEqual([{ age: 10 }, { age: 20 }])
-  expect(_sortBy(a, o => o.age, { dir: 'desc' })).toEqual([{ age: 20 }, { age: 10 }])
-})
-
-test('_sortBy with mutation', () => {
-  const a = [{ age: 20 }, { age: 10 }]
-  const r = _sortBy(a, r => r.age, { mutate: true })
-  expect(r).toEqual([{ age: 10 }, { age: 20 }])
-  expect(r).toBe(a)
-})
-
 test('_find', () => {
   expect(_find([1, 2, 3, 4], n => n % 2 === 0)).toBe(2)
   expect(_find([1, 2, 3, 4], n => (n === 2 ? END : false))).toBeUndefined()
@@ -255,7 +238,7 @@ test('_intersection', () => {
   // expect(f([1, 2], [1, 2, 3], [1, 2, 3, 4])).toEqual([1, 2])
 
   expect(f([], new Set([1]))).toEqual([])
-  expect(f([1], new Set([]))).toEqual([])
+  expect(f([1], new Set())).toEqual([])
   expect(f([1], new Set([1]))).toEqual([1])
   expect(f([1], new Set([1, 2]))).toEqual([1])
   expect(f([1], new Set([2]))).toEqual([])
