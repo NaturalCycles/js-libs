@@ -14,6 +14,7 @@ import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
 import {
   type AnyObject,
   type IANATimezone,
+  type Inclusiveness,
   type IsoDate,
   type IsoDateTime,
   JWT_REGEX,
@@ -23,6 +24,7 @@ import {
   type UnixTimestamp,
   type UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
+import { TIMEZONES } from '../timezones.js'
 import { JSON_SCHEMA_ORDER, mergeJsonSchemaObjects } from './jsonSchemaBuilder.util.js'
 
 export const j = {
@@ -248,6 +250,7 @@ export class JsonSchemaStringBuilder<
   }
 
   pattern(pattern: string, opt?: JsonBuilderRuleOpt): this {
+    if (opt?.name) this.setErrorMessage('pattern', `is not a valid ${opt.name}`)
     if (opt?.msg) this.setErrorMessage('pattern', opt.msg)
     Object.assign(this.schema, { pattern })
     return this
@@ -380,9 +383,7 @@ export class JsonSchemaStringBuilder<
    */
   ianaTimezone(): JsonSchemaEnumBuilder<string | IANATimezone, IANATimezone, false> {
     // UTC is added to assist unit-testing, which uses UTC by default (not technically a valid Iana timezone identifier)
-    return j
-      .enum([...Intl.supportedValuesOf('timeZone'), 'UTC'], { msg: 'is an invalid IANA timezone' })
-      .branded<IANATimezone>()
+    return j.enum(TIMEZONES, { msg: 'is an invalid IANA timezone' }).branded<IANATimezone>()
   }
 }
 
@@ -435,12 +436,27 @@ export class JsonSchemaNumberBuilder<
     return this
   }
 
-  /**
-   * Both ranges are inclusive.
-   */
-  range(minimum: number, maximum: number): this {
-    Object.assign(this.schema, { minimum, maximum })
-    return this
+  lessThan(value: number): this {
+    return this.exclusiveMax(value)
+  }
+
+  lessThanOrEqual(value: number): this {
+    return this.max(value)
+  }
+
+  moreThan(value: number): this {
+    return this.exclusiveMin(value)
+  }
+
+  moreThanOrEqual(value: number): this {
+    return this.min(value)
+  }
+
+  range(minimum: number, maximum: number, incl: Inclusiveness): this {
+    if (incl === '[)') {
+      return this.moreThanOrEqual(minimum).lessThan(maximum)
+    }
+    return this.moreThanOrEqual(minimum).lessThanOrEqual(maximum)
   }
 
   int32(): this {
@@ -767,7 +783,7 @@ export class JsonSchemaEnumBuilder<
 > extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
   constructor(enumValues: readonly IN[], opt?: JsonBuilderRuleOpt) {
     super({ enum: enumValues })
-
+    if (opt?.name) this.setErrorMessage('pattern', `is not a valid ${opt.name}`)
     if (opt?.msg) this.setErrorMessage('enum', opt.msg)
   }
 
@@ -900,5 +916,16 @@ type BuilderInUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = 
 }[number]
 
 interface JsonBuilderRuleOpt {
+  /**
+   * Text of error message to return when the validation fails for the given rule:
+   *
+   * `{ msg: "is not a valid Oompa-loompa" } => "Object.property is not a valid Oompa-loompa"`
+   */
   msg?: string
+  /**
+   * A friendly name for what we are validating, that will be used in error messages:
+   *
+   * `{ name: "Oompa-loompa" } => "Object.property is not a valid Oompa-loompa"`
+   */
+  name?: string
 }

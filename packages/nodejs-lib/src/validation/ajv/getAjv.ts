@@ -2,8 +2,8 @@ import { _lazyValue } from '@naturalcycles/js-lib'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import { _, Ajv, type Options, type ValidateFunction } from 'ajv'
+import { validTLDs } from '../tlds.js'
 import type { JsonSchemaStringEmailOptions } from './jsonSchemaBuilder.js'
-import { validTLDs } from './tlds.js'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 // oxlint-disable unicorn/prefer-code-point

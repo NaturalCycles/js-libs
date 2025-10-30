@@ -53,6 +53,16 @@ describe('string', () => {
         Input: 000]
       `)
     })
+
+    test('should allow setting custom validation name', () => {
+      const schema = j.string().regex(/^[0-9]{2}$/, { name: 'Oompa-loompa' })
+
+      const [err11] = AjvSchema.create(schema).getValidationResult('000')
+      expect(err11).toMatchInlineSnapshot(`
+        [AjvValidationError: Object is not a valid Oompa-loompa
+        Input: 000]
+      `)
+    })
   })
 
   describe('pattern', () => {
@@ -1031,10 +1041,10 @@ describe('number', () => {
     })
   })
 
-  describe('range', () => {
+  describe('moreThanOrEqual', () => {
     test('should accept a number with a valid value', () => {
-      const testCases = [2, 2.5, 3]
-      const schema = j.number().range(2, 3)
+      const testCases = [2, 3, 4]
+      const schema = j.number().moreThanOrEqual(2)
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
@@ -1044,13 +1054,135 @@ describe('number', () => {
     })
 
     test('should reject a number with an invalid value', () => {
-      const invalidCases = [1, 1.999, 3.001, 4]
-      const schema = j.number().range(2, 3)
+      const invalidCases = [1, 1.9999]
+      const schema = j.number().moreThanOrEqual(2)
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
         const [err] = ajvSchema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('moreThan', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [2.0001, 3, 4]
+      const schema = j.number().moreThan(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [1, 1.9999, 2]
+      const schema = j.number().moreThan(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('lessThanOrEqual', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [0, 1, 2]
+      const schema = j.number().lessThanOrEqual(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [2.0001, 3, 4]
+      const schema = j.number().lessThanOrEqual(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('lessThan', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [0, 1, 1.9999]
+      const schema = j.number().lessThan(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [2, 3, 4]
+      const schema = j.number().lessThan(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('range', () => {
+    describe('[]', () => {
+      test('should accept a number with a valid value', () => {
+        const testCases = [2, 2.5, 3]
+        const schema = j.number().range(2, 3, '[]')
+        const ajvSchema = AjvSchema.create(schema)
+
+        testCases.forEach(value => {
+          const [err] = ajvSchema.getValidationResult(value)
+          expect(err, String(value)).toBeNull()
+        })
+      })
+
+      test('should reject a number with an invalid value', () => {
+        const invalidCases = [1, 1.999, 3.001, 4]
+        const schema = j.number().range(2, 3, '[]')
+        const ajvSchema = AjvSchema.create(schema)
+
+        invalidCases.forEach(value => {
+          const [err] = ajvSchema.getValidationResult(value)
+          expect(err, String(value)).not.toBeNull()
+        })
+      })
+    })
+
+    describe('[)', () => {
+      test('should accept a number with a valid value', () => {
+        const testCases = [2, 2.5, 2.9]
+        const schema = j.number().range(2, 3, '[)')
+        const ajvSchema = AjvSchema.create(schema)
+
+        testCases.forEach(value => {
+          const [err] = ajvSchema.getValidationResult(value)
+          expect(err, String(value)).toBeNull()
+        })
+      })
+
+      test('should reject a number with an invalid value', () => {
+        const invalidCases = [1, 1.999, 3, 3.001, 4]
+        const schema = j.number().range(2, 3, '[)')
+        const ajvSchema = AjvSchema.create(schema)
+
+        invalidCases.forEach(value => {
+          const [err] = ajvSchema.getValidationResult(value)
+          expect(err, String(value)).not.toBeNull()
+        })
       })
     })
   })
