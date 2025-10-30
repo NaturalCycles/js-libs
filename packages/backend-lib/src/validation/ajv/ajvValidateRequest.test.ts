@@ -77,7 +77,7 @@ describe('ajvValidateRequest.headers', () => {
         req,
         AjvSchema.create(
           j.object<{ shortstring: string; numeric: string; bool: string; sessionid: string }>({
-            shortstring: j.string().min(8).max(16),
+            shortstring: j.string().minLength(8).maxLength(16),
             numeric: j.string(),
             bool: j.string(),
             sessionid: j.string(),
@@ -155,7 +155,7 @@ describe('ajvValidateRequest.headers', () => {
         req,
         AjvSchema.create(
           j.object<{ shortstring: string; numeric: string }>({
-            shortstring: j.string().min(8).max(16),
+            shortstring: j.string().minLength(8).maxLength(16),
             numeric: j.string(),
           }),
         ),

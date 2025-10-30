@@ -24,7 +24,7 @@ const changePasswordSchema = objectSchema<PwInput>({
 
 const changePasswordSchemaAjv = AjvSchema.create<PwInput>(
   j.object<PwInput>({
-    pw: j.string().min(8),
+    pw: j.string().minLength(8),
   }),
 )
 

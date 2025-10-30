@@ -24,7 +24,7 @@ const pwInputSchema = objectSchema<PwInput>({
 
 const pwInputSchemaAjv = AjvSchema.create<PwInput>(
   j.object<PwInput>({
-    pw: j.string().min(6),
+    pw: j.string().minLength(6),
   }),
 )
 

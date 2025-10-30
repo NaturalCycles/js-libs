@@ -81,9 +81,9 @@ describe('string', () => {
     })
   })
 
-  describe('min', () => {
+  describe('minLength', () => {
     test('should correctly validate the minimum length of the string', () => {
-      const schema = j.string().min(5)
+      const schema = j.string().minLength(5)
 
       const [err01] = AjvSchema.create(schema).getValidationResult('01234')
       expect(err01).toBeNull()
@@ -95,9 +95,9 @@ describe('string', () => {
     })
   })
 
-  describe('max', () => {
+  describe('maxLength', () => {
     test('should correctly validate the maximum length of the string', () => {
-      const schema = j.string().max(5)
+      const schema = j.string().maxLength(5)
 
       const [err01] = AjvSchema.create(schema).getValidationResult('0123')
       expect(err01).toBeNull()
@@ -1137,6 +1137,30 @@ describe('number', () => {
     })
   })
 
+  describe('equal', () => {
+    test('should accept a number with a valid value', () => {
+      const testCases = [2]
+      const schema = j.number().equal(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject a number with an invalid value', () => {
+      const invalidCases = [1.9, 2.1]
+      const schema = j.number().equal(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
   describe('range', () => {
     describe('[]', () => {
       test('should accept a number with a valid value', () => {
@@ -1546,13 +1570,13 @@ describe('array', () => {
     })
   })
 
-  describe('min', () => {
+  describe('minLength', () => {
     test('should accept valid data', () => {
       const testCases: any[] = [
         ['foo', 'bar'],
         ['foo', 'bar', 'shu'],
       ]
-      const schema = j.array(j.string()).min(2)
+      const schema = j.array(j.string()).minLength(2)
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(input => {
@@ -1565,7 +1589,7 @@ describe('array', () => {
 
     test('should reject invalid data', () => {
       const testCases: any[] = [[], ['foo'], 0, 'foo', {}, true]
-      const schema = j.array(j.string()).min(2)
+      const schema = j.array(j.string()).minLength(2)
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(input => {
@@ -1576,10 +1600,10 @@ describe('array', () => {
     })
   })
 
-  describe('max', () => {
+  describe('maxLength', () => {
     test('should accept valid data', () => {
       const testCases: any[] = [[], ['foo'], ['foo', 'bar']]
-      const schema = j.array(j.string()).max(2)
+      const schema = j.array(j.string()).maxLength(2)
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(input => {
@@ -1592,10 +1616,54 @@ describe('array', () => {
 
     test('should reject invalid data', () => {
       const testCases: any[] = [['foo', 'bar', 'shu'], 0, 'foo', {}, true]
-      const schema = j.array(j.string()).max(2)
+      const schema = j.array(j.string()).maxLength(2)
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(input => {
+        const [err] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('length', () => {
+    test('should accept valid data', () => {
+      const schema = j.array(j.string()).length(1, 2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [['foo'], ['foo', 'bar']]
+      validCases.forEach(input => {
+        const [err, result] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).toBeNull()
+        expect(result).toEqual(input)
+      })
+
+      const invalidCases: any[] = [[], ['foo', 'bar', 'shu']]
+      invalidCases.forEach(input => {
+        const [err] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('exactLength', () => {
+    test('should accept valid data', () => {
+      const schema = j.array(j.string()).exactLength(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [['foo', 'bar']]
+      validCases.forEach(input => {
+        const [err, result] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).toBeNull()
+        expect(result).toEqual(input)
+      })
+
+      const invalidCases: any[] = [[], ['foo'], ['foo', 'bar', 'shu']]
+      invalidCases.forEach(input => {
         const [err] = ajvSchema.getValidationResult(input)
 
         expect(err, String(input)).not.toBeNull()

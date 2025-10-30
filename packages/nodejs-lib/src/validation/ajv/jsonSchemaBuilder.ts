@@ -256,12 +256,12 @@ export class JsonSchemaStringBuilder<
     return this
   }
 
-  min(minLength: number): this {
+  minLength(minLength: number): this {
     Object.assign(this.schema, { minLength })
     return this
   }
 
-  max(maxLength: number): this {
+  maxLength(maxLength: number): this {
     Object.assign(this.schema, { maxLength })
     return this
   }
@@ -450,6 +450,10 @@ export class JsonSchemaNumberBuilder<
 
   moreThanOrEqual(value: number): this {
     return this.min(value)
+  }
+
+  equal(value: number): this {
+    return this.min(value).max(value)
   }
 
   range(minimum: number, maximum: number, incl: Inclusiveness): this {
@@ -725,14 +729,22 @@ export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<I
     })
   }
 
-  min(minItems: number): this {
+  minLength(minItems: number): this {
     Object.assign(this.schema, { minItems })
     return this
   }
 
-  max(maxItems: number): this {
+  maxLength(maxItems: number): this {
     Object.assign(this.schema, { maxItems })
     return this
+  }
+
+  length(minItems: number, maxItems: number): this {
+    return this.minLength(minItems).maxLength(maxItems)
+  }
+
+  exactLength(length: number): this {
+    return this.minLength(length).maxLength(length)
   }
 
   unique(uniqueItems: number): this {
