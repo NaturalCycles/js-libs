@@ -180,9 +180,10 @@ describe('object', () => {
         created: UnixTimestamp
         updated: UnixTimestamp
         foo: string
+        shu?: number
       }
 
-      const schema1 = j.object.dbEntity<DB>({ foo: j.string() })
+      const schema1 = j.object.dbEntity<DB>({ foo: j.string(), shu: j.number().optional() })
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.in).toEqualTypeOf<DB>()

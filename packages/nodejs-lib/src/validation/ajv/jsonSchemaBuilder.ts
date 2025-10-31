@@ -888,21 +888,25 @@ function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any
   return new JsonSchemaObjectInferringBuilder<P, false>(props)
 }
 
-function objectDbEntity(props?: AnyObject): never
-function objectDbEntity<IN extends AnyObject>(props?: {
-  [key in keyof PartiallyOptional<IN, 'id' | 'created' | 'updated'>]: JsonSchemaAnyBuilder<
-    any,
-    IN[key],
-    any
-  >
+function objectDbEntity(props: AnyObject): never
+function objectDbEntity<
+  IN extends AnyObject,
+  EXTRA_KEYS extends Exclude<keyof IN, 'id' | 'created' | 'updated'> = Exclude<
+    keyof IN,
+    'id' | 'created' | 'updated'
+  >,
+>(props: {
+  [K in EXTRA_KEYS]: JsonSchemaAnyBuilder<any, IN[K], any>
 }): JsonSchemaObjectBuilder<IN, IN, false>
 
-function objectDbEntity<IN extends AnyObject>(props?: {
-  [key in keyof PartiallyOptional<IN, 'id' | 'created' | 'updated'>]: JsonSchemaAnyBuilder<
-    any,
-    IN[key],
-    any
-  >
+function objectDbEntity<
+  IN extends AnyObject,
+  EXTRA_KEYS extends Exclude<keyof IN, 'id' | 'created' | 'updated'> = Exclude<
+    keyof IN,
+    'id' | 'created' | 'updated'
+  >,
+>(props: {
+  [K in EXTRA_KEYS]: JsonSchemaAnyBuilder<any, IN[K], any>
 }): JsonSchemaObjectBuilder<IN, IN, false> {
   return j.object({
     id: j.string(),
@@ -916,8 +920,6 @@ type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
 
 type ExactMatch<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
-
-type PartiallyOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
