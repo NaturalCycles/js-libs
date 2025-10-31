@@ -1,7 +1,13 @@
 /* eslint-disable id-denylist */
 
 import type { Set2 } from '@naturalcycles/js-lib/object'
-import type { AnyObject, IANATimezone, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type {
+  AnyObject,
+  BaseDBEntity,
+  Branded,
+  IANATimezone,
+  UnixTimestamp,
+} from '@naturalcycles/js-lib/types'
 import { describe, expectTypeOf, test } from 'vitest'
 import { j } from './jsonSchemaBuilder.js'
 
@@ -175,15 +181,18 @@ describe('object', () => {
 
   describe('.dbEntity', () => {
     test('should correctly infer the type', () => {
-      interface DB {
-        id: string
-        created: UnixTimestamp
-        updated: UnixTimestamp
+      type Id = Branded<string, 'Id'>
+      interface DB extends BaseDBEntity {
+        id: Id
         foo: string
         shu?: number
       }
 
-      const schema1 = j.object.dbEntity<DB>({ foo: j.string(), shu: j.number().optional() })
+      const schema1 = j.object.dbEntity<DB>({
+        id: j.string().branded<Id>(),
+        foo: j.string(),
+        shu: j.number().optional(),
+      })
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.in).toEqualTypeOf<DB>()
@@ -206,6 +215,38 @@ describe('object', () => {
 
       // @ts-expect-error
       const schema1 = j.object.dbEntity<DB>({ foo: j.number() })
+
+      expectTypeOf(schema1).toBeNever()
+    })
+
+    test('should collapse when a non-baseentity property does not get its schema definition', () => {
+      type Id = Branded<string, 'Id'>
+      interface DB extends BaseDBEntity {
+        id: Id
+        foo: string
+        shu?: number
+      }
+
+      // @ts-expect-error
+      const schema1 = j.object.dbEntity<DB>({
+        id: j.string().branded<Id>(),
+        foo: j.string(),
+      })
+
+      expectTypeOf(schema1).toBeNever()
+    })
+
+    test('should collapse when an overriden baseentity property does not get its schema definition', () => {
+      type Id = Branded<string, 'Id'>
+      interface DB extends BaseDBEntity {
+        id: Id
+        foo: string
+      }
+
+      // @ts-expect-error
+      const schema1 = j.object.dbEntity<DB>({
+        foo: j.string(),
+      })
 
       expectTypeOf(schema1).toBeNever()
     })

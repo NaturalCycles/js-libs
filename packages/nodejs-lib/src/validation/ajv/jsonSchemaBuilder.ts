@@ -13,6 +13,7 @@ import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
 import {
   type AnyObject,
+  type BaseDBEntity,
   type IANATimezone,
   type Inclusiveness,
   type IsoDate,
@@ -890,24 +891,26 @@ function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any
 
 function objectDbEntity(props: AnyObject): never
 function objectDbEntity<
-  IN extends AnyObject,
-  EXTRA_KEYS extends Exclude<keyof IN, 'id' | 'created' | 'updated'> = Exclude<
-    keyof IN,
-    'id' | 'created' | 'updated'
-  >,
->(props: {
-  [K in EXTRA_KEYS]: JsonSchemaAnyBuilder<any, IN[K], any>
-}): JsonSchemaObjectBuilder<IN, IN, false>
+  IN extends BaseDBEntity & AnyObject,
+  EXTRA_KEYS extends Exclude<keyof IN, keyof BaseDBEntity> = Exclude<keyof IN, keyof BaseDBEntity>,
+>(
+  props: {
+    // ✅ all non-system fields must be explicitly provided
+    [K in EXTRA_KEYS]-?: BuilderFor<IN[K]>
+  } &
+    // ✅ if `id` differs, it’s required
+    (ExactMatch<IN['id'], BaseDBEntity['id']> extends true
+      ? { id?: BuilderFor<BaseDBEntity['id']> }
+      : { id: BuilderFor<IN['id']> }) &
+    (ExactMatch<IN['created'], BaseDBEntity['created']> extends true
+      ? { created?: BuilderFor<BaseDBEntity['created']> }
+      : { created: BuilderFor<IN['created']> }) &
+    (ExactMatch<IN['updated'], BaseDBEntity['updated']> extends true
+      ? { updated?: BuilderFor<BaseDBEntity['updated']> }
+      : { updated: BuilderFor<IN['updated']> }),
+): JsonSchemaObjectBuilder<IN, IN, false>
 
-function objectDbEntity<
-  IN extends AnyObject,
-  EXTRA_KEYS extends Exclude<keyof IN, 'id' | 'created' | 'updated'> = Exclude<
-    keyof IN,
-    'id' | 'created' | 'updated'
-  >,
->(props: {
-  [K in EXTRA_KEYS]: JsonSchemaAnyBuilder<any, IN[K], any>
-}): JsonSchemaObjectBuilder<IN, IN, false> {
+function objectDbEntity(props: AnyObject): any {
   return j.object({
     id: j.string(),
     created: j.number().unixTimestamp2000(),
@@ -928,6 +931,8 @@ type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> =
 type BuilderInUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<infer I, any, any> ? I : never
 }[number]
+
+type BuilderFor<T> = JsonSchemaAnyBuilder<any, T, any>
 
 interface JsonBuilderRuleOpt {
   /**
