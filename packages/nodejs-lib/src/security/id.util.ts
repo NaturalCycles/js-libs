@@ -11,6 +11,7 @@ let mockedStringId: string | undefined
 export function mockStringId(id: string): void {
   mockedStringId = id
 }
+
 export function unmockStringId(): void {
   mockedStringId = undefined
 }
