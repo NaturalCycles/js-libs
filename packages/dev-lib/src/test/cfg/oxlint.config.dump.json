@@ -298,6 +298,9 @@
       "tagNamePreference": {
         "experimental": "experimental"
       }
+    },
+    "vitest": {
+      "typecheck": false
     }
   },
   "env": {

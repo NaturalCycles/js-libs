@@ -19,7 +19,7 @@
     "@typescript-eslint:@typescript-eslint/eslint-plugin@8.46.2",
     "unicorn:eslint-plugin-unicorn@62.0.0",
     "vue:eslint-plugin-vue@10.5.1",
-    "vitest:vitest@1.3.26",
+    "vitest:vitest@1.4.0",
     "import-x:eslint-plugin-import-x@4.16.1",
     "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1",
     "@stylistic"
