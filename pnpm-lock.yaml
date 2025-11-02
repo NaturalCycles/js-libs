@@ -329,9 +329,6 @@ importers:
       '@naturalcycles/nodejs-lib':
         specifier: workspace:^15
         version: link:../nodejs-lib
-      '@stylistic/eslint-plugin':
-        specifier: ^5
-        version: 5.5.0(eslint@9.39.0(jiti@2.6.1))
       '@vitest/coverage-v8':
         specifier: ^4
         version: 4.0.6(vitest@4.0.6(@types/node@24.9.2)(jiti@2.6.1)(tsx@4.20.6)(yaml@2.8.1))
@@ -8256,6 +8253,7 @@ snapshots:
       espree: 10.4.0
       estraverse: 5.3.0
       picomatch: 4.0.3
+    optional: true
 
   '@tootallnate/once@1.1.2':
     optional: true

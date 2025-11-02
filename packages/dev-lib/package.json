@@ -31,7 +31,6 @@
     "@inquirer/prompts": "^7",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
-    "@stylistic/eslint-plugin": "^5",
     "@vitest/coverage-v8": "^4",
     "@vitest/eslint-plugin": "^1",
     "eslint": "^9",

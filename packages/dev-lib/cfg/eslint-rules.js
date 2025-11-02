@@ -503,14 +503,14 @@ export default {
     '@typescript-eslint/dot-notation': 0, // not always desireable
     '@typescript-eslint/consistent-indexed-object-style': 0, // Record looses the name of the key
     '@typescript-eslint/no-unsafe-enum-comparison': 0, // not practically helpful
-    // stylistic
-    '@stylistic/padding-line-between-statements': [
-      2,
-      { blankLine: 'always', prev: 'function', next: '*' },
-      { blankLine: 'always', prev: '*', next: 'function' },
-      { blankLine: 'always', prev: 'class', next: '*' },
-      { blankLine: 'always', prev: '*', next: 'class' },
-    ],
-    '@stylistic/lines-between-class-members': [2, 'always', { exceptAfterSingleLine: true }],
+    // stylistic - replaced by custom oxlint rules
+    // '@stylistic/padding-line-between-statements': [
+    //   2,
+    //   { blankLine: 'always', prev: 'function', next: '*' },
+    //   { blankLine: 'always', prev: '*', next: 'function' },
+    //   { blankLine: 'always', prev: 'class', next: '*' },
+    //   { blankLine: 'always', prev: '*', next: 'class' },
+    // ],
+    // '@stylistic/lines-between-class-members': [2, 'always', { exceptAfterSingleLine: true }],
   },
 }

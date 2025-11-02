@@ -13,7 +13,6 @@ import eslintPluginOxlint from 'eslint-plugin-oxlint'
 import eslintPluginVitest from '@vitest/eslint-plugin'
 import eslintPluginImportX from 'eslint-plugin-import-x'
 import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort'
-import eslintPluginStylistic from '@stylistic/eslint-plugin'
 import eslintRules from './eslint-rules.js'
 import eslintVueRules from './eslint-vue-rules.js'
 import eslintVitestRules from './eslint-vitest-rules.js'
@@ -106,7 +105,7 @@ function getConfig(tsconfigPath) {
       // 'unused-imports': require('eslint-plugin-unused-imports'), // disabled in favor of biome rules
       'simple-import-sort': eslintPluginSimpleImportSort,
       // jsdoc: eslintPluginJsdoc, // oxlint
-      '@stylistic': eslintPluginStylistic,
+      // '@stylistic': eslintPluginStylistic, // oxlint custom plugin
     },
     languageOptions: {
       ecmaVersion: 'latest',

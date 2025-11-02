@@ -21,42 +21,10 @@
     "vue:eslint-plugin-vue@10.5.1",
     "vitest:vitest@1.4.0",
     "import-x:eslint-plugin-import-x@4.16.1",
-    "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1",
-    "@stylistic"
+    "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1"
   ],
   "processor": "vue/vue",
   "rules": {
-    "@stylistic/lines-between-class-members": [
-      2,
-      "always",
-      {
-        "exceptAfterOverload": true,
-        "exceptAfterSingleLine": true
-      }
-    ],
-    "@stylistic/padding-line-between-statements": [
-      2,
-      {
-        "blankLine": "always",
-        "next": "*",
-        "prev": "function"
-      },
-      {
-        "blankLine": "always",
-        "next": "function",
-        "prev": "*"
-      },
-      {
-        "blankLine": "always",
-        "next": "*",
-        "prev": "class"
-      },
-      {
-        "blankLine": "always",
-        "next": "class",
-        "prev": "*"
-      }
-    ],
     "@typescript-eslint/adjacent-overload-signatures": [2],
     "@typescript-eslint/array-type": [2],
     "@typescript-eslint/await-thenable": [2],
