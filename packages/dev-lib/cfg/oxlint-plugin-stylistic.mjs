@@ -66,12 +66,19 @@ function insertBlankLineBeforeNext(fixer, sourceCode, prevNode, nextNode) {
   if (!prevNode.range || !nextNode.range) return null
   if (prevNode.range[1] >= nextNode.range[0]) return null
 
-  const between = sourceCode.text.slice(prevNode.range[1], nextNode.range[0])
+  const commentsBetween = sourceCode
+    .getCommentsBefore(nextNode)
+    ?.filter(comment => comment.range && comment.range[0] >= prevNode.range[1])
+    ?.sort((a, b) => a.range[0] - b.range[0])
+  const insertionTarget =
+    commentsBetween && commentsBetween.length > 0 ? commentsBetween[0].range[0] : nextNode.range[0]
+
+  const between = sourceCode.text.slice(prevNode.range[1], insertionTarget)
   const hasLinebreak = /\r?\n/.test(between)
   const linebreak = sourceCode.text.includes('\r\n') ? '\r\n' : '\n'
   const text = hasLinebreak ? linebreak : linebreak + linebreak
 
-  return fixer.insertTextBeforeRange([nextNode.range[0], nextNode.range[0]], text)
+  return fixer.insertTextBeforeRange([insertionTarget, insertionTarget], text)
 }
 
 function matchesSelector(selector, candidate) {
@@ -103,7 +110,7 @@ const paddingLineBetweenStatementsRule = {
     },
     defaultOptions: [],
     messages: {
-      expectedBlankLine: 'Expected blank line between {prev} and {next}.',
+      expectedBlankLine: 'Expected blank line between {{prev}} and {{next}}.',
     },
   },
   create(context) {
