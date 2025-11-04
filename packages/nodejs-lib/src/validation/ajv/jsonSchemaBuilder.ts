@@ -874,7 +874,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
 
 function object(props: AnyObject): never
 function object<IN extends AnyObject>(props: {
-  [key in keyof IN]: JsonSchemaAnyBuilder<any, IN[key], any>
+  [K in keyof Required<IN>]-?: JsonSchemaAnyBuilder<any, IN[K], any>
 }): JsonSchemaObjectBuilder<IN, IN, false>
 
 function object<IN extends AnyObject>(props: {

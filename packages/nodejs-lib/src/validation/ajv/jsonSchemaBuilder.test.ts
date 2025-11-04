@@ -145,6 +145,34 @@ describe('object', () => {
     expectTypeOf(schema1).toBeNever()
   })
 
+  test('should produce a type error when an optional property is missing from the schema', () => {
+    interface Schema1 {
+      foo: string
+      bar?: number
+    }
+
+    // @ts-expect-error
+    const schema1 = j.object<Schema1>({
+      foo: j.string(),
+    })
+
+    expectTypeOf(schema1).toBeNever()
+  })
+
+  test('should produce a type error when a there is an additional property in the schema', () => {
+    interface Schema1 {
+      foo: string
+    }
+
+    const schema1 = j.object<Schema1>({
+      foo: j.string(),
+      // @ts-expect-error There is already a warning here
+      bar: j.number().optional(),
+    })
+
+    expectTypeOf(schema1).toBeNever()
+  })
+
   test('should work with enums', () => {
     // Special test case due to how j.object.infer().isOfType<>() lead to errors
     // when the schema contained an enum property
@@ -334,6 +362,36 @@ describe('object', () => {
         })
         .isOfType<{ foo: string | undefined }>()
       expectTypeOf(schema3).toBeNever()
+    })
+
+    test('should produce a type error when an optional property is missing', () => {
+      interface Foo {
+        foo: string
+        bar?: number
+      }
+
+      const schema = j.object
+        .infer({
+          foo: j.string(),
+        })
+        .isOfType<Foo>()
+
+      expectTypeOf(schema).toBeNever()
+    })
+
+    test('should produce a type error when an additional property is defined in the schema', () => {
+      interface Foo {
+        foo: string
+      }
+
+      const schema = j.object
+        .infer({
+          foo: j.string(),
+          bar: j.number().optional(),
+        })
+        .isOfType<Foo>()
+
+      expectTypeOf(schema).toBeNever()
     })
 
     describe('extend', () => {
