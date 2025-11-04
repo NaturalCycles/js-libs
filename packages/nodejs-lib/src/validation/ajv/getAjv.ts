@@ -3,7 +3,7 @@ import { Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import { _, Ajv, type Options, type ValidateFunction } from 'ajv'
 import { validTLDs } from '../tlds.js'
-import type { JsonSchemaStringEmailOptions } from './jsonSchemaBuilder.js'
+import type { JsonSchemaIsoDateOptions, JsonSchemaStringEmailOptions } from './jsonSchemaBuilder.js'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 // oxlint-disable unicorn/prefer-code-point
@@ -255,16 +255,77 @@ export function createAjv(opt?: Options): Ajv {
     type: 'string',
     modifying: false,
     errors: true,
-    schemaType: 'boolean',
-    validate: function validate(_opt: true, data: string, _schema, ctx) {
+    schemaType: 'object',
+    validate: function validate(opt: JsonSchemaIsoDateOptions, data: string, _schema, ctx) {
+      const hasOptions = Object.keys(opt).length > 0
+
       const isValid = isIsoDateValid(data)
-      if (isValid) return true
-      ;(validate as any).errors = [
-        {
-          instancePath: ctx?.instancePath ?? '',
-          message: `is an invalid IsoDate`,
-        },
-      ]
+      if (!isValid) {
+        ;(validate as any).errors = [
+          {
+            instancePath: ctx?.instancePath ?? '',
+            message: `is an invalid IsoDate`,
+          },
+        ]
+
+        return false
+      }
+
+      if (!hasOptions) return true
+
+      const { before, sameOrBefore, after, sameOrAfter } = opt
+      const errors: any[] = []
+
+      if (before) {
+        const isParamValid = isIsoDateValid(before)
+        const isRuleValid = isParamValid && before > data
+
+        if (!isRuleValid) {
+          errors.push({
+            instancePath: ctx?.instancePath ?? '',
+            message: `is not before ${before}`,
+          })
+        }
+      }
+
+      if (sameOrBefore) {
+        const isParamValid = isIsoDateValid(sameOrBefore)
+        const isRuleValid = isParamValid && sameOrBefore >= data
+
+        if (!isRuleValid) {
+          errors.push({
+            instancePath: ctx?.instancePath ?? '',
+            message: `is not the same or before ${sameOrBefore}`,
+          })
+        }
+      }
+
+      if (after) {
+        const isParamValid = isIsoDateValid(after)
+        const isRuleValid = isParamValid && after < data
+
+        if (!isRuleValid) {
+          errors.push({
+            instancePath: ctx?.instancePath ?? '',
+            message: `is not after ${after}`,
+          })
+        }
+      }
+
+      if (sameOrAfter) {
+        const isParamValid = isIsoDateValid(sameOrAfter)
+        const isRuleValid = isParamValid && sameOrAfter <= data
+
+        if (!isRuleValid) {
+          errors.push({
+            instancePath: ctx?.instancePath ?? '',
+            message: `is not the same or after ${sameOrAfter}`,
+          })
+        }
+      }
+
+      if (errors.length === 0) return true
+      ;(validate as any).errors = errors
       return false
     },
   })

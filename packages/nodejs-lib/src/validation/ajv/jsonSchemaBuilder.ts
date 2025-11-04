@@ -12,6 +12,7 @@ import { _assert } from '@naturalcycles/js-lib/error'
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
 import {
+  _objectAssign,
   type AnyObject,
   type BaseDBEntity,
   type IANATimezone,
@@ -144,7 +145,7 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
    * ```
    */
   isOfType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
-    Object.assign(this.schema, { hasIsOfTypeCheck: true })
+    _objectAssign(this.schema, { hasIsOfTypeCheck: true })
     return this as any
   }
 
@@ -153,7 +154,7 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
   }
 
   $schema($schema: string): this {
-    Object.assign(this.schema, { $schema })
+    _objectAssign(this.schema, { $schema })
     return this
   }
 
@@ -163,37 +164,37 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
   }
 
   $id($id: string): this {
-    Object.assign(this.schema, { $id })
+    _objectAssign(this.schema, { $id })
     return this
   }
 
   title(title: string): this {
-    Object.assign(this.schema, { title })
+    _objectAssign(this.schema, { title })
     return this
   }
 
   description(description: string): this {
-    Object.assign(this.schema, { description })
+    _objectAssign(this.schema, { description })
     return this
   }
 
   deprecated(deprecated = true): this {
-    Object.assign(this.schema, { deprecated })
+    _objectAssign(this.schema, { deprecated })
     return this
   }
 
   type(type: string): this {
-    Object.assign(this.schema, { type })
+    _objectAssign(this.schema, { type })
     return this
   }
 
   default(v: any): this {
-    Object.assign(this.schema, { default: v })
+    _objectAssign(this.schema, { default: v })
     return this
   }
 
   instanceof(of: string): this {
-    Object.assign(this.schema, { type: 'object', instanceof: of })
+    _objectAssign(this.schema, { type: 'object', instanceof: of })
     return this
   }
 
@@ -253,28 +254,28 @@ export class JsonSchemaStringBuilder<
   pattern(pattern: string, opt?: JsonBuilderRuleOpt): this {
     if (opt?.name) this.setErrorMessage('pattern', `is not a valid ${opt.name}`)
     if (opt?.msg) this.setErrorMessage('pattern', opt.msg)
-    Object.assign(this.schema, { pattern })
+    _objectAssign(this.schema, { pattern })
     return this
   }
 
   minLength(minLength: number): this {
-    Object.assign(this.schema, { minLength })
+    _objectAssign(this.schema, { minLength })
     return this
   }
 
   maxLength(maxLength: number): this {
-    Object.assign(this.schema, { maxLength })
+    _objectAssign(this.schema, { maxLength })
     return this
   }
 
   length(minLength: number, maxLength: number): this {
-    Object.assign(this.schema, { minLength, maxLength })
+    _objectAssign(this.schema, { minLength, maxLength })
     return this
   }
 
   email(opt?: Partial<JsonSchemaStringEmailOptions>): this {
     const defaultOptions: JsonSchemaStringEmailOptions = { checkTLD: true }
-    Object.assign(this.schema, { email: { ...defaultOptions, ...opt } })
+    _objectAssign(this.schema, { email: { ...defaultOptions, ...opt } })
 
     // from `ajv-formats`
     const regex =
@@ -283,22 +284,22 @@ export class JsonSchemaStringBuilder<
   }
 
   trim(): this {
-    Object.assign(this.schema, { transform: { ...this.schema.transform, trim: true } })
+    _objectAssign(this.schema, { transform: { ...this.schema.transform, trim: true } })
     return this
   }
 
   toLowerCase(): this {
-    Object.assign(this.schema, { transform: { ...this.schema.transform, toLowerCase: true } })
+    _objectAssign(this.schema, { transform: { ...this.schema.transform, toLowerCase: true } })
     return this
   }
 
   toUpperCase(): this {
-    Object.assign(this.schema, { transform: { ...this.schema.transform, toUpperCase: true } })
+    _objectAssign(this.schema, { transform: { ...this.schema.transform, toUpperCase: true } })
     return this
   }
 
   truncate(toLength: number): this {
-    Object.assign(this.schema, { transform: { ...this.schema.transform, truncate: toLength } })
+    _objectAssign(this.schema, { transform: { ...this.schema.transform, truncate: toLength } })
     return this
   }
 
@@ -306,13 +307,19 @@ export class JsonSchemaStringBuilder<
     return this as unknown as JsonSchemaStringBuilder<B, B, Opt>
   }
 
-  isoDate(): JsonSchemaStringBuilder<IsoDate | IN, IsoDate, Opt> {
-    Object.assign(this.schema, { IsoDate: true })
-    return this.branded<IsoDate>()
+  /**
+   * Validates that the input is a fully-specified YYYY-MM-DD formatted valid IsoDate value.
+   *
+   * All previous expectations in the schema chain are dropped - including `.optional()` -
+   * because this call effectively starts a new schema chain.
+   */
+  isoDate(): JsonSchemaIsoDateBuilder {
+    _objectAssign(this.schema, { IsoDate: {} })
+    return new JsonSchemaIsoDateBuilder()
   }
 
   isoDateTime(): JsonSchemaStringBuilder<IsoDateTime | IN, IsoDateTime, Opt> {
-    Object.assign(this.schema, { IsoDateTime: true })
+    _objectAssign(this.schema, { IsoDateTime: true })
     return this.branded<IsoDateTime>()
   }
 
@@ -392,6 +399,56 @@ export interface JsonSchemaStringEmailOptions {
   checkTLD: boolean
 }
 
+export class JsonSchemaIsoDateBuilder<Opt extends boolean = false> extends JsonSchemaAnyBuilder<
+  string | IsoDate,
+  IsoDate,
+  Opt
+> {
+  constructor() {
+    super({
+      type: 'string',
+      IsoDate: {},
+    })
+  }
+
+  before(date: string): this {
+    _objectAssign(this.schema.IsoDate!, { before: date })
+    return this
+  }
+
+  sameOrBefore(date: string): this {
+    _objectAssign(this.schema.IsoDate!, { sameOrBefore: date })
+    return this
+  }
+
+  after(date: string): this {
+    _objectAssign(this.schema.IsoDate!, { after: date })
+    return this
+  }
+
+  sameOrAfter(date: string): this {
+    _objectAssign(this.schema.IsoDate!, { sameOrAfter: date })
+    return this
+  }
+
+  between(fromDate: string, toDate: string, incl: Inclusiveness): this {
+    if (incl === '[)') {
+      _objectAssign(this.schema.IsoDate!, { sameOrAfter: fromDate, before: toDate })
+    } else if (incl === '[]') {
+      _objectAssign(this.schema.IsoDate!, { sameOrAfter: fromDate, sameOrBefore: toDate })
+    }
+
+    return this
+  }
+}
+
+export interface JsonSchemaIsoDateOptions {
+  before?: string
+  sameOrBefore?: string
+  after?: string
+  sameOrAfter?: string
+}
+
 export class JsonSchemaNumberBuilder<
   IN extends number = number,
   OUT = IN,
@@ -404,7 +461,7 @@ export class JsonSchemaNumberBuilder<
   }
 
   integer(): this {
-    Object.assign(this.schema, { type: 'integer' })
+    _objectAssign(this.schema, { type: 'integer' })
     return this
   }
 
@@ -413,27 +470,27 @@ export class JsonSchemaNumberBuilder<
   }
 
   multipleOf(multipleOf: number): this {
-    Object.assign(this.schema, { multipleOf })
+    _objectAssign(this.schema, { multipleOf })
     return this
   }
 
   min(minimum: number): this {
-    Object.assign(this.schema, { minimum })
+    _objectAssign(this.schema, { minimum })
     return this
   }
 
   exclusiveMin(exclusiveMinimum: number): this {
-    Object.assign(this.schema, { exclusiveMinimum })
+    _objectAssign(this.schema, { exclusiveMinimum })
     return this
   }
 
   max(maximum: number): this {
-    Object.assign(this.schema, { maximum })
+    _objectAssign(this.schema, { maximum })
     return this
   }
 
   exclusiveMax(exclusiveMaximum: number): this {
-    Object.assign(this.schema, { exclusiveMaximum })
+    _objectAssign(this.schema, { exclusiveMaximum })
     return this
   }
 
@@ -575,7 +632,7 @@ export class JsonSchemaObjectBuilder<
    * When set, the validation will not strip away properties that are not specified explicitly in the schema.
    */
   allowAdditionalProperties(): this {
-    Object.assign(this.schema, { additionalProperties: true })
+    _objectAssign(this.schema, { additionalProperties: true })
     return this
   }
 
@@ -583,7 +640,7 @@ export class JsonSchemaObjectBuilder<
     props: AnyObject,
   ): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt> {
     const newBuilder = new JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt>()
-    Object.assign(newBuilder.schema, _deepCopy(this.schema))
+    _objectAssign(newBuilder.schema, _deepCopy(this.schema))
 
     const incomingSchemaBuilder = new JsonSchemaObjectBuilder<IN2, IN2, false>(props)
     mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
@@ -675,7 +732,7 @@ export class JsonSchemaObjectInferringBuilder<
    * When set, the validation will not strip away properties that are not specified explicitly in the schema.
    */
   allowAdditionalProperties(): this {
-    Object.assign(this.schema, { additionalProperties: true })
+    _objectAssign(this.schema, { additionalProperties: true })
     return this
   }
 
@@ -692,7 +749,7 @@ export class JsonSchemaObjectInferringBuilder<
     Opt
   > {
     const newBuilder = new JsonSchemaObjectInferringBuilder<PROPS, Opt>()
-    Object.assign(newBuilder.schema, _deepCopy(this.schema))
+    _objectAssign(newBuilder.schema, _deepCopy(this.schema))
 
     const incomingSchemaBuilder = new JsonSchemaObjectInferringBuilder<NEW_PROPS, false>(props)
     mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
@@ -731,12 +788,12 @@ export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<I
   }
 
   minLength(minItems: number): this {
-    Object.assign(this.schema, { minItems })
+    _objectAssign(this.schema, { minItems })
     return this
   }
 
   maxLength(maxItems: number): this {
-    Object.assign(this.schema, { maxItems })
+    _objectAssign(this.schema, { maxItems })
     return this
   }
 
@@ -748,8 +805,8 @@ export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<I
     return this.minLength(length).maxLength(length)
   }
 
-  unique(uniqueItems: number): this {
-    Object.assign(this.schema, { uniqueItems })
+  unique(): this {
+    _objectAssign(this.schema, { uniqueItems: true })
     return this
   }
 }
@@ -767,12 +824,12 @@ export class JsonSchemaSet2Builder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<
   }
 
   min(minItems: number): this {
-    Object.assign(this.schema, { minItems })
+    _objectAssign(this.schema, { minItems })
     return this
   }
 
   max(maxItems: number): this {
-    Object.assign(this.schema, { maxItems })
+    _objectAssign(this.schema, { maxItems })
     return this
   }
 }
@@ -809,7 +866,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   readonly in?: IN
   readonly out?: OUT
 
-  $schema?: AnyObject
+  $schema?: string
   $id?: string
   title?: string
   description?: string
@@ -857,14 +914,18 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   exclusiveMinimum?: number
   maximum?: number
   exclusiveMaximum?: number
+  minItems?: number
+  maxItems?: number
+  uniqueItems?: boolean
 
   enum?: any
 
   // Below we add custom Ajv keywords
 
+  email?: JsonSchemaStringEmailOptions
   Set2?: JsonSchema
   Buffer?: true
-  IsoDate?: true
+  IsoDate?: JsonSchemaIsoDateOptions
   IsoDateTime?: true
   instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }

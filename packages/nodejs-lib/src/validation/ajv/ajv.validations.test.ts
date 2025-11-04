@@ -401,7 +401,7 @@ describe('string', () => {
     })
 
     test('should reject invalid data', () => {
-      const invalidCases = [
+      const invalidCases: any[] = [
         'abcd',
         '0-0-0',
         '20250930', // valid ISO6801 but we don't support it
@@ -417,6 +417,10 @@ describe('string', () => {
         '2001-09-31', // invalid day for 30 day month
         '2001-11-31', // invalid day for 30 day month
         '2100-02-29', // not leap year b/c div. by 100 but not div. by 400
+        0,
+        false,
+        {},
+        [],
       ]
       const schema = j.string().isoDate()
       const ajvSchema = AjvSchema.create(schema)
@@ -424,6 +428,158 @@ describe('string', () => {
       invalidCases.forEach(date => {
         const [err] = ajvSchema.getValidationResult(date)
         expect(err, String(date)).not.toBeNull()
+      })
+    })
+
+    describe('before', () => {
+      test('should accept valid data', () => {
+        const testCases: any[] = ['2018-06-20']
+        const schema = j.string().isoDate().before('2018-06-21')
+        const ajvSchema = AjvSchema.create(schema)
+
+        testCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).toBeNull()
+        })
+
+        const invalidCases: any[] = ['2018-06-21', '2018-06-22']
+
+        invalidCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).not.toBeNull()
+        })
+      })
+
+      test('should reject invalid date for the rule', () => {
+        const schema = j.string().isoDate().before('abcd')
+        const [err] = AjvSchema.create(schema).getValidationResult('2018-06-21')
+        expect(err).toMatchInlineSnapshot(`
+          [AjvValidationError: Object is not before abcd
+          Input: 2018-06-21]
+        `)
+      })
+    })
+
+    describe('sameOrBefore', () => {
+      test('should accept valid data', () => {
+        const testCases: any[] = ['2018-06-20', '2018-06-21']
+        const schema = j.string().isoDate().sameOrBefore('2018-06-21')
+        const ajvSchema = AjvSchema.create(schema)
+
+        testCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).toBeNull()
+        })
+
+        const invalidCases: any[] = ['2018-06-22']
+
+        invalidCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).not.toBeNull()
+        })
+      })
+
+      test('should reject invalid date for the rule', () => {
+        const schema = j.string().isoDate().sameOrBefore('abcd')
+        const [err] = AjvSchema.create(schema).getValidationResult('2018-06-21')
+        expect(err).toMatchInlineSnapshot(`
+          [AjvValidationError: Object is not the same or before abcd
+          Input: 2018-06-21]
+        `)
+      })
+    })
+
+    describe('after', () => {
+      test('should accept valid data', () => {
+        const testCases: any[] = ['2018-06-22']
+        const schema = j.string().isoDate().after('2018-06-21')
+        const ajvSchema = AjvSchema.create(schema)
+
+        testCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).toBeNull()
+        })
+
+        const invalidCases: any[] = ['2018-06-20', '2018-06-21']
+
+        invalidCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).not.toBeNull()
+        })
+      })
+
+      test('should reject invalid date for the rule', () => {
+        const schema = j.string().isoDate().after('abcd')
+        const [err] = AjvSchema.create(schema).getValidationResult('2018-06-21')
+        expect(err).toMatchInlineSnapshot(`
+          [AjvValidationError: Object is not after abcd
+          Input: 2018-06-21]
+        `)
+      })
+    })
+
+    describe('sameOrAfter', () => {
+      test('should accept valid data', () => {
+        const testCases: any[] = ['2018-06-21', '2018-06-22']
+        const schema = j.string().isoDate().sameOrAfter('2018-06-21')
+        const ajvSchema = AjvSchema.create(schema)
+
+        testCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).toBeNull()
+        })
+
+        const invalidCases: any[] = ['2018-06-20']
+
+        invalidCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).not.toBeNull()
+        })
+      })
+
+      test('should reject invalid date for the rule', () => {
+        const schema = j.string().isoDate().sameOrAfter('abcd')
+        const [err] = AjvSchema.create(schema).getValidationResult('2018-06-21')
+        expect(err).toMatchInlineSnapshot(`
+          [AjvValidationError: Object is not the same or after abcd
+          Input: 2018-06-21]
+        `)
+      })
+    })
+
+    describe('between', () => {
+      test('should accept valid data', () => {
+        const testCases: any[] = ['2018-06-20', '2018-06-21', '2018-06-22']
+        const schema = j.string().isoDate().between('2018-06-20', '2018-06-22', '[]')
+        const ajvSchema = AjvSchema.create(schema)
+
+        testCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).toBeNull()
+        })
+
+        const invalidCases: any[] = ['2018-06-19', '2018-06-23']
+
+        invalidCases.forEach(date => {
+          const [err] = ajvSchema.getValidationResult(date)
+          expect(err, String(date)).not.toBeNull()
+        })
+      })
+
+      test('should reject invalid date for the rule', () => {
+        const schema1 = j.string().isoDate().between('abcd', '2018-06-22', '[]')
+        const [err1] = AjvSchema.create(schema1).getValidationResult('2018-06-21')
+        expect(err1).toMatchInlineSnapshot(`
+          [AjvValidationError: Object is not the same or after abcd
+          Input: 2018-06-21]
+        `)
+
+        const schema2 = j.string().isoDate().between('2018-06-20', 'abcd', '[]')
+        const [err2] = AjvSchema.create(schema2).getValidationResult('2018-06-21')
+        expect(err2).toMatchInlineSnapshot(`
+          [AjvValidationError: Object is not the same or before abcd
+          Input: 2018-06-21]
+        `)
       })
     })
   })
@@ -877,7 +1033,7 @@ describe('string', () => {
 
     test('should reject invalid data', () => {
       const invalidCases: any[] = ['abcd', 0, null, [], {}]
-      const schema = j.string().isoDate()
+      const schema = j.string().ianaTimezone()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
