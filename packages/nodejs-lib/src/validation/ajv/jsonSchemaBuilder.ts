@@ -27,7 +27,12 @@ import {
   type UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { TIMEZONES } from '../timezones.js'
-import { JSON_SCHEMA_ORDER, mergeJsonSchemaObjects } from './jsonSchemaBuilder.util.js'
+import {
+  isEveryItemNumber,
+  isEveryItemString,
+  JSON_SCHEMA_ORDER,
+  mergeJsonSchemaObjects,
+} from './jsonSchemaBuilder.util.js'
 
 export const j = {
   string(): JsonSchemaStringBuilder<string, string, false> {
@@ -79,20 +84,28 @@ export const j = {
           : never
   > {
     let enumValues: readonly (string | number | boolean | null)[] | undefined
+    let baseType: EnumBaseType = 'other'
 
     if (Array.isArray(input)) {
       enumValues = input
+      if (isEveryItemNumber(input)) {
+        baseType = 'number'
+      } else if (isEveryItemString(input)) {
+        baseType = 'string'
+      }
     } else if (typeof input === 'object') {
       const enumType = getEnumType(input)
       if (enumType === 'NumberEnum') {
         enumValues = _numberEnumValues(input as NumberEnum)
+        baseType = 'number'
       } else if (enumType === 'StringEnum') {
         enumValues = _stringEnumValues(input as StringEnum)
+        baseType = 'string'
       }
     }
 
     _assert(enumValues, 'Unsupported enum input')
-    return new JsonSchemaEnumBuilder(enumValues as any, opt)
+    return new JsonSchemaEnumBuilder(enumValues as any, baseType, opt)
   },
 
   oneOf<
@@ -851,8 +864,15 @@ export class JsonSchemaEnumBuilder<
   OUT extends IN = IN,
   Opt extends boolean = false,
 > extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
-  constructor(enumValues: readonly IN[], opt?: JsonBuilderRuleOpt) {
-    super({ enum: enumValues })
+  constructor(enumValues: readonly IN[], baseType: EnumBaseType, opt?: JsonBuilderRuleOpt) {
+    const jsonSchema: JsonSchema = { enum: enumValues }
+    // Specifying the base type helps in cases when we ask Ajv to coerce the types.
+    // Having only the `enum` in the schema does not trigger a coercion in Ajv.
+    if (baseType === 'string') jsonSchema.type = 'string'
+    if (baseType === 'number') jsonSchema.type = 'number'
+
+    super(jsonSchema)
+
     if (opt?.name) this.setErrorMessage('pattern', `is not a valid ${opt.name}`)
     if (opt?.msg) this.setErrorMessage('enum', opt.msg)
   }
@@ -861,6 +881,8 @@ export class JsonSchemaEnumBuilder<
     return this as unknown as JsonSchemaEnumBuilder<B | IN, B, Opt>
   }
 }
+
+type EnumBaseType = 'string' | 'number' | 'other'
 
 export interface JsonSchema<IN = unknown, OUT = IN> {
   readonly in?: IN

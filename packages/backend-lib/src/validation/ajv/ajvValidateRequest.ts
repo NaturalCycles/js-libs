@@ -2,6 +2,7 @@ import { _deepCopy } from '@naturalcycles/js-lib/object'
 import {
   AjvSchema,
   type AjvValidationError,
+  getCoercingAjv,
   type SchemaHandledByAjv,
 } from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../../server/server.model.js'
@@ -16,20 +17,32 @@ class AjvValidateRequest {
     return this.validate(req, 'body', schema, opt)
   }
 
+  /**
+   * Query validation uses type coercion (unlike body validation),
+   * so the passed in schemas do not need to specify only string values.
+   *
+   * Coercion mutates the input, even if the end result is that the input failed the validation.
+   */
   query<IN, OUT>(
     req: BackendRequest,
     schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
-    return this.validate(req, 'query', schema, opt)
+    return this.validate(req, 'query', schema, { coerceTypes: true, ...opt })
   }
 
+  /**
+   * Params validation uses type coercion (unlike body validation),
+   * so the passed in schemas do not need to specify only string values.
+   *
+   * Coercion mutates the input, even if the end result is that the input failed the validation.
+   */
   params<IN, OUT>(
     req: BackendRequest,
     schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
-    return this.validate(req, 'params', schema, opt)
+    return this.validate(req, 'params', schema, { coerceTypes: true, ...opt })
   }
 
   /**
@@ -58,7 +71,10 @@ class AjvValidateRequest {
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
     const input: IN = req[reqProperty] || {}
-    const ajvSchema = AjvSchema.create(schema)
+
+    const { coerceTypes } = opt
+    const ajv = coerceTypes ? getCoercingAjv() : undefined
+    const ajvSchema = AjvSchema.create(schema, { ajv })
 
     const [error, output] = ajvSchema.getValidationResult(input, {
       inputName: `request.${reqProperty}`,

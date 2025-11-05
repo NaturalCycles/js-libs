@@ -76,3 +76,17 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
 
   return _filterNullishValues(s1, { mutate: true })
 }
+
+export function isEveryItemString(arr: any[]): boolean {
+  for (let i = 0; i <= arr.length; ++i) {
+    if (typeof arr[i]! !== 'string') return false
+  }
+  return true
+}
+
+export function isEveryItemNumber(arr: any[]): boolean {
+  for (let i = 0; i <= arr.length; ++i) {
+    if (typeof arr[i]! !== 'number') return false
+  }
+  return true
+}
