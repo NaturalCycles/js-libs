@@ -17,6 +17,8 @@ export function handleValidationError<T, ERR extends AppError>(
     redact(opt.redactPaths, originalProperty, error)
   }
 
+  makeErrorUserReadable(error)
+
   throw new AppError(error.message, {
     backendResponseStatusCode: 400,
     report,
@@ -38,6 +40,13 @@ function redact(redactPaths: string[], obj: any, error: Error): void {
     })
 }
 
+/**
+ * Mutates error
+ */
+function makeErrorUserReadable<ERR extends AppError>(error: ERR): void {
+  error.message = error.message.replaceAll('[Object: null prototype] ', '')
+}
+
 export interface ReqValidationOptions<ERR extends AppError> {
   /**
    * Pass a 'dot-paths' (e.g `pw`, or `input.pw`) that needs to be redacted from the output, in case of error.
@@ -50,4 +59,14 @@ export interface ReqValidationOptions<ERR extends AppError> {
    * If true - `genericErrorHandler` will report it to errorReporter (aka Sentry).
    */
   report?: boolean | ((err: ERR) => boolean)
+
+  /**
+   * Defaults to false, because it promotes type safe thinking.
+   *
+   * If set to true, AJV will try to coerce the types after the validation fails and retry the validation.
+   *
+   * To be used in places where we know that we are going to receive data with the wrong type,
+   * typically: request path params and request query params.
+   */
+  coerceTypes?: boolean
 }
