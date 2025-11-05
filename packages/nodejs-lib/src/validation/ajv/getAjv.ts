@@ -24,6 +24,11 @@ const AJV_NON_MUTATING_OPTIONS: Options = {
   useDefaults: false,
 }
 
+const AJV_MUTATING_COERCING_OPTIONS: Options = {
+  ...AJV_OPTIONS,
+  coerceTypes: true,
+}
+
 /**
  * Return cached instance of Ajv with default (recommended) options.
  *
@@ -39,6 +44,14 @@ export const getAjv = _lazyValue(createAjv)
  * and are not interested in transforming the data.
  */
 export const getNonMutatingAjv = _lazyValue(() => createAjv(AJV_NON_MUTATING_OPTIONS))
+
+/**
+ * Returns cached instance of Ajv, which is coercing data.
+ *
+ * To be used in places where we know that we are going to receive data with the wrong type,
+ * typically: request path params and request query params.
+ */
+export const getCoercingAjv = _lazyValue(() => createAjv(AJV_MUTATING_COERCING_OPTIONS))
 
 /**
  * Create Ajv with modified defaults.
