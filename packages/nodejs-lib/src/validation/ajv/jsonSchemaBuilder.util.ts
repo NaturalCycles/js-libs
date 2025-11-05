@@ -79,14 +79,14 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
 
 export function isEveryItemString(arr: any[]): boolean {
   for (let i = 0; i <= arr.length; ++i) {
-    if (typeof arr[i]! !== 'string') return false
+    if (typeof arr[i] !== 'string') return false
   }
   return true
 }
 
 export function isEveryItemNumber(arr: any[]): boolean {
   for (let i = 0; i <= arr.length; ++i) {
-    if (typeof arr[i]! !== 'number') return false
+    if (typeof arr[i] !== 'number') return false
   }
   return true
 }
