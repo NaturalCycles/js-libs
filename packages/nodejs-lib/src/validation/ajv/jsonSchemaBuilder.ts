@@ -672,6 +672,16 @@ export class JsonSchemaObjectBuilder<
       updated: j.number().unixTimestamp2000(),
     })
   }
+
+  minProperties(minProperties: number): this {
+    Object.assign(this.schema, { minProperties })
+    return this
+  }
+
+  maxProperties(maxProperties: number): this {
+    Object.assign(this.schema, { maxProperties })
+    return this
+  }
 }
 
 export class JsonSchemaObjectInferringBuilder<

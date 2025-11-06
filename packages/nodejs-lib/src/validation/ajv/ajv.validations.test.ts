@@ -4,6 +4,7 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { localDate, localTime } from '@naturalcycles/js-lib/datetime'
 import { Set2 } from '@naturalcycles/js-lib/object'
+import { _stringify } from '@naturalcycles/js-lib/string'
 import type {
   AnyObject,
   BaseDBEntity,
@@ -2261,6 +2262,59 @@ describe('object', () => {
       expect(err).toBeNull()
       expect(result).toEqual({ foo: 'bar' })
       expectTypeOf(result).toEqualTypeOf<AnyObject>()
+    })
+  })
+
+  describe('minProperties', () => {
+    test('should accept a valid object', () => {
+      const schema = j
+        .object<{ foo?: string; bar?: string; shu?: string }>({
+          foo: j.string().optional(),
+          bar: j.string().optional(),
+          shu: j.string().optional(),
+        })
+        .minProperties(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      const testCases = [
+        { foo: 'foo', bar: 'bar', shu: 'shu' },
+        { foo: 'foo', bar: 'bar' },
+      ]
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [{ foo: 'foo' }, {}, 0, 'abcd', true, []]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('maxProperties', () => {
+    test('should accept a valid object', () => {
+      const schema = j
+        .object<{ foo?: string; bar?: string; shu?: string }>({
+          foo: j.string().optional(),
+          bar: j.string().optional(),
+          shu: j.string().optional(),
+        })
+        .maxProperties(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      const testCases = [{ foo: 'foo' }, {}, { foo: 'foo', bar: 'bar' }]
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [{ foo: 'foo', bar: 'bar', shu: 'shu' }, 0, 'abcd', true, []]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
     })
   })
 })
