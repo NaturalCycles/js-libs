@@ -134,9 +134,37 @@ const TS_2000_MILLIS = TS_2000 * 1000
      With `Opt`, we can infer it as `{ foo?: string | undefined }`.
 */
 
-export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
-  constructor(protected schema: JsonSchema) {}
+export class JsonSchemaTerminal<IN, OUT, Opt> {
+  protected schema: JsonSchema
 
+  constructor(schema: JsonSchema) {
+    this.schema = schema
+  }
+
+  getSchema(): JsonSchema {
+    return this.schema
+  }
+
+  /**
+   * Produces a "clean schema object" without methods.
+   * Same as if it would be JSON.stringified.
+   */
+  build(): JsonSchema<IN, OUT> {
+    return _sortObject(JSON.parse(JSON.stringify(this.schema)), JSON_SCHEMA_ORDER)
+  }
+
+  clone(): JsonSchemaAnyBuilder<IN, OUT, Opt> {
+    return new JsonSchemaAnyBuilder<IN, OUT, Opt>(_deepCopy(this.schema))
+  }
+
+  /**
+   * @experimental
+   */
+  in!: IN
+  out!: OUT
+}
+
+export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, OUT, Opt> {
   protected setErrorMessage(ruleName: string, errorMessage: string | undefined): void {
     if (_isUndefined(errorMessage)) return
 
@@ -160,10 +188,6 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
   isOfType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
     _objectAssign(this.schema, { hasIsOfTypeCheck: true })
     return this as any
-  }
-
-  getSchema(): JsonSchema {
-    return this.schema
   }
 
   $schema($schema: string): this {
@@ -223,18 +247,6 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
   }
 
   /**
-   * Produces a "clean schema object" without methods.
-   * Same as if it would be JSON.stringified.
-   */
-  build(): JsonSchema<IN, OUT> {
-    return _sortObject(JSON.parse(JSON.stringify(this.schema)), JSON_SCHEMA_ORDER)
-  }
-
-  clone(): JsonSchemaAnyBuilder<IN, OUT, Opt> {
-    return new JsonSchemaAnyBuilder<IN, OUT, Opt>(_deepCopy(this.schema))
-  }
-
-  /**
    * @deprecated
    * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
    */
@@ -243,10 +255,11 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> {
   }
 
   /**
-   * @experimental
+   * Locks the given schema chain and no other modification can be done to it.
    */
-  in!: IN
-  out!: OUT
+  final(): JsonSchemaTerminal<IN, OUT, Opt> {
+    return new JsonSchemaTerminal<IN, OUT, Opt>(this.schema)
+  }
 }
 
 export class JsonSchemaStringBuilder<

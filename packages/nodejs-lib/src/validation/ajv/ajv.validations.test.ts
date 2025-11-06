@@ -2510,3 +2510,48 @@ describe('castAs', () => {
     expectTypeOf(result).toEqualTypeOf<{ bar: number }>()
   })
 })
+
+describe('default', () => {
+  test('should use the default when the property is missing', () => {
+    const schema = j.object<{ foo: string; bar: number; shu: boolean }>({
+      foo: j.string().default('foo'),
+      bar: j.number().default(123),
+      shu: j.boolean().default(true),
+    })
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1, result1] = ajvSchema.getValidationResult({ foo: 'good', bar: 1, shu: false })
+    expect(err1).toBeNull()
+    expect(result1).toEqual({ foo: 'good', bar: 1, shu: false })
+
+    const [err2, result2] = ajvSchema.getValidationResult({ bar: 1, shu: false } as any)
+    expect(err2).toBeNull()
+    expect(result2).toEqual({ foo: 'foo', bar: 1, shu: false })
+
+    const [err3, result3] = ajvSchema.getValidationResult({ foo: 'good', shu: false } as any)
+    expect(err3).toBeNull()
+    expect(result3).toEqual({ foo: 'good', bar: 123, shu: false })
+
+    const [err4, result4] = ajvSchema.getValidationResult({ foo: 'good', bar: 1 } as any)
+    expect(err4).toBeNull()
+    expect(result4).toEqual({ foo: 'good', bar: 1, shu: true })
+  })
+})
+
+describe('final', () => {
+  test('locks the given schema', async () => {
+    const schema = j.string().minLength(2).maxLength(3).final()
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1] = ajvSchema.getValidationResult('abc')
+    expect(err1).toBeNull()
+
+    const [err2] = ajvSchema.getValidationResult('abcd')
+    expect(err2).not.toBeNull()
+
+    // @ts-expect-error
+    expect(() => schema.optional()).toThrow('schema.optional is not a function')
+    // @ts-expect-error
+    expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
+  })
+})

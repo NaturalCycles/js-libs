@@ -14,7 +14,7 @@ import type { Ajv, ErrorObject } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
 import { AjvValidationError } from './ajvValidationError.js'
 import { getAjv } from './getAjv.js'
-import { type JsonSchema, JsonSchemaAnyBuilder } from './jsonSchemaBuilder.js'
+import { type JsonSchema, JsonSchemaTerminal } from './jsonSchemaBuilder.js'
 
 /**
  * On creation - compiles ajv validation function.
@@ -73,10 +73,10 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     let jsonSchema: JsonSchema<IN, OUT>
 
     if (AjvSchema.isJsonSchemaBuilder(schema)) {
-      jsonSchema = (schema as JsonSchemaAnyBuilder<IN, OUT, any>).build()
+      jsonSchema = (schema as JsonSchemaTerminal<IN, OUT, any>).build()
       AjvSchema.requireValidJsonSchema(jsonSchema)
     } else {
-      jsonSchema = schema as JsonSchema<IN, OUT>
+      jsonSchema = schema
     }
 
     const ajvSchema = new AjvSchema<IN, OUT>(jsonSchema, cfg)
@@ -98,10 +98,8 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     return AjvSchema.create(jsonSchema)
   }
 
-  static isJsonSchemaBuilder<IN, OUT>(
-    schema: unknown,
-  ): schema is JsonSchemaAnyBuilder<IN, OUT, any> {
-    return schema instanceof JsonSchemaAnyBuilder
+  static isJsonSchemaBuilder<IN, OUT>(schema: unknown): schema is JsonSchemaTerminal<IN, OUT, any> {
+    return schema instanceof JsonSchemaTerminal
   }
 
   readonly cfg: AjvSchemaCfg
@@ -286,6 +284,6 @@ export interface AjvSchemaCfg {
 }
 
 export type SchemaHandledByAjv<IN, OUT = IN> =
-  | JsonSchemaAnyBuilder<IN, OUT, any>
+  | JsonSchemaTerminal<IN, OUT, any>
   | JsonSchema<IN, OUT>
   | AjvSchema<IN, OUT>

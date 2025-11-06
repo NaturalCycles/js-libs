@@ -8,7 +8,7 @@ import type {
   IANATimezone,
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
-import { describe, expectTypeOf, test } from 'vitest'
+import { describe, expect, expectTypeOf, test } from 'vitest'
 import { j } from './jsonSchemaBuilder.js'
 
 describe('string', () => {
@@ -494,5 +494,23 @@ describe('castAs', () => {
     const schema2 = j.object.infer({}).castAs<{ foo: string }>()
     expectTypeOf(schema2.in).toEqualTypeOf<{ foo: string }>()
     expectTypeOf(schema2.out).toEqualTypeOf<{ foo: string }>()
+  })
+})
+
+describe('final', () => {
+  test('should correctly infer the type', () => {
+    type B = Branded<string, 'B'>
+    const schema = j.string().branded<B>().final()
+    expectTypeOf(schema.in).toEqualTypeOf<B>()
+    expectTypeOf(schema.out).toEqualTypeOf<B>()
+  })
+
+  test('should not allow to call other chain functions', () => {
+    const schema = j.string().final()
+
+    // @ts-expect-error
+    expect(() => schema.optional()).toThrow('schema.optional is not a function')
+    // @ts-expect-error
+    expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
   })
 })
