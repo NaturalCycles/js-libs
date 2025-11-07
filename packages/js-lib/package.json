@@ -41,7 +41,6 @@
     "./error": "./dist/error/index.js",
     "./error/*.js": "./dist/error/*.js",
     "./http": "./dist/http/index.js",
-    "./json-schema": "./dist/json-schema/index.js",
     "./log": "./dist/log/commonLogger.js",
     "./math": "./dist/math/index.js",
     "./math/*.js": "./dist/math/*.js",

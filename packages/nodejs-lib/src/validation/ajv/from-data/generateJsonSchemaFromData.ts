@@ -1,15 +1,6 @@
-import { _uniq } from '../../array/index.js'
-import { _stringMapEntries, type AnyObject, type StringMap } from '../../types.js'
-import type {
-  JsonSchema,
-  JsonSchemaArray,
-  JsonSchemaBoolean,
-  JsonSchemaNull,
-  JsonSchemaNumber,
-  JsonSchemaObject,
-  JsonSchemaOneOf,
-  JsonSchemaString,
-} from '../jsonSchema.model.js'
+import { _uniq } from '@naturalcycles/js-lib/array'
+import { _stringMapEntries, type AnyObject, type StringMap } from '@naturalcycles/js-lib/types'
+import type { JsonSchema } from '../jsonSchemaBuilder.js'
 
 type PrimitiveType = 'undefined' | 'null' | 'boolean' | 'string' | 'number'
 type Type = PrimitiveType | 'array' | 'object'
@@ -21,11 +12,11 @@ type Type = PrimitiveType | 'array' | 'object'
  */
 export function generateJsonSchemaFromData<T extends AnyObject = AnyObject>(
   rows: AnyObject[],
-): JsonSchemaObject<T> {
-  return objectToJsonSchema(rows as any) as JsonSchemaObject<T>
+): JsonSchema<T> {
+  return objectToJsonSchema<T>(rows as any)
 }
 
-function objectToJsonSchema(rows: AnyObject[]): JsonSchemaObject {
+function objectToJsonSchema<T extends AnyObject>(rows: AnyObject[]): JsonSchema<T> {
   const typesByKey: StringMap<Set<Type>> = {}
 
   rows.forEach(r => {
@@ -35,9 +26,9 @@ function objectToJsonSchema(rows: AnyObject[]): JsonSchemaObject {
     })
   })
 
-  const s: JsonSchemaObject = {
+  const s: JsonSchema<T> = {
     type: 'object',
-    properties: {},
+    properties: {} as any,
     required: [],
     additionalProperties: true,
   }
@@ -48,7 +39,7 @@ function objectToJsonSchema(rows: AnyObject[]): JsonSchemaObject {
       rows.map(r => r[key]),
     )
     if (!schema) return
-    s.properties[key] = schema
+    s.properties![key as keyof T] = schema as any
   })
 
   // console.log(typesByKey)
@@ -64,7 +55,7 @@ function mergeTypes(types: Type[], samples: any[]): JsonSchema | undefined {
 
   if (types.length > 1) {
     // oneOf
-    const s: JsonSchemaOneOf = {
+    const s: JsonSchema = {
       oneOf: types.map(type => mergeTypes([type], samples)!),
     }
 
@@ -76,25 +67,25 @@ function mergeTypes(types: Type[], samples: any[]): JsonSchema | undefined {
   if (type === 'null') {
     return {
       type: 'null',
-    } as JsonSchemaNull
+    } as JsonSchema
   }
 
   if (type === 'boolean') {
     return {
       type: 'boolean',
-    } as JsonSchemaBoolean
+    } as JsonSchema
   }
 
   if (type === 'string') {
     return {
       type: 'string',
-    } as JsonSchemaString
+    } as JsonSchema
   }
 
   if (type === 'number') {
     return {
       type: 'number',
-    } as JsonSchemaNumber
+    } as JsonSchema
   }
 
   if (type === 'object') {
@@ -110,7 +101,7 @@ function mergeTypes(types: Type[], samples: any[]): JsonSchema | undefined {
     return {
       type: 'array',
       items: mergeTypes(itemTypes, items),
-    } as JsonSchemaArray
+    } as JsonSchema
   }
 }
 

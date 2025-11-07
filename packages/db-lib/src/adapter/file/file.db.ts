@@ -2,7 +2,6 @@ import { Readable } from 'node:stream'
 import { _by, _sortBy } from '@naturalcycles/js-lib/array'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { generateJsonSchemaFromData } from '@naturalcycles/js-lib/json-schema'
 import { _deepEquals, _filterUndefinedValues, _sortObjectDeep } from '@naturalcycles/js-lib/object'
 import {
   _stringMapValues,
@@ -10,6 +9,7 @@ import {
   type UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { generateJsonSchemaFromData } from '@naturalcycles/nodejs-lib/ajv'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { BaseCommonDB } from '../../commondb/base.common.db.js'
