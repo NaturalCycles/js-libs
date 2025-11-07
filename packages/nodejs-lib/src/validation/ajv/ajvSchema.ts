@@ -73,6 +73,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     let jsonSchema: JsonSchema<IN, OUT>
 
     if (AjvSchema.isJsonSchemaBuilder(schema)) {
+      // @typescript-eslint/no-unnecessary-type-assertion The CI thinks it's unnecessary, `pn check` thinks it's necessary. 🤷
       jsonSchema = (schema as JsonSchemaTerminal<IN, OUT, any>).build()
       AjvSchema.requireValidJsonSchema(jsonSchema)
     } else {
