@@ -33,7 +33,9 @@ import type {
 } from './jsonSchema.model.js'
 import { mergeJsonSchemaObjects } from './jsonSchema.util.js'
 
-/* eslint-disable id-denylist, @typescript-eslint/explicit-module-boundary-types */
+// todo: this file can be killed, right?
+/* eslint-disable id-denylist */
+// oxlint-disable
 
 export interface JsonSchemaBuilder<T = unknown> {
   build: () => JsonSchema<T>

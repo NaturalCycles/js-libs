@@ -68,6 +68,7 @@ class SemverFactory {
   fromInput(input: SemverInput): Semver {
     const s = this.fromInputOrUndefined(input)
 
+    // oxlint-disable-next-line typescript/restrict-template-expressions
     _assert(s, `Cannot parse "${input}" into Semver`, {
       input,
     })

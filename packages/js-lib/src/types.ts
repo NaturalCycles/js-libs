@@ -34,7 +34,7 @@ export type AnyEnum = NumberEnum
 export type NumberEnum = Record<string, number | string>
 export type StringEnum = Record<string, string>
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CreatedUpdated = {
   created: UnixTimestamp
   updated: UnixTimestamp
@@ -44,12 +44,12 @@ export interface CreatedUpdatedId extends CreatedUpdated {
   id: string
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ObjectWithId = {
   id: string
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PartialObjectWithId = {
   id?: string
 }
@@ -61,7 +61,7 @@ export interface AnyObjectWithId extends AnyObject, ObjectWithId {}
 /**
  * Base interface for any Entity that was saved to DB.
  */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BaseDBEntity = {
   id: string
 

@@ -13,6 +13,8 @@ import type {
 import type { LocalTimeFormatter, LocalTimeUnit } from './localTime.js'
 import { ISODayOfWeek, localTime } from './localTime.js'
 
+// oxlint-disable typescript/restrict-template-expressions
+
 // Set en-gb by default, to have e.g Monday as fdow
 // This "loads" the locale:
 dayjs.locale(enGB, {}, true)
