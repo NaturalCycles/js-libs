@@ -15,7 +15,7 @@ afterAll(async () => {
 })
 
 describe('ajvValidateRequest', () => {
-  describe('body', () => {
+  describe('body (kirill)', () => {
     test('ajvValidateRequest', async () => {
       // should pass (no error)
       await app.put('changePasswordAjv', {
@@ -63,6 +63,42 @@ describe('ajvValidateRequest', () => {
     Input: { pw: 'REDACTED' }"
   `)
     })
+  })
+
+  describe('body (david)', () => {
+    let app: ExpressApp
+
+    beforeAll(async () => {
+      const resource = getDefaultRouter()
+      resource.post('/', async (req, res) => {
+        const body = ajvValidateRequest.body(
+          req,
+          j.object<{ email: string }>({
+            email: j.string().email(),
+          }),
+        )
+
+        res.json({ ok: 1, body })
+      })
+      app = await expressTestService.createAppFromResource(resource)
+    })
+
+    afterAll(async () => {
+      await app.close()
+    })
+
+    test('accept an email with whitespaces', async () => {
+      const response = await app.post<TestResponse>('', {
+        json: { email: 'kamalaharris@gmail.com ' },
+      })
+
+      expect(response).toMatchObject({ ok: 1, body: { email: 'kamalaharris@gmail.com' } })
+    })
+
+    interface TestResponse {
+      ok: 1
+      body: { email: string }
+    }
   })
 
   describe('headers', () => {

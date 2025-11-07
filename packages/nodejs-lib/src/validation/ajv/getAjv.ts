@@ -244,22 +244,45 @@ export function createAjv(opt?: Options): Ajv {
   ajv.addKeyword({
     keyword: 'email',
     type: 'string',
-    modifying: false,
+    modifying: true,
     errors: true,
     schemaType: 'object',
     validate: function validate(opt: JsonSchemaStringEmailOptions, data: string, _schema, ctx) {
       const { checkTLD } = opt
-      if (!checkTLD) return true
+      const cleanData = data.trim()
 
-      const tld = _substringAfterLast(data, '.')
-      if (validTLDs.has(tld)) return true
-      ;(validate as any).errors = [
-        {
-          instancePath: ctx?.instancePath ?? '',
-          message: `has an invalid TLD`,
-        },
-      ]
-      return false
+      // from `ajv-formats`
+      const EMAIL_REGEX =
+        /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i
+      const result = cleanData.match(EMAIL_REGEX)
+
+      if (!result) {
+        ;(validate as any).errors = [
+          {
+            instancePath: ctx?.instancePath ?? '',
+            message: `is not a valid email address`,
+          },
+        ]
+        return false
+      }
+
+      if (checkTLD) {
+        const tld = _substringAfterLast(cleanData, '.')
+        if (validTLDs.has(tld)) return true
+        ;(validate as any).errors = [
+          {
+            instancePath: ctx?.instancePath ?? '',
+            message: `has an invalid TLD`,
+          },
+        ]
+        return false
+      }
+
+      if (ctx?.parentData && ctx.parentDataProperty) {
+        ctx.parentData[ctx.parentDataProperty] = cleanData
+      }
+
+      return true
     },
   })
 
