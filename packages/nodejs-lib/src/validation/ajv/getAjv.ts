@@ -268,14 +268,15 @@ export function createAjv(opt?: Options): Ajv {
 
       if (checkTLD) {
         const tld = _substringAfterLast(cleanData, '.')
-        if (validTLDs.has(tld)) return true
-        ;(validate as any).errors = [
-          {
-            instancePath: ctx?.instancePath ?? '',
-            message: `has an invalid TLD`,
-          },
-        ]
-        return false
+        if (!validTLDs.has(tld)) {
+          ;(validate as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message: `has an invalid TLD`,
+            },
+          ]
+          return false
+        }
       }
 
       if (ctx?.parentData && ctx.parentDataProperty) {
