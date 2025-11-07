@@ -7,9 +7,10 @@
     "rootDir": "${configDir}/..",
     // "baseUrl": "${configDir}/..",
     "outDir": "${configDir}/../dist/scripts",
-    "paths": {
-      "@src/*": ["${configDir}/../src/*"]
-    },
+    // copy-paste the paths if needed
+    // "paths": {
+    //   "@src/*": ["../src/*"]
+    // },
     "tsBuildInfoFile": "${configDir}/../node_modules/.cache/scripts.tsbuildinfo"
   },
   "include": ["${configDir}"]

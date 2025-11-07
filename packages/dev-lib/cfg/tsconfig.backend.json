@@ -6,8 +6,9 @@
 {
   "extends": "./tsconfig.src.json",
   "compilerOptions": {
-    "paths": {
-      "@src/*": ["${configDir}/src/*"]
-    }
+    // copy-paste the paths if needed
+    // "paths": {
+    //   "@src/*": ["./src/*"]
+    // },
   }
 }
