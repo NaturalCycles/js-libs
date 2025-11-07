@@ -284,13 +284,19 @@ describe('string', () => {
 
   describe('email', () => {
     test('should accept valid email address - %s', () => {
-      const testCases: string[] = ['david@nc.se', 'paul-louis@nc.co.uk']
+      const testCases: string[] = [
+        'david@nc.se',
+        'paul-louis@nc.co.uk',
+        'kamalaharris@gmail.com',
+        'kamalaharris@gmail.com ', // trailing spaces should not cause an error, note: we can't mutate primitives
+      ]
       const schema = j.string().email()
       const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(email => {
-        const [err] = ajvSchema.getValidationResult(email)
-        expect(err).toBeNull()
+        const [err, value] = ajvSchema.getValidationResult(email)
+        expect(err, String(email)).toBeNull()
+        expect(value, String(email)).toBe(email)
       })
     })
 
@@ -312,6 +318,51 @@ describe('string', () => {
         const [err] = ajvSchema.getValidationResult(email)
         expect(err).not.toBeNull()
       })
+    })
+
+    test('should trim the email when it`s wrapped in an object or array', () => {
+      const schema1 = j.object<{ email: string }>({ email: j.string().email() })
+      const ajvSchema1 = AjvSchema.create(schema1)
+      const [err1, value1] = ajvSchema1.getValidationResult({ email: 'kamalaharris@gmail.com ' }) // em space
+      expect(err1).toBeNull()
+      expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
+
+      const schema2 = j.array(j.string().email())
+      const ajvSchema2 = AjvSchema.create(schema2)
+      const [err2, value2] = ajvSchema2.getValidationResult(['kamalaharris@gmail.com ']) // em space
+      expect(err2).toBeNull()
+      expect(value2).toEqual(['kamalaharris@gmail.com'])
+    })
+
+    test('should lowercase the email when it`s wrapped in an object or array', () => {
+      const schema1 = j.object<{ email: string }>({ email: j.string().email() })
+      const ajvSchema1 = AjvSchema.create(schema1)
+      const [err1, value1] = ajvSchema1.getValidationResult({ email: 'KAMALAHARRIS@gmail.com' })
+      expect(err1).toBeNull()
+      expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
+
+      const schema2 = j.array(j.string().email())
+      const ajvSchema2 = AjvSchema.create(schema2)
+      const [err2, value2] = ajvSchema2.getValidationResult(['KAMALAHARRIS@gmail.com'])
+      expect(err2).toBeNull()
+      expect(value2).toEqual(['kamalaharris@gmail.com'])
+    })
+
+    test('should produce a readable error message', () => {
+      const schema = j.string().email()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1] = ajvSchema.getValidationResult('karius@tandtroll.con')
+      expect(err1).toMatchInlineSnapshot(`
+        [AjvValidationError: Object has an invalid TLD
+        Input: karius@tandtroll.con]
+      `)
+
+      const [err2] = ajvSchema.getValidationResult('kamal>aharris@gmail.com')
+      expect(err2).toMatchInlineSnapshot(`
+        [AjvValidationError: Object is not a valid email address
+        Input: kamal>aharris@gmail.com]
+      `)
     })
 
     test('should convert the email to lowercase - when inside an object schema', () => {

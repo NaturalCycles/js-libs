@@ -302,11 +302,7 @@ export class JsonSchemaStringBuilder<
   email(opt?: Partial<JsonSchemaStringEmailOptions>): this {
     const defaultOptions: JsonSchemaStringEmailOptions = { checkTLD: true }
     _objectAssign(this.schema, { email: { ...defaultOptions, ...opt } })
-
-    // from `ajv-formats`
-    const regex =
-      /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i
-    return this.regex(regex, { msg: 'is not a valid email address' }).trim().toLowerCase()
+    return this.trim().toLowerCase()
   }
 
   trim(): this {
