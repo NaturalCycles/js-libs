@@ -87,7 +87,7 @@
     "typescript/non-nullable-type-assertion-style": 2,
     "typescript/prefer-literal-enum-member": 2,
     "typescript/promise-function-async": [
-      2,
+      0, // todo, options don't work yet
       {
         "checkArrowFunctions": false,
         "checkFunctionDeclarations": true,
@@ -96,6 +96,37 @@
       }
     ],
     "typescript/prefer-for-of": 2,
+    "typescript/no-confusing-non-null-assertion": 2,
+    "typescript/ban-tslint-comment": 2,
+    "typescript/prefer-function-type": 2,
+    "typescript/prefer-namespace-keyword": 2,
+    "typescript/consistent-generic-constructors": [2, "constructor"],
+    "typescript/consistent-type-definitions": [2, "interface"],
+    "typescript/consistent-type-imports": 2,
+    "typescript/no-inferrable-types": [
+      2,
+      {
+        "ignoreParameters": true
+      }
+    ],
+    "typescript/adjacent-overload-signatures": 2,
+    "typescript/array-type": 2,
+    "typescript/prefer-enum-initializers": 2,
+    "typescript/prefer-promise-reject-errors": 2,
+    "typescript/prefer-ts-expect-error": 2,
+    "typescript/require-await": 0, // not good yet
+    "typescript/restrict-plus-operands": 2,
+    "typescript/return-await": [0, "always"], // not good yet
+    "typescript/only-throw-error": 2,
+    "typescript/no-unsafe-function-type": 2,
+    "typescript/no-misused-promises": 0,
+    "typescript/no-mixed-enums": 2,
+    "typescript/no-unnecessary-type-assertion": 2,
+    "typescript/no-unnecessary-boolean-literal-compare": 2,
+    "typescript/no-base-to-string": 2,
+    "typescript/unbound-method": 0,
+    "typescript/require-array-sort-compare": 0, // not good
+    "typescript/no-redundant-type-constituents": 0, // `'a' | string` is still useful for DX
     "unicorn/no-anonymous-default-export": 2,
     "unicorn/no-array-reduce": 2,
     "unicorn/no-document-cookie": 2,

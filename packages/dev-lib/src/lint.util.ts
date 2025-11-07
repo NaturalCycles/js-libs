@@ -182,6 +182,7 @@ export function runOxlint(fix = true): void {
     args: [
       // '--report-unused-disable-directives',
       '--max-warnings=0',
+      '--type-aware',
       fix && '--fix',
       fix && '--fix-suggestions',
       fix && '--fix-dangerously',
@@ -192,7 +193,7 @@ export function runOxlint(fix = true): void {
 
 const prettierPaths = [
   // Everything inside these folders
-  `./{${prettierDirs}}/**/*.{${prettierExtensionsAll}}`,
+  `./{${prettierDirs.join(',')}}/**/*.{${prettierExtensionsAll}}`,
 
   // Root
   `./*.{${prettierExtensionsAll}}`,
@@ -241,7 +242,7 @@ export function runPrettier(opt: RunPrettierOptions = {}): void {
 
 const stylelintPaths = [
   // Everything inside these folders
-  `./{${prettierDirs}}/**/*.{${stylelintExtensions}}`,
+  `./{${prettierDirs.join(',')}}/**/*.{${stylelintExtensions}}`,
 
   // Exclude
   ...lintExclude.map((s: string) => `!${s}`),

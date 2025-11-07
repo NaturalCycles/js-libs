@@ -5,7 +5,7 @@
   "extends": "./tsconfig.src.json",
   "compilerOptions": {
     "rootDir": "${configDir}/..",
-    "baseUrl": "${configDir}/..",
+    // "baseUrl": "${configDir}/..",
     "outDir": "${configDir}/../dist/e2e",
     "paths": {
       "@src/*": ["${configDir}/../src/*"]
