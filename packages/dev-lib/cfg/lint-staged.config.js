@@ -118,7 +118,6 @@ export function runOxlintPrettier(match) {
 export function runPrettier(match) {
   const filesList = getFilesList(match)
   if (!filesList || !prettierCmd) return []
-  // oxlint-disable-next-line typescript/restrict-template-expressions
   return [prettierCmd].map(s => `${s} ${filesList}`)
 }
 

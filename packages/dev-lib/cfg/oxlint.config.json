@@ -126,6 +126,7 @@
     "typescript/no-base-to-string": 2,
     "typescript/unbound-method": 0,
     "typescript/require-array-sort-compare": 0, // not good
+    "typescript/restrict-template-expressions": 0, // not good
     "typescript/no-redundant-type-constituents": 0, // `'a' | string` is still useful for DX
     "unicorn/no-anonymous-default-export": 2,
     "unicorn/no-array-reduce": 2,

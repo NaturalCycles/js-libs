@@ -238,7 +238,7 @@
     "typescript/require-array-sort-compare": "allow",
     "typescript/require-await": "allow",
     "typescript/restrict-plus-operands": "deny",
-    "typescript/restrict-template-expressions": "warn",
+    "typescript/restrict-template-expressions": "allow",
     "typescript/return-await": ["allow", ["always"]],
     "typescript/triple-slash-reference": "warn",
     "typescript/unbound-method": "allow",
