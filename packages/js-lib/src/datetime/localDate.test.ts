@@ -6,6 +6,8 @@ import type { IsoDate } from '../types.js'
 import type { LocalDateFormatter, LocalDateUnit } from './localDate.js'
 import { localDate } from './localDate.js'
 
+// oxlint-disable typescript/restrict-template-expressions
+
 const units: LocalDateUnit[] = ['year', 'month', 'day', 'week']
 
 const UNIT_RANGE: Record<LocalDateUnit, number> = {

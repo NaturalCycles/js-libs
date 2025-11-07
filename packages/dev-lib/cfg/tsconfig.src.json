@@ -6,7 +6,7 @@
 {
   "compilerOptions": {
     "rootDir": "${configDir}/src",
-    "baseUrl": "${configDir}/src",
+    // "baseUrl": "${configDir}/src",
     "outDir": "${configDir}/dist",
     // Target/module
     "target": "es2024",

@@ -73,7 +73,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     let jsonSchema: JsonSchema<IN, OUT>
 
     if (AjvSchema.isJsonSchemaBuilder(schema)) {
-      jsonSchema = (schema as JsonSchemaTerminal<IN, OUT, any>).build()
+      jsonSchema = schema.build()
       AjvSchema.requireValidJsonSchema(jsonSchema)
     } else {
       jsonSchema = schema

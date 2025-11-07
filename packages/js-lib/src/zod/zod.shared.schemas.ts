@@ -108,7 +108,7 @@ const baseDBEntitySchema = z.object({
   updated: unixTimestamp2000(),
 })
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line @typescript-eslint/consistent-type-definitions
 type BaseDBEntityZodShape = {
   id: ZodString
   created: ZodBrandedInt<UnixTimestamp>

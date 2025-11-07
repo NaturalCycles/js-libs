@@ -65,7 +65,14 @@ if (eslintConfigPath) {
 let oxlintCmd = undefined
 
 if (oxlintConfigPath) {
-  oxlintCmd = ['oxlint', '--fix', '--fix-suggestions', '--fix-dangerously', '--max-warnings=0']
+  oxlintCmd = [
+    'oxlint',
+    '--type-aware',
+    '--fix',
+    '--fix-suggestions',
+    '--fix-dangerously',
+    '--max-warnings=0',
+  ]
     .filter(Boolean)
     .join(' ')
 }
@@ -111,6 +118,7 @@ export function runOxlintPrettier(match) {
 export function runPrettier(match) {
   const filesList = getFilesList(match)
   if (!filesList || !prettierCmd) return []
+  // oxlint-disable-next-line typescript/restrict-template-expressions
   return [prettierCmd].map(s => `${s} ${filesList}`)
 }
 

@@ -27,7 +27,7 @@ console.log({
   count,
   error,
 })
-// oxlint-disable-next-line unicorn/prefer-top-level-await
+// oxlint-disable-next-line unicorn/prefer-top-level-await typescript/no-floating-promises
 ;(async () => {
   for (let i = 1; i <= count; i++) {
     await pDelay(1000)

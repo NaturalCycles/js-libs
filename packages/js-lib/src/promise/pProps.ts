@@ -17,7 +17,7 @@ export async function pProps<T>(input: { [K in keyof T]: T[K] | Promise<T[K]> })
 }> {
   const keys = Object.keys(input)
   // `as any` here is added to make it compile when `noUncheckedIndexedAccess` is false
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  // oxlint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   return Object.fromEntries(
     (await Promise.all(Object.values(input))).map((v, i) => [keys[i], v]),
   ) as any

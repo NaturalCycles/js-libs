@@ -302,21 +302,20 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     dbQuery: DBQuery<ROW>,
     _opt?: DatastoreDBStreamOptions,
   ): Pipeline<ROW> {
-    return Pipeline.fromAsyncReadable<ROW>(async () => {
-      const ds = this.ds()
+    const ds = this.ds()
+    const q = dbQueryToDatastoreQuery(dbQuery, ds.createQuery(dbQuery.table))
 
-      const q = dbQueryToDatastoreQuery(dbQuery, ds.createQuery(dbQuery.table))
+    const opt = {
+      logger: this.cfg.logger,
+      ...this.cfg.streamOptions,
+      ..._opt,
+    }
 
-      const opt = {
-        logger: this.cfg.logger,
-        ...this.cfg.streamOptions,
-        ..._opt,
-      }
+    const readable = opt.experimentalCursorStream
+      ? new DatastoreStreamReadable<ROW>(q, opt)
+      : ds.runQueryStream(q, this.getRunQueryOptions(opt))
 
-      return opt.experimentalCursorStream
-        ? new DatastoreStreamReadable<ROW>(q, opt)
-        : ds.runQueryStream(q, this.getRunQueryOptions(opt))
-    }).mapSync(r => this.mapId<ROW>(r))
+    return Pipeline.from<ROW>(readable).mapSync(r => this.mapId<ROW>(r))
   }
 
   // https://github.com/GoogleCloudPlatform/nodejs-getting-started/blob/master/2-structured-data/books/model-datastore.js

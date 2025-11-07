@@ -154,7 +154,13 @@
     "promise/no-new-statics": "warn",
     "promise/spec-only": "deny",
     "promise/valid-params": "warn",
+    "typescript/adjacent-overload-signatures": "deny",
+    "typescript/array-type": "deny",
     "typescript/await-thenable": "warn",
+    "typescript/ban-tslint-comment": "deny",
+    "typescript/consistent-generic-constructors": ["deny", ["constructor"]],
+    "typescript/consistent-type-definitions": ["deny", ["interface"]],
+    "typescript/consistent-type-imports": "deny",
     "typescript/explicit-function-return-type": [
       "deny",
       [
@@ -164,7 +170,8 @@
       ]
     ],
     "typescript/no-array-delete": "warn",
-    "typescript/no-base-to-string": "warn",
+    "typescript/no-base-to-string": "deny",
+    "typescript/no-confusing-non-null-assertion": "deny",
     "typescript/no-duplicate-enum-values": "warn",
     "typescript/no-duplicate-type-constituents": "warn",
     "typescript/no-empty-object-type": [
@@ -180,26 +187,45 @@
     "typescript/no-for-in-array": "warn",
     "typescript/no-implied-eval": "warn",
     "typescript/no-import-type-side-effects": "deny",
+    "typescript/no-inferrable-types": [
+      "deny",
+      [
+        {
+          "ignoreParameters": true
+        }
+      ]
+    ],
     "typescript/no-meaningless-void-operator": "warn",
     "typescript/no-misused-new": "warn",
+    "typescript/no-misused-promises": "allow",
     "typescript/no-misused-spread": "warn",
+    "typescript/no-mixed-enums": "deny",
     "typescript/no-non-null-asserted-nullish-coalescing": "deny",
     "typescript/no-non-null-asserted-optional-chain": "warn",
-    "typescript/no-redundant-type-constituents": "warn",
+    "typescript/no-redundant-type-constituents": "allow",
     "typescript/no-require-imports": "deny",
     "typescript/no-this-alias": "allow",
+    "typescript/no-unnecessary-boolean-literal-compare": "deny",
     "typescript/no-unnecessary-parameter-property-assignment": "warn",
+    "typescript/no-unnecessary-type-assertion": "deny",
     "typescript/no-unsafe-declaration-merging": "warn",
+    "typescript/no-unsafe-function-type": "deny",
     "typescript/no-unsafe-unary-minus": "warn",
     "typescript/no-useless-empty-export": "warn",
     "typescript/no-var-requires": "deny",
     "typescript/no-wrapper-object-types": "warn",
     "typescript/non-nullable-type-assertion-style": "deny",
+    "typescript/only-throw-error": "deny",
     "typescript/prefer-as-const": "warn",
+    "typescript/prefer-enum-initializers": "deny",
     "typescript/prefer-for-of": "deny",
+    "typescript/prefer-function-type": "deny",
     "typescript/prefer-literal-enum-member": "deny",
+    "typescript/prefer-namespace-keyword": "deny",
+    "typescript/prefer-promise-reject-errors": "deny",
+    "typescript/prefer-ts-expect-error": "deny",
     "typescript/promise-function-async": [
-      "deny",
+      "allow",
       [
         {
           "checkArrowFunctions": false,
@@ -209,10 +235,13 @@
         }
       ]
     ],
-    "typescript/require-array-sort-compare": "warn",
+    "typescript/require-array-sort-compare": "allow",
+    "typescript/require-await": "allow",
+    "typescript/restrict-plus-operands": "deny",
     "typescript/restrict-template-expressions": "warn",
+    "typescript/return-await": ["allow", ["always"]],
     "typescript/triple-slash-reference": "warn",
-    "typescript/unbound-method": "warn",
+    "typescript/unbound-method": "allow",
     "unicorn/catch-error-name": [
       "deny",
       [

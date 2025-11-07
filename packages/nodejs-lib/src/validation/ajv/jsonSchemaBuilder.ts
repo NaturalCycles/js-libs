@@ -673,7 +673,7 @@ export class JsonSchemaObjectBuilder<
   /**
    * Extends the current schema with `id`, `created` and `updated` according to NC DB conventions.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+  // oxlint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
   dbEntity() {
     return this.extend({
       id: j.string(),
@@ -801,7 +801,7 @@ export class JsonSchemaObjectInferringBuilder<
   /**
    * Extends the current schema with `id`, `created` and `updated` according to NC DB conventions.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+  // oxlint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
   dbEntity() {
     return this.extend({
       id: j.string(),

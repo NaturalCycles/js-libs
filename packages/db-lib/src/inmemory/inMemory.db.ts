@@ -1,6 +1,5 @@
 import { _isEmptyObject } from '@naturalcycles/js-lib'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { generateJsonSchemaFromData } from '@naturalcycles/js-lib/json-schema'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _deepCopy, _sortObjectDeep } from '@naturalcycles/js-lib/object'
 import {
@@ -11,6 +10,7 @@ import {
   type StringMap,
 } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { generateJsonSchemaFromData } from '@naturalcycles/nodejs-lib/ajv'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { bufferReviver } from '@naturalcycles/nodejs-lib/stream/ndjson/transformJsonParse.js'
 import type { CommonDB, CommonDBSupport } from '../commondb/common.db.js'

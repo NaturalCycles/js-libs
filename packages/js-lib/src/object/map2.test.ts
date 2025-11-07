@@ -3,7 +3,7 @@ import { expect, expectTypeOf, test } from 'vitest'
 import { _deepEquals } from './deepEquals.js'
 import { Map2 } from './map2.js'
 
-/* eslint-disable @typescript-eslint/no-base-to-string */
+/* oxlint-disable @typescript-eslint/no-base-to-string */
 
 test('map2', () => {
   const m = new Map([

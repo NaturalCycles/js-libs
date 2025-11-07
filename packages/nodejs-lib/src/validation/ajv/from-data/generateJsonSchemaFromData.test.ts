@@ -1,5 +1,5 @@
+import { _range } from '@naturalcycles/js-lib/array'
 import { expect, test } from 'vitest'
-import { _range } from '../../array/index.js'
 import { generateJsonSchemaFromData } from './generateJsonSchemaFromData.js'
 
 test('generateJsonSchemaFromData1', () => {

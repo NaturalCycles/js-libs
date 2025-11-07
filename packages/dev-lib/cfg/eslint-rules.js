@@ -1,6 +1,6 @@
 export default {
   rules: {
-    '@typescript-eslint/adjacent-overload-signatures': 2,
+    '@typescript-eslint/adjacent-overload-signatures': 0, // ox
     '@typescript-eslint/ban-ts-comment': 0,
     'no-restricted-globals': 0, // oxlint
     '@typescript-eslint/no-restricted-types': [
@@ -32,11 +32,11 @@ export default {
         },
       },
     ],
-    '@typescript-eslint/consistent-type-imports': 2,
+    '@typescript-eslint/consistent-type-imports': 0, // ox
     '@typescript-eslint/consistent-type-exports': 2,
     '@typescript-eslint/consistent-type-assertions': 2,
-    '@typescript-eslint/consistent-type-definitions': [2, 'interface'],
-    '@typescript-eslint/consistent-generic-constructors': [2, 'constructor'],
+    '@typescript-eslint/consistent-type-definitions': [0, 'interface'], // ox
+    '@typescript-eslint/consistent-generic-constructors': [0, 'constructor'], // ox
     // Doc: https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/naming-convention.md
     // Loosely based on this: https://github.com/xojs/eslint-config-xo-typescript/blob/main/index.js
     '@typescript-eslint/naming-convention': [
@@ -120,9 +120,9 @@ export default {
     ],
     '@typescript-eslint/no-array-constructor': 2,
     '@typescript-eslint/no-extra-non-null-assertion': 2,
-    '@typescript-eslint/no-floating-promises': 2,
+    '@typescript-eslint/no-floating-promises': 0, // oxlint
     '@typescript-eslint/no-inferrable-types': [
-      2,
+      0, // ox
       {
         ignoreParameters: true,
       },
@@ -133,8 +133,8 @@ export default {
     '@typescript-eslint/no-unused-expressions': 0, // oxlint
     '@typescript-eslint/prefer-as-const': 2,
     '@typescript-eslint/prefer-for-of': 0, // oxlint
-    '@typescript-eslint/prefer-function-type': 2,
-    '@typescript-eslint/prefer-namespace-keyword': 2,
+    '@typescript-eslint/prefer-function-type': 0, // ox
+    '@typescript-eslint/prefer-namespace-keyword': 0, // ox
     '@typescript-eslint/promise-function-async': [
       2,
       {
@@ -250,7 +250,7 @@ export default {
     'no-shadow-restricted-names': 2,
     'no-sparse-arrays': 0, // oxlint
     'no-this-before-super': 2,
-    '@typescript-eslint/only-throw-error': 0, // biome
+    '@typescript-eslint/only-throw-error': 0, // biome, ox
     'no-undef': 0, // covered by TS, conflicts with typescript-eslint
     'no-underscore-dangle': 0,
     'no-unreachable': 2,
@@ -289,7 +289,7 @@ export default {
     'guard-for-in': 0, // oxlint
     'prefer-spread': 0, // oxlint
     '@typescript-eslint/no-namespace': [
-      2,
+      0, // ox
       {
         allowDeclarations: true, // allows `namespace NodeJS {}` augmentations
       },
@@ -309,23 +309,23 @@ export default {
     //   { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
     // ],
     '@typescript-eslint/no-duplicate-enum-values': 0, // oxlint
-    '@typescript-eslint/no-redundant-type-constituents': 0, // `'a' | string` is still useful for DX
+    '@typescript-eslint/no-redundant-type-constituents': 0, // ox, `'a' | string` is still useful for DX
     '@typescript-eslint/no-empty-function': 0,
     '@typescript-eslint/no-var-requires': 0,
     '@typescript-eslint/no-require-imports': 0,
     '@typescript-eslint/no-explicit-any': 0, // oxlint
     '@typescript-eslint/no-non-null-assertion': 0,
     '@typescript-eslint/explicit-module-boundary-types': [
-      2,
+      0, // ox
       {
         allowArgumentsExplicitlyTypedAsAny: true,
       },
     ],
-    '@typescript-eslint/array-type': 2,
+    '@typescript-eslint/array-type': 0, // ox
     '@typescript-eslint/prefer-regexp-exec': 0, // auto-fixer breaks code sometimes!
     '@typescript-eslint/prefer-find': 2,
     'prefer-promise-reject-errors': 0,
-    '@typescript-eslint/prefer-promise-reject-errors': 2,
+    '@typescript-eslint/prefer-promise-reject-errors': 0, // ox
     'unicorn/prefer-import-meta-properties': 2,
     'unicorn/no-array-callback-reference': 0, // false positives
     'unicorn/no-process-exit': 0,
@@ -412,26 +412,26 @@ export default {
     'unicorn/prefer-modern-math-apis': 0, // oxlint
     'unicorn/prefer-set-size': 0, // oxlint
     'unicorn/prefer-string-starts-ends-with': 0, // oxlint
-    '@typescript-eslint/return-await': [2, 'always'],
-    '@typescript-eslint/require-await': 0,
+    '@typescript-eslint/return-await': [2, 'always'], // ox is not good yet
+    '@typescript-eslint/require-await': 0, // ox
     'unicorn/no-array-reverse': 0, // too early
-    '@typescript-eslint/no-misused-promises': 0,
+    '@typescript-eslint/no-misused-promises': 0, // ox, but not good rule
     '@typescript-eslint/no-unsafe-assignment': 0,
     '@typescript-eslint/no-unsafe-member-access': 0,
     '@typescript-eslint/no-unsafe-call': 0,
-    '@typescript-eslint/no-unsafe-function-type': 2,
+    '@typescript-eslint/no-unsafe-function-type': 0, // ox
     '@typescript-eslint/no-wrapper-object-types': 2,
     '@typescript-eslint/no-empty-object-type': [
-      2,
+      0, // ox
       {
         allowInterfaces: 'always',
       },
     ],
-    '@typescript-eslint/no-unnecessary-template-expression': 2,
+    '@typescript-eslint/no-unnecessary-template-expression': 0, // ox
     '@typescript-eslint/no-unnecessary-parameter-property-assignment': 2,
-    '@typescript-eslint/restrict-template-expressions': 0,
+    '@typescript-eslint/restrict-template-expressions': 0, // ox
     '@typescript-eslint/no-unsafe-return': 0,
-    '@typescript-eslint/restrict-plus-operands': 0,
+    '@typescript-eslint/restrict-plus-operands': 0, // ox
     '@typescript-eslint/unbound-method': 0,
     '@typescript-eslint/no-unsafe-argument': 0, // prevents "legit" use of `any`
     'unicorn/prefer-export-from': 0, // breaks auto-imports in IntelliJ Idea
@@ -460,9 +460,9 @@ export default {
     'no-else-return': 2,
     'no-sequences': 2,
     'no-useless-concat': 0, // oxlint
-    '@typescript-eslint/ban-tslint-comment': 2,
+    '@typescript-eslint/ban-tslint-comment': 0, // ox
     '@typescript-eslint/explicit-function-return-type': [
-      2,
+      0, // ox
       {
         // defaults
         // allowExpressions: false,
@@ -478,14 +478,14 @@ export default {
       },
     ],
     '@typescript-eslint/method-signature-style': 2,
-    '@typescript-eslint/no-unnecessary-boolean-literal-compare': 2,
+    '@typescript-eslint/no-unnecessary-boolean-literal-compare': 0, // ox
     // '@typescript-eslint/no-unnecessary-condition': [2, {
     //   allowConstantLoopConditions: true,
     // }],
     '@typescript-eslint/prefer-includes': 2,
     '@typescript-eslint/prefer-optional-chain': 2,
     '@typescript-eslint/prefer-string-starts-ends-with': 2,
-    '@typescript-eslint/prefer-ts-expect-error': 2,
+    '@typescript-eslint/prefer-ts-expect-error': 0, // ox
     '@typescript-eslint/explicit-member-accessibility': [
       2,
       {
@@ -493,16 +493,37 @@ export default {
         overrides: { parameterProperties: 'off' },
       },
     ],
-    '@typescript-eslint/no-mixed-enums': 2,
-    '@typescript-eslint/no-non-null-asserted-nullish-coalescing': 2,
+    '@typescript-eslint/no-confusing-non-null-assertion': 0, // ox
+    '@typescript-eslint/no-mixed-enums': 0, // ox
+    '@typescript-eslint/no-non-null-asserted-nullish-coalescing': 0, // ox
     '@typescript-eslint/no-unnecessary-qualifier': 2,
-    '@typescript-eslint/prefer-enum-initializers': 2,
-    '@typescript-eslint/prefer-literal-enum-member': 2,
+    '@typescript-eslint/prefer-enum-initializers': 0, // ox
+    '@typescript-eslint/prefer-literal-enum-member': 0, // ox
     '@typescript-eslint/prefer-reduce-type-parameter': 0, // gives ts compilation error
     '@typescript-eslint/prefer-nullish-coalescing': 0, // we prefer `||` actually
     '@typescript-eslint/dot-notation': 0, // not always desireable
     '@typescript-eslint/consistent-indexed-object-style': 0, // Record looses the name of the key
     '@typescript-eslint/no-unsafe-enum-comparison': 0, // not practically helpful
+    '@typescript-eslint/no-base-to-string': 0, // oxlint
+    '@typescript-eslint/await-thenable': 0, // oxlint
+    '@typescript-eslint/no-array-delete': 0, // oxlint
+
+    '@typescript-eslint/no-confusing-void-expression': 0,
+    '@typescript-eslint/no-duplicate-type-constituents': 0,
+    '@typescript-eslint/no-for-in-array': 0,
+    '@typescript-eslint/no-implied-eval': 0,
+    '@typescript-eslint/no-meaningless-void-operator': 0,
+    '@typescript-eslint/no-unnecessary-type-arguments': 0,
+    '@typescript-eslint/no-unnecessary-type-assertion': 0,
+    '@typescript-eslint/no-unsafe-type-assertion': 0,
+    '@typescript-eslint/no-unsafe-unary-minus': 0,
+    '@typescript-eslint/non-nullable-type-assertion-style': 0,
+    '@typescript-eslint/prefer-return-this-type': 0,
+    '@typescript-eslint/related-getter-setter-pairs': 0,
+    '@typescript-eslint/require-array-sort-compare': 0,
+    '@typescript-eslint/switch-exhaustiveness-check': 0,
+    '@typescript-eslint/use-unknown-in-catch-callback-variable': 0,
+
     // stylistic - replaced by custom oxlint rules
     // '@stylistic/padding-line-between-statements': [
     //   2,

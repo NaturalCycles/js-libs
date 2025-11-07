@@ -82,12 +82,13 @@ async function runBenchOnce(opt: RunBenchOptions, run: number): Promise<HertzMap
 
   const suite = new Benchmark.Suite()
     .on('cycle', (event: Event) => {
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      // oxlint-disable-next-line @typescript-eslint/no-base-to-string
       console.log(String(event.target))
       // console.log(event.target)
     })
     .on('complete', function (this: Suite) {
-      console.log(`Fastest in run ${yellow(run)} is ` + this.filter('fastest').map('name' as any))
+      // oxlint-disable-next-line typescript/restrict-plus-operands
+      console.log(`Fastest in run ${yellow(run)} is ` + this.filter('fastest').map('name'))
       // console.log(this[0].stats)
       // console.log(this)
 

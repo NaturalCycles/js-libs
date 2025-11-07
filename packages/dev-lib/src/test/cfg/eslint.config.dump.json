@@ -16,30 +16,17 @@
   },
   "plugins": [
     "@",
-    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.46.2",
+    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.46.3",
     "unicorn:eslint-plugin-unicorn@62.0.0",
     "vue:eslint-plugin-vue@10.5.1",
-    "vitest:vitest@1.4.0",
+    "vitest:vitest@1.4.1",
     "import-x:eslint-plugin-import-x@4.16.1",
     "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1"
   ],
   "processor": "vue/vue",
   "rules": {
-    "@typescript-eslint/adjacent-overload-signatures": [2],
-    "@typescript-eslint/array-type": [2],
-    "@typescript-eslint/await-thenable": [2],
-    "@typescript-eslint/ban-tslint-comment": [2],
     "@typescript-eslint/class-literal-property-style": [2],
-    "@typescript-eslint/consistent-generic-constructors": [2, "constructor"],
     "@typescript-eslint/consistent-type-assertions": [2],
-    "@typescript-eslint/consistent-type-definitions": [2, "interface"],
-    "@typescript-eslint/consistent-type-imports": [2],
-    "@typescript-eslint/explicit-function-return-type": [
-      2,
-      {
-        "allowExpressions": true
-      }
-    ],
     "@typescript-eslint/explicit-member-accessibility": [
       2,
       {
@@ -47,12 +34,6 @@
         "overrides": {
           "parameterProperties": "off"
         }
-      }
-    ],
-    "@typescript-eslint/explicit-module-boundary-types": [
-      2,
-      {
-        "allowArgumentsExplicitlyTypedAsAny": true
       }
     ],
     "@typescript-eslint/method-signature-style": [2],
@@ -123,27 +104,6 @@
       }
     ],
     "@typescript-eslint/no-array-constructor": [2],
-    "@typescript-eslint/no-array-delete": [2],
-    "@typescript-eslint/no-base-to-string": [2],
-    "@typescript-eslint/no-confusing-non-null-assertion": [2],
-    "@typescript-eslint/no-duplicate-type-constituents": [2],
-    "@typescript-eslint/no-empty-object-type": [
-      2,
-      {
-        "allowInterfaces": "always"
-      }
-    ],
-    "@typescript-eslint/no-floating-promises": [2],
-    "@typescript-eslint/no-for-in-array": [2],
-    "@typescript-eslint/no-implied-eval": [2],
-    "@typescript-eslint/no-mixed-enums": [2],
-    "@typescript-eslint/no-namespace": [
-      2,
-      {
-        "allowDeclarations": true
-      }
-    ],
-    "@typescript-eslint/no-non-null-asserted-nullish-coalescing": [2],
     "@typescript-eslint/no-non-null-asserted-optional-chain": [2],
     "@typescript-eslint/no-restricted-types": [
       2,
@@ -170,20 +130,12 @@
         }
       }
     ],
-    "@typescript-eslint/no-unnecessary-boolean-literal-compare": [2],
     "@typescript-eslint/no-unnecessary-parameter-property-assignment": [2],
     "@typescript-eslint/no-unnecessary-qualifier": [2],
-    "@typescript-eslint/no-unnecessary-template-expression": [2],
-    "@typescript-eslint/no-unnecessary-type-assertion": [2],
-    "@typescript-eslint/no-unsafe-function-type": [2],
-    "@typescript-eslint/no-unsafe-unary-minus": [2],
     "@typescript-eslint/no-wrapper-object-types": [2],
-    "@typescript-eslint/non-nullable-type-assertion-style": [2],
     "@typescript-eslint/prefer-find": [2],
     "@typescript-eslint/prefer-includes": [2],
-    "@typescript-eslint/prefer-promise-reject-errors": [2],
     "@typescript-eslint/prefer-string-starts-ends-with": [2],
-    "@typescript-eslint/prefer-ts-expect-error": [2],
     "@typescript-eslint/promise-function-async": [
       2,
       {

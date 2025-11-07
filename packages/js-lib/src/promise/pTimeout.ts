@@ -88,7 +88,7 @@ export async function pTimeout<T>(fn: AnyAsyncFunction<T>, opt: PTimeoutOptions)
           _typeCast<Error>(err)
           // keep original stack
           err.stack = fakeError.stack!.replace('Error: TimeoutError', err.name + ': ' + err.message)
-          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           reject(_errorDataAppend(err, opt.errorData))
         }
         return

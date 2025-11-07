@@ -3,7 +3,7 @@ import { expect, expectTypeOf, test } from 'vitest'
 import { _stringify } from '../string/index.js'
 import { Set2 } from './set2.js'
 
-/* eslint-disable @typescript-eslint/no-base-to-string */
+/* oxlint-disable @typescript-eslint/no-base-to-string typescript/restrict-template-expressions */
 
 test('set2', () => {
   const s = new Set([1, 2, 3])

@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { _TryCatch, _tryCatch } from './tryCatch.js'
 
-/* eslint-disable @typescript-eslint/await-thenable */
+// oxlint-disable @typescript-eslint/await-thenable
 
 const _fnSuccess = (...args: any[]): any => args
 

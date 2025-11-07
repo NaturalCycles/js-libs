@@ -4,7 +4,7 @@ pn tsx scripts/uncaught
 
  */
 
-/* eslint-disable */
+// oxlint-disable
 
 process.on('uncaughtException', (err, origin) => {
   console.error('here', origin, err)
