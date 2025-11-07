@@ -22,9 +22,9 @@ export function dbQueryToMongoQuery<ROW extends ObjectWithId>(
   dbQuery: DBQuery<ROW>,
 ): {
   query: Filter<ROW>
-  options: FindOptions<ROW>
+  options: FindOptions
 } {
-  const options = {} as FindOptions<ROW>
+  const options = {} as FindOptions
 
   // filter
   // oxlint-disable-next-line unicorn/no-array-reduce
