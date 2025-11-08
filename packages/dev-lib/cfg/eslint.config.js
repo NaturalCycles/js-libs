@@ -92,7 +92,7 @@ function getEslintConfigForDir() {
       ...getConfig(tsconfigE2ePath),
     },
     {
-      ignores: ['**/__exclude/**', '**/*.scss', '**/*.js'],
+      ignores: ['**/node_modules/**', '**/__exclude/**', '**/*.scss', '**/*.js'],
     },
   ].filter(Boolean)
 }

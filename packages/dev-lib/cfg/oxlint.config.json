@@ -170,6 +170,7 @@
       }
     ],
     "unicorn/no-accessor-recursion": 2,
+    "unicorn/prefer-string-slice": 2,
     "vitest/no-import-node-test": 2,
     "jest/consistent-test-it": [
       2,

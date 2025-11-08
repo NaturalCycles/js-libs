@@ -315,6 +315,7 @@
     "unicorn/prefer-set-has": "deny",
     "unicorn/prefer-set-size": "warn",
     "unicorn/prefer-string-replace-all": "deny",
+    "unicorn/prefer-string-slice": "deny",
     "unicorn/prefer-string-starts-ends-with": "warn",
     "unicorn/prefer-top-level-await": "deny",
     "unicorn/require-module-specifiers": "deny",
