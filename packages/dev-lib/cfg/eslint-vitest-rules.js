@@ -2,15 +2,15 @@ export default {
   rules: {
     'vitest/consistent-test-filename': 2,
     'vitest/consistent-test-it': [
-      2,
+      0, // ox
       {
         fn: 'test',
         withinDescribe: 'test',
       },
     ],
     'vitest/expect-expect': 0,
-    'vitest/max-nested-describe': [2, { max: 3 }],
-    'vitest/no-alias-methods': 2,
+    'vitest/max-nested-describe': [0, { max: 3 }], // ox
+    'vitest/no-alias-methods': 0, // ox
     'vitest/no-commented-out-tests': 0,
     'vitest/no-duplicate-hooks': 2,
     'vitest/no-test-return-statement': 2,

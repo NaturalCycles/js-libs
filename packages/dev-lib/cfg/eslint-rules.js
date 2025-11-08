@@ -129,7 +129,7 @@ export default {
     ],
     '@typescript-eslint/no-misused-new': 2,
     '@typescript-eslint/no-misused-spread': 0, // ox
-    '@typescript-eslint/no-non-null-asserted-optional-chain': 2,
+    '@typescript-eslint/no-non-null-asserted-optional-chain': 0, // ox
     '@typescript-eslint/no-unused-expressions': 0, // oxlint
     '@typescript-eslint/prefer-as-const': 2,
     '@typescript-eslint/prefer-for-of': 0, // oxlint

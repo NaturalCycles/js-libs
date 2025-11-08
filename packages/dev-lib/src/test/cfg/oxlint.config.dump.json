@@ -113,7 +113,25 @@
     "import/no-self-import": "deny",
     "import/no-unassigned-import": "allow",
     "import/no-webpack-loader-syntax": "deny",
+    "jest/consistent-test-it": [
+      "deny",
+      [
+        {
+          "fn": "test",
+          "withinDescribe": "test"
+        }
+      ]
+    ],
     "jest/expect-expect": "allow",
+    "jest/max-nested-describe": [
+      "allow",
+      [
+        {
+          "max": 4
+        }
+      ]
+    ],
+    "jest/no-alias-methods": "deny",
     "jest/no-conditional-expect": "allow",
     "jest/no-disabled-tests": "allow",
     "jest/no-export": "warn",

@@ -7,7 +7,8 @@
       "extraFileExtensions": {
         "0": ".vue",
         "1": ".html"
-      }
+      },
+      "projectService": true
     },
     "sourceType": "module"
   },
@@ -104,7 +105,6 @@
       }
     ],
     "@typescript-eslint/no-array-constructor": [2],
-    "@typescript-eslint/no-non-null-asserted-optional-chain": [2],
     "@typescript-eslint/no-restricted-types": [
       2,
       {
@@ -289,20 +289,6 @@
       }
     ],
     "vitest/consistent-test-filename": [2],
-    "vitest/consistent-test-it": [
-      2,
-      {
-        "fn": "test",
-        "withinDescribe": "test"
-      }
-    ],
-    "vitest/max-nested-describe": [
-      2,
-      {
-        "max": 3
-      }
-    ],
-    "vitest/no-alias-methods": [2],
     "vitest/no-duplicate-hooks": [2],
     "vitest/no-identical-title": [2],
     "vitest/no-test-return-statement": [2],

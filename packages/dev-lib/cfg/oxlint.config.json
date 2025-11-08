@@ -171,6 +171,15 @@
     ],
     "unicorn/no-accessor-recursion": 2,
     "vitest/no-import-node-test": 2,
+    "jest/consistent-test-it": [
+      2,
+      {
+        "fn": "test",
+        "withinDescribe": "test"
+      }
+    ],
+    "jest/max-nested-describe": [0, { "max": 4 }], // not good
+    "jest/no-alias-methods": 2,
     "vue/no-multiple-slot-args": 2
   },
   "settings": {

@@ -97,7 +97,7 @@ function getEslintConfigForDir() {
   ].filter(Boolean)
 }
 
-function getConfig(tsconfigPath) {
+function getConfig(_tsconfigPath) {
   return {
     plugins: {
       '@typescript-eslint': tseslint.plugin,
@@ -116,7 +116,8 @@ function getConfig(tsconfigPath) {
         NodeJS: 'readonly',
       },
       parserOptions: {
-        project: tsconfigPath,
+        // project: tsconfigPath,
+        projectService: true,
         // tsconfigRootDir: cwd,
         parser: tseslint.parser,
         extraFileExtensions: ['.vue', '.html'],
