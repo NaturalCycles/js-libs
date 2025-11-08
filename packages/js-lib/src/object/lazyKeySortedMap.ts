@@ -1,7 +1,7 @@
 import { _assert } from '../error/index.js'
 import type { Comparator } from '../types.js'
 
-export interface KeySortedMapOptions<K> {
+export interface LazyKeySortedMapOptions<K> {
   /**
    * Defaults to undefined.
    * Undefined (default comparator) works well for String keys.
@@ -17,12 +17,12 @@ export interface KeySortedMapOptions<K> {
  *
  * @experimental
  */
-export class KeySortedMap2<K, V> implements Map<K, V> {
+export class LazyKeySortedMap<K, V> implements Map<K, V> {
   private readonly map: Map<K, V>
   private readonly maybeSortedKeys: K[]
   private keysAreSorted = false
 
-  constructor(entries: [K, V][] = [], opt: KeySortedMapOptions<K> = {}) {
+  constructor(entries: [K, V][] = [], opt: LazyKeySortedMapOptions<K> = {}) {
     this.#comparator = opt.comparator
     this.map = new Map(entries)
     this.maybeSortedKeys = [...this.map.keys()]
@@ -33,8 +33,8 @@ export class KeySortedMap2<K, V> implements Map<K, V> {
   /**
    * Convenience way to create KeySortedMap from object.
    */
-  static of<V>(obj: Record<any, V>): KeySortedMap2<string, V> {
-    return new KeySortedMap2(Object.entries(obj))
+  static of<V>(obj: Record<any, V>): LazyKeySortedMap<string, V> {
+    return new LazyKeySortedMap(Object.entries(obj))
   }
 
   get size(): number {

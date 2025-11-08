@@ -32,8 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref_name == 'main'
     permissions:
+      id-token: write # Required for OIDC
       contents: write
-      id-token: write
       pull-requests: write
     steps:
       - { uses: actions/checkout@v5, with: { persist-credentials: false } }
