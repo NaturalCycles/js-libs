@@ -467,14 +467,14 @@ describe('bcryptStringScrubber', () => {
   test('generates valid bcrypt string while maintaining algo and cost factor', () => {
     const result = bcryptStringScrubber(bryptStr1)
     expect(result).not.toEqual(bryptStr1)
-    expect(result!.substr(0, 7)).toBe('$2a$12$')
+    expect(result!.slice(0, 7)).toBe('$2a$12$')
     expect(result!).toHaveLength(bryptStr1.length)
   })
 
   test('ensure older cost factor is preserved', () => {
     const result = bcryptStringScrubber(bryptStr2)
     expect(result).not.toEqual(bryptStr2)
-    expect(result!.substr(0, 7)).toBe('$2a$10$')
+    expect(result!.slice(0, 7)).toBe('$2a$10$')
   })
   test('handling undefined and empty', () => {
     const undefinedResult = bcryptStringScrubber(undefined)
@@ -485,7 +485,7 @@ describe('bcryptStringScrubber', () => {
   })
   test('handling non-valid bcrypt strings, should return valid bcrypt string', () => {
     const result = bcryptStringScrubber('stringWithToFew$')
-    expect(result!.substr(0, 7)).toBe('$2a$12$')
+    expect(result!.slice(0, 7)).toBe('$2a$12$')
     expect(result!).toHaveLength(bryptStr1.length)
   })
   test('handling replacements map', () => {
@@ -531,7 +531,7 @@ describe('saltedHashSubstringScrubber', () => {
       initializationVector,
     })
 
-    expect(result1?.substring(4, 64)).toBe(result2?.substring(4, 64))
+    expect(result1?.slice(4, 64)).toBe(result2?.slice(4, 64))
   })
 
   test('should scrub substring using regex', () => {

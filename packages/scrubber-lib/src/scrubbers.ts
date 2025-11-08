@@ -91,11 +91,11 @@ export const isoDateStringScrubber: ISODateStringScrubberFn = (value, params = {
   }
 
   if (value && params.excludeMonth) {
-    value = value.slice(0, 5) + '01' + value.substr(7, 3)
+    value = value.slice(0, 5) + '01' + value.slice(7, 10)
   }
 
   if (value && params.excludeYear) {
-    value = '1970' + value.substr(4, 9)
+    value = '1970' + value.slice(4, 11)
   }
 
   return value
@@ -215,9 +215,11 @@ export const charsFromRightScrubber: CharsFromRightScrubberFn = (
   const { count, replacement, replaceFull } = params
 
   if (replaceFull) {
+    // oxlint-disable-next-line unicorn/prefer-string-slice
     return value.substr(0, value.length - count) + replacement
   }
   const lengthToReplace = Math.min(count, value.length)
+  // oxlint-disable-next-line unicorn/prefer-string-slice
   return value.substr(0, value.length - count) + replacement.repeat(lengthToReplace)
 }
 
@@ -485,7 +487,7 @@ export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
   const cutoff = nthChar(value, '$', 3)
   if (!cutoff) return `$2a$12$${nanoIdCustomAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
 
-  const prefix = value.substring(0, cutoff)
+  const prefix = value.slice(0, cutoff)
 
   if (params?.replacements) {
     for (const kvPair of params.replacements.split(',')) {
