@@ -34,6 +34,7 @@ jobs:
     permissions:
       id-token: write # Required for OIDC
       contents: write
+      issues: write
       pull-requests: write
     steps:
       - { uses: actions/checkout@v5, with: { persist-credentials: false } }
@@ -43,7 +44,6 @@ jobs:
       - run: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   docs:
     runs-on: ubuntu-latest
