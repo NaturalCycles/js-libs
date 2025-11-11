@@ -14,7 +14,7 @@ minimumReleaseAgeExclude:
   - '@naturalcycles/*'
   - vitest
   - '@vitest/*'
-trustPolicy: no-downgrade
+# trustPolicy: no-downgrade # disabled due to mitm/semver
 auditConfig:
   ignoreGhsas:
     - GHSA-h755-8qp9-cq85
