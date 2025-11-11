@@ -4,19 +4,29 @@ import {
   _stringEnumKeys,
   _stringEnumValues,
 } from '@naturalcycles/js-lib'
-import type {
-  AnyObject,
-  BaseDBEntity,
-  IANATimezone,
-  IsoDate,
-  IsoDateTime,
-  NumberEnum,
-  StringEnum,
-  StringMap,
-  UnixTimestamp,
-  UnixTimestampMillis,
+import {
+  type AnyObject,
+  type BaseDBEntity,
+  type IANATimezone,
+  type IsoDate,
+  type IsoDateTime,
+  JWT_REGEX,
+  type NumberEnum,
+  type StringEnum,
+  type StringMap,
+  type UnixTimestamp,
+  type UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import type { AlternativesSchema, AnySchema, ArraySchema, ObjectSchema } from 'joi'
+import {
+  BASE62_REGEX,
+  BASE64_REGEX,
+  BASE64URL_REGEX,
+  ID_REGEX,
+  MAC_ADDRESS_REGEX,
+  SEMVER_REGEX,
+  SLUG_REGEX,
+} from '../regexes.js'
 import { Joi } from './joi.extensions.js'
 import type { NumberSchema } from './number.extensions.js'
 import type { StringSchema } from './string.extensions.js'
@@ -100,15 +110,10 @@ export function oneOfSchema<T = any>(...schemas: AnySchema[]): AlternativesSchem
 }
 
 export const anySchema = Joi.any()
-
-export const BASE62_REGEX = /^[a-zA-Z0-9]+$/
-export const BASE64_REGEX = /^[a-zA-Z0-9+/]+={0,2}$/
-export const BASE64URL_REGEX = /^[a-zA-Z0-9_-]+$/
 export const base62Schema = stringSchema.regex(BASE62_REGEX)
 export const base64Schema = stringSchema.regex(BASE64_REGEX)
 export const base64UrlSchema = stringSchema.regex(BASE64URL_REGEX)
 
-export const JWT_REGEX = /^[\w-]+\.[\w-]+\.[\w-]+$/
 export const jwtSchema = stringSchema.regex(JWT_REGEX)
 
 // 1g498efj5sder3324zer
@@ -116,16 +121,11 @@ export const jwtSchema = stringSchema.regex(JWT_REGEX)
  * [a-zA-Z0-9_]*
  * 6-64 length
  */
-export const idSchema = stringSchema.regex(/^[a-zA-Z0-9_]{6,64}$/)
+export const idSchema = stringSchema.regex(ID_REGEX)
 
 export const idBase62Schema = base62Schema.min(8).max(64)
 export const idBase64Schema = base64Schema.min(8).max(64)
 export const idBase64UrlSchema = base64UrlSchema.min(8).max(64)
-
-/**
- * `_` should NOT be allowed to be able to use slug-ids as part of natural ids with `_` separator.
- */
-export const SLUG_REGEX = /^[a-z0-9-]*$/
 
 /**
  * "Slug" - a valid URL, filename, etc.
@@ -175,8 +175,7 @@ export const emailSchema = stringSchema.email().lowercase()
 /**
  * Pattern is simplified for our use, it's not a canonical SemVer.
  */
-export const SEM_VER_REGEX = /^[0-9]+\.[0-9]+\.[0-9]+$/
-export const semVerSchema = stringSchema.regex(SEM_VER_REGEX)
+export const semVerSchema = stringSchema.regex(SEMVER_REGEX)
 // todo: .error(() => 'should be SemVer')
 
 export const userAgentSchema = stringSchema
@@ -203,6 +202,6 @@ export const baseDBEntitySchema: ObjectSchema<BaseDBEntity> = objectSchema<BaseD
   updated: unixTimestamp2000Schema.optional(),
 })
 
-export const macAddressSchema = stringSchema.regex(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/)
+export const macAddressSchema = stringSchema.regex(MAC_ADDRESS_REGEX)
 
 export const uuidSchema = stringSchema.uuid()

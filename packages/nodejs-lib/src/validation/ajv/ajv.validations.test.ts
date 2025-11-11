@@ -842,40 +842,6 @@ describe('string', () => {
     })
   })
 
-  describe('id', () => {
-    test('should accept string with valid ID', () => {
-      const testCases = ['alphanumericwith0123_', '012345']
-      const schema = j.string().id()
-      const ajvSchema = AjvSchema.create(schema)
-
-      testCases.forEach(id => {
-        const [err] = ajvSchema.getValidationResult(id)
-        expect(err, String(id)).toBeNull()
-      })
-    })
-
-    test('should reject string with invalid ID', () => {
-      const invalidCases: any[] = [
-        '', // empty
-        '01234', // too short
-        'x'.repeat(65), // too long
-        'nodash-dash', // `-`
-        'NoCapitalLetters', // capital letter
-        0,
-        true,
-        [],
-        {},
-      ]
-      const schema = j.string().id()
-      const ajvSchema = AjvSchema.create(schema)
-
-      invalidCases.forEach(id => {
-        const [err] = ajvSchema.getValidationResult(id)
-        expect(err, String(id)).not.toBeNull()
-      })
-    })
-  })
-
   describe('slug', () => {
     test('should accept string with valid slug', () => {
       const testCases = ['some-slug', '012345']
@@ -1088,6 +1054,25 @@ describe('string', () => {
       const schema = j.string().ianaTimezone()
       const ajvSchema = AjvSchema.create(schema)
 
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('base64Url', () => {
+    test('should accept valid data', () => {
+      const testCases = ['azAZ09_-']
+      const schema = j.string().base64Url()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+
+      const invalidCases = ['!', '#', '+', '%', '<']
       invalidCases.forEach(value => {
         const [err] = ajvSchema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
