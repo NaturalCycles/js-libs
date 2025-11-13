@@ -95,7 +95,7 @@
     "eslint": "^9",
     "husky": "^9",
     "oxlint": "^1",
-    "oxlint-tsgolint": "^0.5",
+    "oxlint-tsgolint": "^0.6",
     "prettier": "^3",
     "semantic-release": "^25",
     "semantic-release-monorepo": "^8",
@@ -108,5 +108,5 @@
   "engines": {
     "node": ">=24.10.0"
   },
-  "packageManager": "pnpm@10.21.0"
+  "packageManager": "pnpm@10.22.0"
 }
