@@ -90,3 +90,12 @@ export function isEveryItemNumber(arr: any[]): boolean {
   }
   return true
 }
+
+export function isEveryItemPrimitive(arr: any[]): boolean {
+  for (const item of arr) {
+    if (typeof item !== 'number' && typeof item !== 'string' && typeof item !== 'symbol') {
+      return false
+    }
+  }
+  return true
+}

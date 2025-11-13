@@ -407,12 +407,47 @@ describe('object', () => {
   })
 
   describe('.any', () => {
-    test('should corretly infer the type', () => {
+    test('should correctly infer the type', () => {
       const schema1 = j.object.any()
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.in).toEqualTypeOf<AnyObject>()
       expectTypeOf(schema1.out).toEqualTypeOf<AnyObject>()
+    })
+  })
+
+  describe('.withEnumKeys', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.object.withEnumKeys(['a', 'b', 1], j.string())
+
+      expectTypeOf(schema1).not.toBeNever()
+      expectTypeOf(schema1.in).toEqualTypeOf<{ a: string; b: string; '1': string }>()
+      expectTypeOf(schema1.out).toEqualTypeOf<{ a: string; b: string; '1': string }>()
+      expectTypeOf(schema1.isOfType<{ a: string; b: string; '1': string }>()).not.toBeNever()
+
+      enum N {
+        A = 1,
+        B = 2,
+        C = 3,
+      }
+      const schema2 = j.object.withEnumKeys(N, j.string())
+
+      expectTypeOf(schema2).not.toBeNever()
+      expectTypeOf(schema2.in).toEqualTypeOf<{ '1': string; '2': string; '3': string }>()
+      expectTypeOf(schema2.out).toEqualTypeOf<{ '1': string; '2': string; '3': string }>()
+      expectTypeOf(schema2.isOfType<{ '1': string; '2': string; '3': string }>()).not.toBeNever()
+
+      enum S {
+        A = 'a',
+        B = 'b',
+        C = 'c',
+      }
+      const schema3 = j.object.withEnumKeys(S, j.string())
+
+      expectTypeOf(schema3).not.toBeNever()
+      expectTypeOf(schema3.in).toEqualTypeOf<{ a: string; b: string; c: string }>()
+      expectTypeOf(schema3.out).toEqualTypeOf<{ a: string; b: string; c: string }>()
+      expectTypeOf(schema3.isOfType<{ a: string; b: string; c: string }>()).not.toBeNever()
     })
   })
 })

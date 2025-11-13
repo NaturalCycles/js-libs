@@ -1,5 +1,6 @@
 /* eslint-disable vitest/valid-expect */
 /* eslint-disable id-denylist */
+/* oxlint-disable @typescript-eslint/explicit-function-return-type */
 
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { localDate, localTime } from '@naturalcycles/js-lib/datetime'
@@ -2351,6 +2352,86 @@ describe('object', () => {
         const [err] = ajvSchema.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
       })
+    })
+  })
+
+  describe('.withEnumKeys', () => {
+    test('should work with a list of const values', () => {
+      const schema = j.object
+        .withEnumKeys(['a', 'b', 1], j.number().optional())
+        .isOfType<Record<'a' | 'b' | '1', number | undefined>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }, { a: 1, b: 2, '1': 3 }]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, String(data)).toBeNull()
+        expect(result, String(data)).toEqual(data)
+      }
+
+      const invalidCases: any[] = ['a', 1, true, [], { a: '1' }]
+      for (const data of invalidCases) {
+        const [err] = ajvSchema.getValidationResult(data)
+        expect(err, String(data)).not.toBeNull()
+      }
+    })
+
+    test('should work with NumberEnum', () => {
+      enum E {
+        A = 1,
+        B = 2,
+      }
+      const schema = j.object
+        .withEnumKeys(E, j.number().optional())
+        .isOfType<Record<E, number | undefined>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [{}, { '1': 1 }, { '1': 1, '2': 2 }]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, String(data)).toBeNull()
+        expect(result, String(data)).toEqual(data)
+      }
+
+      const invalidCases: any[] = ['a', 1, true, [], { '1': 'one' }]
+      for (const data of invalidCases) {
+        const [err] = ajvSchema.getValidationResult(data)
+        expect(err, String(data)).not.toBeNull()
+      }
+    })
+
+    test('should work with StringEnum', () => {
+      enum E {
+        A = 'a',
+        B = 'b',
+      }
+      const schema = j.object
+        .withEnumKeys(E, j.number().optional())
+        .isOfType<Record<E, number | undefined>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }, { a: 1, b: 2 }]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, String(data)).toBeNull()
+        expect(result, String(data)).toEqual(data)
+      }
+
+      const invalidCases: any[] = ['a', 1, true, [], { a: '1' }]
+      for (const data of invalidCases) {
+        const [err] = ajvSchema.getValidationResult(data)
+        expect(err, String(data)).not.toBeNull()
+      }
+    })
+
+    test('should throw without `.isOfType` check', () => {
+      const schema = j.object.withEnumKeys(['a', 'b', 1], j.number().optional())
+
+      const fn = () => AjvSchema.create(schema)
+
+      expect(fn).toThrow(
+        'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
+      )
     })
   })
 })
