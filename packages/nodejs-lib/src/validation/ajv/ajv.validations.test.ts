@@ -1080,6 +1080,33 @@ describe('string', () => {
       })
     })
   })
+
+  describe('uuid', () => {
+    test('should accept valid data', () => {
+      const testCases = ['257631be-26d6-4a18-b28e-4bb7c6495cf4']
+      const schema = j.string().uuid()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [
+        '257631be-26d6-4a18-b28e-4bb7c6495cf4a', // one letter more
+        '257631be-26d6-4a18-b28e-4bb7c6495cf', // one letter less
+        '257631be-26d6-4a18-b28e-4bb7c6495cf!', // invalid character
+        0,
+        true,
+        [],
+        {},
+      ]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
 })
 
 describe('number', () => {

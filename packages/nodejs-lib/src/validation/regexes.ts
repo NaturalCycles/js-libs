@@ -1,6 +1,8 @@
 export const BASE62_REGEX = /^[a-zA-Z0-9]+$/
 export const BASE64_REGEX = /^[a-zA-Z0-9+/]+={0,2}$/
 export const BASE64URL_REGEX = /^[a-zA-Z0-9_-]+$/
+// from `ajv-formats`
+export const UUID_REGEX = /^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i
 export const COUNTRY_CODE_REGEX = /^[A-Z]{2}$/
 export const CURRENCY_REGEX = /^[A-Z]{3}$/
 /**

@@ -35,6 +35,7 @@ import {
   LANGUAGE_TAG_REGEX,
   SEMVER_REGEX,
   SLUG_REGEX,
+  UUID_REGEX,
 } from '../regexes.js'
 import { TIMEZONES } from '../timezones.js'
 import {
@@ -456,6 +457,10 @@ export class JsonSchemaStringBuilder<
     return this.regex(BASE64URL_REGEX, {
       msg: 'contains characters not allowed in Base64 URL characterset',
     })
+  }
+
+  uuid(): this {
+    return this.regex(UUID_REGEX, { msg: 'is an invalid UUID' })
   }
 }
 
