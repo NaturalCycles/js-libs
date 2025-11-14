@@ -13,6 +13,7 @@ import type {
   IANATimezone,
   IsoDate,
   IsoDateTime,
+  StringMap,
   UnixTimestamp,
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
@@ -2453,6 +2454,44 @@ describe('object', () => {
 
     test('should throw without `.isOfType` check', () => {
       const schema = j.object.withEnumKeys(['a', 'b', 1], j.number().optional())
+
+      const fn = () => AjvSchema.create(schema)
+
+      expect(fn).toThrow(
+        'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
+      )
+    })
+  })
+
+  describe('.stringMap', () => {
+    test('should work', () => {
+      const schema = j.object.stringMap(j.number().nullable()).isOfType<StringMap<number | null>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, String(data)).toBeNull()
+        expect(result, String(data)).toEqual(data)
+      }
+
+      const invalidCases: any[] = ['a', 1, true, [], { a: '1' }, { a: 1, b: undefined }]
+      for (const data of invalidCases) {
+        const [err] = ajvSchema.getValidationResult(data)
+        expect(err, String(data)).not.toBeNull()
+      }
+    })
+
+    test('should throw when optional schema is passed in', () => {
+      const fn = () => j.object.stringMap(j.number().optional())
+
+      expect(fn).toThrow(
+        'In a StringMap schema the value cannot be `undefined`, because `undefined` is not a valid JSON Schema value.',
+      )
+    })
+
+    test('should throw without `.isOfType` check', () => {
+      const schema = j.object.stringMap(j.number())
 
       const fn = () => AjvSchema.create(schema)
 

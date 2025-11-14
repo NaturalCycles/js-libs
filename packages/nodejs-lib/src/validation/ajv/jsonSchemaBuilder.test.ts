@@ -6,6 +6,7 @@ import type {
   BaseDBEntity,
   Branded,
   IANATimezone,
+  StringMap,
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
@@ -448,6 +449,17 @@ describe('object', () => {
       expectTypeOf(schema3.in).toEqualTypeOf<{ a: string; b: string; c: string }>()
       expectTypeOf(schema3.out).toEqualTypeOf<{ a: string; b: string; c: string }>()
       expectTypeOf(schema3.isOfType<{ a: string; b: string; c: string }>()).not.toBeNever()
+    })
+  })
+
+  describe('.stringMap', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.object.stringMap(j.number().nullable())
+
+      expectTypeOf(schema1).not.toBeNever()
+      expectTypeOf(schema1.in).toEqualTypeOf<StringMap<number | null>>()
+      expectTypeOf(schema1.out).toEqualTypeOf<StringMap<number | null>>()
+      expectTypeOf(schema1.isOfType<StringMap<number | null>>).not.toBeNever()
     })
   })
 })

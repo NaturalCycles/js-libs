@@ -66,6 +66,27 @@ export const j = {
       return j.object<AnyObject>({}).allowAdditionalProperties()
     },
 
+    stringMap<S extends JsonSchemaTerminal<any, any, any>>(
+      schema: S,
+    ): JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>> {
+      const builtSchema = schema.build()
+      _assert(
+        !builtSchema?.optionalField,
+        'In a StringMap schema the value cannot be `undefined`, because `undefined` is not a valid JSON Schema value.',
+      )
+      builtSchema.optionalField = undefined
+
+      return new JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>>(
+        {},
+        {
+          hasIsOfTypeCheck: false,
+          patternProperties: {
+            '^.+$': builtSchema,
+          },
+        },
+      )
+    },
+
     /**
      * Builds the object schema with the indicated `keys` and uses the `schema` for their validation.
      */
@@ -97,7 +118,7 @@ export const j = {
         }
       }
 
-      _assert(enumValues, 'The key list should be an array of values, NumberEnum or a StrinEnum')
+      _assert(enumValues, 'The key list should be an array of values, NumberEnum or a StringEnum')
 
       const typedValues = enumValues as readonly K[]
       const props = Object.fromEntries(typedValues.map(key => [key, schema])) as any
@@ -672,6 +693,7 @@ export class JsonSchemaObjectBuilder<
       required: [],
       additionalProperties: false,
       hasIsOfTypeCheck: opt?.hasIsOfTypeCheck ?? true,
+      patternProperties: opt?.patternProperties ?? undefined,
     })
 
     if (props) this.addProperties(props)
@@ -742,6 +764,7 @@ export class JsonSchemaObjectBuilder<
 
 interface JsonSchemaObjectBuilderOpts {
   hasIsOfTypeCheck?: false
+  patternProperties?: StringMap<JsonSchema<any, any>>
 }
 
 export class JsonSchemaObjectInferringBuilder<
@@ -972,6 +995,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   properties?: {
     [K in keyof IN & keyof OUT]: JsonSchema<IN[K], OUT[K]>
   }
+  patternProperties?: StringMap<JsonSchema<any, any>>
   required?: string[]
   additionalProperties?: boolean
   minProperties?: number
