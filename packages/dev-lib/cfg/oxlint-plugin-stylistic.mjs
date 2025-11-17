@@ -52,12 +52,51 @@ function isMethodOverload(node) {
   return node.value && node.value.type === 'TSEmptyBodyFunctionExpression'
 }
 
+function getInsertionTarget(sourceCode, prevNode, nextNode) {
+  const decoratorTarget = findDecoratorTarget(sourceCode, prevNode, nextNode)
+  const commentTarget = findLeadingComment(sourceCode, prevNode, nextNode)
+
+  let target = decoratorTarget || nextNode
+
+  if (commentTarget && (!target.range || commentTarget.range[0] < target.range[0])) {
+    target = commentTarget
+  }
+
+  return target
+}
+
+function findLeadingComment(sourceCode, prevNode, nextNode) {
+  const comments = sourceCode.getCommentsBefore(nextNode) || []
+  return comments
+    .filter(comment => {
+      if (!comment.range || comment.range[0] < prevNode.range[1]) return false
+      const prevLine = prevNode.loc?.end?.line
+      const commentLine = comment.loc?.start?.line
+      return prevLine === undefined || commentLine === undefined || commentLine > prevLine
+    })
+    .sort((a, b) => a.range[0] - b.range[0])[0]
+}
+
+function findDecoratorTarget(sourceCode, prevNode, nextNode) {
+  const segment = sourceCode.text.slice(prevNode.range[1], nextNode.range[0])
+  const decoratorRegex = /(?:^|\n)([ \t]*@)/
+  const match = decoratorRegex.exec(segment)
+  if (!match || match.index === undefined) return null
+
+  const relative = match.index + match[0].length - match[1].length
+  const absolute = prevNode.range[1] + relative
+  return { range: [absolute, absolute], loc: null }
+}
+
 function hasBlankLineBetween(sourceCode, prevNode, nextNode) {
   if (!prevNode || !nextNode) return false
   if (!prevNode.range || !nextNode.range) return false
   if (prevNode.range[1] >= nextNode.range[0]) return false
 
-  const between = sourceCode.text.slice(prevNode.range[1], nextNode.range[0])
+  const target = getInsertionTarget(sourceCode, prevNode, nextNode)
+  if (!target.range) return false
+
+  const between = sourceCode.text.slice(prevNode.range[1], target.range[0])
   return BLANK_LINE_PATTERN.test(between)
 }
 
@@ -66,12 +105,9 @@ function insertBlankLineBeforeNext(fixer, sourceCode, prevNode, nextNode) {
   if (!prevNode.range || !nextNode.range) return null
   if (prevNode.range[1] >= nextNode.range[0]) return null
 
-  const commentsBetween = sourceCode
-    .getCommentsBefore(nextNode)
-    ?.filter(comment => comment.range && comment.range[0] >= prevNode.range[1])
-    ?.sort((a, b) => a.range[0] - b.range[0])
-  const insertionTarget =
-    commentsBetween && commentsBetween.length > 0 ? commentsBetween[0].range[0] : nextNode.range[0]
+  const target = getInsertionTarget(sourceCode, prevNode, nextNode)
+  if (!target.range) return null
+  const insertionTarget = target.range[0]
 
   const between = sourceCode.text.slice(prevNode.range[1], insertionTarget)
   const hasLinebreak = /\r?\n/.test(between)
