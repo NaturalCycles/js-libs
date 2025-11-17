@@ -54,6 +54,11 @@ function isMethodOverload(node) {
 
 function getInsertionTarget(sourceCode, prevNode, nextNode) {
   const decoratorTarget = findDecoratorTarget(sourceCode, prevNode, nextNode)
+  const baseNode = nextNode.declaration || nextNode
+  const targetStart = decoratorTarget?.range?.[0] ?? baseNode?.range?.[0] ?? nextNode.range[0]
+  const docCommentTarget = findDocCommentBeforeIndex(sourceCode, prevNode, targetStart)
+  if (docCommentTarget) return docCommentTarget
+
   const commentTarget = findLeadingComment(sourceCode, prevNode, nextNode)
 
   let target = decoratorTarget || nextNode
@@ -86,6 +91,17 @@ function findDecoratorTarget(sourceCode, prevNode, nextNode) {
   const relative = match.index + match[0].length - match[1].length
   const absolute = prevNode.range[1] + relative
   return { range: [absolute, absolute], loc: null }
+}
+
+function findDocCommentBeforeIndex(sourceCode, prevNode, targetStart) {
+  if (targetStart === undefined || targetStart <= prevNode.range[1]) return null
+
+  const slice = sourceCode.text.slice(prevNode.range[1], targetStart)
+  const docMatch = slice.match(/(\/\*\*[\s\S]*?\*\/)([ \t]*\r?\n[ \t]*)?$/)
+  if (!docMatch || docMatch.index === undefined) return null
+
+  const commentStart = prevNode.range[1] + docMatch.index
+  return { range: [commentStart, commentStart], loc: null }
 }
 
 function hasBlankLineBetween(sourceCode, prevNode, nextNode) {
