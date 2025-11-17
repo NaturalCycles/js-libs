@@ -79,6 +79,13 @@ export class AjvSchema<IN = unknown, OUT = IN> {
       jsonSchema = schema
     }
 
+    // This is our own helper which marks a schema as optional
+    // in case it is going to be used in an object schema,
+    // where we need to mark the given property as not-required.
+    // But once all compilation is done, the presence of this field
+    // really upsets Ajv.
+    delete jsonSchema.optionalField
+
     const ajvSchema = new AjvSchema<IN, OUT>(jsonSchema, cfg)
     AjvSchema.cacheAjvSchema(schema, ajvSchema)
 

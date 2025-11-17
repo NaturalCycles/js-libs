@@ -109,7 +109,7 @@ export function createAjv(opt?: Options): Ajv {
 
   ajv.addKeyword({
     keyword: 'instanceof',
-    modifying: true,
+    modifying: false,
     schemaType: 'string',
     validate(instanceOf: string, data: unknown, _schema, _ctx) {
       if (typeof data !== 'object') return false
@@ -394,6 +394,30 @@ export function createAjv(opt?: Options): Ajv {
   ajv.addKeyword({
     keyword: 'hasIsOfTypeCheck',
     schemaType: 'boolean',
+  })
+
+  ajv.addKeyword({
+    keyword: 'optionalValues',
+    type: ['string', 'number', 'boolean'],
+    modifying: true,
+    errors: false,
+    schemaType: 'array',
+    validate: function validate(
+      optionalValues: (string | number | boolean)[],
+      data: string | number | boolean,
+      _schema,
+      ctx,
+    ) {
+      if (!optionalValues) return true
+
+      if (!optionalValues.includes(data)) return true
+
+      if (ctx?.parentData && ctx.parentDataProperty) {
+        ctx.parentData[ctx.parentDataProperty] = undefined
+      }
+
+      return true
+    },
   })
 
   return ajv

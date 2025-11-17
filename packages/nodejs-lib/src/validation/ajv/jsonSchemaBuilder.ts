@@ -193,6 +193,14 @@ export const j = {
       oneOf: schemas,
     })
   },
+
+  and() {
+    return {
+      silentBob: () => {
+        throw new Error('...strike back!')
+      },
+    }
+  },
 }
 
 const TS_2500 = 16725225600 // 2500-01-01
@@ -338,7 +346,7 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
 }
 
 export class JsonSchemaStringBuilder<
-  IN extends string = string,
+  IN extends string | undefined = string,
   OUT = IN,
   Opt extends boolean = false,
 > extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
@@ -346,6 +354,23 @@ export class JsonSchemaStringBuilder<
     super({
       type: 'string',
     })
+  }
+
+  /**
+   * @param optionalValues List of values that should be considered/converted as `undefined`.
+   *
+   * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   */
+  override optional(
+    optionalValues?: string[],
+  ): JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
+    _objectAssign(this.schema, { optionalValues })
+    return super.optional() as unknown as JsonSchemaStringBuilder<
+      IN | undefined,
+      OUT | undefined,
+      true
+    >
   }
 
   regex(pattern: RegExp, opt?: JsonBuilderRuleOpt): this {
@@ -540,7 +565,7 @@ export interface JsonSchemaIsoDateOptions {
 }
 
 export class JsonSchemaNumberBuilder<
-  IN extends number = number,
+  IN extends number | undefined = number,
   OUT = IN,
   Opt extends boolean = false,
 > extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
@@ -548,6 +573,23 @@ export class JsonSchemaNumberBuilder<
     super({
       type: 'number',
     })
+  }
+
+  /**
+   * @param optionalValues List of values that should be considered/converted as `undefined`.
+   *
+   * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   */
+  override optional(
+    optionalValues?: number[],
+  ): JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
+    _objectAssign(this.schema, { optionalValues })
+    return super.optional() as unknown as JsonSchemaNumberBuilder<
+      IN | undefined,
+      OUT | undefined,
+      true
+    >
   }
 
   integer(): this {
@@ -670,7 +712,7 @@ export class JsonSchemaNumberBuilder<
 }
 
 export class JsonSchemaBooleanBuilder<
-  IN extends boolean = boolean,
+  IN extends boolean | undefined = boolean,
   OUT = IN,
   Opt extends boolean = false,
 > extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
@@ -678,6 +720,26 @@ export class JsonSchemaBooleanBuilder<
     super({
       type: 'boolean',
     })
+  }
+
+  /**
+   * @param optionalValue One of the two possible boolean values that should be considered/converted as `undefined`.
+   *
+   * This `optionalValue` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   */
+  override optional(
+    optionalValue?: boolean,
+  ): JsonSchemaBooleanBuilder<IN | undefined, OUT | undefined, true> {
+    if (typeof optionalValue !== 'undefined') {
+      _objectAssign(this.schema, { optionalValues: [optionalValue] })
+    }
+
+    return super.optional() as unknown as JsonSchemaBooleanBuilder<
+      IN | undefined,
+      OUT | undefined,
+      true
+    >
   }
 }
 
@@ -1036,6 +1098,8 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
 
   enum?: any
 
+  hasIsOfTypeCheck?: boolean
+
   // Below we add custom Ajv keywords
 
   email?: JsonSchemaStringEmailOptions
@@ -1046,7 +1110,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
   errorMessages?: StringMap<string>
-  hasIsOfTypeCheck?: boolean
+  optionalValues?: (string | number | boolean)[]
 }
 
 function object(props: AnyObject): never

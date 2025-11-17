@@ -45,6 +45,14 @@ describe('string', () => {
       expectTypeOf(schema1.out).toEqualTypeOf<IANATimezone>()
     })
   })
+
+  describe('optional(values)', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.string().optional([''])
+      expectTypeOf(schema1.in).toEqualTypeOf<string | undefined>()
+      expectTypeOf(schema1.out).toEqualTypeOf<string | undefined>()
+    })
+  })
 })
 
 describe('number', () => {
@@ -72,6 +80,14 @@ describe('number', () => {
     const schema2 = j.number().optional().isOfType<number>()
     expectTypeOf(schema2).toBeNever()
   })
+
+  describe('optional(values)', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.number().optional([0])
+      expectTypeOf(schema1.in).toEqualTypeOf<number | undefined>()
+      expectTypeOf(schema1.out).toEqualTypeOf<number | undefined>()
+    })
+  })
 })
 
 describe('boolean', () => {
@@ -84,6 +100,14 @@ describe('boolean', () => {
 
     const schema3 = j.boolean().nullable().optional()
     expectTypeOf(schema3.in).toEqualTypeOf<boolean | null | undefined>()
+  })
+
+  describe('optional(values)', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.boolean().optional(false)
+      expectTypeOf(schema1.in).toEqualTypeOf<boolean | undefined>()
+      expectTypeOf(schema1.out).toEqualTypeOf<boolean | undefined>()
+    })
   })
 })
 

@@ -32,6 +32,22 @@ describe('string', () => {
     expectTypeOf(result).toEqualTypeOf<string>()
   })
 
+  describe('optional(values)', () => {
+    test('should convert specific values to `undefined`', () => {
+      const schema = j.object<{ foo: string | undefined }>({ foo: j.string().optional(['abcd']) })
+
+      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 'foo' })
+
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 'foo' })
+
+      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: 'abcd' })
+
+      expect(err2).toBeNull()
+      expect(result2).toEqual({})
+    })
+  })
+
   describe('regex', () => {
     test('should correctly validate against the regex', () => {
       const schema = j.string().regex(/^[0-9]{2}$/)
@@ -1143,6 +1159,22 @@ describe('number', () => {
     })
   })
 
+  describe('optional(values)', () => {
+    test('should convert specific values to `undefined`', () => {
+      const schema = j.object<{ foo: number | undefined }>({ foo: j.number().optional([6147]) })
+
+      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 1234 })
+
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 1234 })
+
+      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: 6147 })
+
+      expect(err2).toBeNull()
+      expect(result2).toEqual({})
+    })
+  })
+
   describe('multipleOf', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [-2, 0, 2, 4]
@@ -1738,6 +1770,22 @@ describe('boolean', () => {
     invalidCases.forEach(value => {
       const [err] = ajvSchema.getValidationResult(value)
       expect(err, String(value)).not.toBeNull()
+    })
+  })
+
+  describe('optional(values)', () => {
+    test('should convert specific values to `undefined`', () => {
+      const schema = j.object<{ foo: boolean | undefined }>({ foo: j.boolean().optional(false) })
+
+      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: true })
+
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: true })
+
+      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: false })
+
+      expect(err2).toBeNull()
+      expect(result2).toEqual({})
     })
   })
 })
