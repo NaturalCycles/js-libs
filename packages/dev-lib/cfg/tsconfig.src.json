@@ -24,6 +24,7 @@
     // Support for external compilers (e.g esbuild)
     // Speedup in Jest by using "isolatedModules" in 'ts-jest' config
     "isolatedModules": true,
+    "types": ["node"],
 
     // Emit
     "sourceMap": false,
