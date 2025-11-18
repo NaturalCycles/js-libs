@@ -21,9 +21,8 @@ import { runTest } from '../test.util.js'
 interface Command {
   name: string
   desc?: string
-  deprecated?: boolean // if true, will not be shown in interactive mode
   fn: PromisableFunction
-  cliOnly?: boolean
+  cliOnly?: boolean // if true, will not be shown in interactive mode
   interactiveOnly?: boolean
 }
 
@@ -85,7 +84,7 @@ const commands: (Command | Separator)[] = [
     desc: 'Run "lint-staged", which runs linter on git staged files.',
   },
   { name: 'eslint', fn: eslintAll, desc: 'Run eslint on all files.' },
-  { name: 'eslint-no-fix', deprecated: true, fn: () => eslintAll({ fix: false }) },
+  { name: 'eslint-no-fix', cliOnly: true, fn: () => eslintAll({ fix: false }) },
   {
     name: 'eslint --no-fix',
     fn: () => eslintAll({ fix: false }),
@@ -93,7 +92,7 @@ const commands: (Command | Separator)[] = [
     interactiveOnly: true,
   },
   { name: 'oxlint', fn: runOxlint, desc: 'Run oxlint on all files.' },
-  { name: 'oxlint-no-fix', deprecated: true, fn: () => runOxlint(false) },
+  { name: 'oxlint-no-fix', cliOnly: true, fn: () => runOxlint(false) },
   {
     name: 'oxlint --no-fix',
     fn: () => runOxlint(false),
@@ -105,7 +104,7 @@ const commands: (Command | Separator)[] = [
     fn: () => runBiome(),
     desc: 'Run biome linter on all files.',
   },
-  { name: 'biome-no-fix', deprecated: true, fn: () => runBiome(false) },
+  { name: 'biome-no-fix', cliOnly: true, fn: () => runBiome(false) },
   {
     name: 'biome --no-fix',
     fn: () => runBiome(false),
@@ -119,7 +118,7 @@ const commands: (Command | Separator)[] = [
     fn: () => stylelintAll(false),
     desc: 'Run stylelint with auto-fix disabled.',
   },
-  { name: 'stylelint-no-fix', deprecated: true, fn: () => stylelintAll(false) },
+  { name: 'stylelint-no-fix', cliOnly: true, fn: () => stylelintAll(false) },
   { name: 'commitlint', fn: runCommitlintCommand, desc: 'Run commitlint.', cliOnly: true },
   new Separator(), // interactive-only
   {
