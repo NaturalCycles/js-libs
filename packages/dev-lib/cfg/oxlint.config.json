@@ -160,6 +160,8 @@
     "unicorn/no-zero-fractions": 2,
     "unicorn/prefer-array-some": 2,
     "unicorn/prefer-math-trunc": 2,
+    "unicorn/prefer-includes": 2,
+    "unicorn/prefer-response-static-json": 2,
     "import/no-named-default": 2,
     "unicorn/no-new-array": 0, // it's actually ok
     "unicorn/catch-error-name": [

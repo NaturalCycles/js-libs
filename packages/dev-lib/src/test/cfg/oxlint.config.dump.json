@@ -308,6 +308,7 @@
     "unicorn/prefer-classlist-toggle": "deny",
     "unicorn/prefer-code-point": "deny",
     "unicorn/prefer-global-this": "deny",
+    "unicorn/prefer-includes": "deny",
     "unicorn/prefer-math-min-max": "deny",
     "unicorn/prefer-math-trunc": "deny",
     "unicorn/prefer-modern-math-apis": "deny",

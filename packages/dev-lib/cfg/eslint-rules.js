@@ -327,6 +327,7 @@ export default {
     'prefer-promise-reject-errors': 0,
     '@typescript-eslint/prefer-promise-reject-errors': 0, // ox
     'unicorn/prefer-import-meta-properties': 2,
+    'unicorn/prefer-response-static-json': 0, // ox
     'unicorn/no-array-callback-reference': 0, // false positives
     'unicorn/no-process-exit': 0,
     'unicorn/prefer-single-call': 0,
@@ -482,7 +483,7 @@ export default {
     // '@typescript-eslint/no-unnecessary-condition': [2, {
     //   allowConstantLoopConditions: true,
     // }],
-    '@typescript-eslint/prefer-includes': 2,
+    '@typescript-eslint/prefer-includes': 0, // ox
     '@typescript-eslint/prefer-optional-chain': 2,
     '@typescript-eslint/prefer-string-starts-ends-with': 2,
     '@typescript-eslint/prefer-ts-expect-error': 0, // ox

@@ -134,7 +134,6 @@
     "@typescript-eslint/no-unnecessary-qualifier": [2],
     "@typescript-eslint/no-wrapper-object-types": [2],
     "@typescript-eslint/prefer-find": [2],
-    "@typescript-eslint/prefer-includes": [2],
     "@typescript-eslint/prefer-string-starts-ends-with": [2],
     "@typescript-eslint/promise-function-async": [
       2,
@@ -274,7 +273,6 @@
     "unicorn/prefer-object-from-entries": [2, {}],
     "unicorn/prefer-optional-catch-binding": [2],
     "unicorn/prefer-reflect-apply": [2],
-    "unicorn/prefer-response-static-json": [2],
     "unicorn/prefer-string-raw": [2],
     "unicorn/prefer-string-trim-start-end": [2],
     "unicorn/prefer-type-error": [2],
