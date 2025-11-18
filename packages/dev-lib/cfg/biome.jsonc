@@ -41,6 +41,7 @@
         "useParseIntRadix": "off",
         "noUnusedFunctionParameters": "off", // oxlint
         "noConstantCondition": "off", // ox
+        "noUnusedPrivateClassMembers": "off", // buggy in 2.3.6
         // noUnusedImports + noUnusedVariables can replace eslint-plugin-unused-vars!
         "noUnusedImports": "error", // oxlint ignoreVars ^_ pattern also applies to imports named with _ prefix. Support for no-unused-imports tracked here https://github.com/oxc-project/oxc/issues/1117
         "noUnusedVariables": {
