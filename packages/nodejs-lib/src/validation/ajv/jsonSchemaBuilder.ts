@@ -325,12 +325,22 @@ export class JsonSchemaStringBuilder<
   override optional(
     optionalValues?: string[],
   ): JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
-    _objectAssign(this.schema, { optionalValues })
-    return super.optional() as unknown as JsonSchemaStringBuilder<
-      IN | undefined,
-      OUT | undefined,
-      true
-    >
+    if (!optionalValues) {
+      return super.optional() as unknown as JsonSchemaStringBuilder<
+        IN | undefined,
+        OUT | undefined,
+        true
+      >
+    }
+
+    const newBuilder = new JsonSchemaStringBuilder<IN, OUT, Opt>().optional()
+    const alternativesSchema = j.enum(optionalValues)
+    Object.assign(newBuilder.getSchema(), {
+      anyOf: [this.build(), alternativesSchema.build()],
+      optionalValues,
+    })
+
+    return newBuilder
   }
 
   regex(pattern: RegExp, opt?: JsonBuilderRuleOpt): this {
@@ -544,12 +554,22 @@ export class JsonSchemaNumberBuilder<
   override optional(
     optionalValues?: number[],
   ): JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
-    _objectAssign(this.schema, { optionalValues })
-    return super.optional() as unknown as JsonSchemaNumberBuilder<
-      IN | undefined,
-      OUT | undefined,
-      true
-    >
+    if (!optionalValues) {
+      return super.optional() as unknown as JsonSchemaNumberBuilder<
+        IN | undefined,
+        OUT | undefined,
+        true
+      >
+    }
+
+    const newBuilder = new JsonSchemaNumberBuilder<IN, OUT, Opt>().optional()
+    const alternativesSchema = j.enum(optionalValues)
+    Object.assign(newBuilder.getSchema(), {
+      anyOf: [this.build(), alternativesSchema.build()],
+      optionalValues,
+    })
+
+    return newBuilder
   }
 
   integer(): this {
@@ -691,15 +711,22 @@ export class JsonSchemaBooleanBuilder<
   override optional(
     optionalValue?: boolean,
   ): JsonSchemaBooleanBuilder<IN | undefined, OUT | undefined, true> {
-    if (typeof optionalValue !== 'undefined') {
-      _objectAssign(this.schema, { optionalValues: [optionalValue] })
+    if (typeof optionalValue === 'undefined') {
+      return super.optional() as unknown as JsonSchemaBooleanBuilder<
+        IN | undefined,
+        OUT | undefined,
+        true
+      >
     }
 
-    return super.optional() as unknown as JsonSchemaBooleanBuilder<
-      IN | undefined,
-      OUT | undefined,
-      true
-    >
+    const newBuilder = new JsonSchemaBooleanBuilder<IN, OUT, Opt>().optional()
+    const alternativesSchema = j.enum([optionalValue])
+    Object.assign(newBuilder.getSchema(), {
+      anyOf: [this.build(), alternativesSchema.build()],
+      optionalValues: [optionalValue],
+    })
+
+    return newBuilder
   }
 }
 

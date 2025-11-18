@@ -34,7 +34,7 @@ describe('string', () => {
 
   describe('optional(values)', () => {
     test('should convert specific values to `undefined`', () => {
-      const schema = j.object<{ foo: string | undefined }>({ foo: j.string().optional(['abcd']) })
+      const schema = j.object<{ foo?: string }>({ foo: j.string().optional(['abcd']) })
 
       const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 'foo' })
 
@@ -45,6 +45,16 @@ describe('string', () => {
 
       expect(err2).toBeNull()
       expect(result2).toEqual({})
+
+      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
+
+      expect(err3).toBeNull()
+      expect(result3).toEqual({})
+
+      const [err4, result4] = AjvSchema.create(schema).getValidationResult({ foo: undefined })
+
+      expect(err4).toBeNull()
+      expect(result4).toEqual({})
     })
   })
 
@@ -399,6 +409,23 @@ describe('string', () => {
       })
 
       expect(result.email).toBe('trimmed@nc.com')
+    })
+
+    test('should work with optional(values)', () => {
+      const schema = j.object<{ foo?: string }>({ foo: j.string().email().optional(['']) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ foo: 'foo@boo.com' })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 'foo@boo.com' })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ foo: '' })
+      expect(err2).toBeNull()
+      expect(result2).toEqual({})
+
+      const [err3, result3] = ajvSchema.getValidationResult({})
+      expect(err3).toBeNull()
+      expect(result3).toEqual({})
     })
   })
 
@@ -1161,7 +1188,7 @@ describe('number', () => {
 
   describe('optional(values)', () => {
     test('should convert specific values to `undefined`', () => {
-      const schema = j.object<{ foo: number | undefined }>({ foo: j.number().optional([6147]) })
+      const schema = j.object<{ foo?: number }>({ foo: j.number().optional([6147]) })
 
       const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 1234 })
 
@@ -1172,6 +1199,11 @@ describe('number', () => {
 
       expect(err2).toBeNull()
       expect(result2).toEqual({})
+
+      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
+
+      expect(err3).toBeNull()
+      expect(result3).toEqual({})
     })
   })
 
@@ -1775,7 +1807,7 @@ describe('boolean', () => {
 
   describe('optional(values)', () => {
     test('should convert specific values to `undefined`', () => {
-      const schema = j.object<{ foo: boolean | undefined }>({ foo: j.boolean().optional(false) })
+      const schema = j.object<{ foo?: boolean }>({ foo: j.boolean().optional(false) })
 
       const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: true })
 
@@ -1786,6 +1818,11 @@ describe('boolean', () => {
 
       expect(err2).toBeNull()
       expect(result2).toEqual({})
+
+      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
+
+      expect(err3).toBeNull()
+      expect(result3).toEqual({})
     })
   })
 })

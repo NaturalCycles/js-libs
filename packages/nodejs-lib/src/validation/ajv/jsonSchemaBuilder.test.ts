@@ -51,6 +51,10 @@ describe('string', () => {
       const schema1 = j.string().optional([''])
       expectTypeOf(schema1.in).toEqualTypeOf<string | undefined>()
       expectTypeOf(schema1.out).toEqualTypeOf<string | undefined>()
+
+      const schema2 = j.object<{ foo?: string }>({ foo: j.string().optional(['']) })
+      expectTypeOf(schema2.in).toEqualTypeOf<{ foo?: string }>()
+      expectTypeOf(schema2.out).toEqualTypeOf<{ foo?: string }>()
     })
   })
 })
