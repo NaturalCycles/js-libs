@@ -2441,14 +2441,14 @@ describe('object', () => {
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }, { a: 1, b: 2, '1': 3 }]
       for (const data of validCases) {
         const [err, result] = ajvSchema.getValidationResult(data)
-        expect(err, String(data)).toBeNull()
-        expect(result, String(data)).toEqual(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases: any[] = ['a', 1, true, [], { a: '1' }]
       for (const data of invalidCases) {
         const [err] = ajvSchema.getValidationResult(data)
-        expect(err, String(data)).not.toBeNull()
+        expect(err, _stringify(data)).not.toBeNull()
       }
     })
 
@@ -2465,14 +2465,14 @@ describe('object', () => {
       const validCases: any[] = [{}, { '1': 1 }, { '1': 1, '2': 2 }]
       for (const data of validCases) {
         const [err, result] = ajvSchema.getValidationResult(data)
-        expect(err, String(data)).toBeNull()
-        expect(result, String(data)).toEqual(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases: any[] = ['a', 1, true, [], { '1': 'one' }]
       for (const data of invalidCases) {
         const [err] = ajvSchema.getValidationResult(data)
-        expect(err, String(data)).not.toBeNull()
+        expect(err, _stringify(data)).not.toBeNull()
       }
     })
 
@@ -2489,14 +2489,56 @@ describe('object', () => {
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }, { a: 1, b: 2 }]
       for (const data of validCases) {
         const [err, result] = ajvSchema.getValidationResult(data)
-        expect(err, String(data)).toBeNull()
-        expect(result, String(data)).toEqual(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases: any[] = ['a', 1, true, [], { a: '1' }]
       for (const data of invalidCases) {
         const [err] = ajvSchema.getValidationResult(data)
-        expect(err, String(data)).not.toBeNull()
+        expect(err, _stringify(data)).not.toBeNull()
+      }
+    })
+
+    test('should require all keys when the schema is non-optional', () => {
+      enum E {
+        A = 'a',
+        B = 'b',
+      }
+
+      const schema = j.object.withEnumKeys(E, j.number()).isOfType<Record<E, number>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases = [{ a: 1, b: 2 }]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
+      }
+
+      const invalidCases = [{}, { a: 1 }, { b: 2 }]
+      for (const data of invalidCases) {
+        const [err] = ajvSchema.getValidationResult(data as any)
+        expect(err, _stringify(data)).not.toBeNull()
+      }
+    })
+
+    test('should accept partial objects when the schema is optional', () => {
+      enum E {
+        A = 'a',
+        B = 'b',
+      }
+
+      const schema = j.object
+        .withEnumKeys(E, j.number().optional())
+        .isOfType<Partial<Record<E, number>>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases = [{}, { a: 1 }, { b: 2 }, { a: 1, b: 2 }]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
       }
     })
 
@@ -2519,14 +2561,14 @@ describe('object', () => {
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }]
       for (const data of validCases) {
         const [err, result] = ajvSchema.getValidationResult(data)
-        expect(err, String(data)).toBeNull()
-        expect(result, String(data)).toEqual(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases: any[] = ['a', 1, true, [], { a: '1' }, { a: 1, b: undefined }]
       for (const data of invalidCases) {
         const [err] = ajvSchema.getValidationResult(data)
-        expect(err, String(data)).not.toBeNull()
+        expect(err, _stringify(data)).not.toBeNull()
       }
     })
 

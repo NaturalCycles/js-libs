@@ -87,47 +87,7 @@ export const j = {
       )
     },
 
-    /**
-     * Builds the object schema with the indicated `keys` and uses the `schema` for their validation.
-     */
-    withEnumKeys<
-      const T extends readonly (string | number)[] | StringEnum | NumberEnum,
-      S extends JsonSchemaTerminal<any, any, any>,
-      K extends string | number = EnumKeyUnion<T>,
-    >(
-      keys: T,
-      schema: S,
-    ): JsonSchemaObjectBuilder<Record<K, SchemaIn<S>>, Record<K, SchemaOut<S>>> {
-      let enumValues: readonly (string | number)[] | undefined
-      if (Array.isArray(keys)) {
-        _assert(
-          isEveryItemPrimitive(keys),
-          'Every item in the key list should be string, number or symbol',
-        )
-        enumValues = keys
-      } else if (typeof keys === 'object') {
-        const enumType = getEnumType(keys)
-        _assert(
-          enumType === 'NumberEnum' || enumType === 'StringEnum',
-          'The key list should be StringEnum or NumberEnum',
-        )
-        if (enumType === 'NumberEnum') {
-          enumValues = _numberEnumValues(keys as NumberEnum)
-        } else if (enumType === 'StringEnum') {
-          enumValues = _stringEnumValues(keys as StringEnum)
-        }
-      }
-
-      _assert(enumValues, 'The key list should be an array of values, NumberEnum or a StringEnum')
-
-      const typedValues = enumValues as readonly K[]
-      const props = Object.fromEntries(typedValues.map(key => [key, schema])) as any
-
-      return new JsonSchemaObjectBuilder<Record<K, SchemaIn<S>>, Record<K, SchemaOut<S>>, false>(
-        props,
-        { hasIsOfTypeCheck: false },
-      )
-    },
+    withEnumKeys,
   }),
 
   array<IN, OUT, Opt>(
@@ -1160,6 +1120,54 @@ function objectDbEntity(props: AnyObject): any {
   })
 }
 
+/**
+ * Builds the object schema with the indicated `keys` and uses the `schema` for their validation.
+ */
+function withEnumKeys<
+  const T extends readonly (string | number)[] | StringEnum | NumberEnum,
+  S extends JsonSchemaAnyBuilder<any, any, any>,
+  K extends string | number = EnumKeyUnion<T>,
+  Opt extends boolean = SchemaOpt<S>,
+>(
+  keys: T,
+  schema: S,
+): JsonSchemaObjectBuilder<
+  Opt extends true ? { [P in K]?: SchemaIn<S> } : { [P in K]: SchemaIn<S> },
+  Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> },
+  false
+> {
+  let enumValues: readonly (string | number)[] | undefined
+  if (Array.isArray(keys)) {
+    _assert(
+      isEveryItemPrimitive(keys),
+      'Every item in the key list should be string, number or symbol',
+    )
+    enumValues = keys
+  } else if (typeof keys === 'object') {
+    const enumType = getEnumType(keys)
+    _assert(
+      enumType === 'NumberEnum' || enumType === 'StringEnum',
+      'The key list should be StringEnum or NumberEnum',
+    )
+    if (enumType === 'NumberEnum') {
+      enumValues = _numberEnumValues(keys as NumberEnum)
+    } else if (enumType === 'StringEnum') {
+      enumValues = _stringEnumValues(keys as StringEnum)
+    }
+  }
+
+  _assert(enumValues, 'The key list should be an array of values, NumberEnum or a StringEnum')
+
+  const typedValues = enumValues as readonly K[]
+  const props = Object.fromEntries(typedValues.map(key => [key, schema])) as any
+
+  return new JsonSchemaObjectBuilder<
+    Opt extends true ? { [P in K]?: SchemaIn<S> } : { [P in K]: SchemaIn<S> },
+    Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> },
+    false
+  >(props, { hasIsOfTypeCheck: false })
+}
+
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
 
 type ExactMatch<A, B> =
@@ -1201,3 +1209,4 @@ type EnumKeyUnion<T> =
 
 type SchemaIn<S> = S extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
 type SchemaOut<S> = S extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+type SchemaOpt<S> = S extends JsonSchemaAnyBuilder<any, any, infer Opt> ? Opt : false

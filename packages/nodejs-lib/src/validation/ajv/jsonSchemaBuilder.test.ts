@@ -473,6 +473,13 @@ describe('object', () => {
       expectTypeOf(schema3.in).toEqualTypeOf<{ a: string; b: string; c: string }>()
       expectTypeOf(schema3.out).toEqualTypeOf<{ a: string; b: string; c: string }>()
       expectTypeOf(schema3.isOfType<{ a: string; b: string; c: string }>()).not.toBeNever()
+
+      const schema4 = j.object.withEnumKeys(S, j.string().optional())
+
+      expectTypeOf(schema4).not.toBeNever()
+      expectTypeOf(schema4.in).toEqualTypeOf<Partial<{ a: string; b: string; c: string }>>()
+      expectTypeOf(schema4.out).toEqualTypeOf<Partial<{ a: string; b: string; c: string }>>()
+      expectTypeOf(schema4.isOfType<Partial<{ a: string; b: string; c: string }>>()).not.toBeNever()
     })
   })
 
