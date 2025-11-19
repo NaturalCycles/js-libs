@@ -226,6 +226,8 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
    *
    * const schemaBad = j.string().isOfType<number>() // ❌
    * schemaBad.build() // TypeError: property "build" does not exist on type "never"
+   *
+   * const result = ajvValidateRequest.body(req, schemaBad) // result will have `unknown` type
    * ```
    */
   isOfType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
