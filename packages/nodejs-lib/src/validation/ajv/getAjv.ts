@@ -1,7 +1,7 @@
 import { _lazyValue } from '@naturalcycles/js-lib'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
-import { _, Ajv, type Options, type ValidateFunction } from 'ajv'
+import { Ajv, type Options, type ValidateFunction } from 'ajv'
 import { validTLDs } from '../tlds.js'
 import type { JsonSchemaIsoDateOptions, JsonSchemaStringEmailOptions } from './jsonSchemaBuilder.js'
 
@@ -77,33 +77,42 @@ export function createAjv(opt?: Options): Ajv {
     modifying: true,
     schemaType: 'object',
     errors: true,
-    code(ctx) {
-      const { gen, data, schema, it } = ctx
-      const { parentData, parentDataProperty } = it
+    validate: function validate(
+      transform: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number },
+      data: string,
+      _schema,
+      ctx,
+    ) {
+      if (!data) return true
 
-      if (schema.trim) {
-        gen.assign(_`${data}`, _`${data}.trim()`)
+      let transformedData = data
+
+      if (transform.trim) {
+        transformedData = transformedData.trim()
       }
 
-      if (schema.toLowerCase) {
-        gen.assign(_`${data}`, _`${data}.toLowerCase()`)
+      if (transform.toLowerCase) {
+        transformedData = transformedData.toLocaleLowerCase()
       }
 
-      if (schema.toUpperCase) {
-        gen.assign(_`${data}`, _`${data}.toUpperCase()`)
+      if (transform.toUpperCase) {
+        transformedData = transformedData.toLocaleUpperCase()
       }
 
-      if (typeof schema.truncate === 'number' && schema.truncate >= 0) {
-        gen.assign(_`${data}`, _`${data}.slice(0, ${schema.truncate})`)
+      if (typeof transform.truncate === 'number' && transform.truncate >= 0) {
+        transformedData = transformedData.slice(0, transform.truncate)
 
-        if (schema.trim) {
-          gen.assign(_`${data}`, _`${data}.trim()`)
+        if (transform.trim) {
+          transformedData = transformedData.trim()
         }
       }
 
-      gen.if(_`${parentData} !== undefined`, () => {
-        gen.assign(_`${parentData}[${parentDataProperty}]`, data)
-      })
+      // Explicit check for `undefined` because parentDataProperty can be `0` when it comes to arrays.
+      if (ctx?.parentData && typeof ctx.parentDataProperty !== 'undefined') {
+        ctx.parentData[ctx.parentDataProperty] = transformedData
+      }
+
+      return true
     },
   })
 

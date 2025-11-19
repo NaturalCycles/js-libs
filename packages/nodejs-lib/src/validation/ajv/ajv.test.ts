@@ -202,7 +202,6 @@ test('transform string', () => {
   } as JsonSchema)
 
   const obj1 = { s: 's' }
-  _deepFreeze(obj1)
   schema.validate(obj1)
 
   const obj2 = { s: '   lo Lo lO' }

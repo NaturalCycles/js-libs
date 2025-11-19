@@ -73,6 +73,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     let jsonSchema: JsonSchema<IN, OUT>
 
     if (AjvSchema.isJsonSchemaBuilder(schema)) {
+      // oxlint-disable typescript-eslint(no-unnecessary-type-assertion)
       jsonSchema = (schema as JsonSchemaTerminal<IN, OUT, any>).build()
       AjvSchema.requireValidJsonSchema(jsonSchema)
     } else {
