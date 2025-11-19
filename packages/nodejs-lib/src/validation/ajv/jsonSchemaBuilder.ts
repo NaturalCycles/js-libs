@@ -364,9 +364,11 @@ export class JsonSchemaStringBuilder<
     return this
   }
 
-  length(minLength: number, maxLength: number): this {
-    _objectAssign(this.schema, { minLength, maxLength })
-    return this
+  length(exactLength: number): this
+  length(minLength: number, maxLength: number): this
+  length(minLengthOrExactLength: number, maxLength?: number): this {
+    const maxLengthActual = maxLength ?? minLengthOrExactLength
+    return this.minLength(minLengthOrExactLength).maxLength(maxLengthActual)
   }
 
   email(opt?: Partial<JsonSchemaStringEmailOptions>): this {
@@ -952,8 +954,11 @@ export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<I
     return this
   }
 
-  length(minItems: number, maxItems: number): this {
-    return this.minLength(minItems).maxLength(maxItems)
+  length(exactLength: number): this
+  length(minItems: number, maxItems: number): this
+  length(minItemsOrExact: number, maxItems?: number): this {
+    const maxItemsActual = maxItems ?? minItemsOrExact
+    return this.minLength(minItemsOrExact).maxLength(maxItemsActual)
   }
 
   exactLength(length: number): this {

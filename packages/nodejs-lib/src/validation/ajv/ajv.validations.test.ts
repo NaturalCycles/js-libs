@@ -138,7 +138,7 @@ describe('string', () => {
     })
   })
 
-  describe('length', () => {
+  describe('length(min, max)', () => {
     test('should correctly validate the length of the string', () => {
       const schema = j.string().length(4, 5)
 
@@ -147,6 +147,22 @@ describe('string', () => {
       const [err02] = AjvSchema.create(schema).getValidationResult('01234')
       expect(err02).toBeNull()
 
+      const [err11] = AjvSchema.create(schema).getValidationResult('012')
+      expect(err11).not.toBeNull()
+      const [err12] = AjvSchema.create(schema).getValidationResult('012345')
+      expect(err12).not.toBeNull()
+    })
+  })
+
+  describe('length(eq)', () => {
+    test('should correctly validate the length of the string', () => {
+      const schema = j.string().length(4)
+
+      const [err01] = AjvSchema.create(schema).getValidationResult('0123')
+      expect(err01).toBeNull()
+
+      const [err02] = AjvSchema.create(schema).getValidationResult('01234')
+      expect(err02).not.toBeNull()
       const [err11] = AjvSchema.create(schema).getValidationResult('012')
       expect(err11).not.toBeNull()
       const [err12] = AjvSchema.create(schema).getValidationResult('012345')
@@ -1935,7 +1951,7 @@ describe('array', () => {
     })
   })
 
-  describe('length', () => {
+  describe('length(min, max)', () => {
     test('should accept valid data', () => {
       const schema = j.array(j.string()).length(1, 2)
       const ajvSchema = AjvSchema.create(schema)
@@ -1949,6 +1965,28 @@ describe('array', () => {
       })
 
       const invalidCases: any[] = [[], ['foo', 'bar', 'shu']]
+      invalidCases.forEach(input => {
+        const [err] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('length(eq)', () => {
+    test('should accept valid data', () => {
+      const schema = j.array(j.string()).length(2)
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [['foo', 'bar']]
+      validCases.forEach(input => {
+        const [err, result] = ajvSchema.getValidationResult(input)
+
+        expect(err, String(input)).toBeNull()
+        expect(result).toEqual(input)
+      })
+
+      const invalidCases: any[] = [[], ['foo'], ['foo', 'bar', 'shu']]
       invalidCases.forEach(input => {
         const [err] = ajvSchema.getValidationResult(input)
 
