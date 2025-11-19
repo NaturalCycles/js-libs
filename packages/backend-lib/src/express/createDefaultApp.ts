@@ -10,7 +10,11 @@ import { logMiddleware } from '../server/logMiddleware.js'
 import { methodOverrideMiddleware } from '../server/methodOverrideMiddleware.js'
 import { notFoundMiddleware } from '../server/notFoundMiddleware.js'
 import { requestTimeoutMiddleware } from '../server/requestTimeoutMiddleware.js'
-import type { BackendApplication, BackendRequestHandler } from '../server/server.model.js'
+import type {
+  BackendApplication,
+  BackendRequest,
+  BackendRequestHandler,
+} from '../server/server.model.js'
 import { simpleRequestLoggerMiddleware } from '../server/simpleRequestLoggerMiddleware.js'
 
 const isTest = process.env['APP_ENV'] === 'test'
@@ -53,6 +57,10 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
   app.use(
     express.json({
       limit: '1mb',
+      verify(req: BackendRequest, _res, buf) {
+        // Store the raw Buffer body
+        req.rawBody = buf
+      },
       ...cfg.bodyParserJsonOptions,
     }),
   )
@@ -70,6 +78,10 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
     express.raw({
       // inflate: true, // default is `true`
       limit: '1mb',
+      verify(req: BackendRequest, _res, buf) {
+        // Store the raw Buffer body
+        req.rawBody = buf
+      },
       ...cfg.bodyParserRawOptions,
     }),
   )

@@ -11,10 +11,17 @@ import { deflateString } from '@naturalcycles/nodejs-lib/zip'
 import { afterAll, expect, test } from 'vitest'
 import { getDefaultRouter } from './express/getDefaultRouter.js'
 import { safeJsonMiddleware } from './server/safeJsonMiddleware.js'
+import type { BackendRequest } from './server/server.model.js'
 import { expressTestService } from './testing/index.js'
 import { validateRequest } from './validation/joi/joiValidateRequest.js'
 
 const router = getDefaultRouter()
+
+router.put('/rawBody', async (req: BackendRequest, res) => {
+  const body = JSON.parse(req.rawBody!.toString())
+  res.json(body)
+})
+
 router.get('/circular', safeJsonMiddleware(), async req => {
   // console.log(inspectAny(req))
 
@@ -69,4 +76,16 @@ test('should support compressed body', async () => {
 
   // console.log(output)
   expect(output).toEqual(input)
+})
+
+test('should return parsed rawBody', async () => {
+  const body = {
+    a: 'aa',
+  }
+
+  const r = await app.put('rawBody', {
+    json: body,
+  })
+
+  expect(r).toEqual(body)
 })

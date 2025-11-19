@@ -20,6 +20,15 @@ export interface BackendRequest extends Request {
    * Only used for request logging purposes.
    */
   userId?: string
+  /**
+   * Raw Buffer of the `req.body`, before it's stringified and json-parsed.
+   * Useful for when something mutates `req.body` json (e.g j validation), and you
+   * want access to the original input.
+   *
+   * For `req.rawBody` to exist - you need to use `createDefaultApp`, or use the
+   * `verify` option of the json parser (copy-paste it from `createDefaultApp`).
+   */
+  rawBody?: Buffer
 
   /**
    * Set by requestTimeoutMiddleware.
