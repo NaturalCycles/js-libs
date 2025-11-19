@@ -70,11 +70,6 @@ export const j = {
       schema: S,
     ): JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>> {
       const builtSchema = schema.build()
-      _assert(
-        !builtSchema?.optionalField,
-        'In a StringMap schema the value cannot be `undefined`, because `undefined` is not a valid JSON Schema value.',
-      )
-      builtSchema.optionalField = undefined
 
       return new JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>>(
         {},
@@ -193,7 +188,14 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
    * Same as if it would be JSON.stringified.
    */
   build(): JsonSchema<IN, OUT> {
-    return _sortObject(JSON.parse(JSON.stringify(this.schema)), JSON_SCHEMA_ORDER)
+    const jsonSchema = _sortObject(
+      JSON.parse(JSON.stringify(this.schema)),
+      JSON_SCHEMA_ORDER,
+    ) as JsonSchema<IN, OUT>
+
+    delete jsonSchema.optionalField
+
+    return jsonSchema
   }
 
   clone(): JsonSchemaAnyBuilder<IN, OUT, Opt> {
@@ -757,12 +759,12 @@ export class JsonSchemaObjectBuilder<
     const required: string[] = []
 
     for (const [key, builder] of Object.entries(props)) {
-      const schema = builder.build()
-      if (!schema.optionalField) {
+      const isOptional = (builder as JsonSchemaTerminal<any, any, any>).getSchema().optionalField
+      if (!isOptional) {
         required.push(key)
-      } else {
-        schema.optionalField = undefined
       }
+
+      const schema = builder.build()
       properties[key] = schema
     }
 
@@ -872,12 +874,12 @@ export class JsonSchemaObjectInferringBuilder<
     const required: string[] = []
 
     for (const [key, builder] of Object.entries(props)) {
-      const schema = builder.build()
-      if (!schema.optionalField) {
+      const isOptional = (builder as JsonSchemaTerminal<any, any, any>).getSchema().optionalField
+      if (!isOptional) {
         required.push(key)
-      } else {
-        schema.optionalField = undefined
       }
+
+      const schema = builder.build()
       properties[key] = schema
     }
 
