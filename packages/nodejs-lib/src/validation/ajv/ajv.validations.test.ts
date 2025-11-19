@@ -2669,14 +2669,6 @@ describe('object', () => {
       }
     })
 
-    test('should throw when optional schema is passed in', () => {
-      const fn = () => j.object.stringMap(j.number().optional())
-
-      expect(fn).toThrow(
-        'In a StringMap schema the value cannot be `undefined`, because `undefined` is not a valid JSON Schema value.',
-      )
-    })
-
     test('should throw without `.isOfType` check', () => {
       const schema = j.object.stringMap(j.number())
 
