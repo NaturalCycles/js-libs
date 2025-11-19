@@ -422,7 +422,7 @@ export function createAjv(opt?: Options): Ajv {
       if (!optionalValues.includes(data)) return true
 
       if (ctx?.parentData && ctx.parentDataProperty) {
-        ctx.parentData[ctx.parentDataProperty] = undefined
+        delete ctx.parentData[ctx.parentDataProperty]
       }
 
       return true

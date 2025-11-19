@@ -422,6 +422,7 @@ describe('string', () => {
       const [err2, result2] = ajvSchema.getValidationResult({ foo: '' })
       expect(err2).toBeNull()
       expect(result2).toEqual({})
+      expect(Object.getOwnPropertyNames(result2)).not.toContain('foo')
 
       const [err3, result3] = ajvSchema.getValidationResult({})
       expect(err3).toBeNull()
