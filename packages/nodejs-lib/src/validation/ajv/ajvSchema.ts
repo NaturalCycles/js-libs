@@ -120,13 +120,13 @@ export class AjvSchema<IN = unknown, OUT = IN> {
    *
    * Returned object is always the same object (`===`) that was passed, so it is returned just for convenience.
    */
-  validate(input: IN, opt: AjvValidationOptions = {}): OUT {
+  validate(input: IN, opt: AjvValidationOptions<IN> = {}): OUT {
     const [err, output] = this.getValidationResult(input, opt)
     if (err) throw err
     return output
   }
 
-  isValid(input: IN, opt?: AjvValidationOptions): boolean {
+  isValid(input: IN, opt?: AjvValidationOptions<IN>): boolean {
     // todo: we can make it both fast and non-mutating by using Ajv
     // with "removeAdditional" and "useDefaults" disabled.
     const [err] = this.getValidationResult(input, opt)
@@ -135,7 +135,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
 
   getValidationResult(
     input: IN,
-    opt: AjvValidationOptions = {},
+    opt: AjvValidationOptions<IN> = {},
   ): ValidationFunctionResult<OUT, AjvValidationError> {
     const fn = this.getAJVValidateFunction()
 
@@ -144,7 +144,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
         ? input // mutate
         : _deepCopy(input) // not mutate
 
-    const valid = fn(item) // mutates item
+    const valid = fn(item) // mutates item, but not input
     _typeCast<OUT>(item)
     if (valid) return [null, item]
 
@@ -165,7 +165,8 @@ export class AjvSchema<IN = unknown, OUT = IN> {
 
     // Note: if we mutated the input already, e.g stripped unknown properties,
     // the error message Input would contain already mutated object print, such as Input: {}
-    const inputStringified = _inspect(input, { maxLen: 4000 })
+    // Unless `getOriginalInput` function is provided - then it will be used to preserve the Input pureness.
+    const inputStringified = _inspect(opt.getOriginalInput?.() || input, { maxLen: 4000 })
     message = [message, 'Input: ' + inputStringified].join(separator)
 
     const err = new AjvValidationError(
@@ -245,7 +246,7 @@ export type WithCachedAjvSchema<Base, IN, OUT> = Base & {
   [HIDDEN_AJV_SCHEMA]: AjvSchema<IN, OUT>
 }
 
-export interface AjvValidationOptions {
+export interface AjvValidationOptions<IN> {
   /**
    * Defaults to true,
    * because that's how AJV works by default,
@@ -264,6 +265,16 @@ export interface AjvValidationOptions {
   mutateInput?: boolean
   inputName?: string
   inputId?: string
+  /**
+   * Function that returns "original input".
+   * What is original input?
+   * It's an input in its original non-mutated form.
+   * Why is it needed?
+   * Because we mutates the Input here. And after its been mutated - we no longer
+   * can include it "how it was" in an error message. So, for that reason we'll use
+   * `getOriginalInput()`, if it's provided.
+   */
+  getOriginalInput?: () => IN
 }
 
 export interface AjvSchemaCfg {

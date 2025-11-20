@@ -69,4 +69,15 @@ export interface ReqValidationOptions<ERR extends AppError> {
    * typically: request path params and request query params.
    */
   coerceTypes?: boolean
+
+  /**
+   * Default value depends on the implementation and the object.
+   * Joi and Zod do not mutate input (even if you pass `mutateInput: true` - that feature is not supported).
+   * AJV by default does mutate the input, but depending on the property:
+   *
+   * body - will be mutated, by req.rawBody will be used (if available) for error message snippet
+   * params, query - will NOT mutate by default (unless you pass `mutateInput: true`)
+   * headers - will NOT mutate by default
+   */
+  mutateInput?: boolean
 }

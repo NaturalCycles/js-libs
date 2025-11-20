@@ -264,7 +264,7 @@ describe('ajvValidateRequest', () => {
       expect(response.message).toMatchInlineSnapshot(`"400 GET /?algoVariant=3"`)
       expect(response.cause.message).toMatchInlineSnapshot(`
         "request.query.algoVariant must be equal to one of the allowed values
-        Input: { algoVariant: 3 }"
+        Input: { algoVariant: '3' }"
       `)
     })
 
@@ -313,7 +313,7 @@ describe('ajvValidateRequest', () => {
       expect(response.message).toMatchInlineSnapshot(`"400 GET /3"`)
       expect(response.cause.message).toMatchInlineSnapshot(`
         "request.params.algoVariant must be equal to one of the allowed values
-        Input: { algoVariant: 3 }"
+        Input: { algoVariant: '3' }"
       `)
     })
 

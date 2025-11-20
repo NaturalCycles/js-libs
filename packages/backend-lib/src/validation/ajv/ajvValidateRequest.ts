@@ -1,4 +1,3 @@
-import { _deepCopy } from '@naturalcycles/js-lib/object'
 import {
   AjvSchema,
   type AjvValidationError,
@@ -14,7 +13,13 @@ class AjvValidateRequest {
     schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
-    return this.validate(req, 'body', schema, opt)
+    return this.validate(
+      req,
+      'body',
+      schema,
+      req.rawBody ? () => JSON.parse(req.rawBody!.toString()) : undefined,
+      opt,
+    )
   }
 
   /**
@@ -28,7 +33,11 @@ class AjvValidateRequest {
     schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
-    return this.validate(req, 'query', schema, { coerceTypes: true, ...opt })
+    const originalQuery = JSON.stringify(req.query)
+    return this.validate(req, 'query', schema, () => JSON.parse(originalQuery), {
+      coerceTypes: true,
+      ...opt,
+    })
   }
 
   /**
@@ -42,7 +51,11 @@ class AjvValidateRequest {
     schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
-    return this.validate(req, 'params', schema, { coerceTypes: true, ...opt })
+    const originalParams = JSON.stringify(req.params)
+    return this.validate(req, 'params', schema, () => JSON.parse(originalParams), {
+      coerceTypes: true,
+      ...opt,
+    })
   }
 
   /**
@@ -58,26 +71,29 @@ class AjvValidateRequest {
     schema: SchemaHandledByAjv<IN, OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
-    const originalHeaders = _deepCopy(req.headers)
-    const headers = this.validate(req, 'headers', schema, opt)
-    req.headers = originalHeaders
-    return headers
+    return this.validate(req, 'headers', schema, undefined, {
+      mutateInput: false,
+      ...opt,
+    })
   }
 
   private validate<IN, OUT>(
     req: BackendRequest,
     reqProperty: 'body' | 'params' | 'query' | 'headers',
     schema: SchemaHandledByAjv<IN, OUT>,
+    getOriginalInput?: () => IN,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
     const input: IN = req[reqProperty] || {}
 
-    const { coerceTypes } = opt
+    const { coerceTypes, mutateInput } = opt
     const ajv = coerceTypes ? getCoercingAjv() : undefined
     const ajvSchema = AjvSchema.create(schema, { ajv })
 
     const [error, output] = ajvSchema.getValidationResult(input, {
       inputName: `request.${reqProperty}`,
+      getOriginalInput,
+      mutateInput,
     })
 
     if (error) {
