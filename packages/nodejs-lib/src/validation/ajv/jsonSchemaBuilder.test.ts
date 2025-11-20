@@ -487,6 +487,48 @@ describe('object', () => {
     })
   })
 
+  describe('.record', () => {
+    test('should correctly infer the type', () => {
+      type B = Branded<string, 'B'>
+      const schema1 = j.object.record(
+        j
+          .string()
+          .regex(/^\d{3,4}$/)
+          .branded<B>(),
+        j.number().nullable(),
+      )
+
+      expectTypeOf(schema1).not.toBeNever()
+      expectTypeOf(schema1.in).toEqualTypeOf<Record<B, number | null>>()
+      expectTypeOf(schema1.out).toEqualTypeOf<Record<B, number | null>>()
+      expectTypeOf(schema1.isOfType<Record<B, number | null>>).not.toBeNever()
+
+      const schema2 = j.object.record(
+        j
+          .string()
+          .regex(/^\d{3,4}$/)
+          .branded<B>(),
+        j.number().optional(),
+      )
+
+      expectTypeOf(schema2).not.toBeNever()
+      expectTypeOf(schema2.in).toEqualTypeOf<Partial<Record<B, number>>>()
+      expectTypeOf(schema2.out).toEqualTypeOf<Partial<Record<B, number>>>()
+      expectTypeOf(schema2.isOfType<Partial<Record<B, number>>>).not.toBeNever()
+    })
+  })
+
+  describe('.withRegexKeys', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.object.withRegexKeys(/^\d{3,4}$/, j.number().nullable())
+
+      expectTypeOf(schema1).not.toBeNever()
+      expectTypeOf(schema1.in).toEqualTypeOf<StringMap<number | null>>()
+      expectTypeOf(schema1.out).toEqualTypeOf<StringMap<number | null>>()
+      expectTypeOf(schema1.isOfType<StringMap<number | null>>).not.toBeNever()
+    })
+  })
+
   describe('.stringMap', () => {
     test('should correctly infer the type', () => {
       const schema1 = j.object.stringMap(j.number().nullable())

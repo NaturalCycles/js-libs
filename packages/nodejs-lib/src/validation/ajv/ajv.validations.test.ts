@@ -2507,6 +2507,51 @@ describe('object', () => {
     })
   })
 
+  describe('.record', () => {
+    test('should correctly infer the type', () => {
+      type B = Branded<string, 'B'>
+      const schema = j.object
+        .record(
+          j
+            .string()
+            .regex(/^\d{3,4}$/)
+            .branded<B>(),
+          j.number().nullable(),
+        )
+        .isOfType<Record<B, number | null>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [{}, { '123': 1, '2345': 2 }]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
+      }
+
+      const invalidCases: any[] = [
+        'a',
+        1,
+        true,
+        [],
+        { a: 'foo' }, // the value of every property must match the value schema
+      ]
+      for (const data of invalidCases) {
+        const [err] = ajvSchema.getValidationResult(data)
+        expect(err, _stringify(data)).not.toBeNull()
+      }
+
+      const specialCases: any[] = [
+        { '123': 1, '2345': 2, '1': 3 }, // non matching keys are stripped
+        { '123': 1, '2345': 2, a: 3 }, // non matching keys are stripped
+      ]
+      for (const data of specialCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(result).toEqual({ '123': 1, '2345': 2 })
+        expect(err, _stringify(data)).toBeNull()
+      }
+    })
+  })
+
   describe('.withEnumKeys', () => {
     test('should work with a list of const values', () => {
       const schema = j.object

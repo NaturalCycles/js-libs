@@ -82,7 +82,41 @@ export const j = {
       )
     },
 
+    /**
+     * @experimental Look around, maybe you find a rule that is better for your use-case.
+     *
+     * For Record<K, V> type of validations.
+     * ```ts
+     * const schema = j.object
+     *  .record(
+     *    j
+     *      .string()
+     *      .regex(/^\d{3,4}$/)
+     *      .branded<B>(),
+     *    j.number().nullable(),
+     *  )
+     *  .isOfType<Record<B, number | null>>()
+     * ```
+     *
+     * When the keys of the Record are values from an Enum, prefer `j.object.withEnumKeys`!
+     *
+     * Non-matching keys will be stripped from the object, i.e. they will not cause an error.
+     *
+     * Caveat: This rule first validates values of every properties of the object, and only then validates the keys.
+     * A consequence of that is that the validation will throw when there is an unexpected property with a value not matching the value schema.
+     */
+    record,
+
+    /**
+     * For Record<ENUM, V> type of validations.
+     *
+     * When the keys of the Record are values from an Enum,
+     * this helper is more performant and behaves in a more conventional manner than `j.object.record` would.
+     *
+     *
+     */
     withEnumKeys,
+    withRegexKeys,
   }),
 
   array<IN, OUT, Opt>(
@@ -749,6 +783,7 @@ export class JsonSchemaObjectBuilder<
       additionalProperties: false,
       hasIsOfTypeCheck: opt?.hasIsOfTypeCheck ?? true,
       patternProperties: opt?.patternProperties ?? undefined,
+      keySchema: opt?.keySchema ?? undefined,
     })
 
     if (props) this.addProperties(props)
@@ -820,6 +855,7 @@ export class JsonSchemaObjectBuilder<
 interface JsonSchemaObjectBuilderOpts {
   hasIsOfTypeCheck?: false
   patternProperties?: StringMap<JsonSchema<any, any>>
+  keySchema?: JsonSchema
 }
 
 export class JsonSchemaObjectInferringBuilder<
@@ -1107,6 +1143,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
   errorMessages?: StringMap<string>
   optionalValues?: (string | number | boolean)[]
+  keySchema?: JsonSchema
 }
 
 function object(props: AnyObject): never
@@ -1153,6 +1190,68 @@ function objectDbEntity(props: AnyObject): any {
     created: j.number().unixTimestamp2000(),
     updated: j.number().unixTimestamp2000(),
     ...props,
+  })
+}
+
+function record<
+  KS extends JsonSchemaAnyBuilder<any, any, any>,
+  VS extends JsonSchemaAnyBuilder<any, any, any>,
+  Opt extends boolean = SchemaOpt<VS>,
+>(
+  keySchema: KS,
+  valueSchema: VS,
+): JsonSchemaObjectBuilder<
+  Opt extends true
+    ? Partial<Record<SchemaIn<KS>, SchemaIn<VS>>>
+    : Record<SchemaIn<KS>, SchemaIn<VS>>,
+  Opt extends true
+    ? Partial<Record<SchemaOut<KS>, SchemaOut<VS>>>
+    : Record<SchemaOut<KS>, SchemaOut<VS>>,
+  false
+> {
+  const keyJsonSchema = keySchema.build()
+  const valueJsonSchema = valueSchema.build()
+
+  return new JsonSchemaObjectBuilder<
+    Opt extends true
+      ? Partial<Record<SchemaIn<KS>, SchemaIn<VS>>>
+      : Record<SchemaIn<KS>, SchemaIn<VS>>,
+    Opt extends true
+      ? Partial<Record<SchemaOut<KS>, SchemaOut<VS>>>
+      : Record<SchemaOut<KS>, SchemaOut<VS>>,
+    false
+  >([], {
+    hasIsOfTypeCheck: false,
+    keySchema: keyJsonSchema,
+    patternProperties: {
+      ['^.*$']: valueJsonSchema,
+    },
+  })
+}
+
+function withRegexKeys<
+  S extends JsonSchemaAnyBuilder<any, any, any>,
+  Opt extends boolean = SchemaOpt<S>,
+>(
+  keyRegex: RegExp | string,
+  schema: S,
+): JsonSchemaObjectBuilder<
+  Opt extends true ? StringMap<SchemaIn<S>> : StringMap<SchemaIn<S>>,
+  Opt extends true ? StringMap<SchemaOut<S>> : StringMap<SchemaOut<S>>,
+  false
+> {
+  const pattern = keyRegex instanceof RegExp ? keyRegex.source : keyRegex
+  const jsonSchema = schema.build()
+
+  return new JsonSchemaObjectBuilder<
+    Opt extends true ? StringMap<SchemaIn<S>> : StringMap<SchemaIn<S>>,
+    Opt extends true ? StringMap<SchemaOut<S>> : StringMap<SchemaOut<S>>,
+    false
+  >([], {
+    hasIsOfTypeCheck: false,
+    patternProperties: {
+      [pattern]: jsonSchema,
+    },
   })
 }
 
@@ -1245,4 +1344,5 @@ type EnumKeyUnion<T> =
 
 type SchemaIn<S> = S extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
 type SchemaOut<S> = S extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
-type SchemaOpt<S> = S extends JsonSchemaAnyBuilder<any, any, infer Opt> ? Opt : false
+type SchemaOpt<S> =
+  S extends JsonSchemaAnyBuilder<any, any, infer Opt> ? (Opt extends true ? true : false) : false

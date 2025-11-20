@@ -1,6 +1,7 @@
 import { _lazyValue } from '@naturalcycles/js-lib'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { Ajv, type Options, type ValidateFunction } from 'ajv'
 import { validTLDs } from '../tlds.js'
 import type { JsonSchemaIsoDateOptions, JsonSchemaStringEmailOptions } from './jsonSchemaBuilder.js'
@@ -426,6 +427,31 @@ export function createAjv(opt?: Options): Ajv {
       }
 
       return true
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'keySchema',
+    type: 'object',
+    modifying: true,
+    errors: false,
+    schemaType: 'object',
+    compile(innerSchema, _parentSchema, _it) {
+      const isValidKeyFn: ValidateFunction = ajv.compile(innerSchema)
+
+      function validate(data: AnyObject, _ctx: any): boolean {
+        if (typeof data !== 'object' || data === null) return true
+
+        for (const key of Object.keys(data)) {
+          if (!isValidKeyFn(key)) {
+            delete data[key]
+          }
+        }
+
+        return true
+      }
+
+      return validate
     },
   })
 
