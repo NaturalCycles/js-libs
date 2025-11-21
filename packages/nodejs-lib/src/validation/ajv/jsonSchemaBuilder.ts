@@ -1,7 +1,6 @@
 /* eslint-disable id-denylist */
 // oxlint-disable max-lines
-// biome-ignore lint/suspicious/noShadowRestrictedNames: needed for decorator signature
-// biome-ignore-all: this file intentionally violates some lint rules for decorators
+// biome-ignore-all lint: this file intentionally violates some lint rules for decorators
 
 import {
   _isUndefined,
