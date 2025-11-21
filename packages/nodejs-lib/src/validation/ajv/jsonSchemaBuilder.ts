@@ -1,5 +1,7 @@
 /* eslint-disable id-denylist */
 // oxlint-disable max-lines
+// biome-ignore lint/suspicious/noShadowRestrictedNames: needed for decorator signature
+// biome-ignore-all: this file intentionally violates some lint rules for decorators
 
 import {
   _isUndefined,
@@ -11,6 +13,7 @@ import { _uniq } from '@naturalcycles/js-lib/array'
 import { _assert } from '@naturalcycles/js-lib/error'
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
+import { _stringify } from '@naturalcycles/js-lib/string'
 import {
   _objectAssign,
   type AnyObject,
@@ -206,6 +209,7 @@ const TS_2000_MILLIS = TS_2000 * 1000
      With `Opt`, we can infer it as `{ foo?: string | undefined }`.
 */
 
+@immutable
 export class JsonSchemaTerminal<IN, OUT, Opt> {
   protected schema: JsonSchema
 
@@ -232,8 +236,14 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
     return jsonSchema
   }
 
-  clone(): JsonSchemaAnyBuilder<IN, OUT, Opt> {
-    return new JsonSchemaAnyBuilder<IN, OUT, Opt>(_deepCopy(this.schema))
+  clone(): this {
+    // const schema = _deepCopy(this.schema)
+    // const clone = new (this.constructor as { new (schema: JsonSchema): any })(schema)
+    // return clone as this
+
+    const clone = Object.create(Object.getPrototypeOf(this))
+    clone.schema = _deepCopy(this.schema)
+    return clone
   }
 
   /**
@@ -241,8 +251,10 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
    */
   in!: IN
   out!: OUT
+  opt!: Opt
 }
 
+@immutable
 export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, OUT, Opt> {
   protected setErrorMessage(ruleName: string, errorMessage: string | undefined): void {
     if (_isUndefined(errorMessage)) return
@@ -343,6 +355,7 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
   }
 }
 
+@immutable
 export class JsonSchemaStringBuilder<
   IN extends string | undefined = string,
   OUT = IN,
@@ -524,6 +537,7 @@ export interface JsonSchemaStringEmailOptions {
   checkTLD: boolean
 }
 
+@immutable
 export class JsonSchemaIsoDateBuilder<Opt extends boolean = false> extends JsonSchemaAnyBuilder<
   string | IsoDate,
   IsoDate,
@@ -574,6 +588,7 @@ export interface JsonSchemaIsoDateOptions {
   sameOrAfter?: string
 }
 
+@immutable
 export class JsonSchemaNumberBuilder<
   IN extends number | undefined = number,
   OUT = IN,
@@ -731,6 +746,7 @@ export class JsonSchemaNumberBuilder<
   }
 }
 
+@immutable
 export class JsonSchemaBooleanBuilder<
   IN extends boolean | undefined = boolean,
   OUT = IN,
@@ -770,6 +786,7 @@ export class JsonSchemaBooleanBuilder<
   }
 }
 
+@immutable
 export class JsonSchemaObjectBuilder<
   IN extends AnyObject,
   OUT extends AnyObject,
@@ -858,6 +875,7 @@ interface JsonSchemaObjectBuilderOpts {
   keySchema?: JsonSchema
 }
 
+@immutable
 export class JsonSchemaObjectInferringBuilder<
   PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>,
   Opt extends boolean = false,
@@ -976,6 +994,7 @@ export class JsonSchemaObjectInferringBuilder<
   }
 }
 
+@immutable
 export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<IN[], OUT[], Opt> {
   constructor(itemsSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>) {
     super({
@@ -1011,6 +1030,7 @@ export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<I
   }
 }
 
+@immutable
 export class JsonSchemaSet2Builder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<
   Iterable<IN>,
   Set2<OUT>,
@@ -1046,6 +1066,7 @@ export class JsonSchemaBufferBuilder extends JsonSchemaAnyBuilder<
   }
 }
 
+@immutable
 export class JsonSchemaEnumBuilder<
   IN extends string | number | boolean | null,
   OUT extends IN = IN,
@@ -1346,3 +1367,47 @@ type SchemaIn<S> = S extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : nev
 type SchemaOut<S> = S extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
 type SchemaOpt<S> =
   S extends JsonSchemaAnyBuilder<any, any, infer Opt> ? (Opt extends true ? true : false) : false
+
+function immutable<T extends { new (...args: any[]): AnyObject }>(constructor: T): T {
+  const proto = constructor.prototype
+
+  for (const name of Object.getOwnPropertyNames(proto)) {
+    if (name === 'constructor') continue
+
+    const desc = Object.getOwnPropertyDescriptor(proto, name)
+    if (!desc || typeof desc.value !== 'function') continue
+    if (isAllowedToMutate(name)) continue
+
+    const original = desc.value
+
+    Object.defineProperty(proto, name, {
+      ...desc,
+      value(...args: any[]) {
+        // Create a clone and run the function on the clone
+        const oldJsonSchema = this.schema
+        const clone = this.clone()
+        const result = original.apply(clone, args)
+
+        // If the result is the clone, then the function is chainable...
+        if (result === clone) {
+          // ...then we need to figure out if the function modified the JsonSchema
+          const oldJsonSchemaStr = _stringify(oldJsonSchema)
+          const newJsonSchema = clone.schema
+          const newJsonSchemaStr = _stringify(newJsonSchema)
+
+          // If it was modified, then cloning was necessary, we return the clone
+          if (oldJsonSchemaStr !== newJsonSchemaStr) return clone
+        }
+
+        // Otherwise the function can run on the original object
+        return original.apply(this, args)
+      },
+    })
+  }
+
+  return constructor
+}
+
+function isAllowedToMutate(name: string): boolean {
+  return ['clone', 'build', 'getSchema', 'addProperties'].includes(name)
+}
