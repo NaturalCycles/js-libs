@@ -233,7 +233,9 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
   }
 
   clone(): JsonSchemaAnyBuilder<IN, OUT, Opt> {
-    return new JsonSchemaAnyBuilder<IN, OUT, Opt>(_deepCopy(this.schema))
+    const cloned = Object.create(Object.getPrototypeOf(this))
+    cloned.schema = _deepCopy(this.schema)
+    return cloned
   }
 
   /**
@@ -266,61 +268,71 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
    * const result = ajvValidateRequest.body(req, schemaBad) // result will have `unknown` type
    * ```
    */
+  @returnNewInstance
   isOfType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
     _objectAssign(this.schema, { hasIsOfTypeCheck: true })
     return this as any
   }
 
+  @returnNewInstance
   $schema($schema: string): this {
     _objectAssign(this.schema, { $schema })
     return this
   }
 
   $schemaDraft7(): this {
-    this.$schema('http://json-schema.org/draft-07/schema#')
-    return this
+    return this.$schema('http://json-schema.org/draft-07/schema#')
   }
 
+  @returnNewInstance
   $id($id: string): this {
     _objectAssign(this.schema, { $id })
     return this
   }
 
+  @returnNewInstance
   title(title: string): this {
     _objectAssign(this.schema, { title })
     return this
   }
 
+  @returnNewInstance
   description(description: string): this {
     _objectAssign(this.schema, { description })
     return this
   }
 
+  @returnNewInstance
   deprecated(deprecated = true): this {
     _objectAssign(this.schema, { deprecated })
     return this
   }
 
+  @returnNewInstance
   type(type: string): this {
     _objectAssign(this.schema, { type })
     return this
   }
 
+  @returnNewInstance
   default(v: any): this {
     _objectAssign(this.schema, { default: v })
     return this
   }
 
+  @returnNewInstance
   instanceof(of: string): this {
     _objectAssign(this.schema, { type: 'object', instanceof: of })
     return this
   }
 
+  @returnNewInstance
   optional(): JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true> {
-    this.schema.optionalField = true
+    _objectAssign(this.schema, { optionalField: true })
     return this as unknown as JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true>
   }
 
+  @returnNewInstance
   nullable(): JsonSchemaAnyBuilder<IN | null, OUT | null, Opt> {
     return new JsonSchemaAnyBuilder({
       anyOf: [this.build(), { type: 'null' }],
@@ -360,6 +372,7 @@ export class JsonSchemaStringBuilder<
    * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
    */
+  @returnNewInstance
   override optional(
     optionalValues?: string[],
   ): JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
@@ -385,6 +398,7 @@ export class JsonSchemaStringBuilder<
     return this.pattern(pattern.source, opt)
   }
 
+  @returnNewInstance
   pattern(pattern: string, opt?: JsonBuilderRuleOpt): this {
     if (opt?.name) this.setErrorMessage('pattern', `is not a valid ${opt.name}`)
     if (opt?.msg) this.setErrorMessage('pattern', opt.msg)
@@ -392,11 +406,13 @@ export class JsonSchemaStringBuilder<
     return this
   }
 
+  @returnNewInstance
   minLength(minLength: number): this {
     _objectAssign(this.schema, { minLength })
     return this
   }
 
+  @returnNewInstance
   maxLength(maxLength: number): this {
     _objectAssign(this.schema, { maxLength })
     return this
@@ -409,27 +425,32 @@ export class JsonSchemaStringBuilder<
     return this.minLength(minLengthOrExactLength).maxLength(maxLengthActual)
   }
 
+  @returnNewInstance
   email(opt?: Partial<JsonSchemaStringEmailOptions>): this {
     const defaultOptions: JsonSchemaStringEmailOptions = { checkTLD: true }
     _objectAssign(this.schema, { email: { ...defaultOptions, ...opt } })
     return this.trim().toLowerCase()
   }
 
+  @returnNewInstance
   trim(): this {
     _objectAssign(this.schema, { transform: { ...this.schema.transform, trim: true } })
     return this
   }
 
+  @returnNewInstance
   toLowerCase(): this {
     _objectAssign(this.schema, { transform: { ...this.schema.transform, toLowerCase: true } })
     return this
   }
 
+  @returnNewInstance
   toUpperCase(): this {
     _objectAssign(this.schema, { transform: { ...this.schema.transform, toUpperCase: true } })
     return this
   }
 
+  @returnNewInstance
   truncate(toLength: number): this {
     _objectAssign(this.schema, { transform: { ...this.schema.transform, truncate: toLength } })
     return this
@@ -446,10 +467,10 @@ export class JsonSchemaStringBuilder<
    * because this call effectively starts a new schema chain.
    */
   isoDate(): JsonSchemaIsoDateBuilder {
-    _objectAssign(this.schema, { IsoDate: {} })
     return new JsonSchemaIsoDateBuilder()
   }
 
+  @returnNewInstance
   isoDateTime(): JsonSchemaStringBuilder<IsoDateTime | IN, IsoDateTime, Opt> {
     _objectAssign(this.schema, { IsoDateTime: true })
     return this.branded<IsoDateTime>()
@@ -536,26 +557,31 @@ export class JsonSchemaIsoDateBuilder<Opt extends boolean = false> extends JsonS
     })
   }
 
+  @returnNewInstance
   before(date: string): this {
     _objectAssign(this.schema.IsoDate!, { before: date })
     return this
   }
 
+  @returnNewInstance
   sameOrBefore(date: string): this {
     _objectAssign(this.schema.IsoDate!, { sameOrBefore: date })
     return this
   }
 
+  @returnNewInstance
   after(date: string): this {
     _objectAssign(this.schema.IsoDate!, { after: date })
     return this
   }
 
+  @returnNewInstance
   sameOrAfter(date: string): this {
     _objectAssign(this.schema.IsoDate!, { sameOrAfter: date })
     return this
   }
 
+  @returnNewInstance
   between(fromDate: string, toDate: string, incl: Inclusiveness): this {
     if (incl === '[)') {
       _objectAssign(this.schema.IsoDate!, { sameOrAfter: fromDate, before: toDate })
@@ -591,6 +617,7 @@ export class JsonSchemaNumberBuilder<
    * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
    */
+  @returnNewInstance
   override optional(
     optionalValues?: number[],
   ): JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
@@ -612,6 +639,7 @@ export class JsonSchemaNumberBuilder<
     return newBuilder
   }
 
+  @returnNewInstance
   integer(): this {
     _objectAssign(this.schema, { type: 'integer' })
     return this
@@ -621,26 +649,32 @@ export class JsonSchemaNumberBuilder<
     return this as unknown as JsonSchemaNumberBuilder<B, B, Opt>
   }
 
+  @returnNewInstance
   multipleOf(multipleOf: number): this {
     _objectAssign(this.schema, { multipleOf })
     return this
   }
 
+  @returnNewInstance
   min(minimum: number): this {
     _objectAssign(this.schema, { minimum })
     return this
   }
 
+  @returnNewInstance
   exclusiveMin(exclusiveMinimum: number): this {
     _objectAssign(this.schema, { exclusiveMinimum })
     return this
   }
 
+  @returnNewInstance
+  @returnNewInstance
   max(maximum: number): this {
     _objectAssign(this.schema, { maximum })
     return this
   }
 
+  @returnNewInstance
   exclusiveMax(exclusiveMaximum: number): this {
     _objectAssign(this.schema, { exclusiveMaximum })
     return this
@@ -812,11 +846,13 @@ export class JsonSchemaObjectBuilder<
   /**
    * When set, the validation will not strip away properties that are not specified explicitly in the schema.
    */
+  @returnNewInstance
   allowAdditionalProperties(): this {
     _objectAssign(this.schema, { additionalProperties: true })
     return this
   }
 
+  @returnNewInstance
   extend<IN2 extends AnyObject>(
     props: AnyObject,
   ): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt> {
@@ -841,11 +877,13 @@ export class JsonSchemaObjectBuilder<
     })
   }
 
+  @returnNewInstance
   minProperties(minProperties: number): this {
     Object.assign(this.schema, { minProperties })
     return this
   }
 
+  @returnNewInstance
   maxProperties(maxProperties: number): this {
     Object.assign(this.schema, { maxProperties })
     return this
@@ -928,11 +966,13 @@ export class JsonSchemaObjectInferringBuilder<
   /**
    * When set, the validation will not strip away properties that are not specified explicitly in the schema.
    */
+  @returnNewInstance
   allowAdditionalProperties(): this {
     _objectAssign(this.schema, { additionalProperties: true })
     return this
   }
 
+  @returnNewInstance
   extend<NEW_PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
     props: NEW_PROPS,
   ): JsonSchemaObjectInferringBuilder<
@@ -984,11 +1024,13 @@ export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<I
     })
   }
 
+  @returnNewInstance
   minLength(minItems: number): this {
     _objectAssign(this.schema, { minItems })
     return this
   }
 
+  @returnNewInstance
   maxLength(maxItems: number): this {
     _objectAssign(this.schema, { maxItems })
     return this
@@ -1005,6 +1047,7 @@ export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<I
     return this.minLength(length).maxLength(length)
   }
 
+  @returnNewInstance
   unique(): this {
     _objectAssign(this.schema, { uniqueItems: true })
     return this
@@ -1023,11 +1066,13 @@ export class JsonSchemaSet2Builder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<
     })
   }
 
+  @returnNewInstance
   min(minItems: number): this {
     _objectAssign(this.schema, { minItems })
     return this
   }
 
+  @returnNewInstance
   max(maxItems: number): this {
     _objectAssign(this.schema, { maxItems })
     return this
@@ -1346,3 +1391,25 @@ type SchemaIn<S> = S extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : nev
 type SchemaOut<S> = S extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
 type SchemaOpt<S> =
   S extends JsonSchemaAnyBuilder<any, any, infer Opt> ? (Opt extends true ? true : false) : false
+
+function returnNewInstance(
+  _target: any,
+  _propertyKey: string,
+  descriptor: any,
+): TypedPropertyDescriptor<(...args: any[]) => any> {
+  const originalMethod = descriptor.value
+
+  descriptor.value = function (...args: any[]) {
+    // 1. Clone the instance
+    const clone = Object.create(Object.getPrototypeOf(this))
+    clone.schema = _deepCopy(this.schema)
+
+    // 2. Call the method on the clone, preserving “this”
+    const result = originalMethod.apply(clone, args)
+
+    // 3. If the original method returns `this`, adjust
+    return result === this ? clone : result
+  }
+
+  return descriptor
+}

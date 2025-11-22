@@ -21,6 +21,17 @@ import { describe, expect, expectTypeOf, test } from 'vitest'
 import { AjvSchema } from './ajvSchema.js'
 import { j } from './jsonSchemaBuilder.js'
 
+describe('immutability', () => {
+  test('the rule chains should return new instances', () => {
+    const schema1 = j.string()
+    const schema2 = schema1.minLength(1)
+    const schema3 = schema2.maxLength(2)
+
+    expect(schema1).not.toBe(schema2)
+    expect(schema2).not.toBe(schema3)
+  })
+})
+
 describe('string', () => {
   test('should work correctly with type inference', () => {
     const schema = j.string()
