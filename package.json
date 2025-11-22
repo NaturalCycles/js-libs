@@ -95,7 +95,7 @@
     "eslint": "^9",
     "husky": "^9",
     "oxlint": "^1",
-    "oxlint-tsgolint": "^0.7",
+    "oxlint-tsgolint": "*",
     "prettier": "^3",
     "semantic-release": "^25",
     "semantic-release-monorepo": "^8",
