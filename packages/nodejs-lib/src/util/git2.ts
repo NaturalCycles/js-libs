@@ -103,6 +103,24 @@ class Git2 {
   getAllBranchesNames(): string[] {
     // raw ouput from command
     let rawBranchesNameExecOutput = exec2.exec('git branch -r')
+    /**
+     * Raw output example from this repository:
+     * $ git branch -r
+     * origin/DEV-22569-zod-isoDate-params
+     * origin/DEV-23052-git2-add-method
+     * origin/HEAD -> origin/main
+     * origin/add-requiredpick-type-helper
+     * origin/better-object-keys
+     * origin/feat/immutable-j-1
+     * origin/feat/immutable-j-2
+     * origin/feat/random-string-util
+     * origin/fix-vsc-red-line
+     * origin/generic-cachekey-function-2
+     * origin/gh-pages
+     * origin/main
+     * origin/stringify-or-undefined
+     */
+
     // intermediate array from output
     const intermediateBranchesNameArray = rawBranchesNameExecOutput.split('\n')
 
@@ -110,15 +128,14 @@ class Git2 {
     branchesNameArray = []
 
     for (const intermediateBranchesName of intermediateBranchesNameArray) {
-      /**
-       * Example: "origin/DEV-23028"
-       * Example: "origin/HEAD -> origin/master"
-       */
       let intermediateTrimmedSplitedBranchesNameArray = intermediateBranchesName.trim().split('/')
-      // handle case "origin/HEAD -> origin/master"
-      if (intermediateTrimmedSplitedBranchesNameArray.length > 2) {
-        branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[2]!)
-      } else {
+      /**
+       * Only add outputs that follow the structure origin/[BRANCH_NAME]
+       * so we ignore outputs like:
+       * origin/HEAD -> origin/main"
+       * that would end up as a duplicated entry
+       */
+      if (intermediateTrimmedSplitedBranchesNameArray.length === 2) {
         branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[1]!)
       }
     }
