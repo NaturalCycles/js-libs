@@ -99,6 +99,31 @@ class Git2 {
     const originUrl = exec2.exec('git config --get remote.origin.url')
     return basename(originUrl, '.git')
   }
+
+  getAllBranchesNames(): string[] {
+    // raw ouput from command
+    let rawBranchesNameExecOutput = exec2.exec('git branch -r')
+    // intermediate array from output
+    const intermediateBranchesNameArray = rawBranchesNameExecOutput.split('\n')
+
+    let branchesNameArray: string[]
+    branchesNameArray = []
+
+    for (const intermediateBranchesName of intermediateBranchesNameArray) {
+      /**
+       * Example: "origin/DEV-23028"
+       * Example: "origin/HEAD -> origin/master"
+       */
+      let intermediateTrimmedSplitedBranchesNameArray = intermediateBranchesName.trim().split('/')
+      // handle case "origin/HEAD -> origin/master"
+      if (intermediateTrimmedSplitedBranchesNameArray.length > 2) {
+        branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[2])
+      } else {
+        branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[1])
+      }
+    }
+    return branchesNameArray
+  }
 }
 
 export const git2 = new Git2()
