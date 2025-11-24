@@ -117,9 +117,9 @@ class Git2 {
       let intermediateTrimmedSplitedBranchesNameArray = intermediateBranchesName.trim().split('/')
       // handle case "origin/HEAD -> origin/master"
       if (intermediateTrimmedSplitedBranchesNameArray.length > 2) {
-        branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[2])
+        branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[2]!)
       } else {
-        branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[1])
+        branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[1]!)
       }
     }
     return branchesNameArray
