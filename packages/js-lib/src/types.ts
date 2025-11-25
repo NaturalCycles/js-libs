@@ -247,10 +247,16 @@ export type IsoDate = Branded<string, 'IsoDate'>
 export type IsoDateTime = Branded<string, 'IsoDateTime'>
 
 /**
- * Identifies the Month.
- * Like IsoDate, but without the Day token.
+ * ISO 8601 month (YYYY-MM).
+ * Branded type.
  *
- * @example '2023-09'
+ * @example '2019-06'
+ */
+export type IsoMonth = Branded<string, 'IsoMonth'>
+
+/**
+ * Identifies the Month.
+ * @deprecated Use IsoMonth
  */
 export type MonthId = string
 
