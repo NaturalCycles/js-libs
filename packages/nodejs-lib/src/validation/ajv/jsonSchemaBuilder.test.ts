@@ -263,11 +263,53 @@ describe('object', () => {
         foo: string
         bar: number
       }
-      const shuSchema = fooSchema.concat<Shu>(barSchema)
+      const shuSchema = fooSchema.concat<Shu, Bar>(barSchema)
 
       expectTypeOf(shuSchema).not.toBeNever()
       expectTypeOf(shuSchema.in).toEqualTypeOf<Shu>()
       expectTypeOf(shuSchema.out).toEqualTypeOf<Shu>()
+    })
+
+    test('should throw when the type mismatches', () => {
+      interface Foo {
+        foo: string
+      }
+      const fooSchema = j.object<Foo>({ foo: j.string() })
+
+      interface Bar {
+        bar: number
+      }
+      const barSchema = j.object<Bar>({ bar: j.number() })
+
+      interface Shu {
+        foo: string
+        bar: string // Should be number
+      }
+      const shuSchema = fooSchema.concat<Shu, Bar>(barSchema)
+
+      expectTypeOf(shuSchema).toBeNever()
+    })
+
+    test('should throw when the types are mixed up', () => {
+      interface Foo {
+        foo: string
+      }
+      const fooSchema = j.object<Foo>({ foo: j.string() })
+
+      interface Bar {
+        bar: number
+      }
+      const barSchema = j.object<Bar>({ bar: j.number() })
+
+      interface Shu {
+        foo: string
+        bar: number
+      }
+
+      // @ts-expect-error
+      const shuSchema = fooSchema.concat<Bar, Shu>(barSchema)
+
+      expectTypeOf(shuSchema).toBeNever()
     })
 
     test('should expect the final type', () => {

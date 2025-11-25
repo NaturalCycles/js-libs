@@ -2310,7 +2310,7 @@ describe('object', () => {
         foo: string
         bar: number
       }
-      const shuSchema = fooSchema.concat<Shu>(barSchema)
+      const shuSchema = fooSchema.concat<Shu, Bar>(barSchema)
 
       const [err, result] = AjvSchema.create(shuSchema).getValidationResult({
         foo: 'asdf',

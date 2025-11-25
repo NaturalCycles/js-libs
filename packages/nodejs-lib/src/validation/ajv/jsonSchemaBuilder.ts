@@ -851,7 +851,9 @@ export class JsonSchemaObjectBuilder<
   /**
    * Concatenates another schema to the current schema.
    *
-   * It expects a type to be passed in as a generic, and this type should be the expected final type.
+   * It expects 2 types to be passed in as a generic:
+   * 1) the expected final type,
+   * 2) the type of the passed in schema.
    *
    * ```ts
    *  interface Foo { foo: string }
@@ -861,13 +863,15 @@ export class JsonSchemaObjectBuilder<
    *  const barSchema = j.object<Bar>({ bar: j.number() })
    *
    *  interface Shu { foo: string, bar: number }
-   *  const shuSchema = fooSchema.concat<Shu>(barSchema)
+   *  const shuSchema = fooSchema.concat<Shu, Bar>(barSchema)
    * ```
    */
   concat(other: any): never
-  concat<FINAL extends AnyObject>(
-    other: JsonSchemaObjectBuilder<any, any, any>,
-  ): JsonSchemaObjectBuilder<FINAL, FINAL, false>
+  concat<NEW_TYPE extends AnyObject, OUT2 extends AnyObject>(
+    other: JsonSchemaObjectBuilder<any, OUT2, any>,
+  ): ExactMatch<NEW_TYPE, OUT & OUT2> extends true
+    ? JsonSchemaObjectBuilder<NEW_TYPE, NEW_TYPE, false>
+    : never
   concat(other: any): any {
     const clone = this.clone()
     mergeJsonSchemaObjects(clone.schema as any, other.schema)
