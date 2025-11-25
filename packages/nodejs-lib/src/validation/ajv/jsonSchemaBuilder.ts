@@ -831,11 +831,7 @@ export class JsonSchemaObjectBuilder<
   extend<IN2 extends AnyObject>(
     props: AnyObject,
   ): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt> {
-    const clone = this.cloneAndUpdateSchema(_deepCopy(this.schema)) as JsonSchemaObjectBuilder<
-      IN & IN2,
-      OUT & IN2,
-      Opt
-    >
+    const clone = this.clone() as JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt>
 
     const incomingSchemaBuilder = new JsonSchemaObjectBuilder<IN2, IN2, false>(props)
     mergeJsonSchemaObjects(clone.schema as any, incomingSchemaBuilder.schema as any)
@@ -1311,10 +1307,14 @@ function withEnumKeys<
   >(props, { hasIsOfTypeCheck: false })
 }
 
-type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
+type Expand<T> = { [K in keyof T]: T[K] }
 
 type ExactMatch<A, B> =
-  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
+  (<T>() => T extends Expand<A> ? 1 : 2) extends <T>() => T extends Expand<B> ? 1 : 2
+    ? (<T>() => T extends Expand<B> ? 1 : 2) extends <T>() => T extends Expand<A> ? 1 : 2
+      ? true
+      : false
+    : false
 
 type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never

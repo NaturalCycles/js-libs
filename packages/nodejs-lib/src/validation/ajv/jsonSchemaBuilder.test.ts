@@ -233,6 +233,17 @@ describe('object', () => {
 
       expectTypeOf(schema2.in).toEqualTypeOf<Foo & Bar>()
       expectTypeOf(schema2.out).toEqualTypeOf<Foo & Bar>()
+
+      // Should accept an equivalent interface too
+      interface Shu {
+        a: string | null
+        b?: number
+      }
+      const schema3 = schema2.isOfType<Shu>()
+      expectTypeOf(schema3).not.toBeNever()
+
+      const schema4 = schema2.isOfType<Bar & Foo>()
+      expectTypeOf(schema4).not.toBeNever()
     })
   })
 
