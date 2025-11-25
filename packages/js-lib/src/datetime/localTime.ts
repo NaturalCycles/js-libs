@@ -4,6 +4,7 @@ import type {
   Inclusiveness,
   IsoDate,
   IsoDateTime,
+  IsoMonth,
   MonthId,
   MutateOptions,
   NumberOfHours,
@@ -711,6 +712,13 @@ export class LocalTime {
   }
 
   /**
+   * Returns e.g: `1984-06`
+   */
+  toISOMonth(): IsoMonth {
+    return this.toISODate().slice(0, 7) as IsoMonth
+  }
+
+  /**
    * Returns e.g: `17:03:15` (or `17:03` with seconds=false)
    */
   toISOTime(seconds = true): string {
@@ -757,8 +765,11 @@ export class LocalTime {
     return this.unix
   }
 
+  /**
+   * @deprecated Use toIsoMonth
+   */
   toMonthId(): MonthId {
-    return this.toISODate().slice(0, 7)
+    return this.toISOMonth()
   }
 
   format(fmt: Intl.DateTimeFormat | LocalTimeFormatter): string {

@@ -4,6 +4,7 @@ import type {
   Inclusiveness,
   IsoDate,
   IsoDateTime,
+  IsoMonth,
   MonthId,
   MutateOptions,
   SortOptions,
@@ -475,6 +476,13 @@ export class LocalDate {
   }
 
   /**
+   * Returns e.g: `1984-06`
+   */
+  toISOMonth(): IsoMonth {
+    return this.toISODate().slice(0, 7) as IsoMonth
+  }
+
+  /**
    * Returns e.g: `1984-06-21T00:00:00`
    * Hours, minutes and seconds are 0.
    */
@@ -506,10 +514,10 @@ export class LocalDate {
   }
 
   /**
-   * Returns e.g: `1984-06`
+   * @deprecated Use toIsoMonth
    */
   toMonthId(): MonthId {
-    return this.toISODate().slice(0, 7)
+    return this.toISOMonth()
   }
 
   /**
