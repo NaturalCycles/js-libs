@@ -2294,6 +2294,53 @@ describe('object', () => {
     })
   })
 
+  describe('concat', () => {
+    test('should work correctly with type assignment', () => {
+      interface Foo {
+        foo: string
+      }
+      const fooSchema = j.object<Foo>({ foo: j.string() })
+
+      interface Bar {
+        bar: number
+      }
+      const barSchema = j.object<Bar>({ bar: j.number() })
+
+      interface Shu {
+        foo: string
+        bar: number
+      }
+      const shuSchema = fooSchema.concat<Shu>(barSchema)
+
+      const [err, result] = AjvSchema.create(shuSchema).getValidationResult({
+        foo: 'asdf',
+        bar: 0,
+      })
+
+      expect(err).toBeNull()
+      expect(result).toEqual({
+        foo: 'asdf',
+        bar: 0,
+      })
+      expectTypeOf(result).toExtend<Foo>()
+    })
+
+    test('should not work without passing in a type', () => {
+      interface Foo {
+        foo: string
+      }
+      const fooSchema = j.object<Foo>({ foo: j.string() })
+
+      interface Bar {
+        bar: number
+      }
+      const barSchema = j.object<Bar>({ bar: j.number() })
+
+      const shuSchema = fooSchema.concat(barSchema)
+      expectTypeOf(shuSchema).toBeNever()
+    })
+  })
+
   describe('allowAdditionalProperties', () => {
     test('should strip away unspecified properties during validation when not set', () => {
       const schema = j.object

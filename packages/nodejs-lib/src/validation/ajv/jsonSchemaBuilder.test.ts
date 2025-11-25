@@ -247,6 +247,45 @@ describe('object', () => {
     })
   })
 
+  describe('concat', () => {
+    test('should correctly infer the type', () => {
+      interface Foo {
+        foo: string
+      }
+      const fooSchema = j.object<Foo>({ foo: j.string() })
+
+      interface Bar {
+        bar: number
+      }
+      const barSchema = j.object<Bar>({ bar: j.number() })
+
+      interface Shu {
+        foo: string
+        bar: number
+      }
+      const shuSchema = fooSchema.concat<Shu>(barSchema)
+
+      expectTypeOf(shuSchema).not.toBeNever()
+      expectTypeOf(shuSchema.in).toEqualTypeOf<Shu>()
+      expectTypeOf(shuSchema.out).toEqualTypeOf<Shu>()
+    })
+
+    test('should expect the final type', () => {
+      interface Foo {
+        foo: string
+      }
+      const fooSchema = j.object<Foo>({ foo: j.string() })
+
+      interface Bar {
+        bar: number
+      }
+      const barSchema = j.object<Bar>({ bar: j.number() })
+
+      const shuSchema = fooSchema.concat(barSchema)
+      expectTypeOf(shuSchema).toBeNever()
+    })
+  })
+
   describe('.dbEntity', () => {
     test('should correctly infer the type', () => {
       type Id = Branded<string, 'Id'>

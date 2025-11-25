@@ -849,6 +849,32 @@ export class JsonSchemaObjectBuilder<
   }
 
   /**
+   * Concatenates another schema to the current schema.
+   *
+   * It expects a type to be passed in as a generic, and this type should be the expected final type.
+   *
+   * ```ts
+   *  interface Foo { foo: string }
+   *  const fooSchema = j.object<Foo>({ foo: j.string() })
+   *
+   *  interface Bar { bar: number }
+   *  const barSchema = j.object<Bar>({ bar: j.number() })
+   *
+   *  interface Shu { foo: string, bar: number }
+   *  const shuSchema = fooSchema.concat<Shu>(barSchema)
+   * ```
+   */
+  concat(other: any): never
+  concat<FINAL extends AnyObject>(
+    other: JsonSchemaObjectBuilder<any, any, any>,
+  ): JsonSchemaObjectBuilder<FINAL, FINAL, false>
+  concat(other: any): any {
+    const clone = this.clone()
+    mergeJsonSchemaObjects(clone.schema as any, other.schema)
+    return clone
+  }
+
+  /**
    * Extends the current schema with `id`, `created` and `updated` according to NC DB conventions.
    */
   // oxlint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
