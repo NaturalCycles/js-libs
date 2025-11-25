@@ -5,7 +5,6 @@ import type {
   IsoDate,
   IsoDateTime,
   IsoMonth,
-  MonthId,
   MutateOptions,
   SortOptions,
   UnixTimestamp,
@@ -511,13 +510,6 @@ export class LocalDate {
       String(this.month).padStart(2, '0'),
       String(this.day).padStart(2, '0'),
     ].join('')
-  }
-
-  /**
-   * @deprecated Use toIsoMonth
-   */
-  toMonthId(): MonthId {
-    return this.toISOMonth()
   }
 
   /**

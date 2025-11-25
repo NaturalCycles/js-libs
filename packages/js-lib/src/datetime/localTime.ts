@@ -5,7 +5,6 @@ import type {
   IsoDate,
   IsoDateTime,
   IsoMonth,
-  MonthId,
   MutateOptions,
   NumberOfHours,
   NumberOfMinutes,
@@ -763,13 +762,6 @@ export class LocalTime {
 
   toJSON(): UnixTimestamp {
     return this.unix
-  }
-
-  /**
-   * @deprecated Use toIsoMonth
-   */
-  toMonthId(): MonthId {
-    return this.toISOMonth()
   }
 
   format(fmt: Intl.DateTimeFormat | LocalTimeFormatter): string {

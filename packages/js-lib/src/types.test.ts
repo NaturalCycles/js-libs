@@ -19,7 +19,7 @@ import {
   type BaseDBEntity,
   type Branded,
   type IsoDate,
-  type MonthId,
+  type IsoMonth,
   type Reviver,
   type Saved,
   type StringMap,
@@ -34,7 +34,7 @@ interface Item extends BaseDBEntity {
 
 interface ItemDBM extends Item {}
 
-const _ym: MonthId = '2021-01'
+const _ym = '2021-01' as IsoMonth
 
 test('saved/unsaved', () => {
   const a = 1

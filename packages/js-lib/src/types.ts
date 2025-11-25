@@ -255,12 +255,6 @@ export type IsoDateTime = Branded<string, 'IsoDateTime'>
 export type IsoMonth = Branded<string, 'IsoMonth'>
 
 /**
- * Identifies the Month.
- * @deprecated Use IsoMonth
- */
-export type MonthId = string
-
-/**
  * Identifies IANA timezone name.
  * Branded type.
  *
