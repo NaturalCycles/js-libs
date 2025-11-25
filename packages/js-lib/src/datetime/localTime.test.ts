@@ -49,7 +49,7 @@ test('basic', () => {
     expect(lt.valueOf()).toBe(1640995200)
     expect(lt.toJSON()).toBe(1640995200)
   }
-  expect(lt.toIsoMonth()).toBe('2022-01')
+  expect(lt.toISOMonth()).toBe('2022-01')
   const lt2 = lt.clone()
   expect(lt2).not.toBe(lt)
 

@@ -715,7 +715,7 @@ export class LocalTime {
    * Returns e.g: `1984-06`
    */
   toISOMonth(): IsoMonth {
-    return this.toISODate().slice(0, 7)
+    return this.toISODate().slice(0, 7) as IsoMonth
   }
 
   /**

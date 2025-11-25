@@ -26,7 +26,7 @@ test('basic', () => {
   expect(ld.day).toBe(21)
   expect(ld.month).toBe(6)
   expect(ld.year).toBe(1984)
-  expect(ld.toIsoMonth()).toBe('1984-06')
+  expect(ld.toISOMonth()).toBe('1984-06')
   expect(ld.toDateObject()).toEqual({
     year: 1984,
     month: 6,
