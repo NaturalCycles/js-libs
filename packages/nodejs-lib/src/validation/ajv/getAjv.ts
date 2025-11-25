@@ -1,10 +1,14 @@
-import { _lazyValue } from '@naturalcycles/js-lib'
+import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { Ajv, type Options, type ValidateFunction } from 'ajv'
 import { validTLDs } from '../tlds.js'
-import type { JsonSchemaIsoDateOptions, JsonSchemaStringEmailOptions } from './jsonSchemaBuilder.js'
+import type {
+  JsonSchemaIsoDateOptions,
+  JsonSchemaIsoMonthOptions,
+  JsonSchemaStringEmailOptions,
+} from './jsonSchemaBuilder.js'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 // oxlint-disable unicorn/prefer-code-point
@@ -383,13 +387,32 @@ export function createAjv(opt?: Options): Ajv {
     modifying: false,
     errors: true,
     schemaType: 'boolean',
-    validate: function validate(_opt: true, data: string, _schema, ctx) {
+    validate: function validate(_opt: JsonSchemaIsoMonthOptions, data: string, _schema, ctx) {
       const isValid = isIsoDateTimeValid(data)
       if (isValid) return true
       ;(validate as any).errors = [
         {
           instancePath: ctx?.instancePath ?? '',
           message: `is an invalid IsoDateTime`,
+        },
+      ]
+      return false
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'IsoMonth',
+    type: 'string',
+    modifying: false,
+    errors: true,
+    schemaType: 'object',
+    validate: function validate(_opt: true, data: string, _schema, ctx) {
+      const isValid = isIsoMonthValid(data)
+      if (isValid) return true
+      ;(validate as any).errors = [
+        {
+          instancePath: ctx?.instancePath ?? '',
+          message: `is an invalid IsoMonth`,
         },
       ]
       return false
@@ -576,4 +599,25 @@ function isIsoTimezoneValid(s: string): boolean {
   if (isWestern && hour === 12 && minute > 0) return false // min is -12:00
 
   return true
+}
+
+/**
+ * This is a performance optimized correct validation
+ * for ISO month formatted as "YYYY-MM".
+ */
+function isIsoMonthValid(s: string): boolean {
+  // must be exactly "YYYY-MM"
+  if (s.length !== 7) return false
+  if (s.charCodeAt(4) !== DASH_CODE) return false
+
+  // fast parse numbers without substrings/Number()
+  const year =
+    (s.charCodeAt(0) - ZERO_CODE) * 1000 +
+    (s.charCodeAt(1) - ZERO_CODE) * 100 +
+    (s.charCodeAt(2) - ZERO_CODE) * 10 +
+    (s.charCodeAt(3) - ZERO_CODE)
+
+  const month = (s.charCodeAt(5) - ZERO_CODE) * 10 + (s.charCodeAt(6) - ZERO_CODE)
+
+  return _isBetween(year, 1900, 2500, '[]') && _isBetween(month, 1, 12, '[]')
 }

@@ -13,6 +13,7 @@ import type {
   IANATimezone,
   IsoDate,
   IsoDateTime,
+  IsoMonth,
   StringMap,
   UnixTimestamp,
   UnixTimestampMillis,
@@ -785,6 +786,66 @@ describe('string', () => {
         '2100-02-29T01:01:01', // not leap year b/c div. by 100 but not div. by 400
       ]
       const schema = j.string().isoDateTime()
+      const ajvSchema = AjvSchema.create(schema)
+
+      invalidCases.forEach(date => {
+        const [err] = ajvSchema.getValidationResult(date)
+        expect(err, String(date)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('IsoMonth', () => {
+    test('should work correctly with type inference', () => {
+      const schema = j.string().isoMonth()
+
+      const [err, result] = AjvSchema.create(schema).getValidationResult('2025-10')
+
+      expect(err).toBeNull()
+      expect(result).toBe('2025-10')
+      expectTypeOf(result).toEqualTypeOf<IsoMonth>()
+    })
+
+    test('should reject with proper error message', () => {
+      const schema = j.string().isoMonth()
+
+      const [err] = AjvSchema.create(schema).getValidationResult('Second day of the second month')
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object is an invalid IsoMonth
+        Input: Second day of the second month]
+      `)
+    })
+
+    test('should accept valid data', () => {
+      const testCases: any[] = []
+      const d = localDate.fromString('2001-01-01' as IsoDate)
+      for (let i = 1; i < 366; ++i) {
+        testCases.push(d.plusDays(i).toISOMonth())
+      }
+      const schema = j.string().isoMonth()
+      const ajvSchema = AjvSchema.create(schema)
+
+      testCases.forEach(date => {
+        const [err] = ajvSchema.getValidationResult(date)
+        expect(err, String(date)).toBeNull()
+      })
+    })
+
+    test('should reject invalid data', () => {
+      const invalidCases: any[] = [
+        'abcd',
+        '0-0',
+        '202509',
+        '20250930',
+        '2025-W40-2',
+        '2025-13',
+        0,
+        false,
+        {},
+        [],
+      ]
+      const schema = j.string().isoMonth()
       const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(date => {

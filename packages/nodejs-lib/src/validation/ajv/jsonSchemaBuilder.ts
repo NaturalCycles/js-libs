@@ -19,6 +19,7 @@ import {
   type Inclusiveness,
   type IsoDate,
   type IsoDateTime,
+  type IsoMonth,
   JWT_REGEX,
   type NumberEnum,
   type StringEnum,
@@ -453,6 +454,10 @@ export class JsonSchemaStringBuilder<
     return this.cloneAndUpdateSchema({ IsoDateTime: true }).branded<IsoDateTime>()
   }
 
+  isoMonth(): JsonSchemaIsoMonthBuilder {
+    return new JsonSchemaIsoMonthBuilder()
+  }
+
   /**
    * Validates the string format to be JWT.
    * Expects the JWT to be signed!
@@ -569,6 +574,21 @@ export interface JsonSchemaIsoDateOptions {
   after?: string
   sameOrAfter?: string
 }
+
+export class JsonSchemaIsoMonthBuilder<Opt extends boolean = false> extends JsonSchemaAnyBuilder<
+  string | IsoDate,
+  IsoMonth,
+  Opt
+> {
+  constructor() {
+    super({
+      type: 'string',
+      IsoMonth: {},
+    })
+  }
+}
+
+export interface JsonSchemaIsoMonthOptions {}
 
 export class JsonSchemaNumberBuilder<
   IN extends number | undefined = number,
@@ -1126,6 +1146,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   Buffer?: true
   IsoDate?: JsonSchemaIsoDateOptions
   IsoDateTime?: true
+  IsoMonth?: JsonSchemaIsoMonthOptions
   instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
   errorMessages?: StringMap<string>
