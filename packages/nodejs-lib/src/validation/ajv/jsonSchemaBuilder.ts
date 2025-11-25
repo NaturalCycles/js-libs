@@ -828,15 +828,24 @@ export class JsonSchemaObjectBuilder<
     return this.cloneAndUpdateSchema({ additionalProperties: true })
   }
 
-  extend<IN2 extends AnyObject>(
-    props: AnyObject,
-  ): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt> {
-    const clone = this.clone() as JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, Opt>
+  extend(props: AnyObject): never
+  extend<IN2 extends AnyObject>(props: {
+    [K in keyof Required<IN2>]-?: JsonSchemaAnyBuilder<any, IN2[K], any>
+  }): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, false>
+  extend<IN2 extends AnyObject>(props: {
+    [key in keyof IN2]: JsonSchemaAnyBuilder<any, IN2[key], any>
+  }): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, false> {
+    const clone = this.clone()
 
     const incomingSchemaBuilder = new JsonSchemaObjectBuilder<IN2, IN2, false>(props)
     mergeJsonSchemaObjects(clone.schema as any, incomingSchemaBuilder.schema as any)
 
-    return clone
+    // The incoming object is type-safe because `extend<Foo>()` expects a passed in type that matches the passed in props,
+    // but maybe the current schema was created differently, so that's what decides the typecheckedness.
+    const hasIsOfTypeCheck = this.schema.hasIsOfTypeCheck
+    _objectAssign(clone.schema, { hasIsOfTypeCheck })
+
+    return clone as unknown as JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, false>
   }
 
   /**
@@ -958,6 +967,11 @@ export class JsonSchemaObjectInferringBuilder<
 
     const incomingSchemaBuilder = new JsonSchemaObjectInferringBuilder<NEW_PROPS, false>(props)
     mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
+
+    // This extend function is not type-safe as it is inferring,
+    // so even if the base schema was already type-checked,
+    // the new schema loses that quality.
+    _objectAssign(newBuilder.schema, { hasIsOfTypeCheck: false })
 
     return newBuilder as JsonSchemaObjectInferringBuilder<
       {

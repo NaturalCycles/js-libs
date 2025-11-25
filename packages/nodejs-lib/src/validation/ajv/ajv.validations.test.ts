@@ -2285,6 +2285,13 @@ describe('object', () => {
 
       expectTypeOf(result).toExtend<Foo>()
     })
+
+    test('should not work without passing in a type', () => {
+      const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
+      const schema2 = schema1.extend({ bar: j.number().optional() })
+
+      expectTypeOf(schema2).toBeNever()
+    })
   })
 
   describe('allowAdditionalProperties', () => {

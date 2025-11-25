@@ -50,8 +50,8 @@ export const testItemTMSchema: ObjectSchema<TestItemTM> = objectSchema<TestItemT
   even: booleanSchema.optional(),
 })
 
-export const testItemBMJsonSchema = j
-  .object<TestItemBM>({
+export const testItemBMJsonSchema = j.object
+  .dbEntity<TestItemBM>({
     // todo: figure out how to not copy-paste these 3 fields
     id: j.string(), // todo: not strictly needed here
     created: j.number().integer().unixTimestamp(),
@@ -63,7 +63,6 @@ export const testItemBMJsonSchema = j
     b1: j.buffer().optional(),
     nested: j.object.infer({ foo: j.number() }).optional(),
   })
-  .dbEntity()
   .build()
 
 export function createTestItemDBM(num = 1): TestItemDBM {
