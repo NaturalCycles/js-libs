@@ -6,7 +6,7 @@
 
 ## Local development
 
-When developing in any package in this repository simultaneously with other repositiories that are
+When developing in any package in this repository simultaneously with other repositories that are
 dependent on those changes follow this commads:
 
 - Run `pnpm build` in this repo.
