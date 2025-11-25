@@ -101,8 +101,6 @@ class Git2 {
   }
 
   getAllBranchesNames(): string[] {
-    // raw ouput from command
-    let rawBranchesNameExecOutput = exec2.exec('git branch -r')
     /**
      * Raw output example from this repository:
      * $ git branch -r
@@ -120,26 +118,12 @@ class Git2 {
      * origin/main
      * origin/stringify-or-undefined
      */
-
-    // intermediate array from output
-    const intermediateBranchesNameArray = rawBranchesNameExecOutput.split('\n')
-
-    let branchesNameArray: string[]
-    branchesNameArray = []
-
-    for (const intermediateBranchesName of intermediateBranchesNameArray) {
-      let intermediateTrimmedSplitedBranchesNameArray = intermediateBranchesName.trim().split('/')
-      /**
-       * Only add outputs that follow the structure origin/[BRANCH_NAME]
-       * so we ignore outputs like:
-       * origin/HEAD -> origin/main"
-       * that would end up as a duplicated entry
-       */
-      if (intermediateTrimmedSplitedBranchesNameArray.length === 2) {
-        branchesNameArray.push(intermediateTrimmedSplitedBranchesNameArray[1]!)
-      }
-    }
-    return branchesNameArray
+    return exec2
+      .exec('git branch -r')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => !s.includes(' -> '))
+      .map(s => s.split('/')[1]!)
   }
 }
 
