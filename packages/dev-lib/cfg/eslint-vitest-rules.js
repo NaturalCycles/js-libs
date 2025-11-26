@@ -16,6 +16,7 @@ export default {
     'vitest/no-test-return-statement': 2,
     'vitest/no-standalone-expect': 0,
     'vitest/no-conditional-expect': 0,
+    'vitest/no-interpolation-in-snapshots': 0,
     'vitest/no-disabled-tests': 0,
     'vitest/no-import-node-test': 0, // oxlint
     'vitest/padding-around-before-all-blocks': 2,

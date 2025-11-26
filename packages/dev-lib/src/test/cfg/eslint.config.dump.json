@@ -17,7 +17,7 @@
   },
   "plugins": [
     "@",
-    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.47.0",
+    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.48.0",
     "unicorn:eslint-plugin-unicorn@62.0.0",
     "vue:eslint-plugin-vue@10.6.0",
     "vitest:vitest@1.5.0",
@@ -290,7 +290,6 @@
     "vitest/no-duplicate-hooks": [2],
     "vitest/no-focused-tests": [2],
     "vitest/no-identical-title": [2],
-    "vitest/no-interpolation-in-snapshots": [2],
     "vitest/no-mocks-import": [2],
     "vitest/no-test-return-statement": [2],
     "vitest/padding-around-after-all-blocks": [2],
