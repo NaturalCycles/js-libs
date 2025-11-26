@@ -851,9 +851,9 @@ export class JsonSchemaObjectBuilder<
   /**
    * Concatenates another schema to the current schema.
    *
-   * It expects 2 types to be passed in as a generic:
-   * 1) the expected final type,
-   * 2) the type of the passed in schema.
+   * It expects you to use `isOfType<T>()` in the chain,
+   * otherwise the validation will throw. This is to ensure
+   * that the schemas you concatenated match the intended final type.
    *
    * ```ts
    *  interface Foo { foo: string }
@@ -863,19 +863,16 @@ export class JsonSchemaObjectBuilder<
    *  const barSchema = j.object<Bar>({ bar: j.number() })
    *
    *  interface Shu { foo: string, bar: number }
-   *  const shuSchema = fooSchema.concat<Shu, Bar>(barSchema)
+   *  const shuSchema = fooSchema.concat(barSchema).isOfType<Shu>() // important
    * ```
    */
-  concat(other: any): never
-  concat<NEW_TYPE extends AnyObject, OUT2 extends AnyObject>(
-    other: JsonSchemaObjectBuilder<any, OUT2, any>,
-  ): ExactMatch<NEW_TYPE, OUT & OUT2> extends true
-    ? JsonSchemaObjectBuilder<NEW_TYPE, NEW_TYPE, false>
-    : never
-  concat(other: any): any {
+  concat<IN2 extends AnyObject, OUT2 extends AnyObject>(
+    other: JsonSchemaObjectBuilder<IN2, OUT2, any>,
+  ): JsonSchemaObjectBuilder<IN & IN2, OUT & OUT2, false> {
     const clone = this.clone()
-    mergeJsonSchemaObjects(clone.schema as any, other.schema)
-    return clone
+    mergeJsonSchemaObjects(clone.schema as any, other.schema as any)
+    _objectAssign(clone.schema, { hasIsOfTypeCheck: false })
+    return clone as unknown as JsonSchemaObjectBuilder<IN & IN2, OUT & OUT2, false>
   }
 
   /**

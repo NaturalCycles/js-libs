@@ -2310,7 +2310,7 @@ describe('object', () => {
         foo: string
         bar: number
       }
-      const shuSchema = fooSchema.concat<Shu, Bar>(barSchema)
+      const shuSchema = fooSchema.concat(barSchema).isOfType<Shu>()
 
       const [err, result] = AjvSchema.create(shuSchema).getValidationResult({
         foo: 'asdf',
@@ -2325,7 +2325,7 @@ describe('object', () => {
       expectTypeOf(result).toExtend<Foo>()
     })
 
-    test('should not work without passing in a type', () => {
+    test('should throw without `isOfType` check', () => {
       interface Foo {
         foo: string
       }
@@ -2337,7 +2337,12 @@ describe('object', () => {
       const barSchema = j.object<Bar>({ bar: j.number() })
 
       const shuSchema = fooSchema.concat(barSchema)
-      expectTypeOf(shuSchema).toBeNever()
+
+      const fn = () => AjvSchema.create(shuSchema)
+
+      expect(fn).toThrow(
+        'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
+      )
     })
   })
 
