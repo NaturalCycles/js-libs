@@ -99,6 +99,32 @@ class Git2 {
     const originUrl = exec2.exec('git config --get remote.origin.url')
     return basename(originUrl, '.git')
   }
+
+  getAllBranchesNames(): string[] {
+    /**
+     * Raw output example from this repository:
+     * $ git branch -r
+     * origin/DEV-22569-zod-isoDate-params
+     * origin/DEV-23052-git2-add-method
+     * origin/HEAD -> origin/main
+     * origin/add-requiredpick-type-helper
+     * origin/better-object-keys
+     * origin/feat/immutable-j-1
+     * origin/feat/immutable-j-2
+     * origin/feat/random-string-util
+     * origin/fix-vsc-red-line
+     * origin/generic-cachekey-function-2
+     * origin/gh-pages
+     * origin/main
+     * origin/stringify-or-undefined
+     */
+    return exec2
+      .exec('git branch -r')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => !s.includes(' -> '))
+      .map(s => s.split('/')[1]!)
+  }
 }
 
 export const git2 = new Git2()
