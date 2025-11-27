@@ -361,17 +361,10 @@ export const _stringMapValues = Object.values as <T>(map: StringMap<T>) => T[]
 export const _stringMapEntries = Object.entries as <T>(map: StringMap<T>) => [k: string, v: T][]
 
 /**
- * Resolves to a string literal union of the keys of T, meaning they are
- * always keys of T and always strings (never numbers or symbols).
- */
-export type ObjectKey<T> = `${Extract<keyof T, string | number>}`
-
-/**
- * Alias of `Object.keys`, but returns keys with a string type that's as
- * narrow as possible.
+ * Alias of `Object.keys`, but returns keys typed as `keyof T`, not as just `string`.
  * This is how TypeScript should work, actually.
  */
-export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => ObjectKey<T>[]
+export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => (keyof T)[]
 
 /**
  * Alias of `Object.entries`, but returns better-typed output.
@@ -381,7 +374,7 @@ export const _objectKeys = Object.keys as <T extends AnyObject>(obj: T) => Objec
  */
 export const _objectEntries = Object.entries as <T extends AnyObject>(
   obj: T,
-) => [k: ObjectKey<T>, v: T[ObjectKey<T>]][]
+) => [k: keyof T, v: T[keyof T]][]
 
 export type NullishValue = null | undefined
 export type FalsyValue = false | '' | 0 | null | undefined
