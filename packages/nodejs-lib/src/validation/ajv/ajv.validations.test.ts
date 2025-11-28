@@ -2276,7 +2276,7 @@ describe('object', () => {
         bar?: number
       }
       const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
-      const schema2 = schema1.extend<{ bar?: number }>({ bar: j.number().optional() })
+      const schema2 = schema1.extend({ bar: j.number().optional() }).isOfType<Foo>()
 
       const [, result] = AjvSchema.create(schema2).getValidationResult({
         foo: 'asdf',
@@ -2290,7 +2290,10 @@ describe('object', () => {
       const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
       const schema2 = schema1.extend({ bar: j.number().optional() })
 
-      expectTypeOf(schema2).toBeNever()
+      const fn = () => AjvSchema.create(schema2)
+      expect(fn).toThrow(
+        'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
+      )
     })
   })
 

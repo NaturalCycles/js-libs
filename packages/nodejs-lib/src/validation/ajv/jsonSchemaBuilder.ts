@@ -828,24 +828,50 @@ export class JsonSchemaObjectBuilder<
     return this.cloneAndUpdateSchema({ additionalProperties: true })
   }
 
-  extend(props: AnyObject): never
-  extend<IN2 extends AnyObject>(props: {
-    [K in keyof Required<IN2>]-?: JsonSchemaAnyBuilder<any, IN2[K], any>
-  }): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, false>
-  extend<IN2 extends AnyObject>(props: {
-    [key in keyof IN2]: JsonSchemaAnyBuilder<any, IN2[key], any>
-  }): JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, false> {
-    const clone = this.clone()
+  extend<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
+    props: P,
+  ): JsonSchemaObjectBuilder<
+    IN & {
+      // required keys
+      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+        ? IsOpt extends true
+          ? never
+          : K
+        : never]: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
+    } & {
+      // optional keys
+      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+        ? IsOpt extends true
+          ? K
+          : never
+        : never]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
+    },
+    OUT & {
+      // required keys
+      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+        ? IsOpt extends true
+          ? never
+          : K
+        : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+    } & {
+      // optional keys
+      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+        ? IsOpt extends true
+          ? K
+          : never
+        : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+    },
+    false
+  > {
+    const newBuilder = new JsonSchemaObjectBuilder()
+    _objectAssign(newBuilder.schema, _deepCopy(this.schema))
 
-    const incomingSchemaBuilder = new JsonSchemaObjectBuilder<IN2, IN2, false>(props)
-    mergeJsonSchemaObjects(clone.schema as any, incomingSchemaBuilder.schema as any)
+    const incomingSchemaBuilder = new JsonSchemaObjectBuilder(props)
+    mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
 
-    // The incoming object is type-safe because `extend<Foo>()` expects a passed in type that matches the passed in props,
-    // but maybe the current schema was created differently, so that's what decides the typecheckedness.
-    const hasIsOfTypeCheck = this.schema.hasIsOfTypeCheck
-    _objectAssign(clone.schema, { hasIsOfTypeCheck })
+    _objectAssign(newBuilder.schema, { hasIsOfTypeCheck: false })
 
-    return clone as unknown as JsonSchemaObjectBuilder<IN & IN2, OUT & IN2, false>
+    return newBuilder as any
   }
 
   /**

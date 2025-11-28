@@ -226,15 +226,14 @@ describe('object', () => {
       }
       const schema1 = j.object<Foo>({ a: j.string().nullable() })
 
-      interface Bar {
+      interface Bar extends Foo {
         b?: number
       }
-      const schema2 = schema1.extend<Bar>({ b: j.number().optional() })
+      const schema2 = schema1.extend({ b: j.number().optional() })
 
-      expectTypeOf(schema2.in).toEqualTypeOf<Foo & Bar>()
-      expectTypeOf(schema2.out).toEqualTypeOf<Foo & Bar>()
+      expectTypeOf(schema2.in).toExtend<Bar>()
+      expectTypeOf(schema2.out).toExtend<Bar>()
 
-      // Should accept an equivalent interface too
       interface Shu {
         a: string | null
         b?: number
@@ -244,6 +243,9 @@ describe('object', () => {
 
       const schema4 = schema2.isOfType<Bar & Foo>()
       expectTypeOf(schema4).not.toBeNever()
+
+      const schema5 = schema2.isOfType<{ a: string | null; b: string }>()
+      expectTypeOf(schema5).toBeNever()
     })
   })
 
