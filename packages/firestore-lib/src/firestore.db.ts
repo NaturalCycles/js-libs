@@ -582,7 +582,8 @@ export interface FirestoreDBStreamOptions extends FirestoreDBReadOptions {
 
 export interface FirestoreDBOptions extends CommonDBOptions {}
 export interface FirestoreDBReadOptions extends CommonDBReadOptions {}
-export interface FirestoreDBSaveOptions<ROW extends ObjectWithId>
-  extends CommonDBSaveOptions<ROW> {}
+export interface FirestoreDBSaveOptions<
+  ROW extends ObjectWithId,
+> extends CommonDBSaveOptions<ROW> {}
 
 type SaveOp = 'create' | 'update' | 'set'

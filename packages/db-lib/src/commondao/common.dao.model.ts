@@ -282,8 +282,10 @@ export interface CommonDaoReadOptions extends CommonDaoOptions {
   readAt?: UnixTimestamp
 }
 
-export interface CommonDaoSaveOptions<BM extends BaseDBEntity, DBM extends BaseDBEntity>
-  extends CommonDaoSaveBatchOptions<DBM> {
+export interface CommonDaoSaveOptions<
+  BM extends BaseDBEntity,
+  DBM extends BaseDBEntity,
+> extends CommonDaoSaveBatchOptions<DBM> {
   /**
    * If provided - a check will be made.
    * If the object for saving equals to the object passed to `skipIfEquals` - save operation will be skipped.
@@ -295,8 +297,9 @@ export interface CommonDaoSaveOptions<BM extends BaseDBEntity, DBM extends BaseD
   skipIfEquals?: BM
 }
 
-export interface CommonDaoPatchByIdOptions<DBM extends BaseDBEntity>
-  extends CommonDaoSaveBatchOptions<DBM> {
+export interface CommonDaoPatchByIdOptions<
+  DBM extends BaseDBEntity,
+> extends CommonDaoSaveBatchOptions<DBM> {
   /**
    * Defaults to false.
    * With false, if the row doesn't exist - it will throw an error.
@@ -307,8 +310,9 @@ export interface CommonDaoPatchByIdOptions<DBM extends BaseDBEntity>
   createIfMissing?: boolean
 }
 
-export interface CommonDaoPatchOptions<DBM extends BaseDBEntity>
-  extends CommonDaoSaveBatchOptions<DBM> {
+export interface CommonDaoPatchOptions<
+  DBM extends BaseDBEntity,
+> extends CommonDaoSaveBatchOptions<DBM> {
   /**
    * If true - patch will skip loading from DB, and will just optimistically patch passed object.
    *
@@ -321,8 +325,7 @@ export interface CommonDaoPatchOptions<DBM extends BaseDBEntity>
  * All properties default to undefined.
  */
 export interface CommonDaoSaveBatchOptions<DBM extends BaseDBEntity>
-  extends CommonDaoOptions,
-    CommonDBSaveOptions<DBM> {
+  extends CommonDaoOptions, CommonDBSaveOptions<DBM> {
   /**
    * @default false
    *
@@ -335,16 +338,15 @@ export interface CommonDaoSaveBatchOptions<DBM extends BaseDBEntity>
   // ensureUniqueId?: boolean // feature is currently disabled
 }
 
-export interface CommonDaoStreamDeleteOptions<DBM extends BaseDBEntity>
-  extends CommonDaoStreamOptions<DBM> {}
+export interface CommonDaoStreamDeleteOptions<
+  DBM extends BaseDBEntity,
+> extends CommonDaoStreamOptions<DBM> {}
 
 export interface CommonDaoStreamSaveOptions<DBM extends BaseDBEntity>
-  extends CommonDaoSaveBatchOptions<DBM>,
-    CommonDaoStreamOptions<DBM> {}
+  extends CommonDaoSaveBatchOptions<DBM>, CommonDaoStreamOptions<DBM> {}
 
 export interface CommonDaoStreamOptions<IN>
-  extends CommonDaoReadOptions,
-    TransformLogProgressOptions<IN> {
+  extends CommonDaoReadOptions, TransformLogProgressOptions<IN> {
   /**
    * @default true (for streams)
    */

@@ -69,8 +69,7 @@ export interface AirtableDBOptions extends CommonDBOptions {
 }
 export type AirtableDBStreamOptions = CommonDBStreamOptions
 export interface AirtableDBSaveOptions<ROW extends ObjectWithId>
-  extends AirtableDBOptions,
-    CommonDBSaveOptions<ROW> {}
+  extends AirtableDBOptions, CommonDBSaveOptions<ROW> {}
 
 /**
  * CommonDB implementation based on Airtable sheets.
