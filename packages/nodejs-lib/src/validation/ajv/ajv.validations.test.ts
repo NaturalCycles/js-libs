@@ -2090,6 +2090,40 @@ describe('array', () => {
   })
 })
 
+describe('tuple', () => {
+  test('should work correctly with type inference', () => {
+    const schema = j.tuple([j.string().nullable(), j.number(), j.boolean()])
+
+    const [err, result] = AjvSchema.create(schema).getValidationResult(['foo', 1, true])
+
+    expect(err).toBeNull()
+    expect(result).toEqual(['foo', 1, true])
+    expectTypeOf(result).toExtend<[string | null, number, boolean]>()
+  })
+
+  test('should accept valid data', () => {
+    const schema = j.tuple([j.string().minLength(3).nullable(), j.number(), j.boolean()])
+    const ajvSchema = AjvSchema.create(schema)
+
+    const testCases: any[] = [
+      ['foo', 1, true],
+      [null, 2, false],
+    ]
+    testCases.forEach(input => {
+      const [err, result] = ajvSchema.getValidationResult(input)
+
+      expect(err, String(input)).toBeNull()
+      expect(result).toEqual(input)
+    })
+
+    const invalidCases: any[] = [[undefined, 1, true], ['fo', 1, true], 'foo', 0, true, {}, []]
+    invalidCases.forEach(input => {
+      const [err] = ajvSchema.getValidationResult(input)
+      expect(err, String(input)).not.toBeNull()
+    })
+  })
+})
+
 describe('set', () => {
   test('should work correctly with type inference', () => {
     const schema = j.set(j.string())

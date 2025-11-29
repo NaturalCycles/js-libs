@@ -126,6 +126,12 @@ export const j = {
     return new JsonSchemaArrayBuilder(itemSchema)
   },
 
+  tuple<const S extends JsonSchemaAnyBuilder<any, any, any>[]>(
+    items: S,
+  ): JsonSchemaTupleBuilder<S> {
+    return new JsonSchemaTupleBuilder<S>(items)
+  },
+
   set<IN, OUT, Opt>(
     itemSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>,
   ): JsonSchemaSet2Builder<IN, OUT, Opt> {
@@ -1139,6 +1145,23 @@ export class JsonSchemaEnumBuilder<
   }
 }
 
+export class JsonSchemaTupleBuilder<
+  ITEMS extends JsonSchemaAnyBuilder<any, any, any>[],
+> extends JsonSchemaAnyBuilder<TupleIn<ITEMS>, TupleOut<ITEMS>, false> {
+  private readonly _items: ITEMS
+
+  constructor(items: ITEMS) {
+    super({
+      type: 'array',
+      prefixItems: items.map(i => i.build()),
+      minItems: items.length,
+      maxItems: items.length,
+    })
+
+    this._items = items
+  }
+}
+
 type EnumBaseType = 'string' | 'number' | 'other'
 
 export interface JsonSchema<IN = unknown, OUT = IN> {
@@ -1156,6 +1179,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
 
   type?: string | string[]
   items?: JsonSchema
+  prefixItems?: JsonSchema[]
   properties?: {
     [K in keyof IN & keyof OUT]: JsonSchema<IN[K], OUT[K]>
   }
@@ -1421,3 +1445,11 @@ type SchemaIn<S> = S extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : nev
 type SchemaOut<S> = S extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
 type SchemaOpt<S> =
   S extends JsonSchemaAnyBuilder<any, any, infer Opt> ? (Opt extends true ? true : false) : false
+
+type TupleIn<T extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
+  [K in keyof T]: T[K] extends JsonSchemaAnyBuilder<infer I, any, any> ? I : never
+}
+
+type TupleOut<T extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
+  [K in keyof T]: T[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
+}

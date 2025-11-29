@@ -613,6 +613,18 @@ describe('array', () => {
   })
 })
 
+describe('tuple', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.tuple([j.string(), j.number(), j.boolean()])
+    expectTypeOf(schema1.in).toEqualTypeOf<[string, number, boolean]>()
+    expectTypeOf(schema1.out).toEqualTypeOf<[string, number, boolean]>()
+
+    const schema2 = j.tuple([j.string().optional(), j.number(), j.boolean()])
+    expectTypeOf(schema2.in).toEqualTypeOf<[string | undefined, number, boolean]>()
+    expectTypeOf(schema2.out).toEqualTypeOf<[string | undefined, number, boolean]>()
+  })
+})
+
 describe('enum', () => {
   test('should correctly infer the type - for NumberEnums', () => {
     enum Foo {
