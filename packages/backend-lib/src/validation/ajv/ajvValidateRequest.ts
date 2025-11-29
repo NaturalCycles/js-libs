@@ -84,7 +84,7 @@ class AjvValidateRequest {
     getOriginalInput?: () => IN,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
-    const input: IN = req[reqProperty] || {}
+    const input = (req[reqProperty] || {}) as IN
 
     const { coerceTypes, mutateInput } = opt
     const ajv = coerceTypes ? getCoercingAjv() : undefined

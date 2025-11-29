@@ -20,6 +20,13 @@ export interface BackendRequest extends Request {
    * Only used for request logging purposes.
    */
   userId?: string
+
+  /**
+   * It's set to unknown (instead of `any`) to prevent implicit use of any
+   * in unexpected places.
+   */
+  body: unknown
+
   /**
    * Raw Buffer of the `req.body`, before it's stringified and json-parsed.
    * Useful for when something mutates `req.body` json (e.g j validation), and you

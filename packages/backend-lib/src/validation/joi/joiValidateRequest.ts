@@ -51,7 +51,7 @@ class ValidateRequest {
     schema: AnySchema<T>,
     opt: ReqValidationOptions<JoiValidationError> = {},
   ): T {
-    const originalProperty = req[reqProperty] || {}
+    const originalProperty = (req[reqProperty] || {}) as T
 
     // Joi does not mutate the input
     const [error, value] = getValidationResult(originalProperty, schema, `request.${reqProperty}`)

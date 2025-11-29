@@ -50,7 +50,7 @@ class ZodValidateRequest {
     schema: ZodType<T>,
     opt: ReqValidationOptions<ZodValidationError> = {},
   ): T {
-    const originalProperty = req[reqProperty] || {}
+    const originalProperty = (req[reqProperty] || {}) as T
 
     // Zod does not mutate the input
     const [error, data] = zSafeValidate(
