@@ -113,8 +113,9 @@ export interface DatastoreDBOptions extends CommonDBOptions {}
 
 export interface DatastoreDBReadOptions extends CommonDBReadOptions {}
 
-export interface DatastoreDBSaveOptions<ROW extends ObjectWithId>
-  extends CommonDBSaveOptions<ROW> {}
+export interface DatastoreDBSaveOptions<
+  ROW extends ObjectWithId,
+> extends CommonDBSaveOptions<ROW> {}
 
 export interface DatastoreStats {
   composite_index_count: number

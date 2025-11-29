@@ -4,8 +4,7 @@ import type { TransformLogProgressOptions, TransformMapOptions } from '../index.
 import { Pipeline } from '../pipeline.js'
 
 export interface NDJSONMapOptions<IN = any, OUT = IN>
-  extends TransformMapOptions<IN, OUT>,
-    TransformLogProgressOptions<IN> {
+  extends TransformMapOptions<IN, OUT>, TransformLogProgressOptions<IN> {
   inputFilePath: string
   outputFilePath: string
 
