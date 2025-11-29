@@ -498,7 +498,7 @@ export function _minMaxOrUndefined<T>(
   let min: T | undefined
   let max: T | undefined
 
-  for (let item of array) {
+  for (const item of array) {
     if (item === undefined || item === null) continue
     if (min === undefined) min = item
     if (max === undefined) max = item
@@ -532,7 +532,7 @@ export function _minMaxByOrUndefined<T>(
   let max: ReturnType<typeof mapper> | undefined
   let maxItem: T | undefined
 
-  for (let item of array) {
+  for (const item of array) {
     if (item === undefined || item === null) continue
 
     const value = mapper(item)

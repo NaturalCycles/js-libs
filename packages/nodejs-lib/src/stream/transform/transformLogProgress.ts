@@ -4,7 +4,8 @@ import { progressLogger } from '../progressLogger.js'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
 export interface TransformLogProgressOptions<IN = any>
-  extends ProgressLoggerCfg<IN>, TransformOptions {}
+  extends ProgressLoggerCfg<IN>,
+    TransformOptions {}
 
 /**
  * Pass-through transform that optionally logs progress.

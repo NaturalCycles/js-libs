@@ -31,7 +31,8 @@ export interface MongoDBCfg {
 }
 
 export interface MongoDBSaveOptions<ROW extends ObjectWithId>
-  extends CommonDBSaveOptions<ROW>, CommandOperationOptions {}
+  extends CommonDBSaveOptions<ROW>,
+    CommandOperationOptions {}
 
 export interface MongoDBOptions extends CommonDBOptions, CommandOperationOptions {}
 

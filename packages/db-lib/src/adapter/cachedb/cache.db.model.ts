@@ -64,7 +64,8 @@ export interface CacheDBOptions extends CommonDBOptions {
 }
 
 export interface CacheDBSaveOptions<ROW extends ObjectWithId>
-  extends CacheDBOptions, CommonDBSaveOptions<ROW> {}
+  extends CacheDBOptions,
+    CommonDBSaveOptions<ROW> {}
 
 export interface CacheDBStreamOptions extends CacheDBOptions, CommonDBStreamOptions {}
 

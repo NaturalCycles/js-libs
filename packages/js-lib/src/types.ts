@@ -492,10 +492,8 @@ export type ReadonlyDeep<T> = T extends Primitive | ((...args: any[]) => unknown
 /**
  Same as `ReadonlyDeep`, but accepts only `ReadonlyMap`s as inputs. Internal helper for `ReadonlyDeep`.
  */
-interface ReadonlyMapDeep<KeyType, ValueType> extends ReadonlyMap<
-  ReadonlyDeep<KeyType>,
-  ReadonlyDeep<ValueType>
-> {}
+interface ReadonlyMapDeep<KeyType, ValueType>
+  extends ReadonlyMap<ReadonlyDeep<KeyType>, ReadonlyDeep<ValueType>> {}
 
 /**
  Same as `ReadonlyDeep`, but accepts only `ReadonlySet`s as inputs. Internal helper for `ReadonlyDeep`.

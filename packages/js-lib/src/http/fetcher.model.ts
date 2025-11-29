@@ -14,8 +14,7 @@ import type {
 import type { HttpMethod, HttpStatusFamily } from './http.model.js'
 
 export interface FetcherNormalizedCfg
-  extends
-    Required<Omit<FetcherCfg, 'dispatcher'>>,
+  extends Required<Omit<FetcherCfg, 'dispatcher'>>,
     Omit<
       FetcherRequest,
       | 'started'
@@ -149,10 +148,8 @@ export interface FetcherRetryOptions {
   timeoutMultiplier: number
 }
 
-export interface FetcherRequest extends Omit<
-  FetcherOptions,
-  'method' | 'headers' | 'baseUrl' | 'url'
-> {
+export interface FetcherRequest
+  extends Omit<FetcherOptions, 'method' | 'headers' | 'baseUrl' | 'url'> {
   /**
    * inputUrl is only the part that was passed in the request,
    * without baseUrl or searchParams.
