@@ -483,6 +483,87 @@ export function _minBy<T>(array: readonly T[], mapper: Mapper<T, number | string
   return min
 }
 
+export function _minMax<T>(array: readonly T[]): [min: NonNullable<T>, max: NonNullable<T>] {
+  if (!array.length) throw new Error('_minMax called on empty array')
+  const result = _minMaxOrUndefined(array)
+  _assert(result !== undefined, '_minBy returned undefined')
+  return result
+}
+
+export function _minMaxOrUndefined<T>(
+  array: readonly T[],
+): [min: NonNullable<T>, max: NonNullable<T>] | undefined {
+  if (!array.length) return
+
+  let min: T | undefined
+  let max: T | undefined
+
+  for (let item of array) {
+    if (item === undefined || item === null) continue
+    if (min === undefined) min = item
+    if (max === undefined) max = item
+    if (item < min) min = item
+    if (item > max) max = item
+  }
+
+  if (min === undefined || max === undefined || min === null || max === null) return
+
+  return [min, max]
+}
+
+export function _minMaxBy<T>(
+  array: readonly T[],
+  mapper: Mapper<T, number | string | undefined>,
+): [min: NonNullable<T>, max: NonNullable<T>] {
+  if (!array.length) throw new Error('_minMaxBy called on empty array')
+  const result = _minMaxByOrUndefined(array, mapper)
+  _assert(result !== undefined, '_minMaxBy returned undefined')
+  return result
+}
+
+export function _minMaxByOrUndefined<T>(
+  array: readonly T[],
+  mapper: Mapper<T, number | string | undefined>,
+): [min: NonNullable<T>, max: NonNullable<T>] | undefined {
+  if (!array.length) return
+
+  let min: ReturnType<typeof mapper> | undefined
+  let minItem: T | undefined
+  let max: ReturnType<typeof mapper> | undefined
+  let maxItem: T | undefined
+
+  for (let item of array) {
+    if (item === undefined || item === null) continue
+
+    const value = mapper(item)
+    if (!value) continue
+
+    if (min === undefined) {
+      min = value
+      minItem = item
+    }
+
+    if (max === undefined) {
+      max = value
+      maxItem = item
+    }
+
+    if (value < min) {
+      min = value
+      minItem = item
+    }
+
+    if (value > max) {
+      max = value
+      maxItem = item
+    }
+  }
+
+  if (minItem === undefined || maxItem === undefined || minItem === null || maxItem === null) return
+
+  return [minItem, maxItem]
+}
+
 // todo: looks like it _maxByOrUndefined/_minByOrUndefined can be DRYer
 
 export function _maxByOrUndefined<T>(

@@ -15,6 +15,7 @@ import {
   _find,
   _findLast,
   _first,
+  _firstOrUndefined,
   _groupBy,
   _intersection,
   _intersectsWith,
@@ -29,6 +30,10 @@ import {
   _min,
   _minBy,
   _minByOrUndefined,
+  _minMax,
+  _minMaxBy,
+  _minMaxByOrUndefined,
+  _minMaxOrUndefined,
   _minOrUndefined,
   _pushUniq,
   _pushUniqBy,
@@ -357,6 +362,12 @@ test('_last', () => {
 })
 
 test('_first', () => {
+  expect(_firstOrUndefined([])).toBeUndefined()
+  expect(_firstOrUndefined([undefined])).toBeUndefined()
+  expect(_firstOrUndefined([undefined, 1])).toBeUndefined()
+  expect(_firstOrUndefined([1, 2])).toBe(1)
+  expect(_firstOrUndefined([1])).toBe(1)
+
   expect(() => _first([])).toThrowErrorMatchingInlineSnapshot(
     `[Error: _first called on empty array]`,
   )
@@ -410,6 +421,31 @@ test('_max', () => {
   expect(_max(['1', '3', '2', '4'])).toBe('4')
 })
 
+test('_minMax', () => {
+  expect(_minMaxOrUndefined([])).toBeUndefined()
+  expect(_minMaxOrUndefined([3])).toEqual([3, 3])
+  expect(_minMaxOrUndefined([3, 2])).toEqual([2, 3])
+  expect(_minMaxOrUndefined([1, 3, 2])).toEqual([1, 3])
+
+  expect(() => _minMax([])).toThrowErrorMatchingInlineSnapshot(
+    `[Error: _minMax called on empty array]`,
+  )
+  expect(_minMax([3])).toEqual([3, 3])
+  expect(_minMax([3, 2])).toEqual([2, 3])
+  expect(_minMax([1, 3, 2])).toEqual([1, 3])
+  expect(_minMax(['3'])).toEqual(['3', '3'])
+  expect(_minMax(['3', '2'])).toEqual(['2', '3'])
+  expect(_minMax(['1', '3', '2'])).toEqual(['1', '3'])
+
+  const [v] = _minMax([1, undefined])
+  const _r = v + 1 // tests that v is not undefined
+
+  expect(_minMax([1, undefined])).toEqual([1, 1])
+  expect(_minMax([undefined, 1])).toEqual([1, 1])
+  expect(_minMax([undefined, 2, 1])).toEqual([1, 2])
+  expect(_minMax([undefined, 1, 2])).toEqual([1, 2])
+})
+
 test('_maxBy, _minBy', () => {
   expect(_maxByOrUndefined([], () => 0)).toBeUndefined()
   expect(() => _maxBy([], () => 0)).toThrowErrorMatchingInlineSnapshot(
@@ -428,6 +464,21 @@ test('_maxBy, _minBy', () => {
   expect(_minBy([{ date: '2023-06-22' }, { date: '2023-06-21' }], u => u.date)).toEqual({
     date: '2023-06-21',
   })
+})
+
+test('_minMaxBy', () => {
+  expect(_maxByOrUndefined([], () => 0)).toBeUndefined()
+  expect(() => _minMaxBy([], () => 0)).toThrowErrorMatchingInlineSnapshot(
+    `[Error: _minMaxBy called on empty array]`,
+  )
+  expect(_minMaxByOrUndefined([{ age: 20 }, { age: 18 }, { age: 30 }], u => u.age)).toEqual([
+    { age: 18 },
+    { age: 30 },
+  ])
+  expect(_minMaxBy([{ age: 20 }, { age: 18 }, { age: 30 }], u => u.age)).toEqual([
+    { age: 18 },
+    { age: 30 },
+  ])
 })
 
 test('_zip', () => {
