@@ -2,7 +2,7 @@ import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import { Ajv, type Options, type ValidateFunction } from 'ajv'
+import { Ajv2020, type Options, type ValidateFunction } from 'ajv/dist/2020.js'
 import { validTLDs } from '../tlds.js'
 import type {
   JsonSchemaIsoDateOptions,
@@ -65,8 +65,8 @@ export const getCoercingAjv = _lazyValue(() => createAjv(AJV_MUTATING_COERCING_O
  *
  * https://ajv.js.org/options.html
  */
-export function createAjv(opt?: Options): Ajv {
-  const ajv = new Ajv({
+export function createAjv(opt?: Options): Ajv2020 {
+  const ajv = new Ajv2020({
     ...AJV_OPTIONS,
     ...opt,
   })

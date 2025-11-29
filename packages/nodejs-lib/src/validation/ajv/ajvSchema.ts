@@ -100,7 +100,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     schema: T,
   ): AjvSchema<T['_input'], T['_output']> {
     const jsonSchema = z.toJSONSchema(schema, {
-      target: 'draft-7',
+      target: 'draft-2020-12',
     }) as unknown as JsonSchema<T['_input'], T['_output']>
 
     return AjvSchema.create(jsonSchema)

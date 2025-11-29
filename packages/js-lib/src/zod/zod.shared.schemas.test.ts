@@ -8,7 +8,7 @@ test.each(Object.keys(customZodSchemas))(
   key => {
     const validator = customZodSchemas[key as keyof typeof customZodSchemas]
     const zodSchema = z.object({ value: validator() })
-    const jsonSchema = z.toJSONSchema(zodSchema, { target: 'draft-7' })
+    const jsonSchema = z.toJSONSchema(zodSchema, { target: 'draft-2020-12' })
     const ajvSchema = getAjv().compile(jsonSchema)
 
     expect(ajvSchema).toBeDefined()

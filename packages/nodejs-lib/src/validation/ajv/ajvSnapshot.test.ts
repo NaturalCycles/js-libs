@@ -24,20 +24,33 @@ test('snapshot ajv schema', async () => {
   const code = await prettify(rawCode)
   expect(code).toMatchInlineSnapshot(`
     "'use strict'
-    export const validate = validate10
-    export default validate10
-    const schema11 = {
+    export const validate = validate20
+    export default validate20
+    const schema31 = {
       type: 'object',
       properties: { s: { type: 'string' } },
       required: ['s'],
       additionalProperties: false,
     }
-    function validate10(
+    function validate20(
       data,
-      { instancePath = '', parentData, parentDataProperty, rootData = data } = {},
+      {
+        instancePath = '',
+        parentData,
+        parentDataProperty,
+        rootData = data,
+        dynamicAnchors = {},
+      } = {},
     ) {
       let vErrors = null
       let errors = 0
+      const evaluated0 = validate20.evaluated
+      if (evaluated0.dynamicProps) {
+        evaluated0.props = undefined
+      }
+      if (evaluated0.dynamicItems) {
+        evaluated0.items = undefined
+      }
       if (data && typeof data == 'object' && !Array.isArray(data)) {
         if (data.s === undefined) {
           const err0 = {
@@ -91,9 +104,10 @@ test('snapshot ajv schema', async () => {
         }
         errors++
       }
-      validate10.errors = vErrors
+      validate20.errors = vErrors
       return errors === 0
     }
+    validate20.evaluated = { props: true, dynamicProps: false, dynamicItems: false }
     "
   `)
 })
