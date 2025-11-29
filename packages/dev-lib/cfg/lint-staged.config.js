@@ -109,6 +109,12 @@ export function runBiomeEslintStylelintPrettier(match) {
     .map(s => `${s} ${filesList}`)
 }
 
+export function runBiomeOxlintPrettier(match) {
+  const filesList = getFilesList(match)
+  if (!filesList) return []
+  return [biomeCmd, oxlintCmd, prettierCmd].filter(Boolean).map(s => `${s} ${filesList}`)
+}
+
 export function runOxlintPrettier(match) {
   const filesList = getFilesList(match)
   if (!filesList) return []

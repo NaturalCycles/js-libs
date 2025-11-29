@@ -34,7 +34,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
   private nextShard = 1
   private cursorByShard: StringMap = {}
   private queryIsRunningByShard: StringMap<boolean> = {}
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
+
   private paused = false
   private done = false
   private doneShards = new Set<PositiveInteger>()
@@ -226,7 +226,6 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     }
   }
 
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
   private _getNextShardAndMove(): PositiveInteger {
     const shard = this.nextShard
     this.nextShard = shard === SHARDS ? 1 : shard + 1

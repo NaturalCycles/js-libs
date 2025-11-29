@@ -51,12 +51,11 @@ import { writablePushToArray } from './writable/writablePushToArray.js'
 import { writableVoid } from './writable/writableVoid.js'
 
 export class Pipeline<T = unknown> {
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
   private readonly source: Readable
   private transforms: NodeJS.ReadWriteStream[] = []
   private destination?: NodeJS.WritableStream
   private readableLimit?: Integer
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
+
   private objectMode: boolean
   private abortableSignal = createAbortableSignal()
 

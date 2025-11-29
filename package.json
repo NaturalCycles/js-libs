@@ -13,7 +13,7 @@
     "check:parallel": "pnpm build && pnpm --filter '@naturalcycles/*' --parallel run check",
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
     "typecheck:parallel": "pnpm --filter '@naturalcycles/*' --parallel run typecheck",
-    "lint": "oxlint --type-aware --max-warnings=0 && pnpm --filter '@naturalcycles/*' run lint",
+    "lint": "oxlint --type-aware --max-warnings=0 && biome lint --write --unsafe && pnpm --filter '@naturalcycles/*' run lint",
     "eslint:all": "pnpm --filter '@naturalcycles/*' exec dev-lib eslint",
     "lint:parallel": "pnpm --filter '@naturalcycles/*' --parallel run lint",
     "prettier:all": "pnpm --filter '@naturalcycles/*' exec dev-lib prettier",

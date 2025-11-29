@@ -1,6 +1,28 @@
 {
   "root": true,
-  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
-  "extends": ["./packages/dev-lib/cfg/biome.jsonc"],
-  "overrides": []
+  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "extends": ["@naturalcycles/dev-lib/cfg/biome.jsonc"],
+  "files": {
+    "includes": [
+      "**/*",
+      "!**/*.json",
+      "!**/try.ts",
+      "!**/dist",
+      "!**/tmp",
+      "!**/__exclude",
+      "!packages/dev-lib/cfg"
+    ]
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.json"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    },
+    {
+      "includes": ["**/*.vue", "**/*.html"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    }
+  ]
 }

@@ -22,6 +22,7 @@ jobs:
           path: packages/*/node_modules/.cache
           key: ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-${{ env.CACHE_DATE }}
           restore-keys: |
+            ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-${{ env.CACHE_DATE }}
             ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-
             ${{ runner.os }}-nmcache-
       - run: pnpm lint

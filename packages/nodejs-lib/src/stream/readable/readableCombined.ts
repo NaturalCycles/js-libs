@@ -40,11 +40,10 @@ export class ReadableCombined<T> extends Readable implements ReadableTyped<T> {
    */
   private lock?: DeferredPromise
 
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
   private countIn = 0
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
+
   private countOut = 0
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
+
   private countReads = 0
 
   private async run(): Promise<void> {

@@ -1,8 +1,8 @@
-import { runActionlint, runOxlintPrettier } from './packages/dev-lib/cfg/lint-staged.config.js'
+import { runActionlint, runBiomeOxlintPrettier } from './packages/dev-lib/cfg/lint-staged.config.js'
 import { prettierExtensionsAll } from './packages/dev-lib/cfg/_cnst.js'
 
 export default {
-  [`./**/*.{${prettierExtensionsAll}}`]: runOxlintPrettier,
+  [`./**/*.{${prettierExtensionsAll}}`]: runBiomeOxlintPrettier,
 
   './.github/**/*.{yml,yaml}': runActionlint,
 
