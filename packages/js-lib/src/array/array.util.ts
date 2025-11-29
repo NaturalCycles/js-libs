@@ -424,6 +424,13 @@ export function _first<T>(array: readonly T[]): T {
   return array[0]!
 }
 
+/**
+ * Returns first item of the array (or undefined if array is empty).
+ */
+export function _firstOrUndefined<T>(array: readonly T[]): T | undefined {
+  return array[0]
+}
+
 export function _minOrUndefined<T>(array: readonly T[]): NonNullable<T> | undefined {
   let min: NonNullable<T> | undefined
   for (const item of array) {
