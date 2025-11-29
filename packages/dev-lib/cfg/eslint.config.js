@@ -18,18 +18,18 @@ import eslintVueRules from './eslint-vue-rules.js'
 import eslintVitestRules from './eslint-vitest-rules.js'
 import eslintPrettierRules from './eslint-prettier-rules.js'
 import eslintBiomeRules from './eslint-biome-rules.js'
-import fs from 'node:fs'
 
 const defaultFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts']
 const srcFiles = ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.cts', 'src/**/*.mts']
 const scriptsFiles = ['scripts/**/*.ts', 'scripts/**/*.tsx', 'scripts/**/*.cts', 'scripts/**/*.mts']
 const e2eFiles = ['e2e/**/*.ts', 'e2e/**/*.tsx', 'e2e/**/*.cts', 'e2e/**/*.mts']
+const allFiles = [...srcFiles, ...scriptsFiles, ...e2eFiles]
 const testFiles = ['**/*.test.ts', '**/*.test.tsx', '**/*.test.cts', '**/*.test.mts']
 
-const cwd = process.cwd()
-const tsconfigSrcPath = `${cwd}/tsconfig.json`
-const tsconfigScriptsPath = `${cwd}/scripts/tsconfig.json`
-const tsconfigE2ePath = `${cwd}/e2e/tsconfig.json`
+// const cwd = process.cwd()
+// const tsconfigSrcPath = `${cwd}/tsconfig.json`
+// const tsconfigScriptsPath = `${cwd}/scripts/tsconfig.json`
+// const tsconfigE2ePath = `${cwd}/e2e/tsconfig.json`
 
 const config = getEslintConfigForDir()
 export default config
@@ -79,18 +79,22 @@ function getEslintConfigForDir() {
         ...eslintVitestRules.rules,
       },
     },
-    fs.existsSync(tsconfigSrcPath) && {
-      files: srcFiles,
-      ...getConfig(tsconfigSrcPath),
+    {
+      files: allFiles,
+      ...getConfig(),
     },
-    fs.existsSync(tsconfigScriptsPath) && {
-      files: scriptsFiles,
-      ...getConfig(tsconfigScriptsPath),
-    },
-    fs.existsSync(tsconfigE2ePath) && {
-      files: e2eFiles,
-      ...getConfig(tsconfigE2ePath),
-    },
+    // fs.existsSync(tsconfigSrcPath) && {
+    //   files: srcFiles,
+    //   ...getConfig(tsconfigSrcPath),
+    // },
+    // fs.existsSync(tsconfigScriptsPath) && {
+    //   files: scriptsFiles,
+    //   ...getConfig(tsconfigScriptsPath),
+    // },
+    // fs.existsSync(tsconfigE2ePath) && {
+    //   files: e2eFiles,
+    //   ...getConfig(tsconfigE2ePath),
+    // },
     {
       ignores: ['**/node_modules/**', '**/__exclude/**', '**/*.scss', '**/*.js'],
     },

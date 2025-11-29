@@ -3,7 +3,7 @@ name: ci
 on: [push, workflow_dispatch]
 
 env:
-  NODE_OPTIONS: --max-old-space-size=5000
+  NODE_OPTIONS: --max-old-space-size=5000 --max-semi-space-size=64
   CC_TEST_REPORTER_ID: 7997607c5b558cb4d41dc064f3df1a81c07f2de9861ed73c738c23ed8dbab69e
 
 jobs:
