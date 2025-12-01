@@ -9,7 +9,7 @@ import type { Application, IRouter, NextFunction, Request, Response } from 'expr
  * `BackendRequest` seems to not conflict with anything right now.
  * Previous name `ExpressRequest` was clashing with Sentry.
  */
-export interface BackendRequest extends Request {
+export interface BackendRequest<BODY = unknown> extends Request {
   debug: CommonLogFunction
   log: CommonLogFunction
   warn: CommonLogFunction
@@ -22,10 +22,10 @@ export interface BackendRequest extends Request {
   userId?: string
 
   /**
-   * It's set to unknown (instead of `any`) to prevent implicit use of any
+   * It defaults to unknown (instead of `any`) to prevent implicit use of any
    * in unexpected places.
    */
-  body: unknown
+  body: BODY
 
   /**
    * Raw Buffer of the `req.body`, before it's stringified and json-parsed.
