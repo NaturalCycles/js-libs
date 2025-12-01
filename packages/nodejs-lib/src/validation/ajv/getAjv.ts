@@ -478,6 +478,26 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
+  // This and `maxProperties2` are added because Ajv validates the `min/maxProperties` before validating the properties.
+  // So, in case of `minProperties(1)` and `{ foo: 'bar' }` Ajv will let it pass, even
+  // if the property validation would strip `foo` from the data.
+  // And Ajv would return `{}` as a successful validation.
+  // Since the keyword validation runs after JSON Schema validation,
+  // here we can make sure the number of properties are right ex-post property validation.
+  // It's named with the `2` suffix, because `minProperties` is reserved.
+  // And `maxProperties` does not suffer from this error due to the nature of how maximum works.
+  ajv.addKeyword({
+    keyword: 'minProperties2',
+    type: 'object',
+    modifying: false,
+    errors: true,
+    schemaType: 'number',
+    validate: function validate(minProperties: number, data: AnyObject, _schema, _ctx) {
+      if (typeof data !== 'object') return true
+      return Object.getOwnPropertyNames(data).length >= minProperties
+    },
+  })
+
   return ajv
 }
 

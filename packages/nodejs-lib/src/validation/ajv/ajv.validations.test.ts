@@ -2642,7 +2642,15 @@ describe('object', () => {
         expect(err, _stringify(value)).toBeNull()
       })
 
-      const invalidCases: any[] = [{ foo: 'foo' }, {}, 0, 'abcd', true, []]
+      const invalidCases: any[] = [
+        { foo: 'foo' },
+        {},
+        0,
+        'abcd',
+        true,
+        [],
+        { abc: 'abc', def: 'def' },
+      ]
       invalidCases.forEach(value => {
         const [err] = ajvSchema.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
@@ -2860,6 +2868,33 @@ describe('object', () => {
       expect(fn).toThrow(
         'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
       )
+    })
+
+    describe('minProperties', () => {
+      test('should work for withEnumKeys as well', () => {
+        enum E {
+          A = 'a',
+          B = 'b',
+        }
+        const schema = j.object
+          .withEnumKeys(E, j.number().optional())
+          .minProperties(1)
+          .isOfType<Record<E, number | undefined>>()
+        const ajvSchema = AjvSchema.create(schema)
+
+        const validCases: any[] = [{ a: 1 }, { a: 1, b: 2 }]
+        for (const data of validCases) {
+          const [err, result] = ajvSchema.getValidationResult(data)
+          expect(err, _stringify(data)).toBeNull()
+          expect(result, _stringify(data)).toEqual(data)
+        }
+
+        const invalidCases: any[] = [{}, { a: '1' }, { c: 1 }]
+        for (const data of invalidCases) {
+          const [err] = ajvSchema.getValidationResult(data)
+          expect(err, _stringify(data)).not.toBeNull()
+        }
+      })
     })
   })
 

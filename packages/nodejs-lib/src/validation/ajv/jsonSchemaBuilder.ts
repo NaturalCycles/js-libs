@@ -920,7 +920,7 @@ export class JsonSchemaObjectBuilder<
   }
 
   minProperties(minProperties: number): this {
-    return this.cloneAndUpdateSchema({ minProperties })
+    return this.cloneAndUpdateSchema({ minProperties, minProperties2: minProperties })
   }
 
   maxProperties(maxProperties: number): this {
@@ -1239,6 +1239,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   errorMessages?: StringMap<string>
   optionalValues?: (string | number | boolean)[]
   keySchema?: JsonSchema
+  minProperties2?: number
 }
 
 function object(props: AnyObject): never
