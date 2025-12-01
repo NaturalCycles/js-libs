@@ -492,9 +492,21 @@ export function createAjv(opt?: Options): Ajv2020 {
     modifying: false,
     errors: true,
     schemaType: 'number',
-    validate: function validate(minProperties: number, data: AnyObject, _schema, _ctx) {
+    validate: function validate(minProperties: number, data: AnyObject, _schema, ctx) {
       if (typeof data !== 'object') return true
-      return Object.getOwnPropertyNames(data).length >= minProperties
+
+      const numberOfProperties = Object.getOwnPropertyNames(data).length
+      const isValid = numberOfProperties >= minProperties
+      if (!isValid) {
+        ;(validate as any).errors = [
+          {
+            instancePath: ctx?.instancePath ?? '',
+            message: `must NOT have fewer than ${minProperties} properties`,
+          },
+        ]
+      }
+
+      return isValid
     },
   })
 
