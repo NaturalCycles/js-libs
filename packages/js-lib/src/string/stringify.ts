@@ -26,6 +26,10 @@ export function setGlobalStringifyFunction(fn: JsonStringifyFunction): void {
   globalStringifyFunction = fn
 }
 
+export function resetGlobalStringifyFunction(): void {
+  globalStringifyFunction = _safeJsonStringify
+}
+
 export type JsonStringifyFunction = (obj: any, reviver?: Reviver, space?: number) => string
 
 export interface StringifyOptions {

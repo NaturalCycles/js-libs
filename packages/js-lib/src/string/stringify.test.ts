@@ -1,11 +1,19 @@
 import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
 import { inspectStringifyFn } from '@naturalcycles/nodejs-lib'
-import { expect, test } from 'vitest'
+import { afterAll, expect, test } from 'vitest'
 import type { BackendErrorResponseObject } from '../error/error.model.js'
 import { _errorLikeToErrorObject, AppError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
 import { expectResults } from '../test/test.util.js'
-import { _stringify, setGlobalStringifyFunction } from './stringify.js'
+import {
+  _stringify,
+  resetGlobalStringifyFunction,
+  setGlobalStringifyFunction,
+} from './stringify.js'
+
+afterAll(() => {
+  resetGlobalStringifyFunction()
+})
 
 test('stringify default', () => {
   expectResults(v => _stringify(v), mockAllKindsOfThings()).toMatchSnapshot()

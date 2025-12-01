@@ -1,11 +1,19 @@
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { _stringify, setGlobalStringifyFunction } from '@naturalcycles/js-lib/string'
+import {
+  _stringify,
+  resetGlobalStringifyFunction,
+  setGlobalStringifyFunction,
+} from '@naturalcycles/js-lib/string'
 import { _noop } from '@naturalcycles/js-lib/types'
-import { expect, test, vi } from 'vitest'
+import { afterAll, expect, test, vi } from 'vitest'
 import { inspectStringifyFn } from '../string/inspect.js'
 import { runScript } from './runScript.js'
 
 const detectLeaks = process.argv.some(a => a.includes('detectLeaks'))
+
+afterAll(() => {
+  resetGlobalStringifyFunction()
+})
 
 // skipped, because mocking process.exit no longer works
 test.skip('runScript', async () => {

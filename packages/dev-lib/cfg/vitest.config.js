@@ -8,7 +8,6 @@ export { CollectReporter } from './collectReporter.js'
 const runsInIDE = doesItRunInIDE()
 const testType = getTestType(runsInIDE)
 const silent = shouldBeSilent(runsInIDE)
-const setupFiles = getSetupFiles(testType)
 const { include, exclude } = getIncludeAndExclude(testType)
 const isCI = !!process.env['CI']
 const coverageEnabled = isCI && testType === 'unit'
@@ -37,11 +36,14 @@ if (silent) {
  *   // bail: 1,
  * })
  */
-export function defineVitestConfig(config) {
+export function defineVitestConfig(config, cwd) {
+  const setupFiles = getSetupFiles(testType, cwd)
+
   const mergedConfig = defineConfig({
     ...config,
     test: {
       ...sharedConfig,
+      setupFiles,
       ...config?.test,
     },
   })
@@ -58,6 +60,8 @@ export function defineVitestConfig(config) {
     pool,
     isolate,
     maxWorkers,
+    setupFiles,
+    cwd,
   })
 
   return mergedConfig
@@ -74,7 +78,7 @@ export const sharedConfig = {
   // dir: 'src',
   restoreMocks: true,
   silent,
-  setupFiles,
+  setupFiles: getSetupFiles(testType),
   logHeapUsage: true,
   testTimeout: 60_000,
   slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
@@ -180,13 +184,13 @@ function isRunningAllTests() {
   return !hasPositionalArgs
 }
 
-function getSetupFiles(testType) {
+function getSetupFiles(testType, cwd = '.') {
   // Set 'setupFiles' only if setup files exist
   const setupFiles = []
-  if (fs.existsSync(`./src/test/setupVitest.ts`)) {
+  if (fs.existsSync(`${cwd}/src/test/setupVitest.ts`)) {
     setupFiles.push('./src/test/setupVitest.ts')
   }
-  if (fs.existsSync(`./src/test/setupVitest.${testType}.ts`)) {
+  if (fs.existsSync(`${cwd}/src/test/setupVitest.${testType}.ts`)) {
     setupFiles.push(`./src/test/setupVitest.${testType}.ts`)
   }
   return setupFiles
