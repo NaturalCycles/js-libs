@@ -60,8 +60,8 @@ export function defineVitestConfig(config, cwd) {
     pool,
     isolate,
     maxWorkers,
-    setupFiles,
-    cwd,
+    // setupFiles,
+    // cwd,
   })
 
   return mergedConfig
