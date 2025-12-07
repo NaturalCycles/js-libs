@@ -726,7 +726,7 @@ export class Fetcher {
     const norm: FetcherNormalizedCfg = _merge(
       {
         baseUrl: '',
-        name: '',
+        name: this.getFetcherName(cfg),
         inputUrl: '',
         responseType: 'json',
         searchParams: {},
@@ -758,12 +758,24 @@ export class Fetcher {
         throwHttpErrors: true,
         errorData: {},
       },
-      _omit(cfg, ['method', 'credentials', 'headers', 'redirect', 'logger']),
+      _omit(cfg, ['method', 'credentials', 'headers', 'redirect', 'logger', 'name']),
     )
 
     norm.init.headers = _mapKeys(norm.init.headers, k => k.toLowerCase())
 
     return norm
+  }
+
+  private getFetcherName(cfg: FetcherCfg): string | undefined {
+    let { name } = cfg
+    if (!name && cfg.baseUrl) {
+      // derive FetcherName from baseUrl
+      const url = URL.parse(cfg.baseUrl)
+      if (url) {
+        name = url.hostname
+      }
+    }
+    return name
   }
 
   private normalizeOptions(opt: FetcherOptions): FetcherRequest {

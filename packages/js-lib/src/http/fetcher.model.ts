@@ -15,7 +15,7 @@ import type { HttpMethod, HttpStatusFamily } from './http.model.js'
 
 export interface FetcherNormalizedCfg
   extends
-    Required<Omit<FetcherCfg, 'dispatcher'>>,
+    Required<Omit<FetcherCfg, 'dispatcher' | 'name'>>,
     Omit<
       FetcherRequest,
       | 'started'
@@ -32,6 +32,7 @@ export interface FetcherNormalizedCfg
     > {
   logger: CommonLogger
   searchParams: Record<string, any>
+  name?: string
 }
 
 export type FetcherBeforeRequestHook = (req: FetcherRequest) => Promisable<void>

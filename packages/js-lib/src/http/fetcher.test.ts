@@ -46,7 +46,7 @@ test('defaults', () => {
       "logResponseBody": false,
       "logWithBaseUrl": true,
       "logWithSearchParams": true,
-      "name": "",
+      "name": undefined,
       "responseType": "json",
       "retry": {
         "count": 2,
@@ -171,7 +171,6 @@ test('mocking fetch', async () => {
   err.data.requestDuration = 10 // mock stability
   expect(err.data).toMatchInlineSnapshot(`
     {
-      "fetcherName": "",
       "requestDuration": 10,
       "requestMethod": "GET",
       "requestSignature": "GET some",
@@ -547,4 +546,58 @@ test('should allow to change user-agent', async () => {
   expect(headers['user-agent']).toBe('abcd')
 
   Fetcher.userAgent = backup
+})
+
+test('HttpRequestError', async () => {
+  mockFetcherWithError()
+
+  // Bare fetcher: no name, no baseUrl
+  let fetcher = getNonRetryFetcher()
+  let err = await fetcher.expectError({ url: 'someUrl' })
+  err.data.requestDuration = 10
+  expect(err.data.requestBaseUrl).toBeUndefined()
+  expect(err.data.fetcherName).toBeUndefined()
+  expect(err.data.requestName).toBeUndefined()
+  expect(err.data).toMatchInlineSnapshot(`
+    {
+      "requestDuration": 10,
+      "requestMethod": "GET",
+      "requestSignature": "GET someUrl",
+      "requestUrl": "someUrl",
+      "responseStatusCode": 500,
+    }
+  `)
+
+  // Fetcher with baseUrl
+  const baseUrl = 'https://evil.com:8081/api/v3'
+  fetcher = getNonRetryFetcher({
+    baseUrl,
+  })
+  err = await fetcher.expectError({ url: 'someUrl' })
+  expect(err.data.requestBaseUrl).toBe(baseUrl)
+  expect(err.data.fetcherName).toBe('evil.com')
+
+  // Fetcher with name
+  const name = 'fancyFetcher'
+  fetcher = getNonRetryFetcher({
+    name,
+  })
+  err = await fetcher.expectError({ url: 'someUrl' })
+  expect(err.data.requestBaseUrl).toBeUndefined()
+  expect(err.data.fetcherName).toBe(name)
+
+  // Fetcher with baseUrl and name
+  fetcher = getNonRetryFetcher({
+    baseUrl,
+    name,
+  })
+  err = await fetcher.expectError({ url: 'someUrl' })
+  expect(err.data.requestBaseUrl).toBe(baseUrl)
+  expect(err.data.fetcherName).toBe(name)
+
+  // Fetcher with requestName
+  const requestName = 'fancyRequest'
+  fetcher = getNonRetryFetcher()
+  err = await fetcher.expectError({ url: 'someUrl', requestName })
+  expect(err.data.requestName).toBe(requestName)
 })
