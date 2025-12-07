@@ -221,6 +221,8 @@ export class Fetcher {
         requestBaseUrl: this.cfg.baseUrl,
         requestMethod: res.req.init.method,
         requestSignature: res.signature,
+        requestName: res.req.requestName,
+        fetcherName: this.cfg.name,
         requestDuration: Date.now() - res.req.started,
       })
     }
@@ -552,6 +554,7 @@ export class Fetcher {
         requestMethod: res.req.init.method,
         requestSignature: res.signature,
         requestName: res.req.requestName,
+        fetcherName: this.cfg.name,
         requestDuration: Date.now() - res.req.started,
       }),
       {
@@ -723,6 +726,7 @@ export class Fetcher {
     const norm: FetcherNormalizedCfg = _merge(
       {
         baseUrl: '',
+        name: '',
         inputUrl: '',
         responseType: 'json',
         searchParams: {},

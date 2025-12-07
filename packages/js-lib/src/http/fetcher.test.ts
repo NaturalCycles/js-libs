@@ -46,6 +46,7 @@ test('defaults', () => {
       "logResponseBody": false,
       "logWithBaseUrl": true,
       "logWithSearchParams": true,
+      "name": "",
       "responseType": "json",
       "retry": {
         "count": 2,
@@ -170,6 +171,7 @@ test('mocking fetch', async () => {
   err.data.requestDuration = 10 // mock stability
   expect(err.data).toMatchInlineSnapshot(`
     {
+      "fetcherName": "",
       "requestDuration": 10,
       "requestMethod": "GET",
       "requestSignature": "GET some",

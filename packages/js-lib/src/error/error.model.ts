@@ -110,7 +110,9 @@ export interface HttpRequestErrorData extends ErrorData {
    * Non-enumerable.
    */
   response?: Response
-
+  /**
+   * Full request url, inclusing baseUrl, inputUrl, searchParams, etc.
+   */
   requestUrl: string
   requestBaseUrl?: string
   requestMethod: HttpMethod
@@ -125,6 +127,10 @@ export interface HttpRequestErrorData extends ErrorData {
    * Allows to construct errorGroup/fingerprint.
    */
   requestName?: string
+  /**
+   * FetcherCfg.name if it was provided, for the purpose of constructing an error fingerprint.
+   */
+  fetcherName?: string
   /**
    * Can be set to 0 if request "failed to start" or "failed to reach the server".
    */

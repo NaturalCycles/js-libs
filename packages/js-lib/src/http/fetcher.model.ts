@@ -58,6 +58,13 @@ export interface FetcherCfg {
   baseUrl?: string
 
   /**
+   * "Name" of the fetcher.
+   * Accessible inside HttpRequestError, to be able to construct a good fingerprint.
+   * If name is not provided - baseUrl is used to identify a Fetcher.
+   */
+  name?: string
+
+  /**
    * Default rule is that you **are allowed** to mutate req, res, res.retryStatus
    * properties of hook function arguments.
    * If you throw an error from the hook - it will be re-thrown as-is.
