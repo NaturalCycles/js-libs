@@ -551,6 +551,7 @@ export class Fetcher {
         requestBaseUrl: this.cfg.baseUrl || undefined,
         requestMethod: res.req.init.method,
         requestSignature: res.signature,
+        requestName: res.req.requestName,
         requestDuration: Date.now() - res.req.started,
       }),
       {
@@ -712,11 +713,12 @@ export class Fetcher {
   }
 
   private normalizeCfg(cfg: FetcherCfg & FetcherOptions): FetcherNormalizedCfg {
+    const { debug = false, logger = console } = cfg
+
     if (cfg.baseUrl?.endsWith('/')) {
-      console.warn(`Fetcher: baseUrl should not end with slash: ${cfg.baseUrl}`)
+      logger.warn(`Fetcher: baseUrl should not end with slash: ${cfg.baseUrl}`)
       cfg.baseUrl = cfg.baseUrl.slice(0, cfg.baseUrl.length - 1)
     }
-    const { debug = false } = cfg
 
     const norm: FetcherNormalizedCfg = _merge(
       {
@@ -729,8 +731,7 @@ export class Fetcher {
         retry3xx: false,
         retry4xx: false,
         retry5xx: true,
-        // logger: console, Danger! doing this mutates console!
-        logger: cfg.logger || console,
+        logger,
         debug,
         logRequest: debug,
         logRequestBody: debug,
@@ -809,11 +810,12 @@ export class Fetcher {
     // setup url
     const baseUrl = opt.baseUrl || this.cfg.baseUrl
     if (baseUrl) {
-      if (req.fullUrl.startsWith('/')) {
-        console.warn('Fetcher: url should not start with / when baseUrl is specified')
-        req.fullUrl = req.fullUrl.slice(1)
+      let { inputUrl } = req
+      if (inputUrl.startsWith('/')) {
+        this.cfg.logger.warn('Fetcher: url should not start with / when baseUrl is specified')
+        inputUrl = inputUrl.slice(1)
       }
-      req.fullUrl = `${baseUrl}/${req.inputUrl}`
+      req.fullUrl = `${baseUrl}/${inputUrl}`
     }
 
     const searchParams = _filterUndefinedValues({

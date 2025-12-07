@@ -333,6 +333,13 @@ export interface FetcherOptions {
    * Cannot cancel/prevent the error - AfterResponseHook can be used for that instead.
    */
   onError?: FetcherOnErrorHook
+
+  /**
+   * If provided - will be passed further to HttpRequestError if error happens,
+   * allowing to construct an errorGroup/fingerprint to be able to group errors
+   * related to "this type of request".
+   */
+  requestName?: string
 }
 
 export type RequestInitNormalized = Omit<RequestInit, 'method' | 'headers'> & {

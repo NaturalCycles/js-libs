@@ -66,6 +66,16 @@ export interface ErrorData {
   fingerprint?: string
 
   /**
+   * Similar to fingerprint, with one important difference.
+   *
+   * fingerprint means FINAL fingerprint that'll be used for error reporting as is.
+   *
+   * errorGroup is meant to be used as a COMPONENT to construct a fingerprint, but not
+   * an exhaustive fingerprint by itself.
+   */
+  errorGroup?: string
+
+  /**
    * Set when throwing an error from your backend code, to indicate desired http status code.
    * e.g throw new AppError('oj', { backendResponseStatusCode: 401 })
    */
@@ -110,6 +120,11 @@ export interface HttpRequestErrorData extends ErrorData {
    * GET /some/url
    */
   requestSignature: string
+  /**
+   * FetcherOptions.requestName, if it was provided.
+   * Allows to construct errorGroup/fingerprint.
+   */
+  requestName?: string
   /**
    * Can be set to 0 if request "failed to start" or "failed to reach the server".
    */
