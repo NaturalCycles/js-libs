@@ -37,6 +37,8 @@
     "prefer-array-find": 2,
     "prefer-array-flat-map": 2,
     "prefer-set-has": 2,
+    "no-array-constructor": 2,
+    "no-useless-return": 2,
     "no-bitwise": 2,
     "no-empty": [2, { "allowEmptyCatch": true }],
     "no-regex-spaces": 2,
@@ -87,7 +89,7 @@
     "typescript/non-nullable-type-assertion-style": 2,
     "typescript/prefer-literal-enum-member": 2,
     "typescript/promise-function-async": [
-      0, // todo, options don't work yet
+      2,
       {
         "checkArrowFunctions": false,
         "checkFunctionDeclarations": true,

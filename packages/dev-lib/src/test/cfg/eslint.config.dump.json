@@ -17,10 +17,10 @@
   },
   "plugins": [
     "@",
-    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.48.1",
+    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.49.0",
     "unicorn:eslint-plugin-unicorn@62.0.0",
     "vue:eslint-plugin-vue@10.6.2",
-    "vitest:vitest@1.5.1",
+    "vitest:vitest@1.5.2",
     "import-x:eslint-plugin-import-x@4.16.1",
     "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1"
   ],
@@ -104,7 +104,6 @@
         ]
       }
     ],
-    "@typescript-eslint/no-array-constructor": [2],
     "@typescript-eslint/no-restricted-types": [
       2,
       {
@@ -135,15 +134,6 @@
     "@typescript-eslint/no-wrapper-object-types": [2],
     "@typescript-eslint/prefer-find": [2],
     "@typescript-eslint/prefer-string-starts-ends-with": [2],
-    "@typescript-eslint/promise-function-async": [
-      2,
-      {
-        "checkArrowFunctions": false,
-        "checkFunctionDeclarations": true,
-        "checkFunctionExpressions": true,
-        "checkMethodDeclarations": true
-      }
-    ],
     "@typescript-eslint/return-await": [2, "always"],
     "@typescript-eslint/triple-slash-reference": [2],
     "complexity": [
@@ -265,7 +255,6 @@
     "unicorn/prefer-dom-node-text-content": [2],
     "unicorn/prefer-event-target": [2],
     "unicorn/prefer-import-meta-properties": [2],
-    "unicorn/prefer-includes": [2],
     "unicorn/prefer-keyboard-event-key": [2],
     "unicorn/prefer-logical-operator-over-ternary": [2],
     "unicorn/prefer-modern-dom-apis": [2],

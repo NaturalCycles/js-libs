@@ -68,6 +68,7 @@ if (oxlintConfigPath) {
   oxlintCmd = [
     'oxlint',
     '--type-aware',
+    '--type-check',
     '--fix',
     '--fix-suggestions',
     '--fix-dangerously',

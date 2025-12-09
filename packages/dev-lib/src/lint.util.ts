@@ -183,6 +183,7 @@ export function runOxlint(fix = true): void {
       // '--report-unused-disable-directives',
       '--max-warnings=0',
       '--type-aware',
+      '--type-check',
       fix && '--fix',
       fix && '--fix-suggestions',
       fix && '--fix-dangerously',

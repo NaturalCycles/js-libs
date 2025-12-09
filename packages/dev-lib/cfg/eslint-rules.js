@@ -118,7 +118,7 @@ export default {
         modifiers: ['requiresQuotes'],
       },
     ],
-    '@typescript-eslint/no-array-constructor': 2,
+    '@typescript-eslint/no-array-constructor': 0, // ox
     '@typescript-eslint/no-extra-non-null-assertion': 2,
     '@typescript-eslint/no-floating-promises': 0, // oxlint
     '@typescript-eslint/no-inferrable-types': [
@@ -136,7 +136,7 @@ export default {
     '@typescript-eslint/prefer-function-type': 0, // ox
     '@typescript-eslint/prefer-namespace-keyword': 0, // ox
     '@typescript-eslint/promise-function-async': [
-      2,
+      0, // ox
       {
         checkArrowFunctions: false,
         checkFunctionDeclarations: true,
@@ -328,6 +328,7 @@ export default {
     '@typescript-eslint/prefer-promise-reject-errors': 0, // ox
     'unicorn/prefer-import-meta-properties': 2,
     'unicorn/prefer-response-static-json': 0, // ox
+    'unicorn/prefer-includes': 0, // ox
     'unicorn/no-array-callback-reference': 0, // false positives
     'unicorn/no-process-exit': 0,
     'unicorn/prefer-single-call': 0,
