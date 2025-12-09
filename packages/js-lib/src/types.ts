@@ -516,7 +516,7 @@ type ReadonlyObjectDeep<ObjectType extends object> = {
    a?: string
    b?: string
  };
- type ExampleA = RequireProp<Example, 'a'>;
+ type ExampleA = RequiredProp<Example, 'a'>;
  //=> {a: string; b?: string};
  ```
  */
