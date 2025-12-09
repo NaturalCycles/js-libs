@@ -22,7 +22,7 @@ export const _SwarmSafe = (): MethodDecorator => (target, key, descriptor) => {
 
   console.log('SwarmSafe constructor called', { key, methodSignature })
 
-  // eslint-disable-next-line @typescript-eslint/promise-function-async
+  // oxlint-disable-next-line @typescript-eslint/promise-function-async
   descriptor.value = function (this: typeof target, ...args: any[]): Promise<any> {
     console.log('SwarmSafe method called', { key, methodSignature, args })
     const ctx = this

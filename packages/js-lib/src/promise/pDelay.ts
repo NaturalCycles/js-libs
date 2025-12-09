@@ -14,7 +14,7 @@ export async function pDelay<T>(ms: NumberOfMilliseconds = 0, value?: T): Promis
   )
 }
 
-/* eslint-disable @typescript-eslint/promise-function-async */
+/* oxlint-disable @typescript-eslint/promise-function-async */
 
 /**
  * Promisified version of setTimeout.

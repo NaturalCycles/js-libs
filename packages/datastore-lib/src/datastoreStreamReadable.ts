@@ -236,7 +236,6 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       )
       clearInterval(this.maxWaitInterval)
       this.destroy(err as Error)
-      return
     }
   }
 }

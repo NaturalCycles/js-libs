@@ -201,7 +201,6 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
         err,
       )
       this.destroy(err as Error)
-      return
     }
   }
 }

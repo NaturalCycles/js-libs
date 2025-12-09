@@ -69,7 +69,7 @@ export const _AsyncMemo =
     const keyStr = String(key)
     const methodSignature = _getTargetMethodSignature(target, keyStr)
 
-    // eslint-disable-next-line @typescript-eslint/promise-function-async
+    // oxlint-disable-next-line @typescript-eslint/promise-function-async
     descriptor.value = function (this: typeof target, ...args: MaybeParameters<FN>): Promise<any> {
       const ctx = this
       const cacheKey = cacheKeyFn(args)

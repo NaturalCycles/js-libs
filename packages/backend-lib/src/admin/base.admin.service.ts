@@ -65,7 +65,6 @@ export class BaseAdminService {
         email,
       )}) returning undefined (please override the implementation)`,
     )
-    return
   }
 
   /**
@@ -107,7 +106,6 @@ export class BaseAdminService {
       }
 
       req.error(`getEmailByToken error:`, err)
-      return
     }
   }
 

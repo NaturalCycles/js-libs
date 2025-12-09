@@ -214,7 +214,6 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
         err,
       )
       this.destroy(err as Error)
-      return
     }
   }
 
