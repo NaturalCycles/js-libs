@@ -509,4 +509,21 @@ type ReadonlyObjectDeep<ObjectType extends object> = {
   readonly [KeyType in keyof ObjectType]: ReadonlyDeep<ObjectType[KeyType]>
 }
 
+/**
+ Makes one property of T required instead of optional.
+ @example
+ ```
+ import { RequiredProp } from '@naturalcycles/js-lib/types'
+ interface Example {
+   a?: string
+   b?: string
+ };
+ type ExampleA = RequiredProp<Example, 'a'>;
+ //=> {a: string; b?: string};
+ ```
+ */
+export type RequiredProp<T, K extends keyof T> = Required<Pick<T, K>> & T
+
 /* eslint-enable */
+
+export * from './typeFest.js'
