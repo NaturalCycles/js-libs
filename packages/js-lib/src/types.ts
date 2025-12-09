@@ -525,3 +525,5 @@ type ReadonlyObjectDeep<ObjectType extends object> = {
 export type RequiredProp<T, K extends keyof T> = Required<Pick<T, K>> & T
 
 /* eslint-enable */
+
+export * from './typeFest.js'
