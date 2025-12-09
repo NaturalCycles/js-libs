@@ -53,6 +53,7 @@
     "./string": "./dist/string/index.js",
     "./string/*.js": "./dist/string/*.js",
     "./types": "./dist/types.js",
+    "./typeFest": "./dist/typeFest.js",
     "./zod": "./dist/zod/index.js"
   },
   "files": [

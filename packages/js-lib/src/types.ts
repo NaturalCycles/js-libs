@@ -492,10 +492,8 @@ export type ReadonlyDeep<T> = T extends Primitive | ((...args: any[]) => unknown
 /**
  Same as `ReadonlyDeep`, but accepts only `ReadonlyMap`s as inputs. Internal helper for `ReadonlyDeep`.
  */
-interface ReadonlyMapDeep<KeyType, ValueType> extends ReadonlyMap<
-  ReadonlyDeep<KeyType>,
-  ReadonlyDeep<ValueType>
-> {}
+interface ReadonlyMapDeep<KeyType, ValueType>
+  extends ReadonlyMap<ReadonlyDeep<KeyType>, ReadonlyDeep<ValueType>> {}
 
 /**
  Same as `ReadonlyDeep`, but accepts only `ReadonlySet`s as inputs. Internal helper for `ReadonlyDeep`.
@@ -508,5 +506,20 @@ interface ReadonlySetDeep<ItemType> extends ReadonlySet<ReadonlyDeep<ItemType>> 
 type ReadonlyObjectDeep<ObjectType extends object> = {
   readonly [KeyType in keyof ObjectType]: ReadonlyDeep<ObjectType[KeyType]>
 }
+
+/**
+ Makes one property of T required instead of optional.
+ @example
+ ```
+ import { RequiredProp } from '@naturalcycles/js-lib/types'
+ interface Example {
+   a?: string
+   b?: string
+ };
+ type ExampleA = RequireProp<Example, 'a'>;
+ //=> {a: string; b?: string};
+ ```
+ */
+export type RequiredProp<T, K extends keyof T> = Required<Pick<T, K>> & T
 
 /* eslint-enable */
