@@ -28,5 +28,3 @@ auditConfig:
 strictDepBuilds: true
 ignoreWorkspaceCycles: true
 ignorePatchFailures: false
-patchedDependencies:
-  semantic-release-pnpm: patches/semantic-release-pnpm.patch
