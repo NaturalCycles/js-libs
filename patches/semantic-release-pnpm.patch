@@ -1,5 +1,5 @@
 diff --git a/lib/publish.js b/lib/publish.js
-index 3d97124963becac6535aed3ad31bb236dc3c2f51..bdb322d7d6c9da1922525539a358a5b129fd8d98 100644
+index 3d97124963becac6535aed3ad31bb236dc3c2f51..e281537f985facc0c578cf6c35d9c47fda4e25f7 100644
 --- a/lib/publish.js
 +++ b/lib/publish.js
 @@ -1,5 +1,6 @@
@@ -9,19 +9,18 @@ index 3d97124963becac6535aed3ad31bb236dc3c2f51..bdb322d7d6c9da1922525539a358a5b1
  const getRegistry = require('./get-registry');
  const getChannel = require('./get-channel');
  const getReleaseInfo = require('./get-release-info');
-@@ -19,10 +20,21 @@ module.exports = async (npmrc, {npmPublish, pkgRoot}, pkg, context) => {
+@@ -19,10 +20,20 @@ module.exports = async (npmrc, {npmPublish, pkgRoot}, pkg, context) => {
      const registry = getRegistry(pkg, context);
      const distTag = getChannel(channel);
  
 -    logger.log(`Publishing version ${version} to npm registry on dist-tag ${distTag}`);
-+    logger.log('Kirill has been here');
 +    logger.log(`[Kirill] Publishing version ${version} to npm registry on dist-tag ${distTag}`);
-+    console.log('[Kirill] extra log here, just in case');
 +
-+    await fs.copyFile(
-+      npmrc,
-+      '.npmrc',
-+    )
++    // not copying, since we aim to use oidc
++    // await fs.copyFile(
++    //   npmrc,
++    //   '.npmrc',
++    // )
 +
      const result = execa(
        'pnpm',
