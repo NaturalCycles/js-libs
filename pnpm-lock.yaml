@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   semantic-release-pnpm:
-    hash: a9d2424d4ee96df87983966062a5aab2860fdefeefebde1912ebaf16a85902e3
+    hash: 4f18e9b9da9822ae6316fcffb5d86696c1efeb9940614bd99619caabfdf78217
     path: patches/semantic-release-pnpm.patch
 
 importers:
@@ -60,7 +60,7 @@ importers:
         version: 8.0.2(semantic-release@25.0.2(typescript@5.9.3))
       semantic-release-pnpm:
         specifier: ^1
-        version: 1.0.2(patch_hash=a9d2424d4ee96df87983966062a5aab2860fdefeefebde1912ebaf16a85902e3)(semantic-release@25.0.2(typescript@5.9.3))
+        version: 1.0.2(patch_hash=4f18e9b9da9822ae6316fcffb5d86696c1efeb9940614bd99619caabfdf78217)(semantic-release@25.0.2(typescript@5.9.3))
       tsx:
         specifier: ^4
         version: 4.21.0
@@ -12193,7 +12193,7 @@ snapshots:
     dependencies:
       semantic-release: 25.0.2(typescript@5.9.3)
 
-  semantic-release-pnpm@1.0.2(patch_hash=a9d2424d4ee96df87983966062a5aab2860fdefeefebde1912ebaf16a85902e3)(semantic-release@25.0.2(typescript@5.9.3)):
+  semantic-release-pnpm@1.0.2(patch_hash=4f18e9b9da9822ae6316fcffb5d86696c1efeb9940614bd99619caabfdf78217)(semantic-release@25.0.2(typescript@5.9.3)):
     dependencies:
       aggregate-error: 3.1.0
       execa: 5.1.1

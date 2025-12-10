@@ -14,6 +14,7 @@
 ## Tools that dev-lib enables
 
 - Prettier
+- oxlint
 - ESLint
 - Biome
 - Stylelint
