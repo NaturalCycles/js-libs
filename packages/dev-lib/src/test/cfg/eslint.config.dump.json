@@ -104,38 +104,10 @@
         ]
       }
     ],
-    "@typescript-eslint/no-restricted-types": [
-      2,
-      {
-        "types": {
-          "Boolean": {
-            "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
-          },
-          "Number": {
-            "message": "Avoid using the `Number` type. Did you mean `number`?"
-          },
-          "object": {
-            "message": "The `object` type is currently hard to use ([see this issue](https://github.com/microsoft/TypeScript/issues/21732)).\nConsider using `Record<string, any>` instead, as it allows you to more easily inspect and use the keys."
-          },
-          "Object": {
-            "message": "Avoid using the `Object` type. Did you mean `object`? Consider using Record<string, any> instead"
-          },
-          "String": {
-            "message": "Avoid using the `String` type. Did you mean `string`?"
-          },
-          "Symbol": {
-            "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
-          }
-        }
-      }
-    ],
-    "@typescript-eslint/no-unnecessary-parameter-property-assignment": [2],
     "@typescript-eslint/no-unnecessary-qualifier": [2],
-    "@typescript-eslint/no-wrapper-object-types": [2],
     "@typescript-eslint/prefer-find": [2],
     "@typescript-eslint/prefer-string-starts-ends-with": [2],
     "@typescript-eslint/return-await": [2, "always"],
-    "@typescript-eslint/triple-slash-reference": [2],
     "complexity": [
       2,
       {
@@ -216,88 +188,23 @@
       }
     ],
     "unicorn/no-immediate-mutation": [2],
-    "unicorn/no-unnecessary-array-flat-depth": [2],
-    "unicorn/no-unnecessary-slice-end": [2],
-    "unicorn/no-unreadable-array-destructuring": [2],
-    "unicorn/no-unreadable-iife": [2],
-    "unicorn/no-useless-collection-argument": [2],
-    "unicorn/no-useless-promise-resolve-reject": [2],
-    "unicorn/numeric-separators-style": [
-      2,
-      {
-        "binary": {
-          "groupLength": 4,
-          "minimumDigits": 0
-        },
-        "hexadecimal": {
-          "groupLength": 2,
-          "minimumDigits": 0
-        },
-        "number": {
-          "groupLength": 3,
-          "minimumDigits": 5
-        },
-        "octal": {
-          "groupLength": 4,
-          "minimumDigits": 0
-        },
-        "onlyIfContainsSeparator": true
-      }
-    ],
-    "unicorn/prefer-add-event-listener": [2, {}],
-    "unicorn/prefer-array-index-of": [2],
-    "unicorn/prefer-bigint-literals": [2],
-    "unicorn/prefer-blob-reading-methods": [2],
     "unicorn/prefer-default-parameters": [2],
-    "unicorn/prefer-dom-node-append": [2],
-    "unicorn/prefer-dom-node-dataset": [2],
-    "unicorn/prefer-dom-node-remove": [2],
-    "unicorn/prefer-dom-node-text-content": [2],
-    "unicorn/prefer-event-target": [2],
     "unicorn/prefer-import-meta-properties": [2],
     "unicorn/prefer-keyboard-event-key": [2],
-    "unicorn/prefer-logical-operator-over-ternary": [2],
-    "unicorn/prefer-modern-dom-apis": [2],
-    "unicorn/prefer-native-coercion-functions": [2],
-    "unicorn/prefer-object-from-entries": [2, {}],
-    "unicorn/prefer-optional-catch-binding": [2],
-    "unicorn/prefer-reflect-apply": [2],
-    "unicorn/prefer-string-raw": [2],
-    "unicorn/prefer-string-trim-start-end": [2],
-    "unicorn/prefer-type-error": [2],
     "unicorn/relative-url-style": [2, "never"],
-    "unicorn/require-array-join-separator": [2],
     "unicorn/require-module-attributes": [2],
-    "unicorn/switch-case-braces": [2, "always"],
-    "unicorn/text-encoding-identifier-case": [
-      2,
-      {
-        "withDash": false
-      }
-    ],
     "vitest/consistent-test-filename": [2],
-    "vitest/no-duplicate-hooks": [2],
-    "vitest/no-focused-tests": [2],
-    "vitest/no-identical-title": [2],
     "vitest/no-mocks-import": [2],
-    "vitest/no-test-return-statement": [2],
     "vitest/padding-around-after-all-blocks": [2],
     "vitest/padding-around-after-each-blocks": [2],
     "vitest/padding-around-before-all-blocks": [2],
     "vitest/padding-around-before-each-blocks": [2],
     "vitest/padding-around-describe-blocks": [2],
-    "vitest/prefer-hooks-in-order": [2],
-    "vitest/prefer-hooks-on-top": [2],
-    "vitest/prefer-mock-promise-shorthand": [2],
     "vitest/prefer-spy-on": [2],
     "vitest/prefer-strict-boolean-matchers": [2],
     "vitest/prefer-to-be": [2],
     "vitest/prefer-to-contain": [2],
-    "vitest/prefer-to-have-length": [2],
     "vitest/prefer-vi-mocked": [2],
-    "vitest/require-to-throw-message": [2],
-    "vitest/valid-describe-callback": [2],
-    "vitest/valid-expect": [2],
     "vitest/valid-expect-in-promise": [2],
     "vue/attribute-hyphenation": [1],
     "vue/attributes-order": [1],
@@ -319,9 +226,7 @@
     ],
     "vue/component-options-name-casing": [2, "PascalCase"],
     "vue/custom-event-name-casing": [2, "camelCase"],
-    "vue/define-emits-declaration": [2, "type-based"],
     "vue/define-macros-order": [2],
-    "vue/define-props-declaration": [2],
     "vue/eqeqeq": [2],
     "vue/first-attribute-linebreak": [1],
     "vue/html-comment-content-spacing": [2],
@@ -364,17 +269,14 @@
     "vue/no-dupe-keys": [2],
     "vue/no-dupe-v-else-if": [2],
     "vue/no-duplicate-attributes": [2],
-    "vue/no-export-in-script-setup": [2],
     "vue/no-expose-after-await": [2],
     "vue/no-lifecycle-after-await": [2],
     "vue/no-lone-template": [1],
     "vue/no-multiple-objects-in-class": [2],
-    "vue/no-multiple-slot-args": [1],
     "vue/no-mutating-props": [2],
     "vue/no-parsing-error": [2],
     "vue/no-ref-as-operand": [2],
     "vue/no-ref-object-reactivity-loss": [2],
-    "vue/no-required-prop-with-default": [2],
     "vue/no-reserved-component-names": [2],
     "vue/no-reserved-keys": [2],
     "vue/no-reserved-props": [2],
@@ -398,7 +300,6 @@
     "vue/order-in-components": [1],
     "vue/padding-line-between-blocks": [2],
     "vue/prefer-define-options": [2],
-    "vue/prefer-import-from-vue": [2],
     "vue/prefer-separate-static-class": [2],
     "vue/prop-name-casing": [1],
     "vue/require-component-is": [2],
@@ -414,7 +315,6 @@
     "vue/require-slots-as-functions": [2],
     "vue/require-toggle-inside-transition": [2],
     "vue/require-typed-object-prop": [2],
-    "vue/require-typed-ref": [2],
     "vue/require-v-for-key": [2],
     "vue/require-valid-default-prop": [2],
     "vue/return-in-computed-property": [2],
@@ -433,9 +333,7 @@
     "vue/v-on-style": [1],
     "vue/v-slot-style": [1],
     "vue/valid-attribute-name": [2],
-    "vue/valid-define-emits": [2],
     "vue/valid-define-options": [2],
-    "vue/valid-define-props": [2],
     "vue/valid-next-tick": [2],
     "vue/valid-template-root": [2],
     "vue/valid-v-bind": [2],

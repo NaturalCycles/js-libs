@@ -135,7 +135,7 @@ function getConfig(_tsconfigPath) {
       ...eslintVueRules.rules,
       ...eslintPrettierRules.rules, // disable eslint rules already covered by prettier
       ...eslintBiomeRules.rules, // disable eslint rules already covered by biome
-      ...eslintPluginOxlint.configs['flat/all'].rules, // disable eslint rules already covered by oxlint
+      ...eslintPluginOxlint.configs['flat/all'][0].rules, // disable eslint rules already covered by oxlint
     },
   }
 }

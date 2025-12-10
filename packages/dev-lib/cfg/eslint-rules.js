@@ -172,7 +172,7 @@ export default {
       2,
       {
         // This is what "removes any newlines between imports":
-        groups: [['^\\u0000', '^node:', '^@?\\w', '^', '^\\.']],
+        groups: [[String.raw`^\u0000`, '^node:', String.raw`^@?\w`, '^', String.raw`^\.`]],
       },
     ],
     'simple-import-sort/exports': 2,

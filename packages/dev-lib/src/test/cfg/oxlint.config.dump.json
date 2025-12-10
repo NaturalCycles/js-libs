@@ -136,10 +136,17 @@
     "jest/no-alias-methods": "deny",
     "jest/no-conditional-expect": "allow",
     "jest/no-disabled-tests": "allow",
+    "jest/no-duplicate-hooks": "deny",
     "jest/no-export": "warn",
-    "jest/no-focused-tests": "warn",
+    "jest/no-focused-tests": "deny",
+    "jest/no-identical-title": "deny",
     "jest/no-standalone-expect": "allow",
-    "jest/require-to-throw-message": "warn",
+    "jest/no-test-return-statement": "deny",
+    "jest/prefer-hooks-in-order": "deny",
+    "jest/prefer-hooks-on-top": "deny",
+    "jest/prefer-mock-promise-shorthand": "deny",
+    "jest/prefer-to-have-length": "deny",
+    "jest/require-to-throw-message": "deny",
     "jest/valid-describe-callback": "allow",
     "jest/valid-expect": "allow",
     "jest/valid-title": "allow",
@@ -224,6 +231,33 @@
     "typescript/no-non-null-asserted-optional-chain": "warn",
     "typescript/no-redundant-type-constituents": "allow",
     "typescript/no-require-imports": "deny",
+    "typescript/no-restricted-types": [
+      "deny",
+      [
+        {
+          "types": {
+            "Boolean": {
+              "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
+            },
+            "Number": {
+              "message": "Avoid using the `Number` type. Did you mean `number`?"
+            },
+            "object": {
+              "message": "The `object` type is currently hard to use ([see this issue](https://github.com/microsoft/TypeScript/issues/21732)).\nConsider using `Record<string, any>` instead, as it allows you to more easily inspect and use the keys."
+            },
+            "Object": {
+              "message": "Avoid using the `Object` type. Did you mean `object`? Consider using Record<string, any> instead"
+            },
+            "String": {
+              "message": "Avoid using the `String` type. Did you mean `string`?"
+            },
+            "Symbol": {
+              "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
+            }
+          }
+        }
+      ]
+    ],
     "typescript/no-this-alias": "allow",
     "typescript/no-unnecessary-boolean-literal-compare": "deny",
     "typescript/no-unnecessary-parameter-property-assignment": "warn",
@@ -296,33 +330,91 @@
     "unicorn/no-new-buffer": "deny",
     "unicorn/no-single-promise-in-promise-methods": "warn",
     "unicorn/no-thenable": "warn",
+    "unicorn/no-unnecessary-array-flat-depth": "deny",
     "unicorn/no-unnecessary-array-splice-count": "deny",
     "unicorn/no-unnecessary-await": "warn",
+    "unicorn/no-unnecessary-slice-end": "deny",
+    "unicorn/no-unreadable-array-destructuring": "deny",
+    "unicorn/no-unreadable-iife": "deny",
+    "unicorn/no-useless-collection-argument": "deny",
     "unicorn/no-useless-error-capture-stack-trace": "deny",
     "unicorn/no-useless-fallback-in-spread": "warn",
     "unicorn/no-useless-length-check": "warn",
+    "unicorn/no-useless-promise-resolve-reject": "deny",
     "unicorn/no-useless-spread": "warn",
     "unicorn/no-zero-fractions": "deny",
+    "unicorn/numeric-separators-style": [
+      "deny",
+      [
+        {
+          "binary": {
+            "groupLength": 4,
+            "minimumDigits": 0
+          },
+          "hexadecimal": {
+            "groupLength": 2,
+            "minimumDigits": 0
+          },
+          "number": {
+            "groupLength": 3,
+            "minimumDigits": 5
+          },
+          "octal": {
+            "groupLength": 4,
+            "minimumDigits": 0
+          },
+          "onlyIfContainsSeparator": true
+        }
+      ]
+    ],
+    "unicorn/prefer-add-event-listener": ["deny", [{}]],
     "unicorn/prefer-array-find": "deny",
     "unicorn/prefer-array-flat-map": "deny",
+    "unicorn/prefer-array-index-of": "deny",
     "unicorn/prefer-array-some": "deny",
+    "unicorn/prefer-bigint-literals": "deny",
+    "unicorn/prefer-blob-reading-methods": "deny",
     "unicorn/prefer-class-fields": "deny",
     "unicorn/prefer-classlist-toggle": "deny",
     "unicorn/prefer-code-point": "deny",
+    "unicorn/prefer-dom-node-append": "deny",
+    "unicorn/prefer-dom-node-dataset": "deny",
+    "unicorn/prefer-dom-node-remove": "deny",
+    "unicorn/prefer-dom-node-text-content": "deny",
+    "unicorn/prefer-event-target": "deny",
     "unicorn/prefer-global-this": "deny",
     "unicorn/prefer-includes": "deny",
+    "unicorn/prefer-logical-operator-over-ternary": "deny",
     "unicorn/prefer-math-min-max": "deny",
     "unicorn/prefer-math-trunc": "deny",
+    "unicorn/prefer-modern-dom-apis": "deny",
     "unicorn/prefer-modern-math-apis": "deny",
+    "unicorn/prefer-native-coercion-functions": "deny",
     "unicorn/prefer-node-protocol": "deny",
+    "unicorn/prefer-object-from-entries": ["deny", [{}]],
+    "unicorn/prefer-optional-catch-binding": "deny",
+    "unicorn/prefer-reflect-apply": "deny",
     "unicorn/prefer-response-static-json": "deny",
     "unicorn/prefer-set-has": "deny",
     "unicorn/prefer-set-size": "warn",
+    "unicorn/prefer-string-raw": "deny",
     "unicorn/prefer-string-replace-all": "deny",
     "unicorn/prefer-string-slice": "deny",
     "unicorn/prefer-string-starts-ends-with": "warn",
+    "unicorn/prefer-string-trim-start-end": "deny",
     "unicorn/prefer-top-level-await": "deny",
+    "unicorn/prefer-type-error": "deny",
+    "unicorn/require-array-join-separator": "deny",
     "unicorn/require-module-specifiers": "deny",
+    "unicorn/switch-case-braces": ["deny", ["always"]],
+    "unicorn/text-encoding-identifier-case": [
+      "deny",
+      [
+        {
+          "withDash": false
+        }
+      ]
+    ],
     "vitest/no-conditional-tests": "warn",
     "vitest/no-import-node-test": "deny",
     "vitest/require-local-test-context-for-concurrent-snapshots": "warn"

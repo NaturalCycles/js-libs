@@ -130,6 +130,31 @@
     "typescript/require-array-sort-compare": 0, // not good
     "typescript/restrict-template-expressions": 0, // not good
     "typescript/no-redundant-type-constituents": 0, // `'a' | string` is still useful for DX
+    "typescript/no-restricted-types": [
+      2,
+      {
+        "types": {
+          "Boolean": {
+            "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
+          },
+          "Number": {
+            "message": "Avoid using the `Number` type. Did you mean `number`?"
+          },
+          "object": {
+            "message": "The `object` type is currently hard to use ([see this issue](https://github.com/microsoft/TypeScript/issues/21732)).\nConsider using `Record<string, any>` instead, as it allows you to more easily inspect and use the keys."
+          },
+          "Object": {
+            "message": "Avoid using the `Object` type. Did you mean `object`? Consider using Record<string, any> instead"
+          },
+          "String": {
+            "message": "Avoid using the `String` type. Did you mean `string`?"
+          },
+          "Symbol": {
+            "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
+          }
+        }
+      }
+    ],
     "unicorn/no-anonymous-default-export": 2,
     "unicorn/no-array-reduce": 2,
     "unicorn/no-document-cookie": 2,
@@ -175,6 +200,71 @@
     ],
     "unicorn/no-accessor-recursion": 2,
     "unicorn/prefer-string-slice": 2,
+    "unicorn/no-unnecessary-array-flat-depth": [2],
+    "unicorn/no-unnecessary-slice-end": [2],
+    "unicorn/no-unreadable-array-destructuring": [2],
+    "unicorn/no-unreadable-iife": [2],
+    "unicorn/no-useless-collection-argument": [2],
+    "unicorn/no-useless-promise-resolve-reject": [2],
+    "unicorn/numeric-separators-style": [
+      2,
+      {
+        "binary": {
+          "groupLength": 4,
+          "minimumDigits": 0
+        },
+        "hexadecimal": {
+          "groupLength": 2,
+          "minimumDigits": 0
+        },
+        "number": {
+          "groupLength": 3,
+          "minimumDigits": 5
+        },
+        "octal": {
+          "groupLength": 4,
+          "minimumDigits": 0
+        },
+        "onlyIfContainsSeparator": true
+      }
+    ],
+    "unicorn/prefer-add-event-listener": [2, {}],
+    "unicorn/prefer-array-index-of": [2],
+    "unicorn/prefer-bigint-literals": [2],
+    "unicorn/prefer-blob-reading-methods": [2],
+    "unicorn/prefer-dom-node-append": [2],
+    "unicorn/prefer-dom-node-dataset": [2],
+    "unicorn/prefer-dom-node-remove": [2],
+    "unicorn/prefer-dom-node-text-content": [2],
+    "unicorn/prefer-event-target": [2],
+    "unicorn/prefer-logical-operator-over-ternary": [2],
+    "unicorn/prefer-modern-dom-apis": [2],
+    "unicorn/prefer-native-coercion-functions": [2],
+    "unicorn/prefer-object-from-entries": [2, {}],
+    "unicorn/prefer-optional-catch-binding": [2],
+    "unicorn/prefer-reflect-apply": [2],
+    "unicorn/prefer-string-raw": [2],
+    "unicorn/prefer-string-trim-start-end": [2],
+    "unicorn/prefer-type-error": [2],
+    "unicorn/require-array-join-separator": [2],
+    "unicorn/switch-case-braces": [2, "always"],
+    "unicorn/text-encoding-identifier-case": [
+      2,
+      {
+        "withDash": false
+      }
+    ],
+    "vitest/no-duplicate-hooks": [2],
+    "vitest/no-focused-tests": [2],
+    "vitest/no-identical-title": [2],
+    "vitest/no-test-return-statement": [2],
+    "vitest/prefer-hooks-in-order": [2],
+    "vitest/prefer-hooks-on-top": [2],
+    "vitest/prefer-mock-promise-shorthand": [2],
+    "vitest/prefer-to-have-length": [2],
+    "vitest/require-to-throw-message": [2],
+    "vitest/valid-describe-callback": 0,
+    "vitest/valid-expect": 0,
     "vitest/no-import-node-test": 2,
     "jest/consistent-test-it": [
       2,
@@ -185,7 +275,9 @@
     ],
     "jest/max-nested-describe": [0, { "max": 4 }], // not good
     "jest/no-alias-methods": 2,
-    "vue/no-multiple-slot-args": 2
+    "vue/no-multiple-slot-args": 2,
+    "vue/define-emits-declaration": [2, "type-based"],
+    "vue/define-props-declaration": [2]
   },
   "settings": {
     "jsdoc": {
