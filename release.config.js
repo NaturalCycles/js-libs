@@ -20,7 +20,8 @@ export default {
     ['@semantic-release/release-notes-generator'],
     // ['@semantic-release/changelog'], // let's skip changelog, as github releases can be used instead
     // https://github.com/autoclouddev/semantic-release-pnpm
-    ['semantic-release-pnpm'], // uses `pnpm publish`
+    // ['semantic-release-pnpm'], // uses `pnpm publish`
+    '@anolilab/semantic-release-pnpm',
     // let's use github instead
     // ['@semantic-release/git', { assets: ['CHANGELOG.md', 'package.json', 'pnpm-lock.yaml'] }],
     ['@semantic-release/github'], // GitHub Release + PR/issue comments
