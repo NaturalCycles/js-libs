@@ -1,5 +1,5 @@
 // from: https://github.com/lodash/lodash/blob/master/.internal/unicodeWords.js
-/* eslint-disable */
+// oxlint-disable
 
 /** Used to compose unicode character classes. */
 const rsAstralRange = '\\ud800-\\udfff'

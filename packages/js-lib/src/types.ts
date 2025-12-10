@@ -478,7 +478,7 @@ export type Class<T = any> = new (...args: any[]) => T
  //=> error TS2339: Property 'push' does not exist on type 'readonly string[]'
  ```
  */
-/* eslint-disable @typescript-eslint/no-restricted-types */
+/* oxlint-disable @typescript-eslint/no-restricted-types */
 export type ReadonlyDeep<T> = T extends Primitive | ((...args: any[]) => unknown)
   ? T
   : T extends ReadonlyMap<infer KeyType, infer ValueType>
@@ -509,6 +509,8 @@ type ReadonlyObjectDeep<ObjectType extends object> = {
   readonly [KeyType in keyof ObjectType]: ReadonlyDeep<ObjectType[KeyType]>
 }
 
+// oxlint-enable
+
 /**
  Makes one property of T required instead of optional.
  @example
@@ -523,7 +525,5 @@ type ReadonlyObjectDeep<ObjectType extends object> = {
  ```
  */
 export type RequiredProp<T, K extends keyof T> = Required<Pick<T, K>> & T
-
-/* eslint-enable */
 
 export * from './typeFest.js'

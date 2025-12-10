@@ -1,4 +1,3 @@
-/* eslint-disable vitest/valid-expect */
 /* eslint-disable id-denylist */
 /* oxlint-disable @typescript-eslint/explicit-function-return-type */
 
