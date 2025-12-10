@@ -83,7 +83,7 @@
     "no-useless-constructor": "deny",
     "no-useless-escape": "warn",
     "no-useless-rename": "warn",
-    "no-useless-return": "deny",
+    "no-useless-return": "allow",
     "no-var": "deny",
     "no-with": "warn",
     "prefer-spread": "deny",

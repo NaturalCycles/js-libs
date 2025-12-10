@@ -38,7 +38,7 @@
     "prefer-array-flat-map": 2,
     "prefer-set-has": 2,
     "no-array-constructor": 2,
-    "no-useless-return": 2,
+    "no-useless-return": 0, // not useful
     "no-bitwise": 2,
     "no-empty": [2, { "allowEmptyCatch": true }],
     "no-regex-spaces": 2,
