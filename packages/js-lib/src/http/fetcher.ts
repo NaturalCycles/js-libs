@@ -28,6 +28,7 @@ import {
 } from '../object/object.util.js'
 import { pDelay } from '../promise/pDelay.js'
 import { pTimeout } from '../promise/pTimeout.js'
+import { _toUrlOrNull } from '../string/index.js'
 import { _jsonParse, _jsonParseIfPossible } from '../string/json.util.js'
 import { _stringify } from '../string/stringify.js'
 import type {
@@ -770,7 +771,7 @@ export class Fetcher {
     let { name } = cfg
     if (!name && cfg.baseUrl) {
       // derive FetcherName from baseUrl
-      const url = URL.parse(cfg.baseUrl)
+      const url = _toUrlOrNull(cfg.baseUrl)
       if (url) {
         name = url.hostname
       }
