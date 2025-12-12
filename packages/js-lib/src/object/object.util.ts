@@ -535,7 +535,7 @@ export function _objectAssignExact<T extends AnyObject>(target: T, source: T): v
  * const collection: MyObj[] = [...]
  *
  * const collectionA = collection.filter(_hasProp('a'))
- * --> collectionA is now RequiredProp<MyObj, 'a'>[], i.e. { a: string, b?: string }
+ * --> collectionA is now RequiredProp<MyObj, 'a'>[], i.e. { a: string, b?: string }[]
  */
 export function _hasProp<T, Prop extends keyof T>(prop: Prop) {
   return function (object: T): object is RequiredProp<T, Prop> {
