@@ -5,6 +5,7 @@ import type {
   MutateOptions,
   ObjectMapper,
   ObjectPredicate,
+  RequiredProp,
   Reviver,
   StringMap,
   ValueOf,
@@ -525,5 +526,19 @@ export function _objectAssignExact<T extends AnyObject>(target: T, source: T): v
       // consider setting it to undefined maybe?
       delete target[k]
     }
+  }
+}
+
+/**
+ * type MyObj = { a?: string, b?: string }
+ *
+ * const collection: MyObj[] = [...]
+ *
+ * const collectionA = collection.filter(_hasProp('a'))
+ * --> collectionA is now RequiredProp<MyObj, 'a'>[], i.e. { a: string, b?: string }
+ */
+export function _hasProp<T, Prop extends keyof T>(prop: Prop) {
+  return function (object: T): object is RequiredProp<T, Prop> {
+    return !!object[prop]
   }
 }
