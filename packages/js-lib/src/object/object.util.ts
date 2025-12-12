@@ -539,6 +539,6 @@ export function _objectAssignExact<T extends AnyObject>(target: T, source: T): v
  */
 export function _hasProp<T, Prop extends keyof T>(prop: Prop) {
   return function (object: T): object is RequiredProp<T, Prop> {
-    return !!object[prop]
+    return typeof object[prop] !== 'undefined'
   }
 }
