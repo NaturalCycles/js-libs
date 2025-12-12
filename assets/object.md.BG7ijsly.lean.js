@@ -1,0 +1,1 @@
+import{_ as i,c as a,o as n,ae as h}from"./chunks/framework.DtmSNKjg.js";const g=JSON.parse('{"title":"Object","description":"","frontmatter":{},"headers":[],"relativePath":"object.md","filePath":"object.md"}'),l={name:"object.md"};function p(t,s,k,e,E,d){return n(),a("div",null,[...s[0]||(s[0]=[h("",103)])])}const y=i(l,[["render",p]]);export{g as __pageData,y as default};
