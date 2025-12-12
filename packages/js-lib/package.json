@@ -22,7 +22,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
     "@types/crypto-js": "^4",
-    "@types/node": "^24",
+    "@types/node": "^25",
     "@types/semver": "^7",
     "crypto-js": "^4",
     "dayjs": "^1"

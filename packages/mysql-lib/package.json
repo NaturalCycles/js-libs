@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
-    "@types/node": "^24",
+    "@types/node": "^25",
     "dotenv": "^17"
   },
   "exports": {

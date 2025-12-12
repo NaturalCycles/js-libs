@@ -90,7 +90,7 @@
     "@naturalcycles/dev-lib": "workspace:*",
     "@naturalcycles/nodejs-lib": "workspace:*",
     "@semantic-release/git": "^10",
-    "@types/node": "^24",
+    "@types/node": "^25",
     "@vitest/coverage-v8": "^4",
     "dotenv": "^17",
     "eslint": "^9",

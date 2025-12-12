@@ -65,7 +65,7 @@
   },
   "devDependencies": {
     "@types/mitm": "^1",
-    "@types/node": "^24"
+    "@types/node": "^25"
   },
   "exports": {
     "./cfg/": "./cfg/",
