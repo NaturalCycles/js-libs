@@ -13,6 +13,7 @@ import {
   _findKeyByValue,
   _get,
   _has,
+  _hasProp,
   _invert,
   _invertMap,
   _mapKeys,
@@ -701,4 +702,20 @@ test('_objectAssignExact', () => {
 
   expect(target).toStrictEqual(source)
   expect(target).not.toBe(source)
+})
+
+test('_hasProp', () => {
+  interface SubObj {
+    c: string
+  } // to get typescript to yell if not typed correctly
+  interface MyObj {
+    a?: SubObj
+    b?: string
+  }
+  const collection: MyObj[] = [{ b: 'foo' }, { a: { c: 'bar' } }, { a: { c: 'baz' } }]
+
+  const collectionA = collection.filter(_hasProp('a'))
+
+  expect(collectionA[0]?.a.c).toBe('bar') // Not really testing the expectation, but that TS allows `.a.c` without ?
+  expect(collectionA[1]?.a.c).toBe('baz') // ...to pass linting that suggests `find` instead of `filter`
 })
