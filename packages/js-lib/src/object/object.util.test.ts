@@ -717,5 +717,5 @@ test('_hasProp', () => {
   const collectionA = collection.filter(_hasProp('a'))
 
   expect(collectionA[0]?.a.c).toBe('bar') // Not really testing the expectation, but that TS allows `.a.c` without ?
-  expect(collectionA[1]?.a.c).toBe('baz') // Not really testing the expectation, but that TS allows `.a.c` without ?
+  expect(collectionA[1]?.a.c).toBe('baz') // ...to pass linting that suggests `find` instead of `filter`
 })
