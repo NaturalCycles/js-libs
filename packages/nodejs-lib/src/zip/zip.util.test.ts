@@ -8,6 +8,9 @@ import {
   gzipString,
   inflateBuffer,
   inflateToString,
+  zstdCompress,
+  zstdDecompress,
+  zstdDecompressToString,
 } from './zip.util.js'
 
 test('deflate/inflate', async () => {
@@ -22,6 +25,19 @@ test('deflate/inflate', async () => {
   zippedBuf = await deflateBuffer(sBuf)
   const unzippedBuf = await inflateBuffer(zippedBuf)
   expect(unzippedBuf).toEqual(sBuf)
+})
+
+test('zstd compress/decompress', async () => {
+  const s = 'abcd1234$%^'
+
+  let compressedBuf = await zstdCompress(s)
+  const decompressedStr = await zstdDecompressToString(compressedBuf)
+  expect(decompressedStr).toBe(s)
+
+  const sBuf = Buffer.from(s)
+  compressedBuf = await zstdCompress(sBuf)
+  const decompressedBuf = await zstdDecompress(compressedBuf)
+  expect(decompressedBuf).toEqual(sBuf)
 })
 
 test('gzip/gunzip', async () => {

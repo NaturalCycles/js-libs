@@ -1,11 +1,13 @@
 import { promisify } from 'node:util'
-import type { ZlibOptions } from 'node:zlib'
+import type { ZlibOptions, ZstdOptions } from 'node:zlib'
 import zlib from 'node:zlib'
 
 const deflate = promisify(zlib.deflate.bind(zlib))
 const inflate = promisify(zlib.inflate.bind(zlib))
 const gzip = promisify(zlib.gzip.bind(zlib))
 const gunzip = promisify(zlib.gunzip.bind(zlib))
+const zstdCompressAsync = promisify(zlib.zstdCompress.bind(zlib))
+const zstdDecompressAsync = promisify(zlib.zstdDecompress.bind(zlib))
 
 /**
  * deflateBuffer uses `deflate`.
@@ -15,14 +17,14 @@ export async function deflateBuffer(
   buf: Buffer,
   options: ZlibOptions = {},
 ): Promise<Buffer<ArrayBuffer>> {
-  return (await deflate(buf, options)) as Buffer<ArrayBuffer>
+  return await deflate(buf, options)
 }
 
 export async function inflateBuffer(
   buf: Buffer,
   options: ZlibOptions = {},
 ): Promise<Buffer<ArrayBuffer>> {
-  return (await inflate(buf, options)) as Buffer<ArrayBuffer>
+  return await inflate(buf, options)
 }
 
 /**
@@ -48,14 +50,14 @@ export async function gzipBuffer(
   buf: Buffer,
   options: ZlibOptions = {},
 ): Promise<Buffer<ArrayBuffer>> {
-  return (await gzip(buf, options)) as Buffer<ArrayBuffer>
+  return await gzip(buf, options)
 }
 
 export async function gunzipBuffer(
   buf: Buffer,
   options: ZlibOptions = {},
 ): Promise<Buffer<ArrayBuffer>> {
-  return (await gunzip(buf, options)) as Buffer<ArrayBuffer>
+  return await gunzip(buf, options)
 }
 
 /**
@@ -68,4 +70,25 @@ export async function gzipString(s: string, options?: ZlibOptions): Promise<Buff
 
 export async function gunzipToString(buf: Buffer, options?: ZlibOptions): Promise<string> {
   return (await gunzipBuffer(buf, options)).toString()
+}
+
+export async function zstdCompress(
+  input: Buffer | string,
+  options: ZstdOptions = {},
+): Promise<Buffer<ArrayBuffer>> {
+  return await zstdCompressAsync(input, options)
+}
+
+export async function zstdDecompressToString(
+  input: Buffer,
+  options: ZstdOptions = {},
+): Promise<string> {
+  return (await zstdDecompressAsync(input, options)).toString()
+}
+
+export async function zstdDecompress(
+  input: Buffer,
+  options: ZstdOptions = {},
+): Promise<Buffer<ArrayBuffer>> {
+  return await zstdDecompressAsync(input, options)
 }

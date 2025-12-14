@@ -1,7 +1,14 @@
 import { Readable, type Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { ReadableStream as WebReadableStream } from 'node:stream/web'
-import { createGzip, createUnzip, type ZlibOptions } from 'node:zlib'
+import {
+  createGzip,
+  createUnzip,
+  createZstdCompress,
+  createZstdDecompress,
+  type ZlibOptions,
+  type ZstdOptions,
+} from 'node:zlib'
 import { createAbortableSignal } from '@naturalcycles/js-lib'
 import {
   _passthroughPredicate,
@@ -333,6 +340,28 @@ export class Pipeline<T = unknown> {
     return this as any
   }
 
+  zstdCompress(this: Pipeline<Uint8Array>, opt?: ZstdOptions): Pipeline<Uint8Array> {
+    this.transforms.push(
+      createZstdCompress({
+        // chunkSize: 64 * 1024, // no observed speedup
+        ...opt,
+      }),
+    )
+    this.objectMode = false
+    return this as any
+  }
+
+  zstdDecompress(this: Pipeline<Uint8Array>, opt?: ZstdOptions): Pipeline<Uint8Array> {
+    this.transforms.push(
+      createZstdDecompress({
+        chunkSize: 64 * 1024, // todo: test it
+        ...opt,
+      }),
+    )
+    this.objectMode = false
+    return this as any
+  }
+
   async toArray(opt?: TransformOptions): Promise<T[]> {
     const arr: T[] = []
     this.destination = writablePushToArray(arr, opt)
@@ -352,6 +381,12 @@ export class Pipeline<T = unknown> {
     if (outputFilePath.endsWith('.gz')) {
       this.transforms.push(
         createGzip({
+          // chunkSize: 64 * 1024, // no observed speedup
+        }),
+      )
+    } else if (outputFilePath.endsWith('.zst')) {
+      this.transforms.push(
+        createZstdCompress({
           // chunkSize: 64 * 1024, // no observed speedup
         }),
       )
