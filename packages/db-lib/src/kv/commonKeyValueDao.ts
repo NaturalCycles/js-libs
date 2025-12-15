@@ -3,7 +3,12 @@ import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { type KeyValueTuple, SKIP } from '@naturalcycles/js-lib/types'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
-import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
+import {
+  deflateString,
+  inflateToString,
+  zstdCompress,
+  zstdDecompressToString,
+} from '@naturalcycles/nodejs-lib/zip'
 import type { CommonDaoLogLevel } from '../commondao/common.dao.model.js'
 import type { CommonDBCreateOptions } from '../db.model.js'
 import type {
@@ -52,6 +57,11 @@ export interface CommonKeyValueDaoTransformer<V> {
 export const commonKeyValueDaoDeflatedJsonTransformer: CommonKeyValueDaoTransformer<any> = {
   valueToBuffer: async v => await deflateString(JSON.stringify(v)),
   bufferToValue: async buf => JSON.parse(await inflateToString(buf)),
+}
+
+export const commonKeyValueDaoZstdJsonTransformer: CommonKeyValueDaoTransformer<any> = {
+  valueToBuffer: async v => await zstdCompress(JSON.stringify(v)),
+  bufferToValue: async buf => JSON.parse(await zstdDecompressToString(buf)),
 }
 
 // todo: logging

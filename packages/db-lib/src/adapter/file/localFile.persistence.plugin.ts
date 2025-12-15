@@ -14,7 +14,7 @@ export interface LocalFilePersistencePluginCfg {
   /**
    * @default true
    */
-  gzip: boolean
+  zst: boolean
 }
 
 /**
@@ -24,7 +24,7 @@ export class LocalFilePersistencePlugin implements FileDBPersistencePlugin {
   constructor(cfg: Partial<LocalFilePersistencePluginCfg> = {}) {
     this.cfg = {
       storagePath: './tmp/localdb',
-      gzip: true,
+      zst: true,
       ...cfg,
     }
   }
@@ -41,7 +41,7 @@ export class LocalFilePersistencePlugin implements FileDBPersistencePlugin {
 
   async loadFile<ROW extends ObjectWithId>(table: string): Promise<ROW[]> {
     await fs2.ensureDirAsync(this.cfg.storagePath)
-    const ext = `ndjson${this.cfg.gzip ? '.gz' : ''}`
+    const ext = `ndjson${this.cfg.zst ? '.zst' : ''}`
     const filePath = `${this.cfg.storagePath}/${table}.${ext}`
 
     if (!(await fs2.pathExistsAsync(filePath))) return []
@@ -55,7 +55,7 @@ export class LocalFilePersistencePlugin implements FileDBPersistencePlugin {
 
   async saveFile<ROW extends ObjectWithId>(table: string, rows: ROW[]): Promise<void> {
     await fs2.ensureDirAsync(this.cfg.storagePath)
-    const ext = `ndjson${this.cfg.gzip ? '.gz' : ''}`
+    const ext = `ndjson${this.cfg.zst ? '.zst' : ''}`
     const filePath = `${this.cfg.storagePath}/${table}.${ext}`
 
     await Pipeline.fromArray(rows).toNDJsonFile(filePath)

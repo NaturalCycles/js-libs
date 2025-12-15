@@ -5,7 +5,7 @@ import { LocalFilePersistencePlugin } from './localFile.persistence.plugin.js'
 
 const db = new FileDB({
   plugin: new LocalFilePersistencePlugin({
-    gzip: false,
+    zst: false,
   }),
 })
 

@@ -9,6 +9,21 @@ const gunzip = promisify(zlib.gunzip.bind(zlib))
 const zstdCompressAsync = promisify(zlib.zstdCompress.bind(zlib))
 const zstdDecompressAsync = promisify(zlib.zstdDecompress.bind(zlib))
 
+export async function decompressZstdOrInflateToString(buf: Buffer): Promise<string> {
+  return (await decompressZstdOrInflate(buf)).toString()
+}
+
+/**
+ * Detects if Buffer is zstd-compressed.
+ * Otherwise attempts to Inflate.
+ */
+export async function decompressZstdOrInflate(buf: Buffer): Promise<Buffer<ArrayBuffer>> {
+  if (isZstdBuffer(buf)) {
+    return await zstdDecompressAsync(buf)
+  }
+  return await inflate(buf)
+}
+
 /**
  * deflateBuffer uses `deflate`.
  * It's 9 bytes shorter than `gzip`.
@@ -91,4 +106,14 @@ export async function zstdDecompress(
   options: ZstdOptions = {},
 ): Promise<Buffer<ArrayBuffer>> {
   return await zstdDecompressAsync(input, options)
+}
+
+const ZSTD_MAGIC_NUMBER = 0xfd2fb528
+
+export function isZstdBuffer(input: Buffer): boolean {
+  return input.readUInt32LE(0) === ZSTD_MAGIC_NUMBER
+}
+
+export function isGzipBuffer(input: Buffer): boolean {
+  return input[0] === 0x1f && input[1] === 0x8b
 }

@@ -79,9 +79,10 @@ export interface DBPipelineBackupOptions extends TransformLogProgressOptions {
   protectFromOverwrite?: boolean
 
   /**
+   * Compress as .zst
    * @default true
    */
-  gzip?: boolean
+  zst?: boolean
 
   /**
    * Only applicable if `gzip` is enabled
@@ -147,8 +148,8 @@ export async function dbPipelineBackup(opt: DBPipelineBackupOptions): Promise<ND
     transformMapOptions,
     errorMode = ErrorMode.SUPPRESS,
     emitSchemaFromDB = false,
+    zst = true,
   } = opt
-  const gzip = opt.gzip !== false // default to true
 
   let { tables } = opt
 
@@ -184,7 +185,7 @@ export async function dbPipelineBackup(opt: DBPipelineBackupOptions): Promise<ND
         console.log(`>> ${grey(table)}${sinceUpdatedStr}`)
       }
 
-      const filePath = `${outputDirPath}/${table}.ndjson` + (gzip ? '.gz' : '')
+      const filePath = `${outputDirPath}/${table}.ndjson` + (zst ? '.zst' : '')
       const schemaFilePath = `${outputDirPath}/${table}.schema.json`
 
       if (protectFromOverwrite && fs2.pathExists(filePath)) {

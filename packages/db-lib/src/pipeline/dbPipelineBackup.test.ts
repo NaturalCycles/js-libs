@@ -13,6 +13,6 @@ test('dbPipelineSaveToNDJson', async () => {
   await dbPipelineBackup({
     db,
     outputDirPath: tmpDir,
-    gzip: false,
+    zst: false,
   })
 })
