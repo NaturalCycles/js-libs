@@ -103,7 +103,7 @@
         "noUselessThisAlias": "off",
         "useLiteralKeys": "off",
         "noBannedTypes": "off",
-        "noCommaOperator": "error",
+        "noCommaOperator": "off", // ox
         "noArguments": "error"
       },
       "nursery": {}

@@ -151,7 +151,7 @@ export default {
         max: 40,
       },
     ],
-    'constructor-super': 2,
+    'constructor-super': 0, // ox
     // eqeqeq: [2, 'smart'], // oxlint
     'for-direction': 2,
     'getter-return': 2,
@@ -223,7 +223,7 @@ export default {
     'no-ex-assign': 2,
     'no-extra-boolean-cast': 2,
     'no-implicit-coercion': [
-      2,
+      0, // ox
       {
         allow: ['!!'],
       },
@@ -328,6 +328,8 @@ export default {
     '@typescript-eslint/prefer-promise-reject-errors': 0, // ox
     'unicorn/prefer-import-meta-properties': 2,
     'unicorn/prefer-response-static-json': 0, // ox
+    'unicorn/prefer-keyboard-event-key': 0, // ox
+    'unicorn/prefer-default-parameters': 0, // ox
     'unicorn/prefer-includes': 0, // ox
     'unicorn/no-array-callback-reference': 0, // false positives
     'unicorn/no-process-exit': 0,
@@ -460,7 +462,7 @@ export default {
     ],
     'max-params': [0, { max: 5 }], // oxlint
     'no-else-return': 2,
-    'no-sequences': 2,
+    'no-sequences': 0, // ox
     'no-useless-concat': 0, // oxlint
     '@typescript-eslint/ban-tslint-comment': 0, // ox
     '@typescript-eslint/explicit-function-return-type': [

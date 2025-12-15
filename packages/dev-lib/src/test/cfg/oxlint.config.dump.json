@@ -3,6 +3,7 @@
   "jsPlugins": ["./oxlint-plugin-stylistic.mjs"],
   "categories": {},
   "rules": {
+    "constructor-super": "warn",
     "curly": ["deny", ["multi-line"]],
     "eqeqeq": ["deny", ["smart"]],
     "for-direction": "warn",
@@ -50,6 +51,14 @@
     "no-extra-boolean-cast": "warn",
     "no-func-assign": "warn",
     "no-global-assign": "warn",
+    "no-implicit-coercion": [
+      "deny",
+      [
+        {
+          "allow": ["!!"]
+        }
+      ]
+    ],
     "no-import-assign": "warn",
     "no-invalid-regexp": "warn",
     "no-irregular-whitespace": "warn",
@@ -62,6 +71,7 @@
     "no-regex-spaces": "deny",
     "no-restricted-globals": ["deny", ["event", "__dirname", "__filename"]],
     "no-self-assign": "warn",
+    "no-sequences": "deny",
     "no-setter-return": "warn",
     "no-shadow-restricted-names": "warn",
     "no-sparse-arrays": "warn",
@@ -174,6 +184,7 @@
     "oxc/missing-throw": "warn",
     "oxc/no-accumulating-spread": "deny",
     "oxc/no-const-enum": "deny",
+    "oxc/no-map-spread": "allow",
     "oxc/number-arg-out-of-range": "warn",
     "oxc/only-used-in-recursion": "warn",
     "oxc/uninvoked-array-callback": "warn",
@@ -377,6 +388,7 @@
     "unicorn/prefer-class-fields": "deny",
     "unicorn/prefer-classlist-toggle": "deny",
     "unicorn/prefer-code-point": "deny",
+    "unicorn/prefer-default-parameters": "deny",
     "unicorn/prefer-dom-node-append": "deny",
     "unicorn/prefer-dom-node-dataset": "deny",
     "unicorn/prefer-dom-node-remove": "deny",
@@ -384,6 +396,7 @@
     "unicorn/prefer-event-target": "deny",
     "unicorn/prefer-global-this": "deny",
     "unicorn/prefer-includes": "deny",
+    "unicorn/prefer-keyboard-event-key": "deny",
     "unicorn/prefer-logical-operator-over-ternary": "deny",
     "unicorn/prefer-math-min-max": "deny",
     "unicorn/prefer-math-trunc": "deny",

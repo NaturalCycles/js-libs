@@ -145,16 +145,6 @@
         "enforceForIfStatements": true
       }
     ],
-    "no-implicit-coercion": [
-      2,
-      {
-        "allow": ["!!"],
-        "boolean": true,
-        "disallowTemplateShorthand": false,
-        "number": true,
-        "string": true
-      }
-    ],
     "no-octal": [2],
     "no-unreachable-loop": [
       2,
@@ -188,9 +178,7 @@
       }
     ],
     "unicorn/no-immediate-mutation": [2],
-    "unicorn/prefer-default-parameters": [2],
     "unicorn/prefer-import-meta-properties": [2],
-    "unicorn/prefer-keyboard-event-key": [2],
     "unicorn/relative-url-style": [2, "never"],
     "unicorn/require-module-attributes": [2],
     "vitest/consistent-test-filename": [2],
