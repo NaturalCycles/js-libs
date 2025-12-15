@@ -82,6 +82,7 @@
         "useIterableCallbackReturn": "off",
         "useErrorMessage": "off", // ox
         "noControlCharactersInRegex": "off", // ox
+        "noExtraNonNullAssertion": "off", // ox
         "noEvolvingTypes": "error",
         "noExplicitAny": "off",
         "noAssignInExpressions": "off",
