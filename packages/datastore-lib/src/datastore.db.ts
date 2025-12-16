@@ -684,11 +684,15 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
   private getRunQueryOptions(opt: DatastoreDBReadOptions): RunQueryOptions {
     if (!opt.readAt) return {}
 
-    return {
-      // Datastore expects UnixTimestamp in milliseconds
-      // Datastore requires the timestamp to be rounded to the whole minutes
-      readTime: _round(opt.readAt, 60) * 1000,
+    // Datastore expects UnixTimestamp in milliseconds
+    // Datastore requires the timestamp to be rounded to the whole minutes
+    const readTime = _round(opt.readAt, 60) * 1000
+    if (readTime >= Date.now() - 1000) {
+      // To avoid the error of: The requested 'read_time' cannot be in the future
+      return {}
     }
+
+    return { readTime }
   }
 }
 
