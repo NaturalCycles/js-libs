@@ -4,6 +4,7 @@ import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { type KeyValueTuple, SKIP } from '@naturalcycles/js-lib/types'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import {
+  decompressZstdOrInflateToString,
   deflateString,
   inflateToString,
   zstdCompress,
@@ -62,6 +63,15 @@ export const commonKeyValueDaoDeflatedJsonTransformer: CommonKeyValueDaoTransfor
 export const commonKeyValueDaoZstdJsonTransformer: CommonKeyValueDaoTransformer<any> = {
   valueToBuffer: async v => await zstdCompress(JSON.stringify(v)),
   bufferToValue: async buf => JSON.parse(await zstdDecompressToString(buf)),
+}
+
+/**
+ * Saves: zstd
+ * Reads: zstd or deflate (backwards compatible)
+ */
+export const commonKeyValueDaoCompressedTransformer: CommonKeyValueDaoTransformer<any> = {
+  valueToBuffer: async v => await zstdCompress(JSON.stringify(v)),
+  bufferToValue: async buf => JSON.parse(await decompressZstdOrInflateToString(buf)),
 }
 
 // todo: logging
