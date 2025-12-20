@@ -16,6 +16,7 @@ import type {
   BackendRequestHandler,
 } from '../server/server.model.js'
 import { simpleRequestLoggerMiddleware } from '../server/simpleRequestLoggerMiddleware.js'
+import { isGAE } from '../util.js'
 
 const isTest = process.env['APP_ENV'] === 'test'
 const isDev = process.env['APP_ENV'] === 'dev'
@@ -49,6 +50,32 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
 
   if (isDev) {
     app.use(simpleRequestLoggerMiddleware())
+  }
+
+  if (!isTest) {
+    // leaks, load lazily
+    const { default: helmet } = await import('helmet')
+    app.use(
+      helmet({
+        contentSecurityPolicy: false, // to allow "admin 401 auto-redirect"
+      }),
+    )
+  }
+
+  app.use(
+    cors({
+      origin: true,
+      credentials: true,
+      // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // default
+      maxAge: 86400,
+      ...cfg.corsOptions,
+    }),
+  )
+
+  if (!isGAE() && isTest) {
+    // compression is not used in AppEngine, because AppEngine provides it by default
+    const { default: compression } = await import('compression')
+    app.use(compression())
   }
 
   // app.use(safeJsonMiddleware()) // optional
@@ -87,26 +114,6 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
   )
 
   app.use(cookieParser())
-
-  if (!isTest) {
-    // leaks, load lazily
-    const { default: helmet } = await import('helmet')
-    app.use(
-      helmet({
-        contentSecurityPolicy: false, // to allow "admin 401 auto-redirect"
-      }),
-    )
-  }
-
-  app.use(
-    cors({
-      origin: true,
-      credentials: true,
-      // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // default
-      maxAge: 86400,
-      ...cfg.corsOptions,
-    }),
-  )
 
   // app.use(clearBodyParserTimeout()) // removed by default
 
