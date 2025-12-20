@@ -3,8 +3,6 @@ import type { IsoDate } from '../types.js'
 import { DateInterval } from './dateInterval.js'
 import { localDate } from './localDate.js'
 
-/* eslint-disable vitest/prefer-to-contain */
-
 test('basic', () => {
   const str1 = '2022-02-24/2022-03-30'
   const int1 = DateInterval.parse(str1)
