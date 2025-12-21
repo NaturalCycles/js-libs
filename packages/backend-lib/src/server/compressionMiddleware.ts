@@ -239,8 +239,12 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
       }
 
       // compression method
+      // Get all client-accepted encodings, then pick the first one from our preferred order
       const negotiator = new Negotiator(req)
-      let method: string | undefined = negotiator.encoding(SUPPORTED_ENCODING, PREFERRED_ENCODING)
+      const clientEncodings = negotiator.encodings(SUPPORTED_ENCODING) as string[]
+      // Prefer server's order, but fall back to client's first choice if no preferred match
+      let method: string | undefined =
+        PREFERRED_ENCODING.find(enc => clientEncodings.includes(enc)) || clientEncodings[0]
 
       // if no method is found, use the default encoding
       if (!req.headers['accept-encoding'] && encodingSupported.has(enforceEncoding)) {
