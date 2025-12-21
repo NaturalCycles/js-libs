@@ -2,6 +2,7 @@ import type { Options, OptionsJson, OptionsUrlencoded } from 'body-parser'
 import type { CorsOptions } from 'cors'
 import type { SentrySharedService } from '../sentry/sentry.shared.service.js'
 import { asyncLocalStorageMiddleware } from '../server/asyncLocalStorageMiddleware.js'
+import { compressionMiddleware } from '../server/compressionMiddleware.js'
 import {
   genericErrorMiddleware,
   type GenericErrorMiddlewareCfg,
@@ -74,8 +75,7 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
 
   if (!isGAE() && isTest) {
     // compression is not used in AppEngine, because AppEngine provides it by default
-    const { default: compression } = await import('compression')
-    app.use(compression())
+    app.use(compressionMiddleware())
   }
 
   // app.use(safeJsonMiddleware()) // optional

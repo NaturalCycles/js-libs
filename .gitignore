@@ -33,6 +33,7 @@ node_modules
 /log.txt
 /.sass-cache
 /.sourcemaps
+/.claude
 /docs/.vitepress/cache
 /docs/.vitepress/dist
 /loader
