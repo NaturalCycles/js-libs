@@ -1,5 +1,5 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
-import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { expressTestService } from '../testing/index.js'
 import { createAdminMiddleware } from './adminMiddleware.js'
@@ -9,6 +9,7 @@ import { FirebaseSharedService } from './firebase.shared.service.js'
 const firebaseService = new FirebaseSharedService({
   authDomain: 'FIREBASE_AUTH_DOMAIN',
   apiKey: 'FIREBASE_API_KEY',
+  appName: 'admin-resource-test', // Unique name to avoid conflicts
   // serviceAccount: 'FIREBASE_SERVICE_ACCOUNT_PATH',
 })
 
@@ -62,10 +63,17 @@ beforeEach(() => {
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
 })
 
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 const app = await expressTestService.createAppFromResource(adminResource)
 
 afterAll(async () => {
   await app.close()
+  // Clean up Firebase app to avoid polluting other tests
+  const { deleteApp } = await import('firebase-admin/app')
+  await deleteApp(await firebaseService.admin())
 })
 
 describe('login', () => {

@@ -6,7 +6,7 @@ import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import type { TestItemBM, TestItemDBM } from '../testing/index.js'
 import {
@@ -49,8 +49,12 @@ const dao2 = new CommonDao({
 })
 
 beforeEach(async () => {
-  await db.resetCache()
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
+  await db.resetCache()
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 test('common', async () => {

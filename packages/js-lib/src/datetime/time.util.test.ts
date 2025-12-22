@@ -1,11 +1,15 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { _range } from '../array/index.js'
 import type { NumberOfMilliseconds, UnixTimestampMillis } from '../types.js'
 import { _ms, _since } from './time.util.js'
 
 beforeEach(() => {
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 test('since', () => {

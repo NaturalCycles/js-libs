@@ -1,5 +1,5 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { pDelay } from '../promise/index.js'
 import { _createPromiseDecorator } from './createPromiseDecorator.js'
 
@@ -53,6 +53,10 @@ const c = new C()
 
 beforeEach(() => {
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 test('_createPromiseDecorator', async () => {

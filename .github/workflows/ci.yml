@@ -26,7 +26,7 @@ jobs:
             ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-
             ${{ runner.os }}-nmcache-
       - run: pnpm lint
-      - run: pnpm test:all
+      - run: pnpm test
 
   release:
     runs-on: ubuntu-latest

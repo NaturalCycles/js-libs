@@ -1,7 +1,7 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
-import { beforeAll, expect, test, vi } from 'vitest'
+import { afterAll, beforeAll, expect, test, vi } from 'vitest'
 import { Pipeline, type TransformMapStats } from '../index.js'
 
 interface Item {
@@ -10,6 +10,10 @@ interface Item {
 
 beforeAll(() => {
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
+})
+
+afterAll(() => {
+  vi.useRealTimers()
 })
 
 test('transformMapSync simple', async () => {

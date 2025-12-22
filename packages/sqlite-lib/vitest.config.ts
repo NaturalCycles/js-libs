@@ -1,7 +1,8 @@
 import { defineVitestConfig } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
 
-export default defineVitestConfig({
-  test: {
-    //
+export default defineVitestConfig(
+  {
+    test: {},
   },
-})
+  import.meta.dirname,
+)
