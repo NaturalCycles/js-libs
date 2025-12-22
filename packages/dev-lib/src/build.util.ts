@@ -13,6 +13,8 @@ export async function buildProd(): Promise<void> {
 
 /**
  * Use 'src' to indicate root.
+ *
+ * @deprecated - oxlint should be used for type-checking instead, it's faster.
  */
 export async function runTSCInFolders(
   dirs: string[],
@@ -31,7 +33,7 @@ export async function runTSCInFolders(
 /**
  * Pass 'src' to run in root.
  */
-export async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
+async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
   let configDir = dir
   if (dir === 'src') {
     configDir = ''

@@ -170,8 +170,8 @@ function runESLint(extensions = eslintExtensions.split(','), fix = true): void {
 }
 
 export function runOxlint(fix = true): void {
-  const oxlintConfigPath = `.oxlintrc.json`
-  if (!existsSync(oxlintConfigPath)) {
+  if (!hasOxlintConfig()) {
+    console.log('.oxlintrc.json is not found, skipping to run oxlint')
     return
   }
 
@@ -190,6 +190,15 @@ export function runOxlint(fix = true): void {
     ].filter(_isTruthy),
     shell: false,
   })
+}
+
+export function requireOxlintConfig(): void {
+  _assert(hasOxlintConfig(), '.oxlintrc.json config is not found')
+}
+
+export function hasOxlintConfig(): boolean {
+  const oxlintConfigPath = `.oxlintrc.json`
+  return existsSync(oxlintConfigPath)
 }
 
 const prettierPaths = [

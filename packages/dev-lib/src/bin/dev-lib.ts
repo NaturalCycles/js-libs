@@ -10,6 +10,7 @@ import {
   eslintAll,
   lintAllCommand,
   lintStagedCommand,
+  requireOxlintConfig,
   runBiome,
   runCommitlintCommand,
   runOxlint,
@@ -28,13 +29,18 @@ interface Command {
 
 const commands: (Command | Separator)[] = [
   new Separator(), // build
+  { name: 'check', fn: check, desc: '"Run all possible checks": lint, typecheck, then test.' },
+  { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (via oxlint) and then "test".' },
   {
     name: 'typecheck',
-    fn: typecheck,
-    desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present',
+    fn: typecheckWithOxlint,
+    desc: 'Run typecheck via oxlint --type-aware',
   },
-  { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (tsc) and then "test".' },
-  { name: 'check', fn: lbt, desc: '"Run all possible checks": lint, typecheck, then test.' },
+  {
+    name: 'typecheck-with-tsc',
+    fn: typecheckWithTSC,
+    desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present. Deprecated, use oxlint type-checking instead.',
+  },
   {
     name: 'build',
     fn: buildProd,
@@ -170,17 +176,23 @@ runScript(async () => {
   await commandMap[cmd]!.fn()
 })
 
-async function lbt(): Promise<void> {
+async function check(): Promise<void> {
   await lintAllCommand()
-  await bt()
-}
-
-async function bt(): Promise<void> {
-  await typecheck()
   runTest()
 }
 
-async function typecheck(): Promise<void> {
+async function bt(): Promise<void> {
+  await typecheckWithOxlint()
+  runTest()
+}
+
+async function typecheckWithOxlint(): Promise<void> {
+  requireOxlintConfig()
+  const fix = !CI
+  runOxlint(fix)
+}
+
+async function typecheckWithTSC(): Promise<void> {
   await runTSCInFolders(['src', 'scripts', 'e2e'], ['--noEmit'])
 }
 

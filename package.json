@@ -9,7 +9,7 @@
     "ci:setup": "pnpm install && pnpm build && pnpm install",
     "build": "pnpm --filter '@naturalcycles/*' --parallel exec tsc -P tsconfig.prod.json --noCheck --incremental false",
     "clean": "pnpm -r exec rm -rf dist node_modules && rm -rf node_modules",
-    "check": "pnpm build && pnpm lint && pnpm typecheck && pnpm test:all",
+    "check": "pnpm build && pnpm lint && pnpm test:all",
     "check:parallel": "pnpm build && pnpm --filter '@naturalcycles/*' --parallel run check",
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
     "typecheck:parallel": "pnpm --filter '@naturalcycles/*' --parallel run typecheck",
