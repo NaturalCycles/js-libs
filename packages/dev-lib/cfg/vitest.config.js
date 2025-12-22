@@ -37,13 +37,10 @@ if (silent) {
  * })
  */
 export function defineVitestConfig(config, cwd) {
-  const setupFiles = getSetupFiles(testType, cwd)
-
   const mergedConfig = defineConfig({
     ...config,
     test: {
-      ...sharedConfig,
-      setupFiles,
+      ...getSharedConfig(cwd),
       ...config?.test,
     },
   })
@@ -70,65 +67,67 @@ export function defineVitestConfig(config, cwd) {
 /**
  * Shared config for Vitest.
  */
-export const sharedConfig = {
-  pool,
-  maxWorkers,
-  isolate: false,
-  watch: false,
-  // dir: 'src',
-  restoreMocks: true,
-  silent,
-  setupFiles: getSetupFiles(testType),
-  logHeapUsage: true,
-  testTimeout: 60_000,
-  slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
-  sequence: {
-    sequencer: VitestAlphabeticSequencer,
-    // shuffle: {
-    //   files: true,
-    //   tests: false,
-    // },
-    // seed: 1, // this makes the order of tests deterministic (but still not alphabetic)
-  },
-  include,
-  exclude,
-  reporters: [
-    'default',
-    new SummaryReporter(),
-    junitReporterEnabled && [
-      'junit',
-      {
-        suiteName: `${testType} tests`,
-        // classNameTemplate: '{filename} - {classname}',
-      },
-    ],
-  ].filter(Boolean),
-  // outputFile location is specified for compatibility with the previous jest config
-  outputFile: junitReporterEnabled ? `./tmp/jest/${testType}.xml` : undefined,
-  coverage: {
-    enabled: coverageEnabled,
-    reporter: ['html', 'lcov', 'json', 'json-summary', !isCI && 'text'].filter(Boolean),
-    include: ['src/**/*.{ts,tsx}'],
-    exclude: [
-      '**/__exclude/**',
-      'scripts/**',
-      'public/**',
-      'src/index.{ts,tsx}',
-      'src/test/**',
-      'src/typings/**',
-      'src/{env,environment,environments}/**',
-      'src/bin/**',
-      'src/vendor/**',
-      '**/*.test.*',
-      '**/*.script.*',
-      '**/*.module.*',
-      '**/*.mock.*',
-      '**/*.page.{ts,tsx}',
-      '**/*.component.{ts,tsx}',
-      '**/*.directive.{ts,tsx}',
-      '**/*.modal.{ts,tsx}',
-    ],
-  },
+export function getSharedConfig(cwd) {
+  return {
+    pool,
+    maxWorkers,
+    isolate: false,
+    watch: false,
+    // dir: 'src',
+    restoreMocks: true,
+    silent,
+    setupFiles: getSetupFiles(testType, cwd),
+    logHeapUsage: true,
+    testTimeout: 60_000,
+    slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
+    sequence: {
+      sequencer: VitestAlphabeticSequencer,
+      // shuffle: {
+      //   files: true,
+      //   tests: false,
+      // },
+      // seed: 1, // this makes the order of tests deterministic (but still not alphabetic)
+    },
+    include,
+    exclude,
+    reporters: [
+      'default',
+      new SummaryReporter(),
+      junitReporterEnabled && [
+        'junit',
+        {
+          suiteName: `${testType} tests`,
+          // classNameTemplate: '{filename} - {classname}',
+        },
+      ],
+    ].filter(Boolean),
+    // outputFile location is specified for compatibility with the previous jest config
+    outputFile: junitReporterEnabled ? `./tmp/jest/${testType}.xml` : undefined,
+    coverage: {
+      enabled: coverageEnabled,
+      reporter: ['html', 'lcov', 'json', 'json-summary', !isCI && 'text'].filter(Boolean),
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        '**/__exclude/**',
+        'scripts/**',
+        'public/**',
+        'src/index.{ts,tsx}',
+        'src/test/**',
+        'src/typings/**',
+        'src/{env,environment,environments}/**',
+        'src/bin/**',
+        'src/vendor/**',
+        '**/*.test.*',
+        '**/*.script.*',
+        '**/*.module.*',
+        '**/*.mock.*',
+        '**/*.page.{ts,tsx}',
+        '**/*.component.{ts,tsx}',
+        '**/*.directive.{ts,tsx}',
+        '**/*.modal.{ts,tsx}',
+      ],
+    },
+  }
 }
 
 function doesItRunInIDE() {
@@ -184,14 +183,14 @@ function isRunningAllTests() {
   return !hasPositionalArgs
 }
 
-function getSetupFiles(testType, cwd = '.') {
+function getSetupFiles(testType, cwd = process.cwd()) {
   // Set 'setupFiles' only if setup files exist
   const setupFiles = []
   if (fs.existsSync(`${cwd}/src/test/setupVitest.ts`)) {
-    setupFiles.push('./src/test/setupVitest.ts')
+    setupFiles.push(`${cwd}/src/test/setupVitest.ts`)
   }
   if (fs.existsSync(`${cwd}/src/test/setupVitest.${testType}.ts`)) {
-    setupFiles.push(`./src/test/setupVitest.${testType}.ts`)
+    setupFiles.push(`${cwd}/src/test/setupVitest.${testType}.ts`)
   }
   return setupFiles
 }

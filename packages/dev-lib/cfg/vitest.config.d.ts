@@ -10,10 +10,15 @@ import type { InlineConfig } from 'vitest/node'
    // bail: 1,
  })
 
+ Pass `import.meta.dirname` as cwd if running from a monorepo.
+
  */
 export function defineVitestConfig(config?: Partial<ViteUserConfig>, cwd?: string): ViteUserConfig
 
-export const sharedConfig: InlineConfig
+/**
+ * Pass `import.meta.dirname` as cwd if running from a monorepo.
+ */
+export function getSharedConfig(cwd?: string): InlineConfig
 
 export const CollectReporter: any
 export const SummaryReporter: any
