@@ -54,11 +54,12 @@ test('saved/unsaved', () => {
     updated: UnixTimestamp
   }>()
 
-  const item = {} as Unsaved<Item>
-  item.a = undefined
-  item.id = undefined
-  item.created = undefined
-  item.updated = undefined
+  const item = {
+    a: undefined,
+    id: undefined,
+    created: undefined,
+    updated: undefined,
+  } as Unsaved<Item>
 
   expectTypeOf(item).toMatchTypeOf<{
     a?: number
@@ -200,6 +201,7 @@ test('_objectAssign', () => {
   const item = {} as Item
 
   // No TypeScript error here
+  // oxlint-disable-next-line unicorn/no-immediate-mutation
   Object.assign(item, {
     whatever: 5,
   })
