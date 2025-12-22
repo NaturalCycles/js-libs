@@ -335,6 +335,7 @@
     "unicorn/no-document-cookie": "deny",
     "unicorn/no-empty-file": "warn",
     "unicorn/no-hex-escape": "deny",
+    "unicorn/no-immediate-mutation": "deny",
     "unicorn/no-instanceof-builtins": "deny",
     "unicorn/no-invalid-fetch-options": "warn",
     "unicorn/no-invalid-remove-event-listener": "warn",
@@ -423,6 +424,7 @@
     "unicorn/prefer-top-level-await": "deny",
     "unicorn/prefer-type-error": "deny",
     "unicorn/require-array-join-separator": "deny",
+    "unicorn/require-module-attributes": "deny",
     "unicorn/require-module-specifiers": "deny",
     "unicorn/switch-case-braces": ["deny", ["always"]],
     "unicorn/text-encoding-identifier-case": [
@@ -448,7 +450,8 @@
     },
     "react": {
       "formComponents": [],
-      "linkComponents": []
+      "linkComponents": [],
+      "version": null
     },
     "jsdoc": {
       "ignorePrivate": false,

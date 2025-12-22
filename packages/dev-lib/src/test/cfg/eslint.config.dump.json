@@ -20,7 +20,7 @@
     "@typescript-eslint:@typescript-eslint/eslint-plugin@8.50.0",
     "unicorn:eslint-plugin-unicorn@62.0.0",
     "vue:eslint-plugin-vue@10.6.2",
-    "vitest:vitest@1.5.4",
+    "vitest:vitest@1.6.1",
     "import-x:eslint-plugin-import-x@4.16.1",
     "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1"
   ],
@@ -177,10 +177,8 @@
         "terms": ["todo", "fixme", "xxx"]
       }
     ],
-    "unicorn/no-immediate-mutation": [2],
     "unicorn/prefer-import-meta-properties": [2],
     "unicorn/relative-url-style": [2, "never"],
-    "unicorn/require-module-attributes": [2],
     "vitest/consistent-test-filename": [2],
     "vitest/no-unneeded-async-expect-function": [2],
     "vitest/padding-around-after-all-blocks": [2],
@@ -232,7 +230,6 @@
     "vue/no-computed-properties-in-data": [2],
     "vue/no-deprecated-data-object-declaration": [2],
     "vue/no-deprecated-delete-set": [2],
-    "vue/no-deprecated-destroyed-lifecycle": [2],
     "vue/no-deprecated-dollar-listeners-api": [2],
     "vue/no-deprecated-dollar-scopedslots-api": [2],
     "vue/no-deprecated-events-api": [2],

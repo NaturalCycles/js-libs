@@ -159,6 +159,7 @@
       }
     ],
     "unicorn/no-anonymous-default-export": 2,
+    "unicorn/no-immediate-mutation": 2,
     "unicorn/no-array-reduce": 2,
     "unicorn/no-document-cookie": 2,
     "unicorn/no-length-as-slice-end": 2,
@@ -166,6 +167,7 @@
     "unicorn/prefer-modern-math-apis": 2,
     "unicorn/prefer-node-protocol": 2,
     "unicorn/require-module-specifiers": 2,
+    "unicorn/require-module-attributes": 2,
     "unicorn/prefer-classlist-toggle": 2,
     "unicorn/no-unnecessary-array-splice-count": 2,
     "unicorn/no-useless-error-capture-stack-trace": 2,
@@ -285,8 +287,9 @@
     "jest/max-nested-describe": [0, { "max": 4 }], // not good
     "jest/no-alias-methods": 2,
     "vue/no-multiple-slot-args": 2,
+    "vue/no-deprecated-destroyed-lifecycle": 2,
     "vue/define-emits-declaration": [2, "type-based"],
-    "vue/define-props-declaration": [2]
+    "vue/define-props-declaration": 2
   },
   "settings": {
     "jsdoc": {

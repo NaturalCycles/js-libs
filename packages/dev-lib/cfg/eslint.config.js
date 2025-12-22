@@ -136,6 +136,8 @@ function getConfig(_tsconfigPath) {
       ...eslintPrettierRules.rules, // disable eslint rules already covered by prettier
       ...eslintBiomeRules.rules, // disable eslint rules already covered by biome
       ...eslintPluginOxlint.configs['flat/all'][0].rules, // disable eslint rules already covered by oxlint
+      // rules that are disabled, but shouldn't yet be disabled
+      '@typescript-eslint/return-await': [2, 'always'],
     },
   }
 }

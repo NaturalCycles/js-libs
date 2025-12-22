@@ -67,6 +67,7 @@ let oxlintCmd = undefined
 if (oxlintConfigPath) {
   oxlintCmd = [
     'oxlint',
+    // '--report-unused-disable-directives', // wrongly reports disabled eslint (not oxlint) rules
     '--type-aware',
     '--type-check',
     '--fix',
