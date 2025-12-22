@@ -3,18 +3,12 @@
   "root": false,
   "files": {
     "includes": [
-      "*",
-      "src/**",
-      "scripts/**",
-      "!**/*.html",
-      "!**/*.css",
-      "!**/*.scss",
-      "!**/tsconfig.json",
-      "!**/tsconfig.*.json",
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
       "!**/__exclude",
-      "!**/try.ts",
-      "!**/*.compact.json",
-      "!**/*.mock.json"
+      "!**/try.ts"
     ]
   },
   "formatter": {
