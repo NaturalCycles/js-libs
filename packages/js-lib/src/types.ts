@@ -526,4 +526,4 @@ type ReadonlyObjectDeep<ObjectType extends object> = {
  */
 export type RequiredProp<T, K extends keyof T> = Required<Pick<T, K>> & T
 
-export * from './typeFest.js'
+export type * from './typeFest.js'
