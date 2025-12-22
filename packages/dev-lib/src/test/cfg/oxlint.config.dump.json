@@ -104,7 +104,15 @@
     "use-isnan": "warn",
     "valid-typeof": "warn",
     "import/default": "warn",
-    "import/extensions": ["deny", ["always"]],
+    "import/extensions": [
+      "deny",
+      [
+        "always",
+        {
+          "ignorePackages": true
+        }
+      ]
+    ],
     "import/namespace": "warn",
     "import/no-absolute-path": "deny",
     "import/no-amd": "deny",
