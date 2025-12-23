@@ -17,10 +17,10 @@
   },
   "plugins": [
     "@",
-    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.50.0",
+    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.50.1",
     "unicorn:eslint-plugin-unicorn@62.0.0",
     "vue:eslint-plugin-vue@10.6.2",
-    "vitest:vitest@1.6.1",
+    "vitest:vitest@1.6.3",
     "import-x:eslint-plugin-import-x@4.16.1",
     "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1"
   ],
