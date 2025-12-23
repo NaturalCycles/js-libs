@@ -50,7 +50,7 @@ export async function deflateString(
   s: string,
   options?: ZlibOptions,
 ): Promise<Buffer<ArrayBuffer>> {
-  return await deflateBuffer(Buffer.from(s), options)
+  return await deflate(s, options)
 }
 
 export async function inflateToString(buf: Buffer, options?: ZlibOptions): Promise<string> {
@@ -80,7 +80,7 @@ export async function gunzipBuffer(
  * It's 9 bytes longer than `deflate`.
  */
 export async function gzipString(s: string, options?: ZlibOptions): Promise<Buffer<ArrayBuffer>> {
-  return await gzipBuffer(Buffer.from(s), options)
+  return await gzip(s, options)
 }
 
 export async function gunzipToString(buf: Buffer, options?: ZlibOptions): Promise<string> {
