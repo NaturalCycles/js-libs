@@ -15,7 +15,6 @@ import type {
   RunQueryResult,
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
-import { _round } from '@naturalcycles/js-lib'
 import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
@@ -47,7 +46,7 @@ import type {
 } from './datastore.model.js'
 import { DatastoreType } from './datastore.model.js'
 import { DatastoreStreamReadable } from './datastoreStreamReadable.js'
-import { dbQueryToDatastoreQuery } from './query.util.js'
+import { dbQueryToDatastoreQuery, getRunQueryOptions } from './query.util.js'
 
 // Datastore (also Firestore and other Google APIs) supports max 500 of items when saving/deleting, etc.
 const MAX_ITEMS = 500
@@ -146,7 +145,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     const keys = ids.map(id => this.key(ds, table, id))
     let rows: any[]
 
-    const dsOpt = this.getRunQueryOptions(opt)
+    const dsOpt = getRunQueryOptions(opt)
 
     if (this.cfg.timeout) {
       // First try
@@ -216,7 +215,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
   ): Promise<StringMap<ROW[]>> {
     const result: StringMap<ROW[]> = {}
     const ds = this.ds()
-    const dsOpt = this.getRunQueryOptions(opt)
+    const dsOpt = getRunQueryOptions(opt)
     const keys: Key[] = []
     for (const [table, ids] of _stringMapEntries(map)) {
       result[table] = []
@@ -260,7 +259,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
 
     const ds = this.ds()
     const q = dbQueryToDatastoreQuery(dbQuery, ds.createQuery(dbQuery.table))
-    const dsOpt = this.getRunQueryOptions(opt)
+    const dsOpt = getRunQueryOptions(opt)
     const qr = await this.runDatastoreQuery<ROW>(q, dsOpt)
 
     // Special case when projection query didn't specify 'id'
@@ -278,7 +277,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     const ds = this.ds()
     const q = dbQueryToDatastoreQuery(dbQuery, ds.createQuery(dbQuery.table))
     const aq = ds.createAggregationQuery(q).count('count')
-    const dsOpt = this.getRunQueryOptions(opt)
+    const dsOpt = getRunQueryOptions(opt)
     const [entities] = await ds.runAggregationQuery(aq, dsOpt)
     return entities[0]?.count
   }
@@ -313,7 +312,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
 
     const readable = opt.experimentalCursorStream
       ? new DatastoreStreamReadable<ROW>(q, opt)
-      : ds.runQueryStream(q, this.getRunQueryOptions(opt))
+      : ds.runQueryStream(q, getRunQueryOptions(opt))
 
     return Pipeline.from<ROW>(readable).mapSync(r => this.mapId<ROW>(r))
   }
@@ -383,7 +382,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
 
     const ds = this.ds()
     const datastoreQuery = dbQueryToDatastoreQuery(q.select([]), ds.createQuery(q.table))
-    const dsOpt = this.getRunQueryOptions(opt)
+    const dsOpt = getRunQueryOptions(opt)
     const { rows } = await this.runDatastoreQuery<ObjectWithId>(datastoreQuery, dsOpt)
     return await this.deleteByIds(
       q.table,
@@ -679,20 +678,6 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       // log the error, but don't re-throw, as this should be a graceful rollback
       this.cfg.logger.error(err)
     }
-  }
-
-  private getRunQueryOptions(opt: DatastoreDBReadOptions): RunQueryOptions {
-    if (!opt.readAt) return {}
-
-    // Datastore expects UnixTimestamp in milliseconds
-    // Datastore requires the timestamp to be rounded to the whole minutes
-    const readTime = _round(opt.readAt, 60) * 1000
-    if (readTime >= Date.now() - 1000) {
-      // To avoid the error of: The requested 'read_time' cannot be in the future
-      return {}
-    }
-
-    return { readTime }
   }
 }
 

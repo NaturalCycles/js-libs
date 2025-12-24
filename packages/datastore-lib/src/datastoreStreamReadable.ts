@@ -12,6 +12,7 @@ import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { DatastoreDBStreamOptions } from './datastore.model.js'
+import { getRunQueryOptions } from './query.util.js'
 
 export class DatastoreStreamReadable<T = any> extends Readable implements ReadableTyped<T> {
   private readonly table: string
@@ -53,12 +54,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       batchSize,
       highWaterMark,
     }
-    this.dsOpt = {}
-    if (opt.readAt) {
-      // Datastore expects UnixTimestamp in milliseconds
-      this.dsOpt.readTime = opt.readAt * 1000
-    }
-
+    this.dsOpt = getRunQueryOptions(opt)
     const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
     this.logger = logger
     this.originalLimit = q.limitVal
