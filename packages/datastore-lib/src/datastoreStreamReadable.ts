@@ -108,7 +108,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     }
 
     if (this.paused) {
-      this.logger.log(
+      this.logger.debug(
         `_read #${this.countReads}, queryIsRunning: ${this.queryIsRunning}, unpausing stream`,
       )
       this.paused = false
@@ -158,7 +158,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     const info: RunQueryInfo = res[1]
 
     this.rowsRetrieved += rows.length
-    logger.log(
+    logger.debug(
       `${table} got ${rows.length} rows in ${_ms(queryTook)}, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(
         this.totalWait,
       )}`,
@@ -197,7 +197,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       if (this.paused) {
         logger.debug(`${table} stream is already paused`)
       } else {
-        logger.log(`${table} pausing the stream`)
+        logger.debug(`${table} pausing the stream`)
         this.paused = true
       }
     }
