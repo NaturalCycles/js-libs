@@ -15,6 +15,7 @@ On a local machine `pnpm` is aliased as `pn`, so, if you see `pn` - just run `pn
 
 - Prefer `pnpm bt` for fast iteration.
 - Use `pnpm check` for full validation.
+- To run a single test file: `pnpm test fileName.test.ts`
 - To run commands for a specific package:
 
 ```bash

@@ -84,18 +84,22 @@ export class PQueue {
       logger.debug(`inFlight++ ${this.inFlight}/${concurrency}, queue ${this.queue.length}`)
       if (resolveOnStart) fn.defer.resolve()
 
-      fn()
+      runSafe(fn)
         .then(result => {
           if (!resolveOnStart) fn.defer.resolve(result)
         })
         .catch((err: Error) => {
-          logger.error(err) // todo: log only when not re-throwing
-          if (resolveOnStart) return
+          if (resolveOnStart) {
+            logger.error(err)
+            return
+          }
 
           if (this.cfg.errorMode === ErrorMode.SUPPRESS) {
+            logger.error(err)
             fn.defer.resolve() // resolve with `void`
           } else {
             // Should be handled on the outside, otherwise it'll cause UnhandledRejection
+            // Not logging, because it's re-thrown upstream
             fn.defer.reject(err)
           }
         })
@@ -138,6 +142,18 @@ export class PQueue {
     const listener = pDefer()
     this.onIdleListeners.push(listener)
     return await listener
+  }
+}
+
+// Here we intentionally want it not async, as we don't want it to throw
+// oxlint-disable-next-line typescript/promise-function-async
+function runSafe<R>(fn: AsyncFunction<R>): Promise<R> {
+  try {
+    // Here we are intentionally not awaiting
+    return fn()
+  } catch (err) {
+    // Handle synchronous throws - ensure inFlight is decremented
+    return Promise.reject(err as Error)
   }
 }
 
