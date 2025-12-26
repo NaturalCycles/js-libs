@@ -6,7 +6,7 @@ import { PQueue } from './pQueue.js'
 test('PQueue', async () => {
   const q = new PQueue({
     concurrency: 1,
-    debug: true,
+    logLevel: 'debug',
   })
 
   expect(q.inFlight).toBe(0)
