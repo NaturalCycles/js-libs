@@ -45,6 +45,7 @@ import {
   type TransformLogProgressOptions,
 } from './transform/transformLogProgress.js'
 import { transformMap, type TransformMapOptions } from './transform/transformMap.js'
+import { transformMap2, type TransformMap2Options } from './transform/transformMap2.js'
 import {
   transformMapSimple,
   type TransformMapSimpleOptions,
@@ -54,6 +55,7 @@ import { transformOffset, type TransformOffsetOptions } from './transform/transf
 import { transformSplitOnNewline } from './transform/transformSplit.js'
 import { transformTap, transformTapSync } from './transform/transformTap.js'
 import { transformThrottle, type TransformThrottleOptions } from './transform/transformThrottle.js'
+import { transformWarmup, type TransformWarmupOptions } from './transform/transformWarmup.js'
 import { writablePushToArray } from './writable/writablePushToArray.js'
 import { writableVoid } from './writable/writableVoid.js'
 
@@ -196,6 +198,22 @@ export class Pipeline<T = unknown> {
     return this as any
   }
 
+  /**
+   * @experimental if proven to be stable - will replace transformMap
+   */
+  map2<TO>(
+    mapper: AbortableAsyncMapper<T, TO | typeof SKIP | typeof END>,
+    opt?: TransformMap2Options<T, TO>,
+  ): Pipeline<TO> {
+    this.transforms.push(
+      transformMap2(mapper, {
+        ...opt,
+        signal: this.abortableSignal,
+      }),
+    )
+    return this as any
+  }
+
   mapSync<TO>(
     mapper: IndexedMapper<T, TO | typeof SKIP | typeof END>,
     opt?: TransformMapSyncOptions,
@@ -247,6 +265,14 @@ export class Pipeline<T = unknown> {
 
   throttle(opt: TransformThrottleOptions): this {
     this.transforms.push(transformThrottle(opt))
+    return this
+  }
+
+  /**
+   * @experimental to be removed after transformMap2 is stable
+   */
+  warmup(opt: TransformWarmupOptions): this {
+    this.transforms.push(transformWarmup(opt))
     return this
   }
 

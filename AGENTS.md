@@ -1,42 +1,29 @@
-# AGENTS.md
+# Development Guide
 
-## Monorepo
+## Build & Test Commands
 
-This is a monorepo using pnpm.
+- Full Validation: `pnpm check`
+- Fast Iteration (Build + Test): `pnpm bt`
+- Package Specific: `pnpm --filter <package-name> bt`
+- Run single test file: `pnpm test fileName.test.ts`
+- Note: `pn` is an alias for `pnpm`.
 
-On a local machine `pnpm` is aliased as `pn`, so, if you see `pn` - just run `pnpm` instead.
+## Code Style & Standards
 
-## Monorepo-wide commands
+- **Performance:** All code must be performance-optimized by default.
+- **Consistency:** Strictly adhere to the existing codebase patterns.
+- **Linting:** In-place rule overrides are permitted if necessary for working code; provide a brief
+  justification for the override.
 
-- `pnpm check` – full build, test, lint, and validation across the monorepo.
-- `pnpm bt` – build and test only (faster, skips linting).
+The order of functions/method should follow "newspaper style", if function A calls function B - A
+should be ABOVE B.
 
-## Usage Notes
+## Testing Patterns
 
-- Prefer `pnpm bt` for fast iteration.
-- Use `pnpm check` for full validation.
-- To run a single test file: `pnpm test fileName.test.ts`
-- To run commands for a specific package:
+- **Structure:** For single-purpose test suites (targeting one class/function), use a flattened
+  structure. Do not wrap in a top-level `describe()` block.
 
-```bash
-pnpm --filter <package-name> bt
-```
+## Workflow Rules
 
-## Code style
-
-All code should be performance optimized (fast) by default.
-
-Stick to the existing code style.
-
-It's ok to ignore certain lint rules in-place to be able to deliver working code, explain why it's
-safe to disable a certain rule.
-
-## Tests
-
-If a test suite is for one specific class or function - don't wrap the code in
-`describe('MyClass')`, but flatten it instead.
-
-## Git
-
-Don't stage your changes. Make changes, but keep them unstaged, so I can clearly see what was done
-one step before, and what was done in the last step.
+- **Git:** Do NOT stage changes. Leave all modifications unstaged for manual review of the
+  incremental steps.
