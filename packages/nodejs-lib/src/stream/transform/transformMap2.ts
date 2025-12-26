@@ -1,5 +1,6 @@
 import { Transform } from 'node:stream'
 import type { AbortableSignal } from '@naturalcycles/js-lib'
+import { _since } from '@naturalcycles/js-lib/datetime'
 import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
@@ -111,7 +112,7 @@ export function transformMap2<IN = any, OUT = IN>(
   const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
 
   // Stats
-  const started = Date.now() as UnixTimestampMillis
+  let started = 0 as UnixTimestampMillis
   let index = -1
   let countOut = 0
   let isSettled = false
@@ -120,7 +121,6 @@ export function transformMap2<IN = any, OUT = IN>(
   const collectedErrors: Error[] = []
 
   // Concurrency control
-  let startTime = 0
   let warmupComplete = warmupSeconds <= 0 || concurrency <= 1
   let inFlight = 0
   const waiters: DeferredPromise[] = []
@@ -134,8 +134,8 @@ export function transformMap2<IN = any, OUT = IN>(
     writableHighWaterMark: highWaterMark,
     async transform(this: Transform, chunk: IN, _, cb) {
       // Initialize start time on first item
-      if (startTime === 0) {
-        startTime = Date.now()
+      if (started === 0) {
+        started = Date.now() as UnixTimestampMillis
       }
 
       // Stop processing if isSettled
@@ -256,10 +256,10 @@ export function transformMap2<IN = any, OUT = IN>(
   function getCurrentConcurrency(): number {
     if (warmupComplete) return concurrency
 
-    const elapsed = Date.now() - startTime
+    const elapsed = Date.now() - started
     if (elapsed >= warmupMs) {
       warmupComplete = true
-      logger.debug('warmup complete')
+      logger.log(`transformMap2: warmup complete in ${_since(started)}`)
       return concurrency
     }
 
