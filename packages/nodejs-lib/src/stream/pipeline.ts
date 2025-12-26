@@ -445,6 +445,23 @@ export class Pipeline<T = unknown> {
     await this.run()
   }
 
+  async forEach2(
+    fn: AsyncIndexedMapper<T, void>,
+    opt: TransformMap2Options<T, void> & TransformLogProgressOptions<T> = {},
+  ): Promise<void> {
+    this.transforms.push(
+      transformMap2(fn, {
+        predicate: opt.logEvery ? _passthroughPredicate : undefined, // for the logger to work
+        ...opt,
+        signal: this.abortableSignal,
+      }),
+    )
+    if (opt.logEvery) {
+      this.transforms.push(transformLogProgress(opt))
+    }
+    await this.run()
+  }
+
   async forEachSync(
     fn: IndexedMapper<T, void>,
     opt: TransformMapSyncOptions<T, void> & TransformLogProgressOptions<T> = {},
