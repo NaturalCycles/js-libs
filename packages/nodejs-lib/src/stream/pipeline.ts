@@ -425,7 +425,7 @@ export class Pipeline<T = unknown> {
     await this.run()
   }
 
-  async forEach(
+  async forEachLegacy(
     fn: AsyncIndexedMapper<T, void>,
     opt: TransformMapOptions<T, void> & TransformLogProgressOptions<T> = {},
   ): Promise<void> {
@@ -442,7 +442,7 @@ export class Pipeline<T = unknown> {
     await this.run()
   }
 
-  async forEach2(
+  async forEach(
     fn: AsyncIndexedMapper<T, void>,
     opt: TransformMap2Options<T, void> & TransformLogProgressOptions<T> = {},
   ): Promise<void> {
