@@ -199,6 +199,7 @@ test('should propagate pipe errors', async () => {
     .streamQuery(opt)
     .forEachSync(r => void results.push(r))
   // console.log(results)
+  _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 
   // Suppress errors
@@ -210,6 +211,7 @@ test('should propagate pipe errors', async () => {
       errorMode: ErrorMode.SUPPRESS,
     })
     .forEachSync(r => void results.push(r))
+  _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 
   // THROW_IMMEDIATELY
@@ -240,13 +242,14 @@ test('should propagate pipe errors', async () => {
       })
       .forEachSync(r => void results.push(r)),
   ).rejects.toThrowErrorMatchingInlineSnapshot(
-    `[AggregateError: transformMap resulted in 1 error(s)]`,
+    `[AggregateError: transformMap2 resulted in 1 error(s)]`,
   )
+  _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 
   // .stream should suppress by default
   results = await dao.query().streamQuery(opt).toArray()
-
+  _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 })
 

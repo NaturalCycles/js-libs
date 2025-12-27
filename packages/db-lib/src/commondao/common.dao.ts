@@ -1,4 +1,3 @@
-import type { Transform } from 'node:stream'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
@@ -22,13 +21,7 @@ import {
 } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
-import {
-  type Pipeline,
-  transformChunk,
-  transformFlatten,
-  transformLogProgress,
-  transformMap,
-} from '@naturalcycles/nodejs-lib/stream'
+import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { DBLibError } from '../cnst.js'
 import type {
   CommonDBSaveOptions,
@@ -542,8 +535,11 @@ export class CommonDao<
    * (of size opt.chunkSize, which defaults to 500),
    * and then executing db.saveBatch(chunk) with the concurrency
    * of opt.chunkConcurrency (which defaults to 32).
+   *
+   * It takes a Pipeline as input, appends necessary saving transforms to it,
+   * and calls .run() on it.
    */
-  streamSaveTransforms(opt: CommonDaoStreamSaveOptions<DBM> = {}): Transform[] {
+  async streamSave(p: Pipeline<BM>, opt: CommonDaoStreamSaveOptions<DBM> = {}): Promise<void> {
     this.requireWriteAccess()
 
     const table = opt.table || this.cfg.table
@@ -559,20 +555,18 @@ export class CommonDao<
 
     const { chunkSize = 500, chunkConcurrency = 32, errorMode } = opt
 
-    return [
-      transformMap<BM, DBM>(
+    await p
+      .map(
         async bm => {
           this.assignIdCreatedUpdated(bm, opt)
           const dbm = await this.bmToDBM(bm, opt)
           beforeSave?.(dbm)
           return dbm
         },
-        {
-          errorMode,
-        },
-      ),
-      transformChunk<DBM>(chunkSize),
-      transformMap<DBM[], DBM[]>(
+        { errorMode },
+      )
+      .chunk(chunkSize)
+      .map(
         async batch => {
           await this.cfg.db.saveBatch(table, batch, {
             ...opt,
@@ -584,13 +578,12 @@ export class CommonDao<
           concurrency: chunkConcurrency,
           errorMode,
         },
-      ),
-      transformFlatten(),
-      transformLogProgress({
+      )
+      .logProgress({
         metric: 'saved',
         ...opt,
-      }),
-    ]
+      })
+      .run()
   }
 
   // DELETE

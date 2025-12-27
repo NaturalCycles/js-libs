@@ -114,7 +114,7 @@ test('transformMap errorMode=THROW_IMMEDIATELY', async () => {
 {
   "collectedErrors": [],
   "countErrors": 1,
-  "countIn": 3,
+  "countIn": 4,
   "countOut": 2,
   "ok": false,
   "started": 1529539200000,
@@ -138,7 +138,7 @@ test('transformMap errorMode=THROW_AGGREGATED', async () => {
     AggregateError,
   )
   expect(_stringify(err)).toMatchInlineSnapshot(`
-    "AggregateError: transformMap resulted in 1 error(s)
+    "AggregateError: transformMap2 resulted in 1 error(s)
     1 error(s):
     1. Error: my error"
   `)

@@ -285,11 +285,11 @@ export async function runCommonDaoTest(
       )
     })
 
-    test('streamSaveTransform', async () => {
+    test('streamSave', async () => {
       const items2 = createTestItemsBM(2).map(i => ({ ...i, id: i.id + '_str' }))
       const ids = items2.map(i => i.id)
 
-      await Pipeline.fromArray(items2).transformMany(dao.streamSaveTransforms()).run()
+      await dao.streamSave(Pipeline.fromArray(items2))
 
       const items2Loaded = await dao.getByIds(ids)
       expectMatch(items2, items2Loaded, quirks)

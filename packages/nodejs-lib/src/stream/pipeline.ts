@@ -185,7 +185,7 @@ export class Pipeline<T = unknown> {
     return this
   }
 
-  map<TO>(
+  mapLegacy<TO>(
     mapper: AbortableAsyncMapper<T, TO | typeof SKIP | typeof END>,
     opt?: TransformMapOptions<T, TO>,
   ): Pipeline<TO> {
@@ -198,10 +198,7 @@ export class Pipeline<T = unknown> {
     return this as any
   }
 
-  /**
-   * @experimental if proven to be stable - will replace transformMap
-   */
-  map2<TO>(
+  map<TO>(
     mapper: AbortableAsyncMapper<T, TO | typeof SKIP | typeof END>,
     opt?: TransformMap2Options<T, TO>,
   ): Pipeline<TO> {
@@ -234,7 +231,7 @@ export class Pipeline<T = unknown> {
 
   filter(asyncPredicate: AsyncPredicate<T>, opt?: TransformMapOptions): this {
     this.transforms.push(
-      transformMap(v => v, {
+      transformMap2(v => v, {
         asyncPredicate,
         ...opt,
         signal: this.abortableSignal,
@@ -433,7 +430,7 @@ export class Pipeline<T = unknown> {
     opt: TransformMapOptions<T, void> & TransformLogProgressOptions<T> = {},
   ): Promise<void> {
     this.transforms.push(
-      transformMap(fn, {
+      transformMap2(fn, {
         predicate: opt.logEvery ? _passthroughPredicate : undefined, // for the logger to work
         ...opt,
         signal: this.abortableSignal,
