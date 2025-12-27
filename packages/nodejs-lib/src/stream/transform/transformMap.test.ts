@@ -114,7 +114,7 @@ test('transformMap errorMode=THROW_IMMEDIATELY', async () => {
 {
   "collectedErrors": [],
   "countErrors": 1,
-  "countIn": 4,
+  "countIn": 3,
   "countOut": 2,
   "ok": false,
   "started": 1529539200000,

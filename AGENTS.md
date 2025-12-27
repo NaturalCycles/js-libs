@@ -15,8 +15,10 @@
 - **Linting:** In-place rule overrides are permitted if necessary for working code; provide a brief
   justification for the override.
 
-The order of functions/method should follow "newspaper style", if function A calls function B - A
-should be ABOVE B.
+**Function ordering:** Follow top-down "newspaper style" - callers above callees. If function A
+calls function B, A must appear above B in the file. Entry points and high-level logic at the top,
+helper/implementation functions below. Read the file top-to-bottom like a newspaper: headline first,
+then details.
 
 ## Testing Patterns
 

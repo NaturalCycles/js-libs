@@ -84,6 +84,8 @@ export interface TransformMap2Options<IN = any, OUT = IN> extends TransformOptio
   signal?: AbortableSignal
 }
 
+const WARMUP_CHECK_INTERVAL_MS = 1000
+
 /**
  * Like transformMap, but with native concurrency control (no through2-concurrent dependency)
  * and support for gradual warmup.
@@ -95,7 +97,7 @@ export function transformMap2<IN = any, OUT = IN>(
   opt: TransformMap2Options<IN, OUT> = {},
 ): TransformTyped<IN, OUT> {
   const {
-    concurrency = 16,
+    concurrency: maxConcurrency = 16,
     warmupSeconds = 0,
     predicate,
     asyncPredicate,
@@ -120,13 +122,15 @@ export function transformMap2<IN = any, OUT = IN>(
   let errors = 0
   const collectedErrors: Error[] = []
 
-  // Concurrency control
-  let warmupComplete = warmupSeconds <= 0 || concurrency <= 1
+  // Concurrency control - single counter, single callback for backpressure
   let inFlight = 0
-  const waiters: DeferredPromise[] = []
+  let blockedCallback: (() => void) | null = null
+  let flushBlocked: DeferredPromise | null = null
 
-  // Track pending operations for proper flush
-  let pendingOperations = 0
+  // Warmup - cached concurrency to reduce Date.now() syscalls
+  let warmupComplete = warmupSeconds <= 0 || maxConcurrency <= 1
+  let concurrency = warmupComplete ? maxConcurrency : 1
+  let lastWarmupCheck = 0
 
   return new Transform({
     objectMode,
@@ -136,54 +140,38 @@ export function transformMap2<IN = any, OUT = IN>(
       // Initialize start time on first item
       if (started === 0) {
         started = Date.now() as UnixTimestampMillis
+        lastWarmupCheck = started
       }
 
-      // Stop processing if isSettled
       if (isSettled) return cb()
 
       const currentIndex = ++index
-      const currentConcurrency = getCurrentConcurrency()
-
-      // Wait for a slot if at capacity
-      if (inFlight >= currentConcurrency) {
-        const waiter = pDefer()
-        waiters.push(waiter)
-        await waiter
-      } else {
-        inFlight++
+      inFlight++
+      if (!warmupComplete) {
+        updateConcurrency()
       }
 
-      // Signal that we're ready for more input
-      cb()
+      // Apply backpressure if at capacity, otherwise request more input
+      if (inFlight < concurrency) {
+        cb()
+      } else {
+        blockedCallback = cb
+      }
 
-      // Track this operation
-      pendingOperations++
-
-      // Process the item asynchronously
       try {
         const res: OUT | typeof SKIP | typeof END = await mapper(chunk, currentIndex)
 
-        if (isSettled) {
-          release()
-          pendingOperations--
-          return
-        }
+        if (isSettled) return
 
         if (res === END) {
           isSettled = true
           logger.log(`transformMap2 END received at index ${currentIndex}`)
           _assert(signal, 'signal is required when using END')
           signal.abort(new Error(PIPELINE_GRACEFUL_ABORT))
-          release()
-          pendingOperations--
           return
         }
 
-        if (res === SKIP) {
-          release()
-          pendingOperations--
-          return
-        }
+        if (res === SKIP) return
 
         let shouldPush = true
         if (predicate) {
@@ -210,31 +198,34 @@ export function transformMap2<IN = any, OUT = IN>(
         if (errorMode === ErrorMode.THROW_IMMEDIATELY) {
           isSettled = true
           ok = false
-          // Call onDone before destroying, since flush won't be called
           await callOnDone()
           this.destroy(_anyToError(err))
-        } else if (errorMode === ErrorMode.THROW_AGGREGATED) {
+          return
+        }
+        if (errorMode === ErrorMode.THROW_AGGREGATED) {
           collectedErrors.push(_anyToError(err))
         }
       } finally {
-        release()
-        pendingOperations--
+        inFlight--
+
+        // Release blocked callback if we now have capacity
+        if (blockedCallback && inFlight < concurrency) {
+          const pendingCb = blockedCallback
+          blockedCallback = null
+          pendingCb()
+        }
+
+        // Trigger flush completion if all done
+        if (inFlight === 0 && flushBlocked) {
+          flushBlocked.resolve()
+        }
       }
     },
     async flush(cb) {
-      // Wait for all pending operations to complete
-      // Polling is simple and race-condition-free
-      // Timeout prevents infinite loop if something goes wrong
-      const flushStart = Date.now()
-      const flushTimeoutMs = 60_000
-      while (pendingOperations > 0) {
-        await new Promise(resolve => setImmediate(resolve))
-        if (Date.now() - flushStart > flushTimeoutMs) {
-          logger.error(
-            `transformMap2 flush timeout: ${pendingOperations} operations still pending after ${flushTimeoutMs}ms`,
-          )
-          break
-        }
+      // Wait for all in-flight operations to complete
+      if (inFlight > 0) {
+        flushBlocked = pDefer()
+        await flushBlocked
       }
 
       logErrorStats(true)
@@ -253,27 +244,21 @@ export function transformMap2<IN = any, OUT = IN>(
     },
   })
 
-  function getCurrentConcurrency(): number {
-    if (warmupComplete) return concurrency
+  function updateConcurrency(): void {
+    const now = Date.now()
+    if (now - lastWarmupCheck < WARMUP_CHECK_INTERVAL_MS) return
+    lastWarmupCheck = now
 
-    const elapsed = Date.now() - started
+    const elapsed = now - started
     if (elapsed >= warmupMs) {
       warmupComplete = true
+      concurrency = maxConcurrency
       logger.log(`transformMap2: warmup complete in ${_since(started)}`)
-      return concurrency
+      return
     }
 
     const progress = elapsed / warmupMs
-    return Math.max(1, Math.floor(1 + (concurrency - 1) * progress))
-  }
-
-  function release(): void {
-    inFlight--
-    const currentConcurrency = getCurrentConcurrency()
-    while (waiters.length && inFlight < currentConcurrency) {
-      inFlight++
-      waiters.shift()!.resolve()
-    }
+    concurrency = Math.max(1, Math.floor(1 + (maxConcurrency - 1) * progress))
   }
 
   function logErrorStats(final = false): void {
