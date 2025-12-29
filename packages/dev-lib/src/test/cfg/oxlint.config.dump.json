@@ -443,6 +443,7 @@
         }
       ]
     ],
+    "vitest/consistent-test-filename": "deny",
     "vitest/no-conditional-tests": "warn",
     "vitest/no-import-node-test": "deny",
     "vitest/require-local-test-context-for-concurrent-snapshots": "warn"

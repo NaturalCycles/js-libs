@@ -277,6 +277,7 @@
     "vitest/prefer-spy-on": 2,
     "vitest/prefer-to-be": 2,
     "vitest/prefer-to-contain": 2,
+    "vitest/consistent-test-filename": 2,
     "jest/consistent-test-it": [
       2,
       {
