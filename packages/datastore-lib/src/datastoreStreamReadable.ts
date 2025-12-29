@@ -103,7 +103,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     this.countReads++
 
     if (this.done) {
-      this.logger.warn(`!!! _read was called, but done==true`)
+      this.logger.warn(`!!! ${this.table} _read was called, but done==true`)
       return
     }
 
@@ -179,7 +179,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       (this.originalLimit && this.rowsRetrieved >= this.originalLimit)
     ) {
       logger.log(
-        `!!!! DONE! ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
+        `${table} stream is done, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
       )
       this.push(null)
       this.done = true

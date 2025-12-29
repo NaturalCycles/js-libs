@@ -72,7 +72,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     this.countReads++
 
     if (this.done) {
-      this.logger.warn(`!!! _read was called, but done==true`)
+      this.logger.warn(`!!! ${this.table} _read was called, but done==true`)
       return
     }
 
