@@ -6,14 +6,13 @@ import type { PromisableFunction } from '@naturalcycles/js-lib/types'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { buildCopy, buildProd, runTSCInFolders } from '../build.util.js'
-import { commitlint2 } from '../commitlint2.js'
+import { runCommitlint } from '../commitlint.js'
 import {
   eslintAll,
   lintAllCommand,
   lintStagedCommand,
   requireOxlintConfig,
   runBiome,
-  runCommitlintCommand,
   runOxlint,
   runPrettier,
   stylelintAll,
@@ -126,8 +125,7 @@ const commands: (Command | Separator)[] = [
     desc: 'Run stylelint with auto-fix disabled.',
   },
   { name: 'stylelint-no-fix', cliOnly: true, fn: () => stylelintAll(false) },
-  { name: 'commitlint', fn: runCommitlintCommand, desc: 'Run commitlint.', cliOnly: true },
-  { name: 'commitlint2', fn: commitlint2, desc: 'Run commitlint2.', cliOnly: true },
+  { name: 'commitlint', fn: runCommitlint, desc: 'Run commitlint.', cliOnly: true },
   new Separator(), // interactive-only
   {
     name: 'exit',

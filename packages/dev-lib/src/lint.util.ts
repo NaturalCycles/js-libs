@@ -8,7 +8,6 @@ import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
 import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
-import { git2 } from '@naturalcycles/nodejs-lib'
 import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
@@ -292,29 +291,6 @@ export async function lintStagedCommand(): Promise<void> {
   })
 
   if (!success) process.exit(3)
-}
-
-export function runCommitlintCommand(): void {
-  const editMsg = process.argv.at(-1) || '.git/COMMIT_EDITMSG'
-  // console.log(editMsg)
-
-  const cwd = process.cwd()
-  const localConfig = `${cwd}/commitlint.config.js`
-  const sharedConfig = `${cfgDir}/commitlint.config.js`
-  const config = existsSync(localConfig) ? localConfig : sharedConfig
-
-  const env = {
-    GIT_BRANCH: git2.getCurrentBranchName(),
-  }
-
-  const commitlintPath = findPackageBinPath('@commitlint/cli', 'commitlint')
-
-  exec2.spawn(`${commitlintPath} --edit ${editMsg} --config ${config}`, {
-    env,
-    passProcessEnv: true, // important to pass it through, to preserve $PATH
-    forceColor: false,
-    log: false,
-  })
 }
 
 async function runKTLint(fix = true): Promise<void> {
