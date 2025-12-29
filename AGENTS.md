@@ -5,7 +5,7 @@
 - Full Validation: `pnpm check`
 - Fast Iteration (Build + Test): `pnpm bt`
 - Package Specific: `pnpm --filter <package-name> bt`
-- Run single test file: `pnpm test fileName.test.ts`
+- Run single test file: `pnpm test fileName.test.ts` (do NOT use `--filter`, it's unnecessary)
 - Note: `pn` is an alias for `pnpm`.
 
 ## Code Style & Standards
