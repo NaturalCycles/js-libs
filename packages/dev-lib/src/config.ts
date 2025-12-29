@@ -1,13 +1,17 @@
 import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 
-const devLibConfigPath = 'dev-lib.config.js'
-
 /**
  * Returns an empty config if the file is absent.
  */
-export function readDevLibConfigIfPresent(): DevLibConfig {
-  const cfg = fs2.pathExists(devLibConfigPath) ? fs2.readJson<DevLibConfig>(devLibConfigPath) : {}
+export async function readDevLibConfigIfPresent(cwd = process.cwd()): Promise<DevLibConfig> {
+  const devLibConfigPath = `${cwd}/dev-lib.config.js`
+
+  let cfg: DevLibConfig = {}
+  if (fs2.pathExists(devLibConfigPath)) {
+    cfg = (await import(devLibConfigPath)).default
+    console.log(`read ${devLibConfigPath}`)
+  }
 
   return devLibConfigSchema.validate(cfg)
 }

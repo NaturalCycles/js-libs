@@ -1,2 +1,1 @@
-// oxlint-disable-next-line unicorn/require-module-specifiers
-export type {}
+export * from './config.js'

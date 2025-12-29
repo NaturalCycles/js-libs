@@ -22,7 +22,7 @@ const SUBJECT_MAX_LENGTH = 120 // Only applies to subject line (first line)
  * Validates the commit message,
  * which is read from a file, passed as process.argv.at(-1)
  */
-export function runCommitlint(): void {
+export async function runCommitlint(): Promise<void> {
   //  || '.git/COMMIT_EDITMSG' // fallback is unnecessary, first argument should be always present
   const arg1 = process.argv.at(-1)
   _assert(arg1, 'dev-lib commitlint2 is called with $1 (first argument) missing')
@@ -32,7 +32,7 @@ export function runCommitlint(): void {
   const msg = fs2.readText(arg1)
   console.log({ msg })
 
-  const devLibCfg = readDevLibConfigIfPresent()
+  const devLibCfg = await readDevLibConfigIfPresent()
   console.log({ devLibCfg })
 
   const { valid, errors } = validateCommitMessage(msg, devLibCfg.commitlint)
