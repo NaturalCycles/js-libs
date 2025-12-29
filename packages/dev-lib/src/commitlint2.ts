@@ -1,5 +1,6 @@
 import { _assert } from '@naturalcycles/js-lib/error'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import { type DevLibCommitlintConfig, readDevLibConfigIfPresent } from './config.js'
 
 const ALLOWED_TYPES = new Set([
   'feat',
@@ -31,7 +32,10 @@ export function commitlint2(): void {
   const msg = fs2.readText(arg1)
   console.log({ msg })
 
-  const { valid, errors } = validateCommitMessage(msg)
+  const devLibCfg = readDevLibConfigIfPresent()
+  console.log({ devLibCfg })
+
+  const { valid, errors } = validateCommitMessage(msg, devLibCfg.commitlint)
 
   if (valid) {
     console.log('✓ Valid commit message')
@@ -49,10 +53,14 @@ export function commitlint2(): void {
  * Commit message validator following Conventional Commits specification.
  * https://www.conventionalcommits.org/
  */
-export function validateCommitMessage(msg: string): CommitMessageValidationResponse {
+export function validateCommitMessage(
+  input: string,
+  cfg: DevLibCommitlintConfig = {},
+): CommitMessageValidationResponse {
   const errors: string[] = []
 
-  if (!msg.trim()) {
+  const msg = input.trim()
+  if (!msg) {
     return { valid: false, errors: ['Commit message is empty'] }
   }
 
@@ -73,7 +81,7 @@ export function validateCommitMessage(msg: string): CommitMessageValidationRespo
     return { valid: false, errors }
   }
 
-  const [, type, _scope, _breaking, description] = match
+  const [, type, scope, _breaking, description] = match
 
   // Step 2: Validate type
   if (!ALLOWED_TYPES.has(type!)) {
@@ -103,7 +111,14 @@ export function validateCommitMessage(msg: string): CommitMessageValidationRespo
 
   // Note: No line length validation for body lines - they can be any length
 
-  // Step 7: scope validation, TODO
+  // Step 7: scope validation
+  if (cfg.requireScope && !scope) {
+    errors.push('Scope is required')
+  }
+
+  if (scope && cfg.allowedScopes && !cfg.allowedScopes.includes(scope)) {
+    errors.push(`Scope must be one of the allowed scopes:\n${cfg.allowedScopes.join('\n')}`)
+  }
 
   return {
     valid: errors.length === 0,
