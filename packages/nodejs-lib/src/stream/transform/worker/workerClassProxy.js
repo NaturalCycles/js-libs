@@ -10,12 +10,8 @@ if (!workerFile) {
 // console.log(`worker#${workerIndex} created`)
 
 try {
-  // require('esbuild-register') // alternative
-  // require('ts-node/register/transpile-only')
-  // require('tsx/cjs/api').register() // https://tsx.is/dev-api/register-cjs
   const { register } = await import('tsx/esm/api')
   register() // https://tsx.is/dev-api/register-esm
-  // require('tsconfig-paths/register')
 } catch {} // require if exists
 
 const { WorkerClass } = await import(workerFile)
