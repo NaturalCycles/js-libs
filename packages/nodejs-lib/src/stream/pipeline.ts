@@ -45,7 +45,6 @@ import {
   type TransformLogProgressOptions,
 } from './transform/transformLogProgress.js'
 import { transformMap, type TransformMapOptions } from './transform/transformMap.js'
-import { transformMap2, type TransformMap2Options } from './transform/transformMap2.js'
 import {
   transformMapSimple,
   type TransformMapSimpleOptions,
@@ -185,25 +184,12 @@ export class Pipeline<T = unknown> {
     return this
   }
 
-  mapLegacy<TO>(
+  map<TO>(
     mapper: AbortableAsyncMapper<T, TO | typeof SKIP | typeof END>,
     opt?: TransformMapOptions<T, TO>,
   ): Pipeline<TO> {
     this.transforms.push(
       transformMap(mapper, {
-        ...opt,
-        signal: this.abortableSignal,
-      }),
-    )
-    return this as any
-  }
-
-  map<TO>(
-    mapper: AbortableAsyncMapper<T, TO | typeof SKIP | typeof END>,
-    opt?: TransformMap2Options<T, TO>,
-  ): Pipeline<TO> {
-    this.transforms.push(
-      transformMap2(mapper, {
         ...opt,
         signal: this.abortableSignal,
       }),
@@ -231,7 +217,7 @@ export class Pipeline<T = unknown> {
 
   filter(asyncPredicate: AsyncPredicate<T>, opt?: TransformMapOptions): this {
     this.transforms.push(
-      transformMap2(v => v, {
+      transformMap(v => v, {
         asyncPredicate,
         ...opt,
         signal: this.abortableSignal,
@@ -425,29 +411,12 @@ export class Pipeline<T = unknown> {
     await this.run()
   }
 
-  async forEachLegacy(
+  async forEach(
     fn: AsyncIndexedMapper<T, void>,
     opt: TransformMapOptions<T, void> & TransformLogProgressOptions<T> = {},
   ): Promise<void> {
     this.transforms.push(
-      transformMap2(fn, {
-        predicate: opt.logEvery ? _passthroughPredicate : undefined, // for the logger to work
-        ...opt,
-        signal: this.abortableSignal,
-      }),
-    )
-    if (opt.logEvery) {
-      this.transforms.push(transformLogProgress(opt))
-    }
-    await this.run()
-  }
-
-  async forEach(
-    fn: AsyncIndexedMapper<T, void>,
-    opt: TransformMap2Options<T, void> & TransformLogProgressOptions<T> = {},
-  ): Promise<void> {
-    this.transforms.push(
-      transformMap2(fn, {
+      transformMap(fn, {
         predicate: opt.logEvery ? _passthroughPredicate : undefined, // for the logger to work
         ...opt,
         signal: this.abortableSignal,

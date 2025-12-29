@@ -22,7 +22,6 @@ import { yellow } from '../../src/colors/colors.js'
 import { runScript } from '../../src/script/runScript.js'
 import { Pipeline } from '../../src/stream/pipeline.js'
 import { transformMap } from '../../src/stream/transform/transformMap.js'
-import { transformMap2 } from '../../src/stream/transform/transformMap2.js'
 
 interface BenchResult {
   name: string
@@ -37,7 +36,7 @@ runScript(async () => {
 
   // Warmup
   console.log('Warming up...')
-  await runStreamBench('warmup', 1000, 16, () => transformMap2(async n => n))
+  await runStreamBench('warmup', 1000, 16, () => transformMap(async n => n))
   await runStreamBench('warmup', 1000, 16, () => transformMap(async n => n))
   console.log('')
 
@@ -54,7 +53,7 @@ runScript(async () => {
     )
     test1Results.push(
       await runStreamBench('transformMap2', 100_000, 16, () =>
-        transformMap2(async n => n, { concurrency: 16 }),
+        transformMap(async n => n, { concurrency: 16 }),
       ),
     )
   }
@@ -97,7 +96,7 @@ runScript(async () => {
     )
     test2Results.push(
       await runStreamBench('transformMap2', 1000, 50, () =>
-        transformMap2(
+        transformMap(
           async n => {
             await pDelay(1)
             return n
@@ -139,7 +138,7 @@ runScript(async () => {
     )
     test3Results.push(
       await runStreamBench('transformMap2', 50_000, 100, () =>
-        transformMap2(async (n: number) => n * 2, { concurrency: 100 }),
+        transformMap(async (n: number) => n * 2, { concurrency: 100 }),
       ),
     )
   }
@@ -175,7 +174,7 @@ runScript(async () => {
     )
     test4Results.push(
       await runStreamBench('transformMap2', 10_000, 1, () =>
-        transformMap2(async n => n, { concurrency: 1 }),
+        transformMap(async n => n, { concurrency: 1 }),
       ),
     )
   }

@@ -575,9 +575,6 @@ importers:
       lru-cache:
         specifier: ^11
         version: 11.2.4
-      through2-concurrent:
-        specifier: ^2
-        version: 2.0.0
       tinyglobby:
         specifier: ^0.2
         version: 0.2.15
@@ -591,9 +588,6 @@ importers:
       '@naturalcycles/dev-lib':
         specifier: workspace:*
         version: link:../dev-lib
-      '@types/through2-concurrent':
-        specifier: ^2
-        version: 2.0.4
 
   packages/redis-lib:
     dependencies:
@@ -2497,12 +2491,6 @@ packages:
 
   '@types/tedious@4.0.14':
     resolution: {integrity: sha512-KHPsfX/FoVbUGbyYvk1q9MMQHLPeRZhRJZdO45Q4YjvFkv4hMNghCWTvy7rdKessBsmtz4euWCWAB6/tVpI1Iw==}
-
-  '@types/through2-concurrent@2.0.4':
-    resolution: {integrity: sha512-psK907nTFvOXcPdYMv3bhMq2BtvFVm6yWbftSVhFSRpWj20Hzl9DMqbMFxhxFAvO7qH2EO2/TGw0RxHJd59QIg==}
-
-  '@types/through2@2.0.41':
-    resolution: {integrity: sha512-ryQ0tidWkb1O1JuYvWKyMLYEtOWDqF5mHerJzKz/gQpoAaJq2l/dsMPBF0B5BNVT34rbARYJ5/tsZwLfUi2kwQ==}
 
   '@types/tough-cookie@4.0.5':
     resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
@@ -6186,9 +6174,6 @@ packages:
   thread-stream@3.1.0:
     resolution: {integrity: sha512-OqyPZ9u96VohAyMfJykzmivOrY2wfMSf3C5TtFJVgN+Hm6aj+voFhlK+kZEIv2FBh1X6Xp3DlnCOfEQ3B2J86A==}
 
-  through2-concurrent@2.0.0:
-    resolution: {integrity: sha512-R5/jLkfMvdmDD+seLwN7vB+mhbqzWop5fAjx5IX8/yQq7VhBhzDmhXgaHAOnhnWkCpRMM7gToYHycB0CS/pd+A==}
-
   through2@2.0.5:
     resolution: {integrity: sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ==}
 
@@ -8605,15 +8590,6 @@ snapshots:
       '@types/node': 25.0.3
 
   '@types/tedious@4.0.14':
-    dependencies:
-      '@types/node': 25.0.3
-
-  '@types/through2-concurrent@2.0.4':
-    dependencies:
-      '@types/node': 25.0.3
-      '@types/through2': 2.0.41
-
-  '@types/through2@2.0.41':
     dependencies:
       '@types/node': 25.0.3
 
@@ -12637,10 +12613,6 @@ snapshots:
   thread-stream@3.1.0:
     dependencies:
       real-require: 0.2.0
-
-  through2-concurrent@2.0.0:
-    dependencies:
-      through2: 2.0.5
 
   through2@2.0.5:
     dependencies:

@@ -2,7 +2,7 @@ import { Transform } from 'node:stream'
 import type { AsyncPredicate, Predicate } from '@naturalcycles/js-lib/types'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 import type { TransformMapOptions } from './transformMap.js'
-import { transformMap2 } from './transformMap2.js'
+import { transformMap } from './transformMap.js'
 
 /**
  * Just a convenience wrapper around `transformMap` that has built-in predicate filtering support.
@@ -11,7 +11,7 @@ export function transformFilter<IN = any>(
   asyncPredicate: AsyncPredicate<IN>,
   opt: TransformMapOptions = {},
 ): TransformTyped<IN, IN> {
-  return transformMap2(v => v, {
+  return transformMap(v => v, {
     asyncPredicate,
     ...opt,
   })

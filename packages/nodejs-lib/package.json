@@ -31,14 +31,12 @@
     "js-yaml": "^4",
     "jsonwebtoken": "^9",
     "lru-cache": "^11",
-    "through2-concurrent": "^2",
     "tinyglobby": "^0.2",
     "tslib": "^2",
     "yargs": "^18"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "workspace:*",
-    "@types/through2-concurrent": "^2"
+    "@naturalcycles/dev-lib": "workspace:*"
   },
   "exports": {
     ".": "./dist/index.js",
