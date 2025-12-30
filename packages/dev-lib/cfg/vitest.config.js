@@ -47,19 +47,19 @@ export function defineVitestConfig(config, cwd) {
 
   const { silent, pool, maxWorkers, isolate } = mergedConfig.test
 
-  console.log({
-    testType,
-    silent,
-    isCI,
-    runsInIDE,
-    // include,
-    // exclude,
-    pool,
-    isolate,
-    maxWorkers,
-    // setupFiles,
-    // cwd,
-  })
+  // In workspace mode, cwd differs from process.cwd() (which is the monorepo root)
+  const isWorkspaceMode = cwd && process.cwd() !== cwd
+  if (!isWorkspaceMode) {
+    console.log({
+      testType,
+      silent,
+      isCI,
+      runsInIDE,
+      pool,
+      isolate,
+      maxWorkers,
+    })
+  }
 
   return mergedConfig
 }
