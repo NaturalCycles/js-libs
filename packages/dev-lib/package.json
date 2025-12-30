@@ -26,7 +26,7 @@
   "dependencies": {
     "@biomejs/biome": "^2",
     "@eslint/js": "^9",
-    "@inquirer/prompts": "^8",
+    "prompts": "^2",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
     "@vitest/coverage-v8": "^4",
@@ -63,7 +63,8 @@
   },
   "devDependencies": {
     "@types/mitm": "^1",
-    "@types/node": "^25"
+    "@types/node": "^25",
+    "@types/prompts": "^2"
   },
   "exports": {
     "./cfg/": "./cfg/",

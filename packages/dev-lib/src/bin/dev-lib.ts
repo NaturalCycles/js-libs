@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import { select, Separator } from '@inquirer/prompts'
 import { _by } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { PromisableFunction } from '@naturalcycles/js-lib/types'
@@ -27,8 +26,7 @@ interface Command {
   interactiveOnly?: boolean
 }
 
-const commands: (Command | Separator)[] = [
-  new Separator(), // build
+const commands: Command[] = [
   { name: 'check', fn: check, desc: '"Run all possible checks": lint, typecheck, then test.' },
   { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (via oxlint) and then "test".' },
   {
@@ -61,7 +59,6 @@ const commands: (Command | Separator)[] = [
     fn: cleanBuild,
     desc: 'Cleans ./dist, then runs the build.',
   },
-  new Separator(), // test
   { name: 'test', fn: runTest, desc: 'Run vitest for *.test.ts files.' },
   {
     name: 'test-integration',
@@ -78,7 +75,6 @@ const commands: (Command | Separator)[] = [
     fn: () => runTest({ leaks: true }),
     desc: 'Run vitest --detectLeaks for *.test.ts files.',
   },
-  new Separator(), // lint
   {
     name: 'lint',
     fn: lintAllCommand,
@@ -126,7 +122,6 @@ const commands: (Command | Separator)[] = [
   },
   { name: 'stylelint-no-fix', cliOnly: true, fn: () => stylelintAll(false) },
   { name: 'commitlint', fn: runCommitlint, desc: 'Run commitlint.', cliOnly: true },
-  new Separator(), // interactive-only
   {
     name: 'exit',
     fn: () => console.log('see you!'),
@@ -147,7 +142,7 @@ const commands: (Command | Separator)[] = [
   // },
 ]
 
-const commandMap = _by(commands.filter(c => !(c instanceof Separator)) as Command[], c => c.name)
+const commandMap = _by(commands, c => c.name)
 
 const { CI } = process.env
 
@@ -158,19 +153,24 @@ runScript(async () => {
     // interactive mode
     _assert(!CI, 'interactive dev-lib should not be run in CI')
 
-    cmd = await select({
+    const { default: prompts } = await import('prompts')
+
+    const response = await prompts({
+      type: 'select',
+      name: 'cmd',
       message: 'Select command',
-      pageSize: 30,
+      // @ts-expect-error types are wrong
+      optionsPerPage: 30,
       choices: commands
-        .filter(c => c instanceof Separator || !c.cliOnly)
-        .map(c => {
-          if (c instanceof Separator) return c
-          return {
-            value: c.name,
-            description: c.desc,
-          }
-        }),
+        .filter(c => !c.cliOnly)
+        .map(c => ({
+          title: c.name,
+          value: c.name,
+          description: c.desc,
+        })),
     })
+    cmd = response.cmd
+    if (!cmd) return // user cancelled
   }
 
   await commandMap[cmd]!.fn()

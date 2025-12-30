@@ -2,11 +2,12 @@
 
 ## Build & Test Commands
 
-- Full Validation: `pnpm check`
-- Fast Iteration (Build + Test): `pnpm bt`
-- Package Specific: `pnpm --filter <package-name> bt`
-- Run single test file: `pnpm test fileName.test.ts` (do NOT use `--filter`, it's unnecessary)
+- Full validation (includes type-checking, linkting and running tests): `pnpm check`
+- Run single test file: `pnpm test fileName.test.ts`
 - Note: `pn` is an alias for `pnpm`.
+
+**IMPORTANT:** Do NOT use `--filter`, `tsc`, or other low-level commands directly. Always use the
+top-level commands (`pnpm check`, `pnpm test`) which handle everything correctly.
 
 ## Code Style & Standards
 
