@@ -128,21 +128,23 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
     // Index cache
     const airtableIndex: StringMap<AirtableRecord> = {}
 
-    Object.values(this._cache).forEach((records: AirtableRecord[]) => {
-      records.forEach(r => (airtableIndex[r.airtableId] = r))
-    })
+    for (const records of Object.values(this._cache) as AirtableRecord[][]) {
+      for (const r of records) {
+        airtableIndex[r.airtableId] = r
+      }
+    }
 
     this._airtableIdIndex = airtableIndex
 
     // TableIdIndex
     const tableIdIndex: StringMap<StringMap<AirtableRecord>> = {}
-    Object.entries(this.cfg.tableCfgMap).forEach(([tableName, cfg]) => {
+    for (const [tableName, cfg] of Object.entries(this.cfg.tableCfgMap)) {
       const { idField } = cfg
       tableIdIndex[tableName] = {}
-      ;(this._cache![tableName] || []).forEach(
-        (r: AirtableRecord) => (tableIdIndex[tableName]![r[idField as keyof AirtableRecord]] = r),
-      )
-    })
+      for (const r of (this._cache[tableName] || []) as AirtableRecord[]) {
+        tableIdIndex[tableName][r[idField as keyof AirtableRecord]] = r
+      }
+    }
 
     this._tableIdIndex = tableIdIndex
 
