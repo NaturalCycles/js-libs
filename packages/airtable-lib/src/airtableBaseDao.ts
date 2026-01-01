@@ -256,7 +256,15 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
    */
   @_LogMethod({ logStart: true })
   async fetch(connectorType: symbol, opt: AirtableDaoOptions = {}): Promise<BASE> {
-    const base = await this.getConnector(connectorType).fetch(this.cfg, opt)
+    let base: BASE
+
+    if (connectorType === this.cfg.primaryConnector && this.loadingDataPromise) {
+      // Swarm-safety
+      base = await this.loadingDataPromise
+    } else {
+      // non-primary connector - not using loadingDataPromise
+      base = await this.getConnector(connectorType).fetch(this.cfg, opt)
+    }
 
     if (!base) {
       console.warn(`AirtableBaseDao.${this.instanceId}.fetch returned empty base`)
