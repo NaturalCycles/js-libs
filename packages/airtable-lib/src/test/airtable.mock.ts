@@ -8,7 +8,6 @@ import {
   objectSchema,
   stringSchema,
 } from '@naturalcycles/nodejs-lib/joi'
-import type { AirtableApi } from '../airtable.api.js'
 import type { AirtableAttachment, AirtableRecord } from '../airtable.model.js'
 import {
   airtableAttachmentsSchema,
@@ -18,6 +17,7 @@ import {
 } from '../airtable.model.js'
 import { AirtableBaseDao } from '../airtableBaseDao.js'
 import { AirtableBasesDao } from '../airtableBasesDao.js'
+import type { AirtableLib } from '../airtableLib.js'
 import { AirtableTableDao } from '../airtableTableDao.js'
 import {
   AIRTABLE_CONNECTOR_JSON,
@@ -134,21 +134,21 @@ export const categorySchema = objectSchema<Category>({
   users: airtableMultipleLinkSchema<User>() as any,
 }).concat(airtableRecordSchema as any)
 
-export function mockTableDao1(api: AirtableApi, baseId: string): AirtableTableDao<Table1> {
-  return new AirtableTableDao<Table1>(api, baseId, 'table1', {
+export function mockTableDao1(airtableLib: AirtableLib, baseId: string): AirtableTableDao<Table1> {
+  return new AirtableTableDao<Table1>(airtableLib, baseId, 'table1', {
     idField: 'name',
     sort: [{ field: 'name' }],
   })
 }
 
-export function mockTableDao2(api: AirtableApi, baseId: string): AirtableTableDao<Table2> {
-  return new AirtableTableDao<Table2>(api, baseId, 'table2', {
+export function mockTableDao2(airtableLib: AirtableLib, baseId: string): AirtableTableDao<Table2> {
+  return new AirtableTableDao<Table2>(airtableLib, baseId, 'table2', {
     idField: 'name',
     sort: [{ field: 'name' }],
   })
 }
 
-export function mockBaseDao(api: AirtableApi, baseId: string): AirtableBaseDao<TestBase> {
+export function mockBaseDao(airtableLib: AirtableLib, baseId: string): AirtableBaseDao<TestBase> {
   const baseName = 'Test'
 
   return new AirtableBaseDao<TestBase>({
@@ -157,7 +157,7 @@ export function mockBaseDao(api: AirtableApi, baseId: string): AirtableBaseDao<T
     primaryConnector: AIRTABLE_CONNECTOR_JSON,
     connectors: [
       new AirtableJsonConnector<TestBase>({ cacheDir }),
-      new AirtableRemoteConnector<TestBase>(api),
+      new AirtableRemoteConnector<TestBase>(airtableLib),
     ],
     tableCfgMap: {
       users: { validationFn: getJoiValidationFunction(userSchema), idField: 'id' },
@@ -169,7 +169,7 @@ export function mockBaseDao(api: AirtableApi, baseId: string): AirtableBaseDao<T
   })
 }
 
-export function mockBasesDao(api: AirtableApi, baseId: string): AirtableBasesDao<BaseMap> {
-  const baseDao = mockBaseDao(api, baseId)
+export function mockBasesDao(airtableLib: AirtableLib, baseId: string): AirtableBasesDao<BaseMap> {
+  const baseDao = mockBaseDao(airtableLib, baseId)
   return new AirtableBasesDao<BaseMap>([baseDao])
 }

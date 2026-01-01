@@ -17,7 +17,7 @@ const airtableLib = new AirtableLib({
 })
 
 test('getCache', async () => {
-  const baseDao = mockBaseDao(await airtableLib.api(), 'baseId')
+  const baseDao = mockBaseDao(airtableLib, 'baseId')
 
   expect(baseDao.lastChanged).toBeUndefined()
   expect(baseDao.lastFetchedMap.get(AIRTABLE_CONNECTOR_JSON)).toBeUndefined()
@@ -31,7 +31,7 @@ test('getCache', async () => {
 })
 
 test('cacheUpdated$', async () => {
-  const baseDao = mockBaseDao(await airtableLib.api(), 'baseId')
+  const baseDao = mockBaseDao(airtableLib, 'baseId')
 
   let updatedTimes = 0
   baseDao.cacheUpdatedListeners.push(() => updatedTimes++)
