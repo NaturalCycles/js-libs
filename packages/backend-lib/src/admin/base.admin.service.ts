@@ -1,3 +1,4 @@
+import { _Memo } from '@naturalcycles/js-lib/decorators'
 import { _assert, AppError } from '@naturalcycles/js-lib/error'
 import { dimGrey, green, red } from '@naturalcycles/nodejs-lib/colors'
 import type FirebaseAdmin from 'firebase-admin'
@@ -32,7 +33,7 @@ const adminInfoDisabled = (): AdminInfo => ({
  */
 export class BaseAdminService {
   constructor(
-    private firebaseAuth: FirebaseAdmin.auth.Auth,
+    private loadFirebaseAuth: () => Promise<FirebaseAdmin.auth.Auth>,
     cfg: AdminServiceCfg,
   ) {
     this.cfg = {
@@ -91,7 +92,8 @@ export class BaseAdminService {
     if (!adminToken) return
 
     try {
-      const decodedToken = await this.firebaseAuth.verifyIdToken(adminToken)
+      const auth = await this.getFirebaseAuth()
+      const decodedToken = await auth.verifyIdToken(adminToken)
       const email = decodedToken?.email
       req.log(`admin email: ${dimGrey(email)}`)
       return email
@@ -107,6 +109,11 @@ export class BaseAdminService {
 
       req.error(`getEmailByToken error:`, err)
     }
+  }
+
+  @_Memo()
+  private async getFirebaseAuth(): Promise<FirebaseAdmin.auth.Auth> {
+    return await this.loadFirebaseAuth()
   }
 
   /**

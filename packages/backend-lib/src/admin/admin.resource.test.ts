@@ -33,7 +33,7 @@ class AdminService extends BaseAdminService {
   }
 }
 
-const adminService = new AdminService(await firebaseService.auth(), {
+const adminService = new AdminService(() => firebaseService.auth(), {
   // authEnabled: false,
 })
 

@@ -24,7 +24,7 @@ class AdminService extends BaseAdminService {
 }
 
 // const firebaseAdmin
-export const adminService = new AdminService(await firebaseService.auth(), {
+export const adminService = new AdminService(() => firebaseService.auth(), {
   // authEnabled: false,
 })
 
