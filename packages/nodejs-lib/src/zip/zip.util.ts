@@ -1,6 +1,7 @@
 import { promisify } from 'node:util'
 import type { ZlibOptions, ZstdOptions } from 'node:zlib'
 import zlib from 'node:zlib'
+import type { Integer } from '@naturalcycles/js-lib/types'
 
 const deflate = promisify(zlib.deflate.bind(zlib))
 const inflate = promisify(zlib.inflate.bind(zlib))
@@ -89,9 +90,22 @@ export async function gunzipToString(buf: Buffer, options?: ZlibOptions): Promis
 
 export async function zstdCompress(
   input: Buffer | string,
+  level?: Integer, // defaults to 3
   options: ZstdOptions = {},
 ): Promise<Buffer<ArrayBuffer>> {
-  return await zstdCompressAsync(input, options)
+  return await zstdCompressAsync(input, zstdLevelToOptions(level, options))
+}
+
+export function zstdLevelToOptions(level: Integer | undefined, opt: ZstdOptions = {}): ZstdOptions {
+  if (!level) return opt
+
+  return {
+    ...opt,
+    params: {
+      ...opt.params,
+      [zlib.constants.ZSTD_c_compressionLevel]: level,
+    },
+  }
 }
 
 export async function zstdDecompressToString(

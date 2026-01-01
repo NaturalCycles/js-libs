@@ -1,7 +1,7 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
-import { type KeyValueTuple, SKIP } from '@naturalcycles/js-lib/types'
+import { type Integer, type KeyValueTuple, SKIP } from '@naturalcycles/js-lib/types'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import {
   decompressZstdOrInflateToString,
@@ -55,23 +55,36 @@ export interface CommonKeyValueDaoTransformer<V> {
   bufferToValue: (buf: Buffer) => Promise<V>
 }
 
-export const commonKeyValueDaoDeflatedJsonTransformer: CommonKeyValueDaoTransformer<any> = {
-  valueToBuffer: async v => await deflateString(JSON.stringify(v)),
-  bufferToValue: async buf => JSON.parse(await inflateToString(buf)),
+/**
+ * @deprecated use zstd instead, gzip is obsolete
+ */
+export function commonKeyValueDaoDeflatedJsonTransformer<
+  T = any,
+>(): CommonKeyValueDaoTransformer<T> {
+  return {
+    valueToBuffer: async v => await deflateString(JSON.stringify(v)),
+    bufferToValue: async buf => JSON.parse(await inflateToString(buf)),
+  }
 }
 
-export const commonKeyValueDaoZstdJsonTransformer: CommonKeyValueDaoTransformer<any> = {
-  valueToBuffer: async v => await zstdCompress(JSON.stringify(v)),
-  bufferToValue: async buf => JSON.parse(await zstdDecompressToString(buf)),
+export function commonKeyValueDaoZstdJsonTransformer<T = any>(
+  level: Integer | undefined, // defaults to 3
+): CommonKeyValueDaoTransformer<T> {
+  return {
+    valueToBuffer: async v => await zstdCompress(JSON.stringify(v), level),
+    bufferToValue: async buf => JSON.parse(await zstdDecompressToString(buf)),
+  }
 }
 
 /**
  * Saves: zstd
  * Reads: zstd or deflate (backwards compatible)
  */
-export const commonKeyValueDaoCompressedTransformer: CommonKeyValueDaoTransformer<any> = {
-  valueToBuffer: async v => await zstdCompress(JSON.stringify(v)),
-  bufferToValue: async buf => JSON.parse(await decompressZstdOrInflateToString(buf)),
+export function commonKeyValueDaoCompressedTransformer<T = any>(): CommonKeyValueDaoTransformer<T> {
+  return {
+    valueToBuffer: async v => await zstdCompress(JSON.stringify(v)),
+    bufferToValue: async buf => JSON.parse(await decompressZstdOrInflateToString(buf)),
+  }
 }
 
 // todo: logging

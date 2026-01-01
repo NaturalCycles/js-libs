@@ -24,6 +24,7 @@ import {
   type SKIP,
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
+import { zstdLevelToOptions } from '../zip/zip.util.js'
 import { createReadStreamAsNDJson } from './ndjson/createReadStreamAsNDJson.js'
 import { transformJsonParse } from './ndjson/transformJsonParse.js'
 import { transformToNDJson } from './ndjson/transformToNDJson.js'
@@ -349,13 +350,12 @@ export class Pipeline<T = unknown> {
     return this as any
   }
 
-  zstdCompress(this: Pipeline<Uint8Array>, opt?: ZstdOptions): Pipeline<Uint8Array> {
-    this.transforms.push(
-      createZstdCompress({
-        // chunkSize: 64 * 1024, // no observed speedup
-        ...opt,
-      }),
-    )
+  zstdCompress(
+    this: Pipeline<Uint8Array>,
+    level?: Integer, // defaults to 3
+    opt?: ZstdOptions,
+  ): Pipeline<Uint8Array> {
+    this.transforms.push(createZstdCompress(zstdLevelToOptions(level, opt)))
     this.objectMode = false
     return this as any
   }
@@ -384,21 +384,25 @@ export class Pipeline<T = unknown> {
     await this.run()
   }
 
-  async toNDJsonFile(outputFilePath: string): Promise<void> {
+  /**
+   * level corresponds to zstd compression level (if filename ends with .zst),
+   * or gzip compression level (if filename ends with .gz).
+   * Default levels are:
+   * gzip: 6
+   * zlib: 3 (optimized for throughput, not size, may be larger than gzip at its default level)
+   */
+  async toNDJsonFile(outputFilePath: string, level?: Integer): Promise<void> {
     fs2.ensureFile(outputFilePath)
     this.transforms.push(transformToNDJson())
     if (outputFilePath.endsWith('.gz')) {
       this.transforms.push(
         createGzip({
+          level,
           // chunkSize: 64 * 1024, // no observed speedup
         }),
       )
     } else if (outputFilePath.endsWith('.zst')) {
-      this.transforms.push(
-        createZstdCompress({
-          // chunkSize: 64 * 1024, // no observed speedup
-        }),
-      )
+      this.transforms.push(createZstdCompress(zstdLevelToOptions(level)))
     }
     this.destination = fs2.createWriteStream(outputFilePath, {
       // highWaterMark: 64 * 1024, // no observed speedup
