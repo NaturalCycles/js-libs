@@ -1,4 +1,5 @@
 import { _arrayFilled } from '@naturalcycles/js-lib/array/range.js'
+import { formatNumber } from './bench.util.js'
 import { asciiColor, asciiPlot } from './vendor/asciichart.js'
 
 const colors = [
@@ -27,7 +28,7 @@ export function plotAsciiChart(results: Record<string, number>): string {
     colors,
     offset: 2,
     height: 10,
-    format: y => Math.round(y).toString().padStart(10, ' ') + ' ',
+    format: y => formatNumber(y).padStart(15, ' ') + ' ',
   })
 
   s +=

@@ -1,6 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
-import { dimGrey, yellow } from '@naturalcycles/nodejs-lib/colors'
+import { dimGrey, green, grey, red, yellow } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import type { Event, Suite } from 'benchmark'
@@ -74,6 +74,8 @@ export async function runBench(opt: RunBenchOptions): Promise<HertzMap> {
     console.log('\n' + plotAsciiChart(avg))
   }
 
+  printComparisonTable(avg, opt.baseline)
+
   return avg
 }
 
@@ -117,6 +119,67 @@ async function runBenchOnce(opt: RunBenchOptions, run: number): Promise<HertzMap
   })
 
   return await defer
+}
+
+function printComparisonTable(avg: HertzMap, baselineName?: string): void {
+  const names = Object.keys(avg)
+  if (names.length < 2) return
+
+  const baseline = baselineName ?? names[0]!
+  const baselineHz = avg[baseline]
+  if (!baselineHz) {
+    console.log(red(`baseline "${baseline}" not found in results`))
+    return
+  }
+
+  // Calculate column widths
+  const maxNameLen = Math.max(...names.map(n => n.length))
+  const maxHzLen = Math.max(...Object.values(avg).map(hz => formatNumber(hz).length))
+  const maxTimeLen = Math.max(...Object.values(avg).map(hz => formatTime(hz).length))
+
+  // Header
+  console.log(`\n${grey('+ faster / - slower, ops/sec')}\n`)
+  console.log(
+    `  ${'name'.padEnd(maxNameLen)}  ${'time'.padStart(maxTimeLen)}  ${'ops/sec'.padStart(maxHzLen)}  diff`,
+  )
+  console.log(`  ${grey('─'.repeat(maxNameLen + maxHzLen + maxTimeLen + 14))}`)
+
+  for (const name of names) {
+    const hz = avg[name]!
+    const paddedName = name.padEnd(maxNameLen)
+    const hzStr = formatNumber(hz).padStart(maxHzLen)
+    const timeStr = formatTime(hz).padStart(maxTimeLen)
+
+    if (name === baseline) {
+      console.log(`  ${paddedName}  ${timeStr}  ${hzStr}  ${grey('baseline')}`)
+      continue
+    }
+
+    // Positive = more ops/sec = faster, Negative = less ops/sec = slower
+    const diff = ((hz - baselineHz) / baselineHz) * 100
+    const sign = diff > 0 ? '+' : ''
+    const diffStr = `${sign}${diff.toFixed(1)}%`
+    const colorFn = diff >= 0 ? green : red
+
+    console.log(`  ${paddedName}  ${timeStr}  ${hzStr}  ${colorFn(diffStr)}`)
+  }
+
+  console.log()
+}
+
+export function formatNumber(n: number): string {
+  return Math.round(n).toLocaleString('en-US')
+}
+
+function formatTime(hz: number): string {
+  const seconds = 1 / hz
+  if (seconds >= 1) return `${seconds.toFixed(2)} s`
+  const ms = seconds * 1000
+  if (ms >= 1) return `${ms.toFixed(2)} ms`
+  const us = ms * 1000
+  if (us >= 1) return `${us.toFixed(2)} µs`
+  const ns = us * 1000
+  return `${ns.toFixed(2)} ns`
 }
 
 /*
