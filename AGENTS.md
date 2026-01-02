@@ -26,6 +26,20 @@ calls function B, A must appear above B in the file. Entry points and high-level
 helper/implementation functions below. Read the file top-to-bottom like a newspaper: headline first,
 then details.
 
+```ts
+// correct: caller above callee
+function foo() {
+  bar()
+}
+function bar() {}
+
+// wrong: callee above caller
+function bar() {}
+function foo() {
+  bar()
+}
+```
+
 ## Testing Patterns
 
 - **Structure:** For single-purpose test suites (targeting one class/function), use a flattened
