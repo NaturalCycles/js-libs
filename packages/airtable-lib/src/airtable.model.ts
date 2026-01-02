@@ -1,5 +1,6 @@
 import type { ValidationFunction } from '@naturalcycles/js-lib'
 import type { AppError } from '@naturalcycles/js-lib/error'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import type { ArraySchema, ObjectSchema } from '@naturalcycles/nodejs-lib/joi'
 import {
   arraySchema,
@@ -126,6 +127,43 @@ export interface AirtableRecord {
 export const airtableRecordSchema: ObjectSchema<AirtableRecord> = objectSchema<AirtableRecord>({
   airtableId: airtableIdSchema,
   // id: stringSchema,
+})
+
+// j-based schemas (JSON Schema / Ajv)
+export const airtableIdJSchema = j.string()
+
+export const airtableMultipleLinkJSchema = j.array(j.string()).optional().default([])
+
+export const airtableSingleLinkJSchema = j.array(j.string()).maxLength(1).optional().default([])
+
+export const airtableThumbnailJSchema = j.object<AirtableThumbnail>({
+  width: j.number().integer().min(0),
+  height: j.number().integer().min(0),
+  url: j.string().url(),
+})
+
+export const airtableAttachmentJSchema = j
+  .object<AirtableAttachment>({
+    id: j.string(),
+    url: j.string().url(),
+    filename: j.string(),
+    size: j.number().integer().optional(),
+    type: j.string().optional(),
+    thumbnails: j
+      .object<AirtableThumbnails>({
+        full: airtableThumbnailJSchema,
+        large: airtableThumbnailJSchema,
+        small: airtableThumbnailJSchema,
+      })
+      .allowAdditionalProperties()
+      .optional(),
+  })
+  .allowAdditionalProperties()
+
+export const airtableAttachmentsJSchema = j.array(airtableAttachmentJSchema).optional().default([])
+
+export const airtableRecordJSchema = j.object<AirtableRecord>({
+  airtableId: airtableIdJSchema,
 })
 
 export interface AirtableDaoSaveOptions extends AirtableDaoOptions {
