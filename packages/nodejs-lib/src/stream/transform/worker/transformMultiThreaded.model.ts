@@ -42,4 +42,6 @@ export interface BaseWorkerData {
    * @default 1000
    */
   logEvery: number
+
+  silent?: boolean
 }

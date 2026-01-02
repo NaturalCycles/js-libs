@@ -3,13 +3,17 @@ import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import { expect, test } from 'vitest'
 import { exec2, SpawnError } from './exec2.js'
 
+const silent = !!process.env['TEST_SILENT']
+
 test('spawn ok', () => {
-  exec2.spawn('git status')
+  exec2.spawn('git status', { stdio: silent ? 'pipe' : 'inherit' })
   // no error
 })
 
 test('spawn error', () => {
-  const err = _expectedErrorString(() => exec2.spawn('git stat'))
+  const err = _expectedErrorString(() =>
+    exec2.spawn('git stat', { stdio: silent ? 'pipe' : 'inherit' }),
+  )
   expect(err).toMatchInlineSnapshot(`"Error: spawn exited with code 1: git stat"`)
 })
 
@@ -19,29 +23,37 @@ test('exec ok', () => {
 })
 
 test('exec error', () => {
-  const err = _expectedErrorString(() => exec2.exec('git stat'))
+  const err = _expectedErrorString(() =>
+    exec2.exec('git stat', { stdio: silent ? 'pipe' : undefined }),
+  )
   expect(err).toMatchInlineSnapshot(`"Error: exec exited with code 1: git stat"`)
 })
 
 test('spawnAsync ok', async () => {
-  await exec2.spawnAsync('git version')
+  await exec2.spawnAsync('git version', { stdio: silent ? 'pipe' : 'inherit' })
   // no error
 })
 
 test('spawnAsync error', async () => {
-  const err = await pExpectedError(exec2.spawnAsync('git stat'), Error)
+  const err = await pExpectedError(
+    exec2.spawnAsync('git stat', { stdio: silent ? 'pipe' : 'inherit' }),
+    Error,
+  )
   expect(_stringify(err)).toMatchInlineSnapshot(`"Error: spawnAsync exited with code 1: git stat"`)
 })
 
 test('spawnAsyncAndReturn ok', async () => {
-  const s = await exec2.spawnAsyncAndReturn('git version')
+  const s = await exec2.spawnAsyncAndReturn('git version', { printWhileRunning: !silent })
   expect(s.exitCode).toBe(0)
   expect(s.stderr).toBe('')
   expect(s.stdout.startsWith('git version')).toBe(true)
 })
 
 test('spawnAsyncAndReturn error with throw', async () => {
-  const err = await pExpectedError(exec2.spawnAsyncAndReturn('git stat'), SpawnError)
+  const err = await pExpectedError(
+    exec2.spawnAsyncAndReturn('git stat', { printWhileRunning: !silent }),
+    SpawnError,
+  )
   expect(_stringify(err)).toMatchInlineSnapshot(
     `"SpawnError: spawnAsyncAndReturn exited with code 1: git stat"`,
   )
@@ -60,6 +72,7 @@ The most similar commands are
 test('spawnAsyncAndReturn error without throw', async () => {
   const { exitCode, stdout, stderr } = await exec2.spawnAsyncAndReturn('git stat', {
     throwOnNonZeroCode: false,
+    printWhileRunning: !silent,
   })
   expect(exitCode).toBe(1)
   expect(stdout).toBe('')

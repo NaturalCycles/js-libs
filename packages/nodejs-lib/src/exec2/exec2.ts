@@ -148,7 +148,14 @@ class Exec2 {
    * log: true
    */
   async spawnAsync(cmd: string, opt: SpawnOptions = {}): Promise<void> {
-    const { shell = true, cwd, env, passProcessEnv = true, forceColor = hasColors } = opt
+    const {
+      shell = true,
+      cwd,
+      env,
+      passProcessEnv = true,
+      forceColor = hasColors,
+      stdio = 'inherit',
+    } = opt
     opt.log ??= true // by default log should be true, as we are printing the output
     opt.logStart ??= opt.log
     opt.logFinish ??= opt.log
@@ -159,7 +166,7 @@ class Exec2 {
       const p = spawn(cmd, opt.args || [], {
         shell,
         cwd,
-        stdio: 'inherit',
+        stdio,
         env: {
           ...(passProcessEnv ? process.env : {}),
           ...(forceColor ? { FORCE_COLOR: '1' } : {}),

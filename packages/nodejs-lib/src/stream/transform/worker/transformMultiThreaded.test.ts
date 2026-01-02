@@ -7,6 +7,7 @@ import { transformMultiThreaded } from './transformMultiThreaded.js'
 test('transformMultiThreaded', async () => {
   const items = _range(1, 12).map(i => ({ id: i }))
 
+  const silent = !!process.env['TEST_SILENT'] || true
   const workerFile = `${testDir}/testWorker.ts`
 
   const items2 = await Pipeline.fromArray(items)
@@ -14,7 +15,7 @@ test('transformMultiThreaded', async () => {
       transformMultiThreaded({
         workerFile,
         poolSize: 4,
-        workerData: { hello: 'lalala', logEvery: 2 },
+        workerData: { hello: 'lalala', logEvery: 2, silent },
       }),
     )
     .toArray()

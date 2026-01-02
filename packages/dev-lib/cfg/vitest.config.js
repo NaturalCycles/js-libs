@@ -2,8 +2,10 @@ import fs from 'node:fs'
 import { VitestAlphabeticSequencer } from './vitestAlphabeticSequencer.js'
 import { defineConfig } from 'vitest/config'
 import { SummaryReporter } from './summaryReporter.js'
+import { SummaryOnlyReporter } from './summaryOnlyReporter.js'
 export { SummaryReporter } from './summaryReporter.js'
 export { CollectReporter } from './collectReporter.js'
+export { SummaryOnlyReporter } from './summaryOnlyReporter.js'
 
 const runsInIDE = doesItRunInIDE()
 const testType = getTestType(runsInIDE)
@@ -90,17 +92,7 @@ export function getSharedConfig(cwd) {
     },
     include,
     exclude,
-    reporters: [
-      'default',
-      new SummaryReporter(),
-      junitReporterEnabled && [
-        'junit',
-        {
-          suiteName: `${testType} tests`,
-          // classNameTemplate: '{filename} - {classname}',
-        },
-      ],
-    ].filter(Boolean),
+    reporters: getReporters(junitReporterEnabled, testType),
     // outputFile location is specified for compatibility with the previous jest config
     outputFile: junitReporterEnabled ? `./tmp/jest/${testType}.xml` : undefined,
     coverage: {
@@ -128,6 +120,30 @@ export function getSharedConfig(cwd) {
       ],
     },
   }
+}
+
+function getReporters(junitReporterEnabled, testType) {
+  // VITEST_REPORTER env var allows overriding the default reporter
+  // e.g., VITEST_REPORTER=summary for minimal output
+  const { VITEST_REPORTER, CLAUDE_CODE } = process.env
+
+  if (VITEST_REPORTER === 'summary' || CLAUDE_CODE) {
+    return [new SummaryOnlyReporter()]
+  }
+  if (VITEST_REPORTER === 'dot') {
+    return ['dot']
+  }
+
+  return [
+    'default',
+    new SummaryReporter(),
+    junitReporterEnabled && [
+      'junit',
+      {
+        suiteName: `${testType} tests`,
+      },
+    ],
+  ].filter(Boolean)
 }
 
 function doesItRunInIDE() {

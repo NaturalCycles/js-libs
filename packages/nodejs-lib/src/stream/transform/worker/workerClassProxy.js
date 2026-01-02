@@ -1,7 +1,7 @@
 const started = Date.now()
 import { workerData, parentPort } from 'node:worker_threads'
 import { inspect } from 'node:util'
-const { workerFile, workerIndex, logEvery = 1000, metric = 'worker' } = workerData || {}
+const { workerFile, workerIndex, logEvery = 1000, metric = 'worker', silent } = workerData || {}
 
 if (!workerFile) {
   throw new Error('workerData.workerFile is required!')
@@ -17,7 +17,7 @@ try {
 const { WorkerClass } = await import(workerFile)
 const worker = new WorkerClass(workerData)
 
-console.log(`${metric}#${workerIndex} loaded in ${Date.now() - started} ms`)
+log(`${metric}#${workerIndex} loaded in ${Date.now() - started} ms`)
 
 let errors = 0
 let processed = 0
@@ -52,7 +52,7 @@ parentPort.on('message', async msg => {
     })
 
     errors++
-    console.log(`${metric}#${workerIndex} errors: ${errors}`)
+    log(`${metric}#${workerIndex} errors: ${errors}`)
   }
 })
 
@@ -64,7 +64,7 @@ const inspectOpt = {
 function logStats(final) {
   const { rss, heapUsed, heapTotal, external } = process.memoryUsage()
 
-  console.log(
+  log(
     inspect(
       {
         [`${metric}${workerIndex}`]: processed,
@@ -82,4 +82,9 @@ function logStats(final) {
 
 function mb(b) {
   return Math.round(b / (1024 * 1024))
+}
+
+function log(...args) {
+  if (silent) return
+  console.log(...args)
 }
