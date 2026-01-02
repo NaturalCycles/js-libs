@@ -26,8 +26,10 @@ const { CI, ESLINT_CONCURRENCY } = process.env
 
 /**
  * Run all linters.
+ *
+ * If full=false - the "slow" linters are skipped.
  */
-export async function lintAllCommand(): Promise<void> {
+export async function lintAllCommand(full = true): Promise<void> {
   const started = Date.now() as UnixTimestampMillis
   // const { commitOnChanges, failOnChanges } = _yargs().options({
   //   commitOnChanges: {
@@ -62,21 +64,23 @@ export async function lintAllCommand(): Promise<void> {
 
   // From this point we start the "slow" linters, with ESLint leading the way
 
-  // We run eslint BEFORE Prettier, because eslint can delete e.g unused imports.
-  eslintAll({
-    fix,
-  })
+  if (full) {
+    // We run eslint BEFORE Prettier, because eslint can delete e.g unused imports.
+    eslintAll({
+      fix,
+    })
 
-  if (
-    existsSync(`node_modules/stylelint`) &&
-    existsSync(`node_modules/stylelint-config-standard-scss`)
-  ) {
-    stylelintAll(fix)
+    if (
+      existsSync(`node_modules/stylelint`) &&
+      existsSync(`node_modules/stylelint-config-standard-scss`)
+    ) {
+      stylelintAll(fix)
+    }
+
+    runPrettier({ fix })
+
+    await runKTLint(fix)
   }
-
-  runPrettier({ fix })
-
-  await runKTLint(fix)
 
   console.log(`${check(true)}${white(`lint-all`)} ${dimGrey(`took ` + _since(started))}`)
 

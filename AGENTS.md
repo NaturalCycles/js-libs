@@ -3,11 +3,16 @@
 ## Build & Test Commands
 
 - Full validation (includes type-checking, linkting and running tests): `pnpm check`
+- Quick validation (faster checks): `pnpm quick-check`
 - Run single test file: `pnpm test fileName.test.ts`
 - Note: `pn` is an alias for `pnpm`.
 
 **IMPORTANT:** Do NOT use `--filter`, `tsc`, or other low-level commands directly. Always use the
 top-level commands (`pnpm check`, `pnpm test`) which handle everything correctly.
+
+When working on a task - use `pnpm quick-check` to quickly validate the progress. When expected to
+be done - use `pnpm check` to run full validation. Always run `pnpm check` before handing over the
+work.
 
 ## Code Style & Standards
 

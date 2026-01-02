@@ -28,6 +28,11 @@ interface Command {
 
 const commands: Command[] = [
   { name: 'check', fn: check, desc: '"Run all possible checks": lint, typecheck, then test.' },
+  {
+    name: 'quick-check',
+    fn: quickCheck,
+    desc: 'Like check, but without slow parts, to perform preliminary checks',
+  },
   { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (via oxlint) and then "test".' },
   {
     name: 'typecheck',
@@ -178,6 +183,11 @@ runScript(async () => {
 
 async function check(): Promise<void> {
   await lintAllCommand()
+  runTest()
+}
+
+async function quickCheck(): Promise<void> {
+  await lintAllCommand(false)
   runTest()
 }
 

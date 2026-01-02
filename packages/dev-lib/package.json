@@ -37,7 +37,7 @@
     "eslint-plugin-simple-import-sort": "^12",
     "eslint-plugin-unicorn": "^62",
     "eslint-plugin-vue": "^10",
-    "globals": "^16",
+    "globals": "^17",
     "lint-staged": "^16",
     "micromatch": "^4",
     "mitm": "^1",
