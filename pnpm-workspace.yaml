@@ -24,7 +24,6 @@ trustPolicyExclude:
   - jose@4.15.9
   - undici@5.29.0
   - undici-types@6.21.0
-  - ts-api-utils@2.3.0
 blockExoticSubdeps: true
 auditConfig:
   ignoreGhsas:
