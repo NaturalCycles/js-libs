@@ -681,6 +681,14 @@ describe('oneOf', () => {
   })
 })
 
+describe('anyOf', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.anyOf([j.string().nullable(), j.number()])
+    expectTypeOf(schema1.in).toEqualTypeOf<string | number | null>()
+    expectTypeOf(schema1.out).toEqualTypeOf<string | number | null>()
+  })
+})
+
 describe('castAs', () => {
   test('should correctly infer the new type', () => {
     const schema1 = j.string().castAs<number>()

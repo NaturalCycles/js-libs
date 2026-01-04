@@ -3093,6 +3093,52 @@ describe('oneOf', () => {
       expect(err).not.toBeNull()
     })
   })
+
+  test('should reject values matching multiple schemas', () => {
+    // Both schemas accept strings of length 5-10
+    const schema = j.oneOf([j.string().minLength(5), j.string().maxLength(10)])
+
+    // 'hello' matches both schemas, so oneOf rejects it
+    const [err] = AjvSchema.create(schema).getValidationResult('hello')
+    expect(err).not.toBeNull()
+  })
+})
+
+describe('anyOf', () => {
+  test('should correctly infer the type', () => {
+    const schema = j.anyOf([j.string().nullable(), j.number()])
+    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+    expectTypeOf(result).toEqualTypeOf<string | number | null>()
+  })
+
+  test('should accept valid values', () => {
+    const testCases = ['a', 1, null]
+    const schema = j.anyOf([j.string().nullable(), j.number()])
+
+    testCases.forEach(value => {
+      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      expect(err).toBeNull()
+    })
+  })
+
+  test('should reject invalid values', () => {
+    const invalidCases: any[] = [undefined, true, [], {}]
+    const schema = j.anyOf([j.string().nullable(), j.number()])
+
+    invalidCases.forEach(value => {
+      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      expect(err).not.toBeNull()
+    })
+  })
+
+  test('should accept values matching multiple schemas', () => {
+    // Both schemas accept strings of length 5-10
+    const schema = j.anyOf([j.string().minLength(5), j.string().maxLength(10)])
+
+    // 'hello' matches both schemas, anyOf accepts it (unlike oneOf)
+    const [err] = AjvSchema.create(schema).getValidationResult('hello')
+    expect(err).toBeNull()
+  })
 })
 
 describe('errors', () => {

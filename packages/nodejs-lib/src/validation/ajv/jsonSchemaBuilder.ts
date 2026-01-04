@@ -190,6 +190,23 @@ export const j = {
     })
   },
 
+  /**
+   * Value must match at least one of the provided schemas.
+   *
+   * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
+   * Use `oneOf` when schemas are mutually exclusive.
+   */
+  anyOf<
+    B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
+    IN = BuilderInUnion<B>,
+    OUT = BuilderOutUnion<B>,
+  >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
+    const schemas = items.map(b => b.build())
+    return new JsonSchemaAnyBuilder<IN, OUT, false>({
+      anyOf: schemas,
+    })
+  },
+
   and() {
     return {
       silentBob: () => {
