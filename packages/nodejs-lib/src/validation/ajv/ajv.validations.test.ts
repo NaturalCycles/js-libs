@@ -939,7 +939,8 @@ describe('string', () => {
   describe('ipv6', () => {
     test('should accept string with valid IPv6', () => {
       const testCases = [
-        '2001:0db8:0000:0000:0000:ff00:0042:8329',
+        '2001:0db8:0000:0000:0000:ff00:0042:8329', // lowercase
+        '2001:0DB8:0000:0000:0000:FF00:0042:8329', // uppercase
         '2001:db8:0:0:0:ff00:42:8329',
         '2001:db8::ff00:42:8329',
         '0000:0000:0000:0000:0000:0000:0000:0001',
@@ -1215,7 +1216,11 @@ describe('string', () => {
 
   describe('uuid', () => {
     test('should accept valid data', () => {
-      const testCases = ['257631be-26d6-4a18-b28e-4bb7c6495cf4']
+      const testCases = [
+        '257631be-26d6-4a18-b28e-4bb7c6495cf4', // lowercase
+        '257631BE-26D6-4A18-B28E-4BB7C6495CF4', // uppercase (valid per RFC 4122)
+        '257631Be-26d6-4A18-b28e-4Bb7c6495Cf4', // mixed case
+      ]
       const schema = j.string().uuid()
       const ajvSchema = AjvSchema.create(schema)
 
