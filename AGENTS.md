@@ -4,7 +4,7 @@
 
 - Full validation (includes type-checking, linkting and running tests): `pnpm check`
 - Quick validation (faster checks): `pnpm quick-check`
-- Run single test file: `pnpm test fileName.test.ts`
+- Run single test file: `pnpm test fileName.test.ts --silent=false`
 - Note: `pn` is an alias for `pnpm`.
 
 **IMPORTANT:** Do NOT use `--filter`, `tsc`, or other low-level commands directly. Always use the
@@ -39,6 +39,8 @@ function foo() {
   bar()
 }
 ```
+
+When changing code - DON'T remove pre-existing code comments, preserve them instead.
 
 ## Testing Patterns
 
