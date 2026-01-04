@@ -326,99 +326,99 @@ export default {
     '@typescript-eslint/prefer-find': 2,
     'prefer-promise-reject-errors': 0,
     '@typescript-eslint/prefer-promise-reject-errors': 0, // ox
-    'unicorn/prefer-import-meta-properties': 2,
-    'unicorn/prefer-response-static-json': 0, // ox
-    'unicorn/prefer-keyboard-event-key': 0, // ox
-    'unicorn/prefer-default-parameters': 0, // ox
-    'unicorn/prefer-includes': 0, // ox
-    'unicorn/no-array-callback-reference': 0, // false positives
-    'unicorn/no-process-exit': 0,
-    'unicorn/prefer-single-call': 0,
-    'unicorn/no-abusive-eslint-disable': 0,
-    'unicorn/no-negated-condition': 0,
-    'unicorn/no-unnecessary-polyfills': 0, // little value, bottleneck performance
-    'unicorn/no-array-method-this-argument': 0, // bug: wrongly removes`readable.flatMap` concurrency option
-    'unicorn/prefer-array-flat': 0, // bug: messes up with `readable.flatMap`
-    'unicorn/number-literal-case': 0, // conflicts with prettier
-    'unicorn/prevent-abbreviations': 0,
-    'unicorn/prefer-module': 0,
-    'unicorn/no-null': 0,
-    'unicorn/filename-case': 0,
-    'unicorn/prefer-node-protocol': 0, // oxlint
-    'unicorn/prefer-set-has': 0,
-    'unicorn/explicit-length-check': 0,
-    'unicorn/no-array-for-each': 0,
-    'unicorn/prefer-at': 0, // iOS 15.4+, oxlint
-    'unicorn/import-style': 0, // todo: fix
-    'unicorn/prefer-spread': 0, // fails on joiSchema.concat() which is not an array!
-    'unicorn/prefer-structured-clone': 0, // no real advantage, plus in most of the cases we want JSON to remove undefined, etc.
-    'unicorn/better-regex': 0, // we still believe that [0-9] is clearer than [\d]
-    'unicorn/no-for-loop': 0, // oxlint has similar
-    'unicorn/no-array-reduce': 0, // oxlint
-    'unicorn/consistent-assert': 0, // oxlint
-    'unicorn/consistent-date-clone': 0, // oxlint
-    'unicorn/consistent-empty-array-spread': 0, // oxlint
-    'unicorn/consistent-existence-index-check': 0, // oxlint
-    'unicorn/escape-case': 0, // oxlint
-    'unicorn/no-console-spaces': 0, // oxlint
-    'unicorn/no-hex-escape': 0, // oxlint
-    'unicorn/no-instanceof-builtins': 0, // oxlint
-    'unicorn/no-lonely-if': 0, // oxlint
-    'unicorn/no-named-default': 0, // oxlint
-    'unicorn/no-negation-in-equality-check': 0, // oxlint
-    'unicorn/no-new-buffer': 0, // oxlint
-    'unicorn/no-accessor-recursion': 0, // oxlint
-    'unicorn/no-anonymous-default-export': 0, // oxlint
-    'unicorn/prefer-string-replace-all': 0, // oxlint
-    'unicorn/prefer-math-min-max': 0, // oxlint
-    'unicorn/prefer-code-point': 0, // oxlint
-    'unicorn/prefer-global-this': 0, // oxlint
-    'unicorn/error-message': 0, // oxlint
-    'unicorn/no-zero-fractions': 0, // oxlint
-    'unicorn/prefer-array-some': 0, // oxlint
-    'unicorn/prefer-math-trunc': 0, // oxlint
-    'unicorn/no-object-as-default-parameter': 0, // doesn't allow e.g method (opt = { skipValidation: true })
-    'unicorn/catch-error-name': [
-      0, // oxlint
-      {
-        name: 'err',
-        ignore: [/^err\d*$/, /^_/],
-      },
-    ],
-    'unicorn/prefer-switch': 0,
-    'unicorn/no-useless-undefined': 0,
-    'unicorn/prefer-ternary': [0, 'only-single-line'], // single-line doesn't really work, hence disabled
-    'unicorn/numeric-separators-style': [2, { onlyIfContainsSeparator: true }],
-    'unicorn/consistent-destructuring': 0, // todo: enable later
-    'unicorn/no-nested-ternary': 0,
-    'unicorn/consistent-function-scoping': 0, // todo: consider enabling later
-    'unicorn/no-this-assignment': 0,
-    'unicorn/prefer-string-slice': 0, // todo: consider?
-    'unicorn/prefer-number-properties': 0,
-    'unicorn/prefer-negative-index': 0,
-    'unicorn/prefer-regexp-test': 0,
-    'unicorn/prefer-query-selector': 0,
-    'unicorn/prefer-prototype-methods': 0, // false-positive on node promisify() of callback functions
-    'unicorn/expiring-todo-comments': 1, // warning, instead of error
-    'unicorn/no-await-in-promise-methods': 0, // oxlint
-    'unicorn/no-document-cookie': 0, // oxlint
-    'unicorn/no-empty-file': 0, // oxlint
-    'unicorn/no-invalid-fetch-options': 0, // oxlint
-    'unicorn/no-invalid-remove-event-listener': 0, // oxlint
-    'unicorn/no-magic-array-flat-depth': 0, // oxlint
-    'unicorn/no-new-array': 0, // oxlint
-    'unicorn/no-single-promise-in-promise-methods': 0, // oxlint
-    'unicorn/no-unnecessary-await': 0, // oxlint
-    'unicorn/no-useless-fallback-in-spread': 0, // oxlint
-    'unicorn/no-useless-length-check': 0, // oxlint
-    'unicorn/no-useless-spread': 0, // oxlint
-    'unicorn/prefer-array-find': 0, // oxlint
-    'unicorn/prefer-modern-math-apis': 0, // oxlint
-    'unicorn/prefer-set-size': 0, // oxlint
-    'unicorn/prefer-string-starts-ends-with': 0, // oxlint
+    // 'unicorn/prefer-import-meta-properties': 2,
+    // 'unicorn/prefer-response-static-json': 0, // ox
+    // 'unicorn/prefer-keyboard-event-key': 0, // ox
+    // 'unicorn/prefer-default-parameters': 0, // ox
+    // 'unicorn/prefer-includes': 0, // ox
+    // 'unicorn/no-array-callback-reference': 0, // false positives
+    // 'unicorn/no-process-exit': 0,
+    // 'unicorn/prefer-single-call': 0,
+    // 'unicorn/no-abusive-eslint-disable': 0,
+    // 'unicorn/no-negated-condition': 0,
+    // 'unicorn/no-unnecessary-polyfills': 0, // little value, bottleneck performance
+    // 'unicorn/no-array-method-this-argument': 0, // bug: wrongly removes`readable.flatMap` concurrency option
+    // 'unicorn/prefer-array-flat': 0, // bug: messes up with `readable.flatMap`
+    // 'unicorn/number-literal-case': 0, // conflicts with prettier
+    // 'unicorn/prevent-abbreviations': 0,
+    // 'unicorn/prefer-module': 0,
+    // 'unicorn/no-null': 0,
+    // 'unicorn/filename-case': 0,
+    // 'unicorn/prefer-node-protocol': 0, // oxlint
+    // 'unicorn/prefer-set-has': 0,
+    // 'unicorn/explicit-length-check': 0,
+    // 'unicorn/no-array-for-each': 0,
+    // 'unicorn/prefer-at': 0, // iOS 15.4+, oxlint
+    // 'unicorn/import-style': 0, // todo: fix
+    // 'unicorn/prefer-spread': 0, // fails on joiSchema.concat() which is not an array!
+    // 'unicorn/prefer-structured-clone': 0, // no real advantage, plus in most of the cases we want JSON to remove undefined, etc.
+    // 'unicorn/better-regex': 0, // we still believe that [0-9] is clearer than [\d]
+    // 'unicorn/no-for-loop': 0, // oxlint has similar
+    // 'unicorn/no-array-reduce': 0, // oxlint
+    // 'unicorn/consistent-assert': 0, // oxlint
+    // 'unicorn/consistent-date-clone': 0, // oxlint
+    // 'unicorn/consistent-empty-array-spread': 0, // oxlint
+    // 'unicorn/consistent-existence-index-check': 0, // oxlint
+    // 'unicorn/escape-case': 0, // oxlint
+    // 'unicorn/no-console-spaces': 0, // oxlint
+    // 'unicorn/no-hex-escape': 0, // oxlint
+    // 'unicorn/no-instanceof-builtins': 0, // oxlint
+    // 'unicorn/no-lonely-if': 0, // oxlint
+    // 'unicorn/no-named-default': 0, // oxlint
+    // 'unicorn/no-negation-in-equality-check': 0, // oxlint
+    // 'unicorn/no-new-buffer': 0, // oxlint
+    // 'unicorn/no-accessor-recursion': 0, // oxlint
+    // 'unicorn/no-anonymous-default-export': 0, // oxlint
+    // 'unicorn/prefer-string-replace-all': 0, // oxlint
+    // 'unicorn/prefer-math-min-max': 0, // oxlint
+    // 'unicorn/prefer-code-point': 0, // oxlint
+    // 'unicorn/prefer-global-this': 0, // oxlint
+    // 'unicorn/error-message': 0, // oxlint
+    // 'unicorn/no-zero-fractions': 0, // oxlint
+    // 'unicorn/prefer-array-some': 0, // oxlint
+    // 'unicorn/prefer-math-trunc': 0, // oxlint
+    // 'unicorn/no-object-as-default-parameter': 0, // doesn't allow e.g method (opt = { skipValidation: true })
+    // 'unicorn/catch-error-name': [
+    //   0, // oxlint
+    //   {
+    //     name: 'err',
+    //     ignore: [/^err\d*$/, /^_/],
+    //   },
+    // ],
+    // 'unicorn/prefer-switch': 0,
+    // 'unicorn/no-useless-undefined': 0,
+    // 'unicorn/prefer-ternary': [0, 'only-single-line'], // single-line doesn't really work, hence disabled
+    // 'unicorn/numeric-separators-style': [2, { onlyIfContainsSeparator: true }],
+    // 'unicorn/consistent-destructuring': 0, // todo: enable later
+    // 'unicorn/no-nested-ternary': 0,
+    // 'unicorn/consistent-function-scoping': 0, // todo: consider enabling later
+    // 'unicorn/no-this-assignment': 0,
+    // 'unicorn/prefer-string-slice': 0, // todo: consider?
+    // 'unicorn/prefer-number-properties': 0,
+    // 'unicorn/prefer-negative-index': 0,
+    // 'unicorn/prefer-regexp-test': 0,
+    // 'unicorn/prefer-query-selector': 0,
+    // 'unicorn/prefer-prototype-methods': 0, // false-positive on node promisify() of callback functions
+    // 'unicorn/expiring-todo-comments': 1, // warning, instead of error
+    // 'unicorn/no-await-in-promise-methods': 0, // oxlint
+    // 'unicorn/no-document-cookie': 0, // oxlint
+    // 'unicorn/no-empty-file': 0, // oxlint
+    // 'unicorn/no-invalid-fetch-options': 0, // oxlint
+    // 'unicorn/no-invalid-remove-event-listener': 0, // oxlint
+    // 'unicorn/no-magic-array-flat-depth': 0, // oxlint
+    // 'unicorn/no-new-array': 0, // oxlint
+    // 'unicorn/no-single-promise-in-promise-methods': 0, // oxlint
+    // 'unicorn/no-unnecessary-await': 0, // oxlint
+    // 'unicorn/no-useless-fallback-in-spread': 0, // oxlint
+    // 'unicorn/no-useless-length-check': 0, // oxlint
+    // 'unicorn/no-useless-spread': 0, // oxlint
+    // 'unicorn/prefer-array-find': 0, // oxlint
+    // 'unicorn/prefer-modern-math-apis': 0, // oxlint
+    // 'unicorn/prefer-set-size': 0, // oxlint
+    // 'unicorn/prefer-string-starts-ends-with': 0, // oxlint
     '@typescript-eslint/return-await': [2, 'always'], // ox is not good yet
     '@typescript-eslint/require-await': 0, // ox
-    'unicorn/no-array-reverse': 0, // too early
+    // 'unicorn/no-array-reverse': 0, // too early
     '@typescript-eslint/no-misused-promises': 0, // ox, but not good rule
     '@typescript-eslint/no-unsafe-assignment': 0,
     '@typescript-eslint/no-unsafe-member-access': 0,
@@ -438,16 +438,16 @@ export default {
     '@typescript-eslint/restrict-plus-operands': 0, // ox
     '@typescript-eslint/unbound-method': 0,
     '@typescript-eslint/no-unsafe-argument': 0, // prevents "legit" use of `any`
-    'unicorn/prefer-export-from': 0, // breaks auto-imports in IntelliJ Idea
-    'unicorn/require-module-specifiers': 0, // oxlint
-    'unicorn/prefer-classlist-toggle': 0, // oxlint
-    'unicorn/no-unnecessary-array-splice-count': 0, // oxlint
-    'unicorn/no-useless-error-capture-stack-trace': 0, // oxlint
-    'unicorn/prefer-top-level-await': 0, // oxlint
-    'unicorn/prefer-class-fields': 0, // oxlint
-    'unicorn/no-await-expression-member': 0, // some cases are better as-is
-    'unicorn/no-array-sort': 0,
-    'unicorn/prefer-json-parse-buffer': 0, // typescript doesn't allow it
+    // 'unicorn/prefer-export-from': 0, // breaks auto-imports in IntelliJ Idea
+    // 'unicorn/require-module-specifiers': 0, // oxlint
+    // 'unicorn/prefer-classlist-toggle': 0, // oxlint
+    // 'unicorn/no-unnecessary-array-splice-count': 0, // oxlint
+    // 'unicorn/no-useless-error-capture-stack-trace': 0, // oxlint
+    // 'unicorn/prefer-top-level-await': 0, // oxlint
+    // 'unicorn/prefer-class-fields': 0, // oxlint
+    // 'unicorn/no-await-expression-member': 0, // some cases are better as-is
+    // 'unicorn/no-array-sort': 0,
+    // 'unicorn/prefer-json-parse-buffer': 0, // typescript doesn't allow it
     'no-constructor-return': 2,
     // 'no-promise-executor-return': 2,
     'no-self-compare': 2,

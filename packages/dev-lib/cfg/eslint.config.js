@@ -7,7 +7,6 @@
 import globals from 'globals'
 import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
-import eslintPluginUnicorn from 'eslint-plugin-unicorn'
 import eslintPluginVue from 'eslint-plugin-vue'
 import eslintPluginOxlint from 'eslint-plugin-oxlint'
 import eslintPluginVitest from '@vitest/eslint-plugin'
@@ -54,11 +53,6 @@ function getEslintConfigForDir() {
       ...c,
       files: defaultFiles,
     })),
-    // https://github.com/sindresorhus/eslint-plugin-unicorn/blob/main/configs/recommended.js
-    {
-      ...eslintPluginUnicorn.configs.recommended,
-      files: defaultFiles,
-    },
     // https://eslint.vuejs.org/user-guide/#user-guide
     ...eslintPluginVue.configs['flat/recommended'].map(c => ({
       ...c,
