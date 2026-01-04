@@ -7,14 +7,10 @@
 import globals from 'globals'
 import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
-import eslintPluginVue from 'eslint-plugin-vue'
 import eslintPluginOxlint from 'eslint-plugin-oxlint'
-import eslintPluginVitest from '@vitest/eslint-plugin'
 import eslintPluginImportX from 'eslint-plugin-import-x'
 import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort'
 import eslintRules from './eslint-rules.js'
-import eslintVueRules from './eslint-vue-rules.js'
-import eslintVitestRules from './eslint-vitest-rules.js'
 import eslintPrettierRules from './eslint-prettier-rules.js'
 import eslintBiomeRules from './eslint-biome-rules.js'
 
@@ -23,7 +19,7 @@ const srcFiles = ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.cts', 'src/**/*.mts']
 const scriptsFiles = ['scripts/**/*.ts', 'scripts/**/*.tsx', 'scripts/**/*.cts', 'scripts/**/*.mts']
 const e2eFiles = ['e2e/**/*.ts', 'e2e/**/*.tsx', 'e2e/**/*.cts', 'e2e/**/*.mts']
 const allFiles = [...srcFiles, ...scriptsFiles, ...e2eFiles]
-const testFiles = ['**/*.test.ts', '**/*.test.tsx', '**/*.test.cts', '**/*.test.mts']
+// const testFiles = ['**/*.test.ts', '**/*.test.tsx', '**/*.test.cts', '**/*.test.mts']
 
 // const cwd = process.cwd()
 // const tsconfigSrcPath = `${cwd}/tsconfig.json`
@@ -54,25 +50,25 @@ function getEslintConfigForDir() {
       files: defaultFiles,
     })),
     // https://eslint.vuejs.org/user-guide/#user-guide
-    ...eslintPluginVue.configs['flat/recommended'].map(c => ({
-      ...c,
-      files: defaultFiles,
-    })),
-    {
-      files: testFiles,
-      plugins: {
-        vitest: eslintPluginVitest,
-      },
-      settings: {
-        vitest: {
-          typecheck: true,
-        },
-      },
-      rules: {
-        ...eslintPluginVitest.configs.recommended.rules,
-        ...eslintVitestRules.rules,
-      },
-    },
+    // ...eslintPluginVue.configs['flat/recommended'].map(c => ({
+    //   ...c,
+    //   files: defaultFiles,
+    // })),
+    // {
+    //   files: testFiles,
+    //   plugins: {
+    //     vitest: eslintPluginVitest,
+    //   },
+    //   settings: {
+    //     vitest: {
+    //       typecheck: true,
+    //     },
+    //   },
+    //   rules: {
+    //     ...eslintPluginVitest.configs.recommended.rules,
+    //     ...eslintVitestRules.rules,
+    //   },
+    // },
     {
       files: allFiles,
       ...getConfig(),
@@ -110,7 +106,7 @@ function getConfig(_tsconfigPath) {
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.vitest,
+        // ...globals.vitest,
         NodeJS: 'readonly',
       },
       parserOptions: {
@@ -118,7 +114,7 @@ function getConfig(_tsconfigPath) {
         projectService: true,
         // tsconfigRootDir: cwd,
         parser: tseslint.parser,
-        extraFileExtensions: ['.vue', '.html'],
+        extraFileExtensions: ['.html'],
       },
     },
     linterOptions: {
@@ -126,7 +122,7 @@ function getConfig(_tsconfigPath) {
     },
     rules: {
       ...eslintRules.rules,
-      ...eslintVueRules.rules,
+      // ...eslintVueRules.rules,
       ...eslintPrettierRules.rules, // disable eslint rules already covered by prettier
       ...eslintBiomeRules.rules, // disable eslint rules already covered by biome
       ...eslintPluginOxlint.configs['flat/all'][0].rules, // disable eslint rules already covered by oxlint

@@ -30,12 +30,10 @@
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
     "@vitest/coverage-v8": "^4",
-    "@vitest/eslint-plugin": "^1",
     "eslint": "^9",
     "eslint-plugin-import-x": "^4",
     "eslint-plugin-oxlint": "^1",
     "eslint-plugin-simple-import-sort": "^12",
-    "eslint-plugin-vue": "^10",
     "globals": "^17",
     "lint-staged": "^16",
     "micromatch": "^4",
@@ -43,8 +41,7 @@
     "oxlint": "^1",
     "oxlint-tsgolint": "*",
     "prettier": "^3",
-    "typescript-eslint": "^8",
-    "vue-eslint-parser": "^10"
+    "typescript-eslint": "^8"
   },
   "peerDependencies": {
     "husky": "^9",
