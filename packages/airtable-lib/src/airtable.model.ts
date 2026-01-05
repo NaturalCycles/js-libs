@@ -132,9 +132,9 @@ export const airtableRecordSchema: ObjectSchema<AirtableRecord> = objectSchema<A
 // j-based schemas (JSON Schema / Ajv)
 export const airtableIdJSchema = j.string()
 
-export const airtableMultipleLinkJSchema = j.array(j.string()).optional().default([])
+export const airtableMultipleLinkJSchema = j.array(j.string()).default([])
 
-export const airtableSingleLinkJSchema = j.array(j.string()).maxLength(1).optional().default([])
+export const airtableSingleLinkJSchema = j.array(j.string()).maxLength(1).default([])
 
 export const airtableThumbnailJSchema = j.object<AirtableThumbnail>({
   width: j.number().integer().min(0),
@@ -160,7 +160,7 @@ export const airtableAttachmentJSchema = j
   })
   .allowAdditionalProperties()
 
-export const airtableAttachmentsJSchema = j.array(airtableAttachmentJSchema).optional().default([])
+export const airtableAttachmentsJSchema = j.array(airtableAttachmentJSchema).default([])
 
 export const airtableRecordJSchema = j.object<AirtableRecord>({
   airtableId: airtableIdJSchema,

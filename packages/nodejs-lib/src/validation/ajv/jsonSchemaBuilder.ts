@@ -247,6 +247,11 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
    * Same as if it would be JSON.stringified.
    */
   build(): JsonSchema<IN, OUT> {
+    _assert(
+      !(this.schema.optionalField && this.schema.default !== undefined),
+      '.optional() and .default() should not be used together - the default value makes .optional() redundant and causes incorrect type inference',
+    )
+
     const jsonSchema = _sortObject(
       JSON.parse(JSON.stringify(this.schema)),
       JSON_SCHEMA_ORDER,
