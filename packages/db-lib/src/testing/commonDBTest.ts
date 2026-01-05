@@ -10,7 +10,7 @@ import {
   createTestItemDBM,
   createTestItemsDBM,
   TEST_TABLE,
-  testItemBMJsonSchema,
+  testItemBMSchema,
 } from './test.model.js'
 
 /**
@@ -49,7 +49,7 @@ export async function runCommonDBTest(
   // CREATE TABLE, DROP
   if (support.createTable) {
     test('createTable, dropIfExists=true', async () => {
-      await db.createTable(TEST_TABLE, testItemBMJsonSchema, { dropIfExists: true })
+      await db.createTable(TEST_TABLE, testItemBMSchema.build(), { dropIfExists: true })
     })
   }
 

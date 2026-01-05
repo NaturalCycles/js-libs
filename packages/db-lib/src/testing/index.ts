@@ -10,7 +10,6 @@ import {
   createTestItemsBM,
   createTestItemsDBM,
   TEST_TABLE,
-  testItemBMJsonSchema,
   testItemBMSchema,
   testItemTMSchema,
 } from './test.model.js'
@@ -27,7 +26,6 @@ export {
   runCommonKeyValueDaoTest,
   runCommonKeyValueDBTest,
   TEST_TABLE,
-  testItemBMJsonSchema,
   testItemBMSchema,
   testItemTMSchema,
 }

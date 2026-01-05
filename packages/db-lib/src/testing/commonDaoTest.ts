@@ -1,20 +1,14 @@
 import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _deepCopy, _filterObject, _omit, _pick } from '@naturalcycles/js-lib/object'
-import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'
+import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { CommonDao } from '../commondao/common.dao.js'
 import type { CommonDB } from '../commondb/common.db.js'
 import { DBQuery } from '../query/dbQuery.js'
 import type { CommonDBImplementationQuirks } from './commonDBTest.js'
 import type { TestItemBM } from './test.model.js'
-import {
-  createTestItemBM,
-  createTestItemsBM,
-  TEST_TABLE,
-  testItemBMJsonSchema,
-  testItemBMSchema,
-} from './test.model.js'
+import { createTestItemBM, createTestItemsBM, TEST_TABLE, testItemBMSchema } from './test.model.js'
 
 export async function runCommonDaoTest(
   db: CommonDB,
@@ -27,7 +21,7 @@ export async function runCommonDaoTest(
   const dao = new CommonDao({
     table: TEST_TABLE,
     db,
-    validateBM: getJoiValidationFunction(testItemBMSchema),
+    validateBM: AjvSchema.create(testItemBMSchema).getValidationFunction(),
   })
 
   const items = createTestItemsBM(3)
@@ -47,7 +41,7 @@ export async function runCommonDaoTest(
   // CREATE TABLE, DROP
   if (support.createTable) {
     test('createTable, dropIfExists=true', async () => {
-      await dao.createTable(testItemBMJsonSchema, { dropIfExists: true })
+      await dao.createTable(testItemBMSchema.build(), { dropIfExists: true })
     })
   }
 

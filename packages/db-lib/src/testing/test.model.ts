@@ -1,15 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
-import {
-  baseDBEntitySchema,
-  binarySchema,
-  booleanSchema,
-  numberSchema,
-  type ObjectSchema,
-  objectSchema,
-  stringSchema,
-} from '@naturalcycles/nodejs-lib/joi'
 
 const MOCK_TS_2018_06_21 = 1529539200 as UnixTimestamp
 
@@ -34,36 +25,23 @@ export interface TestItemTM {
   even?: boolean
 }
 
-export const testItemBMSchema: ObjectSchema<TestItemBM> = objectSchema<TestItemBM>({
-  k1: stringSchema,
-  k2: stringSchema.allow(null).optional(),
-  k3: numberSchema.optional(),
-  even: booleanSchema.optional(),
-  b1: binarySchema.optional(),
-  nested: objectSchema({
-    foo: numberSchema,
-  }).optional(),
-}).concat(baseDBEntitySchema as any)
-
-export const testItemTMSchema: ObjectSchema<TestItemTM> = objectSchema<TestItemTM>({
-  k1: stringSchema,
-  even: booleanSchema.optional(),
+export const testItemTMSchema = j.object<TestItemTM>({
+  k1: j.string(),
+  even: j.boolean().optional(),
 })
 
-export const testItemBMJsonSchema = j.object
-  .dbEntity<TestItemBM>({
-    // todo: figure out how to not copy-paste these 3 fields
-    id: j.string(), // todo: not strictly needed here
-    created: j.number().integer().unixTimestamp(),
-    updated: j.number().integer().unixTimestamp(),
-    k1: j.string(),
-    k2: j.string().nullable().optional(),
-    k3: j.number().optional(),
-    even: j.boolean().optional(),
-    b1: j.buffer().optional(),
-    nested: j.object.infer({ foo: j.number() }).optional(),
-  })
-  .build()
+export const testItemBMSchema = j.object.dbEntity<TestItemBM>({
+  // todo: figure out how to not copy-paste these 3 fields
+  id: j.string(), // todo: not strictly needed here
+  created: j.number().integer().unixTimestamp(),
+  updated: j.number().integer().unixTimestamp(),
+  k1: j.string(),
+  k2: j.string().nullable().optional(),
+  k3: j.number().optional(),
+  even: j.boolean().optional(),
+  b1: j.buffer().optional(),
+  nested: j.object.infer({ foo: j.number() }).optional(),
+})
 
 export function createTestItemDBM(num = 1): TestItemDBM {
   return {
