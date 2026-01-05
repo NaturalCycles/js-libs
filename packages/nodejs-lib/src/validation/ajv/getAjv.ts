@@ -21,6 +21,9 @@ const AJV_OPTIONS: Options = {
   // these are important and kept same as default:
   // https://ajv.js.org/options.html#coercetypes
   coerceTypes: false, // while `false` - it won't mutate your input
+  strictTypes: true,
+  strictTuples: true,
+  allowUnionTypes: true, // supports oneOf/anyOf schemas
 }
 
 const AJV_NON_MUTATING_OPTIONS: Options = {
