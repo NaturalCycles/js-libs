@@ -910,6 +910,20 @@ describe('string', () => {
         expect(err, String(url)).not.toBeNull()
       })
     })
+
+    test('should reject internationalized domain names (IDN)', () => {
+      // IDNs are not supported because JSON Schema patterns don't support regex flags,
+      // and the unicode flag is required to match non-ASCII characters.
+      // Use punycode encoding (e.g., https://xn--mnchen-3ya.de) instead.
+      const idnCases = ['https://münchen.de', 'https://日本.jp', 'https://中国.cn']
+      const schema = j.string().url()
+      const ajvSchema = AjvSchema.create(schema)
+
+      idnCases.forEach(url => {
+        const [err] = ajvSchema.getValidationResult(url)
+        expect(err, `IDN URL should be rejected: ${url}`).not.toBeNull()
+      })
+    })
   })
 
   describe('ipv4', () => {

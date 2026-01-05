@@ -24,3 +24,8 @@ export const LANGUAGE_TAG_REGEX = /^[a-z]{2}(-[A-Z]{2})?$/
 export const MAC_ADDRESS_REGEX = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/
 export const SEMVER_REGEX = /^[0-9]+\.[0-9]+\.[0-9]+$/
 export const SLUG_REGEX = /^[a-z0-9-]+$/
+// URL regex based on `ajv-formats`, but without flags for JSON Schema compatibility.
+// Uses [a-zA-Z] instead of [a-z] with i flag. Simplified to not require unicode flag.
+// Without the unicode flag - it DOES NOT support urls like https://münchen.de
+export const URL_REGEX =
+  /^(?:https?|ftp):\/\/(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-zA-Z0-9]+-)*[a-zA-Z0-9]+)(?:\.(?:[a-zA-Z0-9]+-)*[a-zA-Z0-9]+)*(?:\.(?:[a-zA-Z]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/

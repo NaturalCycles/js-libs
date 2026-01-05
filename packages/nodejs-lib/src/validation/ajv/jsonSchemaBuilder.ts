@@ -36,6 +36,7 @@ import {
   LANGUAGE_TAG_REGEX,
   SEMVER_REGEX,
   SLUG_REGEX,
+  URL_REGEX,
   UUID_REGEX,
 } from '../regexes.js'
 import { TIMEZONES } from '../timezones.js'
@@ -405,6 +406,10 @@ export class JsonSchemaStringBuilder<
   }
 
   regex(pattern: RegExp, opt?: JsonBuilderRuleOpt): this {
+    _assert(
+      !pattern.flags,
+      `Regex flags are not supported by JSON Schema. Received: /${pattern.source}/${pattern.flags}`,
+    )
     return this.pattern(pattern.source, opt)
   }
 
@@ -490,10 +495,7 @@ export class JsonSchemaStringBuilder<
   }
 
   url(): this {
-    // from `ajv-formats`
-    const regex =
-      /^(?:https?|ftp):\/\/(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u{00A1}-\u{FFFF}]+-)*[a-z0-9\u{00A1}-\u{FFFF}]+)(?:\.(?:[a-z0-9\u{00A1}-\u{FFFF}]+-)*[a-z0-9\u{00A1}-\u{FFFF}]+)*(?:\.(?:[a-z\u{00A1}-\u{FFFF}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu
-    return this.regex(regex, { msg: 'is not a valid URL format' })
+    return this.regex(URL_REGEX, { msg: 'is not a valid URL format' })
   }
 
   ipv4(): this {
@@ -1353,6 +1355,12 @@ function withRegexKeys<
   Opt extends true ? StringMap<SchemaOut<S>> : StringMap<SchemaOut<S>>,
   false
 > {
+  if (keyRegex instanceof RegExp) {
+    _assert(
+      !keyRegex.flags,
+      `Regex flags are not supported by JSON Schema. Received: /${keyRegex.source}/${keyRegex.flags}`,
+    )
+  }
   const pattern = keyRegex instanceof RegExp ? keyRegex.source : keyRegex
   const jsonSchema = schema.build()
 
