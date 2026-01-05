@@ -1,14 +1,6 @@
 import type { ValidationFunction } from '@naturalcycles/js-lib'
 import type { AppError } from '@naturalcycles/js-lib/error'
-import { j } from '@naturalcycles/nodejs-lib/ajv'
-import type { ArraySchema, ObjectSchema } from '@naturalcycles/nodejs-lib/joi'
-import {
-  arraySchema,
-  integerSchema,
-  objectSchema,
-  stringSchema,
-  urlSchema,
-} from '@naturalcycles/nodejs-lib/joi'
+import { j, type JsonSchemaAnyBuilder } from '@naturalcycles/nodejs-lib/ajv'
 import type { AirtableApiSort } from './airtable.api.js'
 
 export enum AirtableErrorCode {
@@ -18,14 +10,6 @@ export enum AirtableErrorCode {
 // oxlint-disable no-unused-vars
 export type AirtableId<T = any> = string
 // oxlint-enable
-
-export const airtableIdSchema = stringSchema // todo: apply certain restrictions
-
-export const airtableMultipleLinkSchema = <T>(): ArraySchema<AirtableId<T>[]> =>
-  arraySchema<AirtableId<T>>(airtableIdSchema).optional().default([])
-
-export const airtableSingleLinkSchema = <T>(): ArraySchema<AirtableId<T>[]> =>
-  airtableMultipleLinkSchema<T>().max(1)
 
 /* Example:
 
@@ -65,13 +49,6 @@ export interface AirtableThumbnail {
   url: string
 }
 
-export const airtableThumbnailSchema: ObjectSchema<AirtableThumbnail> =
-  objectSchema<AirtableThumbnail>({
-    width: integerSchema.min(0),
-    height: integerSchema.min(0),
-    url: urlSchema(),
-  })
-
 export interface AirtableAttachment {
   id: string
   url: string
@@ -85,26 +62,6 @@ export interface AirtableAttachmentUpload {
   url: string
   filename?: string
 }
-
-export const airtableAttachmentSchema: ObjectSchema<AirtableAttachment> =
-  objectSchema<AirtableAttachment>({
-    id: stringSchema,
-    url: urlSchema(),
-    filename: stringSchema,
-    size: integerSchema.optional(),
-    type: stringSchema.optional(),
-    thumbnails: objectSchema({
-      full: airtableThumbnailSchema,
-      large: airtableThumbnailSchema,
-      small: airtableThumbnailSchema,
-    })
-      .options({ stripUnknown: false })
-      .optional(),
-  }).options({ stripUnknown: false })
-
-export const airtableAttachmentsSchema = arraySchema<AirtableAttachment>(airtableAttachmentSchema)
-  .optional()
-  .default([])
 
 export interface AirtableLibCfg {
   apiKey: string
@@ -124,25 +81,23 @@ export interface AirtableRecord {
   // id: string
 }
 
-export const airtableRecordSchema: ObjectSchema<AirtableRecord> = objectSchema<AirtableRecord>({
-  airtableId: airtableIdSchema,
-  // id: stringSchema,
-})
+export const airtableIdSchema = j.string()
 
-// j-based schemas (JSON Schema / Ajv)
-export const airtableIdJSchema = j.string()
+export function airtableMultipleLinkSchema<T = any>(): JsonSchemaAnyBuilder<T[], T[], false> {
+  return j.array(j.string()).default([]).castAs<T[]>()
+}
 
-export const airtableMultipleLinkJSchema = j.array(j.string()).default([])
+export function airtableSingleLinkSchema<T = any>(): JsonSchemaAnyBuilder<T[], T[], false> {
+  return j.array(j.string()).maxLength(1).default([]).castAs<T[]>()
+}
 
-export const airtableSingleLinkJSchema = j.array(j.string()).maxLength(1).default([])
-
-export const airtableThumbnailJSchema = j.object<AirtableThumbnail>({
+export const airtableThumbnailSchema = j.object<AirtableThumbnail>({
   width: j.number().integer().min(0),
   height: j.number().integer().min(0),
   url: j.string().url(),
 })
 
-export const airtableAttachmentJSchema = j
+export const airtableAttachmentSchema = j
   .object<AirtableAttachment>({
     id: j.string(),
     url: j.string().url(),
@@ -151,20 +106,16 @@ export const airtableAttachmentJSchema = j
     type: j.string().optional(),
     thumbnails: j
       .object<AirtableThumbnails>({
-        full: airtableThumbnailJSchema,
-        large: airtableThumbnailJSchema,
-        small: airtableThumbnailJSchema,
+        full: airtableThumbnailSchema,
+        large: airtableThumbnailSchema,
+        small: airtableThumbnailSchema,
       })
       .allowAdditionalProperties()
       .optional(),
   })
   .allowAdditionalProperties()
 
-export const airtableAttachmentsJSchema = j.array(airtableAttachmentJSchema).default([])
-
-export const airtableRecordJSchema = j.object<AirtableRecord>({
-  airtableId: airtableIdJSchema,
-})
+export const airtableAttachmentsSchema = j.array(airtableAttachmentSchema).default([])
 
 export interface AirtableDaoSaveOptions extends AirtableDaoOptions {
   /**
