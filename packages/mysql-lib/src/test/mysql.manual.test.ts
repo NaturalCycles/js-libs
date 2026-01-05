@@ -7,7 +7,7 @@ import {
   runCommonDaoTest,
   runCommonDBTest,
   TEST_TABLE,
-  testItemBMJsonSchema,
+  testItemBMSchema,
 } from '@naturalcycles/db-lib/testing'
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
@@ -37,7 +37,7 @@ const db = new MysqlDB({
 })
 
 beforeAll(async () => {
-  await db.createTable(TEST_TABLE, testItemBMJsonSchema, { dropIfExists: true })
+  await db.createTable(TEST_TABLE, testItemBMSchema.build(), { dropIfExists: true })
 })
 
 afterAll(async () => {
@@ -56,7 +56,7 @@ test('getTableSchema', async () => {
   // console.log(await db.getTables())
   const schema = await db.getTableSchema(TEST_TABLE)
   console.log(schema)
-  expect(testItemBMJsonSchema).toMatchObject(schema)
+  expect(testItemBMSchema.build()).toMatchObject(schema)
 })
 
 test('saveBatch overwrite', async () => {
@@ -88,7 +88,7 @@ test('fieldName with dot', async () => {
   const table = TEST_TABLE + '2'
 
   const items = createTestItemsDBM(5).map(r => ({ ...r, [fieldName]: 'vv' }))
-  const schema = testItemBMJsonSchema
+  const schema = testItemBMSchema.build()
   ;(schema.properties as Record<string, JsonSchema>)[fieldName] = { type: 'string' }
 
   await db.createTable(table, schema, { dropIfExists: true })
@@ -105,7 +105,7 @@ test('buffer', async () => {
 
   const items = createTestItemsDBM(5).map(r => ({ ...r, extra }))
 
-  const schema = testItemBMJsonSchema
+  const schema = testItemBMSchema.build()
   ;(schema.properties as Record<string, JsonSchema>)['extra'] = {
     type: 'object',
     instanceof: 'Buffer',
@@ -123,7 +123,7 @@ test('stringify objects', async () => {
   const item = createTestItemsDBM(1)[0]!
   item.k1 = { some: 'obj', c: 'd', e: 5 } as any
 
-  await db.createTable(TEST_TABLE, testItemBMJsonSchema, { dropIfExists: true })
+  await db.createTable(TEST_TABLE, testItemBMSchema.build(), { dropIfExists: true })
   await db.saveBatch(TEST_TABLE, [item])
   const { rows } = await db.runQuery(new DBQuery(TEST_TABLE))
   // console.log(rows)
