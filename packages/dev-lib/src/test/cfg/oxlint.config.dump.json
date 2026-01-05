@@ -4,6 +4,14 @@
   "jsPlugins": ["./oxlint-plugin-stylistic.mjs"],
   "categories": {},
   "rules": {
+    "complexity": [
+      "deny",
+      [
+        {
+          "max": 40
+        }
+      ]
+    ],
     "constructor-super": "warn",
     "curly": ["deny", ["multi-line"]],
     "eqeqeq": ["deny", ["smart"]],
@@ -444,9 +452,11 @@
       ]
     ],
     "vitest/consistent-test-filename": "deny",
+    "vitest/consistent-vitest-vi": "deny",
     "vitest/no-conditional-tests": "warn",
     "vitest/no-import-node-test": "deny",
-    "vitest/require-local-test-context-for-concurrent-snapshots": "warn"
+    "vitest/require-local-test-context-for-concurrent-snapshots": "warn",
+    "vitest/warn-todo": "allow"
   },
   "settings": {
     "jsx-a11y": {

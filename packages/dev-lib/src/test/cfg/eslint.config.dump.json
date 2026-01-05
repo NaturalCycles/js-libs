@@ -103,12 +103,6 @@
     "@typescript-eslint/prefer-find": [2],
     "@typescript-eslint/prefer-string-starts-ends-with": [2],
     "@typescript-eslint/return-await": [2, "always"],
-    "complexity": [
-      2,
-      {
-        "max": 40
-      }
-    ],
     "id-denylist": [
       2,
       "any",

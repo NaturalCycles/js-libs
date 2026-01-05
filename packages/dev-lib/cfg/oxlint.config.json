@@ -21,6 +21,7 @@
       { "blankLine": "always", "prev": "*", "next": "class" }
     ],
     "@stylistic/lines-between-class-members": [2, "always", { "exceptAfterSingleLine": true }],
+    "complexity": [2, { "max": 40 }],
     "no-this-alias": 0,
     "no-async-promise-executor": 0,
     "no-standalone-expect": 0,
@@ -262,6 +263,7 @@
       }
     ],
     "vitest/no-duplicate-hooks": 2,
+    "vitest/consistent-vitest-vi": 2,
     "vitest/no-focused-tests": 2,
     "vitest/no-identical-title": 2,
     "vitest/no-test-return-statement": 2,
@@ -278,6 +280,7 @@
     "vitest/prefer-to-be": 2,
     "vitest/prefer-to-contain": 2,
     "vitest/consistent-test-filename": 2,
+    "vitest/warn-todo": 0,
     "jest/consistent-test-it": [
       2,
       {

@@ -167,7 +167,7 @@ function printComparisonTable(avg: HertzMap, baselineName?: string): void {
   console.log()
 }
 
-export function formatNumber(n: number): string {
+function formatNumber(n: number): string {
   return Math.round(n).toLocaleString('en-US')
 }
 

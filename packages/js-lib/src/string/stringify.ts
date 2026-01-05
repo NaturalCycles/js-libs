@@ -1,3 +1,4 @@
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { _isBackendErrorResponseObject, _isErrorLike, _isErrorObject } from '../error/error.util.js'
 import type { ErrorLike } from '../error/index.js'
 import type { Reviver } from '../types.js'

@@ -39,6 +39,7 @@ import { PIPELINE_GRACEFUL_ABORT } from './stream.util.js'
 import { transformChunk } from './transform/transformChunk.js'
 import { transformFilterSync } from './transform/transformFilter.js'
 import { transformFlatten, transformFlattenIfNeeded } from './transform/transformFlatten.js'
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { transformFork } from './transform/transformFork.js'
 import { transformLimit } from './transform/transformLimit.js'
 import {

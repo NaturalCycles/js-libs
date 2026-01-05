@@ -1,4 +1,5 @@
 import { isServerSide } from '../env.js'
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { _jsonParseIfPossible } from '../string/json.util.js'
 import { _truncate, _truncateMiddle } from '../string/string.util.js'
 import { _stringify } from '../string/stringify.js'
