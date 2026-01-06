@@ -12,6 +12,22 @@ import type {
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import { j } from './jsonSchemaBuilder.js'
 
+describe('any', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.any()
+    expectTypeOf(schema1).not.toBeNever()
+
+    expectTypeOf(schema1.in).toEqualTypeOf<any>()
+
+    expectTypeOf(schema1.out).toEqualTypeOf<any>()
+  })
+
+  test('should produce an empty schema', () => {
+    const schema = j.any().build()
+    expect(schema).toEqual({})
+  })
+})
+
 describe('string', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.string()

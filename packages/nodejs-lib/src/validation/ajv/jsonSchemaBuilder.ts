@@ -49,6 +49,14 @@ import {
 } from './jsonSchemaBuilder.util.js'
 
 export const j = {
+  /**
+   * Matches literally any value - equivalent to TypeScript's `any` type.
+   * Use sparingly, as it bypasses type validation entirely.
+   */
+  any(): JsonSchemaAnyBuilder<any, any, false> {
+    return new JsonSchemaAnyBuilder({})
+  },
+
   string(): JsonSchemaStringBuilder<string, string, false> {
     return new JsonSchemaStringBuilder()
   },
