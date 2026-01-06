@@ -869,36 +869,30 @@ export class JsonSchemaObjectBuilder<
   extend<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
     props: P,
   ): JsonSchemaObjectBuilder<
-    IN & {
-      // required keys
-      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? never
-          : K
-        : never]: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
-    } & {
-      // optional keys
-      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? K
-          : never
-        : never]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
-    },
-    OUT & {
-      // required keys
-      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? never
-          : K
-        : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
-    } & {
-      // optional keys
-      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? K
-          : never
-        : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
-    },
+    RelaxIndexSignature<
+      IN & {
+        [K in keyof P]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
+      }
+    >,
+    AllowExtraKeys<
+      RelaxIndexSignature<
+        OUT & {
+          // required keys
+          [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+            ? IsOpt extends true
+              ? never
+              : K
+            : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+        } & {
+          // optional keys
+          [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+            ? IsOpt extends true
+              ? K
+              : never
+            : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+        }
+      >
+    >,
     false
   > {
     const newBuilder = new JsonSchemaObjectBuilder()
@@ -1445,12 +1439,49 @@ function withEnumKeys<
 
 type Expand<T> = { [K in keyof T]: T[K] }
 
-type ExactMatch<A, B> =
-  (<T>() => T extends Expand<A> ? 1 : 2) extends <T>() => T extends Expand<B> ? 1 : 2
-    ? (<T>() => T extends Expand<B> ? 1 : 2) extends <T>() => T extends Expand<A> ? 1 : 2
+type StripIndexSignatureDeep<T> = T extends readonly unknown[]
+  ? T
+  : T extends Record<string, any>
+    ? {
+        [K in keyof T as string extends K
+          ? never
+          : number extends K
+            ? never
+            : symbol extends K
+              ? never
+              : K]: StripIndexSignatureDeep<T[K]>
+      }
+    : T
+
+type RelaxIndexSignature<T> = T extends readonly unknown[]
+  ? T
+  : T extends AnyObject
+    ? string extends keyof T
+      ? any
+      : { [K in keyof T]: RelaxIndexSignature<T[K]> }
+    : T
+
+declare const allowExtraKeysSymbol: unique symbol
+
+type AllowExtraKeys<T> = T & { readonly [allowExtraKeysSymbol]?: true }
+
+type HasAllowExtraKeys<T> = T extends { readonly [allowExtraKeysSymbol]?: true } ? true : false
+
+type IsAssignableRelaxed<A, B> = [RelaxIndexSignature<A>] extends [B] ? true : false
+
+type ExactMatchBase<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
+    ? (<T>() => T extends B ? 1 : 2) extends <T>() => T extends A ? 1 : 2
       ? true
       : false
     : false
+
+type ExactMatch<A, B> =
+  HasAllowExtraKeys<B> extends true
+    ? IsAssignableRelaxed<B, A>
+    : ExactMatchBase<Expand<A>, Expand<B>> extends true
+      ? true
+      : ExactMatchBase<Expand<StripIndexSignatureDeep<A>>, Expand<StripIndexSignatureDeep<B>>>
 
 type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
