@@ -2701,6 +2701,31 @@ describe('object', () => {
     })
   })
 
+  describe('.exclusiveProperties', () => {
+    test('should accept a valid object', () => {
+      const schema = j
+        .object<{ foo?: string; bar?: string; shu?: string }>({
+          foo: j.string().optional(),
+          bar: j.string().optional(),
+          shu: j.string().optional(),
+        })
+        .exclusiveProperties(['foo', 'bar'])
+      const ajvSchema = AjvSchema.create(schema)
+
+      const testCases = [{}, { foo: 'foo' }, { bar: 'bar' }, { foo: 'foo', shu: 'shu' }]
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [{ foo: 'foo', bar: 'bar' }, 0, 'abcd', true, []]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
+  })
+
   describe('.record', () => {
     test('should correctly infer the type', () => {
       type B = Branded<string, 'B'>

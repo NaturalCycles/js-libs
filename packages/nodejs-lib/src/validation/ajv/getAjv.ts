@@ -513,6 +513,35 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
+  ajv.addKeyword({
+    keyword: 'exclusiveProperties',
+    type: 'object',
+    modifying: false,
+    errors: true,
+    schemaType: 'array',
+    validate: function validate(exclusiveProperties: string[][], data: AnyObject, _schema, ctx) {
+      if (typeof data !== 'object') return true
+
+      for (const props of exclusiveProperties) {
+        let numberOfDefinedProperties = 0
+        for (const prop of props) {
+          if (data[prop] !== undefined) numberOfDefinedProperties++
+          if (numberOfDefinedProperties > 1) {
+            ;(validate as any).errors = [
+              {
+                instancePath: ctx?.instancePath ?? '',
+                message: `must have only one of the "${props.join(', ')}" properties`,
+              },
+            ]
+            return false
+          }
+        }
+      }
+
+      return true
+    },
+  })
+
   return ajv
 }
 

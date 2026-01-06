@@ -958,6 +958,11 @@ export class JsonSchemaObjectBuilder<
   maxProperties(maxProperties: number): this {
     return this.cloneAndUpdateSchema({ maxProperties })
   }
+
+  exclusiveProperties(propNames: readonly (keyof IN & string)[]): this {
+    const exclusiveProperties = this.schema.exclusiveProperties ?? []
+    return this.cloneAndUpdateSchema({ exclusiveProperties: [...exclusiveProperties, propNames] })
+  }
 }
 
 interface JsonSchemaObjectBuilderOpts {
@@ -1272,6 +1277,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   optionalValues?: (string | number | boolean)[]
   keySchema?: JsonSchema
   minProperties2?: number
+  exclusiveProperties?: (readonly string[])[]
 }
 
 function object(props: AnyObject): never
