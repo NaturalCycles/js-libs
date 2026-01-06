@@ -2348,7 +2348,38 @@ describe('object', () => {
       )
     })
 
-    test('should be able to extend object properties', () => {
+    test('should accept a valid object', () => {
+      interface Foo {
+        foo: string | null
+        bar: number
+      }
+      const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
+      const schema2 = schema1.extend({ bar: j.number() }).isOfType<Foo>()
+      const ajvSchema = AjvSchema.create(schema2)
+
+      const testCases = [{ foo: 'foo', bar: 1 }]
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [
+        { foo: 'foo' },
+        { bar: 1 },
+        {},
+        0,
+        'abcd',
+        true,
+        [],
+        { abc: 'abc', def: 'def' },
+      ]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
+
+    test('should work with property narrowing', () => {
       interface Base {
         foo: string | null
         bar: AnyObject
@@ -2363,14 +2394,43 @@ describe('object', () => {
           shu: number
         }
       }
-      const schema2 = schema1.extend({ shu: j.number() }).isOfType<Extended>()
+      const schema2 = schema1
+        .extend({ bar: j.object<{ shu: number }>({ shu: j.number() }) })
+        .isOfType<Extended>()
 
-      const [, result] = AjvSchema.create(schema2).getValidationResult({
+      const ajvSchema = AjvSchema.create(schema2)
+
+      const [, result] = ajvSchema.getValidationResult({
         foo: 'asdf',
-        bar: 0,
+        bar: { shu: 0 },
       })
 
       expectTypeOf(result).toExtend<Extended>()
+      expectTypeOf(result).not.toEqualTypeOf<Base>()
+
+      const testCases = [{ foo: 'foo', bar: { shu: 1 } }]
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [
+        { foo: 'foo', bar: { boo: 'bah' } },
+        { foo: 'foo', bar: {} },
+        { foo: 'foo', bar: 0 },
+        { foo: 'foo' },
+        { bar: 1 },
+        {},
+        0,
+        'abcd',
+        true,
+        [],
+        { abc: 'abc', def: 'def' },
+      ]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
     })
   })
 

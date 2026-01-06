@@ -870,27 +870,33 @@ export class JsonSchemaObjectBuilder<
     props: P,
   ): JsonSchemaObjectBuilder<
     RelaxIndexSignature<
-      IN & {
-        [K in keyof P]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
-      }
+      Override<
+        IN,
+        {
+          [K in keyof P]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
+        }
+      >
     >,
     AllowExtraKeys<
       RelaxIndexSignature<
-        OUT & {
-          // required keys
-          [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-            ? IsOpt extends true
-              ? never
-              : K
-            : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
-        } & {
-          // optional keys
-          [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-            ? IsOpt extends true
-              ? K
-              : never
-            : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
-        }
+        Override<
+          OUT,
+          {
+            // required keys
+            [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+              ? IsOpt extends true
+                ? never
+                : K
+              : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+          } & {
+            // optional keys
+            [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+              ? IsOpt extends true
+                ? K
+                : never
+              : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+          }
+        >
       >
     >,
     false
@@ -1460,6 +1466,8 @@ type RelaxIndexSignature<T> = T extends readonly unknown[]
       ? any
       : { [K in keyof T]: RelaxIndexSignature<T[K]> }
     : T
+
+type Override<T, U> = Omit<T, keyof U> & U
 
 declare const allowExtraKeysSymbol: unique symbol
 
