@@ -36,7 +36,8 @@ const commands: Command[] = [
   { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (via oxlint) and then "test".' },
   {
     name: 'typecheck',
-    fn: typecheckWithOxlint,
+    // fn: typecheckWithOxlint,
+    fn: typecheckWithTSC, // todo: attempt tsgo
     desc: 'Run typecheck via oxlint --type-aware',
   },
   {
@@ -183,6 +184,7 @@ runScript(async () => {
 
 async function check(): Promise<void> {
   await lintAllCommand()
+  await typecheckWithTSC() // unfortunately still needed since oxlint doesn't catch all ts errors
   runTest()
 }
 
@@ -192,17 +194,21 @@ async function quickCheck(): Promise<void> {
 }
 
 async function bt(): Promise<void> {
-  await typecheckWithOxlint()
+  // Still using tsc, as oxlint is found to fail in certain cases
+  // todo: attempt to use tsgo!
+  // await typecheckWithOxlint()
+  await typecheckWithTSC()
   runTest()
 }
 
-async function typecheckWithOxlint(): Promise<void> {
+async function _typecheckWithOxlint(): Promise<void> {
   requireOxlintConfig()
   const fix = !CI
   runOxlint(fix)
 }
 
 async function typecheckWithTSC(): Promise<void> {
+  // todo: try tsgo
   await runTSCInFolders(['src', 'scripts', 'e2e'], ['--noEmit'])
 }
 
