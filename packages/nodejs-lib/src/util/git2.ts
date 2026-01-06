@@ -60,6 +60,15 @@ class Git2 {
     return Number(stdout) > 0
   }
 
+  fetch(): void {
+    const cmd = 'git fetch'
+    try {
+      execSync(cmd, {
+        stdio: 'inherit',
+      })
+    } catch {}
+  }
+
   pull(): void {
     const cmd = 'git pull'
     try {
