@@ -2347,6 +2347,31 @@ describe('object', () => {
         'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
       )
     })
+
+    test('should be able to extend object properties', () => {
+      interface Base {
+        foo: string | null
+        bar: AnyObject
+      }
+      const schema1 = j.object<Base>({
+        foo: j.string().nullable(),
+        bar: j.object.any(),
+      })
+
+      interface Extended extends Base {
+        bar: {
+          shu: number
+        }
+      }
+      const schema2 = schema1.extend({ shu: j.number() }).isOfType<Extended>()
+
+      const [, result] = AjvSchema.create(schema2).getValidationResult({
+        foo: 'asdf',
+        bar: 0,
+      })
+
+      expectTypeOf(result).toExtend<Extended>()
+    })
   })
 
   describe('concat', () => {
