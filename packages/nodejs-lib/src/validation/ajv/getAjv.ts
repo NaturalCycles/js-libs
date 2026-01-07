@@ -1,5 +1,5 @@
 import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
-import { Set2 } from '@naturalcycles/js-lib/object'
+import { _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { Ajv2020, type Options, type ValidateFunction } from 'ajv/dist/2020.js'
@@ -8,6 +8,7 @@ import type {
   JsonSchemaIsoDateOptions,
   JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
+  JsonSchemaTerminal,
 } from './jsonSchemaBuilder.js'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
@@ -539,6 +540,44 @@ export function createAjv(opt?: Options): Ajv2020 {
       }
 
       return true
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'anyOfBy',
+    type: 'object',
+    modifying: true,
+    errors: false,
+    schemaType: 'object',
+    compile(config, _parentSchema, _it) {
+      const { propertyName, schemaDictionary } = config
+
+      const isValidFnByKey: Record<any, ValidateFunction> = _mapObject(
+        schemaDictionary as Record<any, JsonSchemaTerminal<any, any, any>>,
+        (key, value) => {
+          return [key, ajv.compile(value)]
+        },
+      )
+
+      function validate(data: AnyObject, ctx: any): boolean {
+        if (typeof data !== 'object' || data === null) return true
+
+        const determinant = data[propertyName]
+        const isValidFn = isValidFnByKey[determinant]
+        if (!isValidFn) {
+          ;(validate as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message: `could not find a suitable schema to validate against based on "${propertyName}"`,
+            },
+          ]
+          return false
+        }
+
+        return isValidFn(data)
+      }
+
+      return validate
     },
   })
 

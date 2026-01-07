@@ -3287,6 +3287,19 @@ describe('oneOf', () => {
     const [err] = AjvSchema.create(schema).getValidationResult('hello')
     expect(err).not.toBeNull()
   })
+
+  test('should work with complex values', () => {
+    const schema1 = j.object<{ data: { foo: string; bar: number } }>({
+      data: j.object.infer({ foo: j.string(), bar: j.number() }),
+    })
+    const schema2 = j.object<{ data: { foo: string; shu: number } }>({
+      data: j.object.infer({ foo: j.string(), shu: j.number() }),
+    })
+
+    expect(() => j.oneOf([schema1, schema2])).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: Do not use \`oneOf\` validation with non-primitive types!]`,
+    )
+  })
 })
 
 describe('anyOf', () => {
@@ -3323,6 +3336,86 @@ describe('anyOf', () => {
     // 'hello' matches both schemas, anyOf accepts it (unlike oneOf)
     const [err] = AjvSchema.create(schema).getValidationResult('hello')
     expect(err).toBeNull()
+  })
+
+  test('should not work with complex values', () => {
+    const schema1 = j.object<{ data: { foo: string; bar: number } }>({
+      data: j.object.infer({ foo: j.string(), bar: j.number() }),
+    })
+    const schema2 = j.object<{ data: { foo: string; shu: number } }>({
+      data: j.object.infer({ foo: j.string(), shu: j.number() }),
+    })
+
+    expect(() => j.anyOf([schema1, schema2])).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: Do not use \`anyOf\` validation with non-primitive types!]`,
+    )
+  })
+})
+
+describe('anyOfBy', () => {
+  enum Foo {
+    A = 1,
+    B = 2,
+    C = 3,
+  }
+  interface FooA {
+    type: Foo.A
+    foo: string
+  }
+  interface FooB {
+    type: Foo.B
+    bar: number
+  }
+  interface FooC {
+    type: Foo.C
+    foo: boolean
+  }
+
+  const schema = j.anyOfBy('type', {
+    [Foo.A]: j.object<FooA>({ type: j.literal(Foo.A), foo: j.string() }),
+    [Foo.B]: j.object<FooB>({ type: j.literal(Foo.B), bar: j.number() }),
+    [Foo.C]: j.object<FooC>({
+      type: j.literal(Foo.C),
+      foo: j.boolean(),
+    }),
+  })
+
+  test('should correctly infer the type', () => {
+    const ajvSchema = AjvSchema.create(schema)
+    const [, result] = ajvSchema.getValidationResult({ type: Foo.A, foo: 'asdf' })
+
+    expectTypeOf(result).toEqualTypeOf<FooA | FooB | FooC>()
+  })
+
+  test('should accept valid values', () => {
+    const ajvSchema = AjvSchema.create(schema)
+
+    const testCases = [
+      { type: Foo.A, foo: 'asdf' },
+      { type: Foo.B, bar: 1 },
+      { type: Foo.C, foo: true },
+    ]
+    testCases.forEach(value => {
+      const [err, result] = ajvSchema.getValidationResult(value)
+      expect(result).toEqual(value)
+      expect(err).toBeNull()
+    })
+
+    const invalidCases = [
+      { type: Foo.C, foo: 'asdf' },
+      { type: Foo.A, bar: 1 },
+      { type: Foo.B, foo: true },
+      { type: Foo.A },
+      { type: Foo.B },
+      { type: Foo.C },
+      { foo: 'asdf' },
+      { bar: 1 },
+      { foo: true },
+    ]
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err).not.toBeNull()
+    })
   })
 })
 

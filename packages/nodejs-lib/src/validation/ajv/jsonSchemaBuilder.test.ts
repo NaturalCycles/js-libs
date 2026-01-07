@@ -705,6 +705,40 @@ describe('anyOf', () => {
   })
 })
 
+describe('anyOfBy', () => {
+  test('should correctly infer the type', () => {
+    enum Foo {
+      A = 1,
+      B = 2,
+      C = 3,
+    }
+    interface FooA {
+      type: Foo.A
+      foo: string
+    }
+    interface FooB {
+      type: Foo.B
+      bar: number
+    }
+    interface FooC {
+      type: Foo.C
+      foo: boolean
+    }
+
+    const schema1 = j.anyOfBy('type', {
+      [Foo.A]: j.object<FooA>({ type: j.literal(Foo.A), foo: j.string() }),
+      [Foo.B]: j.object<FooB>({ type: j.literal(Foo.B), bar: j.number() }),
+      [Foo.C]: j.object<FooC>({
+        type: j.literal(Foo.C),
+        foo: j.boolean(),
+      }),
+    })
+
+    expectTypeOf(schema1.in).toEqualTypeOf<FooA | FooB | FooC>()
+    expectTypeOf(schema1.out).toEqualTypeOf<FooA | FooB | FooC>()
+  })
+})
+
 describe('castAs', () => {
   test('should correctly infer the new type', () => {
     const schema1 = j.string().castAs<number>()

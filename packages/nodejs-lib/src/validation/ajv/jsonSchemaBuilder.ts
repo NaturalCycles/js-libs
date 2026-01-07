@@ -188,19 +188,40 @@ export const j = {
     return new JsonSchemaEnumBuilder(enumValues as any, baseType, opt)
   },
 
+  /**
+   * Use only with primitive values, otherwise this function will throw to avoid bugs.
+   * To validate objects, use `anyOfBy`.
+   *
+   * Our Ajv is configured to strip unexpected properties from objects,
+   * and since Ajv is mutating the input, this means that it cannot
+   * properly validate the same data over multiple schemas.
+   *
+   * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
+   * Use `oneOf` when schemas are mutually exclusive.
+   */
   oneOf<
     B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
     IN = BuilderInUnion<B>,
     OUT = BuilderOutUnion<B>,
   >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
     const schemas = items.map(b => b.build())
+    _assert(
+      schemas.every(hasOnlySchemasForPrimitives),
+      'Do not use `oneOf` validation with non-primitive types!',
+    )
+
     return new JsonSchemaAnyBuilder<IN, OUT, false>({
       oneOf: schemas,
     })
   },
 
   /**
-   * Value must match at least one of the provided schemas.
+   * Use only with primitive values, otherwise this function will throw to avoid bugs.
+   * To validate objects, use `anyOfBy`.
+   *
+   * Our Ajv is configured to strip unexpected properties from objects,
+   * and since Ajv is mutating the input, this means that it cannot
+   * properly validate the same data over multiple schemas.
    *
    * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
    * Use `oneOf` when schemas are mutually exclusive.
@@ -211,9 +232,23 @@ export const j = {
     OUT = BuilderOutUnion<B>,
   >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
     const schemas = items.map(b => b.build())
+    _assert(
+      schemas.every(hasOnlySchemasForPrimitives),
+      'Do not use `anyOf` validation with non-primitive types!',
+    )
+
     return new JsonSchemaAnyBuilder<IN, OUT, false>({
       anyOf: schemas,
     })
+  },
+
+  anyOfBy<
+    P extends string,
+    D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
+    IN = AnyOfByIn<D>,
+    OUT = AnyOfByOut<D>,
+  >(propertyName: P, schemaDictionary: D): JsonSchemaAnyOfByBuilder<IN, OUT, P> {
+    return new JsonSchemaAnyOfByBuilder<IN, OUT, P>(propertyName, schemaDictionary)
   },
 
   and() {
@@ -1204,6 +1239,34 @@ export class JsonSchemaTupleBuilder<
   }
 }
 
+export class JsonSchemaAnyOfByBuilder<
+  IN,
+  OUT,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  _P extends string = string,
+> extends JsonSchemaAnyBuilder<AnyOfByInput<IN, _P> | IN, OUT, false> {
+  declare in: IN
+
+  constructor(
+    propertyName: string,
+    schemaDictionary: Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
+  ) {
+    const builtSchemaDictionary: Record<string, JsonSchema> = {}
+    for (const [key, schema] of Object.entries(schemaDictionary)) {
+      builtSchemaDictionary[key] = schema.build()
+    }
+
+    super({
+      type: 'object',
+      hasIsOfTypeCheck: true,
+      anyOfBy: {
+        propertyName,
+        schemaDictionary: builtSchemaDictionary,
+      },
+    })
+  }
+}
+
 type EnumBaseType = 'string' | 'number' | 'other'
 
 export interface JsonSchema<IN = unknown, OUT = IN> {
@@ -1283,6 +1346,10 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   keySchema?: JsonSchema
   minProperties2?: number
   exclusiveProperties?: (readonly string[])[]
+  anyOfBy?: {
+    propertyName: string
+    schemaDictionary: Record<string, JsonSchema>
+  }
 }
 
 function object(props: AnyObject): never
@@ -1448,6 +1515,20 @@ function withEnumKeys<
   >(props, { hasIsOfTypeCheck: false })
 }
 
+function hasOnlySchemasForPrimitives(schema: JsonSchema): boolean {
+  if (Array.isArray(schema.type)) {
+    schema.type.every(type => ['string', 'number', 'integer', 'boolean', 'null'].includes(type))
+  } else if (schema.anyOf) {
+    return schema.anyOf.every(hasOnlySchemasForPrimitives)
+  } else if (schema.oneOf) {
+    return schema.oneOf.every(hasOnlySchemasForPrimitives)
+  } else {
+    return !!schema.type && ['string', 'number', 'integer', 'boolean', 'null'].includes(schema.type)
+  }
+
+  return false
+}
+
 type Expand<T> = { [K in keyof T]: T[K] }
 
 type StripIndexSignatureDeep<T> = T extends readonly unknown[]
@@ -1510,6 +1591,20 @@ type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> =
 type BuilderInUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<infer I, any, any> ? I : never
 }[number]
+
+type AnyOfByIn<D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>> = {
+  [K in keyof D]: D[K] extends JsonSchemaTerminal<infer I, any, any> ? I : never
+}[keyof D]
+
+type AnyOfByOut<D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>> = {
+  [K in keyof D]: D[K] extends JsonSchemaTerminal<any, infer O, any> ? O : never
+}[keyof D]
+
+type AnyOfByDiscriminant<IN, P extends string> = IN extends { [K in P]: infer V } ? V : never
+
+type AnyOfByInput<IN, P extends string, D = AnyOfByDiscriminant<IN, P>> = IN extends unknown
+  ? Omit<Partial<IN>, P> & { [K in P]?: D }
+  : never
 
 type BuilderFor<T> = JsonSchemaAnyBuilder<any, T, any>
 
