@@ -2393,9 +2393,13 @@ describe('object', () => {
         bar: {
           shu: number
         }
+        ping?: string
       }
       const schema2 = schema1
-        .extend({ bar: j.object<{ shu: number }>({ shu: j.number() }) })
+        .extend({
+          bar: j.object<{ shu: number }>({ shu: j.number() }),
+          ping: j.string().optional(),
+        })
         .isOfType<Extended>()
 
       const ajvSchema = AjvSchema.create(schema2)
@@ -2403,12 +2407,16 @@ describe('object', () => {
       const [, result] = ajvSchema.getValidationResult({
         foo: 'asdf',
         bar: { shu: 0 },
+        ping: 'pong',
       })
 
       expectTypeOf(result).toExtend<Extended>()
       expectTypeOf(result).not.toEqualTypeOf<Base>()
 
-      const testCases = [{ foo: 'foo', bar: { shu: 1 } }]
+      const testCases = [
+        { foo: 'foo', bar: { shu: 1 }, ping: 'pong' },
+        { foo: 'foo', bar: { shu: 1 } },
+      ]
       testCases.forEach(value => {
         const [err] = ajvSchema.getValidationResult(value)
         expect(err, _stringify(value)).toBeNull()
@@ -2431,6 +2439,59 @@ describe('object', () => {
         const [err] = ajvSchema.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
       })
+    })
+
+    test('should be logical', () => {
+      interface Foo {
+        bar: string
+      }
+
+      const schema1 = j.object<Foo>({ bar: j.string() })
+      const schema2 = schema1.extend({}).isOfType<Foo>()
+
+      const [, result] = AjvSchema.create(schema2).getValidationResult({
+        bar: 'asdf',
+      })
+
+      expectTypeOf(result).toExtend<Foo>()
+    })
+
+    test('it should work with dbEntity', () => {
+      interface BM {
+        id: string
+        created: UnixTimestamp
+        updated: UnixTimestamp
+      }
+      interface FooBM extends BM {
+        foo: string
+        bar: AnyObject
+      }
+      interface Bar extends FooBM {
+        bar: {
+          shu: number
+        }
+      }
+
+      const schema1 = j.object.dbEntity<FooBM>({
+        foo: j.string(),
+        bar: j.object.any(),
+      })
+      const schema2 = schema1
+        .extend({
+          bar: j.object<Bar['bar']>({
+            shu: j.number(),
+          }),
+        })
+        .isOfType<Bar>()
+
+      const [, result] = AjvSchema.create(schema2).getValidationResult({
+        foo: 'bar',
+        bar: {
+          shu: 1,
+        },
+      })
+
+      expectTypeOf(result).toExtend<Bar>()
     })
   })
 

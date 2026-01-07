@@ -870,34 +870,32 @@ export class JsonSchemaObjectBuilder<
     props: P,
   ): JsonSchemaObjectBuilder<
     RelaxIndexSignature<
-      Override<
-        IN,
-        {
-          [K in keyof P]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
-        }
-      >
-    >,
-    AllowExtraKeys<
-      RelaxIndexSignature<
+      OptionalDbEntityFields<
         Override<
-          OUT,
+          IN,
           {
-            // required keys
-            [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-              ? IsOpt extends true
-                ? never
-                : K
-              : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
-          } & {
-            // optional keys
-            [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-              ? IsOpt extends true
-                ? K
-                : never
-              : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+            [K in keyof P]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
           }
         >
       >
+    >,
+    Override<
+      OUT,
+      {
+        // required keys
+        [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+          ? IsOpt extends true
+            ? never
+            : K
+          : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+      } & {
+        // optional keys
+        [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+          ? IsOpt extends true
+            ? K
+            : never
+          : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+      }
     >,
     false
   > {
@@ -1299,7 +1297,7 @@ function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any
 
 function objectDbEntity(props: AnyObject): never
 function objectDbEntity<
-  IN extends BaseDBEntity & AnyObject,
+  IN extends BaseDBEntity,
   EXTRA_KEYS extends Exclude<keyof IN, keyof BaseDBEntity> = Exclude<keyof IN, keyof BaseDBEntity>,
 >(
   props: {
@@ -1462,20 +1460,27 @@ type StripIndexSignatureDeep<T> = T extends readonly unknown[]
 type RelaxIndexSignature<T> = T extends readonly unknown[]
   ? T
   : T extends AnyObject
-    ? string extends keyof T
-      ? any
-      : { [K in keyof T]: RelaxIndexSignature<T[K]> }
+    ? { [K in keyof T]: RelaxIndexSignature<T[K]> }
     : T
 
 type Override<T, U> = Omit<T, keyof U> & U
 
 declare const allowExtraKeysSymbol: unique symbol
 
-type AllowExtraKeys<T> = T & { readonly [allowExtraKeysSymbol]?: true }
-
 type HasAllowExtraKeys<T> = T extends { readonly [allowExtraKeysSymbol]?: true } ? true : false
 
-type IsAssignableRelaxed<A, B> = [RelaxIndexSignature<A>] extends [B] ? true : false
+type IsAny<T> = 0 extends 1 & T ? true : false
+
+type IsAssignableRelaxed<A, B> =
+  IsAny<RelaxIndexSignature<A>> extends true
+    ? true
+    : [RelaxIndexSignature<A>] extends [B]
+      ? true
+      : false
+
+type OptionalDbEntityFields<T> = T extends BaseDBEntity
+  ? Omit<T, keyof BaseDBEntity> & Partial<Pick<T, keyof BaseDBEntity>>
+  : T
 
 type ExactMatchBase<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
