@@ -547,7 +547,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     keyword: 'anyOfBy',
     type: 'object',
     modifying: true,
-    errors: false,
+    errors: true,
     schemaType: 'object',
     compile(config, _parentSchema, _it) {
       const { propertyName, schemaDictionary } = config
@@ -574,7 +574,11 @@ export function createAjv(opt?: Options): Ajv2020 {
           return false
         }
 
-        return isValidFn(data)
+        const result = isValidFn(data)
+        if (!result) {
+          ;(validate as any).errors = isValidFn.errors
+        }
+        return result
       }
 
       return validate
