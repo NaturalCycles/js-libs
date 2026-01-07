@@ -206,7 +206,7 @@ export const j = {
   >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
     const schemas = items.map(b => b.build())
     _assert(
-      schemas.every(hasOnlySchemasForPrimitives),
+      schemas.every(hasNoObjectSchemas),
       'Do not use `oneOf` validation with non-primitive types!',
     )
 
@@ -233,7 +233,7 @@ export const j = {
   >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
     const schemas = items.map(b => b.build())
     _assert(
-      schemas.every(hasOnlySchemasForPrimitives),
+      schemas.every(hasNoObjectSchemas),
       'Do not use `anyOf` validation with non-primitive types!',
     )
 
@@ -1515,13 +1515,17 @@ function withEnumKeys<
   >(props, { hasIsOfTypeCheck: false })
 }
 
-function hasOnlySchemasForPrimitives(schema: JsonSchema): boolean {
+function hasNoObjectSchemas(schema: JsonSchema): boolean {
   if (Array.isArray(schema.type)) {
     schema.type.every(type => ['string', 'number', 'integer', 'boolean', 'null'].includes(type))
   } else if (schema.anyOf) {
-    return schema.anyOf.every(hasOnlySchemasForPrimitives)
+    return schema.anyOf.every(hasNoObjectSchemas)
   } else if (schema.oneOf) {
-    return schema.oneOf.every(hasOnlySchemasForPrimitives)
+    return schema.oneOf.every(hasNoObjectSchemas)
+  } else if (schema.enum) {
+    return true
+  } else if (schema.type === 'array') {
+    return !schema.items || hasNoObjectSchemas(schema.items)
   } else {
     return !!schema.type && ['string', 'number', 'integer', 'boolean', 'null'].includes(schema.type)
   }

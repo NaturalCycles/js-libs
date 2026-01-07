@@ -3299,6 +3299,19 @@ describe('oneOf', () => {
     expect(() => j.oneOf([schema1, schema2])).toThrowErrorMatchingInlineSnapshot(
       `[AssertionError: Do not use \`oneOf\` validation with non-primitive types!]`,
     )
+
+    // Cannot hide an object inside an accepted schema
+    expect(() =>
+      j.oneOf([j.array(j.object<{ foo: string }>({ foo: j.string() }))]),
+    ).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: Do not use \`oneOf\` validation with non-primitive types!]`,
+    )
+
+    // These should work
+    j.oneOf([j.string().nullable()])
+    j.oneOf([j.array(j.string())])
+    j.oneOf([j.array(j.enum(['foo', 'bar']))])
+    j.oneOf([j.array(j.enum(['valid', 'invalid'])), j.enum(['valid', 'invalid'])]).optional()
   })
 })
 
@@ -3349,6 +3362,19 @@ describe('anyOf', () => {
     expect(() => j.anyOf([schema1, schema2])).toThrowErrorMatchingInlineSnapshot(
       `[AssertionError: Do not use \`anyOf\` validation with non-primitive types!]`,
     )
+
+    // Cannot hide an object inside an accepted schema
+    expect(() =>
+      j.anyOf([j.array(j.object<{ foo: string }>({ foo: j.string() }))]),
+    ).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: Do not use \`anyOf\` validation with non-primitive types!]`,
+    )
+
+    // These should work
+    j.anyOf([j.string().nullable()])
+    j.anyOf([j.array(j.string())])
+    j.anyOf([j.array(j.enum(['foo', 'bar']))])
+    j.anyOf([j.array(j.enum(['valid', 'invalid'])), j.enum(['valid', 'invalid'])]).optional()
   })
 })
 
