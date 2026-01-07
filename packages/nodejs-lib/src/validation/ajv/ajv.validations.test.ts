@@ -3400,3 +3400,65 @@ describe('final', () => {
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
   })
 })
+
+describe('literal', () => {
+  test('should accept a valid value', () => {
+    const schema1 = j.literal('magic')
+    const ajvSchema1 = AjvSchema.create(schema1)
+    const [, result1] = ajvSchema1.getValidationResult('magic')
+    expectTypeOf(result1).toEqualTypeOf<'magic'>()
+    expect(result1).toBe('magic')
+
+    const schema2 = j.literal(5)
+    const ajvSchema2 = AjvSchema.create(schema2)
+    const [, result2] = ajvSchema2.getValidationResult(5)
+    expectTypeOf(result2).toEqualTypeOf<5>()
+    expect(result2).toBe(5)
+
+    const schema3 = j.literal(true)
+    const ajvSchema3 = AjvSchema.create(schema3)
+    const [, result3] = ajvSchema3.getValidationResult(true)
+    expectTypeOf(result3).toEqualTypeOf<true>()
+    expect(result3).toBe(true)
+
+    const schema4 = j.literal(null)
+    const ajvSchema4 = AjvSchema.create(schema4)
+    const [, result4] = ajvSchema4.getValidationResult(null)
+    expectTypeOf(result4).toEqualTypeOf<null>()
+    expect(result4).toBeNull()
+
+    enum Foo {
+      A = 1,
+      B = 2,
+    }
+    const schema5 = j.literal(Foo.A)
+    const ajvSchema5 = AjvSchema.create(schema5)
+    const [, result5] = ajvSchema5.getValidationResult(Foo.A)
+    expectTypeOf(result5).toEqualTypeOf<Foo.A>()
+    expect(result5).toBe(Foo.A)
+
+    const [err1] = ajvSchema1.getValidationResult('mushroom' as any)
+    expect(err1).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be equal to one of the allowed values
+      Input: mushroom]
+    `)
+
+    const [err2] = ajvSchema2.getValidationResult(3 as any)
+    expect(err2).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be equal to one of the allowed values
+      Input: 3]
+    `)
+
+    const [err3] = ajvSchema3.getValidationResult(false as any)
+    expect(err3).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be equal to one of the allowed values
+      Input: false]
+    `)
+
+    const [err4] = ajvSchema4.getValidationResult({} as any)
+    expect(err4).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be equal to one of the allowed values
+      Input: {}]
+    `)
+  })
+})

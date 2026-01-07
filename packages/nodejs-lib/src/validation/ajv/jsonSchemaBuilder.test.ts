@@ -734,3 +734,17 @@ describe('final', () => {
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
   })
 })
+
+describe('literal', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.literal('magic')
+    expectTypeOf(schema1.in).toEqualTypeOf<'magic'>()
+
+    enum Foo {
+      A = 1,
+      B = 2,
+    }
+    const schema2 = j.literal(Foo.A)
+    expectTypeOf(schema2.in).toEqualTypeOf<Foo.A>()
+  })
+})

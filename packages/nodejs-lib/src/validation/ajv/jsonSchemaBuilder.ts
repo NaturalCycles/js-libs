@@ -223,6 +223,13 @@ export const j = {
       },
     }
   },
+
+  literal<const V extends string | number | boolean | null>(v: V) {
+    let baseType: EnumBaseType = 'other'
+    if (typeof v === 'string') baseType = 'string'
+    if (typeof v === 'number') baseType = 'number'
+    return new JsonSchemaEnumBuilder<V>([v], baseType)
+  },
 }
 
 const TS_2500 = 16725225600 // 2500-01-01
