@@ -17,7 +17,7 @@ class AjvValidateRequest {
       req,
       'body',
       schema,
-      req.rawBody ? () => JSON.parse(req.rawBody!.toString()) : undefined,
+      req.rawBody?.byteLength ? () => JSON.parse(req.rawBody!.toString()) : undefined,
       opt,
     )
   }
