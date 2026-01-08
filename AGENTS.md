@@ -51,3 +51,5 @@ When changing code - DON'T remove pre-existing code comments, preserve them inst
 
 - **Git:** Do NOT stage changes. Leave all modifications unstaged for manual review of the
   incremental steps.
+
+When asked to make a commit - do NOT add `Co-Authored-By: Claude`.
