@@ -3,14 +3,16 @@ import { existsSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { _isTruthy } from '@naturalcycles/js-lib'
+import { _uniq } from '@naturalcycles/js-lib/array'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
-import type { SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
+import type { AnyObject, SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
 import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
 import {
   eslintExtensions,
@@ -25,11 +27,34 @@ import { cfgDir } from './paths.js'
 const { CI, ESLINT_CONCURRENCY } = process.env
 
 /**
+ * Every boolean defaults to true, so, by default - everything is being run.
+ * Pass false to skip it.
+ */
+export interface CheckOptions {
+  fastLinters?: boolean
+  eslint?: boolean
+  stylelint?: boolean
+  prettier?: boolean
+  ktlint?: boolean
+  typecheckWithTSC?: boolean
+  test?: boolean
+}
+
+/**
  * Run all linters.
  *
  * If full=false - the "slow" linters are skipped.
  */
-export async function lintAllCommand(full = true): Promise<void> {
+export async function runCheck(opt: CheckOptions = {}): Promise<void> {
+  const {
+    fastLinters = true,
+    eslint = true,
+    stylelint = true,
+    prettier = true,
+    ktlint = true,
+    typecheckWithTSC: runTSC = true,
+    test = true,
+  } = opt
   const started = Date.now() as UnixTimestampMillis
   // const { commitOnChanges, failOnChanges } = _yargs().options({
   //   commitOnChanges: {
@@ -54,35 +79,50 @@ export async function lintAllCommand(full = true): Promise<void> {
   // That's why we run in "no-fix" mode in CI, and "fix" mode locally
   const fix = !CI
 
-  // Fast linters (that run in <1 second) go first
+  if (fastLinters) {
+    // Fast linters (that run in <1 second) go first
 
-  runActionLint()
+    runActionLint()
 
-  runBiome(fix)
+    runBiome(fix)
 
-  runOxlint(fix)
+    runOxlint(fix)
+  }
 
   // From this point we start the "slow" linters, with ESLint leading the way
 
-  if (full) {
+  if (eslint) {
     // We run eslint BEFORE Prettier, because eslint can delete e.g unused imports.
     eslintAll({
       fix,
     })
+  }
 
-    if (
-      existsSync(`node_modules/stylelint`) &&
-      existsSync(`node_modules/stylelint-config-standard-scss`)
-    ) {
-      stylelintAll(fix)
-    }
+  if (
+    stylelint &&
+    existsSync(`node_modules/stylelint`) &&
+    existsSync(`node_modules/stylelint-config-standard-scss`)
+  ) {
+    stylelintAll(fix)
+  }
 
+  if (prettier) {
     runPrettier({ fix })
+  }
 
+  if (ktlint) {
     await runKTLint(fix)
   }
 
-  console.log(`${check(true)}${white(`lint-all`)} ${dimGrey(`took ` + _since(started))}`)
+  if (runTSC) {
+    await typecheckWithTSC()
+  }
+
+  if (test) {
+    runTest()
+  }
+
+  console.log(`${check(true)}${white(`check`)} ${dimGrey(`took ` + _since(started))}`)
 
   // if (needToTrackChanges) {
   //   const gitStatusAfter = gitStatus()
@@ -353,6 +393,139 @@ export function runBiome(fix = true): void {
     shell: false,
   })
 }
+
+export async function buildProd(): Promise<void> {
+  // fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
+  buildCopy()
+  await runTSCProd()
+}
+
+export async function typecheckWithTSC(): Promise<void> {
+  // todo: try tsgo
+  await runTSCInFolders(['src', 'scripts', 'e2e'], ['--noEmit'])
+}
+
+/**
+ * Use 'src' to indicate root.
+ */
+export async function runTSCInFolders(
+  dirs: string[],
+  args: string[] = [],
+  parallel = true,
+): Promise<void> {
+  if (parallel) {
+    await Promise.all(dirs.map(dir => runTSCInFolder(dir, args)))
+  } else {
+    for (const dir of dirs) {
+      await runTSCInFolder(dir, args)
+    }
+  }
+}
+
+/**
+ * Pass 'src' to run in root.
+ */
+async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
+  let configDir = dir
+  if (dir === 'src') {
+    configDir = ''
+  }
+  const tsconfigPath = [configDir, 'tsconfig.json'].filter(Boolean).join('/')
+
+  if (!fs2.pathExists(tsconfigPath) || !fs2.pathExists(dir)) {
+    // console.log(`Skipping to run tsc for ${tsconfigPath}, as it doesn't exist`)
+    return
+  }
+
+  const tscPath = findPackageBinPath('typescript', 'tsc')
+  const cacheLocation = `node_modules/.cache/${dir}.tsbuildinfo`
+  const cacheFound = existsSync(cacheLocation)
+  console.log(dimGrey(`${check(cacheFound)}tsc ${dir} cache found: ${cacheFound}`))
+
+  await exec2.spawnAsync(tscPath, {
+    args: ['-P', tsconfigPath, ...args],
+    shell: false,
+  })
+}
+
+export async function runTSCProd(args: string[] = []): Promise<void> {
+  const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
+
+  const tscPath = findPackageBinPath('typescript', 'tsc')
+
+  await exec2.spawnAsync(tscPath, {
+    args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', '--incremental', 'false', ...args],
+    shell: false,
+  })
+}
+
+export function buildCopy(): void {
+  const baseDir = 'src'
+  const inputPatterns = [
+    '**',
+    '!**/*.ts',
+    '!**/__snapshots__',
+    '!**/__exclude',
+    '!test',
+    '!**/*.test.js',
+  ]
+  const outputDir = 'dist'
+
+  kpySync({
+    baseDir,
+    inputPatterns,
+    outputDir,
+    dotfiles: true,
+  })
+}
+
+interface RunTestOptions {
+  integration?: boolean
+  manual?: boolean
+  leaks?: boolean
+}
+
+export function runTest(opt: RunTestOptions = {}): void {
+  // if (nodeModuleExists('vitest')) {
+  if (fs2.pathExists('vitest.config.ts')) {
+    runVitest(opt)
+    return
+  }
+
+  console.log(dimGrey(`vitest.config.ts not found, skipping tests`))
+}
+
+function runVitest(opt: RunTestOptions): void {
+  const { integration, manual } = opt
+  const processArgs = process.argv.slice(3)
+  const args: string[] = [...processArgs]
+  const env: AnyObject = {}
+  if (integration) {
+    Object.assign(env, {
+      TEST_TYPE: 'integration',
+    })
+  } else if (manual) {
+    Object.assign(env, {
+      TEST_TYPE: 'manual',
+    })
+  }
+
+  const vitestPath = findPackageBinPath('vitest', 'vitest')
+
+  exec2.spawn(vitestPath, {
+    args: _uniq(args),
+    logFinish: false,
+    shell: false,
+    env,
+  })
+}
+
+/**
+ * Returns true if module with given name exists in _target project's_ node_modules.
+ */
+// function nodeModuleExists(moduleName: string): boolean {
+//   return existsSync(`./node_modules/${moduleName}`)
+// }
 
 function canRunBinary(name: string): boolean {
   try {

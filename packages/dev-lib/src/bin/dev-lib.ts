@@ -4,19 +4,21 @@ import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { PromisableFunction } from '@naturalcycles/js-lib/types'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
-import { buildCopy, buildProd, runTSCInFolders } from '../build.util.js'
-import { runCommitlint } from '../commitlint.js'
 import {
+  buildCopy,
+  buildProd,
   eslintAll,
-  lintAllCommand,
   lintStagedCommand,
   requireOxlintConfig,
   runBiome,
+  runCheck,
   runOxlint,
   runPrettier,
+  runTest,
   stylelintAll,
-} from '../lint.util.js'
-import { runTest } from '../test.util.js'
+  typecheckWithTSC,
+} from '../check.util.js'
+import { runCommitlint } from '../commitlint.js'
 
 interface Command {
   name: string
@@ -27,7 +29,7 @@ interface Command {
 }
 
 const commands: Command[] = [
-  { name: 'check', fn: check, desc: '"Run all possible checks": lint, typecheck, then test.' },
+  { name: 'check', fn: runCheck, desc: '"Run all possible checks": lint, typecheck, then test.' },
   {
     name: 'quick-check',
     fn: quickCheck,
@@ -83,7 +85,11 @@ const commands: Command[] = [
   },
   {
     name: 'lint',
-    fn: lintAllCommand,
+    fn: () =>
+      runCheck({
+        typecheckWithTSC: false,
+        test: false,
+      }),
     desc: 'Run all linters: eslint, prettier, stylelint, ktlint, actionlint.',
   },
   {
@@ -182,15 +188,13 @@ runScript(async () => {
   await commandMap[cmd]!.fn()
 })
 
-async function check(): Promise<void> {
-  await lintAllCommand()
-  await typecheckWithTSC() // unfortunately still needed since oxlint doesn't catch all ts errors
-  runTest()
-}
-
 async function quickCheck(): Promise<void> {
-  await lintAllCommand(false)
-  runTest()
+  await runCheck({
+    eslint: false,
+    prettier: false,
+    stylelint: false,
+    typecheckWithTSC: false,
+  })
 }
 
 async function bt(): Promise<void> {
@@ -205,11 +209,6 @@ async function _typecheckWithOxlint(): Promise<void> {
   requireOxlintConfig()
   const fix = !CI
   runOxlint(fix)
-}
-
-async function typecheckWithTSC(): Promise<void> {
-  // todo: try tsgo
-  await runTSCInFolders(['src', 'scripts', 'e2e'], ['--noEmit'])
 }
 
 async function cleanDist(): Promise<void> {
