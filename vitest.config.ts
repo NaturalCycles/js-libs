@@ -9,6 +9,10 @@ export default defineConfig({
     silent: 'passed-only',
     // fileParallelism: false, // uncomment to debug
     reporters: getReporters(),
+    experimental: {
+      // fsModuleCache: true,
+      // printImportBreakdown: true,
+    },
   },
 })
 
