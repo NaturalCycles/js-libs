@@ -23,6 +23,17 @@ test('valid: breaking change with scope', () => {
   expect(result.valid).toBe(true)
 })
 
+test('valid: merge commit', () => {
+  const result = validateCommitMessage("Merge branch 'feature' into main")
+  expect(result.valid).toBe(true)
+  expect(result.errors).toEqual([])
+})
+
+test('valid: merge commit with pull request', () => {
+  const result = validateCommitMessage('Merge pull request #123 from user/branch')
+  expect(result.valid).toBe(true)
+})
+
 test('valid: message with body', () => {
   const msg = `feat: add feature
 
