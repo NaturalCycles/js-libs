@@ -205,6 +205,16 @@ export interface CommonDaoCfg<
    * @experimental
    */
   patchInTransaction?: boolean
+
+  /**
+   * When specified, the listed properties will be compressed under a `data` property in the DBM.
+   * If DBM already has a `data` property and you don't add it to the list, an error will be thrown.
+   *
+   * Compression and decompression happens after `beforeBMToDBM` and before `beforeDBMtoBM` hooks.
+   */
+  compress?: {
+    keys: (keyof DBM)[]
+  }
 }
 
 /**
