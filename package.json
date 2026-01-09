@@ -89,7 +89,7 @@
     "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
-    "@anolilab/semantic-release-pnpm": "^3",
+    "@anolilab/semantic-release-pnpm": "^4",
     "@biomejs/biome": "^2",
     "@naturalcycles/bench-lib": "workspace:*",
     "@naturalcycles/dev-lib": "workspace:*",
