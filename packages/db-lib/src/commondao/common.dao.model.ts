@@ -210,10 +210,11 @@ export interface CommonDaoCfg<
    * When specified, the listed properties will be compressed under a `data` property in the DBM.
    * If DBM already has a `data` property and you don't add it to the list, an error will be thrown.
    *
-   * Compression and decompression happens after `beforeBMToDBM` and before `beforeDBMtoBM` hooks.
+   * Compression happens after the `beforeBMToDBM` hook and before the DBM is saved to the database.
+   * Decompression happens after the DBM is loaded from the database and before the `beforeDBMToBM` hook.
    */
   compress?: {
-    keys: (keyof DBM)[]
+    keys: [keyof DBM, ...(keyof DBM)[]]
   }
 }
 

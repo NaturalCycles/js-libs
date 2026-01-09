@@ -714,15 +714,7 @@ export class CommonDao<
     const dbm: DBM = { ..._dbm, ...this.cfg.hooks!.parseNaturalId!(_dbm.id as ID) }
 
     // Decompress
-    if (this.cfg.compress) {
-      _typeCast<Compressed<DBM>>(dbm)
-      _assert(dbm.data, '`data` property missing in compressed object')
-
-      const bufferString = await decompressZstdOrInflateToString(dbm.data)
-      const properties = JSON.parse(bufferString)
-      Object.assign(dbm, properties)
-      delete dbm.data
-    }
+    if (this.cfg.compress) await this.decompress(dbm)
 
     // DBM > BM
     const bm = ((await this.cfg.hooks!.beforeDBMToBM?.(dbm)) || dbm) as Partial<BM>
@@ -750,20 +742,8 @@ export class CommonDao<
     // BM > DBM
     const dbm = ((await this.cfg.hooks!.beforeBMToDBM?.(bm)) || bm) as DBM
 
-    if (this.cfg.compress) {
-      const { keys } = this.cfg.compress
-      const properties = _pick(dbm, keys)
-      _assert(
-        !Object.hasOwn(dbm, 'data') || Object.hasOwn(properties, 'data'),
-        'If the DBM has `data` property and you use compression, the `data` property must also be signed up for',
-      )
-      const bufferString = JSON.stringify(properties)
-      const data = await zstdCompress(bufferString)
-      Object.assign(dbm, { data })
-      for (const key of _objectKeys(properties)) {
-        delete dbm[key]
-      }
-    }
+    // Compress
+    if (this.cfg.compress) await this.compress(dbm)
 
     return dbm
   }
@@ -771,6 +751,39 @@ export class CommonDao<
   async bmsToDBM(bms: BM[], opt: CommonDaoOptions = {}): Promise<DBM[]> {
     // try/catch?
     return await pMap(bms, async bm => await this.bmToDBM(bm, opt))
+  }
+
+  async compress(dbm: DBM): Promise<DBM> {
+    if (!this.cfg.compress) return dbm // No compression requested
+
+    const { keys } = this.cfg.compress
+    const properties = _pick(dbm, keys)
+    _assert(
+      !Object.hasOwn(dbm, 'data') || Object.hasOwn(properties, 'data'),
+      `Data (${dbm.id}) already has a "data" property. When using compression, this property must be included in the compression keys list.`,
+    )
+    const bufferString = JSON.stringify(properties)
+    const data = await zstdCompress(bufferString)
+    for (const key of _objectKeys(properties)) {
+      delete dbm[key]
+    }
+    Object.assign(dbm, { data })
+
+    return dbm
+  }
+
+  async decompress(dbm: DBM): Promise<DBM> {
+    if (!this.cfg.compress) return dbm // No compression requested
+
+    _typeCast<Compressed<DBM>>(dbm)
+    if (!Buffer.isBuffer(dbm.data)) return dbm // No compressed data
+
+    const bufferString = await decompressZstdOrInflateToString(dbm.data)
+    const properties = JSON.parse(bufferString)
+    delete dbm.data
+    Object.assign(dbm, properties)
+
+    return dbm
   }
 
   anyToDBM(dbm: undefined, opt?: CommonDaoOptions): null
@@ -1172,4 +1185,10 @@ export type InferID<DAO> = DAO extends CommonDao<any, any, infer ID> ? ID : neve
 
 export type AnyDao = CommonDao<any>
 
+/**
+ * Represents a DBM whose properties have been compressed into a `data` Buffer.
+ *
+ * Used internally during compression/decompression so that DBM instances can
+ * carry their compressed payload alongside the original type shape.
+ */
 type Compressed<DBM> = DBM & { data?: Buffer }
