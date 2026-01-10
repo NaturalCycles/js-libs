@@ -179,6 +179,54 @@ test('_stringMapValues, _stringMapEntries', () => {
   expect(_stringMapValuesSorted(o, v => v, 'desc')).toEqual([4, 3, 2])
 })
 
+test('_recordEntries', () => {
+  enum A {
+    k1 = 1,
+    k2 = 2,
+  }
+
+  const map: Record<A, string> = {
+    [A.k1]: 'v1',
+    [A.k2]: 'v2',
+  }
+
+  const entries = _objectEntries(map)
+  expectTypeOf(entries).toEqualTypeOf<[A, string][]>()
+  expect(entries).toMatchInlineSnapshot(`
+    [
+      [
+        "1",
+        "v1",
+      ],
+      [
+        "2",
+        "v2",
+      ],
+    ]
+  `)
+})
+
+test('_objectKeys with Enum', () => {
+  enum A {
+    k1 = 1,
+    k2 = 2,
+  }
+
+  const map: Record<A, string> = {
+    [A.k1]: 'v1',
+    [A.k2]: 'v2',
+  }
+
+  const entries = _objectKeys(map)
+  expectTypeOf(entries).toEqualTypeOf<A[]>()
+  expect(entries).toMatchInlineSnapshot(`
+    [
+      "1",
+      "2",
+    ]
+  `)
+})
+
 test('_typeCast', () => {
   const err = _expectedError(() => {
     throw new Error('yo')

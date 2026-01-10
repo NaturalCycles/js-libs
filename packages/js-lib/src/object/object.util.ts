@@ -156,7 +156,7 @@ export function _filterObject<T extends AnyObject>(
   const r = {} as T
   for (const [k, v] of _objectEntries(obj)) {
     if (predicate(k, v, obj)) {
-      r[k] = v
+      r[k as keyof T] = v
     }
   }
   return r
