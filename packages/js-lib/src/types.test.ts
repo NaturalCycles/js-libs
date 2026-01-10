@@ -179,13 +179,14 @@ test('_stringMapValues, _stringMapEntries', () => {
   expect(_stringMapValuesSorted(o, v => v, 'desc')).toEqual([4, 3, 2])
 })
 
-test('_recordEntries', () => {
+test('_objectEntries', () => {
   enum A {
     k1 = 1,
     k2 = 2,
+    k3 = 3,
   }
 
-  const map: Record<A, string> = {
+  const map: Partial<Record<A, string>> = {
     [A.k1]: 'v1',
     [A.k2]: 'v2',
   }
@@ -210,9 +211,10 @@ test('_objectKeys with Enum', () => {
   enum A {
     k1 = 1,
     k2 = 2,
+    k3 = 3,
   }
 
-  const map: Record<A, string> = {
+  const map: Partial<Record<A, string>> = {
     [A.k1]: 'v1',
     [A.k2]: 'v2',
   }

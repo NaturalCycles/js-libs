@@ -364,7 +364,9 @@ export const _stringMapEntries = Object.entries as <T>(map: StringMap<T>) => [k:
  * Alias of `Object.keys`, but returns keys typed as `keyof T`, not as just `string`.
  * This is how TypeScript should work, actually.
  */
-export const _objectKeys = Object.keys as <K extends PropertyKey>(obj: Record<K, any>) => K[]
+export const _objectKeys = Object.keys as <K extends PropertyKey>(
+  obj: Partial<Record<K, any>>,
+) => K[]
 
 /**
  * Alias of `Object.entries`, but returns better-typed output.
@@ -373,7 +375,7 @@ export const _objectKeys = Object.keys as <K extends PropertyKey>(obj: Record<K,
  * and `k` will be `keyof obj` instead of generic `string`.
  */
 export const _objectEntries = Object.entries as <K extends PropertyKey, V>(
-  obj: Record<K, V>,
+  obj: Partial<Record<K, V>>,
 ) => [k: K, v: V][]
 
 export type NullishValue = null | undefined
