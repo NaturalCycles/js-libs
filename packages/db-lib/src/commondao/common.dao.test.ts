@@ -660,6 +660,7 @@ Input: { id: 'id123', k1: 5, created: 1529539200, updated: 1529539200 }]
 interface Item extends BaseDBEntity {
   id: string
   obj: any
+  shu?: string
 }
 
 test('zipping/unzipping via async hook', async () => {
@@ -693,6 +694,62 @@ test('zipping/unzipping via async hook', async () => {
 
   const items2 = await dao.getByIds(items.map(item => item.id))
   expect(items2).toEqual(items)
+})
+
+test('zipping/unzipping via configuration', async () => {
+  const dao = new CommonDao<Item>({
+    table: TEST_TABLE,
+    db,
+    compress: {
+      keys: ['obj', 'shu'],
+    },
+    hooks: {
+      async beforeBMToDBM(bm) {
+        expect(bm).not.toHaveProperty('data')
+        return bm
+      },
+      async beforeDBMToBM(dbm) {
+        expect(dbm).not.toHaveProperty('data')
+        return dbm
+      },
+    },
+  })
+
+  const items = _range(3).map(n => ({
+    id: `id${n}`,
+    obj: {
+      objId: `objId${n}`,
+    },
+    shu: `shu${n}`,
+  }))
+
+  await dao.saveBatch(items)
+
+  const items2 = await dao.getByIds(items.map(item => item.id))
+  expect(items2).toEqual(items)
+
+  const { data } = dao.cfg.db as InMemoryDB
+  expect(data[TEST_TABLE]).toEqual({
+    // Only the compressed property exists, the original properties don't
+    id0: {
+      created: 1529539200,
+      data: expect.any(Buffer),
+      id: 'id0',
+      updated: 1529539200,
+    },
+    id1: {
+      created: 1529539200,
+      data: expect.any(Buffer),
+      id: 'id1',
+      updated: 1529539200,
+    },
+    id2: {
+      created: 1529539200,
+      data: expect.any(Buffer),
+      id: 'id2',
+      updated: 1529539200,
+    },
+  })
 })
 
 test('runQuery stack', async () => {
