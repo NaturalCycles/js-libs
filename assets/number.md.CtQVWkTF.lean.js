@@ -1,0 +1,1 @@
+import{_ as i,c as a,o as n,ae as h}from"./chunks/framework.0mBshe-i.js";const g=JSON.parse('{"title":"Number","description":"","frontmatter":{},"headers":[],"relativePath":"number.md","filePath":"number.md"}'),k={name:"number.md"};function t(l,s,p,e,E,r){return n(),a("div",null,[...s[0]||(s[0]=[h("",17)])])}const y=i(k,[["render",t]]);export{g as __pageData,y as default};
