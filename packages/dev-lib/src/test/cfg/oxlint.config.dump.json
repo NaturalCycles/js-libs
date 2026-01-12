@@ -451,8 +451,10 @@
         }
       ]
     ],
+    "vitest/consistent-each-for": "warn",
     "vitest/consistent-test-filename": "deny",
     "vitest/consistent-vitest-vi": "deny",
+    "vitest/hoisted-apis-on-top": "warn",
     "vitest/no-conditional-tests": "warn",
     "vitest/no-import-node-test": "deny",
     "vitest/require-local-test-context-for-concurrent-snapshots": "warn",
