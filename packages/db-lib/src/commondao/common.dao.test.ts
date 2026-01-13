@@ -68,8 +68,8 @@ test('common', async () => {
   expect(await dao.deleteByQuery(dao.query())).toBe(0)
   expect(await dao.deleteByQuery(dao.query(), { chunkSize: 500 })).toBe(0)
 
-  expect(dao.anyToDBM(undefined)).toBeNull()
-  expect(dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
+  expect(await dao.anyToDBM(undefined)).toBeNull()
+  expect(await dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
 })
 
 test('multiGet', async () => {
@@ -709,7 +709,8 @@ test('zipping/unzipping via configuration', async () => {
         return bm
       },
       async beforeDBMToBM(dbm) {
-        expect(dbm).not.toHaveProperty('data')
+        expect(dbm).toHaveProperty('data')
+        expect((dbm as any)['data']).toBeUndefined()
         return dbm
       },
     },
