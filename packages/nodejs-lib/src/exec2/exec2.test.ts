@@ -5,83 +5,97 @@ import { exec2, SpawnError } from './exec2.js'
 
 const silent = !!process.env['TEST_SILENT']
 
+// Test commands using node for predictability
+const cmdOk = `node -e "console.log('hello')"`
+const cmdError = `node -e "console.error('err'); process.exit(1)"`
+const cmdSignal = `node -e "process.kill(process.pid, 'SIGTERM')"`
+
 test('spawn ok', () => {
-  exec2.spawn('git status', { stdio: silent ? 'pipe' : 'inherit' })
+  exec2.spawn(cmdOk, { stdio: silent ? 'pipe' : 'inherit' })
   // no error
 })
 
 test('spawn error', () => {
   const err = _expectedErrorString(() =>
-    exec2.spawn('git stat', { stdio: silent ? 'pipe' : 'inherit' }),
+    exec2.spawn(cmdError, { stdio: silent ? 'pipe' : 'inherit' }),
   )
-  expect(err).toMatchInlineSnapshot(`"Error: spawn exited with code 1: git stat"`)
+  expect(err).toMatchInlineSnapshot(
+    `"Error: spawn exited with code 1: node -e "console.error('err'); process.exit(1)""`,
+  )
 })
 
 test('exec ok', () => {
-  const s = exec2.exec('git version')
-  expect(s.startsWith('git version')).toBe(true)
+  const s = exec2.exec(cmdOk)
+  expect(s).toBe('hello')
 })
 
 test('exec error', () => {
   const err = _expectedErrorString(() =>
-    exec2.exec('git stat', { stdio: silent ? 'pipe' : undefined }),
+    exec2.exec(cmdError, { stdio: silent ? 'pipe' : undefined }),
   )
-  expect(err).toMatchInlineSnapshot(`"Error: exec exited with code 1: git stat"`)
+  expect(err).toMatchInlineSnapshot(
+    `"Error: exec exited with code 1: node -e "console.error('err'); process.exit(1)""`,
+  )
 })
 
 test('spawnAsync ok', async () => {
-  await exec2.spawnAsync('git version', { stdio: silent ? 'pipe' : 'inherit' })
+  await exec2.spawnAsync(cmdOk, { stdio: silent ? 'pipe' : 'inherit' })
   // no error
 })
 
 test('spawnAsync error', async () => {
   const err = await pExpectedError(
-    exec2.spawnAsync('git stat', { stdio: silent ? 'pipe' : 'inherit' }),
+    exec2.spawnAsync(cmdError, { stdio: silent ? 'pipe' : 'inherit' }),
     Error,
   )
-  expect(_stringify(err)).toMatchInlineSnapshot(`"Error: spawnAsync exited with code 1: git stat"`)
+  expect(_stringify(err)).toMatchInlineSnapshot(
+    `"Error: spawnAsync exited with code 1: node -e "console.error('err'); process.exit(1)""`,
+  )
+})
+
+test('spawnAsync signal', async () => {
+  const err = await pExpectedError(
+    exec2.spawnAsync(cmdSignal, { stdio: silent ? 'pipe' : 'inherit' }),
+    Error,
+  )
+  expect(_stringify(err)).toContain('killed by signal SIGTERM')
 })
 
 test('spawnAsyncAndReturn ok', async () => {
-  const s = await exec2.spawnAsyncAndReturn('git version', { printWhileRunning: !silent })
+  const s = await exec2.spawnAsyncAndReturn(cmdOk, { printWhileRunning: !silent })
   expect(s.exitCode).toBe(0)
   expect(s.stderr).toBe('')
-  expect(s.stdout.startsWith('git version')).toBe(true)
+  expect(s.stdout).toBe('hello')
 })
 
 test('spawnAsyncAndReturn error with throw', async () => {
   const err = await pExpectedError(
-    exec2.spawnAsyncAndReturn('git stat', { printWhileRunning: !silent }),
+    exec2.spawnAsyncAndReturn(cmdError, { printWhileRunning: !silent }),
     SpawnError,
   )
   expect(_stringify(err)).toMatchInlineSnapshot(
-    `"SpawnError: spawnAsyncAndReturn exited with code 1: git stat"`,
+    `"SpawnError: spawnAsyncAndReturn exited with code 1: node -e "console.error('err'); process.exit(1)""`,
   )
   expect(err.data.exitCode).toBe(1)
   expect(err.data.stdout).toBe('')
-  expect(err.data.stderr).toMatchInlineSnapshot(`
-"git: 'stat' is not a git command. See 'git --help'.
-
-The most similar commands are
-	status
-	stage
-	stash"
-`)
+  expect(err.data.stderr).toBe('err')
 })
 
 test('spawnAsyncAndReturn error without throw', async () => {
-  const { exitCode, stdout, stderr } = await exec2.spawnAsyncAndReturn('git stat', {
+  const { exitCode, stdout, stderr } = await exec2.spawnAsyncAndReturn(cmdError, {
     throwOnNonZeroCode: false,
     printWhileRunning: !silent,
   })
   expect(exitCode).toBe(1)
   expect(stdout).toBe('')
-  expect(stderr).toMatchInlineSnapshot(`
-"git: 'stat' is not a git command. See 'git --help'.
+  expect(stderr).toBe('err')
+})
 
-The most similar commands are
-	status
-	stage
-	stash"
-`)
+test('spawnAsyncAndReturn signal', async () => {
+  const err = await pExpectedError(
+    exec2.spawnAsyncAndReturn(cmdSignal, { printWhileRunning: !silent }),
+    SpawnError,
+  )
+  expect(_stringify(err)).toContain('killed by signal SIGTERM')
+  expect(err.data.exitCode).toBe(-1)
 })
