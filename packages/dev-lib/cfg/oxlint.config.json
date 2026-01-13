@@ -90,6 +90,7 @@
     "typescript/no-non-null-asserted-nullish-coalescing": 2,
     "typescript/no-require-imports": 2,
     "typescript/no-var-requires": 2,
+    "typescript/prefer-optional-chain": 0, // buggy
     "typescript/non-nullable-type-assertion-style": 2,
     "typescript/prefer-literal-enum-member": 2,
     "typescript/promise-function-async": [
