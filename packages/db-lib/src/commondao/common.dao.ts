@@ -714,7 +714,7 @@ export class CommonDao<
     const dbm: DBM = { ..._dbm, ...this.cfg.hooks!.parseNaturalId!(_dbm.id as ID) }
 
     // Decompress
-    if (this.cfg.compress) await this.decompress(dbm)
+    await this.decompress(dbm)
 
     // DBM > BM
     const bm = ((await this.cfg.hooks!.beforeDBMToBM?.(dbm)) || dbm) as Partial<BM>
@@ -765,7 +765,7 @@ export class CommonDao<
     const bufferString = JSON.stringify(properties)
     const data = await zstdCompress(bufferString)
     for (const key of _objectKeys(properties)) {
-      delete dbm[key]
+      ;(dbm as any)[key] = undefined
     }
     Object.assign(dbm, { data })
 
@@ -773,15 +773,16 @@ export class CommonDao<
   }
 
   async decompress(dbm: DBM): Promise<DBM> {
-    if (!this.cfg.compress) return dbm // No compression requested
-
     _typeCast<Compressed<DBM>>(dbm)
     if (!Buffer.isBuffer(dbm.data)) return dbm // No compressed data
 
-    const bufferString = await decompressZstdOrInflateToString(dbm.data)
-    const properties = JSON.parse(bufferString)
-    delete dbm.data
-    Object.assign(dbm, properties)
+    // try-catch to avoid a `data` with Buffer which is not compressed, but legit data
+    try {
+      const bufferString = await decompressZstdOrInflateToString(dbm.data)
+      const properties = JSON.parse(bufferString)
+      dbm.data = undefined
+      Object.assign(dbm, properties)
+    } catch {}
 
     return dbm
   }
