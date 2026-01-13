@@ -6,6 +6,7 @@ import { _deepJsonEquals } from '@naturalcycles/js-lib/object/deepEquals.js'
 import {
   _filterUndefinedValues,
   _objectAssignExact,
+  _omitWithUndefined,
   _pick,
 } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
@@ -759,14 +760,12 @@ export class CommonDao<
     const { keys } = this.cfg.compress
     const properties = _pick(dbm, keys)
     _assert(
-      !Object.hasOwn(dbm, 'data') || Object.hasOwn(properties, 'data'),
+      !('data' in dbm) || 'data' in properties,
       `Data (${dbm.id}) already has a "data" property. When using compression, this property must be included in the compression keys list.`,
     )
     const bufferString = JSON.stringify(properties)
     const data = await zstdCompress(bufferString)
-    for (const key of _objectKeys(properties)) {
-      ;(dbm as any)[key] = undefined
-    }
+    _omitWithUndefined(dbm as any, _objectKeys(properties))
     Object.assign(dbm, { data })
 
     return dbm
