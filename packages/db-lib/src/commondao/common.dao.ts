@@ -765,7 +765,7 @@ export class CommonDao<
     )
     const bufferString = JSON.stringify(properties)
     const data = await zstdCompress(bufferString)
-    _omitWithUndefined(dbm as any, _objectKeys(properties))
+    _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
     Object.assign(dbm, { data })
 
     return dbm
