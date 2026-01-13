@@ -1,8 +1,16 @@
 import type { EventLoopUtilization, IntervalHistogram } from 'node:perf_hooks'
-import { monitorEventLoopDelay, performance } from 'node:perf_hooks'
-import type { NumberOfMilliseconds, NumberOfPercent } from '@naturalcycles/js-lib/types'
+import { monitorEventLoopDelay, performance, PerformanceObserver } from 'node:perf_hooks'
+import type {
+  NonNegativeInteger,
+  NumberOfMilliseconds,
+  NumberOfPercent,
+} from '@naturalcycles/js-lib/types'
 
 /**
+ * Monitors EventLoopDelay.
+ * Also, monitors GC performance.
+ * Once per `measureInterval` sends a callback with stats.
+ *
  * @experimental
  */
 export class EventLoopMonitor {
@@ -14,9 +22,18 @@ export class EventLoopMonitor {
 
     this.lastElu = performance.eventLoopUtilization()
 
+    this.po = new PerformanceObserver(list => {
+      for (const entry of list.getEntries()) {
+        this.gcCount++
+        this.gcTotalTime += entry.duration
+      }
+    })
+
+    this.po.observe({ entryTypes: ['gc'] })
+
     this.interval = setInterval(() => {
       // Delay stats are reported in **nanoseconds**
-      const { eld } = this
+      const { eld, gcCount, gcTotalTime } = this
       const p50 = Math.round(eld.percentile(50) / 1e6)
       const p90 = Math.round(eld.percentile(90) / 1e6)
       const p99 = Math.round(eld.percentile(99) / 1e6)
@@ -28,6 +45,7 @@ export class EventLoopMonitor {
       this.lastElu = currentElu
 
       const elu = Math.round(deltaElu.utilization * 100)
+      const gcCPU = Math.round((gcTotalTime / measureInterval) * 100)
 
       this.lastStats = {
         p50,
@@ -36,11 +54,16 @@ export class EventLoopMonitor {
         max,
         mean,
         elu,
+        gcCount,
+        gcTotalTime,
+        gcCPU,
       }
 
       cfg.onStats?.(this.lastStats)
 
       eld.reset()
+      this.gcCount = 0
+      this.gcTotalTime = 0
     }, measureInterval)
   }
 
@@ -51,10 +74,14 @@ export class EventLoopMonitor {
    * Undefined until the first interval has completed.
    */
   lastStats?: EventLoopStats
+  po: PerformanceObserver
+  gcCount = 0
+  gcTotalTime = 0
 
   stop(): void {
-    this.interval.close()
+    clearInterval(this.interval)
     this.eld.disable()
+    this.po.disconnect()
   }
 
   // cfg: Required<EventLoopMonitorCfg>
@@ -92,4 +119,16 @@ export interface EventLoopStats {
    *   utilization: active / (idle + active)
    */
   elu: NumberOfPercent
+  /**
+   * Number of times gc ran during the last `measureInterval`
+   */
+  gcCount: NonNegativeInteger
+  /**
+   * Total time spent on gc during the last `measureInterval`
+   */
+  gcTotalTime: NumberOfMilliseconds
+  /**
+   * % of CPU time spent on GC in the last `measureInterval`
+   */
+  gcCPU: NumberOfPercent
 }
