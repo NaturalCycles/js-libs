@@ -770,6 +770,8 @@ export class CommonDao<
     const data = await zstdCompress(bufferString)
     _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
     Object.assign(dbm, { data })
+
+    this.cfg.hooks!.afterCompression?.(dbm as unknown as Partial<DBM> & { data: Buffer })
   }
 
   /**
@@ -778,6 +780,8 @@ export class CommonDao<
   async decompress(dbm: DBM): Promise<void> {
     _typeCast<Compressed<DBM>>(dbm)
     if (!Buffer.isBuffer(dbm.data)) return // No compressed data
+
+    this.cfg.hooks!.beforeDecompression?.(dbm as Partial<DBM> & { data: Buffer })
 
     // try-catch to avoid a `data` with Buffer which is not compressed, but legit data
     try {
