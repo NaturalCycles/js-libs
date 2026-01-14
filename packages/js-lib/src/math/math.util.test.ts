@@ -2,7 +2,14 @@ import { expect, test } from 'vitest'
 import { _mapToObject } from '../array/array.util.js'
 import { _range } from '../array/range.js'
 import { _averageOrNull, _percentiles } from './index.js'
-import { _average, _averageWeighted, _median, _percentile } from './math.util.js'
+import {
+  _average,
+  _averageWeighted,
+  _median,
+  _percentile,
+  _stdDev,
+  _stdDevOrNull,
+} from './math.util.js'
 
 const numbers = [
   32.31,
@@ -36,6 +43,24 @@ test('_averageOrNull', () => {
   expect(_averageOrNull(undefined)).toBeNull()
   expect(_averageOrNull(null)).toBeNull()
   expect(_averageOrNull([1])).toBe(1)
+})
+
+test.each([
+  [[1], 0],
+  [[1, 1, 1], 0],
+  [[2, 4, 4, 4, 5, 5, 7, 9], 2],
+  [[1, 2, 3, 4, 5], Math.sqrt(2)],
+])('_stdDev(%s) === %s', (numbers, result) => {
+  expect(_stdDev(numbers)).toBe(result)
+})
+
+test('_stdDevOrNull', () => {
+  expect(() => _stdDev([])).toThrowErrorMatchingInlineSnapshot(
+    `[AssertionError: _stdDev is called on empty array]`,
+  )
+  expect(_stdDevOrNull(undefined)).toBeNull()
+  expect(_stdDevOrNull(null)).toBeNull()
+  expect(_stdDevOrNull([1])).toBe(0)
 })
 
 test('_averageWeighted', () => {
