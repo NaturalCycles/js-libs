@@ -754,8 +754,11 @@ export class CommonDao<
     return await pMap(bms, async bm => await this.bmToDBM(bm, opt))
   }
 
-  async compress(dbm: DBM): Promise<DBM> {
-    if (!this.cfg.compress) return dbm // No compression requested
+  /**
+   * Mutates `dbm`.
+   */
+  async compress(dbm: DBM): Promise<void> {
+    if (!this.cfg.compress) return // No compression requested
 
     const { keys } = this.cfg.compress
     const properties = _pick(dbm, keys)
@@ -767,13 +770,14 @@ export class CommonDao<
     const data = await zstdCompress(bufferString)
     _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
     Object.assign(dbm, { data })
-
-    return dbm
   }
 
-  async decompress(dbm: DBM): Promise<DBM> {
+  /**
+   * Mutates `dbm`.
+   */
+  async decompress(dbm: DBM): Promise<void> {
     _typeCast<Compressed<DBM>>(dbm)
-    if (!Buffer.isBuffer(dbm.data)) return dbm // No compressed data
+    if (!Buffer.isBuffer(dbm.data)) return // No compressed data
 
     // try-catch to avoid a `data` with Buffer which is not compressed, but legit data
     try {
@@ -782,8 +786,6 @@ export class CommonDao<
       dbm.data = undefined
       Object.assign(dbm, properties)
     } catch {}
-
-    return dbm
   }
 
   async anyToDBM(dbm: undefined, opt?: CommonDaoOptions): Promise<null>
