@@ -923,6 +923,9 @@ describe('auto compression', () => {
 
     const daoWithoutCompression = new CommonDao<Item>({
       table: TEST_TABLE,
+      compress: {
+        keys: [],
+      },
       db,
     })
 

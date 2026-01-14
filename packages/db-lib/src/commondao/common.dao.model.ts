@@ -214,7 +214,7 @@ export interface CommonDaoCfg<
    * Decompression happens after the DBM is loaded from the database and before the `beforeDBMToBM` hook.
    */
   compress?: {
-    keys: [keyof DBM, ...(keyof DBM)[]]
+    keys: (keyof DBM)[]
   }
 }
 
