@@ -6,9 +6,12 @@ import { _deepJsonEquals } from '@naturalcycles/js-lib/object/deepEquals.js'
 import {
   _filterUndefinedValues,
   _objectAssignExact,
+  _omitWithUndefined,
+  _pick,
 } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import {
+  _objectKeys,
   _passthroughPredicate,
   _stringMapEntries,
   _stringMapValues,
@@ -22,6 +25,7 @@ import {
 import { stringId } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
+import { decompressZstdOrInflateToString, zstdCompress } from '@naturalcycles/nodejs-lib/zip'
 import { DBLibError } from '../cnst.js'
 import type {
   CommonDBSaveOptions,
@@ -118,7 +122,7 @@ export class CommonDao<
   async getByIdAsDBM(id?: ID | null, opt: CommonDaoReadOptions = {}): Promise<DBM | null> {
     if (!id) return null
     const [row] = await this.loadByIds([id], opt)
-    return this.anyToDBM(row, opt) || null
+    return await (this.anyToDBM(row, opt) || null)
   }
 
   async getByIds(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<BM[]> {
@@ -128,7 +132,7 @@ export class CommonDao<
 
   async getByIdsAsDBM(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<DBM[]> {
     const rows = await this.loadByIds(ids, opt)
-    return this.anyToDBMs(rows)
+    return await this.anyToDBMs(rows)
   }
 
   // DRY private method
@@ -216,7 +220,7 @@ export class CommonDao<
     q.table = opt.table || q.table
     const { rows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
-    const dbms = isPartialQuery ? rows : this.anyToDBMs(rows, opt)
+    const dbms = isPartialQuery ? rows : await this.anyToDBMs(rows, opt)
     return { rows: dbms, ...queryResult }
   }
 
@@ -235,7 +239,7 @@ export class CommonDao<
     opt.skipValidation ??= true
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    return pipeline.mapSync(dbm => this.anyToDBM(dbm, opt), { errorMode: opt.errorMode })
+    return pipeline.map(async dbm => await this.anyToDBM(dbm, opt), { errorMode: opt.errorMode })
   }
 
   streamQuery(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<BM> = {}): Pipeline<BM> {
@@ -455,7 +459,7 @@ export class CommonDao<
   async saveAsDBM(dbm: Unsaved<DBM>, opt: CommonDaoSaveOptions<BM, DBM> = {}): Promise<DBM> {
     this.requireWriteAccess()
     this.assignIdCreatedUpdated(dbm, opt) // mutates
-    const row = this.anyToDBM(dbm, opt)
+    const row = await this.anyToDBM(dbm, opt)
     this.cfg.hooks!.beforeSave?.(row)
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
@@ -496,7 +500,7 @@ export class CommonDao<
     if (!dbms.length) return []
     this.requireWriteAccess()
     dbms.forEach(dbm => this.assignIdCreatedUpdated(dbm, opt))
-    const rows = this.anyToDBMs(dbms as DBM[], opt)
+    const rows = await this.anyToDBMs(dbms as DBM[], opt)
     if (this.cfg.hooks!.beforeSave) {
       rows.forEach(row => this.cfg.hooks!.beforeSave!(row))
     }
@@ -710,6 +714,9 @@ export class CommonDao<
     // const dbm = this.anyToDBM(_dbm, opt)
     const dbm: DBM = { ..._dbm, ...this.cfg.hooks!.parseNaturalId!(_dbm.id as ID) }
 
+    // Decompress
+    await this.decompress(dbm)
+
     // DBM > BM
     const bm = ((await this.cfg.hooks!.beforeDBMToBM?.(dbm)) || dbm) as Partial<BM>
 
@@ -734,7 +741,12 @@ export class CommonDao<
     bm = this.validateAndConvert(bm, 'save', opt)
 
     // BM > DBM
-    return ((await this.cfg.hooks!.beforeBMToDBM?.(bm)) || bm) as DBM
+    const dbm = ((await this.cfg.hooks!.beforeBMToDBM?.(bm)) || bm) as DBM
+
+    // Compress
+    if (this.cfg.compress) await this.compress(dbm)
+
+    return dbm
   }
 
   async bmsToDBM(bms: BM[], opt: CommonDaoOptions = {}): Promise<DBM[]> {
@@ -742,9 +754,43 @@ export class CommonDao<
     return await pMap(bms, async bm => await this.bmToDBM(bm, opt))
   }
 
-  anyToDBM(dbm: undefined, opt?: CommonDaoOptions): null
-  anyToDBM(dbm?: any, opt?: CommonDaoOptions): DBM
-  anyToDBM(dbm?: DBM, _opt: CommonDaoOptions = {}): DBM | null {
+  /**
+   * Mutates `dbm`.
+   */
+  async compress(dbm: DBM): Promise<void> {
+    if (!this.cfg.compress) return // No compression requested
+
+    const { keys } = this.cfg.compress
+    const properties = _pick(dbm, keys)
+    _assert(
+      !('data' in dbm) || 'data' in properties,
+      `Data (${dbm.id}) already has a "data" property. When using compression, this property must be included in the compression keys list.`,
+    )
+    const bufferString = JSON.stringify(properties)
+    const data = await zstdCompress(bufferString)
+    _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
+    Object.assign(dbm, { data })
+  }
+
+  /**
+   * Mutates `dbm`.
+   */
+  async decompress(dbm: DBM): Promise<void> {
+    _typeCast<Compressed<DBM>>(dbm)
+    if (!Buffer.isBuffer(dbm.data)) return // No compressed data
+
+    // try-catch to avoid a `data` with Buffer which is not compressed, but legit data
+    try {
+      const bufferString = await decompressZstdOrInflateToString(dbm.data)
+      const properties = JSON.parse(bufferString)
+      dbm.data = undefined
+      Object.assign(dbm, properties)
+    } catch {}
+  }
+
+  async anyToDBM(dbm: undefined, opt?: CommonDaoOptions): Promise<null>
+  async anyToDBM(dbm?: any, opt?: CommonDaoOptions): Promise<DBM>
+  async anyToDBM(dbm?: DBM, _opt: CommonDaoOptions = {}): Promise<DBM | null> {
     if (!dbm) return null
 
     // this shouldn't be happening on load! but should on save!
@@ -752,13 +798,16 @@ export class CommonDao<
 
     dbm = { ...dbm, ...this.cfg.hooks!.parseNaturalId!(dbm.id as ID) }
 
+    // Decompress
+    await this.decompress(dbm)
+
     // Validate/convert DBM
     // return this.validateAndConvert(dbm, this.cfg.dbmSchema, DBModelType.DBM, opt)
     return dbm
   }
 
-  anyToDBMs(rows: DBM[], opt: CommonDaoOptions = {}): DBM[] {
-    return rows.map(entity => this.anyToDBM(entity, opt))
+  async anyToDBMs(rows: DBM[], opt: CommonDaoOptions = {}): Promise<DBM[]> {
+    return await pMap(rows, async entity => await this.anyToDBM(entity, opt))
   }
 
   /**
@@ -1140,3 +1189,11 @@ export type InferDBM<DAO> = DAO extends CommonDao<any, infer DBM> ? DBM : never
 export type InferID<DAO> = DAO extends CommonDao<any, any, infer ID> ? ID : never
 
 export type AnyDao = CommonDao<any>
+
+/**
+ * Represents a DBM whose properties have been compressed into a `data` Buffer.
+ *
+ * Used internally during compression/decompression so that DBM instances can
+ * carry their compressed payload alongside the original type shape.
+ */
+type Compressed<DBM> = DBM & { data?: Buffer }
