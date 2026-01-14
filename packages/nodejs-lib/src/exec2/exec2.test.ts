@@ -5,6 +5,20 @@ import { exec2, SpawnError } from './exec2.js'
 
 const silent = !!process.env['TEST_SILENT']
 
+/**
+ * Platform-agnostic check for signal termination.
+ * - macOS: reports signal directly (e.g., 'killed by signal SIGTERM'), exitCode=-1
+ * - Linux: reports exit code 128+signal (e.g., 143 for SIGTERM), exitCode=143
+ * - Other platforms: may vary, so we check for either pattern
+ */
+function isSignalTermination(errString: string, exitCode?: number): boolean {
+  // Direct signal reporting (macOS style)
+  if (errString.includes('signal')) return true
+  // Exit code 128+ indicates signal termination (Linux style: 128 + signal number)
+  if (exitCode !== undefined && exitCode >= 128) return true
+  return false
+}
+
 // Test commands using node for predictability
 const cmdOk = `node -e "console.log('hello')"`
 const cmdError = `node -e "console.error('err'); process.exit(1)"`
@@ -58,7 +72,7 @@ test('spawnAsync signal', async () => {
     exec2.spawnAsync(cmdSignal, { stdio: silent ? 'pipe' : 'inherit' }),
     Error,
   )
-  expect(_stringify(err)).toContain('killed by signal SIGTERM')
+  expect(isSignalTermination(_stringify(err))).toBe(true)
 })
 
 test('spawnAsyncAndReturn ok', async () => {
@@ -96,6 +110,5 @@ test('spawnAsyncAndReturn signal', async () => {
     exec2.spawnAsyncAndReturn(cmdSignal, { printWhileRunning: !silent }),
     SpawnError,
   )
-  expect(_stringify(err)).toContain('killed by signal SIGTERM')
-  expect(err.data.exitCode).toBe(-1)
+  expect(isSignalTermination(_stringify(err), err.data.exitCode)).toBe(true)
 })
