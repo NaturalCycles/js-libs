@@ -32,6 +32,7 @@ test('should call onStats after measureInterval', async () => {
     gcTotalTime: expect.any(Number),
     gcCPU: expect.any(Number),
   })
+  console.log(stats)
 })
 
 test('should reset gc counters between intervals', async () => {
