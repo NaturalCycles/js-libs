@@ -758,7 +758,7 @@ export class CommonDao<
    * Mutates `dbm`.
    */
   async compress(dbm: DBM): Promise<void> {
-    if (!this.cfg.compress) return // No compression requested
+    if (!this.cfg.compress?.keys.length) return // No compression requested
 
     const { keys } = this.cfg.compress
     const properties = _pick(dbm, keys)
@@ -777,6 +777,7 @@ export class CommonDao<
    */
   async decompress(dbm: DBM): Promise<void> {
     _typeCast<Compressed<DBM>>(dbm)
+    if (!this.cfg.compress) return // Auto-compression not turned on
     if (!Buffer.isBuffer(dbm.data)) return // No compressed data
 
     // try-catch to avoid a `data` with Buffer which is not compressed, but legit data
