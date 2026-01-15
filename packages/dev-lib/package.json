@@ -25,29 +25,23 @@
   },
   "dependencies": {
     "@biomejs/biome": "^2",
-    "@commitlint/cli": "^20",
-    "@commitlint/config-conventional": "^20",
     "@eslint/js": "^9",
-    "@inquirer/prompts": "^8",
+    "prompts": "^2",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
     "@vitest/coverage-v8": "^4",
-    "@vitest/eslint-plugin": "^1",
     "eslint": "^9",
     "eslint-plugin-import-x": "^4",
     "eslint-plugin-oxlint": "^1",
     "eslint-plugin-simple-import-sort": "^12",
-    "eslint-plugin-unicorn": "^62",
-    "eslint-plugin-vue": "^10",
-    "globals": "^16",
+    "globals": "^17",
     "lint-staged": "^16",
     "micromatch": "^4",
     "mitm": "^1",
     "oxlint": "^1",
     "oxlint-tsgolint": "*",
     "prettier": "^3",
-    "typescript-eslint": "^8",
-    "vue-eslint-parser": "^10"
+    "typescript-eslint": "^8"
   },
   "peerDependencies": {
     "husky": "^9",
@@ -65,12 +59,12 @@
   },
   "devDependencies": {
     "@types/mitm": "^1",
-    "@types/node": "^24"
+    "@types/node": "^25",
+    "@types/prompts": "^2"
   },
   "exports": {
     "./cfg/": "./cfg/",
     "./cfg/biome.jsonc": "./cfg/biome.jsonc",
-    "./cfg/commitlint.config.js": "./cfg/commitlint.config.js",
     "./cfg/eslint.config.js": "./cfg/eslint.config.js",
     "./cfg/oxlint.config.json": "./cfg/oxlint.config.json",
     "./cfg/prettier.config.js": "./cfg/prettier.config.js",

@@ -1,6 +1,6 @@
 import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime'
-import { Set2 } from '@naturalcycles/js-lib/object'
+import { _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject, IsoDate } from '@naturalcycles/js-lib/types'
 import { Ajv2020, type Options, type ValidateFunction } from 'ajv/dist/2020.js'
@@ -9,6 +9,7 @@ import type {
   JsonSchemaIsoDateOptions,
   JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
+  JsonSchemaTerminal,
 } from './jsonSchemaBuilder.js'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
@@ -22,6 +23,9 @@ const AJV_OPTIONS: Options = {
   // these are important and kept same as default:
   // https://ajv.js.org/options.html#coercetypes
   coerceTypes: false, // while `false` - it won't mutate your input
+  strictTypes: true,
+  strictTuples: true,
+  allowUnionTypes: true, // supports oneOf/anyOf schemas
 }
 
 const AJV_NON_MUTATING_OPTIONS: Options = {
@@ -512,6 +516,77 @@ export function createAjv(opt?: Options): Ajv2020 {
       }
 
       return isValid
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'exclusiveProperties',
+    type: 'object',
+    modifying: false,
+    errors: true,
+    schemaType: 'array',
+    validate: function validate(exclusiveProperties: string[][], data: AnyObject, _schema, ctx) {
+      if (typeof data !== 'object') return true
+
+      for (const props of exclusiveProperties) {
+        let numberOfDefinedProperties = 0
+        for (const prop of props) {
+          if (data[prop] !== undefined) numberOfDefinedProperties++
+          if (numberOfDefinedProperties > 1) {
+            ;(validate as any).errors = [
+              {
+                instancePath: ctx?.instancePath ?? '',
+                message: `must have only one of the "${props.join(', ')}" properties`,
+              },
+            ]
+            return false
+          }
+        }
+      }
+
+      return true
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'anyOfBy',
+    type: 'object',
+    modifying: true,
+    errors: true,
+    schemaType: 'object',
+    compile(config, _parentSchema, _it) {
+      const { propertyName, schemaDictionary } = config
+
+      const isValidFnByKey: Record<any, ValidateFunction> = _mapObject(
+        schemaDictionary as Record<any, JsonSchemaTerminal<any, any, any>>,
+        (key, value) => {
+          return [key, ajv.compile(value)]
+        },
+      )
+
+      function validate(data: AnyObject, ctx: any): boolean {
+        if (typeof data !== 'object' || data === null) return true
+
+        const determinant = data[propertyName]
+        const isValidFn = isValidFnByKey[determinant]
+        if (!isValidFn) {
+          ;(validate as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message: `could not find a suitable schema to validate against based on "${propertyName}"`,
+            },
+          ]
+          return false
+        }
+
+        const result = isValidFn(data)
+        if (!result) {
+          ;(validate as any).errors = isValidFn.errors
+        }
+        return result
+      }
+
+      return validate
     },
   })
 

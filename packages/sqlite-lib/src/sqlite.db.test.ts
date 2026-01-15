@@ -1,4 +1,4 @@
-import { createTestItemsDBM, TEST_TABLE, testItemBMJsonSchema } from '@naturalcycles/db-lib/testing'
+import { createTestItemsDBM, TEST_TABLE, testItemBMSchema } from '@naturalcycles/db-lib/testing'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { test } from 'vitest'
 import { SQLiteDB } from './sqlite.db.js'
@@ -11,7 +11,7 @@ test('test1', async () => {
   await db.ping()
 
   // await db.getTables()
-  await db.createTable(TEST_TABLE, testItemBMJsonSchema, { dropIfExists: true })
+  await db.createTable(TEST_TABLE, testItemBMSchema.build(), { dropIfExists: true })
 
   const items = createTestItemsDBM(3).map(v => _omit(v, ['nested']))
   await db.saveBatch(TEST_TABLE, items)

@@ -12,6 +12,7 @@ import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { DatastoreDBStreamOptions } from './datastore.model.js'
+import { getRunQueryOptions } from './query.util.js'
 
 export class DatastoreStreamReadable<T = any> extends Readable implements ReadableTyped<T> {
   private readonly table: string
@@ -53,12 +54,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       batchSize,
       highWaterMark,
     }
-    this.dsOpt = {}
-    if (opt.readAt) {
-      // Datastore expects UnixTimestamp in milliseconds
-      this.dsOpt.readTime = opt.readAt * 1000
-    }
-
+    this.dsOpt = getRunQueryOptions(opt)
     const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
     this.logger = logger
     this.originalLimit = q.limitVal
@@ -107,12 +103,12 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     this.countReads++
 
     if (this.done) {
-      this.logger.warn(`!!! _read was called, but done==true`)
+      this.logger.warn(`!!! ${this.table} _read was called, but done==true`)
       return
     }
 
     if (this.paused) {
-      this.logger.log(
+      this.logger.debug(
         `_read #${this.countReads}, queryIsRunning: ${this.queryIsRunning}, unpausing stream`,
       )
       this.paused = false
@@ -162,7 +158,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     const info: RunQueryInfo = res[1]
 
     this.rowsRetrieved += rows.length
-    logger.log(
+    logger.debug(
       `${table} got ${rows.length} rows in ${_ms(queryTook)}, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(
         this.totalWait,
       )}`,
@@ -183,7 +179,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       (this.originalLimit && this.rowsRetrieved >= this.originalLimit)
     ) {
       logger.log(
-        `!!!! DONE! ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
+        `${table} stream is done, ${this.rowsRetrieved} rowsRetrieved, totalWait: ${_ms(this.totalWait)}`,
       )
       this.push(null)
       this.done = true
@@ -201,7 +197,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       if (this.paused) {
         logger.debug(`${table} stream is already paused`)
       } else {
-        logger.log(`${table} pausing the stream`)
+        logger.debug(`${table} pausing the stream`)
         this.paused = true
       }
     }

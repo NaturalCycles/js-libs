@@ -1,4 +1,4 @@
-export type BenchFunction = () => void
+export type BenchFunction = () => any
 
 export interface RunBenchOptions {
   /**
@@ -6,6 +6,12 @@ export interface RunBenchOptions {
    * Record from function name to a `BenchFunction`.
    */
   fns: Record<string, BenchFunction>
+
+  /**
+   * Function name that is considered baseline.
+   * If not defined - the first defined function is considered a baseline.
+   */
+  baseline?: string
 
   /**
    * How many times to run.

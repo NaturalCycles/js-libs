@@ -1,6 +1,6 @@
-import { _try } from '@naturalcycles/js-lib/error'
+import { _try, AssertionError } from '@naturalcycles/js-lib/error'
 import { _deepFreeze } from '@naturalcycles/js-lib/object'
-import { expect, test } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { fs2 } from '../../fs/fs2.js'
 import { testDir } from '../../test/paths.cnst.js'
 import { AjvSchema } from './ajvSchema.js'
@@ -246,4 +246,30 @@ test('buffer', () => {
   schema.validate(Buffer.from('abc'), { mutateInput: true })
 
   expect(schema.isValid('a b c' as any)).toBe(false)
+})
+
+describe('regex flags', () => {
+  test('should throw when regex has flags', () => {
+    expect(() => j.string().regex(/hello/i)).toThrow(AssertionError)
+    expect(() => j.string().regex(/hello/i)).toThrow('Regex flags are not supported by JSON Schema')
+    expect(() => j.string().regex(/hello/g)).toThrow(AssertionError)
+    expect(() => j.string().regex(/hello/gim)).toThrow(AssertionError)
+  })
+
+  test('should allow regex without flags', () => {
+    expect(() => j.string().regex(/hello/)).not.toThrow()
+    expect(() => j.string().regex(/^[a-zA-Z]+$/)).not.toThrow()
+  })
+
+  test('j.object.withRegexKeys should throw when regex has flags', () => {
+    expect(() => j.object.withRegexKeys(/hello/i, j.string())).toThrow(AssertionError)
+    expect(() => j.object.withRegexKeys(/hello/i, j.string())).toThrow(
+      'Regex flags are not supported by JSON Schema',
+    )
+  })
+
+  test('j.object.withRegexKeys should allow regex without flags', () => {
+    expect(() => j.object.withRegexKeys(/hello/, j.string())).not.toThrow()
+    expect(() => j.object.withRegexKeys('^[a-z]+$', j.string())).not.toThrow()
+  })
 })

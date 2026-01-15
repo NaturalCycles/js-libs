@@ -4,16 +4,14 @@ import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalc
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
-import { getJoiValidationFunction } from '@naturalcycles/nodejs-lib/joi'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import type { TestItemBM, TestItemDBM } from '../testing/index.js'
 import {
   createTestItemBM,
   createTestItemsBM,
   TEST_TABLE,
-  testItemBMJsonSchema,
   testItemBMSchema,
 } from '../testing/index.js'
 import { TEST_TABLE_2 } from '../testing/test.model.js'
@@ -26,7 +24,7 @@ const db = new InMemoryDB()
 const daoCfg: CommonDaoCfg<TestItemBM, TestItemDBM> = {
   table: TEST_TABLE,
   db,
-  validateBM: getJoiValidationFunction(testItemBMSchema),
+  validateBM: AjvSchema.create(testItemBMSchema).getValidationFunction(),
   hooks: {
     parseNaturalId: id => {
       if (throwError && id === 'id3') throw new Error('error_from_parseNaturalId')
@@ -49,8 +47,12 @@ const dao2 = new CommonDao({
 })
 
 beforeEach(async () => {
-  await db.resetCache()
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
+  await db.resetCache()
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 test('common', async () => {
@@ -66,8 +68,8 @@ test('common', async () => {
   expect(await dao.deleteByQuery(dao.query())).toBe(0)
   expect(await dao.deleteByQuery(dao.query(), { chunkSize: 500 })).toBe(0)
 
-  expect(dao.anyToDBM(undefined)).toBeNull()
-  expect(dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
+  expect(await dao.anyToDBM(undefined)).toBeNull()
+  expect(await dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
 })
 
 test('multiGet', async () => {
@@ -195,6 +197,7 @@ test('should propagate pipe errors', async () => {
     .streamQuery(opt)
     .forEachSync(r => void results.push(r))
   // console.log(results)
+  _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 
   // Suppress errors
@@ -206,6 +209,7 @@ test('should propagate pipe errors', async () => {
       errorMode: ErrorMode.SUPPRESS,
     })
     .forEachSync(r => void results.push(r))
+  _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 
   // THROW_IMMEDIATELY
@@ -236,13 +240,14 @@ test('should propagate pipe errors', async () => {
       })
       .forEachSync(r => void results.push(r)),
   ).rejects.toThrowErrorMatchingInlineSnapshot(
-    `[AggregateError: transformMap resulted in 1 error(s)]`,
+    `[AggregateError: transformMap2 resulted in 1 error(s)]`,
   )
+  _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 
   // .stream should suppress by default
   results = await dao.query().streamQuery(opt).toArray()
-
+  _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
 })
 
@@ -624,7 +629,7 @@ test('ajvSchema', async () => {
   const dao = new CommonDao({
     table: TEST_TABLE,
     db,
-    validateBM: AjvSchema.create(testItemBMJsonSchema).getValidationFunction(),
+    validateBM: AjvSchema.create(testItemBMSchema).getValidationFunction(),
   })
 
   const items = createTestItemsBM(3)
@@ -655,6 +660,7 @@ Input: { id: 'id123', k1: 5, created: 1529539200, updated: 1529539200 }]
 interface Item extends BaseDBEntity {
   id: string
   obj: any
+  shu?: string
 }
 
 test('zipping/unzipping via async hook', async () => {
@@ -741,4 +747,290 @@ test('should not be able to query by a non-indexed property', async () => {
   ).rejects.toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: cannot query on non-indexed property: TEST_TABLE.k1]`,
   )
+})
+
+describe('auto compression', () => {
+  test('should work', async () => {
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+      hooks: {
+        async beforeBMToDBM(bm) {
+          expect(bm).not.toHaveProperty('data')
+          return bm
+        },
+        async beforeDBMToBM(dbm) {
+          expect(dbm).toHaveProperty('data')
+          expect((dbm as any)['data']).toBeUndefined()
+          return dbm
+        },
+      },
+    })
+
+    const items = _range(3).map(n => ({
+      id: `id${n}`,
+      obj: {
+        objId: `objId${n}`,
+      },
+      shu: `shu${n}`,
+    }))
+
+    await dao.saveBatch(items)
+
+    const items2 = await dao.getByIds(items.map(item => item.id))
+    expect(items2).toEqual(items)
+
+    const { data } = dao.cfg.db as InMemoryDB
+    expect(data[TEST_TABLE]).toEqual({
+      // Only the compressed property exists, the original properties don't
+      id0: {
+        created: 1529539200,
+        data: expect.any(Buffer),
+        id: 'id0',
+        updated: 1529539200,
+      },
+      id1: {
+        created: 1529539200,
+        data: expect.any(Buffer),
+        id: 'id1',
+        updated: 1529539200,
+      },
+      id2: {
+        created: 1529539200,
+        data: expect.any(Buffer),
+        id: 'id2',
+        updated: 1529539200,
+      },
+    })
+  })
+
+  test('should be possible to opt-in without migration', async () => {
+    const daoWithoutCompression = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+    })
+
+    const items1 = _range(2).map(n => ({
+      id: `id${n}`,
+      obj: {
+        objId: `objId${n}`,
+      },
+      shu: `shu${n}`,
+    }))
+
+    await daoWithoutCompression.saveBatch(items1)
+
+    const daoWithCompression = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+    })
+
+    // Should still be able to fetch non-compressed data properly
+    const fetchedItems1 = await daoWithCompression.getAll()
+    expect(fetchedItems1).toMatchInlineSnapshot(`
+      [
+        {
+          "created": 1529539200,
+          "id": "id0",
+          "obj": {
+            "objId": "objId0",
+          },
+          "shu": "shu0",
+          "updated": 1529539200,
+        },
+        {
+          "created": 1529539200,
+          "id": "id1",
+          "obj": {
+            "objId": "objId1",
+          },
+          "shu": "shu1",
+          "updated": 1529539200,
+        },
+      ]
+    `)
+
+    const items2 = _range(2, 4).map(n => ({
+      id: `id${n}`,
+      obj: {
+        objId: `objId${n}`,
+      },
+      shu: `shu${n}`,
+    }))
+
+    await daoWithCompression.saveBatch(items2)
+
+    // Should start compressing newly saved data
+    const { data } = dao.cfg.db as InMemoryDB
+    expect(data[TEST_TABLE]).toEqual({
+      id0: {
+        created: 1529539200,
+        id: 'id0',
+        obj: {
+          objId: 'objId0',
+        },
+        shu: 'shu0',
+        updated: 1529539200,
+      },
+      id1: {
+        created: 1529539200,
+        id: 'id1',
+        obj: {
+          objId: 'objId1',
+        },
+        shu: 'shu1',
+        updated: 1529539200,
+      },
+      id2: {
+        created: 1529539200,
+        data: expect.any(Buffer),
+        id: 'id2',
+        updated: 1529539200,
+      },
+      id3: {
+        created: 1529539200,
+        data: expect.any(Buffer),
+        id: 'id3',
+        updated: 1529539200,
+      },
+    })
+  })
+
+  test('should automatically exclude data property from indexes', async () => {
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    const items = _range(3).map(n => ({
+      id: `id${n}`,
+      obj: {
+        objId: `objId${n}`,
+      },
+      shu: `shu${n}`,
+    }))
+
+    await dao.saveBatch(items)
+
+    // The 'data' property should be automatically added to excludeFromIndexes
+    // when compression is enabled
+    expect(saveBatchSpy).toHaveBeenCalledWith(
+      TEST_TABLE,
+      expect.any(Array),
+      expect.objectContaining({
+        excludeFromIndexes: expect.arrayContaining(['data']),
+      }),
+    )
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should be possible to opt-out without migration', async () => {
+    const daoWithCompression = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+    })
+
+    const items1 = _range(2).map(n => ({
+      id: `id${n}`,
+      obj: {
+        objId: `objId${n}`,
+      },
+      shu: `shu${n}`,
+    }))
+
+    await daoWithCompression.saveBatch(items1)
+
+    const daoWithoutCompression = new CommonDao<Item>({
+      table: TEST_TABLE,
+      compress: {
+        keys: [],
+      },
+      db,
+    })
+
+    // Should still be able to fetch compressed data properly
+    const fetchedItems1 = await daoWithoutCompression.getAll()
+    expect(fetchedItems1).toMatchInlineSnapshot(`
+      [
+        {
+          "created": 1529539200,
+          "id": "id0",
+          "obj": {
+            "objId": "objId0",
+          },
+          "shu": "shu0",
+          "updated": 1529539200,
+        },
+        {
+          "created": 1529539200,
+          "id": "id1",
+          "obj": {
+            "objId": "objId1",
+          },
+          "shu": "shu1",
+          "updated": 1529539200,
+        },
+      ]
+    `)
+
+    const items2 = _range(2, 4).map(n => ({
+      id: `id${n}`,
+      obj: {
+        objId: `objId${n}`,
+      },
+      shu: `shu${n}`,
+    }))
+
+    await daoWithoutCompression.saveBatch(items2)
+
+    // Should stop compressing newly saved data
+    const { data } = dao.cfg.db as InMemoryDB
+    expect(data[TEST_TABLE]).toEqual({
+      id0: {
+        created: 1529539200,
+        data: expect.any(Buffer),
+        id: 'id0',
+        updated: 1529539200,
+      },
+      id1: {
+        created: 1529539200,
+        data: expect.any(Buffer),
+        id: 'id1',
+        updated: 1529539200,
+      },
+      id2: {
+        created: 1529539200,
+        id: 'id2',
+        obj: {
+          objId: 'objId2',
+        },
+        shu: 'shu2',
+        updated: 1529539200,
+      },
+      id3: {
+        created: 1529539200,
+        id: 'id3',
+        obj: {
+          objId: 'objId3',
+        },
+        shu: 'shu3',
+        updated: 1529539200,
+      },
+    })
+  })
 })

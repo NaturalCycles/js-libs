@@ -15,7 +15,6 @@ export * from './joi.model.js'
 export * from './joi.shared.schemas.js'
 export * from './joi.validation.error.js'
 export * from './joi.validation.util.js'
-export type { StringSchema } from './string.extensions.js'
 
 export type {
   AlternativesSchema,
@@ -27,7 +26,7 @@ export type {
   FunctionSchema,
   ObjectSchema,
   ValidationErrorItem,
-  // extended
-  // NumberSchema,
-  // StringSchema,
 }
+// extended
+export type { NumberSchema } from './number.extensions.js'
+export type { StringSchema } from './string.extensions.js'

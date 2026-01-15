@@ -1,8 +1,8 @@
-import { defineConfig } from 'vitest/config'
-import { sharedConfig } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
+import { defineVitestConfig } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
 
-export default defineConfig({
-  test: {
-    ...sharedConfig,
+export default defineVitestConfig(
+  {
+    test: {},
   },
-})
+  import.meta.dirname,
+)

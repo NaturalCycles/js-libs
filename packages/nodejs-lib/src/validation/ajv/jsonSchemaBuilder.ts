@@ -36,6 +36,7 @@ import {
   LANGUAGE_TAG_REGEX,
   SEMVER_REGEX,
   SLUG_REGEX,
+  URL_REGEX,
   UUID_REGEX,
 } from '../regexes.js'
 import { TIMEZONES } from '../timezones.js'
@@ -48,6 +49,14 @@ import {
 } from './jsonSchemaBuilder.util.js'
 
 export const j = {
+  /**
+   * Matches literally any value - equivalent to TypeScript's `any` type.
+   * Use sparingly, as it bypasses type validation entirely.
+   */
+  any(): JsonSchemaAnyBuilder<any, any, false> {
+    return new JsonSchemaAnyBuilder({})
+  },
+
   string(): JsonSchemaStringBuilder<string, string, false> {
     return new JsonSchemaStringBuilder()
   },
@@ -179,15 +188,67 @@ export const j = {
     return new JsonSchemaEnumBuilder(enumValues as any, baseType, opt)
   },
 
+  /**
+   * Use only with primitive values, otherwise this function will throw to avoid bugs.
+   * To validate objects, use `anyOfBy`.
+   *
+   * Our Ajv is configured to strip unexpected properties from objects,
+   * and since Ajv is mutating the input, this means that it cannot
+   * properly validate the same data over multiple schemas.
+   *
+   * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
+   * Use `oneOf` when schemas are mutually exclusive.
+   */
   oneOf<
     B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
     IN = BuilderInUnion<B>,
     OUT = BuilderOutUnion<B>,
   >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
     const schemas = items.map(b => b.build())
+    _assert(
+      schemas.every(hasNoObjectSchemas),
+      'Do not use `oneOf` validation with non-primitive types!',
+    )
+
     return new JsonSchemaAnyBuilder<IN, OUT, false>({
       oneOf: schemas,
     })
+  },
+
+  /**
+   * Use only with primitive values, otherwise this function will throw to avoid bugs.
+   * To validate objects, use `anyOfBy`.
+   *
+   * Our Ajv is configured to strip unexpected properties from objects,
+   * and since Ajv is mutating the input, this means that it cannot
+   * properly validate the same data over multiple schemas.
+   *
+   * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
+   * Use `oneOf` when schemas are mutually exclusive.
+   */
+  anyOf<
+    B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
+    IN = BuilderInUnion<B>,
+    OUT = BuilderOutUnion<B>,
+  >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
+    const schemas = items.map(b => b.build())
+    _assert(
+      schemas.every(hasNoObjectSchemas),
+      'Do not use `anyOf` validation with non-primitive types!',
+    )
+
+    return new JsonSchemaAnyBuilder<IN, OUT, false>({
+      anyOf: schemas,
+    })
+  },
+
+  anyOfBy<
+    P extends string,
+    D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
+    IN = AnyOfByIn<D>,
+    OUT = AnyOfByOut<D>,
+  >(propertyName: P, schemaDictionary: D): JsonSchemaAnyOfByBuilder<IN, OUT, P> {
+    return new JsonSchemaAnyOfByBuilder<IN, OUT, P>(propertyName, schemaDictionary)
   },
 
   and() {
@@ -196,6 +257,13 @@ export const j = {
         throw new Error('...strike back!')
       },
     }
+  },
+
+  literal<const V extends string | number | boolean | null>(v: V) {
+    let baseType: EnumBaseType = 'other'
+    if (typeof v === 'string') baseType = 'string'
+    if (typeof v === 'number') baseType = 'number'
+    return new JsonSchemaEnumBuilder<V>([v], baseType)
   },
 }
 
@@ -229,6 +297,11 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
    * Same as if it would be JSON.stringified.
    */
   build(): JsonSchema<IN, OUT> {
+    _assert(
+      !(this.schema.optionalField && this.schema.default !== undefined),
+      '.optional() and .default() should not be used together - the default value makes .optional() redundant and causes incorrect type inference',
+    )
+
     const jsonSchema = _sortObject(
       JSON.parse(JSON.stringify(this.schema)),
       JSON_SCHEMA_ORDER,
@@ -388,6 +461,10 @@ export class JsonSchemaStringBuilder<
   }
 
   regex(pattern: RegExp, opt?: JsonBuilderRuleOpt): this {
+    _assert(
+      !pattern.flags,
+      `Regex flags are not supported by JSON Schema. Received: /${pattern.source}/${pattern.flags}`,
+    )
     return this.pattern(pattern.source, opt)
   }
 
@@ -473,10 +550,7 @@ export class JsonSchemaStringBuilder<
   }
 
   url(): this {
-    // from `ajv-formats`
-    const regex =
-      /^(?:https?|ftp):\/\/(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u{00A1}-\u{FFFF}]+-)*[a-z0-9\u{00A1}-\u{FFFF}]+)(?:\.(?:[a-z0-9\u{00A1}-\u{FFFF}]+-)*[a-z0-9\u{00A1}-\u{FFFF}]+)*(?:\.(?:[a-z\u{00A1}-\u{FFFF}]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?$/iu
-    return this.regex(regex, { msg: 'is not a valid URL format' })
+    return this.regex(URL_REGEX, { msg: 'is not a valid URL format' })
   }
 
   ipv4(): this {
@@ -837,36 +911,34 @@ export class JsonSchemaObjectBuilder<
   extend<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
     props: P,
   ): JsonSchemaObjectBuilder<
-    IN & {
-      // required keys
-      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? never
-          : K
-        : never]: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
-    } & {
-      // optional keys
-      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? K
-          : never
-        : never]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
-    },
-    OUT & {
-      // required keys
-      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? never
-          : K
-        : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
-    } & {
-      // optional keys
-      [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? K
-          : never
-        : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
-    },
+    RelaxIndexSignature<
+      OptionalDbEntityFields<
+        Override<
+          IN,
+          {
+            [K in keyof P]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
+          }
+        >
+      >
+    >,
+    Override<
+      OUT,
+      {
+        // required keys
+        [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+          ? IsOpt extends true
+            ? never
+            : K
+          : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+      } & {
+        // optional keys
+        [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+          ? IsOpt extends true
+            ? K
+            : never
+          : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+      }
+    >,
     false
   > {
     const newBuilder = new JsonSchemaObjectBuilder()
@@ -925,6 +997,11 @@ export class JsonSchemaObjectBuilder<
 
   maxProperties(maxProperties: number): this {
     return this.cloneAndUpdateSchema({ maxProperties })
+  }
+
+  exclusiveProperties(propNames: readonly (keyof IN & string)[]): this {
+    const exclusiveProperties = this.schema.exclusiveProperties ?? []
+    return this.cloneAndUpdateSchema({ exclusiveProperties: [...exclusiveProperties, propNames] })
   }
 }
 
@@ -1162,6 +1239,34 @@ export class JsonSchemaTupleBuilder<
   }
 }
 
+export class JsonSchemaAnyOfByBuilder<
+  IN,
+  OUT,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  _P extends string = string,
+> extends JsonSchemaAnyBuilder<AnyOfByInput<IN, _P> | IN, OUT, false> {
+  declare in: IN
+
+  constructor(
+    propertyName: string,
+    schemaDictionary: Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
+  ) {
+    const builtSchemaDictionary: Record<string, JsonSchema> = {}
+    for (const [key, schema] of Object.entries(schemaDictionary)) {
+      builtSchemaDictionary[key] = schema.build()
+    }
+
+    super({
+      type: 'object',
+      hasIsOfTypeCheck: true,
+      anyOfBy: {
+        propertyName,
+        schemaDictionary: builtSchemaDictionary,
+      },
+    })
+  }
+}
+
 type EnumBaseType = 'string' | 'number' | 'other'
 
 export interface JsonSchema<IN = unknown, OUT = IN> {
@@ -1240,6 +1345,11 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   optionalValues?: (string | number | boolean)[]
   keySchema?: JsonSchema
   minProperties2?: number
+  exclusiveProperties?: (readonly string[])[]
+  anyOfBy?: {
+    propertyName: string
+    schemaDictionary: Record<string, JsonSchema>
+  }
 }
 
 function object(props: AnyObject): never
@@ -1261,7 +1371,7 @@ function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any
 
 function objectDbEntity(props: AnyObject): never
 function objectDbEntity<
-  IN extends BaseDBEntity & AnyObject,
+  IN extends BaseDBEntity,
   EXTRA_KEYS extends Exclude<keyof IN, keyof BaseDBEntity> = Exclude<keyof IN, keyof BaseDBEntity>,
 >(
   props: {
@@ -1336,6 +1446,12 @@ function withRegexKeys<
   Opt extends true ? StringMap<SchemaOut<S>> : StringMap<SchemaOut<S>>,
   false
 > {
+  if (keyRegex instanceof RegExp) {
+    _assert(
+      !keyRegex.flags,
+      `Regex flags are not supported by JSON Schema. Received: /${keyRegex.source}/${keyRegex.flags}`,
+    )
+  }
   const pattern = keyRegex instanceof RegExp ? keyRegex.source : keyRegex
   const jsonSchema = schema.build()
 
@@ -1399,14 +1515,78 @@ function withEnumKeys<
   >(props, { hasIsOfTypeCheck: false })
 }
 
+function hasNoObjectSchemas(schema: JsonSchema): boolean {
+  if (Array.isArray(schema.type)) {
+    schema.type.every(type => ['string', 'number', 'integer', 'boolean', 'null'].includes(type))
+  } else if (schema.anyOf) {
+    return schema.anyOf.every(hasNoObjectSchemas)
+  } else if (schema.oneOf) {
+    return schema.oneOf.every(hasNoObjectSchemas)
+  } else if (schema.enum) {
+    return true
+  } else if (schema.type === 'array') {
+    return !schema.items || hasNoObjectSchemas(schema.items)
+  } else {
+    return !!schema.type && ['string', 'number', 'integer', 'boolean', 'null'].includes(schema.type)
+  }
+
+  return false
+}
+
 type Expand<T> = { [K in keyof T]: T[K] }
 
-type ExactMatch<A, B> =
-  (<T>() => T extends Expand<A> ? 1 : 2) extends <T>() => T extends Expand<B> ? 1 : 2
-    ? (<T>() => T extends Expand<B> ? 1 : 2) extends <T>() => T extends Expand<A> ? 1 : 2
+type StripIndexSignatureDeep<T> = T extends readonly unknown[]
+  ? T
+  : T extends Record<string, any>
+    ? {
+        [K in keyof T as string extends K
+          ? never
+          : number extends K
+            ? never
+            : symbol extends K
+              ? never
+              : K]: StripIndexSignatureDeep<T[K]>
+      }
+    : T
+
+type RelaxIndexSignature<T> = T extends readonly unknown[]
+  ? T
+  : T extends AnyObject
+    ? { [K in keyof T]: RelaxIndexSignature<T[K]> }
+    : T
+
+type Override<T, U> = Omit<T, keyof U> & U
+
+declare const allowExtraKeysSymbol: unique symbol
+
+type HasAllowExtraKeys<T> = T extends { readonly [allowExtraKeysSymbol]?: true } ? true : false
+
+type IsAny<T> = 0 extends 1 & T ? true : false
+
+type IsAssignableRelaxed<A, B> =
+  IsAny<RelaxIndexSignature<A>> extends true
+    ? true
+    : [RelaxIndexSignature<A>] extends [B]
+      ? true
+      : false
+
+type OptionalDbEntityFields<T> = T extends BaseDBEntity
+  ? Omit<T, keyof BaseDBEntity> & Partial<Pick<T, keyof BaseDBEntity>>
+  : T
+
+type ExactMatchBase<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
+    ? (<T>() => T extends B ? 1 : 2) extends <T>() => T extends A ? 1 : 2
       ? true
       : false
     : false
+
+type ExactMatch<A, B> =
+  HasAllowExtraKeys<B> extends true
+    ? IsAssignableRelaxed<B, A>
+    : ExactMatchBase<Expand<A>, Expand<B>> extends true
+      ? true
+      : ExactMatchBase<Expand<StripIndexSignatureDeep<A>>, Expand<StripIndexSignatureDeep<B>>>
 
 type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
@@ -1415,6 +1595,20 @@ type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> =
 type BuilderInUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<infer I, any, any> ? I : never
 }[number]
+
+type AnyOfByIn<D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>> = {
+  [K in keyof D]: D[K] extends JsonSchemaTerminal<infer I, any, any> ? I : never
+}[keyof D]
+
+type AnyOfByOut<D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>> = {
+  [K in keyof D]: D[K] extends JsonSchemaTerminal<any, infer O, any> ? O : never
+}[keyof D]
+
+type AnyOfByDiscriminant<IN, P extends string> = IN extends { [K in P]: infer V } ? V : never
+
+type AnyOfByInput<IN, P extends string, D = AnyOfByDiscriminant<IN, P>> = IN extends unknown
+  ? Omit<Partial<IN>, P> & { [K in P]?: D }
+  : never
 
 type BuilderFor<T> = JsonSchemaAnyBuilder<any, T, any>
 

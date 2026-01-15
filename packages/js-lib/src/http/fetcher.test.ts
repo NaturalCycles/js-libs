@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test, vi } from 'vitest'
+import { afterEach, expect, expectTypeOf, test, vi } from 'vitest'
 import { _range } from '../array/range.js'
 import { localTime } from '../datetime/index.js'
 import {
@@ -21,6 +21,10 @@ import { _stringify } from '../string/stringify.js'
 import type { UnixTimestampMillis } from '../types.js'
 import { Fetcher, getFetcher } from './fetcher.js'
 import type { FetcherCfg, FetcherOptions, FetcherRequest } from './fetcher.model.js'
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 test('defaults', () => {
   const fetcher = getFetcher()
@@ -324,6 +328,7 @@ test('paginate', async () => {
 })
 
 test('retryAfter', async () => {
+  vi.useFakeTimers()
   const fetcher = getFetcher({
     debug: true,
   })
@@ -340,11 +345,14 @@ test('retryAfter', async () => {
     .mockResolvedValueOnce(badResponse())
     .mockResolvedValueOnce(new Response('ok'))
 
-  const r = await fetcher.getText('')
+  const promise = fetcher.getText('')
+  await vi.runAllTimersAsync()
+  const r = await promise
   expect(r).toBe('ok')
 })
 
 test('retryAfter date', async () => {
+  vi.useFakeTimers()
   const fetcher = getFetcher({
     debug: true,
   })
@@ -362,7 +370,9 @@ test('retryAfter date', async () => {
     .mockImplementationOnce(async () => badResponse())
     .mockResolvedValueOnce(new Response('ok'))
 
-  const r = await fetcher.getText('')
+  const promise = fetcher.getText('')
+  await vi.runAllTimersAsync()
+  const r = await promise
   expect(r).toBe('ok')
 })
 

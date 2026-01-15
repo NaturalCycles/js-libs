@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
 import {
+  decompressZstdOrInflateToString,
   deflateBuffer,
   deflateString,
   gunzipBuffer,
@@ -8,6 +9,11 @@ import {
   gzipString,
   inflateBuffer,
   inflateToString,
+  isGzipBuffer,
+  isZstdBuffer,
+  zstdCompress,
+  zstdDecompress,
+  zstdDecompressToString,
 } from './zip.util.js'
 
 test('deflate/inflate', async () => {
@@ -24,6 +30,19 @@ test('deflate/inflate', async () => {
   expect(unzippedBuf).toEqual(sBuf)
 })
 
+test('zstd compress/decompress', async () => {
+  const s = 'abcd1234$%^'
+
+  let compressedBuf = await zstdCompress(s)
+  const decompressedStr = await zstdDecompressToString(compressedBuf)
+  expect(decompressedStr).toBe(s)
+
+  const sBuf = Buffer.from(s)
+  compressedBuf = await zstdCompress(sBuf)
+  const decompressedBuf = await zstdDecompress(compressedBuf)
+  expect(decompressedBuf).toEqual(sBuf)
+})
+
 test('gzip/gunzip', async () => {
   const s = 'abcd1234$%^'
 
@@ -36,6 +55,25 @@ test('gzip/gunzip', async () => {
   zippedBuf = await gzipBuffer(sBuf)
   const unzippedBuf = await gunzipBuffer(zippedBuf)
   expect(unzippedBuf).toEqual(sBuf)
+})
+
+test('compression detection', async () => {
+  const s = 'abcd1234$%^'
+  const deflated = await deflateString(s)
+  const gzipped = await gzipString(s)
+  const zsted = await zstdCompress(s)
+
+  expect(isZstdBuffer(deflated)).toBe(false)
+  expect(isZstdBuffer(gzipped)).toBe(false)
+  expect(isZstdBuffer(zsted)).toBe(true)
+
+  expect(isGzipBuffer(deflated)).toBe(false)
+  expect(isGzipBuffer(gzipped)).toBe(true)
+  expect(isGzipBuffer(zsted)).toBe(false)
+
+  expect(await decompressZstdOrInflateToString(deflated)).toBe(s)
+  // expect(await decompressZstdOrInflateToString(gzipped)).toBe(s) // gzip is not supported
+  expect(await decompressZstdOrInflateToString(zsted)).toBe(s)
 })
 
 test('compatible with java impl', async () => {

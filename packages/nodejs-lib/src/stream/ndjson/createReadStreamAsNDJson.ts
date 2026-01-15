@@ -1,20 +1,20 @@
-import { createUnzip } from 'node:zlib'
+import { createUnzip, createZstdDecompress } from 'node:zlib'
 import { fs2 } from '../../fs/fs2.js'
 import type { ReadableTyped } from '../stream.model.js'
 import { transformSplitOnNewline } from '../transform/transformSplit.js'
 
 /**
  Returns a Readable of [already parsed] NDJSON objects.
- 
+
  Replaces a list of operations:
  - requireFileToExist(inputPath)
  - fs.createReadStream
  - createUnzip (only if path ends with '.gz')
  - transformSplitOnNewline
  - transformJsonParse
- 
+
  To add a Limit or Offset: just add .take() or .drop(), example:
- 
+
  createReadStreamAsNDJson().take(100)
  */
 
@@ -31,6 +31,12 @@ export function createReadStreamAsNDJson<ROW = any>(inputPath: string): Readable
     stream = stream.pipe(
       createUnzip({
         chunkSize: 64 * 1024, // speedup from ~3200 to 3800 rps!
+      }),
+    )
+  } else if (inputPath.endsWith('.zst')) {
+    stream = stream.pipe(
+      createZstdDecompress({
+        chunkSize: 64 * 1024, // todo: test it
       }),
     )
   }

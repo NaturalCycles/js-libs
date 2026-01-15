@@ -54,11 +54,12 @@ test('saved/unsaved', () => {
     updated: UnixTimestamp
   }>()
 
-  const item = {} as Unsaved<Item>
-  item.a = undefined
-  item.id = undefined
-  item.created = undefined
-  item.updated = undefined
+  const item = {
+    a: undefined,
+    id: undefined,
+    created: undefined,
+    updated: undefined,
+  } as Unsaved<Item>
 
   expectTypeOf(item).toMatchTypeOf<{
     a?: number
@@ -178,6 +179,56 @@ test('_stringMapValues, _stringMapEntries', () => {
   expect(_stringMapValuesSorted(o, v => v, 'desc')).toEqual([4, 3, 2])
 })
 
+test('_objectEntries', () => {
+  enum A {
+    k1 = 1,
+    k2 = 2,
+    k3 = 3,
+  }
+
+  const map: Partial<Record<A, string>> = {
+    [A.k1]: 'v1',
+    [A.k2]: 'v2',
+  }
+
+  const entries = _objectEntries(map)
+  expectTypeOf(entries).toEqualTypeOf<[A, string][]>()
+  expect(entries).toMatchInlineSnapshot(`
+    [
+      [
+        "1",
+        "v1",
+      ],
+      [
+        "2",
+        "v2",
+      ],
+    ]
+  `)
+})
+
+test('_objectKeys with Enum', () => {
+  enum A {
+    k1 = 1,
+    k2 = 2,
+    k3 = 3,
+  }
+
+  const map: Partial<Record<A, string>> = {
+    [A.k1]: 'v1',
+    [A.k2]: 'v2',
+  }
+
+  const entries = _objectKeys(map)
+  expectTypeOf(entries).toEqualTypeOf<A[]>()
+  expect(entries).toMatchInlineSnapshot(`
+    [
+      "1",
+      "2",
+    ]
+  `)
+})
+
 test('_typeCast', () => {
   const err = _expectedError(() => {
     throw new Error('yo')
@@ -200,6 +251,7 @@ test('_objectAssign', () => {
   const item = {} as Item
 
   // No TypeScript error here
+  // oxlint-disable-next-line unicorn/no-immediate-mutation
   Object.assign(item, {
     whatever: 5,
   })

@@ -1,9 +1,9 @@
+import { Transform } from 'node:stream'
 import { Worker } from 'node:worker_threads'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
 import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import through2Concurrent from 'through2-concurrent'
 import type { TransformTyped } from '../../stream.model.js'
 import type { WorkerInput, WorkerOutput } from './transformMultiThreaded.model.js'
 
@@ -59,6 +59,11 @@ export function transformMultiThreaded<IN, OUT>(
   const messageDonePromises: Record<number, DeferredPromise<OUT>> = {}
   let index = -1 // input chunk index, will start from 0
 
+  // Concurrency control
+  let inFlight = 0
+  let blockedCallback: (() => void) | null = null
+  let flushBlocked: DeferredPromise | null = null
+
   const workers = _range(0, poolSize).map(workerIndex => {
     workerDonePromises.push(pDefer())
 
@@ -70,23 +75,16 @@ export function transformMultiThreaded<IN, OUT>(
       },
     })
 
-    // const {threadId} = worker
-    // console.log({threadId})
-
     worker.on('error', err => {
       console.error(`Worker ${workerIndex} error`, err)
-      workerDonePromises[workerIndex]!.reject(err)
+      workerDonePromises[workerIndex]!.reject(err as Error)
     })
 
     worker.on('exit', _exitCode => {
-      // console.log(`Worker ${index} exit: ${exitCode}`)
       workerDonePromises[workerIndex]!.resolve(undefined)
     })
 
     worker.on('message', (out: WorkerOutput<OUT>) => {
-      // console.log(`Message from Worker ${workerIndex}:`, out)
-      // console.log(Object.keys(messageDonePromises))
-      // tr.push(out.payload)
       if (out.error) {
         messageDonePromises[out.index]!.reject(out.error)
       } else {
@@ -97,32 +95,22 @@ export function transformMultiThreaded<IN, OUT>(
     return worker
   })
 
-  return through2Concurrent.obj(
-    {
-      maxConcurrency,
-      highWaterMark,
-      async final(cb) {
-        try {
-          // Push null (complete) to all sub-streams
-          for (const worker of workers) {
-            worker.postMessage(null)
-          }
-
-          console.log(`transformMultiThreaded.final is waiting for all chains to be done`)
-          await Promise.all(workerDonePromises)
-          console.log(`transformMultiThreaded.final all chains done`)
-
-          cb()
-        } catch (err) {
-          cb(err as Error)
-        }
-      },
-    },
-    async function transformMapFn(chunk: IN, _, cb) {
-      // Freezing the index, because it may change due to concurrency
+  return new Transform({
+    objectMode: true,
+    readableHighWaterMark: highWaterMark,
+    writableHighWaterMark: highWaterMark,
+    async transform(this: Transform, chunk: IN, _, cb) {
       const currentIndex = ++index
+      inFlight++
 
-      // Create the unresolved promise (to avait)
+      // Apply backpressure if at capacity, otherwise request more input
+      if (inFlight < maxConcurrency) {
+        cb()
+      } else {
+        blockedCallback = cb
+      }
+
+      // Create the unresolved promise (to await)
       messageDonePromises[currentIndex] = pDefer<OUT>()
 
       const worker = workers[currentIndex % poolSize]! // round-robin
@@ -132,21 +120,50 @@ export function transformMultiThreaded<IN, OUT>(
       } as WorkerInput)
 
       try {
-        // awaiting for result
         const out = await messageDonePromises[currentIndex]
-        // console.log('awaited!')
-        // return the result
-        cb(null, out)
+        this.push(out)
       } catch (err) {
         // Currently we only support ErrorMode.SUPPRESS
         // Error is logged and output continues
         console.error(err)
+      } finally {
+        delete messageDonePromises[currentIndex]
+        inFlight--
 
-        cb() // emit nothing in case of an error
+        // Release blocked callback if we now have capacity
+        if (blockedCallback && inFlight < maxConcurrency) {
+          const pendingCb = blockedCallback
+          blockedCallback = null
+          pendingCb()
+        }
+
+        // Trigger flush completion if all done
+        if (inFlight === 0 && flushBlocked) {
+          flushBlocked.resolve()
+        }
+      }
+    },
+    async flush(cb) {
+      // Wait for all in-flight operations to complete
+      if (inFlight > 0) {
+        flushBlocked = pDefer()
+        await flushBlocked
       }
 
-      // clean up
-      delete messageDonePromises[currentIndex]
+      try {
+        // Push null (complete) to all workers
+        for (const worker of workers) {
+          worker.postMessage(null)
+        }
+
+        console.log(`transformMultiThreaded.flush is waiting for all workers to be done`)
+        await Promise.all(workerDonePromises)
+        console.log(`transformMultiThreaded.flush all workers done`)
+
+        cb()
+      } catch (err) {
+        cb(err as Error)
+      }
     },
-  )
+  })
 }

@@ -6,7 +6,7 @@ export class SummaryReporter {
   }
 
   onTestRunEnd(testModules) {
-    const { count = 5 } = this.cfg
+    const { count = 10 } = this.cfg
 
     let stats = []
 

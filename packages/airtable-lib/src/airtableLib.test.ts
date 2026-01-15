@@ -8,7 +8,7 @@ test('wrong apiKey should throw', async () => {
   const airtableLib = new AirtableLib({
     apiKey: 'apiKey123',
   })
-  const tableDao = mockTableDao1(await airtableLib.api(), 'someBaseId')
+  const tableDao = mockTableDao1(airtableLib, 'someBaseId')
 
   // await expect(airtableService.getRecords('someBaseId.someTable')).rejects.toThrow(AppError)
   const err = await tableDao.getRecords().catch(err2 => err2)

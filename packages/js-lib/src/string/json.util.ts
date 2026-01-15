@@ -1,3 +1,4 @@
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { JsonParseError } from '../error/error.util.js'
 import type { Reviver } from '../types.js'
 

@@ -12,6 +12,7 @@ import type {
   UnixTimestamp,
   UnixTimestampMillis,
 } from '../types.js'
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import type { LocalDate } from './localDate.js'
 import { localDate } from './localDate.js'
 import { _ms } from './time.util.js'

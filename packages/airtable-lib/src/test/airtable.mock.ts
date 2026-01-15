@@ -1,23 +1,15 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
-import {
-  arraySchema,
-  booleanSchema,
-  emailSchema,
-  getJoiValidationFunction,
-  objectSchema,
-  stringSchema,
-} from '@naturalcycles/nodejs-lib/joi'
-import type { AirtableApi } from '../airtable.api.js'
+import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
 import type { AirtableAttachment, AirtableRecord } from '../airtable.model.js'
 import {
   airtableAttachmentsSchema,
   airtableMultipleLinkSchema,
-  airtableRecordSchema,
   airtableSingleLinkSchema,
 } from '../airtable.model.js'
 import { AirtableBaseDao } from '../airtableBaseDao.js'
 import { AirtableBasesDao } from '../airtableBasesDao.js'
+import type { AirtableLib } from '../airtableLib.js'
 import { AirtableTableDao } from '../airtableTableDao.js'
 import {
   AIRTABLE_CONNECTOR_JSON,
@@ -83,14 +75,15 @@ export interface User extends AirtableRecord {
   images: AirtableAttachment[]
 }
 
-export const userSchema = objectSchema<User>({
-  id: stringSchema,
-  email: emailSchema,
-  roles: airtableMultipleLinkSchema<Role>() as any,
-  category: airtableSingleLinkSchema<Category>() as any,
-  tags: arraySchema(stringSchema).optional().default([]),
+export const userSchema = j.object<User>({
+  airtableId: j.string(),
+  id: j.string(),
+  email: j.string().email(),
+  roles: airtableMultipleLinkSchema<Role>(),
+  category: airtableSingleLinkSchema<Category>(),
+  tags: j.array(j.string()).default([]),
   images: airtableAttachmentsSchema,
-}).concat(airtableRecordSchema as any)
+})
 
 export interface Permission extends AirtableRecord {
   id: string
@@ -100,13 +93,14 @@ export interface Permission extends AirtableRecord {
   roles: Role[]
 }
 
-export const permissionSchema = objectSchema<Permission>({
-  id: stringSchema,
-  pub: booleanSchema.optional(),
-  descr: stringSchema.optional(),
-  parent: airtableSingleLinkSchema<Permission>() as any,
-  roles: airtableMultipleLinkSchema<Role>() as any,
-}).concat(airtableRecordSchema as any)
+export const permissionSchema = j.object<Permission>({
+  airtableId: j.string(),
+  id: j.string(),
+  pub: j.boolean().optional(),
+  descr: j.string().optional(),
+  parent: airtableSingleLinkSchema<Permission>(),
+  roles: airtableMultipleLinkSchema<Role>(),
+})
 
 export interface Role extends AirtableRecord {
   id: string
@@ -116,39 +110,41 @@ export interface Role extends AirtableRecord {
   users: User[]
 }
 
-export const roleSchema = objectSchema<Role>({
-  id: stringSchema,
-  pub: booleanSchema.optional(),
-  descr: stringSchema.optional(),
-  permissions: airtableMultipleLinkSchema<Permission>() as any,
-  users: airtableMultipleLinkSchema<User>() as any,
-}).concat(airtableRecordSchema as any)
+export const roleSchema = j.object<Role>({
+  airtableId: j.string(),
+  id: j.string(),
+  pub: j.boolean().optional(),
+  descr: j.string().optional(),
+  permissions: airtableMultipleLinkSchema<Permission>(),
+  users: airtableMultipleLinkSchema<User>(),
+})
 
 export interface Category extends AirtableRecord {
   id: string
   users: User[]
 }
 
-export const categorySchema = objectSchema<Category>({
-  id: stringSchema,
-  users: airtableMultipleLinkSchema<User>() as any,
-}).concat(airtableRecordSchema as any)
+export const categorySchema = j.object<Category>({
+  airtableId: j.string(),
+  id: j.string(),
+  users: airtableMultipleLinkSchema<User>(),
+})
 
-export function mockTableDao1(api: AirtableApi, baseId: string): AirtableTableDao<Table1> {
-  return new AirtableTableDao<Table1>(api, baseId, 'table1', {
+export function mockTableDao1(airtableLib: AirtableLib, baseId: string): AirtableTableDao<Table1> {
+  return new AirtableTableDao<Table1>(airtableLib, baseId, 'table1', {
     idField: 'name',
     sort: [{ field: 'name' }],
   })
 }
 
-export function mockTableDao2(api: AirtableApi, baseId: string): AirtableTableDao<Table2> {
-  return new AirtableTableDao<Table2>(api, baseId, 'table2', {
+export function mockTableDao2(airtableLib: AirtableLib, baseId: string): AirtableTableDao<Table2> {
+  return new AirtableTableDao<Table2>(airtableLib, baseId, 'table2', {
     idField: 'name',
     sort: [{ field: 'name' }],
   })
 }
 
-export function mockBaseDao(api: AirtableApi, baseId: string): AirtableBaseDao<TestBase> {
+export function mockBaseDao(airtableLib: AirtableLib, baseId: string): AirtableBaseDao<TestBase> {
   const baseName = 'Test'
 
   return new AirtableBaseDao<TestBase>({
@@ -157,19 +153,25 @@ export function mockBaseDao(api: AirtableApi, baseId: string): AirtableBaseDao<T
     primaryConnector: AIRTABLE_CONNECTOR_JSON,
     connectors: [
       new AirtableJsonConnector<TestBase>({ cacheDir }),
-      new AirtableRemoteConnector<TestBase>(api),
+      new AirtableRemoteConnector<TestBase>(airtableLib),
     ],
     tableCfgMap: {
-      users: { validationFn: getJoiValidationFunction(userSchema), idField: 'id' },
-      roles: { validationFn: getJoiValidationFunction(roleSchema), idField: 'id' },
-      permissions: { validationFn: getJoiValidationFunction(permissionSchema), idField: 'id' },
-      categories: { validationFn: getJoiValidationFunction(categorySchema), idField: 'id' },
+      users: { validationFn: AjvSchema.create(userSchema).getValidationFunction(), idField: 'id' },
+      roles: { validationFn: AjvSchema.create(roleSchema).getValidationFunction(), idField: 'id' },
+      permissions: {
+        validationFn: AjvSchema.create(permissionSchema).getValidationFunction(),
+        idField: 'id',
+      },
+      categories: {
+        validationFn: AjvSchema.create(categorySchema).getValidationFunction(),
+        idField: 'id',
+      },
     },
     noAttachmentQueryString: true,
   })
 }
 
-export function mockBasesDao(api: AirtableApi, baseId: string): AirtableBasesDao<BaseMap> {
-  const baseDao = mockBaseDao(api, baseId)
+export function mockBasesDao(airtableLib: AirtableLib, baseId: string): AirtableBasesDao<BaseMap> {
+  const baseDao = mockBaseDao(airtableLib, baseId)
   return new AirtableBasesDao<BaseMap>([baseDao])
 }

@@ -1,7 +1,6 @@
 import { _filterObject, _mapValues } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { StringMap } from '@naturalcycles/js-lib/types'
-import type { AirtableApi } from '../airtable.api.js'
 import type {
   AirtableAttachment,
   AirtableAttachmentUpload,
@@ -12,12 +11,13 @@ import type {
   AirtableRecord,
 } from '../airtable.model.js'
 import { isArrayOfAttachments } from '../airtable.util.js'
+import type { AirtableLib } from '../airtableLib.js'
 import { AirtableTableDao } from '../airtableTableDao.js'
 
 export const AIRTABLE_CONNECTOR_REMOTE = Symbol('AIRTABLE_CONNECTOR_JSON')
 
 export class AirtableRemoteConnector<BASE = any> implements AirtableConnector<BASE> {
-  constructor(private airtableApi: AirtableApi) {}
+  constructor(private airtableLib: AirtableLib) {}
 
   readonly TYPE = AIRTABLE_CONNECTOR_REMOTE
 
@@ -143,7 +143,7 @@ export class AirtableRemoteConnector<BASE = any> implements AirtableConnector<BA
     tableCfg.noAttachmentQueryString ??= baseDaoCfg.noAttachmentQueryString
 
     return new AirtableTableDao<T>(
-      this.airtableApi,
+      this.airtableLib,
       baseDaoCfg.baseId,
       tableName as string,
       tableCfg,

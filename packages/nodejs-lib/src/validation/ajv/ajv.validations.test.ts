@@ -946,6 +946,20 @@ describe('string', () => {
         expect(err, String(url)).not.toBeNull()
       })
     })
+
+    test('should reject internationalized domain names (IDN)', () => {
+      // IDNs are not supported because JSON Schema patterns don't support regex flags,
+      // and the unicode flag is required to match non-ASCII characters.
+      // Use punycode encoding (e.g., https://xn--mnchen-3ya.de) instead.
+      const idnCases = ['https://münchen.de', 'https://日本.jp', 'https://中国.cn']
+      const schema = j.string().url()
+      const ajvSchema = AjvSchema.create(schema)
+
+      idnCases.forEach(url => {
+        const [err] = ajvSchema.getValidationResult(url)
+        expect(err, `IDN URL should be rejected: ${url}`).not.toBeNull()
+      })
+    })
   })
 
   describe('ipv4', () => {
@@ -975,7 +989,8 @@ describe('string', () => {
   describe('ipv6', () => {
     test('should accept string with valid IPv6', () => {
       const testCases = [
-        '2001:0db8:0000:0000:0000:ff00:0042:8329',
+        '2001:0db8:0000:0000:0000:ff00:0042:8329', // lowercase
+        '2001:0DB8:0000:0000:0000:FF00:0042:8329', // uppercase
         '2001:db8:0:0:0:ff00:42:8329',
         '2001:db8::ff00:42:8329',
         '0000:0000:0000:0000:0000:0000:0000:0001',
@@ -1251,7 +1266,11 @@ describe('string', () => {
 
   describe('uuid', () => {
     test('should accept valid data', () => {
-      const testCases = ['257631be-26d6-4a18-b28e-4bb7c6495cf4']
+      const testCases = [
+        '257631be-26d6-4a18-b28e-4bb7c6495cf4', // lowercase
+        '257631BE-26D6-4A18-B28E-4BB7C6495CF4', // uppercase (valid per RFC 4122)
+        '257631Be-26d6-4A18-b28e-4Bb7c6495Cf4', // mixed case
+      ]
       const schema = j.string().uuid()
       const ajvSchema = AjvSchema.create(schema)
 
@@ -2364,6 +2383,152 @@ describe('object', () => {
         'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
       )
     })
+
+    test('should accept a valid object', () => {
+      interface Foo {
+        foo: string | null
+        bar: number
+      }
+      const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
+      const schema2 = schema1.extend({ bar: j.number() }).isOfType<Foo>()
+      const ajvSchema = AjvSchema.create(schema2)
+
+      const testCases = [{ foo: 'foo', bar: 1 }]
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [
+        { foo: 'foo' },
+        { bar: 1 },
+        {},
+        0,
+        'abcd',
+        true,
+        [],
+        { abc: 'abc', def: 'def' },
+      ]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
+
+    test('should work with property narrowing', () => {
+      interface Base {
+        foo: string | null
+        bar: AnyObject
+      }
+      const schema1 = j.object<Base>({
+        foo: j.string().nullable(),
+        bar: j.object.any(),
+      })
+
+      interface Extended extends Base {
+        bar: {
+          shu: number
+        }
+        ping?: string
+      }
+      const schema2 = schema1
+        .extend({
+          bar: j.object<{ shu: number }>({ shu: j.number() }),
+          ping: j.string().optional(),
+        })
+        .isOfType<Extended>()
+
+      const ajvSchema = AjvSchema.create(schema2)
+
+      const [, result] = ajvSchema.getValidationResult({
+        foo: 'asdf',
+        bar: { shu: 0 },
+        ping: 'pong',
+      })
+
+      expectTypeOf(result).toExtend<Extended>()
+      expectTypeOf(result).not.toEqualTypeOf<Base>()
+
+      const testCases = [
+        { foo: 'foo', bar: { shu: 1 }, ping: 'pong' },
+        { foo: 'foo', bar: { shu: 1 } },
+      ]
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [
+        { foo: 'foo', bar: { boo: 'bah' } },
+        { foo: 'foo', bar: {} },
+        { foo: 'foo', bar: 0 },
+        { foo: 'foo' },
+        { bar: 1 },
+        {},
+        0,
+        'abcd',
+        true,
+        [],
+        { abc: 'abc', def: 'def' },
+      ]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
+
+    test('should be logical', () => {
+      interface Foo {
+        bar: string
+      }
+
+      const schema1 = j.object<Foo>({ bar: j.string() })
+      const schema2 = schema1.extend({}).isOfType<Foo>()
+
+      const [, result] = AjvSchema.create(schema2).getValidationResult({
+        bar: 'asdf',
+      })
+
+      expectTypeOf(result).toExtend<Foo>()
+    })
+
+    test('it should work with dbEntity', () => {
+      interface BM {
+        id: string
+        created: UnixTimestamp
+        updated: UnixTimestamp
+      }
+      interface FooBM extends BM {
+        foo: string
+        bar: AnyObject
+      }
+      interface Bar extends FooBM {
+        bar: {
+          shu: number
+        }
+      }
+
+      const schema1 = j.object.dbEntity<FooBM>({
+        foo: j.string(),
+        bar: j.object.any(),
+      })
+      const schema2 = schema1
+        .extend({
+          bar: j.object<Bar['bar']>({
+            shu: j.number(),
+          }),
+        })
+        .isOfType<Bar>()
+
+      const [, result] = AjvSchema.create(schema2).getValidationResult({
+        foo: 'bar',
+        bar: {
+          shu: 1,
+        },
+      })
+
+      expectTypeOf(result).toExtend<Bar>()
+    })
   })
 
   describe('concat', () => {
@@ -2711,6 +2876,31 @@ describe('object', () => {
       })
 
       const invalidCases: any[] = [{ foo: 'foo', bar: 'bar', shu: 'shu' }, 0, 'abcd', true, []]
+      invalidCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('.exclusiveProperties', () => {
+    test('should accept a valid object', () => {
+      const schema = j
+        .object<{ foo?: string; bar?: string; shu?: string }>({
+          foo: j.string().optional(),
+          bar: j.string().optional(),
+          shu: j.string().optional(),
+        })
+        .exclusiveProperties(['foo', 'bar'])
+      const ajvSchema = AjvSchema.create(schema)
+
+      const testCases = [{}, { foo: 'foo' }, { bar: 'bar' }, { foo: 'foo', shu: 'shu' }]
+      testCases.forEach(value => {
+        const [err] = ajvSchema.getValidationResult(value)
+        expect(err, _stringify(value)).toBeNull()
+      })
+
+      const invalidCases: any[] = [{ foo: 'foo', bar: 'bar' }, 0, 'abcd', true, []]
       invalidCases.forEach(value => {
         const [err] = ajvSchema.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
@@ -3124,6 +3314,171 @@ describe('oneOf', () => {
       expect(err).not.toBeNull()
     })
   })
+
+  test('should reject values matching multiple schemas', () => {
+    // Both schemas accept strings of length 5-10
+    const schema = j.oneOf([j.string().minLength(5), j.string().maxLength(10)])
+
+    // 'hello' matches both schemas, so oneOf rejects it
+    const [err] = AjvSchema.create(schema).getValidationResult('hello')
+    expect(err).not.toBeNull()
+  })
+
+  test('should work with complex values', () => {
+    const schema1 = j.object<{ data: { foo: string; bar: number } }>({
+      data: j.object.infer({ foo: j.string(), bar: j.number() }),
+    })
+    const schema2 = j.object<{ data: { foo: string; shu: number } }>({
+      data: j.object.infer({ foo: j.string(), shu: j.number() }),
+    })
+
+    expect(() => j.oneOf([schema1, schema2])).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: Do not use \`oneOf\` validation with non-primitive types!]`,
+    )
+
+    // Cannot hide an object inside an accepted schema
+    expect(() =>
+      j.oneOf([j.array(j.object<{ foo: string }>({ foo: j.string() }))]),
+    ).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: Do not use \`oneOf\` validation with non-primitive types!]`,
+    )
+
+    // These should work
+    j.oneOf([j.string().nullable()])
+    j.oneOf([j.array(j.string())])
+    j.oneOf([j.array(j.enum(['foo', 'bar']))])
+    j.oneOf([j.array(j.enum(['valid', 'invalid'])), j.enum(['valid', 'invalid'])]).optional()
+  })
+})
+
+describe('anyOf', () => {
+  test('should correctly infer the type', () => {
+    const schema = j.anyOf([j.string().nullable(), j.number()])
+    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+    expectTypeOf(result).toEqualTypeOf<string | number | null>()
+  })
+
+  test('should accept valid values', () => {
+    const testCases = ['a', 1, null]
+    const schema = j.anyOf([j.string().nullable(), j.number()])
+
+    testCases.forEach(value => {
+      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      expect(err).toBeNull()
+    })
+  })
+
+  test('should reject invalid values', () => {
+    const invalidCases: any[] = [undefined, true, [], {}]
+    const schema = j.anyOf([j.string().nullable(), j.number()])
+
+    invalidCases.forEach(value => {
+      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      expect(err).not.toBeNull()
+    })
+  })
+
+  test('should accept values matching multiple schemas', () => {
+    // Both schemas accept strings of length 5-10
+    const schema = j.anyOf([j.string().minLength(5), j.string().maxLength(10)])
+
+    // 'hello' matches both schemas, anyOf accepts it (unlike oneOf)
+    const [err] = AjvSchema.create(schema).getValidationResult('hello')
+    expect(err).toBeNull()
+  })
+
+  test('should not work with complex values', () => {
+    const schema1 = j.object<{ data: { foo: string; bar: number } }>({
+      data: j.object.infer({ foo: j.string(), bar: j.number() }),
+    })
+    const schema2 = j.object<{ data: { foo: string; shu: number } }>({
+      data: j.object.infer({ foo: j.string(), shu: j.number() }),
+    })
+
+    expect(() => j.anyOf([schema1, schema2])).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: Do not use \`anyOf\` validation with non-primitive types!]`,
+    )
+
+    // Cannot hide an object inside an accepted schema
+    expect(() =>
+      j.anyOf([j.array(j.object<{ foo: string }>({ foo: j.string() }))]),
+    ).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: Do not use \`anyOf\` validation with non-primitive types!]`,
+    )
+
+    // These should work
+    j.anyOf([j.string().nullable()])
+    j.anyOf([j.array(j.string())])
+    j.anyOf([j.array(j.enum(['foo', 'bar']))])
+    j.anyOf([j.array(j.enum(['valid', 'invalid'])), j.enum(['valid', 'invalid'])]).optional()
+  })
+})
+
+describe('anyOfBy', () => {
+  enum Foo {
+    A = 1,
+    B = 2,
+    C = 3,
+  }
+  interface FooA {
+    type: Foo.A
+    foo: string
+  }
+  interface FooB {
+    type: Foo.B
+    bar: number
+  }
+  interface FooC {
+    type: Foo.C
+    foo: boolean
+  }
+
+  const schema = j.anyOfBy('type', {
+    [Foo.A]: j.object<FooA>({ type: j.literal(Foo.A), foo: j.string() }),
+    [Foo.B]: j.object<FooB>({ type: j.literal(Foo.B), bar: j.number() }),
+    [Foo.C]: j.object<FooC>({
+      type: j.literal(Foo.C),
+      foo: j.boolean(),
+    }),
+  })
+
+  test('should correctly infer the type', () => {
+    const ajvSchema = AjvSchema.create(schema)
+    const [, result] = ajvSchema.getValidationResult({ type: Foo.A, foo: 'asdf' })
+
+    expectTypeOf(result).toEqualTypeOf<FooA | FooB | FooC>()
+  })
+
+  test('should accept valid values', () => {
+    const ajvSchema = AjvSchema.create(schema)
+
+    const testCases = [
+      { type: Foo.A, foo: 'asdf' },
+      { type: Foo.B, bar: 1 },
+      { type: Foo.C, foo: true },
+    ]
+    testCases.forEach(value => {
+      const [err, result] = ajvSchema.getValidationResult(value)
+      expect(result).toEqual(value)
+      expect(err).toBeNull()
+    })
+
+    const invalidCases = [
+      { type: Foo.C, foo: 'asdf' },
+      { type: Foo.A, bar: 1 },
+      { type: Foo.B, foo: true },
+      { type: Foo.A },
+      { type: Foo.B },
+      { type: Foo.C },
+      { foo: 'asdf' },
+      { bar: 1 },
+      { foo: true },
+    ]
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err).not.toBeNull()
+    })
+  })
 })
 
 describe('errors', () => {
@@ -3198,5 +3553,67 @@ describe('final', () => {
     expect(() => schema.optional()).toThrow('schema.optional is not a function')
     // @ts-expect-error
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
+  })
+})
+
+describe('literal', () => {
+  test('should accept a valid value', () => {
+    const schema1 = j.literal('magic')
+    const ajvSchema1 = AjvSchema.create(schema1)
+    const [, result1] = ajvSchema1.getValidationResult('magic')
+    expectTypeOf(result1).toEqualTypeOf<'magic'>()
+    expect(result1).toBe('magic')
+
+    const schema2 = j.literal(5)
+    const ajvSchema2 = AjvSchema.create(schema2)
+    const [, result2] = ajvSchema2.getValidationResult(5)
+    expectTypeOf(result2).toEqualTypeOf<5>()
+    expect(result2).toBe(5)
+
+    const schema3 = j.literal(true)
+    const ajvSchema3 = AjvSchema.create(schema3)
+    const [, result3] = ajvSchema3.getValidationResult(true)
+    expectTypeOf(result3).toEqualTypeOf<true>()
+    expect(result3).toBe(true)
+
+    const schema4 = j.literal(null)
+    const ajvSchema4 = AjvSchema.create(schema4)
+    const [, result4] = ajvSchema4.getValidationResult(null)
+    expectTypeOf(result4).toEqualTypeOf<null>()
+    expect(result4).toBeNull()
+
+    enum Foo {
+      A = 1,
+      B = 2,
+    }
+    const schema5 = j.literal(Foo.A)
+    const ajvSchema5 = AjvSchema.create(schema5)
+    const [, result5] = ajvSchema5.getValidationResult(Foo.A)
+    expectTypeOf(result5).toEqualTypeOf<Foo.A>()
+    expect(result5).toBe(Foo.A)
+
+    const [err1] = ajvSchema1.getValidationResult('mushroom' as any)
+    expect(err1).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be equal to one of the allowed values
+      Input: mushroom]
+    `)
+
+    const [err2] = ajvSchema2.getValidationResult(3 as any)
+    expect(err2).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be equal to one of the allowed values
+      Input: 3]
+    `)
+
+    const [err3] = ajvSchema3.getValidationResult(false as any)
+    expect(err3).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be equal to one of the allowed values
+      Input: false]
+    `)
+
+    const [err4] = ajvSchema4.getValidationResult({} as any)
+    expect(err4).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be equal to one of the allowed values
+      Input: {}]
+    `)
   })
 })

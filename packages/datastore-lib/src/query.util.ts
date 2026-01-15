@@ -1,12 +1,16 @@
 import { PropertyFilter, type Query } from '@google-cloud/datastore'
+import type { Operator, RunQueryOptions } from '@google-cloud/datastore/build/src/query.js'
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
+import { _round } from '@naturalcycles/js-lib'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import type { DatastoreDBReadOptions } from './datastore.model.js'
 
 const FNAME_MAP: StringMap = {
   id: '__key__',
 }
 
-const OP_MAP: Partial<Record<DBQueryFilterOperator, string>> = {
+// export type Operator = '=' | '<' | '>' | '<=' | '>=' | 'HAS_ANCESTOR' | '!=' | 'IN' | 'NOT_IN'
+const OP_MAP: Partial<Record<DBQueryFilterOperator, Operator>> = {
   '==': '=',
   in: 'IN',
   'not-in': 'NOT_IN',
@@ -63,4 +67,18 @@ export function dbQueryToDatastoreQuery<ROW extends ObjectWithId>(
   }
 
   return q
+}
+
+export function getRunQueryOptions(opt: DatastoreDBReadOptions): RunQueryOptions {
+  if (!opt.readAt) return {}
+
+  // Datastore expects UnixTimestamp in milliseconds
+  // Datastore requires the timestamp to be rounded to the whole minutes
+  let readTime = _round(opt.readAt, 60) * 1000
+  if (readTime >= Date.now() - 1000) {
+    // To avoid the error of: The requested 'read_time' cannot be in the future
+    readTime -= 60_000
+  }
+
+  return { readTime }
 }

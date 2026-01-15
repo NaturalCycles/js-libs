@@ -2,8 +2,10 @@ import fs from 'node:fs'
 import { VitestAlphabeticSequencer } from './vitestAlphabeticSequencer.js'
 import { defineConfig } from 'vitest/config'
 import { SummaryReporter } from './summaryReporter.js'
+import { SummaryOnlyReporter } from './summaryOnlyReporter.js'
 export { SummaryReporter } from './summaryReporter.js'
 export { CollectReporter } from './collectReporter.js'
+export { SummaryOnlyReporter } from './summaryOnlyReporter.js'
 
 const runsInIDE = doesItRunInIDE()
 const testType = getTestType(runsInIDE)
@@ -37,32 +39,29 @@ if (silent) {
  * })
  */
 export function defineVitestConfig(config, cwd) {
-  const setupFiles = getSetupFiles(testType, cwd)
-
   const mergedConfig = defineConfig({
     ...config,
     test: {
-      ...sharedConfig,
-      setupFiles,
+      ...getSharedConfig(cwd),
       ...config?.test,
     },
   })
 
   const { silent, pool, maxWorkers, isolate } = mergedConfig.test
 
-  console.log({
-    testType,
-    silent,
-    isCI,
-    runsInIDE,
-    // include,
-    // exclude,
-    pool,
-    isolate,
-    maxWorkers,
-    // setupFiles,
-    // cwd,
-  })
+  // In workspace mode, cwd differs from process.cwd() (which is the monorepo root)
+  const isWorkspaceMode = cwd && process.cwd() !== cwd
+  if (!isWorkspaceMode) {
+    console.log({
+      testType,
+      silent,
+      isCI,
+      runsInIDE,
+      pool,
+      isolate,
+      maxWorkers,
+    })
+  }
 
   return mergedConfig
 }
@@ -70,65 +69,81 @@ export function defineVitestConfig(config, cwd) {
 /**
  * Shared config for Vitest.
  */
-export const sharedConfig = {
-  pool,
-  maxWorkers,
-  isolate: false,
-  watch: false,
-  // dir: 'src',
-  restoreMocks: true,
-  silent,
-  setupFiles: getSetupFiles(testType),
-  logHeapUsage: true,
-  testTimeout: 60_000,
-  slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
-  sequence: {
-    sequencer: VitestAlphabeticSequencer,
-    // shuffle: {
-    //   files: true,
-    //   tests: false,
-    // },
-    // seed: 1, // this makes the order of tests deterministic (but still not alphabetic)
-  },
-  include,
-  exclude,
-  reporters: [
+export function getSharedConfig(cwd) {
+  return {
+    pool,
+    maxWorkers,
+    isolate: false,
+    watch: false,
+    // dir: 'src',
+    restoreMocks: true,
+    silent,
+    setupFiles: getSetupFiles(testType, cwd),
+    logHeapUsage: true,
+    testTimeout: 60_000,
+    slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
+    sequence: {
+      sequencer: VitestAlphabeticSequencer,
+      // shuffle: {
+      //   files: true,
+      //   tests: false,
+      // },
+      // seed: 1, // this makes the order of tests deterministic (but still not alphabetic)
+    },
+    include,
+    exclude,
+    reporters: getReporters(junitReporterEnabled, testType),
+    // outputFile location is specified for compatibility with the previous jest config
+    outputFile: junitReporterEnabled ? `./tmp/jest/${testType}.xml` : undefined,
+    coverage: {
+      enabled: coverageEnabled,
+      reporter: ['html', 'lcov', 'json', 'json-summary', !isCI && 'text'].filter(Boolean),
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        '**/__exclude/**',
+        'scripts/**',
+        'public/**',
+        'src/index.{ts,tsx}',
+        'src/test/**',
+        'src/typings/**',
+        'src/{env,environment,environments}/**',
+        'src/bin/**',
+        'src/vendor/**',
+        '**/*.test.*',
+        '**/*.script.*',
+        '**/*.module.*',
+        '**/*.mock.*',
+        '**/*.page.{ts,tsx}',
+        '**/*.component.{ts,tsx}',
+        '**/*.directive.{ts,tsx}',
+        '**/*.modal.{ts,tsx}',
+      ],
+    },
+  }
+}
+
+function getReporters(junitReporterEnabled, testType) {
+  // VITEST_REPORTER env var allows overriding the default reporter
+  // e.g., VITEST_REPORTER=summary for minimal output
+  const { VITEST_REPORTER, CLAUDE_CODE } = process.env
+
+  if (VITEST_REPORTER === 'summary' || CLAUDE_CODE) {
+    return [new SummaryOnlyReporter()]
+  }
+  if (VITEST_REPORTER === 'dot') {
+    return ['dot']
+  }
+
+  return [
     'default',
     new SummaryReporter(),
     junitReporterEnabled && [
       'junit',
       {
         suiteName: `${testType} tests`,
-        // classNameTemplate: '{filename} - {classname}',
       },
     ],
-  ].filter(Boolean),
-  // outputFile location is specified for compatibility with the previous jest config
-  outputFile: junitReporterEnabled ? `./tmp/jest/${testType}.xml` : undefined,
-  coverage: {
-    enabled: coverageEnabled,
-    reporter: ['html', 'lcov', 'json', 'json-summary', !isCI && 'text'].filter(Boolean),
-    include: ['src/**/*.{ts,tsx}'],
-    exclude: [
-      '**/__exclude/**',
-      'scripts/**',
-      'public/**',
-      'src/index.{ts,tsx}',
-      'src/test/**',
-      'src/typings/**',
-      'src/{env,environment,environments}/**',
-      'src/bin/**',
-      'src/vendor/**',
-      '**/*.test.*',
-      '**/*.script.*',
-      '**/*.module.*',
-      '**/*.mock.*',
-      '**/*.page.{ts,tsx}',
-      '**/*.component.{ts,tsx}',
-      '**/*.directive.{ts,tsx}',
-      '**/*.modal.{ts,tsx}',
-    ],
-  },
+  ].filter(Boolean)
 }
 
 function doesItRunInIDE() {
@@ -184,14 +199,14 @@ function isRunningAllTests() {
   return !hasPositionalArgs
 }
 
-function getSetupFiles(testType, cwd = '.') {
+function getSetupFiles(testType, cwd = process.cwd()) {
   // Set 'setupFiles' only if setup files exist
   const setupFiles = []
   if (fs.existsSync(`${cwd}/src/test/setupVitest.ts`)) {
-    setupFiles.push('./src/test/setupVitest.ts')
+    setupFiles.push(`${cwd}/src/test/setupVitest.ts`)
   }
   if (fs.existsSync(`${cwd}/src/test/setupVitest.${testType}.ts`)) {
-    setupFiles.push(`./src/test/setupVitest.${testType}.ts`)
+    setupFiles.push(`${cwd}/src/test/setupVitest.${testType}.ts`)
   }
   return setupFiles
 }

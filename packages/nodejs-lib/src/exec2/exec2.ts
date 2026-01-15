@@ -148,7 +148,14 @@ class Exec2 {
    * log: true
    */
   async spawnAsync(cmd: string, opt: SpawnOptions = {}): Promise<void> {
-    const { shell = true, cwd, env, passProcessEnv = true, forceColor = hasColors } = opt
+    const {
+      shell = true,
+      cwd,
+      env,
+      passProcessEnv = true,
+      forceColor = hasColors,
+      stdio = 'inherit',
+    } = opt
     opt.log ??= true // by default log should be true, as we are printing the output
     opt.logStart ??= opt.log
     opt.logFinish ??= opt.log
@@ -159,7 +166,7 @@ class Exec2 {
       const p = spawn(cmd, opt.args || [], {
         shell,
         cwd,
-        stdio: 'inherit',
+        stdio,
         env: {
           ...(passProcessEnv ? process.env : {}),
           ...(forceColor ? { FORCE_COLOR: '1' } : {}),
@@ -167,10 +174,13 @@ class Exec2 {
         },
       })
 
-      p.on('close', code => {
-        const isSuccessful = !code
+      p.on('close', (code, signal) => {
+        const isSuccessful = code === 0
         this.logFinish(cmd, opt, started, isSuccessful)
-        if (code) {
+        if (signal) {
+          return reject(new Error(`spawnAsync killed by signal ${signal}: ${cmd}`))
+        }
+        if (!isSuccessful) {
           return reject(new Error(`spawnAsync exited with code ${code}: ${cmd}`))
         }
         resolve()
@@ -252,16 +262,19 @@ class Exec2 {
         }
       })
 
-      p.on('close', code => {
-        const isSuccessful = !code
+      p.on('close', (code, signal) => {
+        const isSuccessful = code === 0
         this.logFinish(cmd, opt, started, isSuccessful)
-        const exitCode = code || 0
+        const exitCode = code ?? -1
         const o: SpawnOutput = {
           exitCode,
           stdout: stdout.trim(),
           stderr: stderr.trim(),
         }
-        if (throwOnNonZeroCode && code) {
+        if (signal) {
+          return reject(new SpawnError(`spawnAsyncAndReturn killed by signal ${signal}: ${cmd}`, o))
+        }
+        if (throwOnNonZeroCode && !isSuccessful) {
           return reject(new SpawnError(`spawnAsyncAndReturn exited with code ${code}: ${cmd}`, o))
         }
         resolve(o)

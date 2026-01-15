@@ -72,12 +72,12 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     this.countReads++
 
     if (this.done) {
-      this.logger.warn(`!!! _read was called, but done==true`)
+      this.logger.warn(`!!! ${this.table} _read was called, but done==true`)
       return
     }
 
     if (this.paused) {
-      this.logger.log(
+      this.logger.debug(
         `_read #${this.countReads}, queryIsRunning: ${this.queryIsRunning}, unpausing stream`,
       )
       this.paused = false
@@ -166,7 +166,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       if (this.paused) {
         logger.debug(`${table} stream is already paused`)
       } else {
-        logger.log(`${table} pausing the stream`)
+        logger.debug(`${table} pausing the stream`)
         this.paused = true
       }
     }

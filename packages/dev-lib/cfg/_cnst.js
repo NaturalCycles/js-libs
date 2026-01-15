@@ -4,7 +4,7 @@ const prettierExtensionsExclusive = 'js,jsx,json,md,graphql,yml,yaml,html'
 // everything that prettier supports:
 const prettierExtensionsAll =
   'ts,tsx,cts,mts,css,scss,js,jsx,cjs,mjs,json,md,graphql,yml,yaml,html,vue'
-const eslintExtensions = 'ts,tsx,cts,mts,vue,html'
+const eslintExtensions = 'ts,tsx,cts,mts,html'
 const stylelintExtensions = 'css,scss'
 const lintExclude = ['./**/__exclude/**', './**/dist/**', './**/cache/**', './CHANGELOG.md']
 const minActionlintVersion = '1.7.7'

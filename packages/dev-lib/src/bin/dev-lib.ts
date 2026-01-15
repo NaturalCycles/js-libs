@@ -1,22 +1,24 @@
 #!/usr/bin/env node
-import { select, Separator } from '@inquirer/prompts'
 import { _by } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { PromisableFunction } from '@naturalcycles/js-lib/types'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
-import { buildCopy, buildProd, runTSCInFolders } from '../build.util.js'
 import {
+  buildCopy,
+  buildProd,
   eslintAll,
-  lintAllCommand,
   lintStagedCommand,
+  requireOxlintConfig,
   runBiome,
-  runCommitlintCommand,
+  runCheck,
   runOxlint,
   runPrettier,
+  runTest,
   stylelintAll,
-} from '../lint.util.js'
-import { runTest } from '../test.util.js'
+  typecheckWithTSC,
+} from '../check.util.js'
+import { runCommitlint } from '../commitlint.js'
 
 interface Command {
   name: string
@@ -26,15 +28,25 @@ interface Command {
   interactiveOnly?: boolean
 }
 
-const commands: (Command | Separator)[] = [
-  new Separator(), // build
+const commands: Command[] = [
+  { name: 'check', fn: runCheck, desc: '"Run all possible checks": lint, typecheck, then test.' },
+  {
+    name: 'quick-check',
+    fn: quickCheck,
+    desc: 'Like check, but without slow parts, to perform preliminary checks',
+  },
+  { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (via oxlint) and then "test".' },
   {
     name: 'typecheck',
-    fn: typecheck,
-    desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present',
+    // fn: typecheckWithOxlint,
+    fn: typecheckWithTSC, // todo: attempt tsgo
+    desc: 'Run typecheck via oxlint --type-aware',
   },
-  { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (tsc) and then "test".' },
-  { name: 'check', fn: lbt, desc: '"Run all possible checks": lint, typecheck, then test.' },
+  {
+    name: 'typecheck-with-tsc',
+    fn: typecheckWithTSC,
+    desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present. Deprecated, use oxlint type-checking instead.',
+  },
   {
     name: 'build',
     fn: buildProd,
@@ -55,7 +67,6 @@ const commands: (Command | Separator)[] = [
     fn: cleanBuild,
     desc: 'Cleans ./dist, then runs the build.',
   },
-  new Separator(), // test
   { name: 'test', fn: runTest, desc: 'Run vitest for *.test.ts files.' },
   {
     name: 'test-integration',
@@ -72,10 +83,13 @@ const commands: (Command | Separator)[] = [
     fn: () => runTest({ leaks: true }),
     desc: 'Run vitest --detectLeaks for *.test.ts files.',
   },
-  new Separator(), // lint
   {
     name: 'lint',
-    fn: lintAllCommand,
+    fn: () =>
+      runCheck({
+        typecheckWithTSC: false,
+        test: false,
+      }),
     desc: 'Run all linters: eslint, prettier, stylelint, ktlint, actionlint.',
   },
   {
@@ -119,8 +133,7 @@ const commands: (Command | Separator)[] = [
     desc: 'Run stylelint with auto-fix disabled.',
   },
   { name: 'stylelint-no-fix', cliOnly: true, fn: () => stylelintAll(false) },
-  { name: 'commitlint', fn: runCommitlintCommand, desc: 'Run commitlint.', cliOnly: true },
-  new Separator(), // interactive-only
+  { name: 'commitlint', fn: runCommitlint, desc: 'Run commitlint.', cliOnly: true },
   {
     name: 'exit',
     fn: () => console.log('see you!'),
@@ -141,7 +154,7 @@ const commands: (Command | Separator)[] = [
   // },
 ]
 
-const commandMap = _by(commands.filter(c => !(c instanceof Separator)) as Command[], c => c.name)
+const commandMap = _by(commands, c => c.name)
 
 const { CI } = process.env
 
@@ -152,36 +165,50 @@ runScript(async () => {
     // interactive mode
     _assert(!CI, 'interactive dev-lib should not be run in CI')
 
-    cmd = await select({
+    const { default: prompts } = await import('prompts')
+
+    const response = await prompts({
+      type: 'select',
+      name: 'cmd',
       message: 'Select command',
-      pageSize: 30,
+      // @ts-expect-error types are wrong
+      optionsPerPage: 30,
       choices: commands
-        .filter(c => c instanceof Separator || !c.cliOnly)
-        .map(c => {
-          if (c instanceof Separator) return c
-          return {
-            value: c.name,
-            description: c.desc,
-          }
-        }),
+        .filter(c => !c.cliOnly)
+        .map(c => ({
+          title: c.name,
+          value: c.name,
+          description: c.desc,
+        })),
     })
+    cmd = response.cmd
+    if (!cmd) return // user cancelled
   }
 
   await commandMap[cmd]!.fn()
 })
 
-async function lbt(): Promise<void> {
-  await lintAllCommand()
-  await bt()
+async function quickCheck(): Promise<void> {
+  await runCheck({
+    eslint: false,
+    prettier: false,
+    stylelint: false,
+    typecheckWithTSC: false,
+  })
 }
 
 async function bt(): Promise<void> {
-  await typecheck()
+  // Still using tsc, as oxlint is found to fail in certain cases
+  // todo: attempt to use tsgo!
+  // await typecheckWithOxlint()
+  await typecheckWithTSC()
   runTest()
 }
 
-async function typecheck(): Promise<void> {
-  await runTSCInFolders(['src', 'scripts', 'e2e'], ['--noEmit'])
+async function _typecheckWithOxlint(): Promise<void> {
+  requireOxlintConfig()
+  const fix = !CI
+  runOxlint(fix)
 }
 
 async function cleanDist(): Promise<void> {

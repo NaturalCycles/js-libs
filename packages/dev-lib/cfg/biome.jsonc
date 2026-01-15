@@ -1,20 +1,14 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "root": false,
   "files": {
     "includes": [
-      "*",
-      "src/**",
-      "scripts/**",
-      "!**/*.html",
-      "!**/*.css",
-      "!**/*.scss",
-      "!**/tsconfig.json",
-      "!**/tsconfig.*.json",
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
       "!**/__exclude",
-      "!**/try.ts",
-      "!**/*.compact.json",
-      "!**/*.mock.json"
+      "!**/try.ts"
     ]
   },
   "formatter": {
@@ -82,6 +76,7 @@
         "useIterableCallbackReturn": "off",
         "useErrorMessage": "off", // ox
         "noControlCharactersInRegex": "off", // ox
+        "noExtraNonNullAssertion": "off", // ox
         "noEvolvingTypes": "error",
         "noExplicitAny": "off",
         "noAssignInExpressions": "off",
@@ -103,7 +98,7 @@
         "noUselessThisAlias": "off",
         "useLiteralKeys": "off",
         "noBannedTypes": "off",
-        "noCommaOperator": "error",
+        "noCommaOperator": "off", // ox
         "noArguments": "error"
       },
       "nursery": {}

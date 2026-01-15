@@ -1,7 +1,14 @@
 import { Readable, type Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { ReadableStream as WebReadableStream } from 'node:stream/web'
-import { createGzip, createUnzip, type ZlibOptions } from 'node:zlib'
+import {
+  createGzip,
+  createUnzip,
+  createZstdCompress,
+  createZstdDecompress,
+  type ZlibOptions,
+  type ZstdOptions,
+} from 'node:zlib'
 import { createAbortableSignal } from '@naturalcycles/js-lib'
 import {
   _passthroughPredicate,
@@ -17,6 +24,7 @@ import {
   type SKIP,
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
+import { zstdLevelToOptions } from '../zip/zip.util.js'
 import { createReadStreamAsNDJson } from './ndjson/createReadStreamAsNDJson.js'
 import { transformJsonParse } from './ndjson/transformJsonParse.js'
 import { transformToNDJson } from './ndjson/transformToNDJson.js'
@@ -31,6 +39,7 @@ import { PIPELINE_GRACEFUL_ABORT } from './stream.util.js'
 import { transformChunk } from './transform/transformChunk.js'
 import { transformFilterSync } from './transform/transformFilter.js'
 import { transformFlatten, transformFlattenIfNeeded } from './transform/transformFlatten.js'
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { transformFork } from './transform/transformFork.js'
 import { transformLimit } from './transform/transformLimit.js'
 import {
@@ -47,6 +56,7 @@ import { transformOffset, type TransformOffsetOptions } from './transform/transf
 import { transformSplitOnNewline } from './transform/transformSplit.js'
 import { transformTap, transformTapSync } from './transform/transformTap.js'
 import { transformThrottle, type TransformThrottleOptions } from './transform/transformThrottle.js'
+import { transformWarmup, type TransformWarmupOptions } from './transform/transformWarmup.js'
 import { writablePushToArray } from './writable/writablePushToArray.js'
 import { writableVoid } from './writable/writableVoid.js'
 
@@ -243,6 +253,14 @@ export class Pipeline<T = unknown> {
     return this
   }
 
+  /**
+   * @experimental to be removed after transformMap2 is stable
+   */
+  warmup(opt: TransformWarmupOptions): this {
+    this.transforms.push(transformWarmup(opt))
+    return this
+  }
+
   transform<TO>(transform: TransformTyped<T, TO>): Pipeline<TO> {
     this.transforms.push(transform)
     return this as any
@@ -333,6 +351,27 @@ export class Pipeline<T = unknown> {
     return this as any
   }
 
+  zstdCompress(
+    this: Pipeline<Uint8Array>,
+    level?: Integer, // defaults to 3
+    opt?: ZstdOptions,
+  ): Pipeline<Uint8Array> {
+    this.transforms.push(createZstdCompress(zstdLevelToOptions(level, opt)))
+    this.objectMode = false
+    return this as any
+  }
+
+  zstdDecompress(this: Pipeline<Uint8Array>, opt?: ZstdOptions): Pipeline<Uint8Array> {
+    this.transforms.push(
+      createZstdDecompress({
+        chunkSize: 64 * 1024, // todo: test it
+        ...opt,
+      }),
+    )
+    this.objectMode = false
+    return this as any
+  }
+
   async toArray(opt?: TransformOptions): Promise<T[]> {
     const arr: T[] = []
     this.destination = writablePushToArray(arr, opt)
@@ -346,15 +385,25 @@ export class Pipeline<T = unknown> {
     await this.run()
   }
 
-  async toNDJsonFile(outputFilePath: string): Promise<void> {
+  /**
+   * level corresponds to zstd compression level (if filename ends with .zst),
+   * or gzip compression level (if filename ends with .gz).
+   * Default levels are:
+   * gzip: 6
+   * zlib: 3 (optimized for throughput, not size, may be larger than gzip at its default level)
+   */
+  async toNDJsonFile(outputFilePath: string, level?: Integer): Promise<void> {
     fs2.ensureFile(outputFilePath)
     this.transforms.push(transformToNDJson())
     if (outputFilePath.endsWith('.gz')) {
       this.transforms.push(
         createGzip({
+          level,
           // chunkSize: 64 * 1024, // no observed speedup
         }),
       )
+    } else if (outputFilePath.endsWith('.zst')) {
+      this.transforms.push(createZstdCompress(zstdLevelToOptions(level)))
     }
     this.destination = fs2.createWriteStream(outputFilePath, {
       // highWaterMark: 64 * 1024, // no observed speedup

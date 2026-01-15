@@ -27,7 +27,7 @@ export function plotAsciiChart(results: Record<string, number>): string {
     colors,
     offset: 2,
     height: 10,
-    format: y => Math.round(y).toString().padStart(10, ' ') + ' ',
+    format: y => formatNumber(y).padStart(15, ' ') + ' ',
   })
 
   s +=
@@ -42,4 +42,8 @@ export function plotAsciiChart(results: Record<string, number>): string {
 function colored(char: string, color?: string): string {
   if (!color) return char
   return color + char + asciiColor.reset
+}
+
+function formatNumber(n: number): string {
+  return Math.round(n).toLocaleString('en-US')
 }

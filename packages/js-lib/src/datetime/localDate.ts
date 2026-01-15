@@ -10,6 +10,7 @@ import type {
   UnixTimestamp,
   UnixTimestampMillis,
 } from '../types.js'
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import type { DateObject, ISODayOfWeek, LocalTime } from './localTime.js'
 import { localTime, VALID_DAYS_OF_WEEK } from './localTime.js'
 

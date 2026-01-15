@@ -7,15 +7,10 @@ import {
   dbQuerySchema,
 } from '@naturalcycles/db-lib/validation'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
-import {
-  anyObjectSchema,
-  arraySchema,
-  objectSchema,
-  stringSchema,
-} from '@naturalcycles/nodejs-lib/joi'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import type { BackendRouter } from '../server/server.model.js'
-import { validateRequest } from '../validation/joi/joiValidateRequest.js'
+import { ajvValidateRequest } from '../validation/ajv/ajvValidateRequest.js'
 
 export interface GetByIdsInput {
   table: string
@@ -23,10 +18,10 @@ export interface GetByIdsInput {
   opt?: CommonDBOptions
 }
 
-const getByIdsInputSchema = objectSchema<GetByIdsInput>({
-  table: stringSchema,
-  ids: arraySchema(stringSchema),
-  opt: commonDBOptionsSchema.optional(),
+const getByIdsInputSchema = j.object<GetByIdsInput>({
+  table: j.string(),
+  ids: j.array(j.string()),
+  opt: commonDBOptionsSchema().optional(),
 })
 
 export interface RunQueryInput {
@@ -34,9 +29,9 @@ export interface RunQueryInput {
   opt?: CommonDBOptions
 }
 
-const runQueryInputSchema = objectSchema<RunQueryInput>({
-  query: dbQuerySchema,
-  opt: commonDBOptionsSchema.optional(),
+const runQueryInputSchema = j.object<RunQueryInput>({
+  query: dbQuerySchema(),
+  opt: commonDBOptionsSchema().optional(),
 })
 
 export interface SaveBatchInput {
@@ -45,10 +40,10 @@ export interface SaveBatchInput {
   opt?: CommonDBSaveOptions<any>
 }
 
-const saveBatchInputSchema = objectSchema<SaveBatchInput>({
-  table: stringSchema,
-  rows: arraySchema(anyObjectSchema()),
-  opt: commonDBSaveOptionsSchema.optional(),
+const saveBatchInputSchema = j.object<SaveBatchInput>({
+  table: j.string(),
+  rows: j.array(j.object<ObjectWithId>({ id: j.string() }).allowAdditionalProperties()),
+  opt: commonDBSaveOptionsSchema().optional(),
 })
 
 /**
@@ -88,27 +83,27 @@ export function httpDBRequestHandler(db: CommonDB): BackendRouter {
 
   // getByIds
   router.put('/getByIds', async (req, res) => {
-    const { table, ids, opt } = validateRequest.body(req, getByIdsInputSchema)
+    const { table, ids, opt } = ajvValidateRequest.body(req, getByIdsInputSchema)
     res.json(await db.getByIds(table, ids, opt))
   })
 
   // runQuery
   router.put('/runQuery', async (req, res) => {
-    const { query, opt } = validateRequest.body(req, runQueryInputSchema)
+    const { query, opt } = ajvValidateRequest.body(req, runQueryInputSchema)
     const q = DBQuery.fromPlainObject(query)
     res.json(await db.runQuery(q, opt))
   })
 
   // runQueryCount
   router.put('/runQueryCount', async (req, res) => {
-    const { query, opt } = validateRequest.body(req, runQueryInputSchema)
+    const { query, opt } = ajvValidateRequest.body(req, runQueryInputSchema)
     const q = DBQuery.fromPlainObject(query)
     res.json(await db.runQueryCount(q, opt))
   })
 
   // saveBatch
   router.put('/saveBatch', async (req, res) => {
-    const { table, rows, opt } = validateRequest.body(req, saveBatchInputSchema)
+    const { table, rows, opt } = ajvValidateRequest.body(req, saveBatchInputSchema)
     await db.saveBatch(table, rows, opt)
     res.end()
   })
@@ -121,7 +116,7 @@ export function httpDBRequestHandler(db: CommonDB): BackendRouter {
 
   // deleteByQuery
   router.put('/deleteByQuery', async (req, res) => {
-    const { query, opt } = validateRequest.body(req, runQueryInputSchema)
+    const { query, opt } = ajvValidateRequest.body(req, runQueryInputSchema)
     const q = DBQuery.fromPlainObject(query)
     res.json(await db.deleteByQuery(q, opt))
   })

@@ -24,6 +24,32 @@ export function _averageOrNull(values: number[] | undefined | null): number | nu
 }
 
 /**
+ * @returns Population standard deviation of the array of numbers
+ *
+ * @example
+ *
+ * _stdDev([2, 4, 4, 4, 5, 5, 7, 9])
+ * // 2
+ */
+export function _stdDev(values: number[]): number {
+  _assert(values.length, '_stdDev is called on empty array')
+  const avg = _average(values)
+  let sumSquaredDiff = 0
+  for (const n of values) {
+    const diff = n - avg
+    sumSquaredDiff += diff * diff
+  }
+  return Math.sqrt(sumSquaredDiff / values.length)
+}
+
+/**
+ * Same as _stdDev, but safely returns null if input array is empty or nullish.
+ */
+export function _stdDevOrNull(values: number[] | undefined | null): number | null {
+  return values?.length ? _stdDev(values) : null
+}
+
+/**
  * valuesArray and weightsArray length is expected to be the same.
  */
 export function _averageWeighted(values: number[], weights: number[]): number {

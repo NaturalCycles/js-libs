@@ -1,12 +1,16 @@
+import { Transform } from 'node:stream'
 import { _hc, type AbortableSignal } from '@naturalcycles/js-lib'
-import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _since } from '@naturalcycles/js-lib/datetime'
 import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
-import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
+import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
+import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
+import { _stringify } from '@naturalcycles/js-lib/string'
 import {
   type AbortableAsyncMapper,
   type AsyncPredicate,
   END,
+  type NumberOfSeconds,
   type PositiveInteger,
   type Predicate,
   type Promisable,
@@ -14,7 +18,6 @@ import {
   type StringMap,
   type UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
-import through2Concurrent from 'through2-concurrent'
 import { yellow } from '../../colors/colors.js'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 import { PIPELINE_GRACEFUL_ABORT } from '../stream.util.js'
@@ -34,23 +37,17 @@ export interface TransformMapOptions<IN = any, OUT = IN> extends TransformOption
   /**
    * Number of concurrently pending promises returned by `mapper`.
    *
-   * Default is 16.
-   * It was recently changed up from 16, after some testing that shown that
-   * for simple low-cpu mapper functions 32 produces almost 2x throughput.
-   * For example, in scenarios like streaming a query from Datastore.
-   * UPD: changed back from 32 to 16, "to be on a safe side", as 32 sometimes
-   * causes "Datastore timeout errors".
+   * @default 16
    */
   concurrency?: PositiveInteger
 
   /**
-   * Defaults to 64 items.
-   * (objectMode default is 16, but we increased it)
+   * Time in seconds to gradually increase concurrency from 1 to `concurrency`.
+   * Useful for warming up connections to databases, APIs, etc.
    *
-   * Affects both readable and writable highWaterMark (buffer).
-   * So, 64 means a total buffer of 128 (64 input and 64 output buffer).
+   * Set to 0 to disable warmup (default).
    */
-  highWaterMark?: PositiveInteger
+  warmupSeconds?: NumberOfSeconds
 
   /**
    * @default THROW_IMMEDIATELY
@@ -88,6 +85,204 @@ export interface TransformMapOptions<IN = any, OUT = IN> extends TransformOption
   signal?: AbortableSignal
 }
 
+const WARMUP_CHECK_INTERVAL_MS = 1000
+
+/**
+ * Like transformMap, but with native concurrency control (no through2-concurrent dependency)
+ * and support for gradual warmup.
+ *
+ * @experimental
+ */
+export function transformMap<IN = any, OUT = IN>(
+  mapper: AbortableAsyncMapper<IN, OUT | typeof SKIP | typeof END>,
+  opt: TransformMapOptions<IN, OUT> = {},
+): TransformTyped<IN, OUT> {
+  const {
+    concurrency: maxConcurrency = 16,
+    warmupSeconds = 0,
+    predicate,
+    asyncPredicate,
+    errorMode = ErrorMode.THROW_IMMEDIATELY,
+    onError,
+    onDone,
+    metric = 'stream',
+    signal,
+    objectMode = true,
+    highWaterMark = 64,
+  } = opt
+
+  const warmupMs = warmupSeconds * 1000
+  const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
+
+  // Stats
+  let started = 0 as UnixTimestampMillis
+  let index = -1
+  let countOut = 0
+  let isSettled = false
+  let ok = true
+  let errors = 0
+  const collectedErrors: Error[] = []
+
+  // Concurrency control - single counter, single callback for backpressure
+  let inFlight = 0
+  let blockedCallback: (() => void) | null = null
+  let flushBlocked: DeferredPromise | null = null
+
+  // Warmup - cached concurrency to reduce Date.now() syscalls
+  let warmupComplete = warmupSeconds <= 0 || maxConcurrency <= 1
+  let concurrency = warmupComplete ? maxConcurrency : 1
+  let lastWarmupCheck = 0
+
+  return new Transform({
+    objectMode,
+    readableHighWaterMark: highWaterMark,
+    writableHighWaterMark: highWaterMark,
+    async transform(this: Transform, chunk: IN, _, cb) {
+      // Initialize start time on first item
+      if (started === 0) {
+        started = Date.now() as UnixTimestampMillis
+        lastWarmupCheck = started
+      }
+
+      if (isSettled) return cb()
+
+      const currentIndex = ++index
+      inFlight++
+      if (!warmupComplete) {
+        updateConcurrency()
+      }
+
+      // Apply backpressure if at capacity, otherwise request more input
+      if (inFlight < concurrency) {
+        cb()
+      } else {
+        blockedCallback = cb
+      }
+
+      try {
+        const res: OUT | typeof SKIP | typeof END = await mapper(chunk, currentIndex)
+
+        if (isSettled) return
+
+        if (res === END) {
+          isSettled = true
+          logger.log(`transformMap2 END received at index ${currentIndex}`)
+          _assert(signal, 'signal is required when using END')
+          signal.abort(new Error(PIPELINE_GRACEFUL_ABORT))
+          return
+        }
+
+        if (res === SKIP) return
+
+        let shouldPush = true
+        if (predicate) {
+          shouldPush = predicate(res, currentIndex)
+        } else if (asyncPredicate) {
+          shouldPush = (await asyncPredicate(res, currentIndex)) && !isSettled
+        }
+
+        if (shouldPush) {
+          countOut++
+          this.push(res)
+        }
+      } catch (err) {
+        logger.error(err)
+        errors++
+        logErrorStats()
+
+        if (onError) {
+          try {
+            onError(_anyToError(err), chunk)
+          } catch {}
+        }
+
+        if (errorMode === ErrorMode.THROW_IMMEDIATELY) {
+          isSettled = true
+          ok = false
+          await callOnDone()
+          this.destroy(_anyToError(err))
+          return
+        }
+        if (errorMode === ErrorMode.THROW_AGGREGATED) {
+          collectedErrors.push(_anyToError(err))
+        }
+      } finally {
+        inFlight--
+
+        // Release blocked callback if we now have capacity
+        if (blockedCallback && inFlight < concurrency) {
+          const pendingCb = blockedCallback
+          blockedCallback = null
+          pendingCb()
+        }
+
+        // Trigger flush completion if all done
+        if (inFlight === 0 && flushBlocked) {
+          flushBlocked.resolve()
+        }
+      }
+    },
+    async flush(cb) {
+      // Wait for all in-flight operations to complete
+      if (inFlight > 0) {
+        flushBlocked = pDefer()
+        await flushBlocked
+      }
+
+      logErrorStats(true)
+      await callOnDone()
+
+      if (collectedErrors.length) {
+        cb(
+          new AggregateError(
+            collectedErrors,
+            `transformMap2 resulted in ${collectedErrors.length} error(s)`,
+          ),
+        )
+      } else {
+        cb()
+      }
+    },
+  })
+
+  function updateConcurrency(): void {
+    const now = Date.now()
+    if (now - lastWarmupCheck < WARMUP_CHECK_INTERVAL_MS) return
+    lastWarmupCheck = now
+
+    const elapsed = now - started
+    if (elapsed >= warmupMs) {
+      warmupComplete = true
+      concurrency = maxConcurrency
+      logger.log(`transformMap2: warmup complete in ${_since(started)}`)
+      return
+    }
+
+    const progress = elapsed / warmupMs
+    concurrency = Math.max(1, Math.floor(1 + (maxConcurrency - 1) * progress))
+  }
+
+  function logErrorStats(final = false): void {
+    if (!errors) return
+    logger.log(`${metric} ${final ? 'final ' : ''}errors: ${yellow(errors)}`)
+  }
+
+  async function callOnDone(): Promise<void> {
+    try {
+      await onDone?.({
+        ok: collectedErrors.length === 0 && ok,
+        collectedErrors,
+        countErrors: errors,
+        countIn: index + 1,
+        countOut,
+        started,
+      })
+    } catch (err) {
+      logger.error(err)
+    }
+  }
+}
+
 export interface TransformMapStats {
   /**
    * True if transform was successful (didn't throw Immediate or Aggregated error).
@@ -115,186 +310,6 @@ export interface TransformMapStatsSummary extends TransformMapStats {
    * key2: value2
    */
   extra?: StringMap<any>
-}
-
-// doesn't work, cause here we don't construct our Transform instance ourselves
-// export class TransformMap extends AbortableTransform {}
-
-/**
- * Like pMap, but for streams.
- * Inspired by `through2`.
- * Main feature is concurrency control (implemented via `through2-concurrent`) and convenient options.
- * Using this allows native stream .pipe() to work and use backpressure.
- *
- * Only works in objectMode (due to through2Concurrent).
- *
- * Concurrency defaults to 16.
- *
- * If an Array is returned by `mapper` - it will be flattened and multiple results will be emitted from it. Tested by Array.isArray().
- */
-export function transformMap<IN = any, OUT = IN>(
-  mapper: AbortableAsyncMapper<IN, OUT | typeof SKIP | typeof END>,
-  opt: TransformMapOptions<IN, OUT> = {},
-): TransformTyped<IN, OUT> {
-  const {
-    concurrency = 16,
-    highWaterMark = 64,
-    predicate, // we now default to "no predicate" (meaning pass-everything)
-    asyncPredicate,
-    errorMode = ErrorMode.THROW_IMMEDIATELY,
-    onError,
-    onDone,
-    metric = 'stream',
-    signal,
-  } = opt
-
-  const started = Date.now() as UnixTimestampMillis
-  let index = -1
-  let countOut = 0
-  let isSettled = false
-  let ok = true
-  let errors = 0
-  const collectedErrors: Error[] = [] // only used if errorMode == THROW_AGGREGATED
-  const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
-
-  return through2Concurrent.obj(
-    {
-      maxConcurrency: concurrency,
-      readableHighWaterMark: highWaterMark,
-      writableHighWaterMark: highWaterMark,
-      async final(cb) {
-        logErrorStats(true)
-
-        if (collectedErrors.length) {
-          try {
-            await onDone?.({
-              ok: false,
-              collectedErrors,
-              countErrors: errors,
-              countIn: index + 1,
-              countOut,
-              started,
-            })
-          } catch (err) {
-            logger.error(err)
-          }
-
-          // emit Aggregated error
-          cb(
-            new AggregateError(
-              collectedErrors,
-              `transformMap resulted in ${collectedErrors.length} error(s)`,
-            ),
-          )
-        } else {
-          // emit no error
-
-          try {
-            await onDone?.({
-              ok,
-              collectedErrors,
-              countErrors: errors,
-              countIn: index + 1,
-              countOut,
-              started,
-            })
-          } catch (err) {
-            logger.error(err)
-          }
-
-          cb()
-        }
-      },
-    },
-    async function transformMapFn(chunk: IN, _, cb) {
-      // Stop processing if isSettled (either THROW_IMMEDIATELY was fired or END received)
-      if (isSettled) return cb()
-
-      const currentIndex = ++index
-
-      try {
-        const res: OUT | typeof SKIP | typeof END = await mapper(chunk, currentIndex)
-        // Check for isSettled again, as it may happen while mapper was running
-        if (isSettled) return cb()
-
-        if (res === END) {
-          isSettled = true
-          logger.log(`transformMap END received at index ${currentIndex}`)
-          _assert(signal, 'signal is required when using END')
-          signal.abort(new Error(PIPELINE_GRACEFUL_ABORT))
-          return cb()
-        }
-
-        if (res === SKIP) {
-          // do nothing, don't push
-          return cb()
-        }
-
-        if (predicate) {
-          if (predicate(res, currentIndex)) {
-            countOut++
-            this.push(res)
-          }
-        } else if (asyncPredicate) {
-          if ((await asyncPredicate(res, currentIndex)) && !isSettled) {
-            // isSettled could have happened in parallel, hence the extra check
-            countOut++
-            this.push(res)
-          }
-        } else {
-          countOut++
-          this.push(res)
-        }
-
-        cb() // done processing
-      } catch (err) {
-        logger.error(err)
-        errors++
-        logErrorStats()
-
-        if (onError) {
-          try {
-            onError(_anyToError(err), chunk)
-          } catch {}
-        }
-
-        if (errorMode === ErrorMode.THROW_IMMEDIATELY) {
-          isSettled = true
-          ok = false
-
-          // Tests show that onDone is still called at `final` (second time),
-          // so, we no longer call it here
-
-          // try {
-          //   await onDone?.({
-          //     ok: false,
-          //     collectedErrors,
-          //     countErrors: errors,
-          //     countIn: index + 1,
-          //     countOut,
-          //     started,
-          //   })
-          // } catch (err) {
-          //   logger.error(err)
-          // }
-
-          return cb(err) // Emit error immediately
-        }
-
-        if (errorMode === ErrorMode.THROW_AGGREGATED) {
-          collectedErrors.push(err as Error)
-        }
-
-        // Tell input stream that we're done processing, but emit nothing to output - not error nor result
-        cb()
-      }
-    },
-  )
-
-  function logErrorStats(final = false): void {
-    if (!errors) return
-    logger.log(`${metric} ${final ? 'final ' : ''}errors: ${yellow(errors)}`)
-  }
 }
 
 /**

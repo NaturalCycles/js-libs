@@ -9,11 +9,14 @@ onlyBuiltDependencies:
   - esbuild
   - sqlite3
   - unrs-resolver
-minimumReleaseAge: 1440
-minimumReleaseAgeExclude:
-  - '@naturalcycles/*'
-  - vitest
-  - '@vitest/*'
+# minimumReleaseAge: 1440
+# minimumReleaseAgeExclude:
+#  - '@naturalcycles/*'
+#  - vitest
+#  - '@vitest/*'
+#  - oxlint
+#  - oxlint-tsgolint
+#  - '@oxlint/*'
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - vite@5.4.21
@@ -21,6 +24,7 @@ trustPolicyExclude:
   - jose@4.15.9
   - undici@5.29.0
   - undici-types@6.21.0
+blockExoticSubdeps: true
 auditConfig:
   ignoreGhsas:
     - GHSA-h755-8qp9-cq85

@@ -2,6 +2,7 @@ import type { Options, OptionsJson, OptionsUrlencoded } from 'body-parser'
 import type { CorsOptions } from 'cors'
 import type { SentrySharedService } from '../sentry/sentry.shared.service.js'
 import { asyncLocalStorageMiddleware } from '../server/asyncLocalStorageMiddleware.js'
+import { compressionMiddleware } from '../server/compressionMiddleware.js'
 import {
   genericErrorMiddleware,
   type GenericErrorMiddlewareCfg,
@@ -16,6 +17,7 @@ import type {
   BackendRequestHandler,
 } from '../server/server.model.js'
 import { simpleRequestLoggerMiddleware } from '../server/simpleRequestLoggerMiddleware.js'
+import { isGAE } from '../util.js'
 
 const isTest = process.env['APP_ENV'] === 'test'
 const isDev = process.env['APP_ENV'] === 'dev'
@@ -49,6 +51,31 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
 
   if (isDev) {
     app.use(simpleRequestLoggerMiddleware())
+  }
+
+  if (!isTest) {
+    // leaks, load lazily
+    const { default: helmet } = await import('helmet')
+    app.use(
+      helmet({
+        contentSecurityPolicy: false, // to allow "admin 401 auto-redirect"
+      }),
+    )
+  }
+
+  app.use(
+    cors({
+      origin: true,
+      credentials: true,
+      // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // default
+      maxAge: 86400,
+      ...cfg.corsOptions,
+    }),
+  )
+
+  if (!isGAE() && isTest) {
+    // compression is not used in AppEngine, because AppEngine provides it by default
+    app.use(compressionMiddleware())
   }
 
   // app.use(safeJsonMiddleware()) // optional
@@ -87,26 +114,6 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
   )
 
   app.use(cookieParser())
-
-  if (!isTest) {
-    // leaks, load lazily
-    const { default: helmet } = await import('helmet')
-    app.use(
-      helmet({
-        contentSecurityPolicy: false, // to allow "admin 401 auto-redirect"
-      }),
-    )
-  }
-
-  app.use(
-    cors({
-      origin: true,
-      credentials: true,
-      // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // default
-      maxAge: 86400,
-      ...cfg.corsOptions,
-    }),
-  )
 
   // app.use(clearBodyParserTimeout()) // removed by default
 

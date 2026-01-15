@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { _range } from '../array/index.js'
 import { AppError, ErrorMode, pExpectedError } from '../error/index.js'
 import { _isBetween, _randomInt } from '../index.js'
@@ -7,28 +7,32 @@ import { type AsyncMapper, END, SKIP } from '../types.js'
 import { pDelay } from './pDelay.js'
 import { pMap } from './pMap.js'
 
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 const input = [
-  [10, 300],
-  [20, 200],
-  [30, 100],
-]
-const fastInput = [
   [10, 30],
   [20, 20],
   [30, 10],
 ]
+const fastInput = [
+  [10, 3],
+  [20, 2],
+  [30, 1],
+]
 
 const errorInput1 = [
-  [20, 20],
-  [30, 10],
+  [20, 2],
+  [30, 1],
   [() => Promise.reject(new Error('foo'))],
   [() => Promise.reject(new Error('bar'))],
 ]
 
 const errorInput2 = [
-  [20, 20],
+  [20, 2],
   [() => Promise.reject(new Error('bar'))],
-  [30, 10],
+  [30, 1],
   [() => Promise.reject(new Error('foo'))],
 ]
 
@@ -40,20 +44,21 @@ const mapper: AsyncMapper = async ([val, ms]) => {
 test('main', async () => {
   const end = timeSpan()
   expect(await pMap(input, mapper)).toEqual([10, 20, 30])
-  expect(_isBetween(end(), 290, 430, '[)')).toBe(true)
+  expect(_isBetween(end(), 25, 80, '[)')).toBe(true)
 })
 
 test('concurrency: 1', async () => {
   const end = timeSpan()
   expect(await pMap(input, mapper, { concurrency: 1 })).toEqual([10, 20, 30])
-  expect(_isBetween(end(), 590, 760, '[)')).toBe(true)
+  expect(_isBetween(end(), 55, 120, '[)')).toBe(true)
 })
 
 test('concurrency: 4', async () => {
+  vi.useFakeTimers()
   const concurrency = 4
   let running = 0
 
-  await pMap(
+  const promise = pMap(
     _range(100).map(() => 0),
     async () => {
       running++
@@ -63,6 +68,8 @@ test('concurrency: 4', async () => {
     },
     { concurrency },
   )
+  await vi.runAllTimersAsync()
+  await promise
 })
 
 test('handles empty iterable', async () => {
@@ -70,31 +77,45 @@ test('handles empty iterable', async () => {
 })
 
 test('async with concurrency: 2 (random time sequence)', async () => {
+  vi.useFakeTimers()
   const input = _range(10).map(() => _randomInt(0, 100))
-  const result = await pMap(input, v => pDelay(v, v), { concurrency: 2 })
+  const promise = pMap(input, v => pDelay(v, v), { concurrency: 2 })
+  await vi.runAllTimersAsync()
+  const result = await promise
   expect(result).toEqual(input)
 })
 
 test('async with concurrency: 2 (problematic time sequence)', async () => {
+  vi.useFakeTimers()
   const input = [10, 20, 10, 36, 13, 45]
-  const result = await pMap(input, v => pDelay(v, v), { concurrency: 2 })
+  const promise = pMap(input, v => pDelay(v, v), { concurrency: 2 })
+  await vi.runAllTimersAsync()
+  const result = await promise
   expect(result).toEqual(input)
 })
 
 test('async with concurrency: 2 (out of order time sequence)', async () => {
+  vi.useFakeTimers()
   const input = [20, 10, 50]
-  const result = await pMap(input, v => pDelay(v, v), { concurrency: 2 })
+  const promise = pMap(input, v => pDelay(v, v), { concurrency: 2 })
+  await vi.runAllTimersAsync()
+  const result = await promise
   expect(result).toEqual(input)
 })
 
 test('reject', async () => {
+  vi.useFakeTimers()
   const input = [1, 1, 0, 1]
   const mapper: AsyncMapper = async v => {
     await pDelay(_randomInt(0, 100))
     if (!v) throw new Error('Err')
     return v
   }
-  await expect(pMap(input, mapper, { concurrency: 1 })).rejects.toThrow('Err')
+  const promise = pMap(input, mapper, { concurrency: 1 }).catch(err => err)
+  await vi.runAllTimersAsync()
+  const result = await promise
+  expect(result).toBeInstanceOf(Error)
+  expect((result as Error).message).toBe('Err')
 })
 
 test('immediately rejects when errorMode=THROW_IMMEDIATELY', async () => {
@@ -245,12 +266,15 @@ test('Infinity math', () => {
 })
 
 test('order is preserved', async () => {
+  vi.useFakeTimers()
   const input = _range(6)
-  const result = await pMap(input, async v => {
+  const promise = pMap(input, async v => {
     await pDelay(100 - v * 20)
     // console.log('done', v)
     return v
   })
+  await vi.runAllTimersAsync()
+  const result = await promise
   // console.log(result)
   expect(result).toEqual(input)
 })

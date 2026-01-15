@@ -79,7 +79,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     this.count++
 
     if (this.done) {
-      this.logger.log(`!!! _read was called, but done==true`)
+      this.logger.log(`!!! ${this.table} _read was called, but done==true`)
       return
     }
 

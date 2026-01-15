@@ -24,7 +24,7 @@ export interface DBPipelineRestoreOptions extends TransformLogProgressOptions {
   db: CommonDB
 
   /**
-   * Directory path to store dumped files. Will create `${tableName}.ndjson` (or .ndjson.gz if gzip=true) files.
+   * Directory path to store dumped files. Will create `${tableName}.ndjson` (or .ndjson.zst if zst=true) files.
    * All parent directories will be created.
    */
   inputDirPath: string
@@ -128,19 +128,19 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
 
   fs2.ensureDir(inputDirPath)
 
-  const tablesToGzip = new Set<string>()
+  const tablesToCompress = new Set<string>()
   const sizeByTable: Record<string, number> = {}
   const statsPerTable: Record<string, NDJsonStats> = {}
   const tables: string[] = []
   fs2.readdir(inputDirPath).forEach(f => {
     let table: string
-    let gzip = false
+    let zst = false
 
     if (f.endsWith('.ndjson')) {
       table = f.slice(0, f.length - '.ndjson'.length)
-    } else if (f.endsWith('.ndjson.gz')) {
-      table = f.slice(0, f.length - '.ndjson.gz'.length)
-      gzip = true
+    } else if (f.endsWith('.ndjson.zst')) {
+      table = f.slice(0, f.length - '.ndjson.zst'.length)
+      zst = true
     } else {
       return
     }
@@ -148,7 +148,7 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
     if (onlyTables && !onlyTables.has(table)) return // skip table
 
     tables.push(table)
-    if (gzip) tablesToGzip.add(table)
+    if (zst) tablesToCompress.add(table)
     sizeByTable[table] = fs2.stat(`${inputDirPath}/${f}`).size
   })
 
@@ -174,8 +174,8 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
   await pMap(
     tables,
     async table => {
-      const gzip = tablesToGzip.has(table)
-      const filePath = `${inputDirPath}/${table}.ndjson` + (gzip ? '.gz' : '')
+      const zst = tablesToCompress.has(table)
+      const filePath = `${inputDirPath}/${table}.ndjson` + (zst ? '.zst' : '')
       const saveOptions: CommonDBSaveOptions<any> = saveOptionsPerTable[table] || {}
 
       const started = Date.now()

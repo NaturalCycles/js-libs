@@ -51,7 +51,9 @@ export interface SlackMessage<CTX = any> extends SlackMessageProps {
   kv?: AnyObject
 
   /**
-   * If specified - adds `@name1`, `@name2` in the end of the message
+   * Slack Member IDs to mention at the end of the message.
+   * Use Member IDs (e.g., 'U1234567890'), not usernames.
+   * To find a Member ID: click on their profile in Slack → "..." → "Copy member ID".
    */
   mentions?: string[]
 

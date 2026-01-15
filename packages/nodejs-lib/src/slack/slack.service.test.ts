@@ -3,7 +3,7 @@ import { pExpectedError } from '@naturalcycles/js-lib/error'
 import { Fetcher } from '@naturalcycles/js-lib/http'
 import { commonLoggerNoop } from '@naturalcycles/js-lib/log'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { slackDefaultMessagePrefixHook, SlackService } from './slack.service.js'
 
 let slackService = new SlackService({
@@ -31,6 +31,10 @@ beforeEach(() => {
 
     return new Response('ok')
   })
+})
+
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 test('basic test', async () => {

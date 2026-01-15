@@ -64,11 +64,12 @@ class ProcessUtil {
   }
 
   cpuInfo(): { count: number; model: string; speed: number } {
-    const c = os.cpus()[0]!
+    const cpus = os.cpus()
+    const c = cpus[0]
     return {
-      count: os.cpus().length,
-      model: c.model,
-      speed: c.speed,
+      count: cpus.length,
+      model: c?.model || '',
+      speed: c?.speed || 0,
     }
   }
 
@@ -85,8 +86,12 @@ class ProcessUtil {
 
         const idle = endIdle - startIdle
         const total = endTotal - startTotal
-        const perc = idle / total
+        if (!total) {
+          resolve(0)
+          return
+        }
 
+        const perc = idle / total
         resolve(Math.round((1 - perc) * 100))
       }, ms)
     })

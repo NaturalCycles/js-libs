@@ -327,6 +327,33 @@ export function _difference<T>(a1: T[], a2: T[] | Set<T>): T[] {
 }
 
 /**
+ * Does NOT mutate the array, returns a filtered array instead.
+ */
+export function _arrayRemove<T>(a: T[], itemToRemove: T): T[] {
+  return a.filter(r => r !== itemToRemove)
+}
+
+/**
+ * "Toggles" an item to be present or absent in the array,
+ * based on the predicate. Respects uniqueness.
+ *
+ * If predicate==false - item gets removed from the array.
+ * If predicate==true - item gets pushed to the array (unless it was already present).
+ *
+ * Pushing the item DOES MUTATE the array, same if you would do array.push manually.
+ */
+export function _arrayPushOrRemove<T>(a: T[], item: T, predicate: boolean): T[] {
+  if (predicate) {
+    if (!a.includes(item)) {
+      a.push(item)
+    }
+    return a
+  }
+
+  return a.filter(r => r !== item)
+}
+
+/**
  * Returns the sum of items, or 0 for empty array.
  */
 export function _sum<N extends number>(items: Iterable<N>): N {

@@ -12,6 +12,22 @@ import type {
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import { j } from './jsonSchemaBuilder.js'
 
+describe('any', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.any()
+    expectTypeOf(schema1).not.toBeNever()
+
+    expectTypeOf(schema1.in).toEqualTypeOf<any>()
+
+    expectTypeOf(schema1.out).toEqualTypeOf<any>()
+  })
+
+  test('should produce an empty schema', () => {
+    const schema = j.any().build()
+    expect(schema).toEqual({})
+  })
+})
+
 describe('string', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.string()
@@ -681,6 +697,48 @@ describe('oneOf', () => {
   })
 })
 
+describe('anyOf', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.anyOf([j.string().nullable(), j.number()])
+    expectTypeOf(schema1.in).toEqualTypeOf<string | number | null>()
+    expectTypeOf(schema1.out).toEqualTypeOf<string | number | null>()
+  })
+})
+
+describe('anyOfBy', () => {
+  test('should correctly infer the type', () => {
+    enum Foo {
+      A = 1,
+      B = 2,
+      C = 3,
+    }
+    interface FooA {
+      type: Foo.A
+      foo: string
+    }
+    interface FooB {
+      type: Foo.B
+      bar: number
+    }
+    interface FooC {
+      type: Foo.C
+      foo: boolean
+    }
+
+    const schema1 = j.anyOfBy('type', {
+      [Foo.A]: j.object<FooA>({ type: j.literal(Foo.A), foo: j.string() }),
+      [Foo.B]: j.object<FooB>({ type: j.literal(Foo.B), bar: j.number() }),
+      [Foo.C]: j.object<FooC>({
+        type: j.literal(Foo.C),
+        foo: j.boolean(),
+      }),
+    })
+
+    expectTypeOf(schema1.in).toEqualTypeOf<FooA | FooB | FooC>()
+    expectTypeOf(schema1.out).toEqualTypeOf<FooA | FooB | FooC>()
+  })
+})
+
 describe('castAs', () => {
   test('should correctly infer the new type', () => {
     const schema1 = j.string().castAs<number>()
@@ -708,5 +766,19 @@ describe('final', () => {
     expect(() => schema.optional()).toThrow('schema.optional is not a function')
     // @ts-expect-error
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
+  })
+})
+
+describe('literal', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.literal('magic')
+    expectTypeOf(schema1.in).toEqualTypeOf<'magic'>()
+
+    enum Foo {
+      A = 1,
+      B = 2,
+    }
+    const schema2 = j.literal(Foo.A)
+    expectTypeOf(schema2.in).toEqualTypeOf<Foo.A>()
   })
 })

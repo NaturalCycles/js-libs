@@ -1,6 +1,6 @@
 /*
 
-yarn tsx scripts/demoBench.ts
+pnpm --dir packages/bench-lib exec tsx scripts/demoBench.ts
 
  */
 
@@ -10,7 +10,7 @@ runBenchScript({
   fns: {
     noop: () => {},
     random: () => {
-      const _ = Math.random()
+      return Math.random()
     },
     // timeout: done => {
     //   setTimeout(() => done.resolve(), 0)

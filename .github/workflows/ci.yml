@@ -17,7 +17,7 @@ jobs:
       - run: pnpm ci:setup
       - run: echo "CACHE_DATE=$(date +%F)" >> "$GITHUB_ENV"
       - name: node_modules/.cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: packages/*/node_modules/.cache
           key: ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-${{ env.CACHE_DATE }}
@@ -26,7 +26,6 @@ jobs:
             ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-
             ${{ runner.os }}-nmcache-
       - run: pnpm lint
-      - run: pnpm typecheck
       - run: pnpm test
 
   release:

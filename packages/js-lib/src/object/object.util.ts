@@ -156,7 +156,7 @@ export function _filterObject<T extends AnyObject>(
   const r = {} as T
   for (const [k, v] of _objectEntries(obj)) {
     if (predicate(k, v, obj)) {
-      r[k] = v
+      r[k as keyof T] = v
     }
   }
   return r
@@ -443,7 +443,7 @@ export function _set<T extends AnyObject>(obj: T, path: PropertyPath, value: any
           a[c]
         : // No: create the key. Is the next key a potential array-index?
           (a[c] =
-            // eslint-disable-next-line
+            // oxlint-disable-next-line no-bitwise no-implicit-coercion unicorn/prefer-math-trunc
             Math.abs(path[i + 1]) >> 0 === +path[i + 1]
               ? [] // Yes: assign a new array object
               : {}), // No: assign a new plain object

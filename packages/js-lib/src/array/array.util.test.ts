@@ -3,6 +3,8 @@ import { _createDeterministicRandom } from '../number/createDeterministicRandom.
 import type { AbortablePredicate, Mapper } from '../types.js'
 import { END } from '../types.js'
 import {
+  _arrayPushOrRemove,
+  _arrayRemove,
   _by,
   _chunk,
   _count,
@@ -272,6 +274,70 @@ test('_difference', () => {
   expect(f([2, 1], [2, 3])).toEqual([1])
   expect(f([2, 1], [3])).toEqual([2, 1])
   expect(f([2, 4, 1], [2, 3])).toEqual([4, 1])
+})
+
+test('_arrayRemove', () => {
+  // Basic removal
+  expect(_arrayRemove([1, 2, 3], 2)).toEqual([1, 3])
+  expect(_arrayRemove([1, 2, 3], 1)).toEqual([2, 3])
+  expect(_arrayRemove([1, 2, 3], 3)).toEqual([1, 2])
+
+  // Does not mutate the original array
+  const a = [1, 2, 3]
+  const result = _arrayRemove(a, 2)
+  expect(a).toEqual([1, 2, 3])
+  expect(result).not.toBe(a)
+
+  // Removes all occurrences
+  expect(_arrayRemove([1, 2, 2, 3, 2], 2)).toEqual([1, 3])
+
+  // Item not present
+  expect(_arrayRemove([1, 2, 3], 4)).toEqual([1, 2, 3])
+
+  // Empty array
+  expect(_arrayRemove([], 1)).toEqual([])
+
+  // Works with strings
+  expect(_arrayRemove(['a', 'b', 'c'], 'b')).toEqual(['a', 'c'])
+
+  // Works with objects (by reference)
+  const obj = { id: 1 }
+  expect(_arrayRemove([obj, { id: 2 }], obj)).toEqual([{ id: 2 }])
+})
+
+test('_arrayPushOrRemove', () => {
+  // predicate=true: pushes item if not present
+  const a = [1, 2, 3]
+  const result = _arrayPushOrRemove(a, 4, true)
+  expect(result).toEqual([1, 2, 3, 4])
+  expect(result).toBe(a) // mutates the array
+
+  // predicate=true: does not add duplicate
+  const b = [1, 2, 3]
+  const result2 = _arrayPushOrRemove(b, 2, true)
+  expect(result2).toEqual([1, 2, 3])
+  expect(result2).toBe(b) // same reference
+
+  // predicate=false: removes item
+  const c = [1, 2, 3]
+  const result3 = _arrayPushOrRemove(c, 2, false)
+  expect(result3).toEqual([1, 3])
+  expect(result3).not.toBe(c) // returns new array
+
+  // predicate=false: removes all occurrences
+  expect(_arrayPushOrRemove([1, 2, 2, 3], 2, false)).toEqual([1, 3])
+
+  // predicate=false: item not present
+  const d = [1, 2, 3]
+  expect(_arrayPushOrRemove(d, 4, false)).toEqual([1, 2, 3])
+
+  // Empty array with predicate=true
+  const e: number[] = []
+  expect(_arrayPushOrRemove(e, 1, true)).toEqual([1])
+  expect(e).toEqual([1]) // mutated
+
+  // Empty array with predicate=false
+  expect(_arrayPushOrRemove([], 1, false)).toEqual([])
 })
 
 test('_mapToObject', () => {

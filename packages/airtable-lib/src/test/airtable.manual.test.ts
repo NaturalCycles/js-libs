@@ -39,7 +39,7 @@ test('delete, create, update, get', async () => {
   const records = mockTable1()
   const rec1 = records[0]!
 
-  const tableDao = mockTableDao1(await airtableLib.api(), AIRTABLE_BASE_ID)
+  const tableDao = mockTableDao1(airtableLib, AIRTABLE_BASE_ID)
 
   const deleteResult = await tableDao.deleteRecord('nonExistingId')
   expect(deleteResult).toBe(false)
@@ -69,7 +69,7 @@ test('delete, create, update, get', async () => {
 })
 
 test('getById', async () => {
-  const tableDao = mockTableDao1(await airtableLib.api(), AIRTABLE_BASE_ID)
+  const tableDao = mockTableDao1(airtableLib, AIRTABLE_BASE_ID)
 
   // const v = await tableDao.getRecordById('name_1', {idField: 'name'})
   const v = await tableDao.getByIds(['name_1', 'name_2'], { idField: 'name' })
@@ -81,8 +81,8 @@ test('integration: table1, table2', async () => {
   const mocks1 = mockTable1()
   const mocks2 = mockTable2()
 
-  const tableDao1 = mockTableDao1(await airtableLib.api(), AIRTABLE_BASE_ID)
-  const tableDao2 = mockTableDao2(await airtableLib.api(), AIRTABLE_BASE_ID)
+  const tableDao1 = mockTableDao1(airtableLib, AIRTABLE_BASE_ID)
+  const tableDao2 = mockTableDao2(airtableLib, AIRTABLE_BASE_ID)
 
   await tableDao1.deleteAllRecords()
   await tableDao2.deleteAllRecords()
@@ -92,13 +92,13 @@ test('integration: table1, table2', async () => {
 })
 
 test('fetchRemoteBase', async () => {
-  const baseDao = mockBaseDao(await airtableLib.api(), AIRTABLE_BASE_ID)
+  const baseDao = mockBaseDao(airtableLib, AIRTABLE_BASE_ID)
   const base = await baseDao.fetch(AIRTABLE_CONNECTOR_REMOTE)
   console.log(JSON.stringify(base, null, 2))
 })
 
 test('fetchRemoteBasesToJson', async () => {
-  const basesDao = mockBasesDao(await airtableLib.api(), AIRTABLE_BASE_ID)
+  const basesDao = mockBasesDao(airtableLib, AIRTABLE_BASE_ID)
   await basesDao.fetchAll(AIRTABLE_CONNECTOR_REMOTE)
   await basesDao.uploadAll(AIRTABLE_CONNECTOR_JSON)
 
@@ -108,13 +108,13 @@ test('fetchRemoteBasesToJson', async () => {
 })
 
 test('uploadJsonToRemoteBases', async () => {
-  const basesDao = mockBasesDao(await airtableLib.api(), AIRTABLE_BASE_ID)
+  const basesDao = mockBasesDao(airtableLib, AIRTABLE_BASE_ID)
   await basesDao.fetchAll(AIRTABLE_CONNECTOR_JSON)
   await basesDao.uploadAll(AIRTABLE_CONNECTOR_REMOTE, { deleteAllOnUpload: false, upsert: true })
 }, 120000)
 
 test('getAirtableCacheFromJson', async () => {
-  const baseDao = mockBaseDao(await airtableLib.api(), AIRTABLE_BASE_ID)
+  const baseDao = mockBaseDao(airtableLib, AIRTABLE_BASE_ID)
   await baseDao.fetch(AIRTABLE_CONNECTOR_JSON)
 
   // console.log(cache.getBase())

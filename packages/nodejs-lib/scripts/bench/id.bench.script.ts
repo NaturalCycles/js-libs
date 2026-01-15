@@ -1,6 +1,6 @@
 /*
 
-pn tsx scripts/bench/id.bench
+pnpm --dir packages/nodejs-lib exec tsx scripts/bench/id.bench.script.ts
 
  */
 
@@ -12,19 +12,19 @@ runBenchScript({
   fns: {
     nanoid: () => {
       const a = nanoid()
-      const _b = a.repeat(2)
+      return a.repeat(2)
     },
     nanoid16: () => {
       const a = nanoid(16)
-      const _b = a.repeat(2)
+      return a.repeat(2)
     },
     stringId: () => {
       const a = stringId()
-      const _b = a.repeat(2)
+      return a.repeat(2)
     },
     stringIdBase62: () => {
       const a = stringIdBase62()
-      const _b = a.repeat(2)
+      return a.repeat(2)
     },
   },
 })
