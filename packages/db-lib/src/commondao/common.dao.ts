@@ -522,6 +522,14 @@ export class CommonDao<
       assignGeneratedIds = this.cfg.assignGeneratedIds,
       excludeFromIndexes = this.cfg.excludeFromIndexes,
     } = opt
+
+    if (this.cfg.compress?.keys) {
+      excludeFromIndexes ??= []
+      if (!excludeFromIndexes.includes('data' as any)) {
+        excludeFromIndexes.push('data' as any)
+      }
+    }
+
     if (this.cfg.immutable && !opt.allowMutability && !opt.saveMethod) {
       saveMethod = 'insert'
     }

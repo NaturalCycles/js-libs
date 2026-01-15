@@ -902,6 +902,40 @@ describe('auto compression', () => {
     })
   })
 
+  test('should automatically exclude data property from indexes', async () => {
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    const items = _range(3).map(n => ({
+      id: `id${n}`,
+      obj: {
+        objId: `objId${n}`,
+      },
+      shu: `shu${n}`,
+    }))
+
+    await dao.saveBatch(items)
+
+    // The 'data' property should be automatically added to excludeFromIndexes
+    // when compression is enabled
+    expect(saveBatchSpy).toHaveBeenCalledWith(
+      TEST_TABLE,
+      expect.any(Array),
+      expect.objectContaining({
+        excludeFromIndexes: expect.arrayContaining(['data']),
+      }),
+    )
+
+    saveBatchSpy.mockRestore()
+  })
+
   test('should be possible to opt-out without migration', async () => {
     const daoWithCompression = new CommonDao<Item>({
       table: TEST_TABLE,
