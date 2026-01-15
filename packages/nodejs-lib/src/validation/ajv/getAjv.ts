@@ -1,7 +1,8 @@
 import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
+import { localTime } from '@naturalcycles/js-lib/datetime'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
-import type { AnyObject } from '@naturalcycles/js-lib/types'
+import type { AnyObject, IsoDate } from '@naturalcycles/js-lib/types'
 import { Ajv2020, type Options, type ValidateFunction } from 'ajv/dist/2020.js'
 import { validTLDs } from '../tlds.js'
 import type {
@@ -328,8 +329,9 @@ export function createAjv(opt?: Options): Ajv2020 {
       const errors: any[] = []
 
       if (before) {
-        const isParamValid = isIsoDateValid(before)
-        const isRuleValid = isParamValid && before > data
+        const resolved = resolveDate(before, true)
+        const isParamValid = isIsoDateValid(resolved)
+        const isRuleValid = isParamValid && resolved > data
 
         if (!isRuleValid) {
           errors.push({
@@ -340,8 +342,9 @@ export function createAjv(opt?: Options): Ajv2020 {
       }
 
       if (sameOrBefore) {
-        const isParamValid = isIsoDateValid(sameOrBefore)
-        const isRuleValid = isParamValid && sameOrBefore >= data
+        const resolved = resolveDate(sameOrBefore, true)
+        const isParamValid = isIsoDateValid(resolved)
+        const isRuleValid = isParamValid && resolved >= data
 
         if (!isRuleValid) {
           errors.push({
@@ -352,8 +355,9 @@ export function createAjv(opt?: Options): Ajv2020 {
       }
 
       if (after) {
-        const isParamValid = isIsoDateValid(after)
-        const isRuleValid = isParamValid && after < data
+        const resolved = resolveDate(after, false)
+        const isParamValid = isIsoDateValid(resolved)
+        const isRuleValid = isParamValid && resolved < data
 
         if (!isRuleValid) {
           errors.push({
@@ -364,8 +368,9 @@ export function createAjv(opt?: Options): Ajv2020 {
       }
 
       if (sameOrAfter) {
-        const isParamValid = isIsoDateValid(sameOrAfter)
-        const isRuleValid = isParamValid && sameOrAfter <= data
+        const resolved = resolveDate(sameOrAfter, false)
+        const isParamValid = isIsoDateValid(resolved)
+        const isRuleValid = isParamValid && resolved <= data
 
         if (!isRuleValid) {
           errors.push({
@@ -652,4 +657,50 @@ function isIsoMonthValid(s: string): boolean {
   const month = (s.charCodeAt(5) - ZERO_CODE) * 10 + (s.charCodeAt(6) - ZERO_CODE)
 
   return _isBetween(year, 1900, 2500, '[]') && _isBetween(month, 1, 12, '[]')
+}
+
+// Cached 'today' values for performance (±15 hours to handle timezone differences)
+// Similar to the Joi implementation in string.extensions.ts
+let todayMaxCached: IsoDate
+let todayMaxCacheTime = 0
+let todayMinCached: IsoDate
+let todayMinCacheTime = 0
+const CACHE_INTERVAL = 15 * 60 * 1000 // 15 minutes
+
+/**
+ * Returns today's date + 15 hours to allow for timezone differences.
+ * Used for sameOrBefore('today') validation.
+ */
+function getTodayMax(): IsoDate {
+  const now = Date.now()
+  if (now - todayMaxCacheTime < CACHE_INTERVAL) {
+    return todayMaxCached
+  }
+  todayMaxCacheTime = now
+  return (todayMaxCached = localTime.now().plus(15, 'hour').toISODate())
+}
+
+/**
+ * Returns today's date - 15 hours to allow for timezone differences.
+ * Used for sameOrAfter('today') validation.
+ */
+function getTodayMin(): IsoDate {
+  const now = Date.now()
+  if (now - todayMinCacheTime < CACHE_INTERVAL) {
+    return todayMinCached
+  }
+  todayMinCacheTime = now
+  return (todayMinCached = localTime.now().plus(-15, 'hour').toISODate())
+}
+
+/**
+ * Resolves a date string that may be 'today' to an actual IsoDate.
+ * For min bounds (sameOrAfter), uses today - 15 hours.
+ * For max bounds (sameOrBefore, before), uses today + 15 hours.
+ */
+function resolveDate(date: string, isMaxBound: boolean): string {
+  if (date === 'today') {
+    return isMaxBound ? getTodayMax() : getTodayMin()
+  }
+  return date
 }

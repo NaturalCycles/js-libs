@@ -612,6 +612,24 @@ describe('string', () => {
           Input: 2018-06-21]
         `)
       })
+
+      test('should support "today" as max bound', () => {
+        const schema = j.string().isoDate().sameOrBefore('today')
+        const ajvSchema = AjvSchema.create(schema)
+
+        // Today and past dates should be valid
+        const today = localTime.now().toISODate()
+        const yesterday = localTime.now().plus(-1, 'day').toISODate()
+        const [err1] = ajvSchema.getValidationResult(today)
+        expect(err1, 'today').toBeNull()
+        const [err2] = ajvSchema.getValidationResult(yesterday)
+        expect(err2, 'yesterday').toBeNull()
+
+        // Future dates should be invalid
+        const nextYear = localTime.now().plus(1, 'year').toISODate()
+        const [err3] = ajvSchema.getValidationResult(nextYear)
+        expect(err3, 'next year').not.toBeNull()
+      })
     })
 
     describe('after', () => {
@@ -669,6 +687,24 @@ describe('string', () => {
           [AjvValidationError: Object is not the same or after abcd
           Input: 2018-06-21]
         `)
+      })
+
+      test('should support "today" as min bound', () => {
+        const schema = j.string().isoDate().sameOrAfter('today')
+        const ajvSchema = AjvSchema.create(schema)
+
+        // Today and future dates should be valid
+        const today = localTime.now().toISODate()
+        const tomorrow = localTime.now().plus(1, 'day').toISODate()
+        const [err1] = ajvSchema.getValidationResult(today)
+        expect(err1, 'today').toBeNull()
+        const [err2] = ajvSchema.getValidationResult(tomorrow)
+        expect(err2, 'tomorrow').toBeNull()
+
+        // Past dates should be invalid
+        const lastYear = localTime.now().plus(-1, 'year').toISODate()
+        const [err3] = ajvSchema.getValidationResult(lastYear)
+        expect(err3, 'last year').not.toBeNull()
       })
     })
 
