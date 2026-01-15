@@ -996,4 +996,94 @@ describe('auto compression', () => {
       },
     })
   })
+
+  test('beforeDecompression and afterCompression hooks', async () => {
+    const afterCompressionCalls: any[] = []
+    const beforeDecompressionCalls: any[] = []
+
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+      hooks: {
+        afterCompression: dbm => {
+          afterCompressionCalls.push({ ...dbm })
+        },
+        beforeDecompression: dbm => {
+          beforeDecompressionCalls.push({ ...dbm })
+        },
+      },
+    })
+
+    const item = {
+      id: 'id1',
+      obj: { foo: 'bar' },
+      shu: 'test',
+    }
+
+    // Save should trigger afterCompression
+    await dao.save(item)
+
+    expect(afterCompressionCalls).toHaveLength(1)
+    expect(afterCompressionCalls[0]).toMatchObject({
+      id: 'id1',
+      data: expect.any(Buffer),
+    })
+    // Compressed properties should be removed (set to undefined)
+    expect(afterCompressionCalls[0]!.obj).toBeUndefined()
+    expect(afterCompressionCalls[0]!.shu).toBeUndefined()
+
+    // Load should trigger beforeDecompression
+    const loaded = await dao.getById('id1')
+
+    expect(beforeDecompressionCalls).toHaveLength(1)
+    expect(beforeDecompressionCalls[0]).toMatchObject({
+      id: 'id1',
+      data: expect.any(Buffer),
+    })
+    // Compressed properties should not be present yet (not in DB row)
+    expect(beforeDecompressionCalls[0]!.obj).toBeUndefined()
+    expect(beforeDecompressionCalls[0]!.shu).toBeUndefined()
+
+    // The loaded item should have the decompressed properties
+    expect(loaded).toEqual({
+      id: 'id1',
+      obj: { foo: 'bar' },
+      shu: 'test',
+      created: 1529539200,
+      updated: 1529539200,
+    })
+  })
+
+  test('hooks are not called when compression is not configured', async () => {
+    const afterCompressionCalls: any[] = []
+    const beforeDecompressionCalls: any[] = []
+
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      // No compress config
+      hooks: {
+        afterCompression: dbm => {
+          afterCompressionCalls.push(dbm)
+        },
+        beforeDecompression: dbm => {
+          beforeDecompressionCalls.push(dbm)
+        },
+      },
+    })
+
+    await dao.save({
+      id: 'id1',
+      obj: { foo: 'bar' },
+    })
+
+    await dao.getById('id1')
+
+    // Hooks should not be called since there's no compression
+    expect(afterCompressionCalls).toHaveLength(0)
+    expect(beforeDecompressionCalls).toHaveLength(0)
+  })
 })

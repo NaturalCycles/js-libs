@@ -68,6 +68,22 @@ export interface CommonDaoHooks<
   beforeSave?: (dbm: DBM) => void
 
   /**
+   * Called before decompression, when the DBM has a compressed `data` Buffer property.
+   * Only called when `data` is actually a Buffer (i.e., when there's compressed data to decompress).
+   *
+   * Useful for logging, metrics, or inspecting compressed data before it's expanded.
+   */
+  beforeDecompression?: (dbm: Partial<DBM> & { data: Buffer }) => void
+
+  /**
+   * Called after compression, when the DBM properties have been compressed into a `data` Buffer.
+   * Only called when compression actually occurred (i.e., when `cfg.compress` is configured).
+   *
+   * Useful for logging, metrics, or inspecting compressed data after compression.
+   */
+  afterCompression?: (dbm: Partial<DBM> & { data: Buffer }) => void
+
+  /**
    * If hook is defined - allows to prevent or modify the error thrown.
    * Return `false` to prevent throwing an error.
    * Return original `err` to pass the error through (will be thrown in CommonDao).
