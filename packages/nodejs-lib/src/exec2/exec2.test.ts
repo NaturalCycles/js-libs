@@ -16,6 +16,9 @@ function isSignalTermination(errString: string, exitCode?: number): boolean {
   if (errString.includes('signal')) return true
   // Exit code 128+ indicates signal termination (Linux style: 128 + signal number)
   if (exitCode !== undefined && exitCode >= 128) return true
+  // Also check for exit code in error message (e.g., "exited with code 143")
+  const codeMatch = errString.match(/code (\d+)/)
+  if (codeMatch && Number(codeMatch[1]) >= 128) return true
   return false
 }
 
