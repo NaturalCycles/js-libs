@@ -242,6 +242,21 @@ export class AjvSchema<IN = unknown, OUT = IN> {
   }
 }
 
+function getPropertyErrorMessage(
+  properties: JsonSchema['properties'],
+  instancePath: string,
+  keyword: string,
+): string | undefined {
+  if (!properties || !instancePath) return undefined
+
+  const firstSegment = instancePath.split('/')[1]?.split('[')[0]
+  if (!firstSegment) return undefined
+
+  const propSchema = (properties as Record<string, JsonSchema>)[firstSegment]
+
+  return propSchema?.errorMessages?.[keyword] as string | undefined
+}
+
 const separator = '\n'
 
 export const HIDDEN_AJV_SCHEMA = Symbol('HIDDEN_AJV_SCHEMA')
@@ -310,16 +325,3 @@ export type SchemaHandledByAjv<IN, OUT = IN> =
   | JsonSchemaTerminal<IN, OUT, any>
   | JsonSchema<IN, OUT>
   | AjvSchema<IN, OUT>
-
-function getPropertyErrorMessage(
-  properties: JsonSchema['properties'],
-  instancePath: string,
-  keyword: string,
-): string | undefined {
-  if (!properties || !instancePath) return undefined
-
-  const firstSegment = instancePath.split('/')[1]?.split('[')[0]!
-  const propSchema = (properties as Record<string, JsonSchema>)[firstSegment]
-
-  return propSchema?.errorMessages?.[keyword] as string | undefined
-}
