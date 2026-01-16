@@ -254,7 +254,7 @@ function getPropertyErrorMessage(
 
   const propSchema = (properties as Record<string, JsonSchema>)[firstSegment]
 
-  return propSchema?.errorMessages?.[keyword] as string | undefined
+  return propSchema?.errorMessages?.[keyword]
 }
 
 const separator = '\n'
