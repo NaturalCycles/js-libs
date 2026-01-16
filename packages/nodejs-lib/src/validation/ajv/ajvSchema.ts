@@ -229,12 +229,77 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     const { errorMessages } = this.schema
 
     for (const error of errors) {
-      if (errorMessages?.[error.keyword]) {
+      const errorMessage = this.getErrorMessageForInstancePath(
+        this.schema,
+        error.instancePath,
+        error.keyword,
+      )
+
+      if (errorMessage) {
+        error.message = errorMessage
+      } else if (errorMessages?.[error.keyword]) {
         error.message = errorMessages[error.keyword]
       }
 
       error.instancePath = error.instancePath.replaceAll(/\/(\d+)/g, `[$1]`).replaceAll('/', '.')
     }
+  }
+
+  private getErrorMessageForInstancePath(
+    schema: JsonSchema<IN, OUT> | undefined,
+    instancePath: string,
+    keyword: string,
+  ): string | undefined {
+    if (!schema || !instancePath) return undefined
+
+    const segments = instancePath.split('/').filter(Boolean)
+    return this.traverseSchemaPath(schema, segments, keyword)
+  }
+
+  private traverseSchemaPath<IN = unknown, OUT = IN>(
+    schema: JsonSchema<IN, OUT>,
+    segments: string[],
+    keyword: string,
+  ): string | undefined {
+    if (!segments.length) return undefined
+
+    const [currentSegment, ...remainingSegments] = segments
+
+    const nextSchema = this.getChildSchema(schema, currentSegment)
+    if (!nextSchema) return undefined
+
+    if (nextSchema.errorMessages?.[keyword]) {
+      return nextSchema.errorMessages[keyword]
+    }
+
+    if (remainingSegments.length) {
+      return this.traverseSchemaPath(nextSchema, remainingSegments, keyword)
+    }
+
+    return undefined
+  }
+
+  private getChildSchema(schema: JsonSchema, segment: string | undefined): JsonSchema | undefined {
+    if (!segment) return undefined
+    if (/^\d+$/.test(segment) && schema.items) {
+      return this.getArrayItemSchema(schema, segment)
+    }
+
+    return this.getObjectPropertySchema(schema, segment)
+  }
+
+  private getArrayItemSchema(schema: JsonSchema, indexSegment: string): JsonSchema | undefined {
+    if (!schema.items) return undefined
+
+    if (Array.isArray(schema.items)) {
+      return schema.items[Number(indexSegment)]
+    }
+
+    return schema.items
+  }
+
+  private getObjectPropertySchema(schema: JsonSchema, segment: string): JsonSchema | undefined {
+    return schema.properties?.[segment as keyof typeof schema.properties]
   }
 }
 
