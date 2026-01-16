@@ -103,6 +103,39 @@ describe('string', () => {
         Input: 000]
       `)
     })
+
+    test('should throw custom error from regex in item schema', () => {
+      const itemSchema = j.string().regex(/^foo$/, { msg: 'must be "foo"' })
+      const schema = j.array(itemSchema)
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err] = ajvSchema.getValidationResult(['foo', 'bar', 'baz'])
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object[1] must be "foo"
+        Object[2] must be "foo"
+        Input: [ 'foo', 'bar', 'baz' ]]
+      `)
+    })
+
+    test('should throw custom error from regex in property schema of object nested in item schema', () => {
+      interface Item {
+        name: string
+      }
+
+      const itemSchema = j.object<Item>({
+        name: j.string().regex(/^foo$/, { msg: 'must be "foo"' }),
+      })
+      const schema = j.array(itemSchema)
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err] = ajvSchema.getValidationResult([{ name: 'foo' }, { name: 'bar' }])
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object[1].name must be "foo"
+        Input: [ { name: 'foo' }, { name: 'bar' } ]]
+      `)
+    })
   })
 
   describe('pattern', () => {
@@ -118,6 +151,61 @@ describe('string', () => {
       expect(err11).not.toBeNull()
       const [err12] = AjvSchema.create(schema).getValidationResult('abc')
       expect(err12).not.toBeNull()
+    })
+
+    test('should throw custom error from pattern in property schema', () => {
+      interface Foo {
+        foo: string
+      }
+
+      const schema = j.object<Foo>({
+        foo: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
+      })
+
+      const [err] = AjvSchema.create(schema).getValidationResult({ foo: 'def' })
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object.foo must equal "abc"
+        Input: { foo: 'def' }]
+      `)
+    })
+
+    test('should throw custom error from pattern in nested property schema', () => {
+      interface Foo {
+        foo: {
+          bar: string
+        }
+      }
+
+      const schema = j.object<Foo>({
+        foo: j.object.infer({
+          bar: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
+        }),
+      })
+
+      const [err] = AjvSchema.create(schema).getValidationResult({ foo: { bar: 'def' } })
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object.foo.bar must equal "abc"
+        Input: { foo: { bar: 'def' } }]
+      `)
+    })
+
+    test('should throw custom error from pattern in object with number keys', () => {
+      interface Foo {
+        1: string
+      }
+
+      const schema = j.object<Foo>({
+        1: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
+      })
+
+      const [err] = AjvSchema.create(schema).getValidationResult({ 1: 'def' })
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object[1] must equal "abc"
+        Input: { '1': 'def' }]
+      `)
     })
   })
 
@@ -1984,39 +2072,6 @@ describe('array', () => {
     })
   })
 
-  test('should throw custom error from item schema', () => {
-    const itemSchema = j.string().regex(/^foo$/, { msg: 'must be "foo"' })
-    const schema = j.array(itemSchema)
-    const ajvSchema = AjvSchema.create(schema)
-
-    const [err] = ajvSchema.getValidationResult(['foo', 'bar', 'baz'])
-
-    expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object[1] must be "foo"
-      Object[2] must be "foo"
-      Input: [ 'foo', 'bar', 'baz' ]]
-    `)
-  })
-
-  test('should throw custom error from property schema of object in item schema', () => {
-    interface Item {
-      name: string
-    }
-
-    const itemSchema = j.object<Item>({
-      name: j.string().regex(/^foo$/, { msg: 'must be "foo"' }),
-    })
-    const schema = j.array(itemSchema)
-    const ajvSchema = AjvSchema.create(schema)
-
-    const [err] = ajvSchema.getValidationResult([{ name: 'foo' }, { name: 'bar' }])
-
-    expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object[1].name must be "foo"
-      Input: [ { name: 'foo' }, { name: 'bar' } ]]
-    `)
-  })
-
   describe('minLength', () => {
     test('should accept valid data', () => {
       const testCases: any[] = [
@@ -2339,61 +2394,6 @@ describe('object', () => {
 
     // @ts-expect-error
     j.object<Foo>({ foo: j.string(), bar: j.string().optional() })
-  })
-
-  test('should throw custom error from property schema', () => {
-    interface Foo {
-      foo: string
-    }
-
-    const schema = j.object<Foo>({
-      foo: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
-    })
-
-    const [err] = AjvSchema.create(schema).getValidationResult({ foo: 'def' })
-
-    expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object.foo must equal "abc"
-      Input: { foo: 'def' }]
-    `)
-  })
-
-  test('should throw custom error from nested property schema', () => {
-    interface Foo {
-      foo: {
-        bar: string
-      }
-    }
-
-    const schema = j.object<Foo>({
-      foo: j.object.infer({
-        bar: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
-      }),
-    })
-
-    const [err] = AjvSchema.create(schema).getValidationResult({ foo: { bar: 'def' } })
-
-    expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object.foo.bar must equal "abc"
-      Input: { foo: { bar: 'def' } }]
-    `)
-  })
-
-  test('should throw custom error from object with number keys', () => {
-    interface Foo {
-      1: string
-    }
-
-    const schema = j.object<Foo>({
-      1: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
-    })
-
-    const [err] = AjvSchema.create(schema).getValidationResult({ 1: 'def' })
-
-    expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object[1] must equal "abc"
-      Input: { '1': 'def' }]
-    `)
   })
 
   interface TestEverythingObject {

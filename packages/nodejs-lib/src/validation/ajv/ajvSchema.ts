@@ -229,14 +229,14 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     const { errorMessages } = this.schema
 
     for (const error of errors) {
-      const nestedMessage = this.getNestedErrorMessage(
+      const errorMessage = this.getErrorMessageForInstancePath(
         this.schema,
         error.instancePath,
         error.keyword,
       )
 
-      if (nestedMessage) {
-        error.message = nestedMessage
+      if (errorMessage) {
+        error.message = errorMessage
       } else if (errorMessages?.[error.keyword]) {
         error.message = errorMessages[error.keyword]
       }
@@ -245,7 +245,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     }
   }
 
-  private getNestedErrorMessage(
+  private getErrorMessageForInstancePath(
     schema: JsonSchema<IN, OUT> | undefined,
     instancePath: string,
     keyword: string,
