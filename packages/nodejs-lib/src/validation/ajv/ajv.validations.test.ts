@@ -2308,6 +2308,19 @@ describe('object', () => {
     j.object<Foo>({ foo: j.string(), bar: j.string().optional() })
   })
 
+  test('should throw custom error from property schema', () => {
+    const schema = j.object<{ foo: string }>({
+      foo: j.string().pattern('^abc$', { msg: 'must start with "abc"' }),
+    })
+
+    const [err] = AjvSchema.create(schema).getValidationResult({ foo: 'def' })
+
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object.foo must start with "abc"
+      Input: { foo: 'def' }]
+    `)
+  })
+
   interface TestEverythingObject {
     string: string
     stringOptional?: string

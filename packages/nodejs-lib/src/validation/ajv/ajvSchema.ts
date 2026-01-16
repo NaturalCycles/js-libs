@@ -226,10 +226,14 @@ export class AjvSchema<IN = unknown, OUT = IN> {
   ): void {
     if (!errors) return
 
-    const { errorMessages } = this.schema
+    const { errorMessages, properties } = this.schema
 
     for (const error of errors) {
-      if (errorMessages?.[error.keyword]) {
+      const propMessage = getPropertyErrorMessage(properties, error.instancePath, error.keyword)
+
+      if (propMessage) {
+        error.message = propMessage
+      } else if (errorMessages?.[error.keyword]) {
         error.message = errorMessages[error.keyword]
       }
 
@@ -306,3 +310,16 @@ export type SchemaHandledByAjv<IN, OUT = IN> =
   | JsonSchemaTerminal<IN, OUT, any>
   | JsonSchema<IN, OUT>
   | AjvSchema<IN, OUT>
+
+function getPropertyErrorMessage(
+  properties: JsonSchema['properties'],
+  instancePath: string,
+  keyword: string,
+): string | undefined {
+  if (!properties || !instancePath) return undefined
+
+  const firstSegment = instancePath.split('/')[1]?.split('[')[0]!
+  const propSchema = (properties as Record<string, JsonSchema>)[firstSegment]
+
+  return propSchema?.errorMessages?.[keyword] as string | undefined
+}
