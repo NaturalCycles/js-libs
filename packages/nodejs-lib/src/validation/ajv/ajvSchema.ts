@@ -226,13 +226,17 @@ export class AjvSchema<IN = unknown, OUT = IN> {
   ): void {
     if (!errors) return
 
-    const { errorMessages, properties } = this.schema
+    const { errorMessages } = this.schema
 
     for (const error of errors) {
-      const propMessage = getPropertyErrorMessage(properties, error.instancePath, error.keyword)
+      const nestedMessage = this.getNestedErrorMessage(
+        this.schema,
+        error.instancePath,
+        error.keyword,
+      )
 
-      if (propMessage) {
-        error.message = propMessage
+      if (nestedMessage) {
+        error.message = nestedMessage
       } else if (errorMessages?.[error.keyword]) {
         error.message = errorMessages[error.keyword]
       }
@@ -240,21 +244,63 @@ export class AjvSchema<IN = unknown, OUT = IN> {
       error.instancePath = error.instancePath.replaceAll(/\/(\d+)/g, `[$1]`).replaceAll('/', '.')
     }
   }
-}
 
-function getPropertyErrorMessage(
-  properties: JsonSchema['properties'],
-  instancePath: string,
-  keyword: string,
-): string | undefined {
-  if (!properties || !instancePath) return undefined
+  private getNestedErrorMessage(
+    schema: JsonSchema<IN, OUT> | undefined,
+    instancePath: string,
+    keyword: string,
+  ): string | undefined {
+    if (!schema || !instancePath) return undefined
 
-  const firstSegment = instancePath.split('/')[1]?.split('[')[0]
-  if (!firstSegment) return undefined
+    const segments = instancePath.split('/').filter(Boolean)
+    return this.traverseSchemaPath(schema, segments, keyword)
+  }
 
-  const propSchema = (properties as Record<string, JsonSchema>)[firstSegment]
+  private traverseSchemaPath<IN = unknown, OUT = IN>(
+    schema: JsonSchema<IN, OUT>,
+    segments: string[],
+    keyword: string,
+  ): string | undefined {
+    if (!segments.length) return undefined
 
-  return propSchema?.errorMessages?.[keyword]
+    const [currentSegment, ...remainingSegments] = segments
+
+    const nextSchema = this.getChildSchema(schema, currentSegment)
+    if (!nextSchema) return undefined
+
+    if (nextSchema.errorMessages?.[keyword]) {
+      return nextSchema.errorMessages[keyword]
+    }
+
+    if (remainingSegments.length) {
+      return this.traverseSchemaPath(nextSchema, remainingSegments, keyword)
+    }
+
+    return undefined
+  }
+
+  private getChildSchema(schema: JsonSchema, segment: string | undefined): JsonSchema | undefined {
+    if (!segment) return undefined
+    if (/^\d+$/.test(segment) && schema.items) {
+      return this.getArrayItemSchema(schema, segment)
+    }
+
+    return this.getObjectPropertySchema(schema, segment)
+  }
+
+  private getArrayItemSchema(schema: JsonSchema, indexSegment: string): JsonSchema | undefined {
+    if (!schema.items) return undefined
+
+    if (Array.isArray(schema.items)) {
+      return schema.items[Number(indexSegment)]
+    }
+
+    return schema.items
+  }
+
+  private getObjectPropertySchema(schema: JsonSchema, segment: string): JsonSchema | undefined {
+    return schema.properties?.[segment as keyof typeof schema.properties]
+  }
 }
 
 const separator = '\n'
