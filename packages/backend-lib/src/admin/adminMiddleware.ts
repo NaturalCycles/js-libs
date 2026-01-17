@@ -103,9 +103,9 @@ export function loginHtml(firebaseServiceCfg: FirebaseSharedServiceCfg): Backend
     adminAuthProvider: firebaseAuthProvider = 'GoogleAuthProvider',
   } = firebaseServiceCfg
 
-  return async (_req, res) => {
+  return (_req, res) => {
     res.send(
-      await getLoginHtml({
+      getLoginHtml({
         firebaseApiKey,
         firebaseAuthDomain,
         firebaseAuthProvider,
@@ -114,11 +114,13 @@ export function loginHtml(firebaseServiceCfg: FirebaseSharedServiceCfg): Backend
   }
 }
 
-const getLoginHtml = _memoFn(async (cfg: LoginHtmlCfg) => {
+const getLoginHtml = _memoFn((cfg: LoginHtmlCfg) => {
   console.log(`reading login.html`)
-  const tmpl = fs2.readText(`${srcDir}/admin/login.html`)
-  const { default: ejs } = await import('ejs')
-  return ejs.render(tmpl, cfg)
+  return fs2
+    .readText(`${srcDir}/admin/login.html`)
+    .replaceAll('<%= firebaseApiKey %>', cfg.firebaseApiKey)
+    .replaceAll('<%= firebaseAuthDomain %>', cfg.firebaseAuthDomain)
+    .replaceAll('<%= firebaseAuthProvider %>', cfg.firebaseAuthProvider)
 })
 
 export function getLoginHtmlRedirect(href: string): string {
