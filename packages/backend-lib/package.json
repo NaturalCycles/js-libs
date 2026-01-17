@@ -36,7 +36,7 @@
     "cookie-parser": "^1",
     "cors": "^2",
     "dotenv": "^17",
-    "ejs": "^3",
+    "ejs": "^4",
     "express": "^5",
     "firebase-admin": "^13",
     "helmet": "^8",
