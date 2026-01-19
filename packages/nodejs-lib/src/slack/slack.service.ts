@@ -109,7 +109,7 @@ export class SlackService<CTX = any> {
     }
 
     if (msg.mentions?.length) {
-      text += '\n' + msg.mentions.map(s => `<@${s}>`).join(' ')
+      text += '\n' + msg.mentions.map(formatSlackMention).join(' ')
     }
 
     const prefix = await messagePrefixHook(msg)
@@ -190,4 +190,14 @@ export function slackDefaultMessagePrefixHook(msg: SlackMessage): string[] {
   }
 
   return tokens.filter(Boolean)
+}
+
+// Formats a Slack mention based on the ID type:
+// - User IDs (U...) and Bot IDs (B...) use: <@ID>
+// - User Group IDs (S...) use: <!subteam^ID>
+function formatSlackMention(id: string): string {
+  if (id.startsWith('S')) {
+    return `<!subteam^${id}>`
+  }
+  return `<@${id}>`
 }
