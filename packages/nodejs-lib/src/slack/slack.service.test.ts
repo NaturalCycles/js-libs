@@ -93,6 +93,14 @@ test('error', async () => {
   `)
 })
 
+test('user group mentions use subteam format', async () => {
+  await slackService.send({
+    items: 'alert',
+    mentions: ['U123456', 'S789012'], // user ID and user group ID
+  })
+  expect(lastBody).toMatchSnapshot()
+})
+
 test('messagePrefixHook returning null should NOT be sent', async () => {
   slackService = new SlackService({
     webhookUrl: 'https://valid.com',

@@ -7,3 +7,5 @@ exports[`basic test 2`] = `"{"username":"bot","channel":"#log","icon_emoji":":sp
 exports[`basic test 3`] = `"{"username":"bot","channel":"#log","icon_emoji":":spider_web:","text":"2018-06-21 00:00:00\\n\`\`\`yo\`\`\`"}"`;
 
 exports[`basic test 4`] = `"{"username":"bot","channel":"#log","icon_emoji":":spider_web:","mentions":["kirill"],"attachments":[{"fields":[{"title":"k1","value":"v1","short":true}]}],"text":"2018-06-21 00:00:00\\n\`\`\`a\\n{ b: 'b' }\\nError: c error!\`\`\`\\n<@kirill>"}"`;
+
+exports[`user group mentions use subteam format 1`] = `"{"username":"bot","channel":"#log","icon_emoji":":spider_web:","mentions":["U123456","S789012"],"text":"2018-06-21 00:00:00\\nalert\\n<@U123456> <!subteam^S789012>"}"`;
