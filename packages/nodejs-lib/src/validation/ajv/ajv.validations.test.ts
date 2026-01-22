@@ -3594,6 +3594,28 @@ describe('anyOfThese', () => {
       Input: {}]
     `)
   })
+
+  test('should work with nested schemas', () => {
+    const schema = j.object<{ data: { foo: string } | { bar: number } }>({
+      data: j.anyOfThese([
+        j.object.infer({ foo: j.string() }),
+        j.object.infer({ bar: j.number() }),
+      ]),
+    })
+    const ajvSchema = AjvSchema.create(schema)
+
+    const testCases = [{ data: { foo: 'foo' } }, { data: { bar: 1 } }]
+    testCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err).toBeNull()
+    })
+
+    const invalidCases: any[] = [undefined, true, [], {}, { data: { shu: 'foo' } }]
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err).not.toBeNull()
+    })
+  })
 })
 
 describe('errors', () => {
