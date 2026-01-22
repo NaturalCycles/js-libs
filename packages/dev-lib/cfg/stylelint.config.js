@@ -1,6 +1,6 @@
 export default {
   extends: ['stylelint-config-standard-scss'],
-  ignoreFiles: ['!**/*.{css,scss}'],
+  ignoreFiles: ['!/**/*.{css,scss}'],
   rules: {
     'no-empty-source': null,
     'color-hex-length': 'short',
