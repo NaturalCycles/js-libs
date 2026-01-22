@@ -3533,6 +3533,69 @@ describe('anyOfBy', () => {
   })
 })
 
+describe('anyOfThese', () => {
+  test('should correctly infer the type', () => {
+    const schema = j.anyOfThese([j.string().nullable(), j.number()])
+    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+    expectTypeOf(result).toEqualTypeOf<string | number | null>()
+  })
+
+  test('should accept valid values', () => {
+    const schema = j.anyOfThese([j.string().nullable(), j.number()])
+    const ajvSchema = AjvSchema.create(schema)
+
+    const testCases = ['a', 1, null]
+    testCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err).toBeNull()
+    })
+
+    const invalidCases: any[] = [undefined, true, [], {}]
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err).not.toBeNull()
+    })
+  })
+
+  test('should accept values matching multiple schemas', () => {
+    // Both schemas accept strings of length 5-10
+    const schema = j.anyOfThese([j.string().minLength(5), j.string().maxLength(10)])
+
+    // 'hello' matches both schemas, anyOfThese accepts it (unlike oneOf)
+    const [err] = AjvSchema.create(schema).getValidationResult('hello')
+    expect(err).toBeNull()
+  })
+
+  test('should work with complex values', () => {
+    const schema1 = j.object<{ data: { foo: string; bar: number } }>({
+      data: j.object.infer({ foo: j.string(), bar: j.number() }),
+    })
+    const schema2 = j.object<{ data: { foo: string; shu: number } }>({
+      data: j.object.infer({ foo: j.string(), shu: j.number() }),
+    })
+    const schema = j.anyOfThese([schema1, schema2])
+    const ajvSchema = AjvSchema.create(schema)
+
+    const testCases = [{ data: { foo: 'foo', bar: 1 } }, { data: { foo: 'foo', shu: 1 } }]
+    testCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err).toBeNull()
+    })
+
+    const invalidCases: any[] = [undefined, true, [], {}, { data: { foo: 'foo' } }]
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err).not.toBeNull()
+    })
+
+    const [err] = ajvSchema.getValidationResult({} as any)
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object could not find a suitable schema to validate against
+      Input: {}]
+    `)
+  })
+})
+
 describe('errors', () => {
   test('should properly display the path to the erronous value', () => {
     const schema = j.object.infer({ foo: j.array(j.string()) }).isOfType<{ foo: string[] }>()

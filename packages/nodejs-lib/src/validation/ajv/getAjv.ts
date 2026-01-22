@@ -1,5 +1,5 @@
 import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
-import { _mapObject, Set2 } from '@naturalcycles/js-lib/object'
+import { _deepCopy, _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { Ajv2020, type Options, type ValidateFunction } from 'ajv/dist/2020.js'
@@ -585,6 +585,56 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
+  ajv.addKeyword({
+    keyword: 'anyOfThese',
+    modifying: true,
+    errors: true,
+    schemaType: 'array',
+    compile(schemas: JsonSchemaTerminal<any, any, any>[], _parentSchema, _it) {
+      const validators = schemas.map(schema => ajv.compile(schema))
+
+      function validate(data: AnyObject, ctx: any): boolean {
+        let correctValidator: ValidateFunction<unknown> | undefined
+        let result = false
+        let clonedData: any
+
+        // Try each validator until we find one that works!
+        for (const validator of validators) {
+          clonedData = isPrimitive(data) ? _deepCopy(data) : data
+          result = validator(clonedData)
+          if (result) {
+            correctValidator = validator
+            break
+          }
+        }
+
+        if (result && ctx?.parentData && ctx.parentDataProperty) {
+          // If we found a validator and the data is valid and we are validating a property inside an object,
+          // then we can inject our result and be done with it.
+          ctx.parentData[ctx.parentDataProperty] = clonedData
+        } else if (result) {
+          // If we found a validator but we are not validating a property inside an object,
+          // then we must re-run the validation so that the mutations caused by Ajv
+          // will be done on the input data, not only on the clone.
+          result = correctValidator!(data)
+        } else {
+          // If we didn't find a fitting schema,
+          // we add our own error.
+          ;(validate as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message: `could not find a suitable schema to validate against`,
+            },
+          ]
+        }
+
+        return result
+      }
+
+      return validate
+    },
+  })
+
   return ajv
 }
 
@@ -727,4 +777,8 @@ function isIsoMonthValid(s: string): boolean {
   const month = (s.charCodeAt(5) - ZERO_CODE) * 10 + (s.charCodeAt(6) - ZERO_CODE)
 
   return _isBetween(year, 1900, 2500, '[]') && _isBetween(month, 1, 12, '[]')
+}
+
+function isPrimitive(data: any): boolean {
+  return data !== null && typeof data === 'object'
 }

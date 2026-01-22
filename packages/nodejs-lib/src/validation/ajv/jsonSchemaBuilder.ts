@@ -217,7 +217,7 @@ export const j = {
 
   /**
    * Use only with primitive values, otherwise this function will throw to avoid bugs.
-   * To validate objects, use `anyOfBy`.
+   * To validate objects, use `anyOfBy` or `anyOfThese`.
    *
    * Our Ajv is configured to strip unexpected properties from objects,
    * and since Ajv is mutating the input, this means that it cannot
@@ -242,6 +242,18 @@ export const j = {
     })
   },
 
+  /**
+   * Pick validation schema for an object based on the value of a specific property.
+   *
+   * ```
+   * const schemaMap = {
+   *   true: successSchema,
+   *   false: errorSchema
+   * }
+   *
+   * const schema = j.anyOfBy('success', schemaMap)
+   * ```
+   */
   anyOfBy<
     P extends string,
     D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
@@ -249,6 +261,24 @@ export const j = {
     OUT = AnyOfByOut<D>,
   >(propertyName: P, schemaDictionary: D): JsonSchemaAnyOfByBuilder<IN, OUT, P> {
     return new JsonSchemaAnyOfByBuilder<IN, OUT, P>(propertyName, schemaDictionary)
+  },
+
+  /**
+   * Custom version of `anyOf` which - in contrast to the original function - does not mutate the input.
+   * This comes with a performance penalty, so do not use it where performance matters.
+   *
+   * ```
+   * const schema = j.anyOfThese([successSchema, errorSchema])
+   * ```
+   */
+  anyOfThese<
+    B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
+    IN = BuilderInUnion<B>,
+    OUT = BuilderOutUnion<B>,
+  >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
+    return new JsonSchemaAnyBuilder<IN, OUT, false>({
+      anyOfThese: items.map(b => b.build()),
+    })
   },
 
   and() {
@@ -1267,6 +1297,34 @@ export class JsonSchemaAnyOfByBuilder<
   }
 }
 
+export class JsonSchemaAnyOfTheseBuilder<
+  IN,
+  OUT,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  _P extends string = string,
+> extends JsonSchemaAnyBuilder<AnyOfByInput<IN, _P> | IN, OUT, false> {
+  declare in: IN
+
+  constructor(
+    propertyName: string,
+    schemaDictionary: Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
+  ) {
+    const builtSchemaDictionary: Record<string, JsonSchema> = {}
+    for (const [key, schema] of Object.entries(schemaDictionary)) {
+      builtSchemaDictionary[key] = schema.build()
+    }
+
+    super({
+      type: 'object',
+      hasIsOfTypeCheck: true,
+      anyOfBy: {
+        propertyName,
+        schemaDictionary: builtSchemaDictionary,
+      },
+    })
+  }
+}
+
 type EnumBaseType = 'string' | 'number' | 'other'
 
 export interface JsonSchema<IN = unknown, OUT = IN> {
@@ -1350,6 +1408,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
     propertyName: string
     schemaDictionary: Record<string, JsonSchema>
   }
+  anyOfThese?: JsonSchema[]
 }
 
 function object(props: AnyObject): never
