@@ -2,7 +2,7 @@ import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range, _sortBy } from '@naturalcycles/js-lib/array'
 import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalcycles/js-lib/error'
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
-import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type { BaseDBEntity, UnixTimestamp, Unsaved } from '@naturalcycles/js-lib/types'
 import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
@@ -763,6 +763,7 @@ describe('auto compression', () => {
           return bm
         },
         async beforeDBMToBM(dbm) {
+          // After decompression, the data property is set to undefined (not deleted for performance)
           expect(dbm).toHaveProperty('data')
           expect((dbm as any)['data']).toBeUndefined()
           return dbm
@@ -804,6 +805,334 @@ describe('auto compression', () => {
         id: 'id2',
         updated: 1529539200,
       },
+    })
+  })
+
+  test('saveAsDBM(readAsDBM()) round-trip should work', async () => {
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+    })
+
+    const item = {
+      id: 'id1',
+      obj: { objId: 'objId1' },
+      shu: 'shu1',
+    }
+
+    // Save via normal save
+    await dao.save(item)
+
+    // Read as DBM (should be decompressed)
+    const dbm = await dao.getByIdAsDBM('id1')
+    expect(dbm).toMatchObject({
+      id: 'id1',
+      obj: { objId: 'objId1' },
+      shu: 'shu1',
+    })
+    // After decompression, data property is set to undefined (not deleted for performance)
+    expect((dbm as any).data).toBeUndefined()
+
+    // Modify and save as DBM (should compress before saving)
+    dbm!.shu = 'shu1-modified'
+    await dao.saveAsDBM(dbm!)
+
+    // Read back and verify
+    const result = await dao.getById('id1')
+    expect(result).toMatchObject({
+      id: 'id1',
+      obj: { objId: 'objId1' },
+      shu: 'shu1-modified',
+    })
+
+    // Verify storage is compressed
+    const { data } = dao.cfg.db as InMemoryDB
+    expect(data[TEST_TABLE]!['id1']).toEqual({
+      created: expect.any(Number),
+      data: expect.any(Buffer),
+      id: 'id1',
+      updated: expect.any(Number),
+    })
+  })
+
+  describe('all read/write APIs should handle compression correctly', () => {
+    function createDao(): CommonDao<Item> {
+      return new CommonDao<Item>({
+        table: TEST_TABLE,
+        db,
+        compress: {
+          keys: ['obj', 'shu'],
+        },
+      })
+    }
+
+    function createItem(n: number): Unsaved<Item> {
+      return {
+        id: `id${n}`,
+        obj: { objId: `objId${n}` },
+        shu: `shu${n}`,
+      }
+    }
+
+    function expectDecompressed(item: any, n: number): void {
+      expect(item).toMatchObject({
+        id: `id${n}`,
+        obj: { objId: `objId${n}` },
+        shu: `shu${n}`,
+      })
+      // After decompression, data property is set to undefined (not deleted for performance)
+      expect(item.data).toBeUndefined()
+    }
+
+    function expectStorageCompressed(dao: CommonDao<Item>, id: string): void {
+      const { data } = dao.cfg.db as InMemoryDB
+      expect(data[TEST_TABLE]![id]).toEqual({
+        created: expect.any(Number),
+        data: expect.any(Buffer),
+        id,
+        updated: expect.any(Number),
+      })
+    }
+
+    // Write APIs
+    test('save', async () => {
+      const dao = createDao()
+      const item = createItem(1)
+      await dao.save(item)
+      expectStorageCompressed(dao, 'id1')
+    })
+
+    test('saveAsDBM', async () => {
+      const dao = createDao()
+      await dao.saveAsDBM(createItem(1) as any)
+      expectStorageCompressed(dao, 'id1')
+    })
+
+    test('saveBatch', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      expectStorageCompressed(dao, 'id1')
+      expectStorageCompressed(dao, 'id2')
+    })
+
+    test('saveBatchAsDBM', async () => {
+      const dao = createDao()
+      await dao.saveBatchAsDBM([createItem(1), createItem(2)] as any)
+      expectStorageCompressed(dao, 'id1')
+      expectStorageCompressed(dao, 'id2')
+    })
+
+    test('patchById', async () => {
+      const dao = createDao()
+      await dao.save(createItem(1))
+      await dao.patchById('id1', { shu: 'shu1-patched' })
+      expectStorageCompressed(dao, 'id1')
+      const result = await dao.getById('id1')
+      expect(result!.shu).toBe('shu1-patched')
+    })
+
+    // Read APIs
+    test('getById', async () => {
+      const dao = createDao()
+      await dao.save(createItem(1))
+      const result = await dao.getById('id1')
+      expectDecompressed(result, 1)
+    })
+
+    test('getByIdAsDBM', async () => {
+      const dao = createDao()
+      await dao.save(createItem(1))
+      const result = await dao.getByIdAsDBM('id1')
+      expectDecompressed(result, 1)
+    })
+
+    test('getByIds', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const results = await dao.getByIds(['id1', 'id2'])
+      expect(results).toHaveLength(2)
+      expectDecompressed(results[0], 1)
+      expectDecompressed(results[1], 2)
+    })
+
+    test('getByIdsAsDBM', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const results = await dao.getByIdsAsDBM(['id1', 'id2'])
+      expect(results).toHaveLength(2)
+      expectDecompressed(results[0], 1)
+      expectDecompressed(results[1], 2)
+    })
+
+    test('requireById', async () => {
+      const dao = createDao()
+      await dao.save(createItem(1))
+      const result = await dao.requireById('id1')
+      expectDecompressed(result, 1)
+    })
+
+    test('requireByIdAsDBM', async () => {
+      const dao = createDao()
+      await dao.save(createItem(1))
+      const result = await dao.requireByIdAsDBM('id1')
+      expectDecompressed(result, 1)
+    })
+
+    test('getAll', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const results = await dao.getAll()
+      expect(results).toHaveLength(2)
+      expectDecompressed(results[0], 1)
+      expectDecompressed(results[1], 2)
+    })
+
+    test('runQuery', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const results = await dao.runQuery(dao.query())
+      expect(results).toHaveLength(2)
+      expectDecompressed(results[0], 1)
+      expectDecompressed(results[1], 2)
+    })
+
+    test('runQueryAsDBM', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const results = await dao.runQueryAsDBM(dao.query())
+      expect(results).toHaveLength(2)
+      expectDecompressed(results[0], 1)
+      expectDecompressed(results[1], 2)
+    })
+
+    test('runQueryExtended', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const { rows } = await dao.runQueryExtended(dao.query())
+      expect(rows).toHaveLength(2)
+      expectDecompressed(rows[0], 1)
+      expectDecompressed(rows[1], 2)
+    })
+
+    test('runQueryExtendedAsDBM', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const { rows } = await dao.runQueryExtendedAsDBM(dao.query())
+      expect(rows).toHaveLength(2)
+      expectDecompressed(rows[0], 1)
+      expectDecompressed(rows[1], 2)
+    })
+
+    test('streamQuery', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const results = await dao.streamQuery(dao.query()).toArray()
+      expect(results).toHaveLength(2)
+      expectDecompressed(results[0], 1)
+      expectDecompressed(results[1], 2)
+    })
+
+    test('streamQueryAsDBM', async () => {
+      const dao = createDao()
+      await dao.saveBatch([createItem(1), createItem(2)])
+      const results = await dao.streamQueryAsDBM(dao.query()).toArray()
+      expect(results).toHaveLength(2)
+      expectDecompressed(results[0], 1)
+      expectDecompressed(results[1], 2)
+    })
+
+    // Conversion APIs
+    test('bmToDBM and dbmToBM', async () => {
+      const dao = createDao()
+      const item = createItem(1)
+      const dbm = await dao.bmToDBM(item as Item)
+      // bmToDBM should NOT compress - DBM is the logical type
+      expectDecompressed(dbm, 1)
+
+      const bm = await dao.dbmToBM(dbm)
+      expectDecompressed(bm, 1)
+    })
+
+    // Static multiGet/multiSave
+    test('multiSave and multiGet', async () => {
+      const dao = createDao()
+
+      await CommonDao.multiSave([dao.withRowsToSave([createItem(1), createItem(2)])])
+
+      // Verify storage is compressed
+      expectStorageCompressed(dao, 'id1')
+      expectStorageCompressed(dao, 'id2')
+
+      // multiGet should decompress
+      const result = await CommonDao.multiGet({
+        items: dao.withIds(['id1', 'id2']),
+      })
+      expect(result.items).toHaveLength(2)
+      expectDecompressed(result.items[0], 1)
+      expectDecompressed(result.items[1], 2)
+    })
+
+    // Public storage conversion API (for direct DB access)
+    test('dbmToStorageRow compresses DBM', async () => {
+      const dao = createDao()
+      const item = createItem(1) as Item
+      dao.assignIdCreatedUpdated(item)
+      const dbm = await dao.bmToDBM(item)
+
+      const storageRow = (await dao.dbmToStorageRow(dbm)) as any
+      expect(storageRow.id).toBe('id1')
+      expect(storageRow.data).toBeInstanceOf(Buffer)
+      expect(storageRow.obj).toBeUndefined()
+      expect(storageRow.shu).toBeUndefined()
+    })
+
+    test('storageRowToDBM decompresses storage row', async () => {
+      const dao = createDao()
+      const item = createItem(1) as Item
+      dao.assignIdCreatedUpdated(item)
+      const dbm = await dao.bmToDBM(item)
+      const storageRow = await dao.dbmToStorageRow(dbm)
+
+      const restored = await dao.storageRowToDBM(storageRow)
+      expectDecompressed(restored, 1)
+    })
+
+    test('dbmToStorageRow and storageRowToDBM round-trip', async () => {
+      const dao = createDao()
+      const item = createItem(1) as Item
+      dao.assignIdCreatedUpdated(item)
+      const dbm = await dao.bmToDBM(item)
+
+      // Round-trip: DBM -> storage -> DBM
+      const storageRow = await dao.dbmToStorageRow(dbm)
+      const restored = await dao.storageRowToDBM(storageRow)
+
+      expect(restored).toMatchObject({
+        id: dbm.id,
+        obj: dbm.obj,
+        shu: dbm.shu,
+      })
+    })
+
+    test('direct DB write with dbmToStorageRow', async () => {
+      const dao = createDao()
+      const item = createItem(1) as Item
+      dao.assignIdCreatedUpdated(item)
+      const dbm = await dao.bmToDBM(item)
+
+      // Write directly to DB using storage row
+      const storageRow = await dao.dbmToStorageRow(dbm)
+      await db.saveBatch(TEST_TABLE, [storageRow] as any[])
+
+      // Verify storage is compressed
+      expectStorageCompressed(dao, 'id1')
+
+      // Read through DAO should decompress
+      const result = await dao.getById('id1')
+      expectDecompressed(result, 1)
     })
   })
 
