@@ -92,7 +92,8 @@ export class CommonDao<
     // If the auto-compression is enabled,
     // then we need to ensure that the 'data' property is part of the index exclusion list.
     if (this.cfg.compress?.keys) {
-      this.cfg.excludeFromIndexes ??= []
+      const current = this.cfg.excludeFromIndexes
+      this.cfg.excludeFromIndexes = current ? [...current] : []
       if (!this.cfg.excludeFromIndexes.includes('data' as any)) {
         this.cfg.excludeFromIndexes.push('data' as any)
       }
