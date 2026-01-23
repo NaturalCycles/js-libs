@@ -85,6 +85,15 @@ export class CommonDao<
     } else {
       delete this.cfg.hooks!.createRandomId
     }
+
+    // If the auto-compression is enabled,
+    // then we need to ensure that the 'data' property is part of the index exclusion list.
+    if (this.cfg.compress?.keys) {
+      this.cfg.excludeFromIndexes ??= []
+      if (!this.cfg.excludeFromIndexes.includes('data' as any)) {
+        this.cfg.excludeFromIndexes.push('data' as any)
+      }
+    }
   }
 
   // CREATE
@@ -523,6 +532,9 @@ export class CommonDao<
       excludeFromIndexes = this.cfg.excludeFromIndexes,
     } = opt
 
+    // If the user passed in custom `excludeFromIndexes` with the save() call,
+    // and the auto-compression is enabled,
+    // then we need to ensure that the 'data' property is part of the list.
     if (this.cfg.compress?.keys) {
       excludeFromIndexes ??= []
       if (!excludeFromIndexes.includes('data' as any)) {
