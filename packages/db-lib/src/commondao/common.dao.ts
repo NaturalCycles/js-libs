@@ -248,12 +248,9 @@ export class CommonDao<
   streamQueryAsDBM(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<DBM> = {}): Pipeline<DBM> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
-
-    // Decompress rows from storage
-    if (this.cfg.compress) {
-      pipeline = pipeline.map(async row => await this.storageRowToDBM(row))
-    }
+    const pipeline = this.cfg.db
+      .streamQuery<DBM>(q, opt)
+      .map(async row => await this.storageRowToDBM(row))
 
     const isPartialQuery = !!q._selectedFieldNames
     if (isPartialQuery) return pipeline
@@ -267,12 +264,9 @@ export class CommonDao<
   streamQuery(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<BM> = {}): Pipeline<BM> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
-
-    // Decompress rows from storage
-    if (this.cfg.compress) {
-      pipeline = pipeline.map(async row => await this.storageRowToDBM(row))
-    }
+    const pipeline = this.cfg.db
+      .streamQuery<DBM>(q, opt)
+      .map(async row => await this.storageRowToDBM(row))
 
     const isPartialQuery = !!q._selectedFieldNames
     if (isPartialQuery) return pipeline as any as Pipeline<BM>
