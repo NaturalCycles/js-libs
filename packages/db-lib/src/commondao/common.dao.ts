@@ -570,11 +570,7 @@ export class CommonDao<
     opt.skipValidation ??= true
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    if (this.cfg.immutable && !opt.allowMutability && !opt.saveMethod) {
-      opt = { ...opt, saveMethod: 'insert' }
-    }
-
-    const excludeFromIndexes = opt.excludeFromIndexes || this.cfg.excludeFromIndexes
+    const saveOptions = this.prepareSaveOptions(opt)
     const { beforeSave } = this.cfg.hooks!
 
     const { chunkSize = 500, chunkConcurrency = 32, errorMode } = opt
@@ -592,10 +588,7 @@ export class CommonDao<
       .chunk(chunkSize)
       .map(
         async batch => {
-          await this.cfg.db.saveBatch(table, batch, {
-            ...opt,
-            excludeFromIndexes,
-          })
+          await this.cfg.db.saveBatch(table, batch, saveOptions)
           return batch
         },
         {
