@@ -1400,6 +1400,23 @@ describe('number', () => {
       expect(err3).toBeNull()
       expect(result3).toEqual({})
     })
+
+    test.todo('should convert null to `undefined`', () => {
+      // Don't use explicit type param - let TS infer IN (includes null) and OUT (excludes null)
+      const schema = j.object({ foo: j.number().optional([null as any]) })
+
+      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 123 })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 123 })
+
+      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: null })
+      expect(err2).toBeNull()
+      expect(result2).toEqual({})
+
+      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
+      expect(err3).toBeNull()
+      expect(result3).toEqual({})
+    })
   })
 
   describe('multipleOf', () => {
