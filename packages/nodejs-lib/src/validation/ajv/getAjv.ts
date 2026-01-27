@@ -1,4 +1,5 @@
 import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
@@ -195,7 +196,7 @@ export function createAjv(opt?: Options): Ajv2020 {
           idx++
         }
 
-        if (ctx?.parentData && ctx.parentDataProperty) {
+        if (ctx?.parentData && ctx.parentDataProperty !== undefined) {
           ctx.parentData[ctx.parentDataProperty] = set
         }
 
@@ -248,7 +249,7 @@ export function createAjv(opt?: Options): Ajv2020 {
           return false
         }
 
-        if (ctx?.parentData && ctx.parentDataProperty) {
+        if (ctx?.parentData && ctx.parentDataProperty !== undefined) {
           ctx.parentData[ctx.parentDataProperty] = buffer
         }
 
@@ -297,7 +298,7 @@ export function createAjv(opt?: Options): Ajv2020 {
         }
       }
 
-      if (ctx?.parentData && ctx.parentDataProperty) {
+      if (ctx?.parentData && ctx.parentDataProperty !== undefined) {
         ctx.parentData[ctx.parentDataProperty] = cleanData
       }
 
@@ -435,7 +436,7 @@ export function createAjv(opt?: Options): Ajv2020 {
 
   ajv.addKeyword({
     keyword: 'optionalValues',
-    type: ['string', 'number', 'boolean'],
+    type: ['string', 'number', 'boolean', 'null'],
     modifying: true,
     errors: false,
     schemaType: 'array',
@@ -447,11 +448,14 @@ export function createAjv(opt?: Options): Ajv2020 {
     ) {
       if (!optionalValues) return true
 
+      _assert(
+        ctx?.parentData && ctx.parentDataProperty !== undefined,
+        'You should only use `optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.',
+      )
+
       if (!optionalValues.includes(data)) return true
 
-      if (ctx?.parentData && ctx.parentDataProperty) {
-        delete ctx.parentData[ctx.parentDataProperty]
-      }
+      ctx.parentData[ctx.parentDataProperty] = undefined
 
       return true
     },
@@ -482,7 +486,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
-  // This and `maxProperties2` are added because Ajv validates the `min/maxProperties` before validating the properties.
+  // This is added because Ajv validates the `min/maxProperties` before validating the properties.
   // So, in case of `minProperties(1)` and `{ foo: 'bar' }` Ajv will let it pass, even
   // if the property validation would strip `foo` from the data.
   // And Ajv would return `{}` as a successful validation.
@@ -499,7 +503,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     validate: function validate(minProperties: number, data: AnyObject, _schema, ctx) {
       if (typeof data !== 'object') return true
 
-      const numberOfProperties = Object.getOwnPropertyNames(data).length
+      const numberOfProperties = Object.entries(data).filter(([, v]) => v !== undefined).length
       const isValid = numberOfProperties >= minProperties
       if (!isValid) {
         ;(validate as any).errors = [
@@ -608,7 +612,7 @@ export function createAjv(opt?: Options): Ajv2020 {
           }
         }
 
-        if (result && ctx?.parentData && ctx.parentDataProperty) {
+        if (result && ctx?.parentData && ctx.parentDataProperty !== undefined) {
           // If we found a validator and the data is valid and we are validating a property inside an object,
           // then we can inject our result and be done with it.
           ctx.parentData[ctx.parentDataProperty] = clonedData

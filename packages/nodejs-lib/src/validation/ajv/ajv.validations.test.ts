@@ -67,6 +67,46 @@ describe('string', () => {
       expect(err4).toBeNull()
       expect(result4).toEqual({})
     })
+
+    test('should work with `null` values', () => {
+      const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ foo: 'foo' })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 'foo' })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ foo: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ foo: undefined })
+    })
+
+    test('should not allow chaining after `optional([null])` (compile-time error)', () => {
+      const schema = j.string().optional([null])
+      // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
+      // which doesn't have string-specific methods like minLength().
+      // This prevents mistakes at compile time rather than failing at runtime.
+      // @ts-expect-error - minLength doesn't exist on JsonSchemaTerminal
+      expect(() => schema.minLength(1)).toThrow(TypeError)
+    })
+
+    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+      const schema = j.string().optional(['foo'])
+      const ajvSchema = AjvSchema.create(schema)
+
+      expect(() => ajvSchema.isValid('asdf')).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+      )
+    })
+
+    test('should still be an optional field when passing in `null`', () => {
+      const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({})
+      expect(err1).toBeNull()
+      expect(result1).toEqual({})
+    })
   })
 
   describe('regex', () => {
@@ -536,8 +576,7 @@ describe('string', () => {
 
       const [err2, result2] = ajvSchema.getValidationResult({ foo: '' })
       expect(err2).toBeNull()
-      expect(result2).toEqual({})
-      expect(Object.getOwnPropertyNames(result2)).not.toContain('foo')
+      expect(result2).toEqual({ foo: undefined })
 
       const [err3, result3] = ajvSchema.getValidationResult({})
       expect(err3).toBeNull()
@@ -1401,21 +1440,44 @@ describe('number', () => {
       expect(result3).toEqual({})
     })
 
-    test.todo('should convert null to `undefined`', () => {
-      // Don't use explicit type param - let TS infer IN (includes null) and OUT (excludes null)
-      const schema = j.object({ foo: j.number().optional([null as any]) })
+    test('should work with `null` values', () => {
+      const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 123 })
+      const [err1, result1] = ajvSchema.getValidationResult({ foo: 1 })
       expect(err1).toBeNull()
-      expect(result1).toEqual({ foo: 123 })
+      expect(result1).toEqual({ foo: 1 })
 
-      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: null })
+      const [err2, result2] = ajvSchema.getValidationResult({ foo: null } as any)
       expect(err2).toBeNull()
-      expect(result2).toEqual({})
+      expect(result2).toEqual({ foo: undefined })
+    })
 
-      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
-      expect(err3).toBeNull()
-      expect(result3).toEqual({})
+    test('should not allow chaining after `optional([null])` (compile-time error)', () => {
+      const schema = j.number().optional([null])
+      // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
+      // which doesn't have number-specific methods like min().
+      // This prevents mistakes at compile time rather than failing at runtime.
+      // @ts-expect-error - min doesn't exist on JsonSchemaTerminal
+      expect(() => schema.min(1)).toThrow(TypeError)
+    })
+
+    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+      const schema = j.number().optional([112])
+      const ajvSchema = AjvSchema.create(schema)
+
+      expect(() => ajvSchema.isValid(2342)).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+      )
+    })
+
+    test('should still be an optional field when passing in `null`', () => {
+      const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({})
+      expect(err1).toBeNull()
+      expect(result1).toEqual({})
     })
   })
 
