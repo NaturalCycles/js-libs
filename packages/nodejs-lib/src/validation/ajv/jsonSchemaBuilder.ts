@@ -969,6 +969,34 @@ export class JsonSchemaObjectBuilder<
   }
 
   /**
+   * @param nullValue Pass `null` to have `null` values be considered/converted as `undefined`.
+   *
+   * This `null` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   *
+   * When `null` is passed, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
+   */
+  override optional<N extends null | undefined = undefined>(
+    nullValue?: N,
+  ): N extends null
+    ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
+    : JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true> {
+    if (typeof nullValue === 'undefined') {
+      return super.optional()
+    }
+
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building an ObjectSchema anymore.
+    return new JsonSchemaTerminal({
+      anyOf: [{ type: 'null', optionalValues: [null] }, this.build()],
+      optionalField: true,
+    }) as any
+  }
+
+  /**
    * When set, the validation will not strip away properties that are not specified explicitly in the schema.
    */
 
@@ -1144,6 +1172,103 @@ export class JsonSchemaObjectInferringBuilder<
     this.schema.required = _uniq(required).sort()
 
     return this
+  }
+
+  /**
+   * @param nullValue Pass `null` to have `null` values be considered/converted as `undefined`.
+   *
+   * This `null` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   *
+   * When `null` is passed, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
+   */
+  // @ts-expect-error override adds optional parameter which is compatible but TS can't verify complex mapped types
+  override optional<N extends null | undefined = undefined>(
+    nullValue?: N,
+  ): N extends null
+    ? JsonSchemaTerminal<
+        | Expand<
+            {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? never
+                  : K
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+            } & {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? K
+                  : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+            }
+          >
+        | undefined,
+        | Expand<
+            {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? never
+                  : K
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+            } & {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? K
+                  : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+            }
+          >
+        | undefined,
+        true
+      >
+    : JsonSchemaAnyBuilder<
+        | Expand<
+            {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? never
+                  : K
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+            } & {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? K
+                  : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+            }
+          >
+        | undefined,
+        | Expand<
+            {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? never
+                  : K
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+            } & {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? K
+                  : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+            }
+          >
+        | undefined,
+        true
+      > {
+    if (nullValue === undefined) {
+      return super.optional() as any
+    }
+
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building an ObjectSchema anymore.
+    return new JsonSchemaTerminal({
+      anyOf: [{ type: 'null', optionalValues: [null] }, this.build()],
+      optionalField: true,
+    }) as any
   }
 
   /**

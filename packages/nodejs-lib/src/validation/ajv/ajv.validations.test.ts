@@ -2953,6 +2953,109 @@ describe('object', () => {
     })
   })
 
+  describe('optional(null)', () => {
+    test('should convert `null` to `undefined` for j.object', () => {
+      interface Inner {
+        foo: string
+      }
+      interface Outer {
+        inner?: Inner
+      }
+      const schema = j.object<Outer>({
+        inner: j.object<Inner>({ foo: j.string() }).optional(null),
+      })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ inner: { foo: 'bar' } })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ inner: { foo: 'bar' } })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ inner: undefined })
+
+      const [err3, result3] = ajvSchema.getValidationResult({})
+      expect(err3).toBeNull()
+      expect(result3).toEqual({})
+    })
+
+    test('should convert `null` to `undefined` for j.object.infer', () => {
+      interface Outer {
+        inner?: { foo: string }
+      }
+      const schema = j.object<Outer>({
+        inner: j.object.infer({ foo: j.string() }).optional(null),
+      })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ inner: { foo: 'bar' } })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ inner: { foo: 'bar' } })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ inner: undefined })
+    })
+
+    test('should convert `null` to `undefined` for j.object.dbEntity', () => {
+      interface Inner extends BaseDBEntity {
+        foo: string
+      }
+      interface Outer {
+        inner?: Inner
+      }
+      const schema = j.object<Outer>({
+        inner: j.object.dbEntity<Inner>({ foo: j.string() }).optional(null),
+      })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({
+        inner: { id: 'id', created: MOCK_TS_2018_06_21, updated: MOCK_TS_2018_06_21, foo: 'bar' },
+      })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({
+        inner: { id: 'id', created: MOCK_TS_2018_06_21, updated: MOCK_TS_2018_06_21, foo: 'bar' },
+      })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ inner: undefined })
+    })
+
+    test('should not allow chaining after `optional(null)` (compile-time error)', () => {
+      const schema = j.object<{ foo: string }>({ foo: j.string() }).optional(null)
+      // When `null` is passed to optional(), the return type is JsonSchemaTerminal,
+      // which doesn't have object-specific methods like extend().
+      // This prevents mistakes at compile time rather than failing at runtime.
+      // @ts-expect-error - extend doesn't exist on JsonSchemaTerminal
+      expect(() => schema.extend({})).toThrow(TypeError)
+    })
+
+    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+      const schema = j.object<{ foo: string }>({ foo: j.string() }).optional(null)
+      const ajvSchema = AjvSchema.create(schema)
+
+      // The check only triggers when the value is `null` (not when it's a valid object)
+      expect(() => ajvSchema.isValid(null as any)).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+      )
+    })
+
+    test('should still be an optional field when passing in `null`', () => {
+      interface Outer {
+        inner?: { foo: string }
+      }
+      const schema = j.object<Outer>({
+        inner: j.object<{ foo: string }>({ foo: j.string() }).optional(null),
+      })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({})
+      expect(err1).toBeNull()
+      expect(result1).toEqual({})
+    })
+  })
+
   describe('minProperties', () => {
     test('should accept a valid object', () => {
       const schema = j
