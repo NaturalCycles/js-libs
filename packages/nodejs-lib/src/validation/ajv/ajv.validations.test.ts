@@ -81,16 +81,13 @@ describe('string', () => {
       expect(result2).toEqual({ foo: undefined })
     })
 
-    test('should throw when a new rule is attached after `optional([null])`', () => {
+    test('should not allow chaining after `optional([null])` (compile-time error)', () => {
       const schema = j.string().optional([null])
-      expect(() => schema.minLength(1)).toThrowErrorMatchingInlineSnapshot(
-        `[TypeError: schema.minLength is not a function]`,
-      )
-      // This is because in order to make Ajv accept `null` value for a string,
-      // we need to wrap the StringSchema into a AnyOfSchema: { NullSchema, StringSchema },
-      // and the new rules added would be placed on the AnyOfSchema not the StringSchema as intended.
-      // This probably could be fixed with some effort, but given how rarely we need to add new rules after `optional()`,
-      // I decided to keep it like this until the need arises.
+      // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
+      // which doesn't have string-specific methods like minLength().
+      // This prevents mistakes at compile time rather than failing at runtime.
+      // @ts-expect-error - minLength doesn't exist on JsonSchemaTerminal
+      expect(() => schema.minLength(1)).toThrow(TypeError)
     })
 
     test('should throw when used on a standalone schema (and not in an object/array)', () => {
@@ -100,6 +97,15 @@ describe('string', () => {
       expect(() => ajvSchema.isValid('asdf')).toThrowErrorMatchingInlineSnapshot(
         `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
       )
+    })
+
+    test('should still be an optional field when passing in `null`', () => {
+      const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({})
+      expect(err1).toBeNull()
+      expect(result1).toEqual({})
     })
   })
 
@@ -1447,16 +1453,13 @@ describe('number', () => {
       expect(result2).toEqual({ foo: undefined })
     })
 
-    test('should throw when a new rule is attached after `optional([null])`', () => {
+    test('should not allow chaining after `optional([null])` (compile-time error)', () => {
       const schema = j.number().optional([null])
-      expect(() => schema.min(1)).toThrowErrorMatchingInlineSnapshot(
-        `[TypeError: schema.min is not a function]`,
-      )
-      // This is because in order to make Ajv accept `null` value for a number,
-      // we need to wrap the NumberSchema into a AnyOfSchema: { NullSchema, NumberSchema },
-      // and the new rules added would be placed on the AnyOfSchema not the NumberSchema as intended.
-      // This probably could be fixed with some effort, but given how rarely we need to add new rules after `optional()`,
-      // I decided to keep it like this until the need arises.
+      // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
+      // which doesn't have number-specific methods like min().
+      // This prevents mistakes at compile time rather than failing at runtime.
+      // @ts-expect-error - min doesn't exist on JsonSchemaTerminal
+      expect(() => schema.min(1)).toThrow(TypeError)
     })
 
     test('should throw when used on a standalone schema (and not in an object/array)', () => {
@@ -1466,6 +1469,15 @@ describe('number', () => {
       expect(() => ajvSchema.isValid(2342)).toThrowErrorMatchingInlineSnapshot(
         `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
       )
+    })
+
+    test('should still be an optional field when passing in `null`', () => {
+      const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({})
+      expect(err1).toBeNull()
+      expect(result1).toEqual({})
     })
   })
 

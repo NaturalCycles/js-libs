@@ -13,6 +13,7 @@ import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
 import {
   _objectAssign,
+  _typeCast,
   type AnyObject,
   type BaseDBEntity,
   type IANATimezone,
@@ -470,19 +471,25 @@ export class JsonSchemaStringBuilder<
    * due to how mutability works in Ajv.
    *
    * Make sure this `optional()` call is at the end of your call chain.
+   *
+   * When `null` is included in optionalValues, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
    */
-  override optional(
-    optionalValues?: (string | null)[],
-  ): JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
+  override optional<T extends readonly (string | null)[] | undefined = undefined>(
+    optionalValues?: T,
+  ): T extends readonly (infer U)[]
+    ? null extends U
+      ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
+      : JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true>
+    : JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
     if (!optionalValues) {
-      return super.optional() as unknown as JsonSchemaStringBuilder<
-        IN | undefined,
-        OUT | undefined,
-        true
-      >
+      return super.optional() as any
     }
 
-    let newBuilder = new JsonSchemaStringBuilder<IN, OUT, Opt>().optional()
+    _typeCast<(string | null)[]>(optionalValues)
+
+    let newBuilder: JsonSchemaTerminal<IN | undefined, OUT | undefined, true> =
+      new JsonSchemaStringBuilder<IN, OUT, Opt>().optional()
     const alternativesSchema = j.enum(optionalValues)
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
@@ -492,14 +499,15 @@ export class JsonSchemaStringBuilder<
     // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
     // so we must allow `null` values to be parsed by Ajv,
     // but the typing should not reflect that.
-    // We also cannot accept more rules attached, since we're not building a NumberSchema anymore.
+    // We also cannot accept more rules attached, since we're not building a StringSchema anymore.
     if (optionalValues.includes(null)) {
       newBuilder = new JsonSchemaTerminal({
         anyOf: [{ type: 'null', optionalValues }, newBuilder.build()],
-      }) as JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true>
+        optionalField: true,
+      })
     }
 
-    return newBuilder
+    return newBuilder as any
   }
 
   regex(pattern: RegExp, opt?: JsonBuilderRuleOpt): this {
@@ -730,19 +738,25 @@ export class JsonSchemaNumberBuilder<
    * due to how mutability works in Ajv.
    *
    * Make sure this `optional()` call is at the end of your call chain.
+   *
+   * When `null` is included in optionalValues, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
    */
-  override optional(
-    optionalValues?: (number | null)[],
-  ): JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
+  override optional<T extends readonly (number | null)[] | undefined = undefined>(
+    optionalValues?: T,
+  ): T extends readonly (infer U)[]
+    ? null extends U
+      ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
+      : JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true>
+    : JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
     if (!optionalValues) {
-      return super.optional() as unknown as JsonSchemaNumberBuilder<
-        IN | undefined,
-        OUT | undefined,
-        true
-      >
+      return super.optional() as any
     }
 
-    let newBuilder = new JsonSchemaNumberBuilder<IN, OUT, Opt>().optional()
+    _typeCast<(number | null)[]>(optionalValues)
+
+    let newBuilder: JsonSchemaTerminal<IN | undefined, OUT | undefined, true> =
+      new JsonSchemaNumberBuilder<IN, OUT, Opt>().optional()
     const alternativesSchema = j.enum(optionalValues)
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
@@ -756,10 +770,11 @@ export class JsonSchemaNumberBuilder<
     if (optionalValues.includes(null)) {
       newBuilder = new JsonSchemaTerminal({
         anyOf: [{ type: 'null', optionalValues }, newBuilder.build()],
-      }) as JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true>
+        optionalField: true,
+      })
     }
 
-    return newBuilder
+    return newBuilder as any
   }
 
   integer(): this {
@@ -1436,11 +1451,11 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
 
 function object(props: AnyObject): never
 function object<IN extends AnyObject>(props: {
-  [K in keyof Required<IN>]-?: JsonSchemaAnyBuilder<any, IN[K], any>
+  [K in keyof Required<IN>]-?: JsonSchemaTerminal<any, IN[K], any>
 }): JsonSchemaObjectBuilder<IN, IN, false>
 
 function object<IN extends AnyObject>(props: {
-  [key in keyof IN]: JsonSchemaAnyBuilder<any, IN[key], any>
+  [key in keyof IN]: JsonSchemaTerminal<any, IN[key], any>
 }): JsonSchemaObjectBuilder<IN, IN, false> {
   return new JsonSchemaObjectBuilder<IN, IN, false>(props)
 }
