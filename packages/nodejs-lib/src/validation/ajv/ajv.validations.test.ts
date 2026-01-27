@@ -2044,6 +2044,27 @@ describe('number', () => {
       })
     })
   })
+
+  describe('precision', () => {
+    test('should convert a floating point number to the precision when it makes sense', () => {
+      const schema = j.object<{ foo: number }>({ foo: j.number().precision(3) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const testCases: [number, number][] = [
+        [0, 0],
+        [0.1, 0.1],
+        [0.12, 0.12],
+        [0.123, 0.123],
+        [0.1234, 0.123],
+        [0.1235, 0.124],
+      ]
+      testCases.forEach(([value, expected]) => {
+        const [err, result] = ajvSchema.getValidationResult({ foo: value })
+        expect(err).toBeNull()
+        expect(result).toEqual({ foo: expected })
+      })
+    })
+  })
 })
 
 describe('boolean', () => {

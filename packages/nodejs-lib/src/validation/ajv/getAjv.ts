@@ -1,4 +1,4 @@
-import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
+import { _isBetween, _lazyValue, _round } from '@naturalcycles/js-lib'
 import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
@@ -636,6 +636,26 @@ export function createAjv(opt?: Options): Ajv2020 {
       }
 
       return validate
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'precision',
+    type: ['number'],
+    modifying: true,
+    errors: false,
+    schemaType: 'number',
+    validate: function validate(numberOfDigits: number, data: number, _schema, ctx) {
+      if (!numberOfDigits) return true
+
+      _assert(
+        ctx?.parentData && ctx.parentDataProperty !== undefined,
+        'You should only use `precision(n) on a property of an object, or on an element of an array due to Ajv mutation issues.',
+      )
+
+      ctx.parentData[ctx.parentDataProperty] = _round(data, 10 ** (-1 * numberOfDigits))
+
+      return true
     },
   })
 

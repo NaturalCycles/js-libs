@@ -888,6 +888,15 @@ export class JsonSchemaNumberBuilder<
   utcOffsetHour(): this {
     return this.integer().min(-12).max(14)
   }
+
+  /**
+   * Specify the precision of the floating point numbers by the number of digits after the ".".
+   * Excess digits will be cut-off when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   */
+  precision(numberOfDigits: number): this {
+    return this.cloneAndUpdateSchema({ precision: numberOfDigits })
+  }
 }
 
 export class JsonSchemaBooleanBuilder<
@@ -1572,6 +1581,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
     schemaDictionary: Record<string, JsonSchema>
   }
   anyOfThese?: JsonSchema[]
+  precision?: number
 }
 
 function object(props: AnyObject): never
