@@ -80,14 +80,18 @@ export const j = {
     stringMap<S extends JsonSchemaTerminal<any, any, any>>(
       schema: S,
     ): JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>> {
+      const isValueOptional = schema.getSchema().optionalField
       const builtSchema = schema.build()
+      const finalValueSchema: JsonSchema = isValueOptional
+        ? { anyOf: [{ isUndefined: true }, builtSchema] }
+        : builtSchema
 
       return new JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>>(
         {},
         {
           hasIsOfTypeCheck: false,
           patternProperties: {
-            '^.+$': builtSchema,
+            '^.+$': finalValueSchema,
           },
         },
       )
@@ -1574,6 +1578,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   errorMessages?: StringMap<string>
   optionalValues?: (string | number | boolean | null)[]
   keySchema?: JsonSchema
+  isUndefined?: true
   minProperties2?: number
   exclusiveProperties?: (readonly string[])[]
   anyOfBy?: {
@@ -1648,7 +1653,15 @@ function record<
   false
 > {
   const keyJsonSchema = keySchema.build()
+  // Check if value schema is optional before build() strips the optionalField flag
+  const isValueOptional = (valueSchema as JsonSchemaTerminal<any, any, any>).getSchema()
+    .optionalField
   const valueJsonSchema = valueSchema.build()
+
+  // When value schema is optional, wrap in anyOf to allow undefined values
+  const finalValueSchema: JsonSchema = isValueOptional
+    ? { anyOf: [{ isUndefined: true }, valueJsonSchema] }
+    : valueJsonSchema
 
   return new JsonSchemaObjectBuilder<
     Opt extends true
@@ -1662,7 +1675,7 @@ function record<
     hasIsOfTypeCheck: false,
     keySchema: keyJsonSchema,
     patternProperties: {
-      ['^.*$']: valueJsonSchema,
+      ['^.*$']: finalValueSchema,
     },
   })
 }

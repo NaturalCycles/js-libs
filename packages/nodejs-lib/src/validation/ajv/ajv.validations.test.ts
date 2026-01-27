@@ -3206,6 +3206,26 @@ describe('object', () => {
         expect(err, _stringify(data)).toBeNull()
       }
     })
+
+    test('should allow undefined values when value schema is optional', () => {
+      const schema = j.object
+        .record(j.string(), j.number().optional())
+        .isOfType<Partial<Record<string, number>>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [
+        {},
+        { a: 1 },
+        { a: 1, b: 2 },
+        { a: undefined, b: 1 }, // undefined values should be allowed
+        { a: undefined }, // all undefined values should be allowed
+      ]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
+      }
+    })
   })
 
   describe('.withEnumKeys', () => {
@@ -3405,6 +3425,24 @@ describe('object', () => {
       expect(fn).toThrow(
         'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
       )
+    })
+
+    test('should allow undefined values when value schema is optional', () => {
+      const schema = j.object.stringMap(j.number().optional()).isOfType<StringMap<number>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [
+        {},
+        { a: 1 },
+        { a: 1, b: 2 },
+        { a: undefined, b: 1 }, // undefined values should be allowed
+        { a: undefined }, // all undefined values should be allowed
+      ]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
+      }
     })
   })
 })

@@ -486,6 +486,16 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
+  // Validates that the value is undefined. Used in record/stringMap with optional value schemas
+  // to allow undefined values in patternProperties via anyOf.
+  ajv.addKeyword({
+    keyword: 'isUndefined',
+    modifying: false,
+    errors: false,
+    schemaType: 'boolean',
+    validate: (_schema: boolean, data: unknown) => data === undefined,
+  })
+
   // This is added because Ajv validates the `min/maxProperties` before validating the properties.
   // So, in case of `minProperties(1)` and `{ foo: 'bar' }` Ajv will let it pass, even
   // if the property validation would strip `foo` from the data.
