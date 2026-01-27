@@ -67,6 +67,40 @@ describe('string', () => {
       expect(err4).toBeNull()
       expect(result4).toEqual({})
     })
+
+    test('should work with `null` values', () => {
+      const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ foo: 'foo' })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 'foo' })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ foo: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ foo: undefined })
+    })
+
+    test('should throw when a new rule is attached after `optional([null])`', () => {
+      const schema = j.string().optional([null])
+      expect(() => schema.minLength(1)).toThrowErrorMatchingInlineSnapshot(
+        `[TypeError: schema.minLength is not a function]`,
+      )
+      // This is because in order to make Ajv accept `null` value for a string,
+      // we need to wrap the StringSchema into a AnyOfSchema: { NullSchema, StringSchema },
+      // and the new rules added would be placed on the AnyOfSchema not the StringSchema as intended.
+      // This probably could be fixed with some effort, but given how rarely we need to add new rules after `optional()`,
+      // I decided to keep it like this until the need arises.
+    })
+
+    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+      const schema = j.string().optional(['foo'])
+      const ajvSchema = AjvSchema.create(schema)
+
+      expect(() => ajvSchema.isValid('asdf')).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+      )
+    })
   })
 
   describe('regex', () => {
@@ -536,8 +570,7 @@ describe('string', () => {
 
       const [err2, result2] = ajvSchema.getValidationResult({ foo: '' })
       expect(err2).toBeNull()
-      expect(result2).toEqual({})
-      expect(Object.getOwnPropertyNames(result2)).not.toContain('foo')
+      expect(result2).toEqual({ foo: undefined })
 
       const [err3, result3] = ajvSchema.getValidationResult({})
       expect(err3).toBeNull()
@@ -1401,21 +1434,38 @@ describe('number', () => {
       expect(result3).toEqual({})
     })
 
-    test.todo('should convert null to `undefined`', () => {
-      // Don't use explicit type param - let TS infer IN (includes null) and OUT (excludes null)
-      const schema = j.object({ foo: j.number().optional([null as any]) })
+    test('should work with `null` values', () => {
+      const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 123 })
+      const [err1, result1] = ajvSchema.getValidationResult({ foo: 1 })
       expect(err1).toBeNull()
-      expect(result1).toEqual({ foo: 123 })
+      expect(result1).toEqual({ foo: 1 })
 
-      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: null })
+      const [err2, result2] = ajvSchema.getValidationResult({ foo: null } as any)
       expect(err2).toBeNull()
-      expect(result2).toEqual({})
+      expect(result2).toEqual({ foo: undefined })
+    })
 
-      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
-      expect(err3).toBeNull()
-      expect(result3).toEqual({})
+    test('should throw when a new rule is attached after `optional([null])`', () => {
+      const schema = j.number().optional([null])
+      expect(() => schema.min(1)).toThrowErrorMatchingInlineSnapshot(
+        `[TypeError: schema.min is not a function]`,
+      )
+      // This is because in order to make Ajv accept `null` value for a number,
+      // we need to wrap the NumberSchema into a AnyOfSchema: { NullSchema, NumberSchema },
+      // and the new rules added would be placed on the AnyOfSchema not the NumberSchema as intended.
+      // This probably could be fixed with some effort, but given how rarely we need to add new rules after `optional()`,
+      // I decided to keep it like this until the need arises.
+    })
+
+    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+      const schema = j.number().optional([112])
+      const ajvSchema = AjvSchema.create(schema)
+
+      expect(() => ajvSchema.isValid(2342)).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+      )
     })
   })
 

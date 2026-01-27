@@ -1,4 +1,5 @@
 import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
@@ -435,7 +436,7 @@ export function createAjv(opt?: Options): Ajv2020 {
 
   ajv.addKeyword({
     keyword: 'optionalValues',
-    type: ['string', 'number', 'boolean'],
+    type: ['string', 'number', 'boolean', 'null'],
     modifying: true,
     errors: false,
     schemaType: 'array',
@@ -447,11 +448,14 @@ export function createAjv(opt?: Options): Ajv2020 {
     ) {
       if (!optionalValues) return true
 
+      _assert(
+        ctx?.parentData && ctx.parentDataProperty,
+        'You should only use `optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.',
+      )
+
       if (!optionalValues.includes(data)) return true
 
-      if (ctx?.parentData && ctx.parentDataProperty) {
-        delete ctx.parentData[ctx.parentDataProperty]
-      }
+      ctx.parentData[ctx.parentDataProperty] = undefined
 
       return true
     },

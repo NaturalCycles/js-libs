@@ -468,9 +468,11 @@ export class JsonSchemaStringBuilder<
    *
    * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
+   *
+   * Make sure this `optional()` call is at the end of your call chain.
    */
   override optional(
-    optionalValues?: string[],
+    optionalValues?: (string | null)[],
   ): JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
     if (!optionalValues) {
       return super.optional() as unknown as JsonSchemaStringBuilder<
@@ -480,12 +482,22 @@ export class JsonSchemaStringBuilder<
       >
     }
 
-    const newBuilder = new JsonSchemaStringBuilder<IN, OUT, Opt>().optional()
+    let newBuilder = new JsonSchemaStringBuilder<IN, OUT, Opt>().optional()
     const alternativesSchema = j.enum(optionalValues)
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
       optionalValues,
     })
+
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building a NumberSchema anymore.
+    if (optionalValues.includes(null)) {
+      newBuilder = new JsonSchemaTerminal({
+        anyOf: [{ type: 'null', optionalValues }, newBuilder.build()],
+      }) as JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true>
+    }
 
     return newBuilder
   }
@@ -716,10 +728,11 @@ export class JsonSchemaNumberBuilder<
    *
    * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
+   *
+   * Make sure this `optional()` call is at the end of your call chain.
    */
-
   override optional(
-    optionalValues?: number[],
+    optionalValues?: (number | null)[],
   ): JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
     if (!optionalValues) {
       return super.optional() as unknown as JsonSchemaNumberBuilder<
@@ -729,12 +742,22 @@ export class JsonSchemaNumberBuilder<
       >
     }
 
-    const newBuilder = new JsonSchemaNumberBuilder<IN, OUT, Opt>().optional()
+    let newBuilder = new JsonSchemaNumberBuilder<IN, OUT, Opt>().optional()
     const alternativesSchema = j.enum(optionalValues)
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
       optionalValues,
     })
+
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building a NumberSchema anymore.
+    if (optionalValues.includes(null)) {
+      newBuilder = new JsonSchemaTerminal({
+        anyOf: [{ type: 'null', optionalValues }, newBuilder.build()],
+      }) as JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true>
+    }
 
     return newBuilder
   }
@@ -1400,7 +1423,7 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
   errorMessages?: StringMap<string>
-  optionalValues?: (string | number | boolean)[]
+  optionalValues?: (string | number | boolean | null)[]
   keySchema?: JsonSchema
   minProperties2?: number
   exclusiveProperties?: (readonly string[])[]
