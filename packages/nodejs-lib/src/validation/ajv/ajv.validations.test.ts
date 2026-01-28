@@ -95,7 +95,7 @@ describe('string', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       expect(() => ajvSchema.isValid('asdf')).toThrowErrorMatchingInlineSnapshot(
-        `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+        `[AssertionError: You should only use \`optional([x, y, z])\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
       )
     })
 
@@ -1467,7 +1467,7 @@ describe('number', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       expect(() => ajvSchema.isValid(2342)).toThrowErrorMatchingInlineSnapshot(
-        `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+        `[AssertionError: You should only use \`optional([x, y, z])\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
       )
     })
 
@@ -3058,7 +3058,7 @@ describe('object', () => {
 
       // The check only triggers when the value is `null` (not when it's a valid object)
       expect(() => ajvSchema.isValid(null as any)).toThrowErrorMatchingInlineSnapshot(
-        `[AssertionError: You should only use \`optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+        `[AssertionError: You should only use \`optional([x, y, z])\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
       )
     })
 
@@ -3993,5 +3993,86 @@ describe('literal', () => {
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: {}]
     `)
+  })
+})
+
+describe('custom', () => {
+  test('should accept a valid value', () => {
+    const schema = j.number().custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1] = ajvSchema.getValidationResult(1)
+    expect(err1).toBeNull()
+
+    const [err2] = ajvSchema.getValidationResult(3.14)
+    expect(err2).toMatchInlineSnapshot(`
+      [AjvValidationError: Object not an integer!
+      Input: 3.14]
+    `)
+  })
+
+  test('should handle multiple validators', () => {
+    const schema = j
+      .number()
+      .custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
+      .custom(v => (v === 3 ? undefined : 'Three shall be the number thou shalt count!'))
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1] = ajvSchema.getValidationResult(3.14)
+    expect(err1).toMatchInlineSnapshot(`
+      [AjvValidationError: Object not an integer!
+      Input: 3.14]
+    `)
+
+    const [err2] = ajvSchema.getValidationResult(2)
+    expect(err2).toMatchInlineSnapshot(`
+      [AjvValidationError: Object Three shall be the number thou shalt count!
+      Input: 2]
+    `)
+
+    const [err3, result3] = ajvSchema.getValidationResult(3)
+    expect(err3).toBeNull()
+    expect(result3).toBe(3)
+  })
+})
+
+describe('convert', () => {
+  test('should convert a value in an object/array', () => {
+    const schema1 = j.object<{ foo: number }>({ foo: j.number().convert(v => Math.round(v)) })
+    const ajvSchema1 = AjvSchema.create(schema1)
+
+    const [err11, result11] = ajvSchema1.getValidationResult({ foo: 3.14 })
+    expect(err11).toBeNull()
+    expect(result11).toEqual({ foo: 3 })
+
+    const schema2 = j.array(j.number().convert(v => Math.round(v)))
+    const ajvSchema2 = AjvSchema.create(schema2)
+
+    const [err21, result21] = ajvSchema2.getValidationResult([3.14])
+    expect(err21).toBeNull()
+    expect(result21).toEqual([3])
+  })
+
+  test('should handle multiple converters', () => {
+    const schema = j.object<{ foo: number }>({
+      foo: j
+        .number()
+        .convert(v => Math.round(v))
+        .convert(v => v ** 2),
+    })
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1, result1] = ajvSchema.getValidationResult({ foo: 3.14 })
+    expect(err1).toBeNull()
+    expect(result1).toEqual({ foo: 9 })
+  })
+
+  test('should throw when used on a standalone schema (and not in an object/array)', () => {
+    const schema = j.number().convert(v => Math.round(v))
+    const ajvSchema = AjvSchema.create(schema)
+
+    expect(() => ajvSchema.isValid(3.14)).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: You should only use \`convert()\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+    )
   })
 })

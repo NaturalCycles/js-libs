@@ -10,7 +10,7 @@ import {
 import { _uniq } from '@naturalcycles/js-lib/array'
 import { _assert } from '@naturalcycles/js-lib/error'
 import type { Set2 } from '@naturalcycles/js-lib/object'
-import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
+import { _sortObject } from '@naturalcycles/js-lib/object'
 import {
   _objectAssign,
   _typeCast,
@@ -338,7 +338,7 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
     )
 
     const jsonSchema = _sortObject(
-      JSON.parse(JSON.stringify(this.schema)),
+      deepCopyPreservingFunctions(this.schema) as AnyObject,
       JSON_SCHEMA_ORDER,
     ) as JsonSchema<IN, OUT>
 
@@ -349,7 +349,7 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
 
   clone(): this {
     const cloned = Object.create(Object.getPrototypeOf(this))
-    cloned.schema = _deepCopy(this.schema)
+    cloned.schema = deepCopyPreservingFunctions(this.schema)
     return cloned
   }
 
@@ -454,6 +454,36 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
    */
   final(): JsonSchemaTerminal<IN, OUT, Opt> {
     return new JsonSchemaTerminal<IN, OUT, Opt>(this.schema)
+  }
+
+  /**
+   *
+   * @param validator A validator function that returns an error message or undefined.
+   *
+   * You may add multiple custom validators and they will be executed in the order you added them.
+   */
+  custom<OUT2 = OUT>(validator: CustomValidatorFn): JsonSchemaAnyBuilder<IN, OUT2, Opt> {
+    const { customValidations = [] } = this.schema
+    return this.cloneAndUpdateSchema({
+      customValidations: [...customValidations, validator],
+    }) as unknown as JsonSchemaAnyBuilder<IN, OUT2, Opt>
+  }
+
+  /**
+   *
+   * @param converter A converter function that returns a new value.
+   *
+   * You may add multiple converters and they will be executed in the order you added them,
+   * each converter receiving the result from the previous one.
+   *
+   * This feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   */
+  convert<OUT2>(converter: CustomConverterFn<OUT2>): JsonSchemaAnyBuilder<IN, OUT2, Opt> {
+    const { customConversions = [] } = this.schema
+    return this.cloneAndUpdateSchema({
+      customConversions: [...customConversions, converter],
+    }) as unknown as JsonSchemaAnyBuilder<IN, OUT2, Opt>
   }
 }
 
@@ -1051,7 +1081,7 @@ export class JsonSchemaObjectBuilder<
     false
   > {
     const newBuilder = new JsonSchemaObjectBuilder()
-    _objectAssign(newBuilder.schema, _deepCopy(this.schema))
+    _objectAssign(newBuilder.schema, deepCopyPreservingFunctions(this.schema))
 
     const incomingSchemaBuilder = new JsonSchemaObjectBuilder(props)
     mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
@@ -1305,7 +1335,7 @@ export class JsonSchemaObjectInferringBuilder<
     Opt
   > {
     const newBuilder = new JsonSchemaObjectInferringBuilder<PROPS, Opt>()
-    _objectAssign(newBuilder.schema, _deepCopy(this.schema))
+    _objectAssign(newBuilder.schema, deepCopyPreservingFunctions(this.schema))
 
     const incomingSchemaBuilder = new JsonSchemaObjectInferringBuilder<NEW_PROPS, false>(props)
     mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
@@ -1587,6 +1617,8 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   }
   anyOfThese?: JsonSchema[]
   precision?: number
+  customValidations?: CustomValidatorFn[]
+  customConversions?: CustomConverterFn<any>[]
 }
 
 function object(props: AnyObject): never
@@ -1892,4 +1924,21 @@ type TupleIn<T extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
 
 type TupleOut<T extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof T]: T[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
+}
+
+export type CustomValidatorFn = (v: any) => string | undefined
+export type CustomConverterFn<OUT> = (v: any) => OUT
+
+/**
+ * Deep copy that preserves functions.
+ * Unlike JSON.parse(JSON.stringify(...)), this keeps function references intact.
+ */
+function deepCopyPreservingFunctions<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') return obj
+  if (Array.isArray(obj)) return obj.map(deepCopyPreservingFunctions) as T
+  const copy = {} as T
+  for (const key of Object.keys(obj)) {
+    ;(copy as any)[key] = deepCopyPreservingFunctions((obj as any)[key])
+  }
+  return copy
 }

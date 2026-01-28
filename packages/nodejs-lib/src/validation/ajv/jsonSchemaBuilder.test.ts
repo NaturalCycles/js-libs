@@ -782,3 +782,27 @@ describe('literal', () => {
     expectTypeOf(schema2.in).toEqualTypeOf<Foo.A>()
   })
 })
+
+describe('custom', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.number().custom(v => (Number.isInteger(v) ? undefined : 'Not an integer!'))
+    expectTypeOf(schema1.out).toEqualTypeOf<number>()
+
+    type Integer = Branded<number, 'Integer'>
+    const schema2 = j
+      .number()
+      .custom<Integer>(v => (Number.isInteger(v) ? undefined : 'Not an integer!'))
+    expectTypeOf(schema2.out).toEqualTypeOf<Integer>()
+  })
+})
+
+describe('convert', () => {
+  test('should correctly infer the type', () => {
+    const schema1 = j.number().convert(v => Math.round(v))
+    expectTypeOf(schema1.out).toEqualTypeOf<number>()
+
+    type Integer = Branded<number, 'Integer'>
+    const schema2 = j.number().convert(v => Math.round(v) as Integer)
+    expectTypeOf(schema2.out).toEqualTypeOf<Integer>()
+  })
+})

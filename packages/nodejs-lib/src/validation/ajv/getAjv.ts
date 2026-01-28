@@ -6,6 +6,8 @@ import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { Ajv2020, type Options, type ValidateFunction } from 'ajv/dist/2020.js'
 import { validTLDs } from '../tlds.js'
 import type {
+  CustomConverterFn,
+  CustomValidatorFn,
   JsonSchemaIsoDateOptions,
   JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
@@ -450,7 +452,7 @@ export function createAjv(opt?: Options): Ajv2020 {
 
       _assert(
         ctx?.parentData && ctx.parentDataProperty !== undefined,
-        'You should only use `optional([x, y, z]) on a property of an object, or on an element of an array due to Ajv mutation issues.',
+        'You should only use `optional([x, y, z])` on a property of an object, or on an element of an array due to Ajv mutation issues.',
       )
 
       if (!optionalValues.includes(data)) return true
@@ -660,10 +662,63 @@ export function createAjv(opt?: Options): Ajv2020 {
 
       _assert(
         ctx?.parentData && ctx.parentDataProperty !== undefined,
-        'You should only use `precision(n) on a property of an object, or on an element of an array due to Ajv mutation issues.',
+        'You should only use `precision(n)` on a property of an object, or on an element of an array due to Ajv mutation issues.',
       )
 
       ctx.parentData[ctx.parentDataProperty] = _round(data, 10 ** (-1 * numberOfDigits))
+
+      return true
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'customValidations',
+    modifying: false,
+    errors: true,
+    schemaType: 'array',
+    validate: function validate(customValidations: CustomValidatorFn[], data: any, _schema, ctx) {
+      if (!customValidations?.length) return true
+
+      for (const validator of customValidations) {
+        const error = validator(data)
+        if (error) {
+          ;(validate as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message: error,
+            },
+          ]
+          return false
+        }
+      }
+
+      return true
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'customConversions',
+    modifying: true,
+    errors: false,
+    schemaType: 'array',
+    validate: function validate(
+      customConversions: CustomConverterFn<any>[],
+      data: any,
+      _schema,
+      ctx,
+    ) {
+      if (!customConversions?.length) return true
+
+      _assert(
+        ctx?.parentData && ctx.parentDataProperty !== undefined,
+        'You should only use `convert()` on a property of an object, or on an element of an array due to Ajv mutation issues.',
+      )
+
+      for (const converter of customConversions) {
+        data = converter(data)
+      }
+
+      ctx.parentData[ctx.parentDataProperty] = data
 
       return true
     },
