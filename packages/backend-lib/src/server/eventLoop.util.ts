@@ -64,7 +64,7 @@ export class EventLoopMonitor {
       this.lastElu = currentElu
 
       const elu = Math.round(deltaElu.utilization * 100)
-      const gcCPU = Math.round(gcTotalTime / measureInterval)
+      const gcCPU = Math.round((gcTotalTime / measureInterval) * 10_000)
 
       this.lastStats = {
         p50,
