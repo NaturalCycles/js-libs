@@ -10,6 +10,7 @@ import type {
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
+import { AjvSchema } from './ajvSchema.js'
 import { j } from './jsonSchemaBuilder.js'
 
 describe('any', () => {
@@ -804,5 +805,66 @@ describe('convert', () => {
     type Integer = Branded<number, 'Integer'>
     const schema2 = j.number().convert(v => Math.round(v) as Integer)
     expectTypeOf(schema2.out).toEqualTypeOf<Integer>()
+  })
+})
+
+describe('schema cloning with custom/convert', () => {
+  test('nested custom and convert should work after schema cloning', () => {
+    const schema = AjvSchema.create(
+      j
+        .object<{ name: string; count: number }>({
+          name: j.string().custom(v => (v.length > 0 ? undefined : 'Name required')),
+          count: j.number().convert(v => Math.round(v)),
+        })
+        .build(),
+    )
+
+    // Validate with nested custom validation
+    expect(() => schema.validate({ name: '', count: 1.5 })).toThrow('Name required')
+    expect(schema.validate({ name: 'test', count: 1.5 })).toEqual({ name: 'test', count: 2 })
+  })
+
+  test('deeply nested custom and convert should work', () => {
+    const schema = AjvSchema.create(
+      j
+        .object<{ inner: { value: number } }>({
+          inner: j.object({
+            value: j.number().convert(v => v * 2),
+          }),
+        })
+        .build(),
+    )
+
+    expect(schema.validate({ inner: { value: 10 } })).toEqual({ inner: { value: 20 } })
+    expect(schema.validate({ inner: { value: 60 } })).toEqual({ inner: { value: 120 } })
+  })
+
+  test('chaining custom after custom should clone correctly', () => {
+    const base = j.string().custom(v => (v.length > 0 ? undefined : 'Must not be empty'))
+    const withExtra = base.custom(v => (v.length <= 5 ? undefined : 'Too long'))
+
+    // base should not be affected by withExtra - only has the first validator
+    const baseSchema = AjvSchema.create(j.object<{ value: string }>({ value: base }).build())
+    const withExtraSchema = AjvSchema.create(
+      j.object<{ value: string }>({ value: withExtra }).build(),
+    )
+
+    expect(baseSchema.validate({ value: 'hello world' })).toEqual({ value: 'hello world' }) // long string OK
+    expect(() => withExtraSchema.validate({ value: 'hello world' })).toThrow('Too long')
+    expect(withExtraSchema.validate({ value: 'hi' })).toEqual({ value: 'hi' })
+  })
+
+  test('chaining convert after convert should clone correctly', () => {
+    const base = j.number().convert(v => Math.round(v))
+    const withExtra = base.convert(v => v * 2)
+
+    // base should not be affected by withExtra - only has the first converter
+    const baseSchema = AjvSchema.create(j.object<{ value: number }>({ value: base }).build())
+    const withExtraSchema = AjvSchema.create(
+      j.object<{ value: number }>({ value: withExtra }).build(),
+    )
+
+    expect(baseSchema.validate({ value: 3.7 })).toEqual({ value: 4 }) // just rounded
+    expect(withExtraSchema.validate({ value: 3.7 })).toEqual({ value: 8 }) // rounded then doubled
   })
 })

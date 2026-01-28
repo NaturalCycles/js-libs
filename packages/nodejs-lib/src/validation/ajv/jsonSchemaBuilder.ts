@@ -1930,15 +1930,20 @@ export type CustomValidatorFn = (v: any) => string | undefined
 export type CustomConverterFn<OUT> = (v: any) => OUT
 
 /**
- * Deep copy that preserves functions.
- * Unlike JSON.parse(JSON.stringify(...)), this keeps function references intact.
+ * Deep copy that preserves functions in customValidations/customConversions.
+ * Unlike structuredClone, this handles function references (which only exist in those two properties).
  */
 function deepCopyPreservingFunctions<T>(obj: T): T {
   if (obj === null || typeof obj !== 'object') return obj
   if (Array.isArray(obj)) return obj.map(deepCopyPreservingFunctions) as T
   const copy = {} as T
   for (const key of Object.keys(obj)) {
-    ;(copy as any)[key] = deepCopyPreservingFunctions((obj as any)[key])
+    const value = (obj as any)[key]
+    // customValidations/customConversions are arrays of functions - shallow copy the array
+    ;(copy as any)[key] =
+      (key === 'customValidations' || key === 'customConversions') && Array.isArray(value)
+        ? [...value]
+        : deepCopyPreservingFunctions(value)
   }
   return copy
 }
