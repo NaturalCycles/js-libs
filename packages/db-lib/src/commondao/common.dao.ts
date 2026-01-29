@@ -466,7 +466,7 @@ export class CommonDao<
     const saveOptions = this.prepareSaveOptions(opt)
 
     const row = await this.dbmToStorageRow(dbm)
-    await (opt.tx || this.cfg.db).saveBatch(table, [row] as any[], saveOptions)
+    await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
       bm.id = dbm.id
@@ -484,7 +484,7 @@ export class CommonDao<
     const saveOptions = this.prepareSaveOptions(opt)
 
     const row = await this.dbmToStorageRow(validDbm)
-    await (opt.tx || this.cfg.db).saveBatch(table, [row] as any[], saveOptions)
+    await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
       dbm.id = validDbm.id
@@ -505,7 +505,7 @@ export class CommonDao<
     const saveOptions = this.prepareSaveOptions(opt)
 
     const rows = await this.dbmsToStorageRows(dbms)
-    await (opt.tx || this.cfg.db).saveBatch(table, rows as any[], saveOptions)
+    await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
       dbms.forEach((dbm, i) => (bms[i]!.id = dbm.id))
@@ -529,7 +529,7 @@ export class CommonDao<
     const saveOptions = this.prepareSaveOptions(opt)
 
     const rows = await this.dbmsToStorageRows(validDbms)
-    await (opt.tx || this.cfg.db).saveBatch(table, rows as any[], saveOptions)
+    await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
       validDbms.forEach((dbm, i) => (dbms[i]!.id = dbm.id))
@@ -538,7 +538,9 @@ export class CommonDao<
     return validDbms
   }
 
-  private prepareSaveOptions(opt: CommonDaoSaveOptions<BM, DBM>): CommonDBSaveOptions<DBM> {
+  private prepareSaveOptions(
+    opt: CommonDaoSaveOptions<BM, DBM>,
+  ): CommonDBSaveOptions<ObjectWithId> {
     let {
       saveMethod,
       assignGeneratedIds = this.cfg.assignGeneratedIds,
@@ -561,7 +563,7 @@ export class CommonDao<
 
     return {
       ...opt,
-      excludeFromIndexes,
+      excludeFromIndexes: excludeFromIndexes as (keyof ObjectWithId)[],
       saveMethod,
       assignGeneratedIds,
     }
@@ -601,7 +603,7 @@ export class CommonDao<
       .chunk(chunkSize)
       .map(
         async batch => {
-          await this.cfg.db.saveBatch(table, batch as any[], saveOptions)
+          await this.cfg.db.saveBatch(table, batch, saveOptions)
           return batch
         },
         {
@@ -789,7 +791,7 @@ export class CommonDao<
    * const storageRow = await dao.dbmToStorageRow(dbm)
    * await db.saveBatch(table, [storageRow])
    */
-  async dbmToStorageRow(dbm: DBM): Promise<unknown> {
+  async dbmToStorageRow(dbm: DBM): Promise<ObjectWithId> {
     if (!this.cfg.compress?.keys.length) return dbm
     const row = { ...dbm }
     await this.compress(row)
@@ -799,7 +801,7 @@ export class CommonDao<
   /**
    * Converts multiple DBMs to storage rows.
    */
-  async dbmsToStorageRows(dbms: DBM[]): Promise<unknown[]> {
+  async dbmsToStorageRows(dbms: DBM[]): Promise<ObjectWithId[]> {
     if (!this.cfg.compress?.keys.length) return dbms
     return await pMap(dbms, async dbm => await this.dbmToStorageRow(dbm))
   }
@@ -813,7 +815,7 @@ export class CommonDao<
    * const rows = await db.getByIds(table, ids)
    * const dbms = await Promise.all(rows.map(row => dao.storageRowToDBM(row)))
    */
-  async storageRowToDBM(row: unknown): Promise<DBM> {
+  async storageRowToDBM(row: ObjectWithId): Promise<DBM> {
     if (!this.cfg.compress) return row as DBM
     const dbm = { ...(row as DBM) }
     await this.decompress(dbm)
@@ -823,7 +825,7 @@ export class CommonDao<
   /**
    * Converts multiple storage rows to DBMs.
    */
-  async storageRowsToDBMs(rows: unknown[]): Promise<DBM[]> {
+  async storageRowsToDBMs(rows: ObjectWithId[]): Promise<DBM[]> {
     if (!this.cfg.compress) return rows as DBM[]
     return await pMap(rows, async row => await this.storageRowToDBM(row))
   }
