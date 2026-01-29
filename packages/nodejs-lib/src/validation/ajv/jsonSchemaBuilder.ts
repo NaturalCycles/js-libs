@@ -10,9 +10,10 @@ import {
 import { _uniq } from '@naturalcycles/js-lib/array'
 import { _assert } from '@naturalcycles/js-lib/error'
 import type { Set2 } from '@naturalcycles/js-lib/object'
-import { _deepCopy, _sortObject } from '@naturalcycles/js-lib/object'
+import { _sortObject } from '@naturalcycles/js-lib/object'
 import {
   _objectAssign,
+  _typeCast,
   type AnyObject,
   type BaseDBEntity,
   type IANATimezone,
@@ -79,14 +80,18 @@ export const j = {
     stringMap<S extends JsonSchemaTerminal<any, any, any>>(
       schema: S,
     ): JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>> {
+      const isValueOptional = schema.getSchema().optionalField
       const builtSchema = schema.build()
+      const finalValueSchema: JsonSchema = isValueOptional
+        ? { anyOf: [{ isUndefined: true }, builtSchema] }
+        : builtSchema
 
       return new JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>>(
         {},
         {
           hasIsOfTypeCheck: false,
           patternProperties: {
-            '^.+$': builtSchema,
+            '^.+$': finalValueSchema,
           },
         },
       )
@@ -333,7 +338,7 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
     )
 
     const jsonSchema = _sortObject(
-      JSON.parse(JSON.stringify(this.schema)),
+      deepCopyPreservingFunctions(this.schema) as AnyObject,
       JSON_SCHEMA_ORDER,
     ) as JsonSchema<IN, OUT>
 
@@ -344,7 +349,7 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
 
   clone(): this {
     const cloned = Object.create(Object.getPrototypeOf(this))
-    cloned.schema = _deepCopy(this.schema)
+    cloned.schema = deepCopyPreservingFunctions(this.schema)
     return cloned
   }
 
@@ -450,6 +455,36 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
   final(): JsonSchemaTerminal<IN, OUT, Opt> {
     return new JsonSchemaTerminal<IN, OUT, Opt>(this.schema)
   }
+
+  /**
+   *
+   * @param validator A validator function that returns an error message or undefined.
+   *
+   * You may add multiple custom validators and they will be executed in the order you added them.
+   */
+  custom<OUT2 = OUT>(validator: CustomValidatorFn): JsonSchemaAnyBuilder<IN, OUT2, Opt> {
+    const { customValidations = [] } = this.schema
+    return this.cloneAndUpdateSchema({
+      customValidations: [...customValidations, validator],
+    }) as unknown as JsonSchemaAnyBuilder<IN, OUT2, Opt>
+  }
+
+  /**
+   *
+   * @param converter A converter function that returns a new value.
+   *
+   * You may add multiple converters and they will be executed in the order you added them,
+   * each converter receiving the result from the previous one.
+   *
+   * This feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   */
+  convert<OUT2>(converter: CustomConverterFn<OUT2>): JsonSchemaAnyBuilder<IN, OUT2, Opt> {
+    const { customConversions = [] } = this.schema
+    return this.cloneAndUpdateSchema({
+      customConversions: [...customConversions, converter],
+    }) as unknown as JsonSchemaAnyBuilder<IN, OUT2, Opt>
+  }
 }
 
 export class JsonSchemaStringBuilder<
@@ -468,26 +503,45 @@ export class JsonSchemaStringBuilder<
    *
    * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
+   *
+   * Make sure this `optional()` call is at the end of your call chain.
+   *
+   * When `null` is included in optionalValues, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
    */
-  override optional(
-    optionalValues?: string[],
-  ): JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
+  override optional<T extends readonly (string | null)[] | undefined = undefined>(
+    optionalValues?: T,
+  ): T extends readonly (infer U)[]
+    ? null extends U
+      ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
+      : JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true>
+    : JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
     if (!optionalValues) {
-      return super.optional() as unknown as JsonSchemaStringBuilder<
-        IN | undefined,
-        OUT | undefined,
-        true
-      >
+      return super.optional() as any
     }
 
-    const newBuilder = new JsonSchemaStringBuilder<IN, OUT, Opt>().optional()
+    _typeCast<(string | null)[]>(optionalValues)
+
+    let newBuilder: JsonSchemaTerminal<IN | undefined, OUT | undefined, true> =
+      new JsonSchemaStringBuilder<IN, OUT, Opt>().optional()
     const alternativesSchema = j.enum(optionalValues)
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
       optionalValues,
     })
 
-    return newBuilder
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building a StringSchema anymore.
+    if (optionalValues.includes(null)) {
+      newBuilder = new JsonSchemaTerminal({
+        anyOf: [{ type: 'null', optionalValues }, newBuilder.build()],
+        optionalField: true,
+      })
+    }
+
+    return newBuilder as any
   }
 
   regex(pattern: RegExp, opt?: JsonBuilderRuleOpt): this {
@@ -716,27 +770,45 @@ export class JsonSchemaNumberBuilder<
    *
    * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
+   *
+   * Make sure this `optional()` call is at the end of your call chain.
+   *
+   * When `null` is included in optionalValues, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
    */
-
-  override optional(
-    optionalValues?: number[],
-  ): JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
+  override optional<T extends readonly (number | null)[] | undefined = undefined>(
+    optionalValues?: T,
+  ): T extends readonly (infer U)[]
+    ? null extends U
+      ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
+      : JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true>
+    : JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
     if (!optionalValues) {
-      return super.optional() as unknown as JsonSchemaNumberBuilder<
-        IN | undefined,
-        OUT | undefined,
-        true
-      >
+      return super.optional() as any
     }
 
-    const newBuilder = new JsonSchemaNumberBuilder<IN, OUT, Opt>().optional()
+    _typeCast<(number | null)[]>(optionalValues)
+
+    let newBuilder: JsonSchemaTerminal<IN | undefined, OUT | undefined, true> =
+      new JsonSchemaNumberBuilder<IN, OUT, Opt>().optional()
     const alternativesSchema = j.enum(optionalValues)
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
       optionalValues,
     })
 
-    return newBuilder
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building a NumberSchema anymore.
+    if (optionalValues.includes(null)) {
+      newBuilder = new JsonSchemaTerminal({
+        anyOf: [{ type: 'null', optionalValues }, newBuilder.build()],
+        optionalField: true,
+      })
+    }
+
+    return newBuilder as any
   }
 
   integer(): this {
@@ -850,6 +922,15 @@ export class JsonSchemaNumberBuilder<
   utcOffsetHour(): this {
     return this.integer().min(-12).max(14)
   }
+
+  /**
+   * Specify the precision of the floating point numbers by the number of digits after the ".".
+   * Excess digits will be cut-off when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   */
+  precision(numberOfDigits: number): this {
+    return this.cloneAndUpdateSchema({ precision: numberOfDigits })
+  }
 }
 
 export class JsonSchemaBooleanBuilder<
@@ -931,6 +1012,34 @@ export class JsonSchemaObjectBuilder<
   }
 
   /**
+   * @param nullValue Pass `null` to have `null` values be considered/converted as `undefined`.
+   *
+   * This `null` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   *
+   * When `null` is passed, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
+   */
+  override optional<N extends null | undefined = undefined>(
+    nullValue?: N,
+  ): N extends null
+    ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
+    : JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true> {
+    if (typeof nullValue === 'undefined') {
+      return super.optional()
+    }
+
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building an ObjectSchema anymore.
+    return new JsonSchemaTerminal({
+      anyOf: [{ type: 'null', optionalValues: [null] }, this.build()],
+      optionalField: true,
+    }) as any
+  }
+
+  /**
    * When set, the validation will not strip away properties that are not specified explicitly in the schema.
    */
 
@@ -972,7 +1081,7 @@ export class JsonSchemaObjectBuilder<
     false
   > {
     const newBuilder = new JsonSchemaObjectBuilder()
-    _objectAssign(newBuilder.schema, _deepCopy(this.schema))
+    _objectAssign(newBuilder.schema, deepCopyPreservingFunctions(this.schema))
 
     const incomingSchemaBuilder = new JsonSchemaObjectBuilder(props)
     mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
@@ -1109,6 +1218,103 @@ export class JsonSchemaObjectInferringBuilder<
   }
 
   /**
+   * @param nullValue Pass `null` to have `null` values be considered/converted as `undefined`.
+   *
+   * This `null` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   *
+   * When `null` is passed, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
+   */
+  // @ts-expect-error override adds optional parameter which is compatible but TS can't verify complex mapped types
+  override optional<N extends null | undefined = undefined>(
+    nullValue?: N,
+  ): N extends null
+    ? JsonSchemaTerminal<
+        | Expand<
+            {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? never
+                  : K
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+            } & {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? K
+                  : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+            }
+          >
+        | undefined,
+        | Expand<
+            {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? never
+                  : K
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+            } & {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? K
+                  : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+            }
+          >
+        | undefined,
+        true
+      >
+    : JsonSchemaAnyBuilder<
+        | Expand<
+            {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? never
+                  : K
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+            } & {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? K
+                  : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+            }
+          >
+        | undefined,
+        | Expand<
+            {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? never
+                  : K
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+            } & {
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+                ? IsOpt extends true
+                  ? K
+                  : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+            }
+          >
+        | undefined,
+        true
+      > {
+    if (nullValue === undefined) {
+      return super.optional() as any
+    }
+
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building an ObjectSchema anymore.
+    return new JsonSchemaTerminal({
+      anyOf: [{ type: 'null', optionalValues: [null] }, this.build()],
+      optionalField: true,
+    }) as any
+  }
+
+  /**
    * When set, the validation will not strip away properties that are not specified explicitly in the schema.
    */
 
@@ -1129,7 +1335,7 @@ export class JsonSchemaObjectInferringBuilder<
     Opt
   > {
     const newBuilder = new JsonSchemaObjectInferringBuilder<PROPS, Opt>()
-    _objectAssign(newBuilder.schema, _deepCopy(this.schema))
+    _objectAssign(newBuilder.schema, deepCopyPreservingFunctions(this.schema))
 
     const incomingSchemaBuilder = new JsonSchemaObjectInferringBuilder<NEW_PROPS, false>(props)
     mergeJsonSchemaObjects(newBuilder.schema as any, incomingSchemaBuilder.schema as any)
@@ -1400,8 +1606,9 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
   errorMessages?: StringMap<string>
-  optionalValues?: (string | number | boolean)[]
+  optionalValues?: (string | number | boolean | null)[]
   keySchema?: JsonSchema
+  isUndefined?: true
   minProperties2?: number
   exclusiveProperties?: (readonly string[])[]
   anyOfBy?: {
@@ -1409,15 +1616,18 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
     schemaDictionary: Record<string, JsonSchema>
   }
   anyOfThese?: JsonSchema[]
+  precision?: number
+  customValidations?: CustomValidatorFn[]
+  customConversions?: CustomConverterFn<any>[]
 }
 
 function object(props: AnyObject): never
 function object<IN extends AnyObject>(props: {
-  [K in keyof Required<IN>]-?: JsonSchemaAnyBuilder<any, IN[K], any>
+  [K in keyof Required<IN>]-?: JsonSchemaTerminal<any, IN[K], any>
 }): JsonSchemaObjectBuilder<IN, IN, false>
 
 function object<IN extends AnyObject>(props: {
-  [key in keyof IN]: JsonSchemaAnyBuilder<any, IN[key], any>
+  [key in keyof IN]: JsonSchemaTerminal<any, IN[key], any>
 }): JsonSchemaObjectBuilder<IN, IN, false> {
   return new JsonSchemaObjectBuilder<IN, IN, false>(props)
 }
@@ -1475,7 +1685,15 @@ function record<
   false
 > {
   const keyJsonSchema = keySchema.build()
+  // Check if value schema is optional before build() strips the optionalField flag
+  const isValueOptional = (valueSchema as JsonSchemaTerminal<any, any, any>).getSchema()
+    .optionalField
   const valueJsonSchema = valueSchema.build()
+
+  // When value schema is optional, wrap in anyOf to allow undefined values
+  const finalValueSchema: JsonSchema = isValueOptional
+    ? { anyOf: [{ isUndefined: true }, valueJsonSchema] }
+    : valueJsonSchema
 
   return new JsonSchemaObjectBuilder<
     Opt extends true
@@ -1489,7 +1707,7 @@ function record<
     hasIsOfTypeCheck: false,
     keySchema: keyJsonSchema,
     patternProperties: {
-      ['^.*$']: valueJsonSchema,
+      ['^.*$']: finalValueSchema,
     },
   })
 }
@@ -1706,4 +1924,26 @@ type TupleIn<T extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
 
 type TupleOut<T extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
   [K in keyof T]: T[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
+}
+
+export type CustomValidatorFn = (v: any) => string | undefined
+export type CustomConverterFn<OUT> = (v: any) => OUT
+
+/**
+ * Deep copy that preserves functions in customValidations/customConversions.
+ * Unlike structuredClone, this handles function references (which only exist in those two properties).
+ */
+function deepCopyPreservingFunctions<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') return obj
+  if (Array.isArray(obj)) return obj.map(deepCopyPreservingFunctions) as T
+  const copy = {} as T
+  for (const key of Object.keys(obj)) {
+    const value = (obj as any)[key]
+    // customValidations/customConversions are arrays of functions - shallow copy the array
+    ;(copy as any)[key] =
+      (key === 'customValidations' || key === 'customConversions') && Array.isArray(value)
+        ? [...value]
+        : deepCopyPreservingFunctions(value)
+  }
+  return copy
 }

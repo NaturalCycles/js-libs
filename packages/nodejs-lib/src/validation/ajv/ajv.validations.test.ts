@@ -67,6 +67,46 @@ describe('string', () => {
       expect(err4).toBeNull()
       expect(result4).toEqual({})
     })
+
+    test('should work with `null` values', () => {
+      const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ foo: 'foo' })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 'foo' })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ foo: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ foo: undefined })
+    })
+
+    test('should not allow chaining after `optional([null])` (compile-time error)', () => {
+      const schema = j.string().optional([null])
+      // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
+      // which doesn't have string-specific methods like minLength().
+      // This prevents mistakes at compile time rather than failing at runtime.
+      // @ts-expect-error - minLength doesn't exist on JsonSchemaTerminal
+      expect(() => schema.minLength(1)).toThrow(TypeError)
+    })
+
+    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+      const schema = j.string().optional(['foo'])
+      const ajvSchema = AjvSchema.create(schema)
+
+      expect(() => ajvSchema.isValid('asdf')).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: You should only use \`optional([x, y, z])\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+      )
+    })
+
+    test('should still be an optional field when passing in `null`', () => {
+      const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({})
+      expect(err1).toBeNull()
+      expect(result1).toEqual({})
+    })
   })
 
   describe('regex', () => {
@@ -536,8 +576,7 @@ describe('string', () => {
 
       const [err2, result2] = ajvSchema.getValidationResult({ foo: '' })
       expect(err2).toBeNull()
-      expect(result2).toEqual({})
-      expect(Object.getOwnPropertyNames(result2)).not.toContain('foo')
+      expect(result2).toEqual({ foo: undefined })
 
       const [err3, result3] = ajvSchema.getValidationResult({})
       expect(err3).toBeNull()
@@ -1400,6 +1439,46 @@ describe('number', () => {
       expect(err3).toBeNull()
       expect(result3).toEqual({})
     })
+
+    test('should work with `null` values', () => {
+      const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ foo: 1 })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 1 })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ foo: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ foo: undefined })
+    })
+
+    test('should not allow chaining after `optional([null])` (compile-time error)', () => {
+      const schema = j.number().optional([null])
+      // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
+      // which doesn't have number-specific methods like min().
+      // This prevents mistakes at compile time rather than failing at runtime.
+      // @ts-expect-error - min doesn't exist on JsonSchemaTerminal
+      expect(() => schema.min(1)).toThrow(TypeError)
+    })
+
+    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+      const schema = j.number().optional([112])
+      const ajvSchema = AjvSchema.create(schema)
+
+      expect(() => ajvSchema.isValid(2342)).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: You should only use \`optional([x, y, z])\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+      )
+    })
+
+    test('should still be an optional field when passing in `null`', () => {
+      const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({})
+      expect(err1).toBeNull()
+      expect(result1).toEqual({})
+    })
   })
 
   describe('multipleOf', () => {
@@ -1962,6 +2041,27 @@ describe('number', () => {
       invalidCases.forEach(value => {
         const [err] = ajvSchema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('precision', () => {
+    test('should convert a floating point number to the precision when it makes sense', () => {
+      const schema = j.object<{ foo: number }>({ foo: j.number().precision(3) })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const testCases: [number, number][] = [
+        [0, 0],
+        [0.1, 0.1],
+        [0.12, 0.12],
+        [0.123, 0.123],
+        [0.1234, 0.123],
+        [0.1235, 0.124],
+      ]
+      testCases.forEach(([value, expected]) => {
+        const [err, result] = ajvSchema.getValidationResult({ foo: value })
+        expect(err).toBeNull()
+        expect(result).toEqual({ foo: expected })
       })
     })
   })
@@ -2874,6 +2974,109 @@ describe('object', () => {
     })
   })
 
+  describe('optional(null)', () => {
+    test('should convert `null` to `undefined` for j.object', () => {
+      interface Inner {
+        foo: string
+      }
+      interface Outer {
+        inner?: Inner
+      }
+      const schema = j.object<Outer>({
+        inner: j.object<Inner>({ foo: j.string() }).optional(null),
+      })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ inner: { foo: 'bar' } })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ inner: { foo: 'bar' } })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ inner: undefined })
+
+      const [err3, result3] = ajvSchema.getValidationResult({})
+      expect(err3).toBeNull()
+      expect(result3).toEqual({})
+    })
+
+    test('should convert `null` to `undefined` for j.object.infer', () => {
+      interface Outer {
+        inner?: { foo: string }
+      }
+      const schema = j.object<Outer>({
+        inner: j.object.infer({ foo: j.string() }).optional(null),
+      })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({ inner: { foo: 'bar' } })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ inner: { foo: 'bar' } })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ inner: undefined })
+    })
+
+    test('should convert `null` to `undefined` for j.object.dbEntity', () => {
+      interface Inner extends BaseDBEntity {
+        foo: string
+      }
+      interface Outer {
+        inner?: Inner
+      }
+      const schema = j.object<Outer>({
+        inner: j.object.dbEntity<Inner>({ foo: j.string() }).optional(null),
+      })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({
+        inner: { id: 'id', created: MOCK_TS_2018_06_21, updated: MOCK_TS_2018_06_21, foo: 'bar' },
+      })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({
+        inner: { id: 'id', created: MOCK_TS_2018_06_21, updated: MOCK_TS_2018_06_21, foo: 'bar' },
+      })
+
+      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ inner: undefined })
+    })
+
+    test('should not allow chaining after `optional(null)` (compile-time error)', () => {
+      const schema = j.object<{ foo: string }>({ foo: j.string() }).optional(null)
+      // When `null` is passed to optional(), the return type is JsonSchemaTerminal,
+      // which doesn't have object-specific methods like extend().
+      // This prevents mistakes at compile time rather than failing at runtime.
+      // @ts-expect-error - extend doesn't exist on JsonSchemaTerminal
+      expect(() => schema.extend({})).toThrow(TypeError)
+    })
+
+    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+      const schema = j.object<{ foo: string }>({ foo: j.string() }).optional(null)
+      const ajvSchema = AjvSchema.create(schema)
+
+      // The check only triggers when the value is `null` (not when it's a valid object)
+      expect(() => ajvSchema.isValid(null as any)).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: You should only use \`optional([x, y, z])\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+      )
+    })
+
+    test('should still be an optional field when passing in `null`', () => {
+      interface Outer {
+        inner?: { foo: string }
+      }
+      const schema = j.object<Outer>({
+        inner: j.object<{ foo: string }>({ foo: j.string() }).optional(null),
+      })
+      const ajvSchema = AjvSchema.create(schema)
+
+      const [err1, result1] = ajvSchema.getValidationResult({})
+      expect(err1).toBeNull()
+      expect(result1).toEqual({})
+    })
+  })
+
   describe('minProperties', () => {
     test('should accept a valid object', () => {
       const schema = j
@@ -3001,6 +3204,26 @@ describe('object', () => {
         const [err, result] = ajvSchema.getValidationResult(data)
         expect(result).toEqual({ '123': 1, '2345': 2 })
         expect(err, _stringify(data)).toBeNull()
+      }
+    })
+
+    test('should allow undefined values when value schema is optional', () => {
+      const schema = j.object
+        .record(j.string(), j.number().optional())
+        .isOfType<Partial<Record<string, number>>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [
+        {},
+        { a: 1 },
+        { a: 1, b: 2 },
+        { a: undefined, b: 1 }, // undefined values should be allowed
+        { a: undefined }, // all undefined values should be allowed
+      ]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
       }
     })
   })
@@ -3202,6 +3425,24 @@ describe('object', () => {
       expect(fn).toThrow(
         'The schema must be type checked against a type or interface, using the `.isOfType()` helper in `j`.',
       )
+    })
+
+    test('should allow undefined values when value schema is optional', () => {
+      const schema = j.object.stringMap(j.number().optional()).isOfType<StringMap<number>>()
+      const ajvSchema = AjvSchema.create(schema)
+
+      const validCases: any[] = [
+        {},
+        { a: 1 },
+        { a: 1, b: 2 },
+        { a: undefined, b: 1 }, // undefined values should be allowed
+        { a: undefined }, // all undefined values should be allowed
+      ]
+      for (const data of validCases) {
+        const [err, result] = ajvSchema.getValidationResult(data)
+        expect(err, _stringify(data)).toBeNull()
+        expect(result, _stringify(data)).toEqual(data)
+      }
     })
   })
 })
@@ -3752,5 +3993,86 @@ describe('literal', () => {
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: {}]
     `)
+  })
+})
+
+describe('custom', () => {
+  test('should accept a valid value', () => {
+    const schema = j.number().custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1] = ajvSchema.getValidationResult(1)
+    expect(err1).toBeNull()
+
+    const [err2] = ajvSchema.getValidationResult(3.14)
+    expect(err2).toMatchInlineSnapshot(`
+      [AjvValidationError: Object not an integer!
+      Input: 3.14]
+    `)
+  })
+
+  test('should handle multiple validators', () => {
+    const schema = j
+      .number()
+      .custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
+      .custom(v => (v === 3 ? undefined : 'Three shall be the number thou shalt count!'))
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1] = ajvSchema.getValidationResult(3.14)
+    expect(err1).toMatchInlineSnapshot(`
+      [AjvValidationError: Object not an integer!
+      Input: 3.14]
+    `)
+
+    const [err2] = ajvSchema.getValidationResult(2)
+    expect(err2).toMatchInlineSnapshot(`
+      [AjvValidationError: Object Three shall be the number thou shalt count!
+      Input: 2]
+    `)
+
+    const [err3, result3] = ajvSchema.getValidationResult(3)
+    expect(err3).toBeNull()
+    expect(result3).toBe(3)
+  })
+})
+
+describe('convert', () => {
+  test('should convert a value in an object/array', () => {
+    const schema1 = j.object<{ foo: number }>({ foo: j.number().convert(v => Math.round(v)) })
+    const ajvSchema1 = AjvSchema.create(schema1)
+
+    const [err11, result11] = ajvSchema1.getValidationResult({ foo: 3.14 })
+    expect(err11).toBeNull()
+    expect(result11).toEqual({ foo: 3 })
+
+    const schema2 = j.array(j.number().convert(v => Math.round(v)))
+    const ajvSchema2 = AjvSchema.create(schema2)
+
+    const [err21, result21] = ajvSchema2.getValidationResult([3.14])
+    expect(err21).toBeNull()
+    expect(result21).toEqual([3])
+  })
+
+  test('should handle multiple converters', () => {
+    const schema = j.object<{ foo: number }>({
+      foo: j
+        .number()
+        .convert(v => Math.round(v))
+        .convert(v => v ** 2),
+    })
+    const ajvSchema = AjvSchema.create(schema)
+
+    const [err1, result1] = ajvSchema.getValidationResult({ foo: 3.14 })
+    expect(err1).toBeNull()
+    expect(result1).toEqual({ foo: 9 })
+  })
+
+  test('should throw when used on a standalone schema (and not in an object/array)', () => {
+    const schema = j.number().convert(v => Math.round(v))
+    const ajvSchema = AjvSchema.create(schema)
+
+    expect(() => ajvSchema.isValid(3.14)).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: You should only use \`convert()\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
+    )
   })
 })

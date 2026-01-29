@@ -1,10 +1,13 @@
-import { _isBetween, _lazyValue } from '@naturalcycles/js-lib'
+import { _isBetween, _lazyValue, _round } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { Ajv2020, type Options, type ValidateFunction } from 'ajv/dist/2020.js'
 import { validTLDs } from '../tlds.js'
 import type {
+  CustomConverterFn,
+  CustomValidatorFn,
   JsonSchemaIsoDateOptions,
   JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
@@ -195,7 +198,7 @@ export function createAjv(opt?: Options): Ajv2020 {
           idx++
         }
 
-        if (ctx?.parentData && ctx.parentDataProperty) {
+        if (ctx?.parentData && ctx.parentDataProperty !== undefined) {
           ctx.parentData[ctx.parentDataProperty] = set
         }
 
@@ -248,7 +251,7 @@ export function createAjv(opt?: Options): Ajv2020 {
           return false
         }
 
-        if (ctx?.parentData && ctx.parentDataProperty) {
+        if (ctx?.parentData && ctx.parentDataProperty !== undefined) {
           ctx.parentData[ctx.parentDataProperty] = buffer
         }
 
@@ -297,7 +300,7 @@ export function createAjv(opt?: Options): Ajv2020 {
         }
       }
 
-      if (ctx?.parentData && ctx.parentDataProperty) {
+      if (ctx?.parentData && ctx.parentDataProperty !== undefined) {
         ctx.parentData[ctx.parentDataProperty] = cleanData
       }
 
@@ -435,7 +438,7 @@ export function createAjv(opt?: Options): Ajv2020 {
 
   ajv.addKeyword({
     keyword: 'optionalValues',
-    type: ['string', 'number', 'boolean'],
+    type: ['string', 'number', 'boolean', 'null'],
     modifying: true,
     errors: false,
     schemaType: 'array',
@@ -447,11 +450,14 @@ export function createAjv(opt?: Options): Ajv2020 {
     ) {
       if (!optionalValues) return true
 
+      _assert(
+        ctx?.parentData && ctx.parentDataProperty !== undefined,
+        'You should only use `optional([x, y, z])` on a property of an object, or on an element of an array due to Ajv mutation issues.',
+      )
+
       if (!optionalValues.includes(data)) return true
 
-      if (ctx?.parentData && ctx.parentDataProperty) {
-        delete ctx.parentData[ctx.parentDataProperty]
-      }
+      ctx.parentData[ctx.parentDataProperty] = undefined
 
       return true
     },
@@ -482,7 +488,17 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
-  // This and `maxProperties2` are added because Ajv validates the `min/maxProperties` before validating the properties.
+  // Validates that the value is undefined. Used in record/stringMap with optional value schemas
+  // to allow undefined values in patternProperties via anyOf.
+  ajv.addKeyword({
+    keyword: 'isUndefined',
+    modifying: false,
+    errors: false,
+    schemaType: 'boolean',
+    validate: (_schema: boolean, data: unknown) => data === undefined,
+  })
+
+  // This is added because Ajv validates the `min/maxProperties` before validating the properties.
   // So, in case of `minProperties(1)` and `{ foo: 'bar' }` Ajv will let it pass, even
   // if the property validation would strip `foo` from the data.
   // And Ajv would return `{}` as a successful validation.
@@ -499,7 +515,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     validate: function validate(minProperties: number, data: AnyObject, _schema, ctx) {
       if (typeof data !== 'object') return true
 
-      const numberOfProperties = Object.getOwnPropertyNames(data).length
+      const numberOfProperties = Object.entries(data).filter(([, v]) => v !== undefined).length
       const isValid = numberOfProperties >= minProperties
       if (!isValid) {
         ;(validate as any).errors = [
@@ -608,7 +624,7 @@ export function createAjv(opt?: Options): Ajv2020 {
           }
         }
 
-        if (result && ctx?.parentData && ctx.parentDataProperty) {
+        if (result && ctx?.parentData && ctx.parentDataProperty !== undefined) {
           // If we found a validator and the data is valid and we are validating a property inside an object,
           // then we can inject our result and be done with it.
           ctx.parentData[ctx.parentDataProperty] = clonedData
@@ -632,6 +648,79 @@ export function createAjv(opt?: Options): Ajv2020 {
       }
 
       return validate
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'precision',
+    type: ['number'],
+    modifying: true,
+    errors: false,
+    schemaType: 'number',
+    validate: function validate(numberOfDigits: number, data: number, _schema, ctx) {
+      if (!numberOfDigits) return true
+
+      _assert(
+        ctx?.parentData && ctx.parentDataProperty !== undefined,
+        'You should only use `precision(n)` on a property of an object, or on an element of an array due to Ajv mutation issues.',
+      )
+
+      ctx.parentData[ctx.parentDataProperty] = _round(data, 10 ** (-1 * numberOfDigits))
+
+      return true
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'customValidations',
+    modifying: false,
+    errors: true,
+    schemaType: 'array',
+    validate: function validate(customValidations: CustomValidatorFn[], data: any, _schema, ctx) {
+      if (!customValidations?.length) return true
+
+      for (const validator of customValidations) {
+        const error = validator(data)
+        if (error) {
+          ;(validate as any).errors = [
+            {
+              instancePath: ctx?.instancePath ?? '',
+              message: error,
+            },
+          ]
+          return false
+        }
+      }
+
+      return true
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'customConversions',
+    modifying: true,
+    errors: false,
+    schemaType: 'array',
+    validate: function validate(
+      customConversions: CustomConverterFn<any>[],
+      data: any,
+      _schema,
+      ctx,
+    ) {
+      if (!customConversions?.length) return true
+
+      _assert(
+        ctx?.parentData && ctx.parentDataProperty !== undefined,
+        'You should only use `convert()` on a property of an object, or on an element of an array due to Ajv mutation issues.',
+      )
+
+      for (const converter of customConversions) {
+        data = converter(data)
+      }
+
+      ctx.parentData[ctx.parentDataProperty] = data
+
+      return true
     },
   })
 

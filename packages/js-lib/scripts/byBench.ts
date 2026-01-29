@@ -21,13 +21,13 @@ const arr = _range(1000).map(n => ({
 runBenchScript({
   fns: {
     one: () => {
-      const _a = _by1(arr, item => item.odd)
+      return _by1(arr, item => item.odd)
     },
     one1: () => {
-      const _a = _by15(arr, item => item.odd)
+      return _by15(arr, item => item.odd)
     },
     two: () => {
-      const _a = _by2(arr, item => item.odd)
+      return _by2(arr, item => item.odd)
     },
   },
 })
