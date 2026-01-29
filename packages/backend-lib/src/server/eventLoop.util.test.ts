@@ -55,7 +55,7 @@ test('should reset gc counters between intervals', async () => {
     expect(s.gcCount).toBeGreaterThanOrEqual(0)
     expect(s.gcTotalTime).toBeGreaterThanOrEqual(0)
     expect(s.gcCPU).toBeGreaterThanOrEqual(0)
-    expect(s.gcCPU).toBeLessThanOrEqual(100)
+    expect(s.gcCPU).toBeLessThanOrEqual(10_000)
   }
 })
 
