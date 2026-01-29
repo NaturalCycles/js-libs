@@ -207,8 +207,7 @@ export interface CommonDaoCfg<
   patchInTransaction?: boolean
 
   /**
-   * When specified, the listed properties will be compressed under a `data` property in the DBM.
-   * If DBM already has a `data` property and you don't add it to the list, an error will be thrown.
+   * When specified, the listed properties will be compressed into the `__compressed` property.
    *
    * Compression happens after the `beforeBMToDBM` hook and before the DBM is saved to the database.
    * Decompression happens after the DBM is loaded from the database and before the `beforeDBMToBM` hook.

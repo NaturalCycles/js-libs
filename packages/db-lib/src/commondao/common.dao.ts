@@ -90,12 +90,12 @@ export class CommonDao<
     }
 
     // If the auto-compression is enabled,
-    // then we need to ensure that the 'data' property is part of the index exclusion list.
+    // then we need to ensure that the '__compressed' property is part of the index exclusion list.
     if (this.cfg.compress?.keys) {
       const current = this.cfg.excludeFromIndexes
       this.cfg.excludeFromIndexes = current ? [...current] : []
-      if (!this.cfg.excludeFromIndexes.includes('data' as any)) {
-        this.cfg.excludeFromIndexes.push('data' as any)
+      if (!this.cfg.excludeFromIndexes.includes('__compressed' as any)) {
+        this.cfg.excludeFromIndexes.push('__compressed' as any)
       }
     }
   }
@@ -553,11 +553,11 @@ export class CommonDao<
 
     // If the user passed in custom `excludeFromIndexes` with the save() call,
     // and the auto-compression is enabled,
-    // then we need to ensure that the 'data' property is part of the list.
+    // then we need to ensure that the '__compressed' property is part of the list.
     if (this.cfg.compress?.keys) {
       excludeFromIndexes ??= []
-      if (!excludeFromIndexes.includes('data' as any)) {
-        excludeFromIndexes.push('data' as any)
+      if (!excludeFromIndexes.includes('__compressed' as any)) {
+        excludeFromIndexes.push('__compressed' as any)
       }
     }
 
@@ -842,16 +842,10 @@ export class CommonDao<
 
     const { keys } = this.cfg.compress
     const properties = _pick(dbm, keys)
-    // Check if dbm has a non-undefined 'data' property that's not in the compression keys
-    // (data: undefined is allowed, as it's set by decompress for performance instead of deleting)
-    _assert(
-      (dbm as any).data === undefined || 'data' in properties,
-      `Data (${dbm.id}) already has a "data" property. When using compression, this property must be included in the compression keys list.`,
-    )
     const bufferString = JSON.stringify(properties)
-    const data = await zstdCompress(bufferString)
+    const __compressed = await zstdCompress(bufferString)
     _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
-    Object.assign(dbm, { data })
+    Object.assign(dbm, { __compressed })
   }
 
   /**
@@ -859,13 +853,12 @@ export class CommonDao<
    */
   private async decompress(dbm: DBM): Promise<void> {
     _typeCast<Compressed<DBM>>(dbm)
-    if (!Buffer.isBuffer(dbm.data)) return // No compressed data
+    if (!Buffer.isBuffer(dbm.__compressed)) return // No compressed data
 
-    // try-catch to avoid a `data` with Buffer which is not compressed, but legit data
     try {
-      const bufferString = await decompressZstdOrInflateToString(dbm.data)
+      const bufferString = await decompressZstdOrInflateToString(dbm.__compressed)
       const properties = JSON.parse(bufferString)
-      dbm.data = undefined
+      dbm.__compressed = undefined
       Object.assign(dbm, properties)
     } catch {}
   }
@@ -995,6 +988,41 @@ export class CommonDao<
    * }
    */
   static async decompressLegacyRow<T extends ObjectWithId>(row: T): Promise<T> {
+    // Check both __compressed (current) and data (legacy) for backward compatibility
+    const compressed = (row as any).__compressed ?? (row as any).data
+    if (!Buffer.isBuffer(compressed)) return row
+
+    try {
+      const bufferString = await decompressZstdOrInflateToString(compressed)
+      const properties = JSON.parse(bufferString)
+      ;(row as any).__compressed = undefined
+      ;(row as any).data = undefined
+      Object.assign(row, properties)
+    } catch {
+      // Decompression failed - field is not compressed, leave as-is
+    }
+
+    return row
+  }
+
+  /**
+   * Temporary helper to migrate from the old `data` compressed property to the new `__compressed` property.
+   * Use as your `beforeDBMToBM` hook during the migration period.
+   *
+   * Migration steps:
+   * 1. Add `beforeDBMToBM: CommonDao.migrateCompressedDataProperty` to your hooks
+   * 2. Deploy - old data (with `data` property) will be decompressed on read and recompressed to `__compressed` on write
+   * 3. Once all data has been naturally rewritten, remove the hook
+   *
+   * @example
+   * const dao = new CommonDao({
+   *   compress: { keys: ['field1', 'field2'] },
+   *   hooks: {
+   *     beforeDBMToBM: CommonDao.migrateCompressedDataProperty,
+   *   }
+   * })
+   */
+  static async migrateCompressedDataProperty<T extends ObjectWithId>(row: T): Promise<T> {
     const data = (row as any).data
     if (!Buffer.isBuffer(data)) return row
 
@@ -1315,4 +1343,4 @@ export type AnyDao = CommonDao<any>
  * Used internally during compression/decompression so that DBM instances can
  * carry their compressed payload alongside the original type shape.
  */
-type Compressed<DBM> = DBM & { data?: Buffer }
+type Compressed<DBM> = DBM & { __compressed?: Buffer }

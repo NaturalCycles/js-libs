@@ -759,13 +759,13 @@ describe('auto compression', () => {
       },
       hooks: {
         async beforeBMToDBM(bm) {
-          expect(bm).not.toHaveProperty('data')
+          expect(bm).not.toHaveProperty('__compressed')
           return bm
         },
         async beforeDBMToBM(dbm) {
-          // After decompression, the data property is set to undefined (not deleted for performance)
-          expect(dbm).toHaveProperty('data')
-          expect((dbm as any)['data']).toBeUndefined()
+          // After decompression, the __compressed property is set to undefined (not deleted for performance)
+          expect(dbm).toHaveProperty('__compressed')
+          expect((dbm as any)['__compressed']).toBeUndefined()
           return dbm
         },
       },
@@ -789,19 +789,19 @@ describe('auto compression', () => {
       // Only the compressed property exists, the original properties don't
       id0: {
         created: 1529539200,
-        data: expect.any(Buffer),
+        __compressed: expect.any(Buffer),
         id: 'id0',
         updated: 1529539200,
       },
       id1: {
         created: 1529539200,
-        data: expect.any(Buffer),
+        __compressed: expect.any(Buffer),
         id: 'id1',
         updated: 1529539200,
       },
       id2: {
         created: 1529539200,
-        data: expect.any(Buffer),
+        __compressed: expect.any(Buffer),
         id: 'id2',
         updated: 1529539200,
       },
@@ -833,8 +833,8 @@ describe('auto compression', () => {
       obj: { objId: 'objId1' },
       shu: 'shu1',
     })
-    // After decompression, data property is set to undefined (not deleted for performance)
-    expect((dbm as any).data).toBeUndefined()
+    // After decompression, __compressed property is set to undefined (not deleted for performance)
+    expect((dbm as any).__compressed).toBeUndefined()
 
     // Modify and save as DBM (should compress before saving)
     dbm!.shu = 'shu1-modified'
@@ -852,7 +852,7 @@ describe('auto compression', () => {
     const { data } = dao.cfg.db as InMemoryDB
     expect(data[TEST_TABLE]!['id1']).toEqual({
       created: expect.any(Number),
-      data: expect.any(Buffer),
+      __compressed: expect.any(Buffer),
       id: 'id1',
       updated: expect.any(Number),
     })
@@ -883,15 +883,15 @@ describe('auto compression', () => {
         obj: { objId: `objId${n}` },
         shu: `shu${n}`,
       })
-      // After decompression, data property is set to undefined (not deleted for performance)
-      expect(item.data).toBeUndefined()
+      // After decompression, __compressed property is set to undefined (not deleted for performance)
+      expect(item.__compressed).toBeUndefined()
     }
 
     function expectStorageCompressed(dao: CommonDao<Item>, id: string): void {
       const { data } = dao.cfg.db as InMemoryDB
       expect(data[TEST_TABLE]![id]).toEqual({
         created: expect.any(Number),
-        data: expect.any(Buffer),
+        __compressed: expect.any(Buffer),
         id,
         updated: expect.any(Number),
       })
@@ -1084,7 +1084,7 @@ describe('auto compression', () => {
 
       const storageRow = (await dao.dbmToStorageRow(dbm)) as any
       expect(storageRow.id).toBe('id1')
-      expect(storageRow.data).toBeInstanceOf(Buffer)
+      expect(storageRow.__compressed).toBeInstanceOf(Buffer)
       expect(storageRow.obj).toBeUndefined()
       expect(storageRow.shu).toBeUndefined()
     })
@@ -1218,13 +1218,13 @@ describe('auto compression', () => {
       },
       id2: {
         created: 1529539200,
-        data: expect.any(Buffer),
+        __compressed: expect.any(Buffer),
         id: 'id2',
         updated: 1529539200,
       },
       id3: {
         created: 1529539200,
-        data: expect.any(Buffer),
+        __compressed: expect.any(Buffer),
         id: 'id3',
         updated: 1529539200,
       },
@@ -1252,13 +1252,13 @@ describe('auto compression', () => {
 
     await dao.saveBatch(items)
 
-    // The 'data' property should be automatically added to excludeFromIndexes
+    // The '__compressed' property should be automatically added to excludeFromIndexes
     // when compression is enabled
     expect(saveBatchSpy).toHaveBeenCalledWith(
       TEST_TABLE,
       expect.any(Array),
       expect.objectContaining({
-        excludeFromIndexes: expect.arrayContaining(['data']),
+        excludeFromIndexes: expect.arrayContaining(['__compressed']),
       }),
     )
 
@@ -1334,13 +1334,13 @@ describe('auto compression', () => {
     expect(data[TEST_TABLE]).toEqual({
       id0: {
         created: 1529539200,
-        data: expect.any(Buffer),
+        __compressed: expect.any(Buffer),
         id: 'id0',
         updated: 1529539200,
       },
       id1: {
         created: 1529539200,
-        data: expect.any(Buffer),
+        __compressed: expect.any(Buffer),
         id: 'id1',
         updated: 1529539200,
       },
