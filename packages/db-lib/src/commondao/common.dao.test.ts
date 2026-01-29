@@ -1265,7 +1265,7 @@ describe('auto compression', () => {
     saveBatchSpy.mockRestore()
   })
 
-  test('should be possible to opt-out without migration', async () => {
+  test('should be possible to opt-out using decompressLegacyRow hook', async () => {
     const daoWithCompression = new CommonDao<Item>({
       table: TEST_TABLE,
       db,
@@ -1284,15 +1284,17 @@ describe('auto compression', () => {
 
     await daoWithCompression.saveBatch(items1)
 
+    // Create a DAO without compression, but with the decompressLegacyRow hook
+    // to handle legacy compressed data
     const daoWithoutCompression = new CommonDao<Item>({
       table: TEST_TABLE,
-      compress: {
-        keys: [],
-      },
       db,
+      hooks: {
+        beforeDBMToBM: CommonDao.decompressLegacyRow,
+      },
     })
 
-    // Should still be able to fetch compressed data properly
+    // Should still be able to fetch compressed data properly via the hook
     const fetchedItems1 = await daoWithoutCompression.getAll()
     expect(fetchedItems1).toMatchInlineSnapshot(`
       [

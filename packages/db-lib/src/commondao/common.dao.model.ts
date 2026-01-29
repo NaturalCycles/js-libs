@@ -210,11 +210,13 @@ export interface CommonDaoCfg<
    * When specified, the listed properties will be compressed under a `data` property in the DBM.
    * If DBM already has a `data` property and you don't add it to the list, an error will be thrown.
    *
-   * When specified with an empty `keys` list, then compression will be skipped, but all previously compressed data
-   * will be decompressed, so the Dao can still work.
-   *
    * Compression happens after the `beforeBMToDBM` hook and before the DBM is saved to the database.
    * Decompression happens after the DBM is loaded from the database and before the `beforeDBMToBM` hook.
+   *
+   * To migrate away from compression:
+   * 1. Remove this config (or set `keys` to empty array)
+   * 2. Add `beforeDBMToBM: CommonDao.decompressLegacyRow` to your hooks to decompress legacy data on read
+   * 3. Once all data has been naturally rewritten without compression, remove the hook
    */
   compress?: {
     keys: (keyof DBM)[]

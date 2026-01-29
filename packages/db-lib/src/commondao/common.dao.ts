@@ -249,9 +249,11 @@ export class CommonDao<
   streamQueryAsDBM(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<DBM> = {}): Pipeline<DBM> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const pipeline = this.cfg.db
-      .streamQuery<DBM>(q, opt)
-      .map(async row => await this.storageRowToDBM(row))
+    let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
+
+    if (this.cfg.compress?.keys.length) {
+      pipeline = pipeline.map(async row => await this.storageRowToDBM(row))
+    }
 
     const isPartialQuery = !!q._selectedFieldNames
     if (isPartialQuery) return pipeline
@@ -265,9 +267,11 @@ export class CommonDao<
   streamQuery(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<BM> = {}): Pipeline<BM> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const pipeline = this.cfg.db
-      .streamQuery<DBM>(q, opt)
-      .map(async row => await this.storageRowToDBM(row))
+    let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
+
+    if (this.cfg.compress?.keys.length) {
+      pipeline = pipeline.map(async row => await this.storageRowToDBM(row))
+    }
 
     const isPartialQuery = !!q._selectedFieldNames
     if (isPartialQuery) return pipeline as any as Pipeline<BM>
@@ -816,7 +820,7 @@ export class CommonDao<
    * const dbms = await Promise.all(rows.map(row => dao.storageRowToDBM(row)))
    */
   async storageRowToDBM(row: ObjectWithId): Promise<DBM> {
-    if (!this.cfg.compress) return row as DBM
+    if (!this.cfg.compress?.keys.length) return row as DBM
     const dbm = { ...(row as DBM) }
     await this.decompress(dbm)
     return dbm
@@ -826,7 +830,7 @@ export class CommonDao<
    * Converts multiple storage rows to DBMs.
    */
   async storageRowsToDBMs(rows: ObjectWithId[]): Promise<DBM[]> {
-    if (!this.cfg.compress) return rows as DBM[]
+    if (!this.cfg.compress?.keys.length) return rows as DBM[]
     return await pMap(rows, async row => await this.storageRowToDBM(row))
   }
 
@@ -855,7 +859,6 @@ export class CommonDao<
    */
   private async decompress(dbm: DBM): Promise<void> {
     _typeCast<Compressed<DBM>>(dbm)
-    if (!this.cfg.compress) return // Auto-compression not turned on
     if (!Buffer.isBuffer(dbm.data)) return // No compressed data
 
     // try-catch to avoid a `data` with Buffer which is not compressed, but legit data
@@ -971,6 +974,40 @@ export class CommonDao<
       row: row as any,
       opt: opt as any,
     }
+  }
+
+  /**
+   * Helper to decompress legacy compressed data when migrating away from auto-compression.
+   * Use as your `beforeDBMToBM` hook to decompress legacy rows on read.
+   *
+   * @example
+   * const dao = new CommonDao({
+   *   hooks: {
+   *     beforeDBMToBM: CommonDao.decompressLegacyRow,
+   *   }
+   * })
+   *
+   * // Or within an existing hook:
+   * beforeDBMToBM: async (dbm) => {
+   *   await CommonDao.decompressLegacyRow(dbm)
+   *   // ... other transformations
+   *   return dbm
+   * }
+   */
+  static async decompressLegacyRow<T extends ObjectWithId>(row: T): Promise<T> {
+    const data = (row as any).data
+    if (!Buffer.isBuffer(data)) return row
+
+    try {
+      const bufferString = await decompressZstdOrInflateToString(data)
+      const properties = JSON.parse(bufferString)
+      ;(row as any).data = undefined
+      Object.assign(row, properties)
+    } catch {
+      // Decompression failed - data field is not compressed, leave as-is
+    }
+
+    return row
   }
 
   /**
