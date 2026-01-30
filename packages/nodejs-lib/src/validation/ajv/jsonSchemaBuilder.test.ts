@@ -6,6 +6,7 @@ import type {
   BaseDBEntity,
   Branded,
   IANATimezone,
+  IsoDate,
   StringMap,
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
@@ -72,6 +73,28 @@ describe('string', () => {
       const schema2 = j.object<{ foo?: string }>({ foo: j.string().optional(['']) })
       expectTypeOf(schema2.in).toEqualTypeOf<{ foo?: string }>()
       expectTypeOf(schema2.out).toEqualTypeOf<{ foo?: string }>()
+    })
+  })
+
+  describe('isoDate', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.string().isoDate()
+      expectTypeOf(schema1.in).toEqualTypeOf<string | IsoDate>()
+      expectTypeOf(schema1.out).toEqualTypeOf<IsoDate>()
+    })
+
+    describe('optional([null])', () => {
+      test('should correctly infer the type', () => {
+        const schema1 = j.string().isoDate().optional([null])
+        expectTypeOf(schema1.in).toEqualTypeOf<string | IsoDate | undefined>()
+        expectTypeOf(schema1.out).toEqualTypeOf<IsoDate | undefined>()
+
+        const schema2 = j.object<{ date?: IsoDate }>({
+          date: j.string().isoDate().optional([null]),
+        })
+        expectTypeOf(schema2.in).toEqualTypeOf<{ date?: IsoDate }>()
+        expectTypeOf(schema2.out).toEqualTypeOf<{ date?: IsoDate }>()
+      })
     })
   })
 })

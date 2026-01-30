@@ -718,22 +718,21 @@ export class JsonSchemaIsoDateBuilder<Opt extends boolean = false> extends JsonS
     optionalValues?: T,
   ): T extends readonly null[]
     ? JsonSchemaTerminal<string | IsoDate | undefined, IsoDate | undefined, true>
-    : JsonSchemaIsoDateBuilder<true> {
+    : JsonSchemaAnyBuilder<string | IsoDate | undefined, IsoDate | undefined, true> {
     if (!optionalValues) {
       return super.optional() as any
     }
 
     _typeCast<null[]>(optionalValues)
 
+    const optionalBuilder = this.cloneAndUpdateSchema({ optionalField: true })
+
     const newBuilder = new JsonSchemaTerminal<
       string | IsoDate | undefined,
       IsoDate | undefined,
       true
     >({
-      anyOf: [
-        { type: 'null', optionalValues },
-        this.cloneAndUpdateSchema({ optionalField: true }).build(),
-      ],
+      anyOf: [{ type: 'null', optionalValues }, optionalBuilder.build()],
       optionalField: true,
     })
 

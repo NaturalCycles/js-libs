@@ -1,4 +1,8 @@
 {
   "extends": "@naturalcycles/dev-lib/cfg/tsconfig.scripts.json",
-  "compilerOptions": {}
+  "compilerOptions": {
+    // Skip checking .d.ts files to avoid false positives from complex mapped type overrides
+    // that TypeScript can't verify (e.g., JsonSchemaObjectInferringBuilder.optional)
+    "skipLibCheck": true
+  }
 }

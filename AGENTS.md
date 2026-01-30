@@ -14,6 +14,8 @@ When working on a task - use `pnpm quick-check` to quickly validate the progress
 be done - use `pnpm check` to run full validation. Always run `pnpm check` before handing over the
 work.
 
+Never use npm or npx - use pnpm or pnpx instead.
+
 ## Code Style & Standards
 
 - **Performance:** All code must be performance-optimized by default.
