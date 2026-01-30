@@ -683,6 +683,30 @@ describe('string', () => {
       })
     })
 
+    describe('optional(values)', () => {
+      test('should work with `null` values', () => {
+        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
+        const ajvSchema = AjvSchema.create(schema)
+
+        const [err1, result1] = ajvSchema.getValidationResult({ date: '2025-01-15' as IsoDate })
+        expect(err1).toBeNull()
+        expect(result1).toEqual({ date: '2025-01-15' })
+
+        const [err2, result2] = ajvSchema.getValidationResult({ date: null } as any)
+        expect(err2).toBeNull()
+        expect(result2).toEqual({ date: undefined })
+      })
+
+      test('should still be an optional field when passing in `null`', () => {
+        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
+        const ajvSchema = AjvSchema.create(schema)
+
+        const [err1, result1] = ajvSchema.getValidationResult({})
+        expect(err1).toBeNull()
+        expect(result1).toEqual({})
+      })
+    })
+
     describe('before', () => {
       test('should accept valid data', () => {
         const testCases: any[] = ['2018-06-20']

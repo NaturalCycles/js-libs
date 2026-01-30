@@ -703,6 +703,43 @@ export class JsonSchemaIsoDateBuilder<Opt extends boolean = false> extends JsonS
     })
   }
 
+  /**
+   * @param optionalValues List of values that should be considered/converted as `undefined`.
+   *
+   * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   *
+   * Make sure this `optional()` call is at the end of your call chain.
+   *
+   * When `null` is included in optionalValues, the return type becomes `JsonSchemaTerminal`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
+   */
+  override optional<T extends readonly null[] | undefined = undefined>(
+    optionalValues?: T,
+  ): T extends readonly null[]
+    ? JsonSchemaTerminal<string | IsoDate | undefined, IsoDate | undefined, true>
+    : JsonSchemaIsoDateBuilder<true> {
+    if (!optionalValues) {
+      return super.optional() as any
+    }
+
+    _typeCast<null[]>(optionalValues)
+
+    const newBuilder = new JsonSchemaTerminal<
+      string | IsoDate | undefined,
+      IsoDate | undefined,
+      true
+    >({
+      anyOf: [
+        { type: 'null', optionalValues },
+        this.cloneAndUpdateSchema({ optionalField: true }).build(),
+      ],
+      optionalField: true,
+    })
+
+    return newBuilder as any
+  }
+
   before(date: string): this {
     return this.cloneAndUpdateSchema({ IsoDate: { before: date } })
   }
