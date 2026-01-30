@@ -9,20 +9,25 @@ import {
   stringIdNonAmbiguous,
   unmockStringId,
 } from '../index.js'
-import {
-  base62Schema,
-  base64Schema,
-  base64UrlSchema,
-  idBase62Schema,
-  idBase64Schema,
-  idBase64UrlSchema,
-  validate,
-} from '../validation/joi/index.js'
+import { AjvSchema } from '../validation/ajv/ajvSchema.js'
+import { j } from '../validation/ajv/jsonSchemaBuilder.js'
+import { BASE62_REGEX, BASE64_REGEX, BASE64URL_REGEX } from '../validation/regexes.js'
 
 const stringIdRegex = /^[a-z0-9]*$/
 const base62regex = /^[a-zA-Z0-9]*$/
 const base64regex = /^[a-zA-Z0-9+/]*$/
 const base64urlRegex = /^[a-zA-Z0-9-_]*$/
+
+const base62Schema = AjvSchema.create(j.string().regex(BASE62_REGEX).build())
+const idBase62Schema = AjvSchema.create(j.string().regex(BASE62_REGEX).minLength(8).build())
+const base64Schema = AjvSchema.create(j.string().regex(BASE64_REGEX).build())
+const idBase64Schema = AjvSchema.create(j.string().regex(BASE64_REGEX).minLength(8).build())
+const base64UrlSchema = AjvSchema.create(j.string().regex(BASE64URL_REGEX).build())
+const idBase64UrlSchema = AjvSchema.create(j.string().regex(BASE64URL_REGEX).minLength(8).build())
+
+function validate(value: string, schema: AjvSchema<string>): void {
+  schema.validate(value)
+}
 
 test('stringId', () => {
   const id = stringId()

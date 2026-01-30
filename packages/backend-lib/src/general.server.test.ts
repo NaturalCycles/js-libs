@@ -6,14 +6,14 @@ import {
   HttpRequestError,
   pExpectedError,
 } from '@naturalcycles/js-lib/error'
-import { anySchema, arraySchema, objectSchema } from '@naturalcycles/nodejs-lib/joi'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { deflateString } from '@naturalcycles/nodejs-lib/zip'
 import { afterAll, expect, test } from 'vitest'
 import { getDefaultRouter } from './express/getDefaultRouter.js'
 import { safeJsonMiddleware } from './server/safeJsonMiddleware.js'
 import type { BackendRequest } from './server/server.model.js'
 import { expressTestService } from './testing/index.js'
-import { validateRequest } from './validation/joi/joiValidateRequest.js'
+import { ajvValidateRequest } from './validation/ajv/ajvValidateRequest.js'
 
 const router = getDefaultRouter()
 
@@ -31,14 +31,12 @@ router.get('/circular', safeJsonMiddleware(), async req => {
   })
 })
 
-router.post('/compressedBody', async (req, res) => {
-  const body = validateRequest.body(
-    req,
-    objectSchema({
-      items: arraySchema(anySchema),
-    }),
-  )
+const compressedBodySchema = j.object<{ items: any[] }>({
+  items: j.array(j.any()),
+})
 
+router.post('/compressedBody', async (req, res) => {
+  const body = ajvValidateRequest.body(req, compressedBodySchema)
   res.json(body)
 })
 

@@ -61,7 +61,6 @@
     "./deploy/*.js": "./dist/deploy/*.js",
     "./express/*.js": "./dist/express/*.js",
     "./ajvValidateRequest": "./dist/validation/ajv/ajvValidateRequest.js",
-    "./joiValidateRequest": "./dist/validation/joi/joiValidateRequest.js",
     "./zodValidateRequest": "./dist/validation/zod/zodValidateRequest.js",
     "./onFinished": "./dist/onFinished.js",
     "./testing": "./dist/testing/index.js"

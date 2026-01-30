@@ -7,20 +7,14 @@ pn tsx scripts/validation.bench.script.ts
 import http from 'node:http'
 import { runCannon } from '@naturalcycles/bench-lib'
 import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
-import { objectSchema, stringSchema } from '@naturalcycles/nodejs-lib/joi'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import express from 'express'
 import type { BackendApplication } from '../src/index.js'
 import { ajvValidateRequest } from '../src/validation/ajv/ajvValidateRequest.js'
-import { validateRequest } from '../src/validation/joi/joiValidateRequest.js'
 
 interface PwInput {
   pw: string
 }
-
-const pwInputSchema = objectSchema<PwInput>({
-  pw: stringSchema.min(6),
-})
 
 const pwInputSchemaAjv = AjvSchema.create<PwInput>(
   j.object<PwInput>({
@@ -55,14 +49,14 @@ runScript(async () => {
         })
         return http.createServer(app)
       },
-      '03-joi': async () => {
-        const app = createApp()
-        app.post('/', (req, res) => {
-          const _input = validateRequest.body(req, pwInputSchema)
-          res.json({ hello: 'world' })
-        })
-        return http.createServer(app)
-      },
+      // '03-joi': async () => {
+      //   const app = createApp()
+      //   app.post('/', (req, res) => {
+      //     const _input = validateRequest.body(req, pwInputSchema)
+      //     res.json({ hello: 'world' })
+      //   })
+      //   return http.createServer(app)
+      // },
     },
     {
       name: 'validation',
