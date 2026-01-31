@@ -30,7 +30,7 @@ importers:
         specifier: ^25
         version: 25.1.0
       '@typescript/native-preview':
-        specifier: '*'
+        specifier: ^7.0.0-0
         version: 7.0.0-dev.20260131.1
       '@vitest/coverage-v8':
         specifier: ^4
@@ -340,7 +340,7 @@ importers:
         specifier: workspace:^15
         version: link:../nodejs-lib
       '@typescript/native-preview':
-        specifier: '*'
+        specifier: ^7.0.0-0
         version: 7.0.0-dev.20260131.1
       '@vitest/coverage-v8':
         specifier: ^4

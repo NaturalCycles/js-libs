@@ -1,5 +1,5 @@
 {
-  "name": "@naturalcycles/js-libs",
+  "name": "js-libs",
   "type": "module",
   "private": true,
   "scripts": {
@@ -98,7 +98,7 @@
     "@naturalcycles/nodejs-lib": "workspace:*",
     "@semantic-release/git": "^10",
     "@types/node": "^25",
-    "@typescript/native-preview": "*",
+    "@typescript/native-preview": "^7.0.0-0",
     "@vitest/coverage-v8": "^4",
     "dotenv": "^17",
     "eslint": "^9",
@@ -116,5 +116,5 @@
   "engines": {
     "node": ">=24.11.0"
   },
-  "packageManager": "pnpm@10.28.0"
+  "packageManager": "pnpm@10.28.2"
 }

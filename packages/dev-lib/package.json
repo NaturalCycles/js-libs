@@ -43,7 +43,7 @@
     "typescript-eslint": "^8"
   },
   "peerDependencies": {
-    "@typescript/native-preview": "*",
+    "@typescript/native-preview": "^7.0.0-0",
     "husky": "^9",
     "stylelint": "^16",
     "stylelint-config-standard-scss": "^16",
