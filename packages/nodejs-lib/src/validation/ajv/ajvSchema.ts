@@ -8,8 +8,6 @@ import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _filterNullishValues } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
 import { _typeCast, type AnyObject } from '@naturalcycles/js-lib/types'
-import type { ZodType } from '@naturalcycles/js-lib/zod'
-import { z } from '@naturalcycles/js-lib/zod'
 import type { Ajv, ErrorObject } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
 import { AjvValidationError } from './ajvValidationError.js'
@@ -91,19 +89,6 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     AjvSchema.cacheAjvSchema(schema, ajvSchema)
 
     return ajvSchema
-  }
-
-  /**
-   * @deprecated Use `j` to build schemas, not `z` or `zod`.
-   */
-  static createFromZod<T extends ZodType<any, any, any>>(
-    schema: T,
-  ): AjvSchema<T['_input'], T['_output']> {
-    const jsonSchema = z.toJSONSchema(schema, {
-      target: 'draft-2020-12',
-    }) as unknown as JsonSchema<T['_input'], T['_output']>
-
-    return AjvSchema.create(jsonSchema)
   }
 
   static isJsonSchemaBuilder<IN, OUT>(schema: unknown): schema is JsonSchemaTerminal<IN, OUT, any> {
