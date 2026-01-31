@@ -1,7 +1,7 @@
-import { AjvSchema, getAjv } from '@naturalcycles/nodejs-lib/ajv'
+import { AjvSchema, getAjv, type JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, test } from 'vitest'
 import type { IsoDate, UnixTimestamp } from '../types.js'
-import { customZodSchemas, z, type zInfer } from './index.js'
+import { customZodSchemas, z, type zInfer, type ZodType } from './index.js'
 
 test.each(Object.keys(customZodSchemas))(
   'custom zod schemas like "z.%s" should properly convert to JSON schema and AJV schema',
@@ -55,7 +55,7 @@ describe('z.dbEntity', () => {
     expect(result).toEqual(data)
     expect(result.id).toBe('123')
 
-    const ajvResult = AjvSchema.createFromZod(zodSchema).getValidationResult(data)
+    const ajvResult = createAjvSchemaFromZod(zodSchema).getValidationResult(data)
     expect(ajvResult[0]).toBeNull()
     expect(ajvResult[1]).toBe(data)
   })
@@ -75,7 +75,7 @@ describe('z.dbEntity', () => {
     expect(result.id).toBe('123')
     expect(result.name).toBe('Test Entity')
 
-    const ajvResult = AjvSchema.createFromZod(zodSchema).getValidationResult(data)
+    const ajvResult = createAjvSchemaFromZod(zodSchema).getValidationResult(data)
     expect(ajvResult[0]).toBeNull()
     expect(ajvResult[1]).toBe(data)
   })
@@ -89,7 +89,7 @@ describe('z.isoDate', () => {
     const result = schema.parse(date)
     expect(result).toBe(date)
 
-    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(date)
+    const ajvResult = createAjvSchemaFromZod(schema).getValidationResult(date)
     expect(ajvResult[0]).toBeNull()
     expect(ajvResult[1]).toBe(date)
   })
@@ -109,8 +109,18 @@ describe('z.isoDate', () => {
     const result = schema.safeParse(date)
     expect(result.success).toBe(false)
 
-    const ajvResult = AjvSchema.createFromZod(schema).getValidationResult(date)
+    const ajvResult = createAjvSchemaFromZod(schema).getValidationResult(date)
     expect(ajvResult[0]).not.toBeNull()
     expect(ajvResult[1]).toBe(date)
   })
 })
+
+function createAjvSchemaFromZod<T extends ZodType<any, any, any>>(
+  schema: T,
+): AjvSchema<T['_input'], T['_output']> {
+  const jsonSchema = z.toJSONSchema(schema, {
+    target: 'draft-2020-12',
+  }) as unknown as JsonSchema<T['_input'], T['_output']>
+
+  return AjvSchema.create(jsonSchema)
+}
