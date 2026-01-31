@@ -37,7 +37,6 @@
     "globals": "^17",
     "lint-staged": "^16",
     "micromatch": "^4",
-    "mitm": "^1",
     "oxlint": "^1",
     "oxlint-tsgolint": "*",
     "prettier": "^3",
@@ -58,7 +57,6 @@
     }
   },
   "devDependencies": {
-    "@types/mitm": "^1",
     "@types/node": "^25",
     "@types/prompts": "^2"
   },

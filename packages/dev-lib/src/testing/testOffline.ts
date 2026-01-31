@@ -1,12 +1,12 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { red } from '@naturalcycles/nodejs-lib/colors'
-import createMitm from 'mitm'
+import { createMitm, type Mitm } from '../vendor/mitm.js'
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
 
 const detectLeaks = process.argv.some(a => a.includes('detectLeaks'))
 
-let mitm: createMitm.Mitm | undefined
+let mitm: Mitm | undefined
 
 /**
  * Based on: https://github.com/palmerj3/jest-offline/blob/master/index.js
