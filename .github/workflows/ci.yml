@@ -8,7 +8,7 @@ env:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     if: "!contains(github.event.head_commit.message , 'skip ci')"
     steps:
       - { uses: actions/checkout@v6, with: { persist-credentials: false } }
@@ -29,7 +29,7 @@ jobs:
       - run: pnpm test
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     if: github.ref_name == 'main'
     permissions:
       id-token: write # Required for OIDC
@@ -46,7 +46,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   docs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     if: github.ref_name == 'main'
     steps:
       - { uses: actions/checkout@v6, with: { persist-credentials: false } }
