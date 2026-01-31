@@ -4,11 +4,18 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
-import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _ms, _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
-import type { AnyObject, SemVerString, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
+import {
+  _stringMapEntries,
+  type AnyObject,
+  type NumberOfMilliseconds,
+  type SemVerString,
+  type StringMap,
+  type UnixTimestampMillis,
+} from '@naturalcycles/js-lib/types'
 import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
@@ -36,7 +43,13 @@ export interface CheckOptions {
   stylelint?: boolean
   prettier?: boolean
   ktlint?: boolean
-  typecheckWithTSC?: boolean
+  /**
+   * true - run tsgo, otherwise tsc
+   * tsgo - run tsgo
+   * tsc - run tsc
+   * false - skip
+   */
+  typecheck?: boolean | 'tsc' | 'tsgo'
   test?: boolean
 }
 
@@ -52,10 +65,12 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
     stylelint = true,
     prettier = true,
     ktlint = true,
-    typecheckWithTSC: runTSC = true,
+    typecheck = true,
     test = true,
   } = opt
   const started = Date.now() as UnixTimestampMillis
+  let s: number
+  const timings: StringMap<NumberOfMilliseconds> = {}
   // const { commitOnChanges, failOnChanges } = _yargs().options({
   //   commitOnChanges: {
   //     type: 'boolean',
@@ -84,45 +99,77 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
 
     runActionLint()
 
-    runBiome(fix)
+    s = Date.now()
+    if (runBiome(fix)) {
+      timings['biome'] = Date.now() - s
+    }
 
-    runOxlint(fix)
+    s = Date.now()
+    if (runOxlint(fix)) {
+      timings['oxlint'] = Date.now() - s
+    }
   }
 
   // From this point we start the "slow" linters, with ESLint leading the way
 
   if (eslint) {
     // We run eslint BEFORE Prettier, because eslint can delete e.g unused imports.
-    eslintAll({
-      fix,
-    })
+    s = Date.now()
+    if (eslintAll({ fix })) {
+      timings['eslint'] = Date.now() - s
+    }
   }
 
   if (
     stylelint &&
-    existsSync(`node_modules/stylelint`) &&
-    existsSync(`node_modules/stylelint-config-standard-scss`)
+    hasDependencyInNodeModules('stylelint') &&
+    hasDependencyInNodeModules('stylelint-config-standard-scss')
   ) {
-    stylelintAll(fix)
+    s = Date.now()
+    if (stylelintAll(fix)) {
+      timings['stylelint'] = Date.now() - s
+    }
   }
 
   if (prettier) {
-    runPrettier({ fix })
+    s = Date.now()
+    if (runPrettier({ fix })) {
+      timings['prettier'] = Date.now() - s
+    }
   }
 
   if (ktlint) {
-    await runKTLint(fix)
+    s = Date.now()
+    if (await runKTLint(fix)) {
+      timings['ktlint'] = Date.now() - s
+    }
   }
 
-  if (runTSC) {
-    await typecheckWithTSC()
+  if (typecheck) {
+    s = Date.now()
+    if (typecheck === 'tsgo') {
+      await typecheckWithTSGO()
+      timings['tsgo'] = Date.now() - s
+    } else if (typecheck === 'tsc') {
+      await typecheckWithTSC()
+      timings['tsc'] = Date.now() - s
+    } else {
+      await typecheckWithTS()
+      timings['typecheck'] = Date.now() - s
+    }
   }
 
   if (test) {
-    runTest()
+    s = Date.now()
+    if (runTest()) {
+      timings['test'] = Date.now() - s
+    }
   }
 
   console.log(`${check(true)}${white(`check`)} ${dimGrey(`took ` + _since(started))}`)
+  for (const [job, ms] of _stringMapEntries(timings)) {
+    console.log(`${job.padStart(12, ' ')}: ${String(_ms(ms)).padStart(10, ' ')}`)
+  }
 
   // if (needToTrackChanges) {
   //   const gitStatusAfter = gitStatus()
@@ -152,8 +199,10 @@ interface EslintAllOptions {
 
 /**
  * Runs `eslint` command for all predefined paths (e.g /src, /scripts, etc).
+ *
+ * Returns true if it ran
  */
-export function eslintAll(opt?: EslintAllOptions): void {
+export function eslintAll(opt?: EslintAllOptions): boolean {
   const { argv } = _yargs().options({
     ext: {
       type: 'string',
@@ -172,14 +221,17 @@ export function eslintAll(opt?: EslintAllOptions): void {
 
   const extensions = ext.split(',')
 
-  runESLint(extensions, fix)
+  return runESLint(extensions, fix)
 }
 
-function runESLint(extensions = eslintExtensions.split(','), fix = true): void {
+/**
+ * Returns true if it ran.
+ */
+function runESLint(extensions = eslintExtensions.split(','), fix = true): boolean {
   const eslintConfigPath = `eslint.config.js`
   if (!existsSync(eslintConfigPath)) {
     // faster to bail-out like this
-    return
+    return false
   }
 
   // const tsconfigRootDir = [cwd, configDir !== '.' && configDir].filter(Boolean).join('/')
@@ -210,12 +262,16 @@ function runESLint(extensions = eslintExtensions.split(','), fix = true): void {
       TIMING: CI ? 'true' : '',
     }),
   })
+  return true
 }
 
-export function runOxlint(fix = true): void {
+/**
+ * Returns true if it ran.
+ */
+export function runOxlint(fix = true): boolean {
   if (!hasOxlintConfig()) {
     console.log('.oxlintrc.json is not found, skipping to run oxlint')
-    return
+    return false
   }
 
   const oxlintPath = findPackageBinPath('oxlint', 'oxlint')
@@ -233,6 +289,7 @@ export function runOxlint(fix = true): void {
     ].filter(_isTruthy),
     shell: false,
   })
+  return true
 }
 
 export function requireOxlintConfig(): void {
@@ -260,10 +317,15 @@ interface RunPrettierOptions {
   fix?: boolean // default: write
 }
 
-export function runPrettier(opt: RunPrettierOptions = {}): void {
+/**
+ * Returns true if it ran.
+ */
+export function runPrettier(opt: RunPrettierOptions = {}): boolean {
   let { experimentalCli = true, fix = true } = opt
   const prettierConfigPath = [`./prettier.config.js`].find(f => existsSync(f))
-  if (!prettierConfigPath) return
+  if (!prettierConfigPath) {
+    return false
+  }
 
   const prettierPath = findPackageBinPath('prettier', 'prettier')
   const cacheLocation = 'node_modules/.cache/prettier'
@@ -291,6 +353,7 @@ export function runPrettier(opt: RunPrettierOptions = {}): void {
     ].filter(_isTruthy),
     shell: false,
   })
+  return true
 }
 
 const stylelintPaths = [
@@ -301,7 +364,10 @@ const stylelintPaths = [
   ...lintExclude.map((s: string) => `!${s}`),
 ]
 
-export function stylelintAll(fix?: boolean): void {
+/**
+ * Returns true if it ran.
+ */
+export function stylelintAll(fix?: boolean): boolean {
   const argv = _yargs().options({
     fix: {
       type: 'boolean',
@@ -312,7 +378,9 @@ export function stylelintAll(fix?: boolean): void {
   fix ??= argv.fix
 
   const config = [`./stylelint.config.js`].find(f => existsSync(f))
-  if (!config) return
+  if (!config) {
+    return false
+  }
 
   // stylelint is never hoisted from dev-lib, so, no need to search for its path
   exec2.spawn('stylelint', {
@@ -322,6 +390,7 @@ export function stylelintAll(fix?: boolean): void {
     ),
     shell: false,
   })
+  return true
 }
 
 export async function lintStagedCommand(): Promise<void> {
@@ -337,25 +406,38 @@ export async function lintStagedCommand(): Promise<void> {
   if (!success) process.exit(3)
 }
 
-async function runKTLint(fix = true): Promise<void> {
-  if (!existsSync(`node_modules/@naturalcycles/ktlint`)) return
+/**
+ * Returns true if it ran.
+ */
+async function runKTLint(fix = true): Promise<boolean> {
+  if (!existsSync(`node_modules/@naturalcycles/ktlint`)) {
+    return false
+  }
   // @ts-expect-error ktlint is not installed (due to size in node_modules), but it's ok
   const { ktlintAll } = await import('@naturalcycles/ktlint')
   await ktlintAll(fix ? ['-F'] : [])
+  return true
 }
 
-function runActionLint(): void {
+/**
+ * Returns true if it ran.
+ */
+function runActionLint(): boolean {
   // Only run if there is a folder of `.github/workflows`, otherwise actionlint will fail
-  if (!existsSync('.github/workflows')) return
+  if (!existsSync('.github/workflows')) {
+    return false
+  }
 
   if (canRunBinary('actionlint')) {
     requireActionlintVersion()
     exec2.spawn(`actionlint`)
-  } else {
-    console.log(
-      `actionlint is not installed and won't be run.\nThis is how to install it: https://github.com/rhysd/actionlint/blob/main/docs/install.md`,
-    )
+    return true
   }
+
+  console.log(
+    `actionlint is not installed and won't be run.\nThis is how to install it: https://github.com/rhysd/actionlint/blob/main/docs/install.md`,
+  )
+  return false
 }
 
 export function requireActionlintVersion(): void {
@@ -375,11 +457,14 @@ export function getActionLintVersion(): SemVerString | undefined {
   return exec2.exec('actionlint --version').split('\n')[0]
 }
 
-export function runBiome(fix = true): void {
+/**
+ * Returns true if it ran.
+ */
+export function runBiome(fix = true): boolean {
   const configPath = `biome.jsonc`
   if (!existsSync(configPath)) {
     console.log(`biome is skipped, because ./biome.jsonc is not present`)
-    return
+    return false
   }
 
   const biomePath = findPackageBinPath('@biomejs/biome', 'biome')
@@ -392,6 +477,7 @@ export function runBiome(fix = true): void {
     ),
     shell: false,
   })
+  return true
 }
 
 export async function buildProd(): Promise<void> {
@@ -400,9 +486,23 @@ export async function buildProd(): Promise<void> {
   await runTSCProd()
 }
 
+/**
+ * Uses tsgo if it's installed, otherwise tsc
+ */
+export async function typecheckWithTS(): Promise<void> {
+  if (hasDependencyInNodeModules('@typescript/native-preview')) {
+    await typecheckWithTSGO()
+  }
+
+  await typecheckWithTSC()
+}
+
 export async function typecheckWithTSC(): Promise<void> {
-  // todo: try tsgo
   await runTSCInFolders(['src', 'scripts', 'e2e'], ['--noEmit'])
+}
+
+export async function typecheckWithTSGO(): Promise<void> {
+  await runTSGOInFolders(['src', 'scripts', 'e2e'], ['--noEmit', '--incremental', 'false'])
 }
 
 /**
@@ -448,6 +548,46 @@ async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
   })
 }
 
+/**
+ * Use 'src' to indicate root.
+ */
+export async function runTSGOInFolders(
+  dirs: string[],
+  args: string[] = [],
+  parallel = true,
+): Promise<void> {
+  if (parallel) {
+    await Promise.all(dirs.map(dir => runTSGOInFolder(dir, args)))
+  } else {
+    for (const dir of dirs) {
+      await runTSGOInFolder(dir, args)
+    }
+  }
+}
+
+/**
+ * Pass 'src' to run in root.
+ */
+async function runTSGOInFolder(dir: string, args: string[] = []): Promise<void> {
+  let configDir = dir
+  if (dir === 'src') {
+    configDir = ''
+  }
+  const tsconfigPath = [configDir, 'tsconfig.json'].filter(Boolean).join('/')
+
+  if (!fs2.pathExists(tsconfigPath) || !fs2.pathExists(dir)) {
+    // console.log(`Skipping to run tsgo for ${tsconfigPath}, as it doesn't exist`)
+    return
+  }
+
+  const tsgoPath = findPackageBinPath('@typescript/native-preview', 'tsgo')
+
+  await exec2.spawnAsync(tsgoPath, {
+    args: ['-P', tsconfigPath, ...args],
+    shell: false,
+  })
+}
+
 export async function runTSCProd(args: string[] = []): Promise<void> {
   const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
 
@@ -485,14 +625,18 @@ interface RunTestOptions {
   leaks?: boolean
 }
 
-export function runTest(opt: RunTestOptions = {}): void {
+/**
+ * Returns true if it ran.
+ */
+export function runTest(opt: RunTestOptions = {}): boolean {
   // if (nodeModuleExists('vitest')) {
   if (fs2.pathExists('vitest.config.ts')) {
     runVitest(opt)
-    return
+    return true
   }
 
   console.log(dimGrey(`vitest.config.ts not found, skipping tests`))
+  return false
 }
 
 function runVitest(opt: RunTestOptions): void {
@@ -534,6 +678,10 @@ function canRunBinary(name: string): boolean {
   } catch {
     return false
   }
+}
+
+function hasDependencyInNodeModules(name: string): boolean {
+  return existsSync(`node_modules/${name}`)
 }
 
 // function gitStatus(): string | undefined {

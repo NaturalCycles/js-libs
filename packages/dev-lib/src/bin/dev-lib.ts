@@ -16,7 +16,9 @@ import {
   runPrettier,
   runTest,
   stylelintAll,
+  typecheckWithTS,
   typecheckWithTSC,
+  typecheckWithTSGO,
 } from '../check.util.js'
 import { runCommitlint } from '../commitlint.js'
 
@@ -35,17 +37,21 @@ const commands: Command[] = [
     fn: quickCheck,
     desc: 'Like check, but without slow parts, to perform preliminary checks',
   },
-  { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" (via oxlint) and then "test".' },
+  { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" and then "test".' },
   {
     name: 'typecheck',
-    // fn: typecheckWithOxlint,
-    fn: typecheckWithTSC, // todo: attempt tsgo
-    desc: 'Run typecheck via oxlint --type-aware',
+    fn: typecheckWithTS,
+    desc: 'Run typecheck via tsgo (if available) or tsc',
   },
   {
     name: 'typecheck-with-tsc',
     fn: typecheckWithTSC,
-    desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present. Deprecated, use oxlint type-checking instead.',
+    desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present.',
+  },
+  {
+    name: 'typecheck-with-tsgo',
+    fn: typecheckWithTSGO,
+    desc: 'Run typecheck (tsgo) in folders (src, scripts, e2e) if there is tsconfig.json present.',
   },
   {
     name: 'build',
@@ -87,7 +93,7 @@ const commands: Command[] = [
     name: 'lint',
     fn: () =>
       runCheck({
-        typecheckWithTSC: false,
+        typecheck: false,
         test: false,
       }),
     desc: 'Run all linters: eslint, prettier, stylelint, ktlint, actionlint.',
@@ -193,15 +199,14 @@ async function quickCheck(): Promise<void> {
     eslint: false,
     prettier: false,
     stylelint: false,
-    typecheckWithTSC: false,
+    typecheck: false,
   })
 }
 
 async function bt(): Promise<void> {
-  // Still using tsc, as oxlint is found to fail in certain cases
-  // todo: attempt to use tsgo!
+  // Still using ts, as oxlint is found to fail in certain cases
   // await typecheckWithOxlint()
-  await typecheckWithTSC()
+  await typecheckWithTS()
   runTest()
 }
 
