@@ -83,14 +83,14 @@ describe('string', () => {
       expectTypeOf(schema1.out).toEqualTypeOf<IsoDate>()
     })
 
-    describe('optional([null])', () => {
+    describe('optional(null)', () => {
       test('should correctly infer the type', () => {
-        const schema1 = j.string().isoDate().optional([null])
-        expectTypeOf(schema1.in).toEqualTypeOf<string | IsoDate | undefined>()
+        const schema1 = j.string().isoDate().optional(null)
+        expectTypeOf(schema1.in).toEqualTypeOf<string | IsoDate | null | undefined>()
         expectTypeOf(schema1.out).toEqualTypeOf<IsoDate | undefined>()
 
         const schema2 = j.object<{ date?: IsoDate }>({
-          date: j.string().isoDate().optional([null]),
+          date: j.string().isoDate().optional(null),
         })
         expectTypeOf(schema2.in).toEqualTypeOf<{ date?: IsoDate }>()
         expectTypeOf(schema2.out).toEqualTypeOf<{ date?: IsoDate }>()
