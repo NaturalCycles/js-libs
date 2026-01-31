@@ -15,9 +15,19 @@
     "test-ny": "TZ=GMT-0500 yarn test localTime"
   },
   "dependencies": {
-    "tslib": "^2",
+    "tslib": "^2"
+  },
+  "peerDependencies": {
     "undici": "^7",
     "zod": "^4"
+  },
+  "peerDependenciesMeta": {
+    "undici": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
