@@ -10,7 +10,7 @@ import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import type { BackendRouter } from '../server/server.model.js'
-import { ajvValidateRequest } from '../validation/ajv/ajvValidateRequest.js'
+import { validateRequest } from '../validation/ajv/validateRequest.js'
 
 export interface GetByIdsInput {
   table: string
@@ -83,27 +83,27 @@ export function httpDBRequestHandler(db: CommonDB): BackendRouter {
 
   // getByIds
   router.put('/getByIds', async (req, res) => {
-    const { table, ids, opt } = ajvValidateRequest.body(req, getByIdsInputSchema)
+    const { table, ids, opt } = validateRequest.body(req, getByIdsInputSchema)
     res.json(await db.getByIds(table, ids, opt))
   })
 
   // runQuery
   router.put('/runQuery', async (req, res) => {
-    const { query, opt } = ajvValidateRequest.body(req, runQueryInputSchema)
+    const { query, opt } = validateRequest.body(req, runQueryInputSchema)
     const q = DBQuery.fromPlainObject(query)
     res.json(await db.runQuery(q, opt))
   })
 
   // runQueryCount
   router.put('/runQueryCount', async (req, res) => {
-    const { query, opt } = ajvValidateRequest.body(req, runQueryInputSchema)
+    const { query, opt } = validateRequest.body(req, runQueryInputSchema)
     const q = DBQuery.fromPlainObject(query)
     res.json(await db.runQueryCount(q, opt))
   })
 
   // saveBatch
   router.put('/saveBatch', async (req, res) => {
-    const { table, rows, opt } = ajvValidateRequest.body(req, saveBatchInputSchema)
+    const { table, rows, opt } = validateRequest.body(req, saveBatchInputSchema)
     await db.saveBatch(table, rows, opt)
     res.end()
   })
@@ -116,7 +116,7 @@ export function httpDBRequestHandler(db: CommonDB): BackendRouter {
 
   // deleteByQuery
   router.put('/deleteByQuery', async (req, res) => {
-    const { query, opt } = ajvValidateRequest.body(req, runQueryInputSchema)
+    const { query, opt } = validateRequest.body(req, runQueryInputSchema)
     const q = DBQuery.fromPlainObject(query)
     res.json(await db.deleteByQuery(q, opt))
   })

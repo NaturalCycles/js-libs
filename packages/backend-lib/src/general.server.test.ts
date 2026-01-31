@@ -13,7 +13,7 @@ import { getDefaultRouter } from './express/getDefaultRouter.js'
 import { safeJsonMiddleware } from './server/safeJsonMiddleware.js'
 import type { BackendRequest } from './server/server.model.js'
 import { expressTestService } from './testing/index.js'
-import { ajvValidateRequest } from './validation/ajv/ajvValidateRequest.js'
+import { validateRequest } from './validation/ajv/validateRequest.js'
 
 const router = getDefaultRouter()
 
@@ -36,7 +36,7 @@ const compressedBodySchema = j.object<{ items: any[] }>({
 })
 
 router.post('/compressedBody', async (req, res) => {
-  const body = ajvValidateRequest.body(req, compressedBodySchema)
+  const body = validateRequest.body(req, compressedBodySchema)
   res.json(body)
 })
 

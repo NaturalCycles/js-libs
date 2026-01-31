@@ -104,4 +104,4 @@ class AjvValidateRequest {
   }
 }
 
-export const ajvValidateRequest = new AjvValidateRequest()
+export const validateRequest = new AjvValidateRequest()

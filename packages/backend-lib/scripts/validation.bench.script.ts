@@ -10,7 +10,7 @@ import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import express from 'express'
 import type { BackendApplication } from '../src/index.js'
-import { ajvValidateRequest } from '../src/validation/ajv/ajvValidateRequest.js'
+import { validateRequest } from '../src/validation/ajv/validateRequest.js'
 
 interface PwInput {
   pw: string
@@ -43,7 +43,7 @@ runScript(async () => {
       '02-ajv': async () => {
         const app = createApp()
         app.post('/', (req, res) => {
-          ajvValidateRequest.body(req, pwInputSchemaAjv)
+          validateRequest.body(req, pwInputSchemaAjv)
 
           res.json({ hello: 'world' })
         })

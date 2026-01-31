@@ -2,7 +2,7 @@ import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { z } from '@naturalcycles/js-lib/zod'
 import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
-import { ajvValidateRequest } from '../validation/ajv/ajvValidateRequest.js'
+import { validateRequest } from '../validation/ajv/validateRequest.js'
 import { zodValidateRequest } from '../validation/zod/zodValidateRequest.js'
 
 const router = getDefaultRouter()
@@ -27,7 +27,7 @@ const changePasswordSchemaZod = z.object({
 })
 
 router.put('/changePasswordAjv', async (req, res) => {
-  const _input = ajvValidateRequest.body(req, changePasswordSchemaAjv, { redactPaths: ['pw'] })
+  const _input = validateRequest.body(req, changePasswordSchemaAjv, { redactPaths: ['pw'] })
 
   res.json({ ok: 1 })
 })

@@ -6,7 +6,7 @@ import { getDefaultRouter } from '../../express/getDefaultRouter.js'
 import { debugResource } from '../../test/debug.resource.js'
 import type { ExpressApp } from '../../testing/index.js'
 import { expressTestService } from '../../testing/index.js'
-import { ajvValidateRequest } from './ajvValidateRequest.js'
+import { validateRequest } from './validateRequest.js'
 
 const app = await expressTestService.createAppFromResource(debugResource)
 
@@ -71,7 +71,7 @@ describe('ajvValidateRequest', () => {
     beforeAll(async () => {
       const resource = getDefaultRouter()
       resource.post('/', async (req, res) => {
-        const body = ajvValidateRequest.body(
+        const body = validateRequest.body(
           req,
           j.object<{ email: string }>({
             email: j.string().email(),
@@ -112,7 +112,7 @@ describe('ajvValidateRequest', () => {
     beforeAll(async () => {
       const resource = getDefaultRouter()
       resource.get('/', async (req, res) => {
-        ajvValidateRequest.headers(
+        validateRequest.headers(
           req,
           AjvSchema.create(
             j.object<{ shortstring: string; numeric: string; bool: string; sessionid: string }>({
@@ -190,7 +190,7 @@ describe('ajvValidateRequest', () => {
 
     test('should replace the headers with the validated value by default', async () => {
       const resource = getDefaultRouter().get('/', async (req, res) => {
-        const validatedHeaders = ajvValidateRequest.headers(
+        const validatedHeaders = validateRequest.headers(
           req,
           AjvSchema.create(
             j.object<{ shortstring: string; numeric: string }>({
@@ -236,7 +236,7 @@ describe('ajvValidateRequest', () => {
     beforeAll(async () => {
       const resource = getDefaultRouter()
       resource.get('/', async (req, res) => {
-        const query = ajvValidateRequest.query(
+        const query = validateRequest.query(
           req,
           j.object<{ algoVariant: AlgoVariant }>({
             algoVariant: j.enum(AlgoVariant),
@@ -285,7 +285,7 @@ describe('ajvValidateRequest', () => {
     beforeAll(async () => {
       const resource = getDefaultRouter()
       resource.get('/:algoVariant', async (req, res) => {
-        const params = ajvValidateRequest.params(
+        const params = validateRequest.params(
           req,
           j.object<{ algoVariant: AlgoVariant }>({
             algoVariant: j.enum(AlgoVariant),
