@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
-import { _ms, _since } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
@@ -168,7 +168,7 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
 
   console.log(`${check(true)}${white(`check`)} ${dimGrey(`took ` + _since(started))}`)
   for (const [job, ms] of _stringMapEntries(timings)) {
-    console.log(`${job.padStart(12, ' ')}: ${String(_ms(ms)).padStart(10, ' ')}`)
+    console.log(`${job.padStart(12, ' ')}: ${String(ms).padStart(5, ' ')} ms`)
   }
 
   // if (needToTrackChanges) {
@@ -492,6 +492,7 @@ export async function buildProd(): Promise<void> {
 export async function typecheckWithTS(): Promise<void> {
   if (hasDependencyInNodeModules('@typescript/native-preview')) {
     await typecheckWithTSGO()
+    return
   }
 
   await typecheckWithTSC()
@@ -551,17 +552,10 @@ async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
 /**
  * Use 'src' to indicate root.
  */
-export async function runTSGOInFolders(
-  dirs: string[],
-  args: string[] = [],
-  parallel = true,
-): Promise<void> {
-  if (parallel) {
-    await Promise.all(dirs.map(dir => runTSGOInFolder(dir, args)))
-  } else {
-    for (const dir of dirs) {
-      await runTSGOInFolder(dir, args)
-    }
+export async function runTSGOInFolders(dirs: string[], args: string[] = []): Promise<void> {
+  // Run sequential, since tsgo (unlike tsc) uses all cpu cores already
+  for (const dir of dirs) {
+    await runTSGOInFolder(dir, args)
   }
 }
 
