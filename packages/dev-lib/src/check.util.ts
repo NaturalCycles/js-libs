@@ -26,7 +26,6 @@ import {
   lintExclude,
   minActionlintVersion,
   prettierDirs,
-  prettierExtensionsAll,
   stylelintExtensions,
 } from '../cfg/_cnst.js'
 import { cfgDir } from './paths.js'
@@ -41,7 +40,7 @@ export interface CheckOptions {
   fastLinters?: boolean
   eslint?: boolean
   stylelint?: boolean
-  prettier?: boolean
+  oxfmt?: boolean
   ktlint?: boolean
   /**
    * true - run tsgo, otherwise tsc
@@ -63,7 +62,7 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
     fastLinters = true,
     eslint = true,
     stylelint = true,
-    prettier = true,
+    oxfmt = true,
     ktlint = true,
     typecheck = true,
     test = true,
@@ -131,10 +130,10 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
     }
   }
 
-  if (prettier) {
+  if (oxfmt) {
     s = Date.now()
-    if (runPrettier({ fix })) {
-      timings['prettier'] = Date.now() - s
+    if (runOxfmt(fix)) {
+      timings['oxfmt'] = Date.now() - s
     }
   }
 
@@ -292,6 +291,25 @@ export function runOxlint(fix = true): boolean {
   return true
 }
 
+/**
+ * Returns true if it ran.
+ */
+export function runOxfmt(fix = true): boolean {
+  if (!hasOxfmtConfig()) {
+    console.log('.oxfmtrc.json(c) is not found, skipping to run oxfmt')
+    return false
+  }
+
+  const oxlintPath = findPackageBinPath('oxfmt', 'oxfmt')
+
+  exec2.spawn(oxlintPath, {
+    name: ['oxfmt', !fix && '--check'].filter(Boolean).join(' '),
+    args: [!fix && '--check', '--no-error-on-unmatched-pattern'].filter(_isTruthy),
+    shell: false,
+  })
+  return true
+}
+
 export function requireOxlintConfig(): void {
   _assert(hasOxlintConfig(), '.oxlintrc.json config is not found')
 }
@@ -301,59 +319,8 @@ export function hasOxlintConfig(): boolean {
   return existsSync(oxlintConfigPath)
 }
 
-const prettierPaths = [
-  // Everything inside these folders
-  `./{${prettierDirs.join(',')}}/**/*.{${prettierExtensionsAll}}`,
-
-  // Root
-  `./*.{${prettierExtensionsAll}}`,
-
-  // Exclude
-  ...lintExclude.map((s: string) => `!${s}`),
-]
-
-interface RunPrettierOptions {
-  experimentalCli?: boolean // default: true
-  fix?: boolean // default: write
-}
-
-/**
- * Returns true if it ran.
- */
-export function runPrettier(opt: RunPrettierOptions = {}): boolean {
-  let { experimentalCli = true, fix = true } = opt
-  const prettierConfigPath = [`./prettier.config.js`].find(f => existsSync(f))
-  if (!prettierConfigPath) {
-    return false
-  }
-
-  const prettierPath = findPackageBinPath('prettier', 'prettier')
-  const cacheLocation = 'node_modules/.cache/prettier'
-  const cacheFound = existsSync(cacheLocation)
-  console.log(dimGrey(`${check(cacheFound)}prettier cache found: ${cacheFound}`))
-
-  if (hasPrettierOverrides()) {
-    experimentalCli = false
-    console.log('   prettier experimental mode disabled due to "overrides" in prettier.config.js')
-  }
-
-  // prettier --write 'src/**/*.{js,ts,css,scss,graphql}'
-  exec2.spawn(prettierPath, {
-    name: fix ? 'prettier' : 'prettier --check',
-    args: [
-      fix ? `--write` : '--check',
-      `--log-level=warn`,
-      // non-experimental-cli has different cache format, hence disabling it
-      experimentalCli && '--cache-location',
-      experimentalCli && cacheLocation,
-      experimentalCli && `--experimental-cli`,
-      experimentalCli ? '--config-path' : `--config`,
-      prettierConfigPath,
-      ...prettierPaths,
-    ].filter(_isTruthy),
-    shell: false,
-  })
-  return true
+export function hasOxfmtConfig(): boolean {
+  return ['.oxfmtrc.jsonc', '.oxfmtrc.json'].some(existsSync)
 }
 
 const stylelintPaths = [
@@ -693,14 +660,6 @@ export function findPackageBinPath(pkg: string, cmd: string): string {
   const { bin } = fs2.readJson<any>(packageJsonPath)
 
   return path.join(path.dirname(packageJsonPath), typeof bin === 'string' ? bin : bin[cmd])
-}
-
-function hasPrettierOverrides(): boolean {
-  try {
-    return fs2.readText('prettier.config.js').includes('overrides')
-  } catch {
-    return false
-  }
 }
 
 function check(predicate: any): string {

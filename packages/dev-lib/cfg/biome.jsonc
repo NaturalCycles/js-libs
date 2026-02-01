@@ -2,14 +2,7 @@
   "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "root": false,
   "files": {
-    "includes": [
-      "**/*.ts",
-      "**/*.tsx",
-      "**/*.js",
-      "**/*.jsx",
-      "!**/__exclude",
-      "!**/try.ts"
-    ]
+    "includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "!**/__exclude", "!**/try.ts"],
   },
   "formatter": {
     "enabled": true,
@@ -18,7 +11,7 @@
     "indentWidth": 2,
     "lineEnding": "lf",
     "lineWidth": 100,
-    "attributePosition": "auto"
+    "attributePosition": "auto",
   },
   "assist": { "actions": { "source": { "organizeImports": "off" } } },
   "linter": {
@@ -28,7 +21,7 @@
       "performance": {
         "noAccumulatingSpread": "off", // oxlint
         // "useTopLevelRegex": "error" // consider
-        "noDelete": "off" // oxlint
+        "noDelete": "off", // oxlint
       },
       "correctness": {
         "useImportExtensions": "off", // oxlint
@@ -41,8 +34,8 @@
         "noUnusedVariables": {
           "fix": "none",
           "level": "off", // oxlint
-          "options": {}
-        }
+          "options": {},
+        },
       },
       "style": {
         // "useDefaultSwitchClause": "error", // consider`
@@ -68,7 +61,7 @@
         "useSingleVarDeclarator": "error",
         "noInferrableTypes": "error",
         "noUselessElse": "error",
-        "useArrayLiterals": "error"
+        "useArrayLiterals": "error",
         // "noCommonJs": "error" // oxlint
       },
       "suspicious": {
@@ -86,7 +79,7 @@
         "noImportAssign": "off",
         "noDoubleEquals": "off", // oxlint
         "noDocumentCookie": "off", // ox
-        "noEmptyInterface": "off"
+        "noEmptyInterface": "off",
       },
       "complexity": {
         "useDateNow": "error",
@@ -99,10 +92,10 @@
         "useLiteralKeys": "off",
         "noBannedTypes": "off",
         "noCommaOperator": "off", // ox
-        "noArguments": "error"
+        "noArguments": "error",
       },
-      "nursery": {}
-    }
+      "nursery": {},
+    },
   },
   "javascript": {
     "formatter": {
@@ -114,8 +107,8 @@
       "bracketSpacing": true,
       "bracketSameLine": false,
       "quoteStyle": "single",
-      "attributePosition": "auto"
-    }
+      "attributePosition": "auto",
+    },
   },
   "overrides": [
     {
@@ -125,10 +118,10 @@
           "correctness": {
             // doesn't work well with *.vue files
             "noUnusedImports": "off",
-            "noUnusedVariables": "off"
-          }
-        }
-      }
-    }
-  ]
+            "noUnusedVariables": "off",
+          },
+        },
+      },
+    },
+  ],
 }

@@ -186,7 +186,7 @@ test('fromNow', () => {
   expect(future.toFromNowString(now)).toBe('in 4 days')
 })
 
-// prettier-ignore
+// oxfmt-ignore
 const validDates = [
   ['2022-01-01', '2022-01-01T00:00:00'],
   ['2023-12-29', '2023-12-29T00:00:00'],
@@ -200,7 +200,7 @@ const validDates = [
   ['2022-01-01t22:01:01', '2022-01-01T22:01:01'],
 ] as [IsoDateTime, IsoDateTime][]
 
-// prettier-ignore
+// oxfmt-ignore
 const looselyValidDates = [
   ['2022/01/31', '2022-01-31T00:00:00'],
   ['2022-1-1', '2022-01-01T00:00:00'],
@@ -213,7 +213,7 @@ const looselyValidDates = [
   ['2022-01-31T0', '2022-01-31T00:00:00'],
 ] as [IsoDateTime, IsoDateTime][]
 
-// prettier-ignore
+// oxfmt-ignore
 const invalidDates = [
   undefined,
   5,

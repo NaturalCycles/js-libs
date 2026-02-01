@@ -168,21 +168,21 @@ export default {
       'undefined',
     ],
     'id-match': 2,
-    'simple-import-sort/imports': [
-      2,
-      {
-        // This is what "removes any newlines between imports":
-        groups: [[String.raw`^\u0000`, '^node:', String.raw`^@?\w`, '^', String.raw`^\.`]],
-      },
-    ],
-    'simple-import-sort/exports': 2,
+    // 'simple-import-sort/imports': [
+    //   2,
+    //   {
+    //     // This is what "removes any newlines between imports":
+    //     groups: [[String.raw`^\u0000`, '^node:', String.raw`^@?\w`, '^', String.raw`^\.`]],
+    //   },
+    // ],
+    // 'simple-import-sort/exports': 2,
     // 'import-x/order': 0, // disabled in favor of `simple-import-sort`
     // 'import-x/namespace': 0, // issues with e.g globby
     // 'import-x/no-unresolved': 0, // breaks for type-aliases, e.g '@/store'
-    'import-x/no-anonymous-default-export': 0, // oxlint
-    'import-x/no-duplicates': [0, { 'prefer-inline': false }], // oxlint
-    'import-x/export': 2, // todo: oxlint when it matures
-    'import-x/no-empty-named-blocks': 0, // oxlint
+    // 'import-x/no-anonymous-default-export': 0, // oxlint
+    // 'import-x/no-duplicates': [0, { 'prefer-inline': false }], // oxlint
+    // 'import-x/export': 2, // todo: oxlint when it matures
+    // 'import-x/no-empty-named-blocks': 0, // oxlint
     // Disabling no-cycle as the slowest rule. Oxlint is to be adopted instead
     // 'import-x/no-cycle': [
     //   2,
@@ -192,8 +192,8 @@ export default {
     //     maxDepth: 10,
     //   },
     // ],
-    'import-x/no-useless-path-segments': 2,
-    'import-x/no-default-export': 0, // biome, oxlint
+    // 'import-x/no-useless-path-segments': 2,
+    // 'import-x/no-default-export': 0, // biome, oxlint
     // 'import-x/no-commonjs': 2, // biome `noCommonJs`
     // 'import-x/extensions': [2, 'always'], // biome useImportExtensions
     'no-array-constructor': 0,

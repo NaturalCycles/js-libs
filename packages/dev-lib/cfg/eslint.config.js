@@ -4,15 +4,13 @@
  * Shared eslint FLAT config.
  */
 
-import globals from 'globals'
 import eslint from '@eslint/js'
-import tseslint from 'typescript-eslint'
 import eslintPluginOxlint from 'eslint-plugin-oxlint'
-import eslintPluginImportX from 'eslint-plugin-import-x'
-import eslintPluginSimpleImportSort from 'eslint-plugin-simple-import-sort'
-import eslintRules from './eslint-rules.js'
-import eslintPrettierRules from './eslint-prettier-rules.js'
+import globals from 'globals'
+import tseslint from 'typescript-eslint'
 import eslintBiomeRules from './eslint-biome-rules.js'
+import eslintPrettierRules from './eslint-prettier-rules.js'
+import eslintRules from './eslint-rules.js'
 
 const defaultFiles = ['**/*.ts', '**/*.tsx', '**/*.cts', '**/*.mts']
 const srcFiles = ['src/**/*.ts', 'src/**/*.tsx', 'src/**/*.cts', 'src/**/*.mts']
@@ -95,9 +93,9 @@ function getConfig(_tsconfigPath) {
   return {
     plugins: {
       '@typescript-eslint': tseslint.plugin,
-      'import-x': eslintPluginImportX,
+      // 'import-x': eslintPluginImportX,
       // 'unused-imports': require('eslint-plugin-unused-imports'), // disabled in favor of biome rules
-      'simple-import-sort': eslintPluginSimpleImportSort,
+      // 'simple-import-sort': eslintPluginSimpleImportSort,
       // jsdoc: eslintPluginJsdoc, // oxlint
       // '@stylistic': eslintPluginStylistic, // oxlint custom plugin
     },

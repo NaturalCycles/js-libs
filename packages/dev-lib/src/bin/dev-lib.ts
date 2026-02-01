@@ -12,8 +12,8 @@ import {
   requireOxlintConfig,
   runBiome,
   runCheck,
+  runOxfmt,
   runOxlint,
-  runPrettier,
   runTest,
   stylelintAll,
   typecheckWithTS,
@@ -96,7 +96,7 @@ const commands: Command[] = [
         typecheck: false,
         test: false,
       }),
-    desc: 'Run all linters: eslint, prettier, stylelint, ktlint, actionlint.',
+    desc: 'Run all linters: eslint, oxfmt, stylelint, ktlint, actionlint.',
   },
   {
     name: 'lint-staged',
@@ -131,7 +131,7 @@ const commands: Command[] = [
     desc: 'Run biome linter on all files with "auto-fix" disabled. Useful for debugging.',
     interactiveOnly: true,
   },
-  { name: 'prettier', fn: runPrettier, desc: 'Run prettier on all files.' },
+  { name: 'oxfmt', fn: runOxfmt, desc: 'Run oxfmt on all files.' },
   { name: 'stylelint', fn: stylelintAll, desc: 'Run stylelint on all files.' },
   {
     name: 'stylelint --no-fix',
@@ -197,7 +197,7 @@ runScript(async () => {
 async function quickCheck(): Promise<void> {
   await runCheck({
     eslint: false,
-    prettier: false,
+    oxfmt: false,
     stylelint: false,
     typecheck: false,
   })

@@ -3,23 +3,17 @@
     {
       "airtableId": "reczAHtt0JZ4Uq97s",
       "id": "category1",
-      "users": [
-        "recKeeT3hUQXfly9T"
-      ]
+      "users": ["recKeeT3hUQXfly9T"]
     },
     {
       "airtableId": "recGBC7azpVH4Xhfu",
       "id": "category2",
-      "users": [
-        "recCOtGXUSWzZEbzf"
-      ]
+      "users": ["recCOtGXUSWzZEbzf"]
     },
     {
       "airtableId": "recy3fSNv0w3yoSBh",
       "id": "category3",
-      "users": [
-        "recPJPfpwUOpxhd1s"
-      ]
+      "users": ["recPJPfpwUOpxhd1s"]
     }
   ],
   "permissions": [
@@ -29,35 +23,23 @@
       "id": "permission1",
       "parent": [],
       "pub": true,
-      "roles": [
-        "recFt2k0XC9Lh4MXv",
-        "recZuSfp2VFUwzlkZ"
-      ]
+      "roles": ["recFt2k0XC9Lh4MXv", "recZuSfp2VFUwzlkZ"]
     },
     {
       "airtableId": "recfA6bfrDSLoLMOR",
       "descr": "description 2\nlong text",
       "id": "permission2",
-      "parent": [
-        "recKIx5gXMF6sFz9X"
-      ],
+      "parent": ["recKIx5gXMF6sFz9X"],
       "pub": true,
-      "roles": [
-        "recXRZ20Y9RRXK1nf",
-        "recZuSfp2VFUwzlkZ"
-      ]
+      "roles": ["recXRZ20Y9RRXK1nf", "recZuSfp2VFUwzlkZ"]
     },
     {
       "airtableId": "recTXd1ZiyRV6MkCd",
       "descr": "description 3\nlong text",
       "id": "permission3",
-      "parent": [
-        "recfA6bfrDSLoLMOR"
-      ],
+      "parent": ["recfA6bfrDSLoLMOR"],
       "pub": true,
-      "roles": [
-        "recZuSfp2VFUwzlkZ"
-      ]
+      "roles": ["recZuSfp2VFUwzlkZ"]
     },
     {
       "airtableId": "recqXONSau2ByYuAP",
@@ -65,74 +47,49 @@
       "id": "permission4",
       "parent": [],
       "pub": true,
-      "roles": [
-        "recMtSLHe2fnVOZoF"
-      ]
+      "roles": ["recMtSLHe2fnVOZoF"]
     },
     {
       "airtableId": "recOcMXcycSymXEGn",
       "descr": "description 5\nlong text",
       "id": "permission5",
-      "parent": [
-        "recTXd1ZiyRV6MkCd"
-      ],
+      "parent": ["recTXd1ZiyRV6MkCd"],
       "pub": true,
-      "roles": [
-        "recqHMTb4mCFLKumG"
-      ]
+      "roles": ["recqHMTb4mCFLKumG"]
     },
     {
       "airtableId": "rech4OufSiuAOrc6Q",
       "descr": "description 6\nlong text",
       "id": "permission6",
       "parent": [],
-      "roles": [
-        "recqHMTb4mCFLKumG"
-      ]
+      "roles": ["recqHMTb4mCFLKumG"]
     }
   ],
   "roles": [
     {
       "airtableId": "recZuSfp2VFUwzlkZ",
       "id": "role1",
-      "permissions": [
-        "recKIx5gXMF6sFz9X",
-        "recTXd1ZiyRV6MkCd",
-        "recfA6bfrDSLoLMOR"
-      ],
+      "permissions": ["recKIx5gXMF6sFz9X", "recTXd1ZiyRV6MkCd", "recfA6bfrDSLoLMOR"],
       "pub": true,
-      "users": [
-        "recKeeT3hUQXfly9T"
-      ]
+      "users": ["recKeeT3hUQXfly9T"]
     },
     {
       "airtableId": "recMtSLHe2fnVOZoF",
       "id": "role2",
-      "permissions": [
-        "recqXONSau2ByYuAP"
-      ],
-      "users": [
-        "recCOtGXUSWzZEbzf"
-      ]
+      "permissions": ["recqXONSau2ByYuAP"],
+      "users": ["recCOtGXUSWzZEbzf"]
     },
     {
       "airtableId": "recFt2k0XC9Lh4MXv",
       "id": "role3",
-      "permissions": [
-        "recKIx5gXMF6sFz9X"
-      ],
+      "permissions": ["recKIx5gXMF6sFz9X"],
       "pub": true,
-      "users": [
-        "recCOtGXUSWzZEbzf"
-      ]
+      "users": ["recCOtGXUSWzZEbzf"]
     },
     {
       "airtableId": "recqHMTb4mCFLKumG",
       "id": "role4",
-      "permissions": [
-        "rech4OufSiuAOrc6Q",
-        "recOcMXcycSymXEGn"
-      ],
+      "permissions": ["rech4OufSiuAOrc6Q", "recOcMXcycSymXEGn"],
       "pub": true,
       "users": []
     },
@@ -140,27 +97,19 @@
       "airtableId": "rec6tdVmScqKRXDkC",
       "id": "role5",
       "permissions": [],
-      "users": [
-        "rectsieTOdyjEBKGK"
-      ]
+      "users": ["rectsieTOdyjEBKGK"]
     },
     {
       "airtableId": "recXRZ20Y9RRXK1nf",
       "id": "role6",
-      "permissions": [
-        "recfA6bfrDSLoLMOR"
-      ],
-      "users": [
-        "recBwvy2cmRfKXd3G"
-      ]
+      "permissions": ["recfA6bfrDSLoLMOR"],
+      "users": ["recBwvy2cmRfKXd3G"]
     }
   ],
   "users": [
     {
       "airtableId": "recKeeT3hUQXfly9T",
-      "category": [
-        "reczAHtt0JZ4Uq97s"
-      ],
+      "category": ["reczAHtt0JZ4Uq97s"],
       "email": "user1@email.com",
       "id": "user1",
       "images": [
@@ -189,35 +138,21 @@
           }
         }
       ],
-      "roles": [
-        "recZuSfp2VFUwzlkZ"
-      ],
-      "tags": [
-        "tag1"
-      ]
+      "roles": ["recZuSfp2VFUwzlkZ"],
+      "tags": ["tag1"]
     },
     {
       "airtableId": "recCOtGXUSWzZEbzf",
-      "category": [
-        "recGBC7azpVH4Xhfu"
-      ],
+      "category": ["recGBC7azpVH4Xhfu"],
       "email": "user2@email.com",
       "id": "user2",
       "images": [],
-      "roles": [
-        "recMtSLHe2fnVOZoF",
-        "recFt2k0XC9Lh4MXv"
-      ],
-      "tags": [
-        "tag1",
-        "tag2"
-      ]
+      "roles": ["recMtSLHe2fnVOZoF", "recFt2k0XC9Lh4MXv"],
+      "tags": ["tag1", "tag2"]
     },
     {
       "airtableId": "recPJPfpwUOpxhd1s",
-      "category": [
-        "recy3fSNv0w3yoSBh"
-      ],
+      "category": ["recy3fSNv0w3yoSBh"],
       "email": "user3@email.com",
       "id": "user3",
       "images": [],
@@ -230,12 +165,8 @@
       "email": "user4@email.com",
       "id": "user4",
       "images": [],
-      "roles": [
-        "recXRZ20Y9RRXK1nf"
-      ],
-      "tags": [
-        "tag2"
-      ]
+      "roles": ["recXRZ20Y9RRXK1nf"],
+      "tags": ["tag2"]
     },
     {
       "airtableId": "rectsieTOdyjEBKGK",
@@ -243,9 +174,7 @@
       "email": "user5@email.com",
       "id": "user5",
       "images": [],
-      "roles": [
-        "rec6tdVmScqKRXDkC"
-      ],
+      "roles": ["rec6tdVmScqKRXDkC"],
       "tags": []
     },
     {

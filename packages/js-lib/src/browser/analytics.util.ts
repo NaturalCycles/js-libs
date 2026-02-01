@@ -43,11 +43,12 @@ export async function loadGTM(gtmId: string, enabled = true): Promise<void> {
 }
 
 export function loadHotjar(hjid: number): void {
-  if (isServerSide()) return
+  if (isServerSide()) {
+    return
+  }
 
   /* eslint-disable */
-  // prettier-ignore
-  ;
+  // oxfmt-ignore
   ;((h: any, o, t, j, a?: any, r?: any) => {
     h.hj =
       h.hj ||

@@ -12,16 +12,15 @@ const {
 
 console.log(`lint-staged.config.js runs on node ${node} ${platform} ${arch}`)
 
-import fs from 'node:fs'
-import micromatch from 'micromatch'
 import { execSync } from 'node:child_process'
+import fs from 'node:fs'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
-import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
+import micromatch from 'micromatch'
 import { prettierExtensionsAll, lintExclude, minActionlintVersion } from './_cnst.js'
 
-const prettierConfigPath = [`prettier.config.js`].find(fs.existsSync)
+const oxfmtConfigPath = ['.oxfmtrc.jsonc', '.oxfmtrc.json'].find(fs.existsSync)
 
 const stylelintConfigPath = [`stylelint.config.js`].find(fs.existsSync)
 
@@ -29,20 +28,10 @@ const eslintConfigPath = ['eslint.config.js'].find(fs.existsSync)
 
 const oxlintConfigPath = ['.oxlintrc.json'].find(fs.existsSync)
 
-let prettierCmd = undefined
+let oxfmtCmd = undefined
 
-if (prettierConfigPath) {
-  const experimental = !hasPrettierOverrides()
-  prettierCmd = [
-    'prettier --write --log-level=warn',
-    experimental && '--cache-location',
-    experimental && 'node_modules/.cache/prettier',
-    experimental && `--experimental-cli`,
-    experimental ? '--config-path' : `--config`,
-    prettierConfigPath,
-  ]
-    .filter(Boolean)
-    .join(' ')
+if (oxfmtConfigPath) {
+  oxfmtCmd = 'oxfmt'
 }
 
 let eslintCmd = undefined
@@ -89,12 +78,12 @@ const biomeConfigPath = ['biome.jsonc'].find(p => fs.existsSync(p))
 const biomeCmd = biomeConfigPath && `biome lint --write --unsafe --no-errors-on-unmatched`
 
 const linters = {
-  // biome, oxlint, eslint, stylelint, prettier
+  // biome, oxlint, eslint, stylelint, oxfmt
   [`./{src,scripts,e2e}/**/*.{${prettierExtensionsAll}}`]: match =>
-    runBiomeEslintStylelintPrettier(match),
+    runBiomeEslintStylelintOxfmt(match),
 
-  // Files in root dir: prettier
-  [`./*.{${prettierExtensionsAll}}`]: runPrettier,
+  // Files in root dir: oxfmt
+  [`./*.{${prettierExtensionsAll}}`]: runOxfmt,
 
   // ktlint
   '**/*.{kt,kts}': runKtlint,
@@ -102,31 +91,31 @@ const linters = {
   './.github/**/*.{yml,yaml}': runActionlint,
 }
 
-export function runBiomeEslintStylelintPrettier(match) {
+export function runBiomeEslintStylelintOxfmt(match) {
   const filesList = getFilesList(match)
   if (!filesList) return []
 
-  return [biomeCmd, oxlintCmd, eslintCmd, stylelintCmd, prettierCmd]
+  return [biomeCmd, oxlintCmd, eslintCmd, stylelintCmd, oxfmtCmd]
     .filter(Boolean)
     .map(s => `${s} ${filesList}`)
 }
 
-export function runBiomeOxlintPrettier(match) {
+export function runBiomeOxlintOxfmt(match) {
   const filesList = getFilesList(match)
   if (!filesList) return []
-  return [biomeCmd, oxlintCmd, prettierCmd].filter(Boolean).map(s => `${s} ${filesList}`)
+  return [biomeCmd, oxlintCmd, oxfmtCmd].filter(Boolean).map(s => `${s} ${filesList}`)
 }
 
-export function runOxlintPrettier(match) {
+export function runOxlintOxfmt(match) {
   const filesList = getFilesList(match)
   if (!filesList) return []
-  return [oxlintCmd, prettierCmd].filter(Boolean).map(s => `${s} ${filesList}`)
+  return [oxlintCmd, oxfmtCmd].filter(Boolean).map(s => `${s} ${filesList}`)
 }
 
-export function runPrettier(match) {
+export function runOxfmt(match) {
   const filesList = getFilesList(match)
-  if (!filesList || !prettierCmd) return []
-  return [prettierCmd].map(s => `${s} ${filesList}`)
+  if (!filesList || !oxfmtCmd) return []
+  return [oxfmtCmd].map(s => `${s} ${filesList}`)
 }
 
 export function runKtlint(match) {
@@ -191,14 +180,6 @@ function getActionLintVersion() {
   } catch (err) {
     console.log(err)
     return undefined
-  }
-}
-
-function hasPrettierOverrides() {
-  try {
-    return fs2.readText('prettier.config.js').includes('overrides')
-  } catch {
-    return false
   }
 }
 

@@ -14,12 +14,7 @@
   "linterOptions": {
     "reportUnusedDisableDirectives": 2
   },
-  "plugins": [
-    "@",
-    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.54.0",
-    "import-x:eslint-plugin-import-x@4.16.1",
-    "simple-import-sort:eslint-plugin-simple-import-sort@12.1.1"
-  ],
+  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.54.0"],
   "rules": {
     "@typescript-eslint/class-literal-property-style": [2],
     "@typescript-eslint/consistent-type-assertions": [2],
@@ -125,8 +120,6 @@
         "properties": false
       }
     ],
-    "import-x/export": [2],
-    "import-x/no-useless-path-segments": [2],
     "logical-assignment-operators": [
       2,
       "always",
@@ -143,13 +136,6 @@
     ],
     "no-useless-assignment": [2],
     "object-shorthand": [2],
-    "simple-import-sort/exports": [2],
-    "simple-import-sort/imports": [
-      2,
-      {
-        "groups": [["^\\u0000", "^node:", "^@?\\w", "^", "^\\."]]
-      }
-    ],
     "spaced-comment": [
       2,
       "always",

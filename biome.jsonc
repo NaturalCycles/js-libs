@@ -10,19 +10,19 @@
       "!**/dist",
       "!**/tmp",
       "!**/__exclude",
-      "!packages/dev-lib/cfg"
-    ]
+      "!packages/dev-lib/cfg",
+    ],
   },
   "overrides": [
     {
       "includes": ["**/*.json"],
       "linter": { "enabled": false },
-      "formatter": { "enabled": false }
+      "formatter": { "enabled": false },
     },
     {
       "includes": ["**/*.vue", "**/*.html"],
       "linter": { "enabled": false },
-      "formatter": { "enabled": false }
-    }
-  ]
+      "formatter": { "enabled": false },
+    },
+  ],
 }

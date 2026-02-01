@@ -205,7 +205,7 @@ test('diff', () => {
   })
 })
 
-// prettier-ignore
+// oxfmt-ignore
 const validDates = [
   '2022-01-01',
   '2023-12-29',
@@ -222,7 +222,7 @@ test.each(validDates)('%s is valid', s => {
   expect(localDate.try(s)?.toISODate()).toBe(s.slice(0, 10))
 })
 
-// prettier-ignore
+// oxfmt-ignore
 const invalidDates = [
   undefined,
   5,

@@ -48,5 +48,5 @@ runScript(async () => {
   // fs2.writeJson(output2Path, require('../cfg/eslint.flat.config'), { spaces: 2 })
 
   // Prettify the output
-  exec2.spawn(`prettier --write --experimental-cli --log-level=warn ${outputPath}`)
+  exec2.spawn(`oxfmt ${outputPath}`)
 })

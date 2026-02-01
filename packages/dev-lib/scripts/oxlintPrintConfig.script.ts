@@ -17,5 +17,5 @@ runScript(async () => {
 
   exec2.spawn(`oxlint --config cfg/oxlint.config.json --print-config > ${outputPath}`)
 
-  exec2.spawn(`prettier --write --experimental-cli --log-level=warn ${outputPath}`)
+  exec2.spawn(`oxfmt ${outputPath}`)
 })
