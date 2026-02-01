@@ -31,7 +31,7 @@ const oxlintConfigPath = ['.oxlintrc.json'].find(fs.existsSync)
 let oxfmtCmd = undefined
 
 if (oxfmtConfigPath) {
-  oxfmtCmd = 'oxfmt'
+  oxfmtCmd = 'oxfmt --no-error-on-unmatched-pattern'
 }
 
 let eslintCmd = undefined
