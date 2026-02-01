@@ -8,13 +8,13 @@ import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
-import {
-  _stringMapEntries,
-  type AnyObject,
-  type NumberOfMilliseconds,
-  type SemVerString,
-  type StringMap,
-  type UnixTimestampMillis,
+import { _stringMapEntries } from '@naturalcycles/js-lib/types'
+import type {
+  AnyObject,
+  NumberOfMilliseconds,
+  SemVerString,
+  StringMap,
+  UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'

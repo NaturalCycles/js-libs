@@ -1,6 +1,7 @@
 import { _assert } from '@naturalcycles/js-lib/error'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
-import { type DevLibCommitlintConfig, readDevLibConfigIfPresent } from './config.js'
+import { readDevLibConfigIfPresent } from './config.js'
+import type { DevLibCommitlintConfig } from './config.js'
 
 const ALLOWED_TYPES = new Set([
   'feat',

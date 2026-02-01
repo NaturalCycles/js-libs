@@ -1,6 +1,7 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { red } from '@naturalcycles/nodejs-lib/colors'
-import { createMitm, type Mitm } from '../vendor/mitm.js'
+import { createMitm } from '../vendor/mitm.js'
+import type { Mitm } from '../vendor/mitm.js'
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
 
