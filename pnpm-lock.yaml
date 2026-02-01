@@ -51,7 +51,7 @@ importers:
         specifier: ^1
         version: 1.42.0(oxlint-tsgolint@0.11.4)
       oxlint-tsgolint:
-        specifier: '*'
+        specifier: ^0
         version: 0.11.4
       semantic-release:
         specifier: ^25
@@ -370,7 +370,7 @@ importers:
         specifier: ^1
         version: 1.42.0(oxlint-tsgolint@0.11.4)
       oxlint-tsgolint:
-        specifier: '*'
+        specifier: ^0
         version: 0.11.4
       prompts:
         specifier: ^2

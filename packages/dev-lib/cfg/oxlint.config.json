@@ -123,7 +123,7 @@
     "typescript/prefer-ts-expect-error": 2,
     "typescript/require-await": 0, // not good yet
     "typescript/restrict-plus-operands": 2,
-    "typescript/return-await": [0, "always"], // not good yet
+    "typescript/return-await": [2, "error-handling-correctness-only"],
     "typescript/only-throw-error": 2,
     "typescript/no-unsafe-function-type": 2,
     "typescript/no-misused-promises": 0,

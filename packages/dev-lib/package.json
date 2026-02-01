@@ -25,36 +25,45 @@
   },
   "dependencies": {
     "@biomejs/biome": "^2",
-    "@eslint/js": "^9",
     "prompts": "^2",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
     "@vitest/coverage-v8": "^4",
-    "eslint": "^9",
     "eslint-plugin-oxlint": "^1",
     "globals": "^17",
     "lint-staged": "^16",
     "micromatch": "^4",
     "oxfmt": "^0",
     "oxlint": "^1",
-    "oxlint-tsgolint": "*",
-    "typescript-eslint": "^8"
+    "oxlint-tsgolint": "^0"
   },
   "peerDependencies": {
+    "@eslint/js": "^9",
     "@typescript/native-preview": "^7.0.0-0",
+    "eslint": "^9",
     "husky": "^9",
     "stylelint": "^16",
     "stylelint-config-standard-scss": "^16",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8"
   },
   "peerDependenciesMeta": {
+    "@eslint/js": {
+      "optional": true
+    },
     "@typescript/native-preview": {
+      "optional": true
+    },
+    "eslint": {
       "optional": true
     },
     "stylelint": {
       "optional": true
     },
     "stylelint-config-standard-scss": {
+      "optional": true
+    },
+    "typescript-eslint": {
       "optional": true
     }
   },
