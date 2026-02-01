@@ -1,6 +1,7 @@
 import { Writable } from 'node:stream'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
-import { type DeferredPromise, pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
+import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
+import type { DeferredPromise } from '@naturalcycles/js-lib/promise/pDefer.js'
 import type { NonNegativeInteger, Predicate } from '@naturalcycles/js-lib/types'
 import { Pipeline } from '../pipeline.js'
 import { createReadable } from '../readable/createReadable.js'

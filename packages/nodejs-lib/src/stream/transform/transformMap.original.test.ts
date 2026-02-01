@@ -4,7 +4,8 @@ import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
 import { afterAll, beforeAll, expect, test, vi } from 'vitest'
-import { Pipeline, type TransformMapStats, transformMapStatsSummary } from '../index.js'
+import { Pipeline, transformMapStatsSummary } from '../index.js'
+import type { TransformMapStats } from '../index.js'
 
 beforeAll(() => {
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)

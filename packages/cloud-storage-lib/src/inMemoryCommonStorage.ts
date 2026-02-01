@@ -8,7 +8,8 @@ import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import { md5 } from '@naturalcycles/nodejs-lib'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
-import { Pipeline, type WritableTyped } from '@naturalcycles/nodejs-lib/stream'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
+import type { WritableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
 
 export class InMemoryCommonStorage implements CommonStorage {

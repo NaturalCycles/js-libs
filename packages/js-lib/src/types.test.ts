@@ -1,7 +1,8 @@
 import { expect, expectTypeOf, test } from 'vitest'
 import { _stringMapValuesSorted } from './array/index.js'
 import { localTime } from './datetime/index.js'
-import { type AppError, asUnixTimestamp, asUnixTimestamp2000 } from './error/index.js'
+import { asUnixTimestamp, asUnixTimestamp2000 } from './error/index.js'
+import type { AppError } from './error/index.js'
 import { _expectedError } from './error/try.js'
 import {
   _noop,
@@ -15,17 +16,19 @@ import {
   _stringMapEntries,
   _stringMapValues,
   _typeCast,
-  type AnyObject,
-  type BaseDBEntity,
-  type Branded,
-  type IsoDate,
-  type IsoMonth,
-  type Reviver,
-  type Saved,
-  type StringMap,
-  type UnixTimestamp,
-  type Unsaved,
-  type UnsavedId,
+} from './types.js'
+import type {
+  AnyObject,
+  BaseDBEntity,
+  Branded,
+  IsoDate,
+  IsoMonth,
+  Reviver,
+  Saved,
+  StringMap,
+  UnixTimestamp,
+  Unsaved,
+  UnsavedId,
 } from './types.js'
 
 interface Item extends BaseDBEntity {

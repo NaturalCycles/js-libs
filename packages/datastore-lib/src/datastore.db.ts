@@ -25,12 +25,8 @@ import type { PRetryOptions } from '@naturalcycles/js-lib/promise'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { pRetry, pRetryFn } from '@naturalcycles/js-lib/promise/pRetry.js'
 import { pTimeout } from '@naturalcycles/js-lib/promise/pTimeout.js'
-import {
-  _stringMapEntries,
-  _stringMapValues,
-  type ObjectWithId,
-  type StringMap,
-} from '@naturalcycles/js-lib/types'
+import { _stringMapEntries, _stringMapValues } from '@naturalcycles/js-lib/types'
+import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'

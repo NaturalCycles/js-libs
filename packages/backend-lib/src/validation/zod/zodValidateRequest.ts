@@ -1,6 +1,8 @@
-import { type ZodType, type ZodValidationError, zSafeValidate } from '@naturalcycles/js-lib/zod'
+import { zSafeValidate } from '@naturalcycles/js-lib/zod'
+import type { ZodType, ZodValidationError } from '@naturalcycles/js-lib/zod'
 import type { BackendRequest } from '../../server/server.model.js'
-import { handleValidationError, type ReqValidationOptions } from '../validateRequest.util.js'
+import { handleValidationError } from '../validateRequest.util.js'
+import type { ReqValidationOptions } from '../validateRequest.util.js'
 
 class ZodValidateRequest {
   body<T>(

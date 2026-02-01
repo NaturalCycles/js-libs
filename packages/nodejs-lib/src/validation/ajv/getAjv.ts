@@ -3,7 +3,8 @@ import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import { Ajv2020, type Options, type ValidateFunction } from 'ajv/dist/2020.js'
+import { Ajv2020 } from 'ajv/dist/2020.js'
+import type { Options, ValidateFunction } from 'ajv/dist/2020.js'
 import { validTLDs } from '../tlds.js'
 import type {
   CustomConverterFn,

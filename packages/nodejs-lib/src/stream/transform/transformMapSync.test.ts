@@ -2,7 +2,8 @@ import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
 import { afterAll, beforeAll, expect, test, vi } from 'vitest'
-import { Pipeline, type TransformMapStats } from '../index.js'
+import { Pipeline } from '../index.js'
+import type { TransformMapStats } from '../index.js'
 
 interface Item {
   id: string

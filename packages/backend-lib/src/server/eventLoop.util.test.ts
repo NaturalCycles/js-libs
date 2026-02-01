@@ -1,6 +1,7 @@
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { afterEach, expect, test } from 'vitest'
-import { EventLoopMonitor, type EventLoopStats } from './eventLoop.util.js'
+import { EventLoopMonitor } from './eventLoop.util.js'
+import type { EventLoopStats } from './eventLoop.util.js'
 
 let monitor: EventLoopMonitor | undefined
 

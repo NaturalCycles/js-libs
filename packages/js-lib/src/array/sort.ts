@@ -1,11 +1,5 @@
-import {
-  _stringMapValues,
-  type Comparator,
-  type Mapper,
-  type SortDirection,
-  type SortOptions,
-  type StringMap,
-} from '../types.js'
+import { _stringMapValues } from '../types.js'
+import type { Comparator, Mapper, SortDirection, SortOptions, StringMap } from '../types.js'
 
 class Comparators {
   /**

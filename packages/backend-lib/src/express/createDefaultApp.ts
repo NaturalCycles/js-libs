@@ -3,10 +3,8 @@ import type { CorsOptions } from 'cors'
 import type { SentrySharedService } from '../sentry/sentry.shared.service.js'
 import { asyncLocalStorageMiddleware } from '../server/asyncLocalStorageMiddleware.js'
 import { compressionMiddleware } from '../server/compressionMiddleware.js'
-import {
-  genericErrorMiddleware,
-  type GenericErrorMiddlewareCfg,
-} from '../server/genericErrorMiddleware.js'
+import { genericErrorMiddleware } from '../server/genericErrorMiddleware.js'
+import type { GenericErrorMiddlewareCfg } from '../server/genericErrorMiddleware.js'
 import { logMiddleware } from '../server/logMiddleware.js'
 import { methodOverrideMiddleware } from '../server/methodOverrideMiddleware.js'
 import { notFoundMiddleware } from '../server/notFoundMiddleware.js'

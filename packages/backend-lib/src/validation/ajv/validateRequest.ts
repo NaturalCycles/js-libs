@@ -1,11 +1,8 @@
-import {
-  AjvSchema,
-  type AjvValidationError,
-  getCoercingAjv,
-  type SchemaHandledByAjv,
-} from '@naturalcycles/nodejs-lib/ajv'
+import { AjvSchema, getCoercingAjv } from '@naturalcycles/nodejs-lib/ajv'
+import type { AjvValidationError, SchemaHandledByAjv } from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../../server/server.model.js'
-import { handleValidationError, type ReqValidationOptions } from '../validateRequest.util.js'
+import { handleValidationError } from '../validateRequest.util.js'
+import type { ReqValidationOptions } from '../validateRequest.util.js'
 
 class AjvValidateRequest {
   body<IN, OUT>(

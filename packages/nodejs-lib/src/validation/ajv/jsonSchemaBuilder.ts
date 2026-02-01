@@ -11,22 +11,20 @@ import { _uniq } from '@naturalcycles/js-lib/array'
 import { _assert } from '@naturalcycles/js-lib/error'
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _sortObject } from '@naturalcycles/js-lib/object'
-import {
-  _objectAssign,
-  _typeCast,
-  type AnyObject,
-  type BaseDBEntity,
-  type IANATimezone,
-  type Inclusiveness,
-  type IsoDate,
-  type IsoDateTime,
-  type IsoMonth,
-  JWT_REGEX,
-  type NumberEnum,
-  type StringEnum,
-  type StringMap,
-  type UnixTimestamp,
-  type UnixTimestampMillis,
+import { _objectAssign, _typeCast, JWT_REGEX } from '@naturalcycles/js-lib/types'
+import type {
+  AnyObject,
+  BaseDBEntity,
+  IANATimezone,
+  Inclusiveness,
+  IsoDate,
+  IsoDateTime,
+  IsoMonth,
+  NumberEnum,
+  StringEnum,
+  StringMap,
+  UnixTimestamp,
+  UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import {
   BASE64URL_REGEX,

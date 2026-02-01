@@ -1,14 +1,13 @@
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
-import { type Fetcher, getFetcher } from '@naturalcycles/js-lib/http'
-import {
-  type CommonLogger,
-  type CommonLogLevel,
-  createCommonLoggerAtLevel,
-} from '@naturalcycles/js-lib/log'
+import { getFetcher } from '@naturalcycles/js-lib/http'
+import type { Fetcher } from '@naturalcycles/js-lib/http'
+import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
+import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
 import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import { PQueue } from '@naturalcycles/js-lib/promise/pQueue.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import { _inspect, type InspectAnyOptions } from '../index.js'
+import { _inspect } from '../index.js'
+import type { InspectAnyOptions } from '../index.js'
 import type {
   SlackApiBody,
   SlackAttachmentField,

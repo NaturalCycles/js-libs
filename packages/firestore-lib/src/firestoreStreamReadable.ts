@@ -1,14 +1,11 @@
 import { Readable } from 'node:stream'
-import {
-  FieldPath,
-  type Query,
-  type QueryDocumentSnapshot,
-  type QuerySnapshot,
-} from '@google-cloud/firestore'
+import { FieldPath } from '@google-cloud/firestore'
+import type { Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/firestore'
 import type { DBQuery } from '@naturalcycles/db-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
-import { type CommonLogger, createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
+import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'

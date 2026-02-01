@@ -1,4 +1,5 @@
-import { PropertyFilter, type Query } from '@google-cloud/datastore'
+import { PropertyFilter } from '@google-cloud/datastore'
+import type { Query } from '@google-cloud/datastore'
 import type { Operator, RunQueryOptions } from '@google-cloud/datastore/build/src/query.js'
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import { _round } from '@naturalcycles/js-lib'

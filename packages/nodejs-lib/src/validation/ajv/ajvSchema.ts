@@ -1,18 +1,16 @@
-import {
-  _isObject,
-  _lazyValue,
-  type ValidationFunction,
-  type ValidationFunctionResult,
-} from '@naturalcycles/js-lib'
+import { _isObject, _lazyValue } from '@naturalcycles/js-lib'
+import type { ValidationFunction, ValidationFunctionResult } from '@naturalcycles/js-lib'
 import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _filterNullishValues } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
-import { _typeCast, type AnyObject } from '@naturalcycles/js-lib/types'
+import { _typeCast } from '@naturalcycles/js-lib/types'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import type { Ajv, ErrorObject } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
 import { AjvValidationError } from './ajvValidationError.js'
 import { getAjv } from './getAjv.js'
-import { type JsonSchema, JsonSchemaTerminal } from './jsonSchemaBuilder.js'
+import { JsonSchemaTerminal } from './jsonSchemaBuilder.js'
+import type { JsonSchema } from './jsonSchemaBuilder.js'
 
 /**
  * On creation - compiles ajv validation function.

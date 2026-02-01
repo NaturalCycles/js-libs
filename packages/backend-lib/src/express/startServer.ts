@@ -5,7 +5,8 @@ import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import { boldGrey, dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import type { SentrySharedService } from '../sentry/sentry.shared.service.js'
 import type { BackendApplication } from '../server/server.model.js'
-import { createDefaultApp, type DefaultAppCfg } from './createDefaultApp.js'
+import { createDefaultApp } from './createDefaultApp.js'
+import type { DefaultAppCfg } from './createDefaultApp.js'
 
 const { NODE_OPTIONS, APP_ENV } = process.env
 

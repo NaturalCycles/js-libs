@@ -1,11 +1,7 @@
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expect, test } from 'vitest'
-import {
-  createReadableFrom,
-  Pipeline,
-  type ProgressLogItem,
-  progressReadableMapper,
-} from '../index.js'
+import { createReadableFrom, Pipeline, progressReadableMapper } from '../index.js'
+import type { ProgressLogItem } from '../index.js'
 
 // todo: AsyncIterable2 (or Iterable2.mapAsync) should be implemented in js-lib
 async function* rangeItAsync(

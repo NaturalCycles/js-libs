@@ -1,4 +1,5 @@
-import { Readable, type ReadableOptions, Transform } from 'node:stream'
+import { Readable, Transform } from 'node:stream'
+import type { ReadableOptions } from 'node:stream'
 import type { ReadableTyped } from '../stream.model.js'
 
 /**

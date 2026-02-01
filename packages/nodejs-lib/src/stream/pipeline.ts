@@ -1,27 +1,22 @@
-import { Readable, type Transform } from 'node:stream'
+import { Readable } from 'node:stream'
+import type { Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { ReadableStream as WebReadableStream } from 'node:stream/web'
-import {
-  createGzip,
-  createUnzip,
-  createZstdCompress,
-  createZstdDecompress,
-  type ZlibOptions,
-  type ZstdOptions,
-} from 'node:zlib'
+import { createGzip, createUnzip, createZstdCompress, createZstdDecompress } from 'node:zlib'
+import type { ZlibOptions, ZstdOptions } from 'node:zlib'
 import { createAbortableSignal } from '@naturalcycles/js-lib'
-import {
-  _passthroughPredicate,
-  type AbortableAsyncMapper,
-  type AsyncIndexedMapper,
-  type AsyncPredicate,
-  type END,
-  type IndexedMapper,
-  type Integer,
-  type NonNegativeInteger,
-  type PositiveInteger,
-  type Predicate,
-  type SKIP,
+import { _passthroughPredicate } from '@naturalcycles/js-lib/types'
+import type {
+  AbortableAsyncMapper,
+  AsyncIndexedMapper,
+  AsyncPredicate,
+  END,
+  IndexedMapper,
+  Integer,
+  NonNegativeInteger,
+  PositiveInteger,
+  Predicate,
+  SKIP,
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
 import { zstdLevelToOptions } from '../zip/zip.util.js'
@@ -42,21 +37,22 @@ import { transformFlatten, transformFlattenIfNeeded } from './transform/transfor
 // oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { transformFork } from './transform/transformFork.js'
 import { transformLimit } from './transform/transformLimit.js'
-import {
-  transformLogProgress,
-  type TransformLogProgressOptions,
-} from './transform/transformLogProgress.js'
-import { transformMap, type TransformMapOptions } from './transform/transformMap.js'
-import {
-  transformMapSimple,
-  type TransformMapSimpleOptions,
-} from './transform/transformMapSimple.js'
-import { transformMapSync, type TransformMapSyncOptions } from './transform/transformMapSync.js'
-import { transformOffset, type TransformOffsetOptions } from './transform/transformOffset.js'
+import { transformLogProgress } from './transform/transformLogProgress.js'
+import type { TransformLogProgressOptions } from './transform/transformLogProgress.js'
+import { transformMap } from './transform/transformMap.js'
+import type { TransformMapOptions } from './transform/transformMap.js'
+import { transformMapSimple } from './transform/transformMapSimple.js'
+import type { TransformMapSimpleOptions } from './transform/transformMapSimple.js'
+import { transformMapSync } from './transform/transformMapSync.js'
+import type { TransformMapSyncOptions } from './transform/transformMapSync.js'
+import { transformOffset } from './transform/transformOffset.js'
+import type { TransformOffsetOptions } from './transform/transformOffset.js'
 import { transformSplitOnNewline } from './transform/transformSplit.js'
 import { transformTap, transformTapSync } from './transform/transformTap.js'
-import { transformThrottle, type TransformThrottleOptions } from './transform/transformThrottle.js'
-import { transformWarmup, type TransformWarmupOptions } from './transform/transformWarmup.js'
+import { transformThrottle } from './transform/transformThrottle.js'
+import type { TransformThrottleOptions } from './transform/transformThrottle.js'
+import { transformWarmup } from './transform/transformWarmup.js'
+import type { TransformWarmupOptions } from './transform/transformWarmup.js'
 import { writablePushToArray } from './writable/writablePushToArray.js'
 import { writableVoid } from './writable/writableVoid.js'
 

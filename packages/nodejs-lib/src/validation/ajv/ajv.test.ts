@@ -5,7 +5,8 @@ import { fs2 } from '../../fs/fs2.js'
 import { testDir } from '../../test/paths.cnst.js'
 import { AjvSchema } from './ajvSchema.js'
 import { AjvValidationError } from './ajvValidationError.js'
-import { j, type JsonSchema } from './jsonSchemaBuilder.js'
+import { j } from './jsonSchemaBuilder.js'
+import type { JsonSchema } from './jsonSchemaBuilder.js'
 
 interface Simple {
   s: string

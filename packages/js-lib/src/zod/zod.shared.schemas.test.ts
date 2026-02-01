@@ -1,7 +1,9 @@
-import { AjvSchema, getAjv, type JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { AjvSchema, getAjv } from '@naturalcycles/nodejs-lib/ajv'
+import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, test } from 'vitest'
 import type { IsoDate, UnixTimestamp } from '../types.js'
-import { customZodSchemas, z, type zInfer, type ZodType } from './index.js'
+import { customZodSchemas, z } from './index.js'
+import type { zInfer, ZodType } from './index.js'
 
 test.each(Object.keys(customZodSchemas))(
   'custom zod schemas like "z.%s" should properly convert to JSON schema and AJV schema',

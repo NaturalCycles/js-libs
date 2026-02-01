@@ -6,7 +6,8 @@ import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { Unsaved } from '@naturalcycles/js-lib/types'
 import { LRUMemoCache } from '@naturalcycles/nodejs-lib/lruMemoCache'
 import { bucketDao } from './dao/bucket.dao.js'
-import { experimentDao, type GetAllExperimentsOpts } from './dao/experiment.dao.js'
+import { experimentDao } from './dao/experiment.dao.js'
+import type { GetAllExperimentsOpts } from './dao/experiment.dao.js'
 import { userAssignmentDao } from './dao/userAssignment.dao.js'
 import type {
   AbbaConfig,

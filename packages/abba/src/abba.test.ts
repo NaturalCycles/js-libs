@@ -6,7 +6,8 @@ import { bucketDao } from './dao/bucket.dao.js'
 import { experimentDao } from './dao/experiment.dao.js'
 import { userAssignmentDao } from './dao/userAssignment.dao.js'
 import { mockBucket, mockExperiment, mockUserAssignment, mockUserId1 } from './test/mocks.js'
-import { AssignmentStatus, type DecoratedUserAssignment } from './types.js'
+import { AssignmentStatus } from './types.js'
+import type { DecoratedUserAssignment } from './types.js'
 
 const db = new InMemoryDB({ logger: undefined })
 const abba = new Abba({ db })

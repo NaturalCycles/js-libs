@@ -1,4 +1,5 @@
-import { FieldPath, type Query, type WhereFilterOp } from '@google-cloud/firestore'
+import { FieldPath } from '@google-cloud/firestore'
+import type { Query, WhereFilterOp } from '@google-cloud/firestore'
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 

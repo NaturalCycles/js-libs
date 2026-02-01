@@ -1,9 +1,6 @@
 import { ErrorMode } from '../error/errorMode.js'
-import {
-  type CommonLogger,
-  type CommonLogLevel,
-  createCommonLoggerAtLevel,
-} from '../log/commonLogger.js'
+import { createCommonLoggerAtLevel } from '../log/commonLogger.js'
+import type { CommonLogger, CommonLogLevel } from '../log/commonLogger.js'
 import type { AsyncFunction, PositiveInteger } from '../types.js'
 import type { DeferredPromise } from './pDefer.js'
 import { pDefer } from './pDefer.js'

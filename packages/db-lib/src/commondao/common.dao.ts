@@ -16,11 +16,13 @@ import {
   _stringMapEntries,
   _stringMapValues,
   _typeCast,
-  type BaseDBEntity,
-  type NonNegativeInteger,
-  type ObjectWithId,
-  type StringMap,
-  type Unsaved,
+} from '@naturalcycles/js-lib/types'
+import type {
+  BaseDBEntity,
+  NonNegativeInteger,
+  ObjectWithId,
+  StringMap,
+  Unsaved,
 } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'

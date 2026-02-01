@@ -1,5 +1,6 @@
 import { _uniq } from '@naturalcycles/js-lib/array'
-import { _stringMapEntries, type AnyObject, type StringMap } from '@naturalcycles/js-lib/types'
+import { _stringMapEntries } from '@naturalcycles/js-lib/types'
+import type { AnyObject, StringMap } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '../jsonSchemaBuilder.js'
 
 type PrimitiveType = 'undefined' | 'null' | 'boolean' | 'string' | 'number'

@@ -2,13 +2,8 @@ import { _isEmptyObject } from '@naturalcycles/js-lib'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _deepCopy, _sortObjectDeep } from '@naturalcycles/js-lib/object'
-import {
-  _stringMapEntries,
-  _stringMapValues,
-  type AnyObjectWithId,
-  type ObjectWithId,
-  type StringMap,
-} from '@naturalcycles/js-lib/types'
+import { _stringMapEntries, _stringMapValues } from '@naturalcycles/js-lib/types'
+import type { AnyObjectWithId, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { generateJsonSchemaFromData } from '@naturalcycles/nodejs-lib/ajv'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'

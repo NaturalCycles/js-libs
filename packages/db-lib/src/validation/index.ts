@@ -1,15 +1,9 @@
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
-import {
-  j,
-  JsonSchemaAnyBuilder,
-  type JsonSchemaObjectBuilder,
-} from '@naturalcycles/nodejs-lib/ajv'
+import { j, JsonSchemaAnyBuilder } from '@naturalcycles/nodejs-lib/ajv'
+import type { JsonSchemaObjectBuilder } from '@naturalcycles/nodejs-lib/ajv'
 import type { CommonDBOptions, CommonDBSaveOptions, DBTransaction } from '../db.model.js'
-import {
-  type DBQueryFilter,
-  dbQueryFilterOperatorValues,
-  type DBQueryOrder,
-} from '../query/dbQuery.js'
+import { dbQueryFilterOperatorValues } from '../query/dbQuery.js'
+import type { DBQueryFilter, DBQueryOrder } from '../query/dbQuery.js'
 
 // oxlint-disable typescript/explicit-function-return-type
 

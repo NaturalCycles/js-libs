@@ -1,6 +1,7 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
-import { j, type JsonSchemaObjectBuilder } from '@naturalcycles/nodejs-lib/ajv'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
+import type { JsonSchemaObjectBuilder } from '@naturalcycles/nodejs-lib/ajv'
 
 const MOCK_TS_2018_06_21 = 1529539200 as UnixTimestamp
 

@@ -1,22 +1,22 @@
 import { Transform } from 'node:stream'
-import { _hc, type AbortableSignal } from '@naturalcycles/js-lib'
+import { _hc } from '@naturalcycles/js-lib'
+import type { AbortableSignal } from '@naturalcycles/js-lib'
 import { _since } from '@naturalcycles/js-lib/datetime'
 import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
 import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import { _stringify } from '@naturalcycles/js-lib/string'
-import {
-  type AbortableAsyncMapper,
-  type AsyncPredicate,
-  END,
-  type NumberOfSeconds,
-  type PositiveInteger,
-  type Predicate,
-  type Promisable,
-  SKIP,
-  type StringMap,
-  type UnixTimestampMillis,
+import { END, SKIP } from '@naturalcycles/js-lib/types'
+import type {
+  AbortableAsyncMapper,
+  AsyncPredicate,
+  NumberOfSeconds,
+  PositiveInteger,
+  Predicate,
+  Promisable,
+  StringMap,
+  UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { yellow } from '../../colors/colors.js'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'

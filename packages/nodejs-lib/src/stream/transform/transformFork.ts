@@ -1,6 +1,7 @@
 import { Transform } from 'node:stream'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
-import { type DeferredPromise, pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
+import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
+import type { DeferredPromise } from '@naturalcycles/js-lib/promise/pDefer.js'
 // oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { Pipeline } from '../pipeline.js'
 import { createReadable } from '../readable/createReadable.js'
