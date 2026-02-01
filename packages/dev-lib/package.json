@@ -42,8 +42,8 @@
     "@typescript/native-preview": "^7.0.0-0",
     "eslint": "^9",
     "husky": "^9",
-    "stylelint": "^16",
-    "stylelint-config-standard-scss": "^16",
+    "stylelint": "^17",
+    "stylelint-config-standard-scss": "^17",
     "typescript": "^5",
     "typescript-eslint": "^8"
   },
