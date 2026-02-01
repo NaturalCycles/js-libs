@@ -101,7 +101,7 @@
     "dotenv": "^17",
     "eslint": "^9",
     "husky": "^9",
-    "oxfmt": "*",
+    "oxfmt": "^0",
     "oxlint": "^1",
     "oxlint-tsgolint": "*",
     "semantic-release": "^25",

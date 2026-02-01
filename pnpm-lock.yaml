@@ -45,7 +45,7 @@ importers:
         specifier: ^9
         version: 9.1.7
       oxfmt:
-        specifier: '*'
+        specifier: ^0
         version: 0.27.0
       oxlint:
         specifier: ^1
@@ -364,7 +364,7 @@ importers:
         specifier: ^4
         version: 4.0.8
       oxfmt:
-        specifier: '*'
+        specifier: ^0
         version: 0.27.0
       oxlint:
         specifier: ^1

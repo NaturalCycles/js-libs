@@ -35,7 +35,7 @@
     "globals": "^17",
     "lint-staged": "^16",
     "micromatch": "^4",
-    "oxfmt": "*",
+    "oxfmt": "^0",
     "oxlint": "^1",
     "oxlint-tsgolint": "*",
     "typescript-eslint": "^8"
