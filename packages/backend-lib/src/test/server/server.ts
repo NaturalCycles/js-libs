@@ -10,20 +10,13 @@ autocannon -c 100 -d 40 -p 10 localhost:8080
 
  */
 
-/* eslint-disable simple-import-sort/imports */
-
 console.log('startServer... ')
-
-import { getDefaultRouter } from '../../express/getDefaultRouter.js'
-import { startServer } from '../../express/startServer.js'
-// should come strictly first
-import { sentry } from './instrument.js'
-
-// should come after `instrument.ts` import
 
 import { _errorLikeToErrorObject, AppError } from '@naturalcycles/js-lib/error'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { loginHtml } from '../../admin/adminMiddleware.js'
+import { getDefaultRouter } from '../../express/getDefaultRouter.js'
+import { startServer } from '../../express/startServer.js'
 import {
   basicAuthMiddleware,
   okMiddleware,
@@ -40,6 +33,7 @@ import {
   serverStatsMiddleware,
 } from '../../server/serverStatsMiddleware.js'
 import { adminService, firebaseService, reqAdmin } from './admin.js'
+import { sentry } from './instrument.js'
 
 const router = getDefaultRouter()
 export const rootResource = router

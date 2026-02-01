@@ -1,6 +1,6 @@
 const started = Date.now()
-import { workerData, parentPort } from 'node:worker_threads'
 import { inspect } from 'node:util'
+import { workerData, parentPort } from 'node:worker_threads'
 const { workerFile, workerIndex, logEvery = 1000, metric = 'worker', silent } = workerData || {}
 
 if (!workerFile) {

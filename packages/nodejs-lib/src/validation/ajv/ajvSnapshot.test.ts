@@ -1,5 +1,5 @@
 import type { JSONSchemaType } from 'ajv'
-import prettier from 'prettier'
+import { format } from 'oxfmt'
 import { expect, test } from 'vitest'
 import { createAjv } from './getAjv.js'
 import { j } from './jsonSchemaBuilder.js'
@@ -34,13 +34,7 @@ test('snapshot ajv schema', async () => {
     }
     function validate20(
       data,
-      {
-        instancePath = '',
-        parentData,
-        parentDataProperty,
-        rootData = data,
-        dynamicAnchors = {},
-      } = {},
+      { instancePath = '', parentData, parentDataProperty, rootData = data, dynamicAnchors = {} } = {},
     ) {
       let vErrors = null
       let errors = 0
@@ -113,9 +107,9 @@ test('snapshot ajv schema', async () => {
 })
 
 async function prettify(s: string): Promise<string> {
-  return await prettier.format(s, {
-    parser: 'babel',
+  const { code } = await format('schema.js', s, {
     semi: false,
     singleQuote: true,
   })
+  return code
 }
