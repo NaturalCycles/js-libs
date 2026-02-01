@@ -47,8 +47,8 @@
     "noUnusedLocals": false, // doesn't support _prefixed vars
     "noUnusedParameters": true,
 
-    // Enabled should be faster, but will catch less errors
-    // "skipLibCheck": true,
+    // Enabled for speedup
+    "skipLibCheck": true,
 
     // Other
     "jsx": "preserve",
