@@ -69,7 +69,8 @@
   },
   "devDependencies": {
     "@types/node": "^25",
-    "@types/prompts": "^2"
+    "@types/prompts": "^2",
+    "@typescript/native-preview": "^7.0.0-0"
   },
   "exports": {
     "./cfg/": "./cfg/",

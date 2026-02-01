@@ -21,6 +21,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
     "@types/node": "^25",
+    "@typescript/native-preview": "^7.0.0-0",
     "dotenv": "^17"
   },
   "exports": {

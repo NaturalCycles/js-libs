@@ -32,3 +32,5 @@ auditConfig:
 strictDepBuilds: true
 ignoreWorkspaceCycles: true
 ignorePatchFailures: false
+publicHoistPattern:
+  - '@typescript/native-preview'

@@ -16,7 +16,8 @@
     "@naturalcycles/nodejs-lib": "workspace:^15"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "workspace:*"
+    "@naturalcycles/dev-lib": "workspace:*",
+    "@typescript/native-preview": "^7.0.0-0"
   },
   "files": [
     "dist",

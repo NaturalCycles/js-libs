@@ -96,6 +96,9 @@ importers:
       '@types/semver':
         specifier: ^7
         version: 7.7.1
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
 
   packages/airtable-lib:
     dependencies:
@@ -121,6 +124,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       dotenv:
         specifier: ^17
         version: 17.2.3
@@ -209,6 +215,9 @@ importers:
       '@types/ejs':
         specifier: ^3
         version: 3.1.5
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       fastify:
         specifier: ^5
         version: 5.7.2
@@ -249,6 +258,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       express:
         specifier: ^5
         version: 5.2.1
@@ -286,6 +298,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       firebase-admin:
         specifier: ^13
         version: 13.6.0(encoding@0.1.13)
@@ -311,6 +326,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
 
   packages/db-lib:
     dependencies:
@@ -324,6 +342,9 @@ importers:
       '@naturalcycles/dev-lib':
         specifier: workspace:*
         version: link:../dev-lib
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
 
   packages/dev-lib:
     dependencies:
@@ -339,9 +360,6 @@ importers:
       '@naturalcycles/nodejs-lib':
         specifier: workspace:^15
         version: link:../nodejs-lib
-      '@typescript/native-preview':
-        specifier: ^7.0.0-0
-        version: 7.0.0-dev.20260201.1
       '@vitest/coverage-v8':
         specifier: ^4
         version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@25.1.0)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.2))
@@ -394,6 +412,9 @@ importers:
       '@types/prompts':
         specifier: ^2
         version: 2.4.9
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
 
   packages/firestore-lib:
     dependencies:
@@ -419,6 +440,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       dotenv:
         specifier: ^17
         version: 17.2.3
@@ -450,6 +474,9 @@ importers:
       '@types/semver':
         specifier: ^7
         version: 7.7.1
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       crypto-js:
         specifier: ^4
         version: 4.2.0
@@ -481,6 +508,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       dotenv:
         specifier: ^17
         version: 17.2.3
@@ -512,6 +542,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       dotenv:
         specifier: ^17
         version: 17.2.3
@@ -561,6 +594,9 @@ importers:
       '@naturalcycles/dev-lib':
         specifier: workspace:*
         version: link:../dev-lib
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
 
   packages/redis-lib:
     dependencies:
@@ -586,6 +622,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
 
   packages/scrubber-lib:
     dependencies:
@@ -605,6 +644,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
       dotenv:
         specifier: ^17
         version: 17.2.3
@@ -645,6 +687,9 @@ importers:
       '@types/node':
         specifier: ^25
         version: 25.1.0
+      '@typescript/native-preview':
+        specifier: ^7.0.0-0
+        version: 7.0.0-dev.20260201.1
 
 packages:
 

@@ -20,7 +20,8 @@
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
-    "@types/node": "^25"
+    "@types/node": "^25",
+    "@typescript/native-preview": "^7.0.0-0"
   },
   "exports": {
     ".": "./dist/index.js"

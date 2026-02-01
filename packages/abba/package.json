@@ -20,7 +20,8 @@
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
-    "@types/semver": "^7"
+    "@types/semver": "^7",
+    "@typescript/native-preview": "^7.0.0-0"
   },
   "exports": {
     ".": "./dist/index.js"
