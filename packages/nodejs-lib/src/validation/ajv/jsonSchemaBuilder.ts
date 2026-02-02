@@ -702,39 +702,31 @@ export class JsonSchemaIsoDateBuilder<Opt extends boolean = false> extends JsonS
   }
 
   /**
-   * @param optionalValues List of values that should be considered/converted as `undefined`.
+   * @param nullValue Pass `null` to have `null` values be considered/converted as `undefined`.
    *
-   * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
+   * This `null` feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
    *
-   * Make sure this `optional()` call is at the end of your call chain.
-   *
-   * When `null` is included in optionalValues, the return type becomes `JsonSchemaTerminal`
+   * When `null` is passed, the return type becomes `JsonSchemaTerminal`
    * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
    */
-  override optional<T extends readonly null[] | undefined = undefined>(
-    optionalValues?: T,
-  ): T extends readonly null[]
-    ? JsonSchemaTerminal<string | IsoDate | undefined, IsoDate | undefined, true>
+  override optional<N extends null | undefined = undefined>(
+    nullValue?: N,
+  ): N extends null
+    ? JsonSchemaTerminal<string | IsoDate | null | undefined, IsoDate | undefined, true>
     : JsonSchemaAnyBuilder<string | IsoDate | undefined, IsoDate | undefined, true> {
-    if (!optionalValues) {
-      return super.optional() as any
+    if (nullValue === undefined) {
+      return super.optional()
     }
 
-    _typeCast<null[]>(optionalValues)
-
-    const optionalBuilder = this.cloneAndUpdateSchema({ optionalField: true })
-
-    const newBuilder = new JsonSchemaTerminal<
-      string | IsoDate | undefined,
-      IsoDate | undefined,
-      true
-    >({
-      anyOf: [{ type: 'null', optionalValues }, optionalBuilder.build()],
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    // We also cannot accept more rules attached, since we're not building an ObjectSchema anymore.
+    return new JsonSchemaTerminal({
+      anyOf: [{ type: 'null', optionalValues: [null] }, this.build()],
       optionalField: true,
-    })
-
-    return newBuilder as any
+    }) as any
   }
 
   before(date: string): this {
@@ -1057,9 +1049,9 @@ export class JsonSchemaObjectBuilder<
   override optional<N extends null | undefined = undefined>(
     nullValue?: N,
   ): N extends null
-    ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
+    ? JsonSchemaTerminal<IN | null | undefined, OUT | undefined, true>
     : JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true> {
-    if (typeof nullValue === 'undefined') {
+    if (nullValue === undefined) {
       return super.optional()
     }
 

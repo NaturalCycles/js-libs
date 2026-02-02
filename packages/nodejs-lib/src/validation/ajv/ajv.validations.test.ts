@@ -685,7 +685,7 @@ describe('string', () => {
 
     describe('optional(values)', () => {
       test('should work with `null` values', () => {
-        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
+        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
         const ajvSchema = AjvSchema.create(schema)
 
         const [err1, result1] = ajvSchema.getValidationResult({ date: '2025-01-15' as IsoDate })
@@ -698,7 +698,7 @@ describe('string', () => {
       })
 
       test('should still be an optional field when passing in `null`', () => {
-        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
+        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
         const ajvSchema = AjvSchema.create(schema)
 
         const [err1, result1] = ajvSchema.getValidationResult({})
