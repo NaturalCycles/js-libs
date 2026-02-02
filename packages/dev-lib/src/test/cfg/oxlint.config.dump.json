@@ -105,12 +105,21 @@
     "no-useless-return": "allow",
     "no-var": "deny",
     "no-with": "warn",
+    "prefer-const": [
+      "deny",
+      [
+        {
+          "destructuring": "all"
+        }
+      ]
+    ],
     "prefer-spread": "deny",
     "preserve-caught-error": "deny",
     "require-yield": "warn",
     "unicode-bom": "deny",
     "use-isnan": "warn",
     "valid-typeof": "warn",
+    "import/consistent-type-specifier-style": "deny",
     "import/default": "warn",
     "import/extensions": [
       "deny",
@@ -401,7 +410,7 @@
         }
       ]
     ],
-    "unicorn/prefer-add-event-listener": ["deny", [{}]],
+    "unicorn/prefer-add-event-listener": "deny",
     "unicorn/prefer-array-find": "deny",
     "unicorn/prefer-array-flat-map": "deny",
     "unicorn/prefer-array-index-of": "deny",
@@ -427,7 +436,7 @@
     "unicorn/prefer-modern-math-apis": "deny",
     "unicorn/prefer-native-coercion-functions": "deny",
     "unicorn/prefer-node-protocol": "deny",
-    "unicorn/prefer-object-from-entries": ["deny", [{}]],
+    "unicorn/prefer-object-from-entries": "deny",
     "unicorn/prefer-optional-catch-binding": "deny",
     "unicorn/prefer-reflect-apply": "deny",
     "unicorn/prefer-response-static-json": "deny",

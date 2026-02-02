@@ -63,6 +63,9 @@
     "stylelint-config-standard-scss": {
       "optional": true
     },
+    "typescript": {
+      "optional": true
+    },
     "typescript-eslint": {
       "optional": true
     }
@@ -70,7 +73,8 @@
   "devDependencies": {
     "@types/node": "^25",
     "@types/prompts": "^2",
-    "@typescript/native-preview": "^7.0.0-0"
+    "@typescript/native-preview": "catalog:",
+    "typescript": "^5"
   },
   "exports": {
     "./cfg/": "./cfg/",

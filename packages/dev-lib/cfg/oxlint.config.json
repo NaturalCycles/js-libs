@@ -39,6 +39,7 @@
     "prefer-array-find": 2,
     "prefer-array-flat-map": 2,
     "prefer-set-has": 2,
+    "prefer-const": [2, { "destructuring": "all" }],
     "no-array-constructor": 2,
     "no-useless-return": 0, // not useful
     "no-bitwise": 2,
@@ -238,7 +239,7 @@
         "onlyIfContainsSeparator": true
       }
     ],
-    "unicorn/prefer-add-event-listener": [2, {}],
+    "unicorn/prefer-add-event-listener": 2,
     "unicorn/prefer-array-index-of": 2,
     "unicorn/prefer-bigint-literals": 2,
     "unicorn/prefer-blob-reading-methods": 2,
@@ -250,7 +251,7 @@
     "unicorn/prefer-logical-operator-over-ternary": 2,
     "unicorn/prefer-modern-dom-apis": 2,
     "unicorn/prefer-native-coercion-functions": 2,
-    "unicorn/prefer-object-from-entries": [2, {}],
+    "unicorn/prefer-object-from-entries": 2,
     "unicorn/prefer-optional-catch-binding": 2,
     "unicorn/prefer-reflect-apply": 2,
     "unicorn/prefer-string-raw": 2,

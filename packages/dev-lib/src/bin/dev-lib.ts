@@ -56,7 +56,7 @@ const commands: Command[] = [
   {
     name: 'build',
     fn: buildProd,
-    desc: 'Run "build-copy" then tsc with --emit and --noCheck, using tsconfig.prod.json',
+    desc: 'Run "build-copy" then tsgo with --emit and --noCheck, using tsconfig.prod.json',
   },
   {
     name: 'build-copy',
@@ -216,11 +216,11 @@ async function _typecheckWithOxlint(): Promise<void> {
   runOxlint(fix)
 }
 
-async function cleanDist(): Promise<void> {
-  fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
+async function cleanBuild(): Promise<void> {
+  cleanDist()
+  buildProd()
 }
 
-async function cleanBuild(): Promise<void> {
-  await cleanDist()
-  await buildProd()
+function cleanDist(): void {
+  fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
 }

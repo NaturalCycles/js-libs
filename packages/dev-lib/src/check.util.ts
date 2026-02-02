@@ -447,10 +447,16 @@ export function runBiome(fix = true): boolean {
   return true
 }
 
-export async function buildProd(): Promise<void> {
+export function buildProd(): void {
   // fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
   buildCopy()
-  await runTSCProd()
+
+  if (hasDependencyInNodeModules('@typescript/native-preview')) {
+    // now we trust tsgo to run prod builds
+    runTSGOProd()
+  } else {
+    runTSCProd()
+  }
 }
 
 /**
@@ -549,12 +555,23 @@ async function runTSGOInFolder(dir: string, args: string[] = []): Promise<void> 
   })
 }
 
-export async function runTSCProd(args: string[] = []): Promise<void> {
+export function runTSCProd(args: string[] = []): void {
   const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
 
   const tscPath = findPackageBinPath('typescript', 'tsc')
 
-  await exec2.spawnAsync(tscPath, {
+  exec2.spawn(tscPath, {
+    args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', '--incremental', 'false', ...args],
+    shell: false,
+  })
+}
+
+export function runTSGOProd(args: string[] = []): void {
+  const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
+
+  const tsgoPath = findPackageBinPath('@typescript/native-preview', 'tsgo')
+
+  exec2.spawn(tsgoPath, {
     args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', '--incremental', 'false', ...args],
     shell: false,
   })
