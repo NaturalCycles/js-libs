@@ -55,9 +55,12 @@ import { CommonDaoTransaction } from './commonDaoTransaction.js'
 /**
  * Lowest common denominator API between supported Databases.
  *
- * DBM = Database model (how it's stored in DB)
  * BM = Backend model (optimized for API access)
+ * DBM = Database model (logical representation, before compression)
  * TM = Transport model (optimized to be sent over the wire)
+ *
+ * Note: When auto-compression is enabled, the physical storage format differs from DBM.
+ * Compression/decompression is handled transparently at the storage boundary.
  */
 export class CommonDao<
   BM extends BaseDBEntity,
@@ -86,6 +89,16 @@ export class CommonDao<
       this.cfg.hooks!.createRandomId ||= () => stringId() as ID
     } else {
       delete this.cfg.hooks!.createRandomId
+    }
+
+    // If the auto-compression is enabled,
+    // then we need to ensure that the '__compressed' property is part of the index exclusion list.
+    if (this.cfg.compress?.keys) {
+      const current = this.cfg.excludeFromIndexes
+      this.cfg.excludeFromIndexes = current ? [...current] : []
+      if (!this.cfg.excludeFromIndexes.includes('__compressed' as any)) {
+        this.cfg.excludeFromIndexes.push('__compressed' as any)
+      }
     }
   }
 
@@ -141,7 +154,8 @@ export class CommonDao<
   private async loadByIds(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<DBM[]> {
     if (!ids.length) return []
     const table = opt.table || this.cfg.table
-    return await (opt.tx || this.cfg.db).getByIds<DBM>(table, ids, opt)
+    const rows = await (opt.tx || this.cfg.db).getByIds<DBM>(table, ids, opt)
+    return await this.storageRowsToDBMs(rows)
   }
 
   async getBy(by: keyof DBM, value: any, limit = 0, opt?: CommonDaoReadOptions): Promise<BM[]> {
@@ -200,8 +214,9 @@ export class CommonDao<
   ): Promise<RunQueryResult<BM>> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const { rows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
+    const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
+    const rows = isPartialQuery ? rawRows : await this.storageRowsToDBMs(rawRows)
     const bms = isPartialQuery ? (rows as any[]) : await this.dbmsToBM(rows, opt)
     return {
       rows: bms,
@@ -220,8 +235,9 @@ export class CommonDao<
   ): Promise<RunQueryResult<DBM>> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const { rows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
+    const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
+    const rows = isPartialQuery ? rawRows : await this.storageRowsToDBMs(rawRows)
     const dbms = isPartialQuery ? rows : await this.anyToDBMs(rows, opt)
     return { rows: dbms, ...queryResult }
   }
@@ -233,7 +249,13 @@ export class CommonDao<
   }
 
   streamQueryAsDBM(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<DBM> = {}): Pipeline<DBM> {
-    const pipeline = this.streamQueryRaw(q, opt)
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
+    q.table = opt.table || q.table
+    let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
+
+    if (this.cfg.compress?.keys.length) {
+      pipeline = pipeline.map(async row => await this.storageRowToDBM(row))
+    }
 
     const isPartialQuery = !!q._selectedFieldNames
     if (isPartialQuery) return pipeline
@@ -245,7 +267,13 @@ export class CommonDao<
   }
 
   streamQuery(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<BM> = {}): Pipeline<BM> {
-    const pipeline = this.streamQueryRaw(q, opt)
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
+    q.table = opt.table || q.table
+    let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
+
+    if (this.cfg.compress?.keys.length) {
+      pipeline = pipeline.map(async row => await this.storageRowToDBM(row))
+    }
 
     const isPartialQuery = !!q._selectedFieldNames
     if (isPartialQuery) return pipeline as any as Pipeline<BM>
@@ -254,12 +282,6 @@ export class CommonDao<
     opt.errorMode ||= ErrorMode.SUPPRESS
 
     return pipeline.map(async dbm => await this.dbmToBM(dbm, opt), { errorMode: opt.errorMode })
-  }
-
-  private streamQueryRaw(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<any> = {}): Pipeline<DBM> {
-    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
-    return this.cfg.db.streamQuery<DBM>(q, opt)
   }
 
   async queryIds(q: DBQuery<DBM>, opt: CommonDaoReadOptions = {}): Promise<ID[]> {
@@ -449,7 +471,8 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    await (opt.tx || this.cfg.db).saveBatch(table, [dbm], saveOptions)
+    const row = await this.dbmToStorageRow(dbm)
+    await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
       bm.id = dbm.id
@@ -461,18 +484,19 @@ export class CommonDao<
   async saveAsDBM(dbm: Unsaved<DBM>, opt: CommonDaoSaveOptions<BM, DBM> = {}): Promise<DBM> {
     this.requireWriteAccess()
     this.assignIdCreatedUpdated(dbm, opt) // mutates
-    const row = await this.anyToDBM(dbm, opt)
-    this.cfg.hooks!.beforeSave?.(row)
+    const validDbm = await this.anyToDBM(dbm, opt)
+    this.cfg.hooks!.beforeSave?.(validDbm)
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
+    const row = await this.dbmToStorageRow(validDbm)
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
-      dbm.id = row.id
+      dbm.id = validDbm.id
     }
 
-    return row
+    return validDbm
   }
 
   async saveBatch(bms: Unsaved<BM>[], opt: CommonDaoSaveBatchOptions<DBM> = {}): Promise<BM[]> {
@@ -486,7 +510,8 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    await (opt.tx || this.cfg.db).saveBatch(table, dbms, saveOptions)
+    const rows = await this.dbmsToStorageRows(dbms)
+    await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
       dbms.forEach((dbm, i) => (bms[i]!.id = dbm.id))
@@ -502,33 +527,39 @@ export class CommonDao<
     if (!dbms.length) return []
     this.requireWriteAccess()
     dbms.forEach(dbm => this.assignIdCreatedUpdated(dbm, opt))
-    const rows = await this.anyToDBMs(dbms as DBM[], opt)
+    const validDbms = await this.anyToDBMs(dbms as DBM[], opt)
     if (this.cfg.hooks!.beforeSave) {
-      rows.forEach(row => this.cfg.hooks!.beforeSave!(row))
+      validDbms.forEach(dbm => this.cfg.hooks!.beforeSave!(dbm))
     }
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
+    const rows = await this.dbmsToStorageRows(validDbms)
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
-      rows.forEach((row, i) => (dbms[i]!.id = row.id))
+      validDbms.forEach((dbm, i) => (dbms[i]!.id = dbm.id))
     }
 
-    return rows
+    return validDbms
   }
 
-  private prepareSaveOptions(opt: CommonDaoSaveOptions<BM, DBM>): CommonDBSaveOptions<DBM> {
+  private prepareSaveOptions(
+    opt: CommonDaoSaveOptions<BM, DBM>,
+  ): CommonDBSaveOptions<ObjectWithId> {
     let {
       saveMethod,
       assignGeneratedIds = this.cfg.assignGeneratedIds,
       excludeFromIndexes = this.cfg.excludeFromIndexes,
     } = opt
 
+    // If the user passed in custom `excludeFromIndexes` with the save() call,
+    // and the auto-compression is enabled,
+    // then we need to ensure that the '__compressed' property is part of the list.
     if (this.cfg.compress?.keys) {
       excludeFromIndexes ??= []
-      if (!excludeFromIndexes.includes('data' as any)) {
-        excludeFromIndexes.push('data' as any)
+      if (!excludeFromIndexes.includes('__compressed' as any)) {
+        excludeFromIndexes.push('__compressed' as any)
       }
     }
 
@@ -538,7 +569,7 @@ export class CommonDao<
 
     return {
       ...opt,
-      excludeFromIndexes,
+      excludeFromIndexes: excludeFromIndexes as (keyof ObjectWithId)[],
       saveMethod,
       assignGeneratedIds,
     }
@@ -560,11 +591,7 @@ export class CommonDao<
     opt.skipValidation ??= true
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    if (this.cfg.immutable && !opt.allowMutability && !opt.saveMethod) {
-      opt = { ...opt, saveMethod: 'insert' }
-    }
-
-    const excludeFromIndexes = opt.excludeFromIndexes || this.cfg.excludeFromIndexes
+    const saveOptions = this.prepareSaveOptions(opt)
     const { beforeSave } = this.cfg.hooks!
 
     const { chunkSize = 500, chunkConcurrency = 32, errorMode } = opt
@@ -575,17 +602,14 @@ export class CommonDao<
           this.assignIdCreatedUpdated(bm, opt)
           const dbm = await this.bmToDBM(bm, opt)
           beforeSave?.(dbm)
-          return dbm
+          return await this.dbmToStorageRow(dbm)
         },
         { errorMode },
       )
       .chunk(chunkSize)
       .map(
         async batch => {
-          await this.cfg.db.saveBatch(table, batch, {
-            ...opt,
-            excludeFromIndexes,
-          })
+          await this.cfg.db.saveBatch(table, batch, saveOptions)
           return batch
         },
         {
@@ -724,9 +748,6 @@ export class CommonDao<
     // const dbm = this.anyToDBM(_dbm, opt)
     const dbm: DBM = { ..._dbm, ...this.cfg.hooks!.parseNaturalId!(_dbm.id as ID) }
 
-    // Decompress
-    await this.decompress(dbm)
-
     // DBM > BM
     const bm = ((await this.cfg.hooks!.beforeDBMToBM?.(dbm)) || dbm) as Partial<BM>
 
@@ -753,9 +774,6 @@ export class CommonDao<
     // BM > DBM
     const dbm = ((await this.cfg.hooks!.beforeBMToDBM?.(bm)) || bm) as DBM
 
-    // Compress
-    if (this.cfg.compress) await this.compress(dbm)
-
     return dbm
   }
 
@@ -764,37 +782,85 @@ export class CommonDao<
     return await pMap(bms, async bm => await this.bmToDBM(bm, opt))
   }
 
-  /**
-   * Mutates `dbm`.
-   */
-  async compress(dbm: DBM): Promise<void> {
-    if (!this.cfg.compress?.keys.length) return // No compression requested
+  // STORAGE LAYER (compression/decompression at DB boundary)
+  // These methods convert between DBM (logical model) and storage format (physical, possibly compressed).
+  // Public methods allow external code to bypass the DAO layer for direct DB access
+  // (e.g., cross-environment data copy).
 
-    const { keys } = this.cfg.compress
-    const properties = _pick(dbm, keys)
-    _assert(
-      !('data' in dbm) || 'data' in properties,
-      `Data (${dbm.id}) already has a "data" property. When using compression, this property must be included in the compression keys list.`,
-    )
-    const bufferString = JSON.stringify(properties)
-    const data = await zstdCompress(bufferString)
-    _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
-    Object.assign(dbm, { data })
+  /**
+   * Converts a DBM to storage format, applying compression if configured.
+   *
+   * Use this when you need to write directly to the database, bypassing the DAO save methods.
+   * The returned value is opaque and should only be passed to db.saveBatch() or similar.
+   *
+   * @example
+   * const storageRow = await dao.dbmToStorageRow(dbm)
+   * await db.saveBatch(table, [storageRow])
+   */
+  async dbmToStorageRow(dbm: DBM): Promise<ObjectWithId> {
+    if (!this.cfg.compress?.keys.length) return dbm
+    const row = { ...dbm }
+    await this.compress(row)
+    return row
+  }
+
+  /**
+   * Converts multiple DBMs to storage rows.
+   */
+  async dbmsToStorageRows(dbms: DBM[]): Promise<ObjectWithId[]> {
+    if (!this.cfg.compress?.keys.length) return dbms
+    return await pMap(dbms, async dbm => await this.dbmToStorageRow(dbm))
+  }
+
+  /**
+   * Converts a storage row back to a DBM, applying decompression if needed.
+   *
+   * Use this when you need to read directly from the database, bypassing the DAO load methods.
+   *
+   * @example
+   * const rows = await db.getByIds(table, ids)
+   * const dbms = await Promise.all(rows.map(row => dao.storageRowToDBM(row)))
+   */
+  async storageRowToDBM(row: ObjectWithId): Promise<DBM> {
+    if (!this.cfg.compress?.keys.length) return row as DBM
+    const dbm = { ...(row as DBM) }
+    await this.decompress(dbm)
+    return dbm
+  }
+
+  /**
+   * Converts multiple storage rows to DBMs.
+   */
+  async storageRowsToDBMs(rows: ObjectWithId[]): Promise<DBM[]> {
+    if (!this.cfg.compress?.keys.length) return rows as DBM[]
+    return await pMap(rows, async row => await this.storageRowToDBM(row))
   }
 
   /**
    * Mutates `dbm`.
    */
-  async decompress(dbm: DBM): Promise<void> {
-    _typeCast<Compressed<DBM>>(dbm)
-    if (!this.cfg.compress) return // Auto-compression not turned on
-    if (!Buffer.isBuffer(dbm.data)) return // No compressed data
+  private async compress(dbm: DBM): Promise<void> {
+    if (!this.cfg.compress?.keys.length) return // No compression requested
 
-    // try-catch to avoid a `data` with Buffer which is not compressed, but legit data
+    const { keys } = this.cfg.compress
+    const properties = _pick(dbm, keys)
+    const bufferString = JSON.stringify(properties)
+    const __compressed = await zstdCompress(bufferString)
+    _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
+    Object.assign(dbm, { __compressed })
+  }
+
+  /**
+   * Mutates `dbm`.
+   */
+  private async decompress(dbm: DBM): Promise<void> {
+    _typeCast<Compressed<DBM>>(dbm)
+    if (!Buffer.isBuffer(dbm.__compressed)) return // No compressed data
+
     try {
-      const bufferString = await decompressZstdOrInflateToString(dbm.data)
+      const bufferString = await decompressZstdOrInflateToString(dbm.__compressed)
       const properties = JSON.parse(bufferString)
-      dbm.data = undefined
+      dbm.__compressed = undefined
       Object.assign(dbm, properties)
     } catch {}
   }
@@ -808,9 +874,6 @@ export class CommonDao<
     // this.assignIdCreatedUpdated(dbm, opt)
 
     dbm = { ...dbm, ...this.cfg.hooks!.parseNaturalId!(dbm.id as ID) }
-
-    // Decompress
-    await this.decompress(dbm)
 
     // Validate/convert DBM
     // return this.validateAndConvert(dbm, this.cfg.dbmSchema, DBModelType.DBM, opt)
@@ -909,6 +972,75 @@ export class CommonDao<
   }
 
   /**
+   * Helper to decompress legacy compressed data when migrating away from auto-compression.
+   * Use as your `beforeDBMToBM` hook to decompress legacy rows on read.
+   *
+   * @example
+   * const dao = new CommonDao({
+   *   hooks: {
+   *     beforeDBMToBM: CommonDao.decompressLegacyRow,
+   *   }
+   * })
+   *
+   * // Or within an existing hook:
+   * beforeDBMToBM: async (dbm) => {
+   *   await CommonDao.decompressLegacyRow(dbm)
+   *   // ... other transformations
+   *   return dbm
+   * }
+   */
+  static async decompressLegacyRow<T extends ObjectWithId>(row: T): Promise<T> {
+    // Check both __compressed (current) and data (legacy) for backward compatibility
+    const compressed = (row as any).__compressed ?? (row as any).data
+    if (!Buffer.isBuffer(compressed)) return row
+
+    try {
+      const bufferString = await decompressZstdOrInflateToString(compressed)
+      const properties = JSON.parse(bufferString)
+      ;(row as any).__compressed = undefined
+      ;(row as any).data = undefined
+      Object.assign(row, properties)
+    } catch {
+      // Decompression failed - field is not compressed, leave as-is
+    }
+
+    return row
+  }
+
+  /**
+   * Temporary helper to migrate from the old `data` compressed property to the new `__compressed` property.
+   * Use as your `beforeDBMToBM` hook during the migration period.
+   *
+   * Migration steps:
+   * 1. Add `beforeDBMToBM: CommonDao.migrateCompressedDataProperty` to your hooks
+   * 2. Deploy - old data (with `data` property) will be decompressed on read and recompressed to `__compressed` on write
+   * 3. Once all data has been naturally rewritten, remove the hook
+   *
+   * @example
+   * const dao = new CommonDao({
+   *   compress: { keys: ['field1', 'field2'] },
+   *   hooks: {
+   *     beforeDBMToBM: CommonDao.migrateCompressedDataProperty,
+   *   }
+   * })
+   */
+  static async migrateCompressedDataProperty<T extends ObjectWithId>(row: T): Promise<T> {
+    const data = (row as any).data
+    if (!Buffer.isBuffer(data)) return row
+
+    try {
+      const bufferString = await decompressZstdOrInflateToString(data)
+      const properties = JSON.parse(bufferString)
+      ;(row as any).data = undefined
+      Object.assign(row, properties)
+    } catch {
+      // Decompression failed - data field is not compressed, leave as-is
+    }
+
+    return row
+  }
+
+  /**
    * Load rows (by their ids) from Multiple tables at once.
    * An optimized way to load data, minimizing DB round-trips.
    *
@@ -993,13 +1125,17 @@ export class CommonDao<
       const { table } = dao.cfg
       if ('id' in input) {
         // Singular
-        const dbm = dbmByTableById[table]![input.id]
+        const row = dbmByTableById[table]![input.id]
+        // Decompress before converting to BM
+        const dbm = row ? await dao.storageRowToDBM(row) : undefined
         bmsByProp[prop] = (await dao.dbmToBM(dbm, opt)) || null
       } else {
         // Plural
         // We apply filtering, to be able to support multiple input props fetching from the same table.
         // Without filtering - every prop will get ALL rows from that table.
-        const dbms = input.ids.map(id => dbmByTableById[table]![id]).filter(_isTruthy)
+        const rows = input.ids.map(id => dbmByTableById[table]![id]).filter(_isTruthy)
+        // Decompress before converting to BM
+        const dbms = await dao.storageRowsToDBMs(rows)
         bmsByProp[prop] = await dao.dbmsToBM(dbms, opt)
       }
     })
@@ -1064,7 +1200,8 @@ export class CommonDao<
         dao.assignIdCreatedUpdated(row, opt)
         const dbm = await dao.bmToDBM(row, opt)
         dao.cfg.hooks!.beforeSave?.(dbm)
-        dbmsByTable[table].push(dbm)
+        const storageRow = await dao.dbmToStorageRow(dbm)
+        dbmsByTable[table].push(storageRow)
       } else {
         // Plural
         input.rows.forEach(bm => dao.assignIdCreatedUpdated(bm, opt))
@@ -1072,7 +1209,8 @@ export class CommonDao<
         if (dao.cfg.hooks!.beforeSave) {
           dbms.forEach(dbm => dao.cfg.hooks!.beforeSave!(dbm))
         }
-        dbmsByTable[table].push(...dbms)
+        const storageRows = await dao.dbmsToStorageRows(dbms)
+        dbmsByTable[table].push(...storageRows)
       }
     })
 
@@ -1207,4 +1345,4 @@ export type AnyDao = CommonDao<any>
  * Used internally during compression/decompression so that DBM instances can
  * carry their compressed payload alongside the original type shape.
  */
-type Compressed<DBM> = DBM & { data?: Buffer }
+type Compressed<DBM> = DBM & { __compressed?: Buffer }
