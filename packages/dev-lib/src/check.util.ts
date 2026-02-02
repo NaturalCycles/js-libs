@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { createRequire } from 'node:module'
+import { findPackageJSON } from 'node:module'
 import path from 'node:path'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
@@ -670,12 +670,10 @@ function hasDependencyInNodeModules(name: string): boolean {
 //   } catch {}
 // }
 
-const require = createRequire(import.meta.url)
-
 export function findPackageBinPath(pkg: string, cmd: string): string {
-  const packageJsonPath = require.resolve(`${pkg}/package.json`)
+  const packageJsonPath = findPackageJSON(pkg, import.meta.url)
+  _assert(packageJsonPath, `Could not find package.json for ${pkg}`)
   const { bin } = fs2.readJson<any>(packageJsonPath)
-
   return path.join(path.dirname(packageJsonPath), typeof bin === 'string' ? bin : bin[cmd])
 }
 
