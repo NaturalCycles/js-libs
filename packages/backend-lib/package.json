@@ -49,8 +49,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
     "@sentry/node": "^10",
-    "@types/ejs": "^3",
-    "@typescript/native-preview": "^7.0.0-0",
+    "@typescript/native-preview": "catalog:",
     "fastify": "^5"
   },
   "exports": {

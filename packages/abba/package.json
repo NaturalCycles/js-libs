@@ -21,7 +21,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
     "@types/semver": "^7",
-    "@typescript/native-preview": "^7.0.0-0"
+    "@typescript/native-preview": "catalog:"
   },
   "exports": {
     ".": "./dist/index.js"

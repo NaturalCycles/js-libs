@@ -1,5 +1,7 @@
 packages:
   - packages/*
+catalog:
+  '@typescript/native-preview': 7.0.0-dev.20260201.1
 ignoredBuiltDependencies:
   - '@firebase/util'
   - protobufjs

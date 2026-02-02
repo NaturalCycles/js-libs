@@ -24,7 +24,7 @@
     "@types/cors": "^2",
     "@types/express": "^5",
     "@types/node": "^25",
-    "@typescript/native-preview": "^7.0.0-0",
+    "@typescript/native-preview": "catalog:",
     "express": "^5",
     "fastify": "^5",
     "helmet": "^8",

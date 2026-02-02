@@ -34,7 +34,7 @@
     "@types/crypto-js": "^4",
     "@types/node": "^25",
     "@types/semver": "^7",
-    "@typescript/native-preview": "^7.0.0-0",
+    "@typescript/native-preview": "catalog:",
     "crypto-js": "^4",
     "dayjs": "^1"
   },
