@@ -96,11 +96,9 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
   if (fastLinters) {
     // Fast linters (that run in <1 second) go first
 
-    runActionLint()
-
     s = Date.now()
-    if (runBiome(fix)) {
-      timings['biome'] = Date.now() - s
+    if (runActionLint()) {
+      timings['actionlint'] = Date.now() - s
     }
 
     s = Date.now()
@@ -421,29 +419,6 @@ export function requireActionlintVersion(): void {
 export function getActionLintVersion(): SemVerString | undefined {
   if (!canRunBinary('actionlint')) return
   return exec2.exec('actionlint --version').split('\n')[0]
-}
-
-/**
- * Returns true if it ran.
- */
-export function runBiome(fix = true): boolean {
-  const configPath = `biome.jsonc`
-  if (!existsSync(configPath)) {
-    console.log(`biome is skipped, because ./biome.jsonc is not present`)
-    return false
-  }
-
-  const biomePath = findPackageBinPath('@biomejs/biome', 'biome')
-  const dirs = [`src`, `scripts`, `e2e`].filter(d => existsSync(d))
-
-  exec2.spawn(biomePath, {
-    name: fix ? 'biome' : 'biome --no-fix',
-    args: [`lint`, fix && '--write', fix && '--unsafe', '--no-errors-on-unmatched', ...dirs].filter(
-      _isTruthy,
-    ),
-    shell: false,
-  })
-  return true
 }
 
 export function buildProd(): void {

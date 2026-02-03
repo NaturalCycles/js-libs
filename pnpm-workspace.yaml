@@ -6,7 +6,6 @@ ignoredBuiltDependencies:
   - '@firebase/util'
   - protobufjs
 onlyBuiltDependencies:
-  - '@biomejs/biome'
   - better-sqlite3
   - esbuild
   - sqlite3

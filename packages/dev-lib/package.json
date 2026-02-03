@@ -18,13 +18,11 @@
     "lint": "tsx scripts/eslintPrintConfig.script.ts && tsx scripts/oxlintPrintConfig.script.ts && tsx ./src/bin/dev-lib.ts lint",
     "eslint": "tsx ./src/bin/dev-lib.ts eslint",
     "eslint-no-fix": "tsx ./src/bin/dev-lib.ts eslint-no-fix",
-    "biome-no-fix": "tsx ./src/bin/dev-lib.ts biome-no-fix",
     "oxlint": "tsx ./src/bin/dev-lib.ts oxlint",
     "oxlint-no-fix": "tsx ./src/bin/dev-lib.ts oxlint-no-fix",
     "lint-staged-debug": "tsx ./src/bin/dev-lib.ts lint-staged"
   },
   "dependencies": {
-    "@biomejs/biome": "^2",
     "prompts": "^2",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
@@ -78,7 +76,6 @@
   },
   "exports": {
     "./cfg/": "./cfg/",
-    "./cfg/biome.jsonc": "./cfg/biome.jsonc",
     "./cfg/eslint.config.js": "./cfg/eslint.config.js",
     "./cfg/oxlint.config.json": "./cfg/oxlint.config.json",
     "./cfg/stylelint.config.js": "./cfg/stylelint.config.js",

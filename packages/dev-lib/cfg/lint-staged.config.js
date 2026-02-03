@@ -70,13 +70,10 @@ const stylelintExists =
   fs.existsSync('node_modules/stylelint-config-standard-scss')
 const stylelintCmd = stylelintExists ? `stylelint --fix --config ${stylelintConfigPath}` : undefined
 
-const biomeConfigPath = ['biome.jsonc'].find(p => fs.existsSync(p))
-const biomeCmd = biomeConfigPath && `biome lint --write --unsafe --no-errors-on-unmatched`
-
 const linters = {
-  // biome, oxlint, eslint, stylelint, oxfmt
+  // oxlint, eslint, stylelint, oxfmt
   [`./{src,scripts,e2e}/**/*.{${prettierExtensionsAll}}`]: match =>
-    runBiomeEslintStylelintOxfmt(match),
+    runOxlintEslintStylelintOxfmt(match),
 
   // Files in root dir: oxfmt
   [`./*.{${prettierExtensionsAll}}`]: runOxfmt,
@@ -87,19 +84,13 @@ const linters = {
   './.github/**/*.{yml,yaml}': runActionlintOxfmt,
 }
 
-export function runBiomeEslintStylelintOxfmt(match) {
+export function runOxlintEslintStylelintOxfmt(match) {
   const filesList = getFilesList(match)
   if (!filesList) return []
 
-  return [biomeCmd, oxlintCmd, eslintCmd, stylelintCmd, oxfmtCmd]
+  return [oxlintCmd, eslintCmd, stylelintCmd, oxfmtCmd]
     .filter(Boolean)
     .map(s => `${s} ${filesList}`)
-}
-
-export function runBiomeOxlintOxfmt(match) {
-  const filesList = getFilesList(match)
-  if (!filesList) return []
-  return [biomeCmd, oxlintCmd, oxfmtCmd].filter(Boolean).map(s => `${s} ${filesList}`)
 }
 
 export function runOxlintOxfmt(match) {

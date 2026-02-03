@@ -1,6 +1,0 @@
-**/*.json
-**/*.vue
-**/*.html
-**/dist/**
-docs/.vitepress/dist/**
-packages/dev-lib/cfg/**

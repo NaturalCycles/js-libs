@@ -9,7 +9,6 @@ import {
   buildProd,
   eslintAll,
   lintStagedCommand,
-  runBiome,
   runCheck,
   runOxfmt,
   runOxlint,
@@ -83,11 +82,11 @@ const commands: Command[] = [
     fn: () => runTest({ manual: true }),
     desc: 'Run vitest for *.manual.test.ts files.',
   },
-  {
-    name: 'test-leaks',
-    fn: () => runTest({ leaks: true }),
-    desc: 'Run vitest --detectLeaks for *.test.ts files.',
-  },
+  // {
+  //   name: 'test-leaks',
+  //   fn: () => runTest({ leaks: true }),
+  //   desc: 'Run vitest --detectLeaks for *.test.ts files.',
+  // },
   {
     name: 'lint',
     fn: () =>
@@ -116,18 +115,6 @@ const commands: Command[] = [
     name: 'oxlint --no-fix',
     fn: () => runOxlint(false),
     desc: 'Run oxlint on all files with "auto-fix" disabled. Useful for debugging.',
-    interactiveOnly: true,
-  },
-  {
-    name: 'biome',
-    fn: () => runBiome(),
-    desc: 'Run biome linter on all files.',
-  },
-  { name: 'biome-no-fix', cliOnly: true, fn: () => runBiome(false) },
-  {
-    name: 'biome --no-fix',
-    fn: () => runBiome(false),
-    desc: 'Run biome linter on all files with "auto-fix" disabled. Useful for debugging.',
     interactiveOnly: true,
   },
   { name: 'oxfmt', fn: runOxfmt, desc: 'Run oxfmt on all files.' },
