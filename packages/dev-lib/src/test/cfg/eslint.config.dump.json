@@ -96,8 +96,15 @@
     ],
     "@typescript-eslint/no-unnecessary-qualifier": [2],
     "@typescript-eslint/prefer-find": [2],
+    "@typescript-eslint/prefer-optional-chain": [2],
     "@typescript-eslint/prefer-string-starts-ends-with": [2],
     "@typescript-eslint/return-await": [2, "always"],
+    "getter-return": [
+      2,
+      {
+        "allowImplicit": false
+      }
+    ],
     "id-denylist": [
       2,
       "any",
@@ -127,7 +134,16 @@
         "enforceForIfStatements": true
       }
     ],
+    "no-dupe-args": [2],
+    "no-misleading-character-class": [
+      2,
+      {
+        "allowEscape": false
+      }
+    ],
+    "no-new-symbol": [2],
     "no-octal": [2],
+    "no-unreachable": [2],
     "no-unreachable-loop": [
       2,
       {
@@ -136,6 +152,7 @@
     ],
     "no-useless-assignment": [2],
     "object-shorthand": [2],
+    "one-var": [2, "never"],
     "spaced-comment": [
       2,
       "always",

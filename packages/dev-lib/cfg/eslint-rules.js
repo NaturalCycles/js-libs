@@ -33,7 +33,7 @@ export default {
       },
     ],
     '@typescript-eslint/consistent-type-imports': 0, // ox
-    '@typescript-eslint/consistent-type-exports': 2,
+    '@typescript-eslint/consistent-type-exports': 0, // ox
     '@typescript-eslint/consistent-type-assertions': 2,
     '@typescript-eslint/consistent-type-definitions': [0, 'interface'], // ox
     '@typescript-eslint/consistent-generic-constructors': [0, 'constructor'], // ox

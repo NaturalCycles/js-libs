@@ -94,7 +94,16 @@
     "no-unused-expressions": "deny",
     "no-unused-labels": "warn",
     "no-unused-private-class-members": "warn",
-    "no-unused-vars": "warn",
+    "no-unused-vars": [
+      "deny",
+      [
+        {
+          "varsIgnorePattern": "^(_$|__)",
+          "argsIgnorePattern": "^_",
+          "destructuredArrayIgnorePattern": "^_"
+        }
+      ]
+    ],
     "no-useless-backreference": "warn",
     "no-useless-call": "deny",
     "no-useless-catch": "warn",

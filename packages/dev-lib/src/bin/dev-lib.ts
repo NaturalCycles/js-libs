@@ -9,7 +9,6 @@ import {
   buildProd,
   eslintAll,
   lintStagedCommand,
-  requireOxlintConfig,
   runBiome,
   runCheck,
   runOxfmt,
@@ -210,11 +209,11 @@ async function bt(): Promise<void> {
   runTest()
 }
 
-async function _typecheckWithOxlint(): Promise<void> {
-  requireOxlintConfig()
-  const fix = !CI
-  runOxlint(fix)
-}
+// async function _typecheckWithOxlint(): Promise<void> {
+//   requireOxlintConfig()
+//   const fix = !CI
+//   runOxlint(fix)
+// }
 
 async function cleanBuild(): Promise<void> {
   cleanDist()

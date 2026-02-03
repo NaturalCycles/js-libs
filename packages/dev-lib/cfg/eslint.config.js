@@ -8,7 +8,6 @@ import eslint from '@eslint/js'
 import eslintPluginOxlint from 'eslint-plugin-oxlint'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
-import eslintBiomeRules from './eslint-biome-rules.js'
 import eslintPrettierRules from './eslint-prettier-rules.js'
 import eslintRules from './eslint-rules.js'
 
@@ -122,7 +121,7 @@ function getConfig(_tsconfigPath) {
       ...eslintRules.rules,
       // ...eslintVueRules.rules,
       ...eslintPrettierRules.rules, // disable eslint rules already covered by prettier
-      ...eslintBiomeRules.rules, // disable eslint rules already covered by biome
+      // ...eslintBiomeRules.rules, // disable eslint rules already covered by biome
       ...eslintPluginOxlint.configs['flat/all'][0].rules, // disable eslint rules already covered by oxlint
       // rules that are disabled, but shouldn't yet be disabled
       '@typescript-eslint/return-await': [2, 'always'],
