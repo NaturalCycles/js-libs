@@ -10,15 +10,13 @@ _mergeObjects x 983 ops/sec ±0.41% (96 runs sampled)
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 
-let _sink: any
-
 const times = 10_000
 const [obj1, obj2] = generateObjects(times)
 
 runBenchScript({
   fns: {
     spread: () => {
-      _sink = { ...obj1, ...obj2 }
+      return { ...obj1, ...obj2 }
       // assert.ok(Object.keys(sink).length === times)
     },
 
@@ -41,7 +39,7 @@ runBenchScript({
     // },
 
     _mergeObjects: () => {
-      _sink = _mergeObjects(obj1, obj2)
+      return _mergeObjects(obj1, obj2)
     },
 
     // preferKirill2: () => {

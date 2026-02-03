@@ -4,6 +4,8 @@ pn tsx scripts/dateParseBench.ts
 
  */
 
+// oxlint-disable no-unused-vars
+
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import dayjs from 'dayjs'
 import { localDate } from '../src/datetime/index.js'

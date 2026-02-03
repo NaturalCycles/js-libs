@@ -374,7 +374,7 @@ test('example (readme)', () => {
   const object = { name: 'Real Name', password: 'secret' }
 
   const scrubber = new Scrubber(cfg)
-  const _newObject = scrubber.scrub(object)
+  const _ = scrubber.scrub(object)
 })
 
 test('Support scrubbing based on parent', () => {

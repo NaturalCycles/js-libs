@@ -13,10 +13,10 @@ const data = _range(10).map(n => _inspect({ a: 'b', n }))
 runBenchScript({
   fns: {
     consoleLog: () => {
-      const _out = data.map(s => console.log(s))
+      return data.map(s => console.log(s))
     },
     processWrite: () => {
-      const _out = data.map(s => process.stdout.write(s + '\n'))
+      return data.map(s => process.stdout.write(s + '\n'))
     },
   },
   runs: 2,

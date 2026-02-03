@@ -37,7 +37,7 @@ interface Item extends BaseDBEntity {
 
 interface ItemDBM extends Item {}
 
-const _ym = '2021-01' as IsoMonth
+const _ = '2021-01' as IsoMonth
 
 test('saved/unsaved', () => {
   const a = 1
@@ -134,7 +134,7 @@ test('saved/unsaved', () => {
 })
 
 test('types', () => {
-  const _reviver: Reviver = (_k, _v) => {}
+  const _: Reviver = (_k, _v) => {}
 
   expect(_passthroughMapper('a', 1)).toBe('a')
   expect(_passUndefinedMapper('a', 1)).toBeUndefined()
@@ -276,7 +276,7 @@ test('_objectAssign', () => {
 test('Unsaved type', () => {
   // expectTypeOf<Unsaved<any>>().toEqualTypeOf<any>()
 
-  function _fn<BM extends AnyObject>(_a: Unsaved<BM>): void {}
+  function _<BM extends AnyObject>(_a: Unsaved<BM>): void {}
 })
 
 test('branded', () => {
@@ -293,8 +293,8 @@ test('branded', () => {
 test('UnixTimestamp branded type', () => {
   const ts = 123 as UnixTimestamp
   const ts2: number = ts // compatible
-  const _ts3: UnixTimestamp = ts2 as UnixTimestamp // needs casting
-  const _ts4 = asUnixTimestamp(ts2) // casting with a helper function
+  const _: UnixTimestamp = ts2 as UnixTimestamp // needs casting
+  const __ = asUnixTimestamp(ts2) // casting with a helper function
 })
 
 test('asUnixTimestamp2000', () => {

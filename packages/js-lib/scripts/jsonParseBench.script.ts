@@ -16,10 +16,10 @@ const data = mockAllKindsOfThings()
 runBenchScript({
   fns: {
     before: () => {
-      const _out = data.map(t => before(t))
+      return data.map(t => before(t))
     },
     after: () => {
-      const _out = data.map(t => _jsonParseIfPossible(t))
+      return data.map(t => _jsonParseIfPossible(t))
     },
   },
   runs: 2,

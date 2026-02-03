@@ -12,12 +12,12 @@ runBenchScript({
   fns: {
     one: () => {
       const err = new Error('fake')
-      const _a = err.stack
+      return err.stack
     },
     two: () => {
       const fake = { stack: '' }
       Error.captureStackTrace(fake)
-      const _a = fake.stack
+      return fake.stack
     },
   },
 })

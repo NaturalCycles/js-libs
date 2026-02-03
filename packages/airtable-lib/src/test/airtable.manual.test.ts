@@ -87,8 +87,8 @@ test('integration: table1, table2', async () => {
   await tableDao1.deleteAllRecords()
   await tableDao2.deleteAllRecords()
 
-  const _records1 = await tableDao1.createRecords(mocks1)
-  const _records2 = await tableDao2.createRecords(mocks2)
+  const __records1 = await tableDao1.createRecords(mocks1)
+  const __records2 = await tableDao2.createRecords(mocks2)
 })
 
 test('fetchRemoteBase', async () => {

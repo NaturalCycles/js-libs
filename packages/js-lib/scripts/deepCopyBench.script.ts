@@ -18,20 +18,20 @@ const cases = _range(100).map(n => ({
   a: 'abc',
 }))
 
-let _sink: any
+let _: any
 
 runBenchScript({
   fns: {
     deepCopy: () => {
       for (const v of cases) {
         const r = _deepCopy(v)
-        _sink = r
+        _ = r
       }
     },
     structuredClone: () => {
       for (const v of cases) {
         const r = structuredClone(v)
-        _sink = r
+        _ = r
       }
     },
   },

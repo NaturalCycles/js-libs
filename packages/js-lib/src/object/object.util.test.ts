@@ -322,7 +322,7 @@ test('_filterNullishValues', () => {
     f: 'wer',
   })
 
-  const _f = _filterNullishValues(o)
+  const _ = _filterNullishValues(o)
 })
 
 test('_filterUndefinedValues', () => {
@@ -513,7 +513,7 @@ test('_invert', () => {
     b: 'bk',
   }
   const inv = _invert(o)
-  const _v1 = inv['ak'] // typeof _v1 should be `a` | `b` | undefined
+  const _ = inv['ak'] // typeof _v1 should be `a` | `b` | undefined
 
   expect(inv).toEqual({
     ak: 'a',
@@ -615,7 +615,7 @@ test('_mapValues StringMap', () => {
     b: 2,
   }
 
-  const _a = map['a'] // number | undefined
+  const _ = map['a'] // number | undefined
 
   const map2 = _mapValues(map, (_, v) => v * v)
   expect(map2).toEqual({

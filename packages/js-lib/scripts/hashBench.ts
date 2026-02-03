@@ -4,6 +4,8 @@ pn tsx scripts/hashBench
 
  */
 
+// oxlint-disable no-unused-vars
+
 import nodeCrypto from 'node:crypto'
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import { md5 } from '@naturalcycles/nodejs-lib'

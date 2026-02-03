@@ -14,10 +14,10 @@ const data = _range(10).map(() => mockAllKindsOfThings())
 runBenchScript({
   fns: {
     native: () => {
-      const _s = JSON.stringify(data)
+      return JSON.stringify(data)
     },
     safeJsonStringify: () => {
-      const _s = _safeJsonStringify(data)
+      return _safeJsonStringify(data)
     },
   },
 })

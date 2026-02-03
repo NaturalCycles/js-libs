@@ -5,7 +5,7 @@ import { RedisClient } from './redisClient.js'
 import { RedisKeyValueDB } from './redisKeyValueDB.js'
 
 test('redis lazy initialization should not throw', async () => {
-  await using _client = new RedisClient({
+  await using _ = new RedisClient({
     redisOptions: {
       maxRetriesPerRequest: 1,
     },

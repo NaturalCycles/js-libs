@@ -26,23 +26,20 @@ runBenchScript({
   fns: {
     deepEquals: () => {
       for (const [v1, v2] of cases) {
-        const r = _deepEquals(v1, v2)
-        const _r2 = r
+        return _deepEquals(v1, v2)
       }
     },
     deepJsonEquals: () => {
       for (const [v1, v2] of cases) {
         try {
-          const r = _deepJsonEquals(v1, v2)
-          const _r2 = r
+          return _deepJsonEquals(v1, v2)
         } catch {}
       }
     },
     jsonEquals: () => {
       for (const [v1, v2, jsonEq] of cases) {
         if (jsonEq !== 'error') {
-          const r = _jsonEquals(v1, v2)
-          const _r2 = r
+          return _jsonEquals(v1, v2)
         }
       }
     },

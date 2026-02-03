@@ -21,7 +21,7 @@ const objects = _range(1000).map(n => ({
 runBenchScript({
   fns: {
     candidate: () => {
-      const _res = objects.map(o => filterNullishCandidate(o))
+      const _ = objects.map(o => filterNullishCandidate(o))
       // const res = filterNullishCandidate(objects[0]!)
     },
     // candidate2: done => {
@@ -36,7 +36,7 @@ runBenchScript({
     // },
     // // mutation should come later
     filterNullishMutate: () => {
-      const _res = objects.map(o => _filterNullishValues(o, { mutate: true }))
+      const _ = objects.map(o => _filterNullishValues(o, { mutate: true }))
       // const res = _filterNullishValues(objects[0]!, true)
     },
   },

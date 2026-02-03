@@ -2801,8 +2801,8 @@ describe('object', () => {
         foo: string
       }
 
-      // @ts-expect-error
-      const _wrongSchema = j.object.dbEntity<DB>({ foo: j.number() })
+      // @ts-expect-error wrong schema
+      const _ = j.object.dbEntity<DB>({ foo: j.number() })
 
       const schema = j.object.dbEntity<DB>({ foo: j.string() })
 

@@ -10,12 +10,10 @@ import type { IsoDate } from '../src/types.js'
 runBenchScript({
   fns: {
     v1: () => {
-      const s = fn1()
-      const _r = s
+      return fn1()
     },
     v2: () => {
-      const s = fn2()
-      const _r = s
+      return fn2()
     },
   },
 })

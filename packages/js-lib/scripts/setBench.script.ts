@@ -6,6 +6,8 @@ pn tsx scripts/setBench
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 
+// oxlint-disable no-unused-vars
+
 const a1 = [1, 2, 3, 7, 9]
 const a2match = [11, 12, 13, 14, 7, 4, 5]
 const a2noMatch = [11, 12, 13, 14, 75, 4, 5]
@@ -13,20 +15,16 @@ const a2noMatch = [11, 12, 13, 14, 75, 4, 5]
 runBenchScript({
   fns: {
     case1Match: () => {
-      const r = _intersectsWith1(a1, a2match)
-      const _r2 = r
+      return _intersectsWith1(a1, a2match)
     },
     case2Match: () => {
-      const r = _intersectsWith2(a1, a2match)
-      const _r2 = r
+      return _intersectsWith2(a1, a2match)
     },
     case1NoMatch: () => {
-      const r = _intersectsWith1(a1, a2noMatch)
-      const _r2 = r
+      return _intersectsWith1(a1, a2noMatch)
     },
     case2NoMatch: () => {
-      const r = _intersectsWith2(a1, a2noMatch)
-      const _r2 = r
+      return _intersectsWith2(a1, a2noMatch)
     },
   },
 })

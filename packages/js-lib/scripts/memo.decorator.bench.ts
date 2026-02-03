@@ -8,12 +8,12 @@ import { runBenchScript } from '@naturalcycles/bench-lib'
 import { _Memo } from '../src/decorators/memo.decorator.js'
 import { memoSimple } from '../src/decorators/memoSimple.decorator.js'
 
-let _c = 0
+let _ = 0
 
 class C0 {
   work(): void {
     // c += this.inc
-    _c++
+    _++
   }
 }
 
@@ -40,11 +40,11 @@ class C3 {
 const c1 = new C1()
 const c2 = new C2()
 const c3 = new C3()
-const _c0 = c1.getC0()
+const __ = c1.getC0()
 
 // const key = {a: 'b'}
 // const key = 'a'
-const _key = 2
+const ___ = 2
 // const key = undefined
 
 runBenchScript({

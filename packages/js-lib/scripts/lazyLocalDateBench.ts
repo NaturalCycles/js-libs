@@ -15,8 +15,7 @@ runBenchScript({
   fns: {
     localDate: () => {
       const d = localDate(str)
-      const s = d.toISODate()
-      const _s2 = s
+      return d.toISODate()
     },
     // lazyLocalDate: done => {
     //   const d = new LazyLocalDate(str)

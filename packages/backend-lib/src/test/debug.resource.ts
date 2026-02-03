@@ -27,13 +27,13 @@ const changePasswordSchemaZod = z.object({
 })
 
 router.put('/changePasswordAjv', async (req, res) => {
-  const _input = validateRequest.body(req, changePasswordSchemaAjv, { redactPaths: ['pw'] })
+  const _ = validateRequest.body(req, changePasswordSchemaAjv, { redactPaths: ['pw'] })
 
   res.json({ ok: 1 })
 })
 
 router.put('/changePasswordZod', async (req, res) => {
-  const _input = zodValidateRequest.body(req, changePasswordSchemaZod, { redactPaths: ['pw'] })
+  const _ = zodValidateRequest.body(req, changePasswordSchemaZod, { redactPaths: ['pw'] })
 
   res.json({ ok: 1 })
 })

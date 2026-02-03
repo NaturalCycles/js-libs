@@ -460,7 +460,7 @@ test('_min', () => {
   expect(_min(['1', '3', '2'])).toBe('1')
 
   const v = _min([1, undefined])
-  const _r = v + 1 // tests that v is not undefined
+  const _ = v + 1 // tests that v is not undefined
 
   expect(_min([1, undefined])).toBe(1)
   expect(_min([undefined, 1])).toBe(1)
@@ -504,7 +504,7 @@ test('_minMax', () => {
   expect(_minMax(['1', '3', '2'])).toEqual(['1', '3'])
 
   const [v] = _minMax([1, undefined])
-  const _r = v + 1 // tests that v is not undefined
+  const _ = v + 1 // tests that v is not undefined
 
   expect(_minMax([1, undefined])).toEqual([1, 1])
   expect(_minMax([undefined, 1])).toEqual([1, 1])

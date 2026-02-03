@@ -4,6 +4,8 @@ yarn tsx scripts/nanoidBench
 
  */
 
+// oxlint-disable no-unused-vars
+
 // import { nanoid as nanoidAsync } from 'nanoid/async'
 // import { nanoid as nanoidNonSecure } from 'nanoid/non-secure'
 import { nanoid } from '@naturalcycles/nodejs-lib'
