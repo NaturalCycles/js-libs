@@ -7,7 +7,6 @@ const {
   platform,
   arch,
   versions: { node },
-  // env: { ESLINT_CONCURRENCY },
 } = process
 
 console.log(`lint-staged.config.js runs on node ${node} ${platform} ${arch}`)
@@ -43,9 +42,6 @@ if (eslintConfigPath) {
     `--config ${eslintConfigPath}`,
     '--cache',
     '--cache-location node_modules/.cache/eslint',
-    // concurrency is disabled here, as it's not expected to help,
-    // since we're running on a limited set of files already
-    // ESLINT_CONCURRENCY && `--concurrency=${ESLINT_CONCURRENCY}`,
   ]
     .filter(Boolean)
     .join(' ')
@@ -88,7 +84,7 @@ const linters = {
   // ktlint
   '**/*.{kt,kts}': runKtlint,
 
-  './.github/**/*.{yml,yaml}': runActionlint,
+  './.github/**/*.{yml,yaml}': runActionlintOxfmt,
 }
 
 export function runBiomeEslintStylelintOxfmt(match) {
@@ -131,20 +127,26 @@ export function runKtlint(match) {
   return [`${dir}/resources/ktlint -F ${filesList}`]
 }
 
-export function runActionlint(match) {
+export function runActionlintOxfmt(match) {
   if (!match.length) return []
 
-  if (!canRunBinary('actionlint')) {
+  const tools = []
+
+  if (canRunBinary('actionlint')) {
+    requireActionlintVersion()
+    // run actionlint on all files at once, as it's fast anyway
+    tools.push('actionlint')
+  } else {
     console.log(
       `actionlint is not installed and won't be run.\nThis is how to install it: https://github.com/rhysd/actionlint/blob/main/docs/install.md`,
     )
-    return []
   }
 
-  requireActionlintVersion()
+  if (oxfmtCmd) {
+    tools.push(oxfmtCmd)
+  }
 
-  // run actionlint on all files at once, as it's fast anyway
-  return [`actionlint`]
+  return tools
 }
 
 function getFilesList(match) {

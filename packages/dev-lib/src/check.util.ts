@@ -30,7 +30,7 @@ import {
 } from '../cfg/_cnst.js'
 import { cfgDir } from './paths.js'
 
-const { CI, ESLINT_CONCURRENCY } = process.env
+const { CI } = process.env
 
 /**
  * Every boolean defaults to true, so, by default - everything is being run.
@@ -248,7 +248,6 @@ function runESLint(extensions = eslintExtensions.split(','), fix = true): boolea
       // `--parser-options=project:${tsconfigPath}`,
       // The next line fixes the `typescript-eslint` 8.37 bug of resolving tsconfig.json
       // `--parser-options=tsconfigRootDir:${tsconfigRootDir}`,
-      ESLINT_CONCURRENCY && `--concurrency=${ESLINT_CONCURRENCY}`,
       '--cache',
       '--cache-location',
       cacheLocation,
