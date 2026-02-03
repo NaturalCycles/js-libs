@@ -17,7 +17,6 @@ export async function loadGTag(gtagId: string, enabled = true): Promise<void> {
 
   globalThis.dataLayer ||= []
   globalThis.gtag ||= function gtag() {
-    // biome-ignore lint/complexity/noArguments: ok
     globalThis.dataLayer.push(arguments)
   }
   globalThis.gtag('js', new Date())
@@ -53,7 +52,6 @@ export function loadHotjar(hjid: number): void {
     h.hj =
       h.hj ||
       function hj() {
-        // biome-ignore lint/complexity/noArguments: ok
         ;(h.hj.q = h.hj.q || []).push(arguments)
       }
     h._hjSettings = { hjid, hjsv: 6 }

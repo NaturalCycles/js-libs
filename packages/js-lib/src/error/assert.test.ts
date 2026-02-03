@@ -13,7 +13,6 @@ import { AssertionError } from './error.util.js'
 import { _try } from './try.js'
 
 test('_assert', () => {
-  // biome-ignore lint/suspicious/noSelfCompare: ok
   _assert(1 === 1) // should not throw
 
   const [err] = _try(() => _assert(1 * 1 === 2))
