@@ -2,7 +2,18 @@
   "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",
   "root": false,
   "files": {
-    "includes": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "!**/__exclude", "!**/try.ts"],
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "!**/__exclude",
+      "!tmp",
+      "!coverage",
+      "!deploy",
+      "!dist",
+      "!**/try.ts",
+    ],
   },
   "formatter": {
     "enabled": true,
