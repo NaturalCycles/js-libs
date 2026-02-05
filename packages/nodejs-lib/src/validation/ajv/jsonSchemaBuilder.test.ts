@@ -19,8 +19,6 @@ describe('any', () => {
     expectTypeOf(schema1).not.toBeNever()
 
     expectTypeOf(schema1.out).toEqualTypeOf<any>()
-
-    expectTypeOf(schema1.out).toEqualTypeOf<any>()
   })
 
   test('should produce an empty schema', () => {
@@ -122,7 +120,6 @@ describe('number', () => {
     test('should correctly infer the type', () => {
       const schema1 = j.number().optional([0])
       expectTypeOf(schema1.out).toEqualTypeOf<number | undefined>()
-      expectTypeOf(schema1.out).toEqualTypeOf<number | undefined>()
     })
   })
 })
@@ -142,7 +139,6 @@ describe('boolean', () => {
   describe('optional(values)', () => {
     test('should correctly infer the type', () => {
       const schema1 = j.boolean().optional(false)
-      expectTypeOf(schema1.out).toEqualTypeOf<boolean | undefined>()
       expectTypeOf(schema1.out).toEqualTypeOf<boolean | undefined>()
     })
   })
@@ -180,7 +176,6 @@ describe('object', () => {
       }),
     })
 
-    expectTypeOf(schema1.out).toEqualTypeOf<Schema1>()
     expectTypeOf(schema1.out).toEqualTypeOf<Schema1>()
   })
 
@@ -249,7 +244,6 @@ describe('object', () => {
 
     expectTypeOf(schema1).not.toBeNever()
     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
-    expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
   })
 
   describe('extend', () => {
@@ -264,7 +258,6 @@ describe('object', () => {
       }
       const schema2 = schema1.extend({ b: j.number().optional() })
 
-      expectTypeOf(schema2.out).toExtend<Bar>()
       expectTypeOf(schema2.out).toExtend<Bar>()
 
       interface Shu {
@@ -301,7 +294,6 @@ describe('object', () => {
       const shuSchema = fooSchema.concat(barSchema)
 
       expectTypeOf(shuSchema).not.toBeNever()
-      expectTypeOf(shuSchema.out).toExtend<Shu>()
       expectTypeOf(shuSchema.out).toExtend<Shu>()
 
       const ensuredShuSchema = shuSchema.isOfType<Shu>()
@@ -345,7 +337,6 @@ describe('object', () => {
       })
 
       expectTypeOf(schema1).not.toBeNever()
-      expectTypeOf(schema1.out).toEqualTypeOf<DB>()
       expectTypeOf(schema1.out).toEqualTypeOf<DB>()
     })
 
@@ -507,7 +498,6 @@ describe('object', () => {
         const schema2 = schema1.extend({ b: j.number().optional() })
 
         expectTypeOf(schema2.out).toEqualTypeOf<{ a: string | null; b?: number }>()
-        expectTypeOf(schema2.out).toEqualTypeOf<{ a: string | null; b?: number }>()
       })
     })
   })
@@ -518,7 +508,6 @@ describe('object', () => {
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.out).toEqualTypeOf<AnyObject>()
-      expectTypeOf(schema1.out).toEqualTypeOf<AnyObject>()
     })
   })
 
@@ -527,7 +516,6 @@ describe('object', () => {
       const schema1 = j.object.withEnumKeys(['a', 'b', 1], j.string())
 
       expectTypeOf(schema1).not.toBeNever()
-      expectTypeOf(schema1.out).toEqualTypeOf<{ a: string; b: string; '1': string }>()
       expectTypeOf(schema1.out).toEqualTypeOf<{ a: string; b: string; '1': string }>()
       expectTypeOf(schema1.isOfType<{ a: string; b: string; '1': string }>()).not.toBeNever()
 
@@ -540,7 +528,6 @@ describe('object', () => {
 
       expectTypeOf(schema2).not.toBeNever()
       expectTypeOf(schema2.out).toEqualTypeOf<{ '1': string; '2': string; '3': string }>()
-      expectTypeOf(schema2.out).toEqualTypeOf<{ '1': string; '2': string; '3': string }>()
       expectTypeOf(schema2.isOfType<{ '1': string; '2': string; '3': string }>()).not.toBeNever()
 
       enum S {
@@ -552,13 +539,11 @@ describe('object', () => {
 
       expectTypeOf(schema3).not.toBeNever()
       expectTypeOf(schema3.out).toEqualTypeOf<{ a: string; b: string; c: string }>()
-      expectTypeOf(schema3.out).toEqualTypeOf<{ a: string; b: string; c: string }>()
       expectTypeOf(schema3.isOfType<{ a: string; b: string; c: string }>()).not.toBeNever()
 
       const schema4 = j.object.withEnumKeys(S, j.string().optional())
 
       expectTypeOf(schema4).not.toBeNever()
-      expectTypeOf(schema4.out).toEqualTypeOf<Partial<{ a: string; b: string; c: string }>>()
       expectTypeOf(schema4.out).toEqualTypeOf<Partial<{ a: string; b: string; c: string }>>()
       expectTypeOf(schema4.isOfType<Partial<{ a: string; b: string; c: string }>>()).not.toBeNever()
     })
@@ -577,7 +562,6 @@ describe('object', () => {
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.out).toEqualTypeOf<Record<B, number | null>>()
-      expectTypeOf(schema1.out).toEqualTypeOf<Record<B, number | null>>()
       expectTypeOf(schema1.isOfType<Record<B, number | null>>).not.toBeNever()
 
       const schema2 = j.object.record(
@@ -590,7 +574,6 @@ describe('object', () => {
 
       expectTypeOf(schema2).not.toBeNever()
       expectTypeOf(schema2.out).toEqualTypeOf<Partial<Record<B, number>>>()
-      expectTypeOf(schema2.out).toEqualTypeOf<Partial<Record<B, number>>>()
       expectTypeOf(schema2.isOfType<Partial<Record<B, number>>>).not.toBeNever()
     })
   })
@@ -600,7 +583,6 @@ describe('object', () => {
       const schema1 = j.object.withRegexKeys(/^\d{3,4}$/, j.number().nullable())
 
       expectTypeOf(schema1).not.toBeNever()
-      expectTypeOf(schema1.out).toEqualTypeOf<StringMap<number | null>>()
       expectTypeOf(schema1.out).toEqualTypeOf<StringMap<number | null>>()
       expectTypeOf(schema1.isOfType<StringMap<number | null>>).not.toBeNever()
     })
@@ -612,7 +594,6 @@ describe('object', () => {
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.out).toEqualTypeOf<StringMap<number | null>>()
-      expectTypeOf(schema1.out).toEqualTypeOf<StringMap<number | null>>()
       expectTypeOf(schema1.isOfType<StringMap<number | null>>).not.toBeNever()
     })
   })
@@ -622,10 +603,8 @@ describe('array', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.array(j.string())
     expectTypeOf(schema1.out).toEqualTypeOf<string[]>()
-    expectTypeOf(schema1.out).toEqualTypeOf<string[]>()
 
     const schema2 = j.array(j.string().optional())
-    expectTypeOf(schema2.out).toEqualTypeOf<(string | undefined)[]>()
     expectTypeOf(schema2.out).toEqualTypeOf<(string | undefined)[]>()
   })
 })
@@ -634,10 +613,8 @@ describe('tuple', () => {
   test('should correctly infer the type', () => {
     const schema1 = j.tuple([j.string(), j.number(), j.boolean()])
     expectTypeOf(schema1.out).toEqualTypeOf<[string, number, boolean]>()
-    expectTypeOf(schema1.out).toEqualTypeOf<[string, number, boolean]>()
 
     const schema2 = j.tuple([j.string().optional(), j.number(), j.boolean()])
-    expectTypeOf(schema2.out).toEqualTypeOf<[string | undefined, number, boolean]>()
     expectTypeOf(schema2.out).toEqualTypeOf<[string | undefined, number, boolean]>()
   })
 })
@@ -651,7 +628,6 @@ describe('enum', () => {
     const schema1 = j.enum(Foo)
     expectTypeOf(schema1).not.toBeNever()
     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
-    expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
   })
 
   test('should correctly infer the type - for StringEnums', () => {
@@ -661,7 +637,6 @@ describe('enum', () => {
     }
     const schema1 = j.enum(Foo)
     expectTypeOf(schema1).not.toBeNever()
-    expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
   })
 
@@ -731,7 +706,6 @@ describe('anyOfBy', () => {
     })
 
     expectTypeOf(schema1.out).toEqualTypeOf<FooA | FooB | FooC>()
-    expectTypeOf(schema1.out).toEqualTypeOf<FooA | FooB | FooC>()
   })
 })
 
@@ -739,10 +713,8 @@ describe('castAs', () => {
   test('should correctly infer the new type', () => {
     const schema1 = j.string().castAs<number>()
     expectTypeOf(schema1.out).toEqualTypeOf<number>()
-    expectTypeOf(schema1.out).toEqualTypeOf<number>()
 
     const schema2 = j.object.infer({}).castAs<{ foo: string }>()
-    expectTypeOf(schema2.out).toEqualTypeOf<{ foo: string }>()
     expectTypeOf(schema2.out).toEqualTypeOf<{ foo: string }>()
   })
 })
