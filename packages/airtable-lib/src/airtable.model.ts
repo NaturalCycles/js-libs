@@ -84,11 +84,11 @@ export interface AirtableRecord {
 
 export const airtableIdSchema = j.string()
 
-export function airtableMultipleLinkSchema<T = any>(): JsonSchemaAnyBuilder<T[], T[], false> {
+export function airtableMultipleLinkSchema<T = any>(): JsonSchemaAnyBuilder<T[], false> {
   return j.array(j.string()).default([]).castAs<T[]>()
 }
 
-export function airtableSingleLinkSchema<T = any>(): JsonSchemaAnyBuilder<T[], T[], false> {
+export function airtableSingleLinkSchema<T = any>(): JsonSchemaAnyBuilder<T[], false> {
   return j.array(j.string()).maxLength(1).default([]).castAs<T[]>()
 }
 

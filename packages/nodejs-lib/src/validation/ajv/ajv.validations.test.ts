@@ -74,7 +74,7 @@ describe('string', () => {
       expect(err1).toBeNull()
       expect(result1).toEqual({ foo: 'foo' })
 
-      const [err2, result2] = schema.getValidationResult({ foo: null } as any)
+      const [err2, result2] = schema.getValidationResult({ foo: null })
       expect(err2).toBeNull()
       expect(result2).toEqual({ foo: undefined })
     })
@@ -680,7 +680,7 @@ describe('string', () => {
         expect(err1).toBeNull()
         expect(result1).toEqual({ date: '2025-01-15' })
 
-        const [err2, result2] = schema.getValidationResult({ date: null } as any)
+        const [err2, result2] = schema.getValidationResult({ date: null })
         expect(err2).toBeNull()
         expect(result2).toEqual({ date: undefined })
       })
@@ -1424,7 +1424,7 @@ describe('number', () => {
       expect(err1).toBeNull()
       expect(result1).toEqual({ foo: 1 })
 
-      const [err2, result2] = schema.getValidationResult({ foo: null } as any)
+      const [err2, result2] = schema.getValidationResult({ foo: null })
       expect(err2).toBeNull()
       expect(result2).toEqual({ foo: undefined })
     })
@@ -2403,7 +2403,7 @@ describe('object', () => {
       stringOptional: j.string().optional(),
     })
 
-    const [, result] = schema.getValidationResult({} as any)
+    const [, result] = schema.getValidationResult({})
 
     expectTypeOf(result).toEqualTypeOf<Foo>()
   })
@@ -2666,7 +2666,7 @@ describe('object', () => {
       const [, result] = schema.getValidationResult({
         string: 'hello',
         foo: 'world',
-      } as any)
+      })
 
       expect(result).toEqual({ string: 'hello' })
     })
@@ -2682,7 +2682,7 @@ describe('object', () => {
       const [, result] = schema.getValidationResult({
         string: 'hello',
         foo: 'world',
-      } as any)
+      })
 
       expect(result).toEqual({
         string: 'hello',
@@ -2790,7 +2790,7 @@ describe('object', () => {
         })
         .isOfType<Foo>()
 
-      const [, result] = schema.getValidationResult({} as any)
+      const [, result] = schema.getValidationResult({})
 
       expectTypeOf(result).toEqualTypeOf<Foo>()
     })
@@ -2806,7 +2806,7 @@ describe('object', () => {
       const [err2] = schema.getValidationResult({ foo: 'foo' })
       expect(err2).toBeNull()
 
-      const [err3] = schema.getValidationResult({ bar: 'bar' } as any)
+      const [err3] = schema.getValidationResult({ bar: 'bar' })
       expect(err3).toMatchInlineSnapshot(`
       [AjvValidationError: Object must have required property 'foo'
       Input: { bar: 'bar' }]
@@ -2855,7 +2855,7 @@ describe('object', () => {
         const [, result] = schema.getValidationResult({
           string: 'hello',
           foo: 'world',
-        } as any)
+        })
 
         expect(result).toEqual({ string: 'hello' })
       })
@@ -2871,7 +2871,7 @@ describe('object', () => {
         const [, result] = schema.getValidationResult({
           string: 'hello',
           foo: 'world',
-        } as any)
+        })
 
         expect(result).toEqual({
           string: 'hello',
@@ -2909,7 +2909,7 @@ describe('object', () => {
       expect(err1).toBeNull()
       expect(result1).toEqual({ inner: { foo: 'bar' } })
 
-      const [err2, result2] = schema.getValidationResult({ inner: null } as any)
+      const [err2, result2] = schema.getValidationResult({ inner: null })
       expect(err2).toBeNull()
       expect(result2).toEqual({ inner: undefined })
 
@@ -2930,7 +2930,7 @@ describe('object', () => {
       expect(err1).toBeNull()
       expect(result1).toEqual({ inner: { foo: 'bar' } })
 
-      const [err2, result2] = schema.getValidationResult({ inner: null } as any)
+      const [err2, result2] = schema.getValidationResult({ inner: null })
       expect(err2).toBeNull()
       expect(result2).toEqual({ inner: undefined })
     })
@@ -2954,7 +2954,7 @@ describe('object', () => {
         inner: { id: 'id', created: MOCK_TS_2018_06_21, updated: MOCK_TS_2018_06_21, foo: 'bar' },
       })
 
-      const [err2, result2] = schema.getValidationResult({ inner: null } as any)
+      const [err2, result2] = schema.getValidationResult({ inner: null })
       expect(err2).toBeNull()
       expect(result2).toEqual({ inner: undefined })
     })
@@ -2973,7 +2973,7 @@ describe('object', () => {
       const ajvSchema = AjvSchema.create(schema)
 
       // The check only triggers when the value is `null` (not when it's a valid object)
-      expect(() => ajvSchema.isValid(null as any)).toThrowErrorMatchingInlineSnapshot(
+      expect(() => ajvSchema.isValid(null)).toThrowErrorMatchingInlineSnapshot(
         `[AssertionError: You should only use \`optional([x, y, z])\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
       )
     })
@@ -3243,7 +3243,7 @@ describe('object', () => {
 
       const invalidCases = [{}, { a: 1 }, { b: 2 }]
       for (const data of invalidCases) {
-        const [err] = schema.getValidationResult(data as any)
+        const [err] = schema.getValidationResult(data)
         expect(err, _stringify(data)).not.toBeNull()
       }
     })
@@ -3286,7 +3286,7 @@ describe('object', () => {
         const schema = j.object
           .withEnumKeys(E, j.number().optional())
           .minProperties(1)
-          .isOfType<Partial<Record<E, number | undefined>>>() as any
+          .isOfType<Partial<Record<E, number | undefined>>>()
 
         const validCases: any[] = [{ a: 1 }, { a: 1, b: 2 }]
         for (const data of validCases) {
@@ -3484,7 +3484,7 @@ describe('buffer', () => {
 describe('oneOf', () => {
   test('should correctly infer the type', () => {
     const schema = j.oneOf([j.string().nullable(), j.number()])
-    const [, result] = schema.getValidationResult({} as any)
+    const [, result] = schema.getValidationResult({})
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
@@ -3547,7 +3547,7 @@ describe('oneOf', () => {
 describe('anyOf', () => {
   test('should correctly infer the type', () => {
     const schema = j.anyOf([j.string().nullable(), j.number()])
-    const [, result] = schema.getValidationResult({} as any)
+    const [, result] = schema.getValidationResult({})
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
@@ -3674,7 +3674,7 @@ describe('anyOfBy', () => {
 describe('anyOfThese', () => {
   test('should correctly infer the type', () => {
     const schema = j.anyOfThese([j.string().nullable(), j.number()])
-    const [, result] = schema.getValidationResult({} as any)
+    const [, result] = schema.getValidationResult({})
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
@@ -3724,7 +3724,7 @@ describe('anyOfThese', () => {
       expect(err).not.toBeNull()
     })
 
-    const [err] = schema.getValidationResult({} as any)
+    const [err] = schema.getValidationResult({})
     expect(err).toMatchInlineSnapshot(`
       [AjvValidationError: Object could not find a suitable schema to validate against
       Input: {}]
@@ -3759,7 +3759,7 @@ describe('errors', () => {
 
     const [err] = schema.getValidationResult({
       foo: ['a', 'b', 'c', 1, 'e'],
-    } as any)
+    })
 
     expect(err).toMatchInlineSnapshot(`
       [AjvValidationError: Object.foo[3] must be string
@@ -3775,7 +3775,7 @@ describe('castAs', () => {
       .castAs<{ bar: number }>()
       .isOfType<{ bar: number }>()
 
-    const [err, result] = schema.getValidationResult({ foo: 'hello' } as any)
+    const [err, result] = schema.getValidationResult({ foo: 'hello' })
 
     expect(err).toBeNull()
     expect(result).toEqual({ foo: 'hello' })
@@ -3795,15 +3795,15 @@ describe('default', () => {
     expect(err1).toBeNull()
     expect(result1).toEqual({ foo: 'good', bar: 1, shu: false })
 
-    const [err2, result2] = schema.getValidationResult({ bar: 1, shu: false } as any)
+    const [err2, result2] = schema.getValidationResult({ bar: 1, shu: false })
     expect(err2).toBeNull()
     expect(result2).toEqual({ foo: 'foo', bar: 1, shu: false })
 
-    const [err3, result3] = schema.getValidationResult({ foo: 'good', shu: false } as any)
+    const [err3, result3] = schema.getValidationResult({ foo: 'good', shu: false })
     expect(err3).toBeNull()
     expect(result3).toEqual({ foo: 'good', bar: 123, shu: false })
 
-    const [err4, result4] = schema.getValidationResult({ foo: 'good', bar: 1 } as any)
+    const [err4, result4] = schema.getValidationResult({ foo: 'good', bar: 1 })
     expect(err4).toBeNull()
     expect(result4).toEqual({ foo: 'good', bar: 1, shu: true })
   })
@@ -3862,25 +3862,25 @@ describe('literal', () => {
     expectTypeOf(result5).toEqualTypeOf<Foo.A>()
     expect(result5).toBe(Foo.A)
 
-    const [err1] = schema1.getValidationResult('mushroom' as any)
+    const [err1] = schema1.getValidationResult('mushroom')
     expect(err1).toMatchInlineSnapshot(`
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: mushroom]
     `)
 
-    const [err2] = schema2.getValidationResult(3 as any)
+    const [err2] = schema2.getValidationResult(3)
     expect(err2).toMatchInlineSnapshot(`
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: 3]
     `)
 
-    const [err3] = schema3.getValidationResult(false as any)
+    const [err3] = schema3.getValidationResult(false)
     expect(err3).toMatchInlineSnapshot(`
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: false]
     `)
 
-    const [err4] = schema4.getValidationResult({} as any)
+    const [err4] = schema4.getValidationResult({})
     expect(err4).toMatchInlineSnapshot(`
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: {}]

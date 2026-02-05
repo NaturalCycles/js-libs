@@ -109,7 +109,7 @@ export interface CommonDaoCfg<
    * It removes the knowledge from CommonDao about the validation library used
    * and abstracts it away.
    */
-  validateBM?: ValidationFunction<BM, BM, any>
+  validateBM?: ValidationFunction<unknown, BM, any>
 
   /**
    * Used by e.g Datastore.
