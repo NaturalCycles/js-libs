@@ -16,7 +16,7 @@
     "quick-check": "pnpm build && pnpm lint && VITEST_REPORTER=dot pnpm test",
     "qc": "pnpm quick-check",
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
-    "lint": "oxlint --type-aware --type-check --max-warnings=0 --fix --fix-suggestions --fix-dangerously && oxfmt",
+    "lint": "oxlint --type-aware --type-check --max-warnings=0 --fix --fix-suggestions && oxfmt",
     "lint:ci": "oxlint --type-aware --type-check --max-warnings=0 && oxfmt --check",
     "test": "vitest run",
     "test:dot": "VITEST_REPORTER=dot vitest run",

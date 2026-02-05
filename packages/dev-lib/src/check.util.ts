@@ -281,7 +281,7 @@ export function runOxlint(fix = true): boolean {
       '--type-check',
       fix && '--fix',
       fix && '--fix-suggestions',
-      fix && '--fix-dangerously',
+      // fix && '--fix-dangerously', // decided to disable, too unsafe
     ].filter(_isTruthy),
     shell: false,
   })
