@@ -954,8 +954,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const results = await dao.getByIds(['id1', 'id2'])
       expect(results).toHaveLength(2)
-      expectDecompressed(results[0], 1)
-      expectDecompressed(results[1], 2)
+      const sorted = _sortBy(results, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     test('getByIdsAsDBM', async () => {
@@ -963,8 +964,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const results = await dao.getByIdsAsDBM(['id1', 'id2'])
       expect(results).toHaveLength(2)
-      expectDecompressed(results[0], 1)
-      expectDecompressed(results[1], 2)
+      const sorted = _sortBy(results, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     test('requireById', async () => {
@@ -986,8 +988,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const results = await dao.getAll()
       expect(results).toHaveLength(2)
-      expectDecompressed(results[0], 1)
-      expectDecompressed(results[1], 2)
+      const sorted = _sortBy(results, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     test('runQuery', async () => {
@@ -995,8 +998,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const results = await dao.runQuery(dao.query())
       expect(results).toHaveLength(2)
-      expectDecompressed(results[0], 1)
-      expectDecompressed(results[1], 2)
+      const sorted = _sortBy(results, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     test('runQueryAsDBM', async () => {
@@ -1004,8 +1008,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const results = await dao.runQueryAsDBM(dao.query())
       expect(results).toHaveLength(2)
-      expectDecompressed(results[0], 1)
-      expectDecompressed(results[1], 2)
+      const sorted = _sortBy(results, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     test('runQueryExtended', async () => {
@@ -1013,8 +1018,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const { rows } = await dao.runQueryExtended(dao.query())
       expect(rows).toHaveLength(2)
-      expectDecompressed(rows[0], 1)
-      expectDecompressed(rows[1], 2)
+      const sorted = _sortBy(rows, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     test('runQueryExtendedAsDBM', async () => {
@@ -1022,8 +1028,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const { rows } = await dao.runQueryExtendedAsDBM(dao.query())
       expect(rows).toHaveLength(2)
-      expectDecompressed(rows[0], 1)
-      expectDecompressed(rows[1], 2)
+      const sorted = _sortBy(rows, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     test('streamQuery', async () => {
@@ -1031,8 +1038,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const results = await dao.streamQuery(dao.query()).toArray()
       expect(results).toHaveLength(2)
-      expectDecompressed(results[0], 1)
-      expectDecompressed(results[1], 2)
+      const sorted = _sortBy(results, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     test('streamQueryAsDBM', async () => {
@@ -1040,8 +1048,9 @@ describe('auto compression', () => {
       await dao.saveBatch([createItem(1), createItem(2)])
       const results = await dao.streamQueryAsDBM(dao.query()).toArray()
       expect(results).toHaveLength(2)
-      expectDecompressed(results[0], 1)
-      expectDecompressed(results[1], 2)
+      const sorted = _sortBy(results, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     // Conversion APIs
@@ -1071,8 +1080,9 @@ describe('auto compression', () => {
         items: dao.withIds(['id1', 'id2']),
       })
       expect(result.items).toHaveLength(2)
-      expectDecompressed(result.items[0], 1)
-      expectDecompressed(result.items[1], 2)
+      const sorted = _sortBy(result.items, r => r.id)
+      expectDecompressed(sorted[0], 1)
+      expectDecompressed(sorted[1], 2)
     })
 
     // Public storage conversion API (for direct DB access)
