@@ -15,8 +15,8 @@ import type { AppError } from '../error/error.util.js'
  *
  * @experimental
  */
-export type ValidationFunction<IN, OUT, ERR extends AppError> = (
-  input: IN,
+export type ValidationFunction<OUT, ERR extends AppError> = (
+  input: unknown,
   opt?: ValidationFunctionOptions,
 ) => ValidationFunctionResult<OUT, ERR>
 

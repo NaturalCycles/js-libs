@@ -1,7 +1,7 @@
 import type { ValidationFunction } from '@naturalcycles/js-lib'
 import type { AppError } from '@naturalcycles/js-lib/error'
-import { j } from '@naturalcycles/nodejs-lib/ajv'
 import type { JsonSchemaAnyBuilder } from '@naturalcycles/nodejs-lib/ajv'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import type { AirtableApiSort } from './airtable.api.js'
 
 export enum AirtableErrorCode {
@@ -227,7 +227,7 @@ export interface AirtableTableCfg<T extends AirtableRecord = any> {
    */
   idField: string
 
-  validationFn?: ValidationFunction<T, T, any>
+  validationFn?: ValidationFunction<T, any>
   sort?: AirtableApiSort<T>[]
 
   /**

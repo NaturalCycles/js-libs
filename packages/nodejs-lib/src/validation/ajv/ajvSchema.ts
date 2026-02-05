@@ -205,7 +205,7 @@ export class AjvSchema<OUT> {
     return [err, item]
   }
 
-  getValidationFunction(): ValidationFunction<unknown, OUT, AjvValidationError> {
+  getValidationFunction(): ValidationFunction<OUT, AjvValidationError> {
     return (input, opt) => {
       return this.getValidationResult(input, {
         mutateInput: opt?.mutateInput,
@@ -717,7 +717,7 @@ export class JsonSchemaTerminal<OUT, Opt> {
     return this.ajvSchema.getValidationResult(input, opt)
   }
 
-  getValidationFunction(): ValidationFunction<unknown, OUT, AjvValidationError> {
+  getValidationFunction(): ValidationFunction<OUT, AjvValidationError> {
     return this.ajvSchema.getValidationFunction()
   }
 
