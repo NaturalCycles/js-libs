@@ -1,7 +1,7 @@
 import { _uniq } from '@naturalcycles/js-lib/array'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { AnyObject, StringMap } from '@naturalcycles/js-lib/types'
-import type { JsonSchema } from '../jsonSchemaBuilder.js'
+import type { JsonSchema } from '../ajvSchema.js'
 
 type PrimitiveType = 'undefined' | 'null' | 'boolean' | 'string' | 'number'
 type Type = PrimitiveType | 'array' | 'object'

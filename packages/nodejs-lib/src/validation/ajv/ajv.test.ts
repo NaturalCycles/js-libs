@@ -3,10 +3,9 @@ import { _deepFreeze } from '@naturalcycles/js-lib/object'
 import { describe, expect, test } from 'vitest'
 import { fs2 } from '../../fs/fs2.js'
 import { testDir } from '../../test/paths.cnst.js'
-import { AjvSchema } from './ajvSchema.js'
+import { AjvSchema, j } from './ajvSchema.js'
+import type { JsonSchema } from './ajvSchema.js'
 import { AjvValidationError } from './ajvValidationError.js'
-import { j } from './jsonSchemaBuilder.js'
-import type { JsonSchema } from './jsonSchemaBuilder.js'
 
 interface Simple {
   s: string
