@@ -1,7 +1,7 @@
 import { _uniq } from '@naturalcycles/js-lib/array'
 import { _filterNullishValues } from '@naturalcycles/js-lib/object'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import type { JsonSchema } from './jsonSchemaBuilder.js'
+import type { JsonSchema } from './ajvSchema.js'
 
 export const JSON_SCHEMA_ORDER = [
   '$schema',

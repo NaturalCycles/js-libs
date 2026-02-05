@@ -13,7 +13,7 @@ import type {
   JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
   JsonSchemaTerminal,
-} from './jsonSchemaBuilder.js'
+} from './ajvSchema.js'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 // oxlint-disable unicorn/prefer-code-point

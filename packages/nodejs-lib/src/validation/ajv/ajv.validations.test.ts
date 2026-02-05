@@ -18,8 +18,7 @@ import type {
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
-import { AjvSchema } from './ajvSchema.js'
-import { j } from './jsonSchemaBuilder.js'
+import { AjvSchema, HIDDEN_AJV_SCHEMA, j } from './ajvSchema.js'
 
 describe('immutability', () => {
   test('the rule chains should return new instances', () => {
@@ -36,7 +35,7 @@ describe('string', () => {
   test('should work correctly with type inference', () => {
     const schema = j.string()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult('foo')
+    const [err, result] = schema.getValidationResult('foo')
 
     expect(err).toBeNull()
     expect(result).toBe('foo')
@@ -47,22 +46,22 @@ describe('string', () => {
     test('should convert specific values to `undefined`', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().optional(['abcd']) })
 
-      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 'foo' })
+      const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
 
       expect(err1).toBeNull()
       expect(result1).toEqual({ foo: 'foo' })
 
-      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: 'abcd' })
+      const [err2, result2] = schema.getValidationResult({ foo: 'abcd' })
 
       expect(err2).toBeNull()
       expect(result2).toEqual({})
 
-      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
+      const [err3, result3] = schema.getValidationResult({})
 
       expect(err3).toBeNull()
       expect(result3).toEqual({})
 
-      const [err4, result4] = AjvSchema.create(schema).getValidationResult({ foo: undefined })
+      const [err4, result4] = schema.getValidationResult({ foo: undefined })
 
       expect(err4).toBeNull()
       expect(result4).toEqual({})
@@ -70,13 +69,12 @@ describe('string', () => {
 
     test('should work with `null` values', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({ foo: 'foo' })
+      const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
       expect(err1).toBeNull()
       expect(result1).toEqual({ foo: 'foo' })
 
-      const [err2, result2] = ajvSchema.getValidationResult({ foo: null } as any)
+      const [err2, result2] = schema.getValidationResult({ foo: null } as any)
       expect(err2).toBeNull()
       expect(result2).toEqual({ foo: undefined })
     })
@@ -101,9 +99,8 @@ describe('string', () => {
 
     test('should still be an optional field when passing in `null`', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({})
+      const [err1, result1] = schema.getValidationResult({})
       expect(err1).toBeNull()
       expect(result1).toEqual({})
     })
@@ -113,21 +110,21 @@ describe('string', () => {
     test('should correctly validate against the regex', () => {
       const schema = j.string().regex(/^[0-9]{2}$/)
 
-      const [err01] = AjvSchema.create(schema).getValidationResult('00')
+      const [err01] = schema.getValidationResult('00')
       expect(err01).toBeNull()
-      const [err02] = AjvSchema.create(schema).getValidationResult('01')
+      const [err02] = schema.getValidationResult('01')
       expect(err02).toBeNull()
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('000')
+      const [err11] = schema.getValidationResult('000')
       expect(err11).not.toBeNull()
-      const [err12] = AjvSchema.create(schema).getValidationResult('abc')
+      const [err12] = schema.getValidationResult('abc')
       expect(err12).not.toBeNull()
     })
 
     test('should allow setting custom error message', () => {
       const schema = j.string().regex(/^[0-9]{2}$/, { msg: 'is not a valid Oompa-loompa' })
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('000')
+      const [err11] = schema.getValidationResult('000')
       expect(err11).toMatchInlineSnapshot(`
         [AjvValidationError: Object is not a valid Oompa-loompa
         Input: 000]
@@ -137,7 +134,7 @@ describe('string', () => {
     test('should allow setting custom validation name', () => {
       const schema = j.string().regex(/^[0-9]{2}$/, { name: 'Oompa-loompa' })
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('000')
+      const [err11] = schema.getValidationResult('000')
       expect(err11).toMatchInlineSnapshot(`
         [AjvValidationError: Object is not a valid Oompa-loompa
         Input: 000]
@@ -147,9 +144,8 @@ describe('string', () => {
     test('should throw custom error from regex in item schema', () => {
       const itemSchema = j.string().regex(/^foo$/, { msg: 'must be "foo"' })
       const schema = j.array(itemSchema)
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err] = ajvSchema.getValidationResult(['foo', 'bar', 'baz'])
+      const [err] = schema.getValidationResult(['foo', 'bar', 'baz'])
 
       expect(err).toMatchInlineSnapshot(`
         [AjvValidationError: Object[1] must be "foo"
@@ -167,9 +163,8 @@ describe('string', () => {
         name: j.string().regex(/^foo$/, { msg: 'must be "foo"' }),
       })
       const schema = j.array(itemSchema)
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err] = ajvSchema.getValidationResult([{ name: 'foo' }, { name: 'bar' }])
+      const [err] = schema.getValidationResult([{ name: 'foo' }, { name: 'bar' }])
 
       expect(err).toMatchInlineSnapshot(`
         [AjvValidationError: Object[1].name must be "foo"
@@ -182,14 +177,14 @@ describe('string', () => {
     test('should correctly validate against the pattern', () => {
       const schema = j.string().pattern('^[0-9]{2}$')
 
-      const [err01] = AjvSchema.create(schema).getValidationResult('00')
+      const [err01] = schema.getValidationResult('00')
       expect(err01).toBeNull()
-      const [err02] = AjvSchema.create(schema).getValidationResult('01')
+      const [err02] = schema.getValidationResult('01')
       expect(err02).toBeNull()
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('000')
+      const [err11] = schema.getValidationResult('000')
       expect(err11).not.toBeNull()
-      const [err12] = AjvSchema.create(schema).getValidationResult('abc')
+      const [err12] = schema.getValidationResult('abc')
       expect(err12).not.toBeNull()
     })
 
@@ -202,7 +197,7 @@ describe('string', () => {
         foo: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
       })
 
-      const [err] = AjvSchema.create(schema).getValidationResult({ foo: 'def' })
+      const [err] = schema.getValidationResult({ foo: 'def' })
 
       expect(err).toMatchInlineSnapshot(`
         [AjvValidationError: Object.foo must equal "abc"
@@ -223,7 +218,7 @@ describe('string', () => {
         }),
       })
 
-      const [err] = AjvSchema.create(schema).getValidationResult({ foo: { bar: 'def' } })
+      const [err] = schema.getValidationResult({ foo: { bar: 'def' } })
 
       expect(err).toMatchInlineSnapshot(`
         [AjvValidationError: Object.foo.bar must equal "abc"
@@ -240,7 +235,7 @@ describe('string', () => {
         1: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
       })
 
-      const [err] = AjvSchema.create(schema).getValidationResult({ 1: 'def' })
+      const [err] = schema.getValidationResult({ 1: 'def' })
 
       expect(err).toMatchInlineSnapshot(`
         [AjvValidationError: Object[1] must equal "abc"
@@ -253,12 +248,12 @@ describe('string', () => {
     test('should correctly validate the minimum length of the string', () => {
       const schema = j.string().minLength(5)
 
-      const [err01] = AjvSchema.create(schema).getValidationResult('01234')
+      const [err01] = schema.getValidationResult('01234')
       expect(err01).toBeNull()
-      const [err02] = AjvSchema.create(schema).getValidationResult('012345')
+      const [err02] = schema.getValidationResult('012345')
       expect(err02).toBeNull()
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('0123')
+      const [err11] = schema.getValidationResult('0123')
       expect(err11).not.toBeNull()
     })
   })
@@ -267,12 +262,12 @@ describe('string', () => {
     test('should correctly validate the maximum length of the string', () => {
       const schema = j.string().maxLength(5)
 
-      const [err01] = AjvSchema.create(schema).getValidationResult('0123')
+      const [err01] = schema.getValidationResult('0123')
       expect(err01).toBeNull()
-      const [err02] = AjvSchema.create(schema).getValidationResult('01234')
+      const [err02] = schema.getValidationResult('01234')
       expect(err02).toBeNull()
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('012345')
+      const [err11] = schema.getValidationResult('012345')
       expect(err11).not.toBeNull()
     })
   })
@@ -281,14 +276,14 @@ describe('string', () => {
     test('should correctly validate the length of the string', () => {
       const schema = j.string().length(4, 5)
 
-      const [err01] = AjvSchema.create(schema).getValidationResult('0123')
+      const [err01] = schema.getValidationResult('0123')
       expect(err01).toBeNull()
-      const [err02] = AjvSchema.create(schema).getValidationResult('01234')
+      const [err02] = schema.getValidationResult('01234')
       expect(err02).toBeNull()
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('012')
+      const [err11] = schema.getValidationResult('012')
       expect(err11).not.toBeNull()
-      const [err12] = AjvSchema.create(schema).getValidationResult('012345')
+      const [err12] = schema.getValidationResult('012345')
       expect(err12).not.toBeNull()
     })
   })
@@ -297,14 +292,14 @@ describe('string', () => {
     test('should correctly validate the length of the string', () => {
       const schema = j.string().length(4)
 
-      const [err01] = AjvSchema.create(schema).getValidationResult('0123')
+      const [err01] = schema.getValidationResult('0123')
       expect(err01).toBeNull()
 
-      const [err02] = AjvSchema.create(schema).getValidationResult('01234')
+      const [err02] = schema.getValidationResult('01234')
       expect(err02).not.toBeNull()
-      const [err11] = AjvSchema.create(schema).getValidationResult('012')
+      const [err11] = schema.getValidationResult('012')
       expect(err11).not.toBeNull()
-      const [err12] = AjvSchema.create(schema).getValidationResult('012345')
+      const [err12] = schema.getValidationResult('012345')
       expect(err12).not.toBeNull()
     })
   })
@@ -313,7 +308,7 @@ describe('string', () => {
     test('should trim the input string - when inside an object schema', () => {
       const schema = j.object.infer({ trim: j.string().trim() }).isOfType<{ trim: string }>()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult({
+      const [err, result] = schema.getValidationResult({
         trim: '  trimmed  string  ',
       })
 
@@ -324,7 +319,7 @@ describe('string', () => {
     test('should trim the input string - when inside an array schema', () => {
       const schema = j.array(j.string().trim())
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult(['  trimmed  string  '])
+      const [err, result] = schema.getValidationResult(['  trimmed  string  '])
 
       expect(err).toBeNull()
       expect(result[0]).toBe('trimmed  string')
@@ -333,7 +328,7 @@ describe('string', () => {
     test('should silently fail when not inside a parent schema', () => {
       const schema = j.string().trim()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('  trimmed  string  ')
+      const [err, result] = schema.getValidationResult('  trimmed  string  ')
 
       expect(err).toBeNull()
       expect(result).toBe('  trimmed  string  ')
@@ -346,7 +341,7 @@ describe('string', () => {
         .infer({ toLowerCase: j.string().toLowerCase() })
         .isOfType<{ toLowerCase: string }>()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult({
+      const [err, result] = schema.getValidationResult({
         toLowerCase: 'lOwErCaSe StRiNg',
       })
 
@@ -357,7 +352,7 @@ describe('string', () => {
     test('should toLowerCase the input string - when inside an array schema', () => {
       const schema = j.array(j.string().toLowerCase())
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult(['lOwErCaSe StRiNg'])
+      const [err, result] = schema.getValidationResult(['lOwErCaSe StRiNg'])
 
       expect(err).toBeNull()
       expect(result[0]).toBe('lowercase string')
@@ -366,7 +361,7 @@ describe('string', () => {
     test('should silently fail when not inside a parent schema', () => {
       const schema = j.string().toLowerCase()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('lOwErCaSe StRiNg')
+      const [err, result] = schema.getValidationResult('lOwErCaSe StRiNg')
 
       expect(err).toBeNull()
       expect(result).toBe('lOwErCaSe StRiNg')
@@ -379,7 +374,7 @@ describe('string', () => {
         .infer({ toUpperCase: j.string().toUpperCase() })
         .isOfType<{ toUpperCase: string }>()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult({
+      const [err, result] = schema.getValidationResult({
         toUpperCase: 'UpPeRcAsE StRiNg',
       })
 
@@ -390,7 +385,7 @@ describe('string', () => {
     test('should toUpperCase the input string - when inside an array schema', () => {
       const schema = j.array(j.string().toUpperCase())
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult(['UpPeRcAsE StRiNg'])
+      const [err, result] = schema.getValidationResult(['UpPeRcAsE StRiNg'])
 
       expect(err).toBeNull()
       expect(result[0]).toBe('UPPERCASE STRING')
@@ -399,7 +394,7 @@ describe('string', () => {
     test('should silently fail when not inside a parent schema', () => {
       const schema = j.string().toUpperCase()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('UpPeRcAsE StRiNg')
+      const [err, result] = schema.getValidationResult('UpPeRcAsE StRiNg')
 
       expect(err).toBeNull()
       expect(result).toBe('UpPeRcAsE StRiNg')
@@ -412,7 +407,7 @@ describe('string', () => {
         .infer({ truncate: j.string().truncate(5) })
         .isOfType<{ truncate: string }>()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult({
+      const [err, result] = schema.getValidationResult({
         truncate: '0123456',
       })
 
@@ -423,7 +418,7 @@ describe('string', () => {
     test('should truncate the input string - when inside an array schema', () => {
       const schema = j.array(j.string().truncate(5))
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult(['0123456'])
+      const [err, result] = schema.getValidationResult(['0123456'])
 
       expect(err).toBeNull()
       expect(result[0]).toBe('01234')
@@ -432,7 +427,7 @@ describe('string', () => {
     test('should silently fail when not inside a parent schema', () => {
       const schema = j.string().truncate(5)
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('0123456')
+      const [err, result] = schema.getValidationResult('0123456')
 
       expect(err).toBeNull()
       expect(result).toBe('0123456')
@@ -443,7 +438,7 @@ describe('string', () => {
         .infer({ truncate: j.string().trim().truncate(5) })
         .isOfType<{ truncate: string }>()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult({
+      const [err, result] = schema.getValidationResult({
         truncate: '  01234 56  ',
       })
 
@@ -457,7 +452,7 @@ describe('string', () => {
       type AccountId = Branded<string, 'AccountId'>
       const schema = j.string().branded<AccountId>()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('AccountId' as AccountId)
+      const [err, result] = schema.getValidationResult('AccountId' as AccountId)
 
       expect(err).toBeNull()
       expect(result).toBe('AccountId')
@@ -474,10 +469,9 @@ describe('string', () => {
         'kamalaharris@gmail.com ', // trailing spaces should not cause an error, note: we can't mutate primitives
       ]
       const schema = j.string().email()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(email => {
-        const [err, value] = ajvSchema.getValidationResult(email)
+        const [err, value] = schema.getValidationResult(email)
         expect(err, String(email)).toBeNull()
         expect(value, String(email)).toBe(email)
       })
@@ -485,7 +479,6 @@ describe('string', () => {
 
     test('should reject invalid email address', () => {
       const schema = j.string().email()
-      const ajvSchema = AjvSchema.create(schema)
 
       const invalidTestCases: any[] = [
         'karius',
@@ -498,50 +491,49 @@ describe('string', () => {
       ]
 
       invalidTestCases.forEach(email => {
-        const [err] = ajvSchema.getValidationResult(email)
+        const [err] = schema.getValidationResult(email)
         expect(err).not.toBeNull()
       })
     })
 
     test('should trim the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
-      const ajvSchema1 = AjvSchema.create(schema1)
-      const [err1, value1] = ajvSchema1.getValidationResult({ email: 'kamalaharris@gmail.com ' }) // em space
+
+      const [err1, value1] = schema1.getValidationResult({ email: 'kamalaharris@gmail.com ' }) // em space
       expect(err1).toBeNull()
       expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
 
       const schema2 = j.array(j.string().email())
-      const ajvSchema2 = AjvSchema.create(schema2)
-      const [err2, value2] = ajvSchema2.getValidationResult(['kamalaharris@gmail.com ']) // em space
+
+      const [err2, value2] = schema2.getValidationResult(['kamalaharris@gmail.com ']) // em space
       expect(err2).toBeNull()
       expect(value2).toEqual(['kamalaharris@gmail.com'])
     })
 
     test('should lowercase the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
-      const ajvSchema1 = AjvSchema.create(schema1)
-      const [err1, value1] = ajvSchema1.getValidationResult({ email: 'KAMALAHARRIS@gmail.com' })
+
+      const [err1, value1] = schema1.getValidationResult({ email: 'KAMALAHARRIS@gmail.com' })
       expect(err1).toBeNull()
       expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
 
       const schema2 = j.array(j.string().email())
-      const ajvSchema2 = AjvSchema.create(schema2)
-      const [err2, value2] = ajvSchema2.getValidationResult(['KAMALAHARRIS@gmail.com'])
+
+      const [err2, value2] = schema2.getValidationResult(['KAMALAHARRIS@gmail.com'])
       expect(err2).toBeNull()
       expect(value2).toEqual(['kamalaharris@gmail.com'])
     })
 
     test('should produce a readable error message', () => {
       const schema = j.string().email()
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1] = ajvSchema.getValidationResult('karius@tandtroll.con')
+      const [err1] = schema.getValidationResult('karius@tandtroll.con')
       expect(err1).toMatchInlineSnapshot(`
         [AjvValidationError: Object has an invalid TLD
         Input: karius@tandtroll.con]
       `)
 
-      const [err2] = ajvSchema.getValidationResult('kamal>aharris@gmail.com')
+      const [err2] = schema.getValidationResult('kamal>aharris@gmail.com')
       expect(err2).toMatchInlineSnapshot(`
         [AjvValidationError: Object is not a valid email address
         Input: kamal>aharris@gmail.com]
@@ -551,7 +543,7 @@ describe('string', () => {
     test('should convert the email to lowercase - when inside an object schema', () => {
       const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
 
-      const [, result] = AjvSchema.create(schema).getValidationResult({ email: 'LOWERCASE@nc.COM' })
+      const [, result] = schema.getValidationResult({ email: 'LOWERCASE@nc.COM' })
 
       expect(result.email).toBe('lowercase@nc.com')
     })
@@ -559,7 +551,7 @@ describe('string', () => {
     test('should trim the email - when inside an object schema', () => {
       const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
 
-      const [, result] = AjvSchema.create(schema).getValidationResult({
+      const [, result] = schema.getValidationResult({
         email: '  trimmed@nc.com  ',
       })
 
@@ -568,17 +560,16 @@ describe('string', () => {
 
     test('should work with optional(values)', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().email().optional(['']) })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({ foo: 'foo@boo.com' })
+      const [err1, result1] = schema.getValidationResult({ foo: 'foo@boo.com' })
       expect(err1).toBeNull()
       expect(result1).toEqual({ foo: 'foo@boo.com' })
 
-      const [err2, result2] = ajvSchema.getValidationResult({ foo: '' })
+      const [err2, result2] = schema.getValidationResult({ foo: '' })
       expect(err2).toBeNull()
       expect(result2).toEqual({ foo: undefined })
 
-      const [err3, result3] = ajvSchema.getValidationResult({})
+      const [err3, result3] = schema.getValidationResult({})
       expect(err3).toBeNull()
       expect(result3).toEqual({})
     })
@@ -588,12 +579,12 @@ describe('string', () => {
     test('should validate the TLD part strictly by default', () => {
       const schema = j.string().email()
 
-      const [err01] = AjvSchema.create(schema).getValidationResult('david@nc.se')
+      const [err01] = schema.getValidationResult('david@nc.se')
       expect(err01).toBeNull()
-      const [err02] = AjvSchema.create(schema).getValidationResult('david@very.cool')
+      const [err02] = schema.getValidationResult('david@very.cool')
       expect(err02).toBeNull()
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('kirill@nc.gizmo')
+      const [err11] = schema.getValidationResult('kirill@nc.gizmo')
       expect(err11).toMatchInlineSnapshot(`
         [AjvValidationError: Object has an invalid TLD
         Input: kirill@nc.gizmo]
@@ -603,12 +594,12 @@ describe('string', () => {
     test('should not validate the TLD part strictly when `checkTLD` is `false`', () => {
       const schema = j.string().email({ checkTLD: false })
 
-      const [err01] = AjvSchema.create(schema).getValidationResult('david@nc.se')
+      const [err01] = schema.getValidationResult('david@nc.se')
       expect(err01).toBeNull()
-      const [err02] = AjvSchema.create(schema).getValidationResult('david@very.cool')
+      const [err02] = schema.getValidationResult('david@very.cool')
       expect(err02).toBeNull()
 
-      const [err11] = AjvSchema.create(schema).getValidationResult('kirill@nc.gizmo')
+      const [err11] = schema.getValidationResult('kirill@nc.gizmo')
       expect(err11).toBeNull()
     })
   })
@@ -617,7 +608,7 @@ describe('string', () => {
     test('should work correctly with type inference', () => {
       const schema = j.string().isoDate()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('2025-10-15')
+      const [err, result] = schema.getValidationResult('2025-10-15')
 
       expect(err).toBeNull()
       expect(result).toBe('2025-10-15')
@@ -627,7 +618,7 @@ describe('string', () => {
     test('should reject with proper error message', () => {
       const schema = j.string().isoDate()
 
-      const [err] = AjvSchema.create(schema).getValidationResult(
+      const [err] = schema.getValidationResult(
         'Second day of the second month of the year of the snake',
       )
 
@@ -644,10 +635,9 @@ describe('string', () => {
         testCases.push(d.plusDays(i).toISODate())
       }
       const schema = j.string().isoDate()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(date => {
-        const [err] = ajvSchema.getValidationResult(date)
+        const [err] = schema.getValidationResult(date)
         expect(err, String(date)).toBeNull()
       })
     })
@@ -675,10 +665,9 @@ describe('string', () => {
         [],
       ]
       const schema = j.string().isoDate()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(date => {
-        const [err] = ajvSchema.getValidationResult(date)
+        const [err] = schema.getValidationResult(date)
         expect(err, String(date)).not.toBeNull()
       })
     })
@@ -686,22 +675,20 @@ describe('string', () => {
     describe('optional(values)', () => {
       test('should work with `null` values', () => {
         const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
-        const ajvSchema = AjvSchema.create(schema)
 
-        const [err1, result1] = ajvSchema.getValidationResult({ date: '2025-01-15' as IsoDate })
+        const [err1, result1] = schema.getValidationResult({ date: '2025-01-15' as IsoDate })
         expect(err1).toBeNull()
         expect(result1).toEqual({ date: '2025-01-15' })
 
-        const [err2, result2] = ajvSchema.getValidationResult({ date: null } as any)
+        const [err2, result2] = schema.getValidationResult({ date: null } as any)
         expect(err2).toBeNull()
         expect(result2).toEqual({ date: undefined })
       })
 
       test('should still be an optional field when passing in `null`', () => {
         const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
-        const ajvSchema = AjvSchema.create(schema)
 
-        const [err1, result1] = ajvSchema.getValidationResult({})
+        const [err1, result1] = schema.getValidationResult({})
         expect(err1).toBeNull()
         expect(result1).toEqual({})
       })
@@ -711,24 +698,23 @@ describe('string', () => {
       test('should accept valid data', () => {
         const testCases: any[] = ['2018-06-20']
         const schema = j.string().isoDate().before('2018-06-21')
-        const ajvSchema = AjvSchema.create(schema)
 
         testCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).toBeNull()
         })
 
         const invalidCases: any[] = ['2018-06-21', '2018-06-22']
 
         invalidCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).not.toBeNull()
         })
       })
 
       test('should reject invalid date for the rule', () => {
         const schema = j.string().isoDate().before('abcd')
-        const [err] = AjvSchema.create(schema).getValidationResult('2018-06-21')
+        const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
           [AjvValidationError: Object is not before abcd
           Input: 2018-06-21]
@@ -740,24 +726,23 @@ describe('string', () => {
       test('should accept valid data', () => {
         const testCases: any[] = ['2018-06-20', '2018-06-21']
         const schema = j.string().isoDate().sameOrBefore('2018-06-21')
-        const ajvSchema = AjvSchema.create(schema)
 
         testCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).toBeNull()
         })
 
         const invalidCases: any[] = ['2018-06-22']
 
         invalidCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).not.toBeNull()
         })
       })
 
       test('should reject invalid date for the rule', () => {
         const schema = j.string().isoDate().sameOrBefore('abcd')
-        const [err] = AjvSchema.create(schema).getValidationResult('2018-06-21')
+        const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
           [AjvValidationError: Object is not the same or before abcd
           Input: 2018-06-21]
@@ -769,24 +754,23 @@ describe('string', () => {
       test('should accept valid data', () => {
         const testCases: any[] = ['2018-06-22']
         const schema = j.string().isoDate().after('2018-06-21')
-        const ajvSchema = AjvSchema.create(schema)
 
         testCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).toBeNull()
         })
 
         const invalidCases: any[] = ['2018-06-20', '2018-06-21']
 
         invalidCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).not.toBeNull()
         })
       })
 
       test('should reject invalid date for the rule', () => {
         const schema = j.string().isoDate().after('abcd')
-        const [err] = AjvSchema.create(schema).getValidationResult('2018-06-21')
+        const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
           [AjvValidationError: Object is not after abcd
           Input: 2018-06-21]
@@ -798,24 +782,23 @@ describe('string', () => {
       test('should accept valid data', () => {
         const testCases: any[] = ['2018-06-21', '2018-06-22']
         const schema = j.string().isoDate().sameOrAfter('2018-06-21')
-        const ajvSchema = AjvSchema.create(schema)
 
         testCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).toBeNull()
         })
 
         const invalidCases: any[] = ['2018-06-20']
 
         invalidCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).not.toBeNull()
         })
       })
 
       test('should reject invalid date for the rule', () => {
         const schema = j.string().isoDate().sameOrAfter('abcd')
-        const [err] = AjvSchema.create(schema).getValidationResult('2018-06-21')
+        const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
           [AjvValidationError: Object is not the same or after abcd
           Input: 2018-06-21]
@@ -827,31 +810,30 @@ describe('string', () => {
       test('should accept valid data', () => {
         const testCases: any[] = ['2018-06-20', '2018-06-21', '2018-06-22']
         const schema = j.string().isoDate().between('2018-06-20', '2018-06-22', '[]')
-        const ajvSchema = AjvSchema.create(schema)
 
         testCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).toBeNull()
         })
 
         const invalidCases: any[] = ['2018-06-19', '2018-06-23']
 
         invalidCases.forEach(date => {
-          const [err] = ajvSchema.getValidationResult(date)
+          const [err] = schema.getValidationResult(date)
           expect(err, String(date)).not.toBeNull()
         })
       })
 
       test('should reject invalid date for the rule', () => {
         const schema1 = j.string().isoDate().between('abcd', '2018-06-22', '[]')
-        const [err1] = AjvSchema.create(schema1).getValidationResult('2018-06-21')
+        const [err1] = schema1.getValidationResult('2018-06-21')
         expect(err1).toMatchInlineSnapshot(`
           [AjvValidationError: Object is not the same or after abcd
           Input: 2018-06-21]
         `)
 
         const schema2 = j.string().isoDate().between('2018-06-20', 'abcd', '[]')
-        const [err2] = AjvSchema.create(schema2).getValidationResult('2018-06-21')
+        const [err2] = schema2.getValidationResult('2018-06-21')
         expect(err2).toMatchInlineSnapshot(`
           [AjvValidationError: Object is not the same or before abcd
           Input: 2018-06-21]
@@ -864,7 +846,7 @@ describe('string', () => {
     test('should work correctly with type inference', () => {
       const schema = j.string().isoDateTime()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('2025-10-15T01:01:01Z')
+      const [err, result] = schema.getValidationResult('2025-10-15T01:01:01Z')
 
       expect(err).toBeNull()
       expect(result).toBe('2025-10-15T01:01:01Z')
@@ -874,7 +856,7 @@ describe('string', () => {
     test('should reject with proper error message', () => {
       const schema = j.string().isoDateTime()
 
-      const [err] = AjvSchema.create(schema).getValidationResult(
+      const [err] = schema.getValidationResult(
         'Second day of the second month of the year of the snake two candles after sunrise',
       )
 
@@ -897,10 +879,9 @@ describe('string', () => {
         testCases.push(t.plusDays(i).toISODateTime())
       }
       const schema = j.string().isoDateTime()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(date => {
-        const [err] = ajvSchema.getValidationResult(date)
+        const [err] = schema.getValidationResult(date)
         expect(err, String(date)).toBeNull()
       })
     })
@@ -936,10 +917,9 @@ describe('string', () => {
         '2100-02-29T01:01:01', // not leap year b/c div. by 100 but not div. by 400
       ]
       const schema = j.string().isoDateTime()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(date => {
-        const [err] = ajvSchema.getValidationResult(date)
+        const [err] = schema.getValidationResult(date)
         expect(err, String(date)).not.toBeNull()
       })
     })
@@ -949,7 +929,7 @@ describe('string', () => {
     test('should work correctly with type inference', () => {
       const schema = j.string().isoMonth()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('2025-10')
+      const [err, result] = schema.getValidationResult('2025-10')
 
       expect(err).toBeNull()
       expect(result).toBe('2025-10')
@@ -959,7 +939,7 @@ describe('string', () => {
     test('should reject with proper error message', () => {
       const schema = j.string().isoMonth()
 
-      const [err] = AjvSchema.create(schema).getValidationResult('Second day of the second month')
+      const [err] = schema.getValidationResult('Second day of the second month')
 
       expect(err).toMatchInlineSnapshot(`
         [AjvValidationError: Object is an invalid IsoMonth
@@ -974,10 +954,9 @@ describe('string', () => {
         testCases.push(d.plusDays(i).toISOMonth())
       }
       const schema = j.string().isoMonth()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(date => {
-        const [err] = ajvSchema.getValidationResult(date)
+        const [err] = schema.getValidationResult(date)
         expect(err, String(date)).toBeNull()
       })
     })
@@ -996,10 +975,9 @@ describe('string', () => {
         [],
       ]
       const schema = j.string().isoMonth()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(date => {
-        const [err] = ajvSchema.getValidationResult(date)
+        const [err] = schema.getValidationResult(date)
         expect(err, String(date)).not.toBeNull()
       })
     })
@@ -1011,10 +989,9 @@ describe('string', () => {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
       ]
       const schema = j.string().jwt()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach((jwt, i) => {
-        const [err] = ajvSchema.getValidationResult(jwt)
+        const [err] = schema.getValidationResult(jwt)
         expect(err, String(i)).toBeNull()
       })
     })
@@ -1030,10 +1007,9 @@ describe('string', () => {
         {},
       ]
       const schema = j.string().jwt()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach((jwt, i) => {
-        const [err] = ajvSchema.getValidationResult(jwt)
+        const [err] = schema.getValidationResult(jwt)
         expect(err, String(i)).not.toBeNull()
       })
     })
@@ -1043,10 +1019,9 @@ describe('string', () => {
     test('should accept string with valid URL', () => {
       const testCases = ['https://nevergonna.giveyou.up']
       const schema = j.string().url()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(url => {
-        const [err] = ajvSchema.getValidationResult(url)
+        const [err] = schema.getValidationResult(url)
         expect(err, String(url)).toBeNull()
       })
     })
@@ -1054,10 +1029,9 @@ describe('string', () => {
     test('should reject string with invalid URL', () => {
       const invalidCases: any[] = ['not a URL', 0, true, [], {}]
       const schema = j.string().url()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(url => {
-        const [err] = ajvSchema.getValidationResult(url)
+        const [err] = schema.getValidationResult(url)
         expect(err, String(url)).not.toBeNull()
       })
     })
@@ -1068,10 +1042,9 @@ describe('string', () => {
       // Use punycode encoding (e.g., https://xn--mnchen-3ya.de) instead.
       const idnCases = ['https://münchen.de', 'https://日本.jp', 'https://中国.cn']
       const schema = j.string().url()
-      const ajvSchema = AjvSchema.create(schema)
 
       idnCases.forEach(url => {
-        const [err] = ajvSchema.getValidationResult(url)
+        const [err] = schema.getValidationResult(url)
         expect(err, `IDN URL should be rejected: ${url}`).not.toBeNull()
       })
     })
@@ -1081,10 +1054,9 @@ describe('string', () => {
     test('should accept string with valid IPv4', () => {
       const testCases = ['127.0.0.1', '192.168.0.1']
       const schema = j.string().ipv4()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(ipv4 => {
-        const [err] = ajvSchema.getValidationResult(ipv4)
+        const [err] = schema.getValidationResult(ipv4)
         expect(err, String(ipv4)).toBeNull()
       })
     })
@@ -1092,10 +1064,9 @@ describe('string', () => {
     test('should reject string with invalid IPv4', () => {
       const invalidCases: any[] = ['192.168.0.1/255.255.255.0', 'not a ipv4', 0, true, [], {}]
       const schema = j.string().ipv4()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(ipv4 => {
-        const [err] = ajvSchema.getValidationResult(ipv4)
+        const [err] = schema.getValidationResult(ipv4)
         expect(err, String(ipv4)).not.toBeNull()
       })
     })
@@ -1112,10 +1083,9 @@ describe('string', () => {
         '::1',
       ]
       const schema = j.string().ipv6()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(ipv6 => {
-        const [err] = ajvSchema.getValidationResult(ipv6)
+        const [err] = schema.getValidationResult(ipv6)
         expect(err, String(ipv6)).toBeNull()
       })
     })
@@ -1132,10 +1102,9 @@ describe('string', () => {
         {},
       ]
       const schema = j.string().ipv6()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(ipv6 => {
-        const [err] = ajvSchema.getValidationResult(ipv6)
+        const [err] = schema.getValidationResult(ipv6)
         expect(err, String(ipv6)).not.toBeNull()
       })
     })
@@ -1145,10 +1114,9 @@ describe('string', () => {
     test('should accept string with valid slug', () => {
       const testCases = ['some-slug', '012345']
       const schema = j.string().slug()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(slug => {
-        const [err] = ajvSchema.getValidationResult(slug)
+        const [err] = schema.getValidationResult(slug)
         expect(err, String(slug)).toBeNull()
       })
     })
@@ -1164,10 +1132,9 @@ describe('string', () => {
         {},
       ]
       const schema = j.string().slug()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(slug => {
-        const [err] = ajvSchema.getValidationResult(slug)
+        const [err] = schema.getValidationResult(slug)
         expect(err, String(slug)).not.toBeNull()
       })
     })
@@ -1177,10 +1144,9 @@ describe('string', () => {
     test('should accept string with valid semver', () => {
       const testCases = ['0.0.0', '1.2.3']
       const schema = j.string().semVer()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(semver => {
-        const [err] = ajvSchema.getValidationResult(semver)
+        const [err] = schema.getValidationResult(semver)
         expect(err, String(semver)).toBeNull()
       })
     })
@@ -1198,10 +1164,9 @@ describe('string', () => {
         {},
       ]
       const schema = j.string().semVer()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(semver => {
-        const [err] = ajvSchema.getValidationResult(semver)
+        const [err] = schema.getValidationResult(semver)
         expect(err, String(semver)).not.toBeNull()
       })
     })
@@ -1211,10 +1176,9 @@ describe('string', () => {
     test('should accept string with valid languageTag', () => {
       const testCases = ['hu-HU', 'en-US', 'se-SE', 'se']
       const schema = j.string().languageTag()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(languageTag => {
-        const [err] = ajvSchema.getValidationResult(languageTag)
+        const [err] = schema.getValidationResult(languageTag)
         expect(err, String(languageTag)).toBeNull()
       })
     })
@@ -1230,10 +1194,9 @@ describe('string', () => {
         {},
       ]
       const schema = j.string().languageTag()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(languageTag => {
-        const [err] = ajvSchema.getValidationResult(languageTag)
+        const [err] = schema.getValidationResult(languageTag)
         expect(err, String(languageTag)).not.toBeNull()
       })
     })
@@ -1243,10 +1206,9 @@ describe('string', () => {
     test('should accept string with valid countryCode', () => {
       const testCases = ['SE', 'HU']
       const schema = j.string().countryCode()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(countryCode => {
-        const [err] = ajvSchema.getValidationResult(countryCode)
+        const [err] = schema.getValidationResult(countryCode)
         expect(err, String(countryCode)).toBeNull()
       })
     })
@@ -1263,10 +1225,9 @@ describe('string', () => {
         {},
       ]
       const schema = j.string().countryCode()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(countryCode => {
-        const [err] = ajvSchema.getValidationResult(countryCode)
+        const [err] = schema.getValidationResult(countryCode)
         expect(err, String(countryCode)).not.toBeNull()
       })
     })
@@ -1276,10 +1237,9 @@ describe('string', () => {
     test('should accept string with valid currency', () => {
       const testCases = ['SEK', 'HUF', 'EUR', 'USD']
       const schema = j.string().currency()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(currency => {
-        const [err] = ajvSchema.getValidationResult(currency)
+        const [err] = schema.getValidationResult(currency)
         expect(err, String(currency)).toBeNull()
       })
     })
@@ -1296,10 +1256,9 @@ describe('string', () => {
         {},
       ]
       const schema = j.string().currency()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(currency => {
-        const [err] = ajvSchema.getValidationResult(currency)
+        const [err] = schema.getValidationResult(currency)
         expect(err, String(currency)).not.toBeNull()
       })
     })
@@ -1309,7 +1268,7 @@ describe('string', () => {
     test('should work correctly with type inference', () => {
       const schema = j.string().ianaTimezone()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult('Europe/Stockholm')
+      const [err, result] = schema.getValidationResult('Europe/Stockholm')
 
       expect(err).toBeNull()
       expect(result).toBe('Europe/Stockholm')
@@ -1319,7 +1278,7 @@ describe('string', () => {
     test('should support "UTC" as we sometimes use it in unit tests', () => {
       const schema = j.string().ianaTimezone()
 
-      const [err] = AjvSchema.create(schema).getValidationResult('UTC')
+      const [err] = schema.getValidationResult('UTC')
 
       expect(err).toBeNull()
     })
@@ -1327,7 +1286,7 @@ describe('string', () => {
     test('should reject with proper error message', () => {
       const schema = j.string().ianaTimezone()
 
-      const [err] = AjvSchema.create(schema).getValidationResult(
+      const [err] = schema.getValidationResult(
         'Second day of the second month of the year of the snake',
       )
 
@@ -1340,10 +1299,9 @@ describe('string', () => {
     test('should accept valid data', () => {
       const testCases = [...Intl.supportedValuesOf('timeZone'), 'UTC']
       const schema = j.string().ianaTimezone()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(tz => {
-        const [err] = ajvSchema.getValidationResult(tz)
+        const [err] = schema.getValidationResult(tz)
         expect(err, String(tz)).toBeNull()
       })
     })
@@ -1351,10 +1309,9 @@ describe('string', () => {
     test('should reject invalid data', () => {
       const invalidCases: any[] = ['abcd', 0, null, [], {}]
       const schema = j.string().ianaTimezone()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1364,16 +1321,15 @@ describe('string', () => {
     test('should accept valid data', () => {
       const testCases = ['azAZ09_-']
       const schema = j.string().base64Url()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
 
       const invalidCases = ['!', '#', '+', '%', '<']
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1387,10 +1343,9 @@ describe('string', () => {
         '257631Be-26d6-4A18-b28e-4Bb7c6495Cf4', // mixed case
       ]
       const schema = j.string().uuid()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
 
@@ -1404,7 +1359,7 @@ describe('string', () => {
         {},
       ]
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1415,7 +1370,7 @@ describe('number', () => {
   test('should work correctly with type inference', () => {
     const schema = j.number()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult(0)
+    const [err, result] = schema.getValidationResult(0)
 
     expect(err).toBeNull()
     expect(result).toBe(0)
@@ -1425,10 +1380,9 @@ describe('number', () => {
   test('should accept a number with a valid value', () => {
     const testCases = [-2, 0, 2, 3.14]
     const schema = j.number()
-    const ajvSchema = AjvSchema.create(schema)
 
     testCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err, String(value)).toBeNull()
     })
   })
@@ -1436,10 +1390,9 @@ describe('number', () => {
   test('should reject a number with an invalid value', () => {
     const invalidCases: any[] = [Number.NaN, Number.POSITIVE_INFINITY, 'a', true, {}, []]
     const schema = j.number()
-    const ajvSchema = AjvSchema.create(schema)
 
     invalidCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err, String(value)).not.toBeNull()
     })
   })
@@ -1448,17 +1401,17 @@ describe('number', () => {
     test('should convert specific values to `undefined`', () => {
       const schema = j.object<{ foo?: number }>({ foo: j.number().optional([6147]) })
 
-      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: 1234 })
+      const [err1, result1] = schema.getValidationResult({ foo: 1234 })
 
       expect(err1).toBeNull()
       expect(result1).toEqual({ foo: 1234 })
 
-      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: 6147 })
+      const [err2, result2] = schema.getValidationResult({ foo: 6147 })
 
       expect(err2).toBeNull()
       expect(result2).toEqual({})
 
-      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
+      const [err3, result3] = schema.getValidationResult({})
 
       expect(err3).toBeNull()
       expect(result3).toEqual({})
@@ -1466,13 +1419,12 @@ describe('number', () => {
 
     test('should work with `null` values', () => {
       const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({ foo: 1 })
+      const [err1, result1] = schema.getValidationResult({ foo: 1 })
       expect(err1).toBeNull()
       expect(result1).toEqual({ foo: 1 })
 
-      const [err2, result2] = ajvSchema.getValidationResult({ foo: null } as any)
+      const [err2, result2] = schema.getValidationResult({ foo: null } as any)
       expect(err2).toBeNull()
       expect(result2).toEqual({ foo: undefined })
     })
@@ -1497,9 +1449,8 @@ describe('number', () => {
 
     test('should still be an optional field when passing in `null`', () => {
       const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({})
+      const [err1, result1] = schema.getValidationResult({})
       expect(err1).toBeNull()
       expect(result1).toEqual({})
     })
@@ -1509,10 +1460,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [-2, 0, 2, 4]
       const schema = j.number().multipleOf(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1520,10 +1470,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [1, 3]
       const schema = j.number().multipleOf(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1533,10 +1482,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [2, 3, 4]
       const schema = j.number().min(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1544,10 +1492,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [1, 1.9999]
       const schema = j.number().min(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1557,10 +1504,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [2.0001, 3, 4]
       const schema = j.number().exclusiveMin(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1568,10 +1514,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [1, 1.9999, 2]
       const schema = j.number().exclusiveMin(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1581,10 +1526,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [0, 1, 2]
       const schema = j.number().max(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1592,10 +1536,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [2.0001, 3, 4]
       const schema = j.number().max(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1605,10 +1548,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [0, 1, 1.9999]
       const schema = j.number().exclusiveMax(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1616,10 +1558,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [2, 3, 4]
       const schema = j.number().exclusiveMax(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1629,10 +1570,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [2, 3, 4]
       const schema = j.number().moreThanOrEqual(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1640,10 +1580,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [1, 1.9999]
       const schema = j.number().moreThanOrEqual(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1653,10 +1592,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [2.0001, 3, 4]
       const schema = j.number().moreThan(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1664,10 +1602,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [1, 1.9999, 2]
       const schema = j.number().moreThan(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1677,10 +1614,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [0, 1, 2]
       const schema = j.number().lessThanOrEqual(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1688,10 +1624,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [2.0001, 3, 4]
       const schema = j.number().lessThanOrEqual(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1701,10 +1636,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [0, 1, 1.9999]
       const schema = j.number().lessThan(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1712,10 +1646,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [2, 3, 4]
       const schema = j.number().lessThan(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1725,10 +1658,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [2]
       const schema = j.number().equal(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1736,10 +1668,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [1.9, 2.1]
       const schema = j.number().equal(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1750,10 +1681,9 @@ describe('number', () => {
       test('should accept a number with a valid value', () => {
         const testCases = [2, 2.5, 3]
         const schema = j.number().range(2, 3, '[]')
-        const ajvSchema = AjvSchema.create(schema)
 
         testCases.forEach(value => {
-          const [err] = ajvSchema.getValidationResult(value)
+          const [err] = schema.getValidationResult(value)
           expect(err, String(value)).toBeNull()
         })
       })
@@ -1761,10 +1691,9 @@ describe('number', () => {
       test('should reject a number with an invalid value', () => {
         const invalidCases = [1, 1.999, 3.001, 4]
         const schema = j.number().range(2, 3, '[]')
-        const ajvSchema = AjvSchema.create(schema)
 
         invalidCases.forEach(value => {
-          const [err] = ajvSchema.getValidationResult(value)
+          const [err] = schema.getValidationResult(value)
           expect(err, String(value)).not.toBeNull()
         })
       })
@@ -1774,10 +1703,9 @@ describe('number', () => {
       test('should accept a number with a valid value', () => {
         const testCases = [2, 2.5, 2.9]
         const schema = j.number().range(2, 3, '[)')
-        const ajvSchema = AjvSchema.create(schema)
 
         testCases.forEach(value => {
-          const [err] = ajvSchema.getValidationResult(value)
+          const [err] = schema.getValidationResult(value)
           expect(err, String(value)).toBeNull()
         })
       })
@@ -1785,10 +1713,9 @@ describe('number', () => {
       test('should reject a number with an invalid value', () => {
         const invalidCases = [1, 1.999, 3, 3.001, 4]
         const schema = j.number().range(2, 3, '[)')
-        const ajvSchema = AjvSchema.create(schema)
 
         invalidCases.forEach(value => {
-          const [err] = ajvSchema.getValidationResult(value)
+          const [err] = schema.getValidationResult(value)
           expect(err, String(value)).not.toBeNull()
         })
       })
@@ -1799,10 +1726,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [-(2 ** 31), 0, 2 ** 31 - 1]
       const schema = j.number().int32()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1810,10 +1736,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [-(2 ** 31) - 1, 2 ** 31]
       const schema = j.number().int32()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1821,16 +1746,15 @@ describe('number', () => {
     test('should not update already set min or max within valid boundaries', () => {
       const testCases = [2, 3]
       const schema = j.number().min(2).max(3).int32()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
 
       const invalidCases = [1, 4]
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1840,10 +1764,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
       const schema = j.number().int64()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1851,10 +1774,9 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [Number.MIN_SAFE_INTEGER - 1, Number.MAX_SAFE_INTEGER + 1]
       const schema = j.number().int64()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1869,18 +1791,17 @@ describe('number', () => {
   describe('unixTimestamp', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp()
-      const ajvSchema = AjvSchema.create(schema)
-      const [, result] = ajvSchema.getValidationResult(0 as UnixTimestamp)
+
+      const [, result] = schema.getValidationResult(0 as UnixTimestamp)
       expectTypeOf(result).toEqualTypeOf<UnixTimestamp>()
     })
 
     test('should accept a number with a valid value', () => {
       const testCases = [0, localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix]
       const schema = j.number().unixTimestamp()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value as UnixTimestamp)
+        const [err] = schema.getValidationResult(value as UnixTimestamp)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1892,10 +1813,9 @@ describe('number', () => {
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unix,
       ]
       const schema = j.number().unixTimestamp()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value as UnixTimestamp)
+        const [err] = schema.getValidationResult(value as UnixTimestamp)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1904,8 +1824,8 @@ describe('number', () => {
   describe('unixTimestamp2000', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp2000()
-      const ajvSchema = AjvSchema.create(schema)
-      const [, result] = ajvSchema.getValidationResult(0 as UnixTimestamp)
+
+      const [, result] = schema.getValidationResult(0 as UnixTimestamp)
       expectTypeOf(result).toEqualTypeOf<UnixTimestamp>()
     })
 
@@ -1915,10 +1835,9 @@ describe('number', () => {
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix,
       ]
       const schema = j.number().unixTimestamp2000()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1930,10 +1849,9 @@ describe('number', () => {
         0.1,
       ]
       const schema = j.number().unixTimestamp2000()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value as UnixTimestamp)
+        const [err] = schema.getValidationResult(value as UnixTimestamp)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1942,18 +1860,17 @@ describe('number', () => {
   describe('unixTimestampMillis', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestampMillis()
-      const ajvSchema = AjvSchema.create(schema)
-      const [, result] = ajvSchema.getValidationResult(0 as UnixTimestampMillis)
+
+      const [, result] = schema.getValidationResult(0 as UnixTimestampMillis)
       expectTypeOf(result).toEqualTypeOf<UnixTimestampMillis>()
     })
 
     test('should accept a number with a valid value', () => {
       const testCases = [0, localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis]
       const schema = j.number().unixTimestampMillis()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value as UnixTimestampMillis)
+        const [err] = schema.getValidationResult(value as UnixTimestampMillis)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1965,10 +1882,9 @@ describe('number', () => {
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unixMillis,
       ]
       const schema = j.number().unixTimestampMillis()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value as UnixTimestampMillis)
+        const [err] = schema.getValidationResult(value as UnixTimestampMillis)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1977,8 +1893,8 @@ describe('number', () => {
   describe('unixTimestamp2000Millis', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp2000Millis()
-      const ajvSchema = AjvSchema.create(schema)
-      const [, result] = ajvSchema.getValidationResult(0 as UnixTimestampMillis)
+
+      const [, result] = schema.getValidationResult(0 as UnixTimestampMillis)
       expectTypeOf(result).toEqualTypeOf<UnixTimestampMillis>()
     })
 
@@ -1988,10 +1904,9 @@ describe('number', () => {
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis,
       ]
       const schema = j.number().unixTimestamp2000Millis()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -2003,10 +1918,9 @@ describe('number', () => {
         0.1,
       ]
       const schema = j.number().unixTimestamp2000Millis()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value as UnixTimestampMillis)
+        const [err] = schema.getValidationResult(value as UnixTimestampMillis)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -2016,10 +1930,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [-12 * 60, 0, 14 * 60]
       const schema = j.number().utcOffset()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -2032,10 +1945,9 @@ describe('number', () => {
         15 * 60, // out of upper bound
       ]
       const schema = j.number().utcOffset()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -2045,10 +1957,9 @@ describe('number', () => {
     test('should accept a number with a valid value', () => {
       const testCases = [-12, 0, 14]
       const schema = j.number().utcOffsetHour()
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -2060,10 +1971,9 @@ describe('number', () => {
         15, // out of upper bound
       ]
       const schema = j.number().utcOffsetHour()
-      const ajvSchema = AjvSchema.create(schema)
 
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -2072,7 +1982,6 @@ describe('number', () => {
   describe('precision', () => {
     test('should convert a floating point number to the precision when it makes sense', () => {
       const schema = j.object<{ foo: number }>({ foo: j.number().precision(3) })
-      const ajvSchema = AjvSchema.create(schema)
 
       const testCases: [number, number][] = [
         [0, 0],
@@ -2083,7 +1992,7 @@ describe('number', () => {
         [0.1235, 0.124],
       ]
       testCases.forEach(([value, expected]) => {
-        const [err, result] = ajvSchema.getValidationResult({ foo: value })
+        const [err, result] = schema.getValidationResult({ foo: value })
         expect(err).toBeNull()
         expect(result).toEqual({ foo: expected })
       })
@@ -2095,7 +2004,7 @@ describe('boolean', () => {
   test('should work correctly with type inference', () => {
     const schema = j.boolean()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult(true)
+    const [err, result] = schema.getValidationResult(true)
 
     expect(err).toBeNull()
     expect(result).toBe(true)
@@ -2105,10 +2014,9 @@ describe('boolean', () => {
   test('should accept a boolean with a valid value', () => {
     const testCases = [true, false]
     const schema = j.boolean()
-    const ajvSchema = AjvSchema.create(schema)
 
     testCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err, String(value)).toBeNull()
     })
   })
@@ -2116,10 +2024,9 @@ describe('boolean', () => {
   test('should reject a boolean with an invalid value', () => {
     const invalidCases: any[] = ['a', 0, {}, []]
     const schema = j.boolean()
-    const ajvSchema = AjvSchema.create(schema)
 
     invalidCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err, String(value)).not.toBeNull()
     })
   })
@@ -2128,17 +2035,17 @@ describe('boolean', () => {
     test('should convert specific values to `undefined`', () => {
       const schema = j.object<{ foo?: boolean }>({ foo: j.boolean().optional(false) })
 
-      const [err1, result1] = AjvSchema.create(schema).getValidationResult({ foo: true })
+      const [err1, result1] = schema.getValidationResult({ foo: true })
 
       expect(err1).toBeNull()
       expect(result1).toEqual({ foo: true })
 
-      const [err2, result2] = AjvSchema.create(schema).getValidationResult({ foo: false })
+      const [err2, result2] = schema.getValidationResult({ foo: false })
 
       expect(err2).toBeNull()
       expect(result2).toEqual({})
 
-      const [err3, result3] = AjvSchema.create(schema).getValidationResult({})
+      const [err3, result3] = schema.getValidationResult({})
 
       expect(err3).toBeNull()
       expect(result3).toEqual({})
@@ -2150,7 +2057,7 @@ describe('array', () => {
   test('should work correctly with type inference', () => {
     const schema = j.array(j.string().nullable())
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult(['foo', null])
+    const [err, result] = schema.getValidationResult(['foo', null])
 
     expect(err).toBeNull()
     expect(result).toEqual(['foo', null])
@@ -2167,7 +2074,7 @@ describe('array', () => {
     testCases.forEach(([itemSchema, input]) => {
       const schema = j.array(itemSchema)
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult(input)
+      const [err, result] = schema.getValidationResult(input)
 
       expect(err, String(input)).toBeNull()
       expect(result).toEqual(input)
@@ -2190,7 +2097,7 @@ describe('array', () => {
     invalidTestCases.forEach(([itemSchema, input]) => {
       const schema = j.array(itemSchema)
 
-      const [err] = AjvSchema.create(schema).getValidationResult(input)
+      const [err] = schema.getValidationResult(input)
 
       expect(err, String(input)).not.toBeNull()
     })
@@ -2203,10 +2110,9 @@ describe('array', () => {
         ['foo', 'bar', 'shu'],
       ]
       const schema = j.array(j.string()).minLength(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(input => {
-        const [err, result] = ajvSchema.getValidationResult(input)
+        const [err, result] = schema.getValidationResult(input)
 
         expect(err, String(input)).toBeNull()
         expect(result).toEqual(input)
@@ -2216,10 +2122,9 @@ describe('array', () => {
     test('should reject invalid data', () => {
       const testCases: any[] = [[], ['foo'], 0, 'foo', {}, true]
       const schema = j.array(j.string()).minLength(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(input => {
-        const [err] = ajvSchema.getValidationResult(input)
+        const [err] = schema.getValidationResult(input)
 
         expect(err, String(input)).not.toBeNull()
       })
@@ -2230,10 +2135,9 @@ describe('array', () => {
     test('should accept valid data', () => {
       const testCases: any[] = [[], ['foo'], ['foo', 'bar']]
       const schema = j.array(j.string()).maxLength(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(input => {
-        const [err, result] = ajvSchema.getValidationResult(input)
+        const [err, result] = schema.getValidationResult(input)
 
         expect(err, String(input)).toBeNull()
         expect(result).toEqual(input)
@@ -2243,10 +2147,9 @@ describe('array', () => {
     test('should reject invalid data', () => {
       const testCases: any[] = [['foo', 'bar', 'shu'], 0, 'foo', {}, true]
       const schema = j.array(j.string()).maxLength(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       testCases.forEach(input => {
-        const [err] = ajvSchema.getValidationResult(input)
+        const [err] = schema.getValidationResult(input)
 
         expect(err, String(input)).not.toBeNull()
       })
@@ -2256,11 +2159,10 @@ describe('array', () => {
   describe('length(min, max)', () => {
     test('should accept valid data', () => {
       const schema = j.array(j.string()).length(1, 2)
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [['foo'], ['foo', 'bar']]
       validCases.forEach(input => {
-        const [err, result] = ajvSchema.getValidationResult(input)
+        const [err, result] = schema.getValidationResult(input)
 
         expect(err, String(input)).toBeNull()
         expect(result).toEqual(input)
@@ -2268,7 +2170,7 @@ describe('array', () => {
 
       const invalidCases: any[] = [[], ['foo', 'bar', 'shu']]
       invalidCases.forEach(input => {
-        const [err] = ajvSchema.getValidationResult(input)
+        const [err] = schema.getValidationResult(input)
 
         expect(err, String(input)).not.toBeNull()
       })
@@ -2278,11 +2180,10 @@ describe('array', () => {
   describe('length(eq)', () => {
     test('should accept valid data', () => {
       const schema = j.array(j.string()).length(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [['foo', 'bar']]
       validCases.forEach(input => {
-        const [err, result] = ajvSchema.getValidationResult(input)
+        const [err, result] = schema.getValidationResult(input)
 
         expect(err, String(input)).toBeNull()
         expect(result).toEqual(input)
@@ -2290,7 +2191,7 @@ describe('array', () => {
 
       const invalidCases: any[] = [[], ['foo'], ['foo', 'bar', 'shu']]
       invalidCases.forEach(input => {
-        const [err] = ajvSchema.getValidationResult(input)
+        const [err] = schema.getValidationResult(input)
 
         expect(err, String(input)).not.toBeNull()
       })
@@ -2300,11 +2201,10 @@ describe('array', () => {
   describe('exactLength', () => {
     test('should accept valid data', () => {
       const schema = j.array(j.string()).exactLength(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [['foo', 'bar']]
       validCases.forEach(input => {
-        const [err, result] = ajvSchema.getValidationResult(input)
+        const [err, result] = schema.getValidationResult(input)
 
         expect(err, String(input)).toBeNull()
         expect(result).toEqual(input)
@@ -2312,7 +2212,7 @@ describe('array', () => {
 
       const invalidCases: any[] = [[], ['foo'], ['foo', 'bar', 'shu']]
       invalidCases.forEach(input => {
-        const [err] = ajvSchema.getValidationResult(input)
+        const [err] = schema.getValidationResult(input)
 
         expect(err, String(input)).not.toBeNull()
       })
@@ -2324,7 +2224,7 @@ describe('tuple', () => {
   test('should work correctly with type inference', () => {
     const schema = j.tuple([j.string().nullable(), j.number(), j.boolean()])
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult(['foo', 1, true])
+    const [err, result] = schema.getValidationResult(['foo', 1, true])
 
     expect(err).toBeNull()
     expect(result).toEqual(['foo', 1, true])
@@ -2333,14 +2233,13 @@ describe('tuple', () => {
 
   test('should accept valid data', () => {
     const schema = j.tuple([j.string().minLength(3).nullable(), j.number(), j.boolean()])
-    const ajvSchema = AjvSchema.create(schema)
 
     const testCases: any[] = [
       ['foo', 1, true],
       [null, 2, false],
     ]
     testCases.forEach(input => {
-      const [err, result] = ajvSchema.getValidationResult(input)
+      const [err, result] = schema.getValidationResult(input)
 
       expect(err, String(input)).toBeNull()
       expect(result).toEqual(input)
@@ -2348,7 +2247,7 @@ describe('tuple', () => {
 
     const invalidCases: any[] = [[undefined, 1, true], ['fo', 1, true], 'foo', 0, true, {}, []]
     invalidCases.forEach(input => {
-      const [err] = ajvSchema.getValidationResult(input)
+      const [err] = schema.getValidationResult(input)
       expect(err, String(input)).not.toBeNull()
     })
   })
@@ -2358,7 +2257,7 @@ describe('set', () => {
   test('should work correctly with type inference', () => {
     const schema = j.set(j.string())
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult(new Set2(['foo', 'bar']))
+    const [err, result] = schema.getValidationResult(new Set2(['foo', 'bar']))
 
     expect(err).toBeNull()
     expect(result).toBeInstanceOf(Set2)
@@ -2376,7 +2275,7 @@ describe('set', () => {
     testCases.forEach(([itemSchema, input]) => {
       const schema = j.set(itemSchema)
 
-      const [err] = AjvSchema.create(schema).getValidationResult(input)
+      const [err] = schema.getValidationResult(input)
 
       expect(err, String(input)).toBeNull()
     })
@@ -2398,7 +2297,7 @@ describe('set', () => {
     invalidTestCases.forEach(([itemSchema, input]) => {
       const schema = j.set(itemSchema)
 
-      const [err] = AjvSchema.create(schema).getValidationResult(input)
+      const [err] = schema.getValidationResult(input)
 
       expect(err, String(input)).not.toBeNull()
     })
@@ -2407,7 +2306,7 @@ describe('set', () => {
   test('should NOT accept an Array - when it is a standalone schema', () => {
     const schema = j.set(j.string())
 
-    const [err] = AjvSchema.create(schema).getValidationResult(['foo', 'bar'])
+    const [err] = schema.getValidationResult(['foo', 'bar'])
 
     expect(err).toMatchInlineSnapshot(`
       [AjvValidationError: Object can only transform an Iterable into a Set2 when the schema is in an object or an array schema. This is an Ajv limitation.
@@ -2418,7 +2317,7 @@ describe('set', () => {
   test('should accept an Array and produce a Set2 - when it is a property of an object', () => {
     const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult({ set: ['foo', 'bar'] })
+    const [err, result] = schema.getValidationResult({ set: ['foo', 'bar'] })
 
     expect(err).toBeNull()
     expect(result.set).toBeInstanceOf(Set2)
@@ -2429,7 +2328,7 @@ describe('set', () => {
   test('should automagically make an Array unique', () => {
     const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult({
+    const [err, result] = schema.getValidationResult({
       set: ['foo', 'bar', 'foo'],
     })
 
@@ -2453,7 +2352,7 @@ describe('object', () => {
       }),
     })
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult({
+    const [err, result] = schema.getValidationResult({
       string: 'string',
       stringOptional: 'stringOptional',
       array: ['array', null],
@@ -2504,7 +2403,7 @@ describe('object', () => {
       stringOptional: j.string().optional(),
     })
 
-    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+    const [, result] = schema.getValidationResult({} as any)
 
     expectTypeOf(result).toEqualTypeOf<Foo>()
   })
@@ -2542,7 +2441,7 @@ describe('object', () => {
       const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
       const schema2 = schema1.extend({ bar: j.number().optional() }).isOfType<Foo>()
 
-      const [, result] = AjvSchema.create(schema2).getValidationResult({
+      const [, result] = schema2.getValidationResult({
         foo: 'asdf',
         bar: 0,
       })
@@ -2567,11 +2466,10 @@ describe('object', () => {
       }
       const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
       const schema2 = schema1.extend({ bar: j.number() }).isOfType<Foo>()
-      const ajvSchema = AjvSchema.create(schema2)
 
       const testCases = [{ foo: 'foo', bar: 1 }]
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema2.getValidationResult(value)
         expect(err, _stringify(value)).toBeNull()
       })
 
@@ -2586,7 +2484,7 @@ describe('object', () => {
         { abc: 'abc', def: 'def' },
       ]
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema2.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
       })
     })
@@ -2614,9 +2512,7 @@ describe('object', () => {
         })
         .isOfType<Extended>()
 
-      const ajvSchema = AjvSchema.create(schema2)
-
-      const [, result] = ajvSchema.getValidationResult({
+      const [, result] = schema2.getValidationResult({
         foo: 'asdf',
         bar: { shu: 0 },
         ping: 'pong',
@@ -2630,7 +2526,7 @@ describe('object', () => {
         { foo: 'foo', bar: { shu: 1 } },
       ]
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema2.getValidationResult(value)
         expect(err, _stringify(value)).toBeNull()
       })
 
@@ -2648,7 +2544,7 @@ describe('object', () => {
         { abc: 'abc', def: 'def' },
       ]
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema2.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
       })
     })
@@ -2661,7 +2557,7 @@ describe('object', () => {
       const schema1 = j.object<Foo>({ bar: j.string() })
       const schema2 = schema1.extend({}).isOfType<Foo>()
 
-      const [, result] = AjvSchema.create(schema2).getValidationResult({
+      const [, result] = schema2.getValidationResult({
         bar: 'asdf',
       })
 
@@ -2696,7 +2592,7 @@ describe('object', () => {
         })
         .isOfType<Bar>()
 
-      const [, result] = AjvSchema.create(schema2).getValidationResult({
+      const [, result] = schema2.getValidationResult({
         foo: 'bar',
         bar: {
           shu: 1,
@@ -2725,7 +2621,7 @@ describe('object', () => {
       }
       const shuSchema = fooSchema.concat(barSchema).isOfType<Shu>()
 
-      const [err, result] = AjvSchema.create(shuSchema).getValidationResult({
+      const [err, result] = shuSchema.getValidationResult({
         foo: 'asdf',
         bar: 0,
       })
@@ -2767,7 +2663,7 @@ describe('object', () => {
         })
         .isOfType<{ string: string }>()
 
-      const [, result] = AjvSchema.create(schema).getValidationResult({
+      const [, result] = schema.getValidationResult({
         string: 'hello',
         foo: 'world',
       } as any)
@@ -2783,7 +2679,7 @@ describe('object', () => {
         .allowAdditionalProperties()
         .isOfType<{ string: string }>()
 
-      const [, result] = AjvSchema.create(schema).getValidationResult({
+      const [, result] = schema.getValidationResult({
         string: 'hello',
         foo: 'world',
       } as any)
@@ -2806,7 +2702,7 @@ describe('object', () => {
 
       const schema = j.object.dbEntity<DB>({ foo: j.string() })
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult({
+      const [err, result] = schema.getValidationResult({
         id: 'asdf',
         created: MOCK_TS_2018_06_21,
         updated: MOCK_TS_2018_06_21,
@@ -2841,7 +2737,7 @@ describe('object', () => {
         })
         .isOfType<TestEverythingObject>()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult({
+      const [err, result] = schema.getValidationResult({
         string: 'string',
         stringOptional: 'stringOptional',
         array: ['array', null],
@@ -2894,7 +2790,7 @@ describe('object', () => {
         })
         .isOfType<Foo>()
 
-      const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+      const [, result] = schema.getValidationResult({} as any)
 
       expectTypeOf(result).toEqualTypeOf<Foo>()
     })
@@ -2903,15 +2799,14 @@ describe('object', () => {
       const schema = j.object
         .infer({ foo: j.string(), bar: j.string().optional() })
         .isOfType<{ foo: string; bar?: string }>()
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1] = ajvSchema.getValidationResult({ foo: 'foo', bar: 'bar' })
+      const [err1] = schema.getValidationResult({ foo: 'foo', bar: 'bar' })
       expect(err1).toBeNull()
 
-      const [err2] = ajvSchema.getValidationResult({ foo: 'foo' })
+      const [err2] = schema.getValidationResult({ foo: 'foo' })
       expect(err2).toBeNull()
 
-      const [err3] = ajvSchema.getValidationResult({ bar: 'bar' } as any)
+      const [err3] = schema.getValidationResult({ bar: 'bar' } as any)
       expect(err3).toMatchInlineSnapshot(`
       [AjvValidationError: Object must have required property 'foo'
       Input: { bar: 'bar' }]
@@ -2940,7 +2835,7 @@ describe('object', () => {
         const schema1 = j.object.infer({ foo: j.string().nullable() })
         const schema2 = schema1.extend({ bar: j.number().optional() }).isOfType<Foo>()
 
-        const [, result] = AjvSchema.create(schema2).getValidationResult({
+        const [, result] = schema2.getValidationResult({
           foo: 'asdf',
           bar: 0,
         })
@@ -2957,7 +2852,7 @@ describe('object', () => {
           })
           .isOfType<{ string: string }>()
 
-        const [, result] = AjvSchema.create(schema).getValidationResult({
+        const [, result] = schema.getValidationResult({
           string: 'hello',
           foo: 'world',
         } as any)
@@ -2973,7 +2868,7 @@ describe('object', () => {
           .allowAdditionalProperties()
           .isOfType<{ string: string }>()
 
-        const [, result] = AjvSchema.create(schema).getValidationResult({
+        const [, result] = schema.getValidationResult({
           string: 'hello',
           foo: 'world',
         } as any)
@@ -2990,7 +2885,7 @@ describe('object', () => {
     test('should work correctly with type inference', () => {
       const schema = j.object.any()
 
-      const [err, result] = AjvSchema.create(schema).getValidationResult({ foo: 'bar' })
+      const [err, result] = schema.getValidationResult({ foo: 'bar' })
 
       expect(err).toBeNull()
       expect(result).toEqual({ foo: 'bar' })
@@ -3009,17 +2904,16 @@ describe('object', () => {
       const schema = j.object<Outer>({
         inner: j.object<Inner>({ foo: j.string() }).optional(null),
       })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({ inner: { foo: 'bar' } })
+      const [err1, result1] = schema.getValidationResult({ inner: { foo: 'bar' } })
       expect(err1).toBeNull()
       expect(result1).toEqual({ inner: { foo: 'bar' } })
 
-      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      const [err2, result2] = schema.getValidationResult({ inner: null } as any)
       expect(err2).toBeNull()
       expect(result2).toEqual({ inner: undefined })
 
-      const [err3, result3] = ajvSchema.getValidationResult({})
+      const [err3, result3] = schema.getValidationResult({})
       expect(err3).toBeNull()
       expect(result3).toEqual({})
     })
@@ -3031,13 +2925,12 @@ describe('object', () => {
       const schema = j.object<Outer>({
         inner: j.object.infer({ foo: j.string() }).optional(null),
       })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({ inner: { foo: 'bar' } })
+      const [err1, result1] = schema.getValidationResult({ inner: { foo: 'bar' } })
       expect(err1).toBeNull()
       expect(result1).toEqual({ inner: { foo: 'bar' } })
 
-      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      const [err2, result2] = schema.getValidationResult({ inner: null } as any)
       expect(err2).toBeNull()
       expect(result2).toEqual({ inner: undefined })
     })
@@ -3052,9 +2945,8 @@ describe('object', () => {
       const schema = j.object<Outer>({
         inner: j.object.dbEntity<Inner>({ foo: j.string() }).optional(null),
       })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({
+      const [err1, result1] = schema.getValidationResult({
         inner: { id: 'id', created: MOCK_TS_2018_06_21, updated: MOCK_TS_2018_06_21, foo: 'bar' },
       })
       expect(err1).toBeNull()
@@ -3062,7 +2954,7 @@ describe('object', () => {
         inner: { id: 'id', created: MOCK_TS_2018_06_21, updated: MOCK_TS_2018_06_21, foo: 'bar' },
       })
 
-      const [err2, result2] = ajvSchema.getValidationResult({ inner: null } as any)
+      const [err2, result2] = schema.getValidationResult({ inner: null } as any)
       expect(err2).toBeNull()
       expect(result2).toEqual({ inner: undefined })
     })
@@ -3093,9 +2985,8 @@ describe('object', () => {
       const schema = j.object<Outer>({
         inner: j.object<{ foo: string }>({ foo: j.string() }).optional(null),
       })
-      const ajvSchema = AjvSchema.create(schema)
 
-      const [err1, result1] = ajvSchema.getValidationResult({})
+      const [err1, result1] = schema.getValidationResult({})
       expect(err1).toBeNull()
       expect(result1).toEqual({})
     })
@@ -3110,14 +3001,13 @@ describe('object', () => {
           shu: j.string().optional(),
         })
         .minProperties(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       const testCases = [
         { foo: 'foo', bar: 'bar', shu: 'shu' },
         { foo: 'foo', bar: 'bar' },
       ]
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, _stringify(value)).toBeNull()
       })
 
@@ -3131,7 +3021,7 @@ describe('object', () => {
         { abc: 'abc', def: 'def' },
       ]
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
       })
     })
@@ -3146,17 +3036,16 @@ describe('object', () => {
           shu: j.string().optional(),
         })
         .maxProperties(2)
-      const ajvSchema = AjvSchema.create(schema)
 
       const testCases = [{ foo: 'foo' }, {}, { foo: 'foo', bar: 'bar' }]
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, _stringify(value)).toBeNull()
       })
 
       const invalidCases: any[] = [{ foo: 'foo', bar: 'bar', shu: 'shu' }, 0, 'abcd', true, []]
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
       })
     })
@@ -3171,17 +3060,16 @@ describe('object', () => {
           shu: j.string().optional(),
         })
         .exclusiveProperties(['foo', 'bar'])
-      const ajvSchema = AjvSchema.create(schema)
 
       const testCases = [{}, { foo: 'foo' }, { bar: 'bar' }, { foo: 'foo', shu: 'shu' }]
       testCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, _stringify(value)).toBeNull()
       })
 
       const invalidCases: any[] = [{ foo: 'foo', bar: 'bar' }, 0, 'abcd', true, []]
       invalidCases.forEach(value => {
-        const [err] = ajvSchema.getValidationResult(value)
+        const [err] = schema.getValidationResult(value)
         expect(err, _stringify(value)).not.toBeNull()
       })
     })
@@ -3199,11 +3087,10 @@ describe('object', () => {
           j.number().nullable(),
         )
         .isOfType<Record<B, number | null>>()
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [{}, { '123': 1, '2345': 2 }]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
@@ -3216,7 +3103,7 @@ describe('object', () => {
         { a: 'foo' }, // the value of every property must match the value schema
       ]
       for (const data of invalidCases) {
-        const [err] = ajvSchema.getValidationResult(data)
+        const [err] = schema.getValidationResult(data)
         expect(err, _stringify(data)).not.toBeNull()
       }
 
@@ -3225,7 +3112,7 @@ describe('object', () => {
         { '123': 1, '2345': 2, a: 3 }, // non matching keys are stripped
       ]
       for (const data of specialCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(result).toEqual({ '123': 1, '2345': 2 })
         expect(err, _stringify(data)).toBeNull()
       }
@@ -3235,7 +3122,6 @@ describe('object', () => {
       const schema = j.object
         .record(j.string(), j.number().optional())
         .isOfType<Partial<Record<string, number>>>()
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [
         {},
@@ -3245,7 +3131,7 @@ describe('object', () => {
         { a: undefined }, // all undefined values should be allowed
       ]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
@@ -3257,24 +3143,23 @@ describe('object', () => {
       const schema = j.object
         .withEnumKeys(['a', 'b', 1], j.number().optional())
         .isOfType<Partial<Record<'a' | 'b' | '1', number>>>()
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }, { a: 1, b: 2, '1': 3 }]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases: any[] = ['a', 1, true, [], { a: '1' }]
       for (const data of invalidCases) {
-        const [err] = ajvSchema.getValidationResult(data)
+        const [err] = schema.getValidationResult(data)
         expect(err, _stringify(data)).not.toBeNull()
       }
 
       const specialCases: any[] = [{ c: 3 }]
       for (const data of specialCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(result).toEqual({}) // The key is thought of as an additional key which is stripped
         expect(err, _stringify(data)).toBeNull()
       }
@@ -3288,24 +3173,23 @@ describe('object', () => {
       const schema = j.object
         .withEnumKeys(E, j.number().optional())
         .isOfType<Partial<Record<E, number | undefined>>>()
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [{}, { '1': 1 }, { '1': 1, '2': 2 }]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases: any[] = ['a', 1, true, [], { '1': 'one' }]
       for (const data of invalidCases) {
-        const [err] = ajvSchema.getValidationResult(data)
+        const [err] = schema.getValidationResult(data)
         expect(err, _stringify(data)).not.toBeNull()
       }
 
       const specialCases: any[] = [{ '3': 3 }]
       for (const data of specialCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(result).toEqual({}) // The key is thought of as an additional key which is stripped
         expect(err, _stringify(data)).toBeNull()
       }
@@ -3316,27 +3200,27 @@ describe('object', () => {
         A = 'a',
         B = 'b',
       }
+
       const schema = j.object
         .withEnumKeys(E, j.number().optional())
-        .isOfType<Record<E, number | undefined>>()
-      const ajvSchema = AjvSchema.create(schema)
+        .isOfType<Partial<Record<E, number | undefined>>>()
 
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }, { a: 1, b: 2 }]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases: any[] = ['a', 1, true, [], { a: '1' }]
       for (const data of invalidCases) {
-        const [err] = ajvSchema.getValidationResult(data)
+        const [err] = schema.getValidationResult(data)
         expect(err, _stringify(data)).not.toBeNull()
       }
 
       const specialCases: any[] = [{ c: 3 }]
       for (const data of specialCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(result).toEqual({}) // The key is thought of as an additional key which is stripped
         expect(err, _stringify(data)).toBeNull()
       }
@@ -3349,18 +3233,17 @@ describe('object', () => {
       }
 
       const schema = j.object.withEnumKeys(E, j.number()).isOfType<Record<E, number>>()
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases = [{ a: 1, b: 2 }]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases = [{}, { a: 1 }, { b: 2 }]
       for (const data of invalidCases) {
-        const [err] = ajvSchema.getValidationResult(data as any)
+        const [err] = schema.getValidationResult(data as any)
         expect(err, _stringify(data)).not.toBeNull()
       }
     })
@@ -3374,11 +3257,10 @@ describe('object', () => {
       const schema = j.object
         .withEnumKeys(E, j.number().optional())
         .isOfType<Partial<Record<E, number>>>()
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases = [{}, { a: 1 }, { b: 2 }, { a: 1, b: 2 }]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
@@ -3400,22 +3282,22 @@ describe('object', () => {
           A = 'a',
           B = 'b',
         }
+
         const schema = j.object
           .withEnumKeys(E, j.number().optional())
           .minProperties(1)
-          .isOfType<Record<E, number | undefined>>()
-        const ajvSchema = AjvSchema.create(schema)
+          .isOfType<Partial<Record<E, number | undefined>>>() as any
 
         const validCases: any[] = [{ a: 1 }, { a: 1, b: 2 }]
         for (const data of validCases) {
-          const [err, result] = ajvSchema.getValidationResult(data)
+          const [err, result] = schema.getValidationResult(data)
           expect(err, _stringify(data)).toBeNull()
           expect(result, _stringify(data)).toEqual(data)
         }
 
         const invalidCases: any[] = [{}, { a: '1' }, { c: 1 }]
         for (const data of invalidCases) {
-          const [err] = ajvSchema.getValidationResult(data)
+          const [err] = schema.getValidationResult(data)
           expect(err, _stringify(data)).not.toBeNull()
         }
       })
@@ -3425,18 +3307,17 @@ describe('object', () => {
   describe('.stringMap', () => {
     test('should work', () => {
       const schema = j.object.stringMap(j.number().nullable()).isOfType<StringMap<number | null>>()
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
 
       const invalidCases: any[] = ['a', 1, true, [], { a: '1' }, { a: 1, b: undefined }]
       for (const data of invalidCases) {
-        const [err] = ajvSchema.getValidationResult(data)
+        const [err] = schema.getValidationResult(data)
         expect(err, _stringify(data)).not.toBeNull()
       }
     })
@@ -3453,7 +3334,6 @@ describe('object', () => {
 
     test('should allow undefined values when value schema is optional', () => {
       const schema = j.object.stringMap(j.number().optional()).isOfType<StringMap<number>>()
-      const ajvSchema = AjvSchema.create(schema)
 
       const validCases: any[] = [
         {},
@@ -3463,7 +3343,7 @@ describe('object', () => {
         { a: undefined }, // all undefined values should be allowed
       ]
       for (const data of validCases) {
-        const [err, result] = ajvSchema.getValidationResult(data)
+        const [err, result] = schema.getValidationResult(data)
         expect(err, _stringify(data)).toBeNull()
         expect(result, _stringify(data)).toEqual(data)
       }
@@ -3475,7 +3355,7 @@ describe('enum', () => {
   test('should work correctly with type inference', () => {
     const schema = j.enum([0, 'foo', false])
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult(0)
+    const [err, result] = schema.getValidationResult(0)
 
     expect(err).toBeNull()
     expect(result).toBe(0)
@@ -3485,10 +3365,9 @@ describe('enum', () => {
   test('should accept a valid value', () => {
     const testCases = [0, 'foo', false] as const
     const schema = j.enum([0, 'foo', false])
-    const ajvSchema = AjvSchema.create(schema)
 
     testCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err, String(value)).toBeNull()
     })
   })
@@ -3496,10 +3375,9 @@ describe('enum', () => {
   test('should reject an invalid value', () => {
     const invalidCases: any[] = [1, 'abc', true, [], {}]
     const schema = j.enum([0, 'foo', false])
-    const ajvSchema = AjvSchema.create(schema)
 
     invalidCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err, String(value)).not.toBeNull()
     })
   })
@@ -3510,7 +3388,7 @@ describe('enum', () => {
       Bar = 'bar',
     }
     const schema = j.enum(OompaLoompa)
-    const [err, result] = AjvSchema.create(schema).getValidationResult(OompaLoompa.Bar)
+    const [err, result] = schema.getValidationResult(OompaLoompa.Bar)
 
     expect(err).toBeNull()
     expect(result).toBe(OompaLoompa.Bar)
@@ -3523,7 +3401,7 @@ describe('enum', () => {
       Bar = 1,
     }
     const schema = j.enum(OompaLoompa)
-    const [err, result] = AjvSchema.create(schema).getValidationResult(OompaLoompa.Bar)
+    const [err, result] = schema.getValidationResult(OompaLoompa.Bar)
 
     expect(err).toBeNull()
     expect(result).toBe(OompaLoompa.Bar)
@@ -3535,7 +3413,7 @@ describe('buffer', () => {
   test('should work correctly with type inference', () => {
     const schema = j.buffer()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult(Buffer.from('asdf'))
+    const [err, result] = schema.getValidationResult(Buffer.from('asdf'))
 
     expect(err).toBeNull()
     expect(result).toBeInstanceOf(Buffer)
@@ -3547,10 +3425,9 @@ describe('buffer', () => {
     const testCases: any[] = ['foobar', [0, 1, 2]]
 
     const schema = j.buffer()
-    const ajvSchema = AjvSchema.create(schema)
 
     testCases.forEach(input => {
-      const [err] = ajvSchema.getValidationResult(Buffer.from(input))
+      const [err] = schema.getValidationResult(Buffer.from(input))
       expect(err, String(input)).toBeNull()
     })
   })
@@ -3563,10 +3440,9 @@ describe('buffer', () => {
       ['foo', 'bar'],
     ]
     const schema = j.buffer()
-    const ajvSchema = AjvSchema.create(schema)
 
     invalidTestCases.forEach(input => {
-      const [err] = ajvSchema.getValidationResult(input)
+      const [err] = schema.getValidationResult(input)
       expect(err, String(input)).not.toBeNull()
     })
   })
@@ -3574,7 +3450,7 @@ describe('buffer', () => {
   test('should NOT accept an Array - when it is a standalone schema', () => {
     const schema = j.buffer()
 
-    const [err] = AjvSchema.create(schema).getValidationResult(['foo', 'bar'])
+    const [err] = schema.getValidationResult(['foo', 'bar'])
 
     expect(err).toMatchInlineSnapshot(`
       [AjvValidationError: Object can only transform data into a Buffer when the schema is in an object or an array schema. This is an Ajv limitation.
@@ -3585,7 +3461,7 @@ describe('buffer', () => {
   test('should accept an Array and produce a Buffer - when it is a property of an object', () => {
     const schema = j.object.infer({ buffer: j.buffer() }).isOfType<{ buffer: Buffer }>()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult({ buffer: 'foobar' })
+    const [err, result] = schema.getValidationResult({ buffer: 'foobar' })
 
     expect(err).toBeNull()
     expect(result.buffer).toBeInstanceOf(Buffer)
@@ -3596,7 +3472,7 @@ describe('buffer', () => {
   test('should automagically make an Array unique', () => {
     const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult({
+    const [err, result] = schema.getValidationResult({
       set: ['foo', 'bar', 'foo'],
     })
 
@@ -3608,7 +3484,7 @@ describe('buffer', () => {
 describe('oneOf', () => {
   test('should correctly infer the type', () => {
     const schema = j.oneOf([j.string().nullable(), j.number()])
-    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+    const [, result] = schema.getValidationResult({} as any)
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
@@ -3617,7 +3493,7 @@ describe('oneOf', () => {
     const schema = j.oneOf([j.string().nullable(), j.number()])
 
     testCases.forEach(value => {
-      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).toBeNull()
     })
   })
@@ -3627,7 +3503,7 @@ describe('oneOf', () => {
     const schema = j.oneOf([j.string().nullable(), j.number()])
 
     invalidCases.forEach(value => {
-      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).not.toBeNull()
     })
   })
@@ -3637,7 +3513,7 @@ describe('oneOf', () => {
     const schema = j.oneOf([j.string().minLength(5), j.string().maxLength(10)])
 
     // 'hello' matches both schemas, so oneOf rejects it
-    const [err] = AjvSchema.create(schema).getValidationResult('hello')
+    const [err] = schema.getValidationResult('hello')
     expect(err).not.toBeNull()
   })
 
@@ -3671,7 +3547,7 @@ describe('oneOf', () => {
 describe('anyOf', () => {
   test('should correctly infer the type', () => {
     const schema = j.anyOf([j.string().nullable(), j.number()])
-    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+    const [, result] = schema.getValidationResult({} as any)
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
@@ -3680,7 +3556,7 @@ describe('anyOf', () => {
     const schema = j.anyOf([j.string().nullable(), j.number()])
 
     testCases.forEach(value => {
-      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).toBeNull()
     })
   })
@@ -3690,7 +3566,7 @@ describe('anyOf', () => {
     const schema = j.anyOf([j.string().nullable(), j.number()])
 
     invalidCases.forEach(value => {
-      const [err] = AjvSchema.create(schema).getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).not.toBeNull()
     })
   })
@@ -3700,7 +3576,7 @@ describe('anyOf', () => {
     const schema = j.anyOf([j.string().minLength(5), j.string().maxLength(10)])
 
     // 'hello' matches both schemas, anyOf accepts it (unlike oneOf)
-    const [err] = AjvSchema.create(schema).getValidationResult('hello')
+    const [err] = schema.getValidationResult('hello')
     expect(err).toBeNull()
   })
 
@@ -3760,22 +3636,19 @@ describe('anyOfBy', () => {
   })
 
   test('should correctly infer the type', () => {
-    const ajvSchema = AjvSchema.create(schema)
-    const [, result] = ajvSchema.getValidationResult({ type: Foo.A, foo: 'asdf' })
+    const [, result] = schema.getValidationResult({ type: Foo.A, foo: 'asdf' })
 
     expectTypeOf(result).toEqualTypeOf<FooA | FooB | FooC>()
   })
 
   test('should accept valid values', () => {
-    const ajvSchema = AjvSchema.create(schema)
-
     const testCases = [
       { type: Foo.A, foo: 'asdf' },
       { type: Foo.B, bar: 1 },
       { type: Foo.C, foo: true },
     ]
     testCases.forEach(value => {
-      const [err, result] = ajvSchema.getValidationResult(value)
+      const [err, result] = schema.getValidationResult(value)
       expect(result).toEqual(value)
       expect(err).toBeNull()
     })
@@ -3792,7 +3665,7 @@ describe('anyOfBy', () => {
       { foo: true },
     ]
     invalidCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).not.toBeNull()
     })
   })
@@ -3801,23 +3674,22 @@ describe('anyOfBy', () => {
 describe('anyOfThese', () => {
   test('should correctly infer the type', () => {
     const schema = j.anyOfThese([j.string().nullable(), j.number()])
-    const [, result] = AjvSchema.create(schema).getValidationResult({} as any)
+    const [, result] = schema.getValidationResult({} as any)
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
   test('should accept valid values', () => {
     const schema = j.anyOfThese([j.string().nullable(), j.number()])
-    const ajvSchema = AjvSchema.create(schema)
 
     const testCases = ['a', 1, null]
     testCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).toBeNull()
     })
 
     const invalidCases: any[] = [undefined, true, [], {}]
     invalidCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).not.toBeNull()
     })
   })
@@ -3827,7 +3699,7 @@ describe('anyOfThese', () => {
     const schema = j.anyOfThese([j.string().minLength(5), j.string().maxLength(10)])
 
     // 'hello' matches both schemas, anyOfThese accepts it (unlike oneOf)
-    const [err] = AjvSchema.create(schema).getValidationResult('hello')
+    const [err] = schema.getValidationResult('hello')
     expect(err).toBeNull()
   })
 
@@ -3839,21 +3711,20 @@ describe('anyOfThese', () => {
       data: j.object.infer({ foo: j.string(), shu: j.number() }),
     })
     const schema = j.anyOfThese([schema1, schema2])
-    const ajvSchema = AjvSchema.create(schema)
 
     const testCases = [{ data: { foo: 'foo', bar: 1 } }, { data: { foo: 'foo', shu: 1 } }]
     testCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).toBeNull()
     })
 
     const invalidCases: any[] = [undefined, true, [], {}, { data: { foo: 'foo' } }]
     invalidCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).not.toBeNull()
     })
 
-    const [err] = ajvSchema.getValidationResult({} as any)
+    const [err] = schema.getValidationResult({} as any)
     expect(err).toMatchInlineSnapshot(`
       [AjvValidationError: Object could not find a suitable schema to validate against
       Input: {}]
@@ -3867,17 +3738,16 @@ describe('anyOfThese', () => {
         j.object.infer({ bar: j.number() }),
       ]),
     })
-    const ajvSchema = AjvSchema.create(schema)
 
     const testCases = [{ data: { foo: 'foo' } }, { data: { bar: 1 } }]
     testCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).toBeNull()
     })
 
     const invalidCases: any[] = [undefined, true, [], {}, { data: { shu: 'foo' } }]
     invalidCases.forEach(value => {
-      const [err] = ajvSchema.getValidationResult(value)
+      const [err] = schema.getValidationResult(value)
       expect(err).not.toBeNull()
     })
   })
@@ -3887,7 +3757,7 @@ describe('errors', () => {
   test('should properly display the path to the erronous value', () => {
     const schema = j.object.infer({ foo: j.array(j.string()) }).isOfType<{ foo: string[] }>()
 
-    const [err] = AjvSchema.create(schema).getValidationResult({
+    const [err] = schema.getValidationResult({
       foo: ['a', 'b', 'c', 1, 'e'],
     } as any)
 
@@ -3905,7 +3775,7 @@ describe('castAs', () => {
       .castAs<{ bar: number }>()
       .isOfType<{ bar: number }>()
 
-    const [err, result] = AjvSchema.create(schema).getValidationResult({ foo: 'hello' } as any)
+    const [err, result] = schema.getValidationResult({ foo: 'hello' } as any)
 
     expect(err).toBeNull()
     expect(result).toEqual({ foo: 'hello' })
@@ -3920,21 +3790,20 @@ describe('default', () => {
       bar: j.number().default(123),
       shu: j.boolean().default(true),
     })
-    const ajvSchema = AjvSchema.create(schema)
 
-    const [err1, result1] = ajvSchema.getValidationResult({ foo: 'good', bar: 1, shu: false })
+    const [err1, result1] = schema.getValidationResult({ foo: 'good', bar: 1, shu: false })
     expect(err1).toBeNull()
     expect(result1).toEqual({ foo: 'good', bar: 1, shu: false })
 
-    const [err2, result2] = ajvSchema.getValidationResult({ bar: 1, shu: false } as any)
+    const [err2, result2] = schema.getValidationResult({ bar: 1, shu: false } as any)
     expect(err2).toBeNull()
     expect(result2).toEqual({ foo: 'foo', bar: 1, shu: false })
 
-    const [err3, result3] = ajvSchema.getValidationResult({ foo: 'good', shu: false } as any)
+    const [err3, result3] = schema.getValidationResult({ foo: 'good', shu: false } as any)
     expect(err3).toBeNull()
     expect(result3).toEqual({ foo: 'good', bar: 123, shu: false })
 
-    const [err4, result4] = ajvSchema.getValidationResult({ foo: 'good', bar: 1 } as any)
+    const [err4, result4] = schema.getValidationResult({ foo: 'good', bar: 1 } as any)
     expect(err4).toBeNull()
     expect(result4).toEqual({ foo: 'good', bar: 1, shu: true })
   })
@@ -3943,12 +3812,11 @@ describe('default', () => {
 describe('final', () => {
   test('locks the given schema', async () => {
     const schema = j.string().minLength(2).maxLength(3).final()
-    const ajvSchema = AjvSchema.create(schema)
 
-    const [err1] = ajvSchema.getValidationResult('abc')
+    const [err1] = schema.getValidationResult('abc')
     expect(err1).toBeNull()
 
-    const [err2] = ajvSchema.getValidationResult('abcd')
+    const [err2] = schema.getValidationResult('abcd')
     expect(err2).not.toBeNull()
 
     // @ts-expect-error
@@ -3961,26 +3829,26 @@ describe('final', () => {
 describe('literal', () => {
   test('should accept a valid value', () => {
     const schema1 = j.literal('magic')
-    const ajvSchema1 = AjvSchema.create(schema1)
-    const [, result1] = ajvSchema1.getValidationResult('magic')
+
+    const [, result1] = schema1.getValidationResult('magic')
     expectTypeOf(result1).toEqualTypeOf<'magic'>()
     expect(result1).toBe('magic')
 
     const schema2 = j.literal(5)
-    const ajvSchema2 = AjvSchema.create(schema2)
-    const [, result2] = ajvSchema2.getValidationResult(5)
+
+    const [, result2] = schema2.getValidationResult(5)
     expectTypeOf(result2).toEqualTypeOf<5>()
     expect(result2).toBe(5)
 
     const schema3 = j.literal(true)
-    const ajvSchema3 = AjvSchema.create(schema3)
-    const [, result3] = ajvSchema3.getValidationResult(true)
+
+    const [, result3] = schema3.getValidationResult(true)
     expectTypeOf(result3).toEqualTypeOf<true>()
     expect(result3).toBe(true)
 
     const schema4 = j.literal(null)
-    const ajvSchema4 = AjvSchema.create(schema4)
-    const [, result4] = ajvSchema4.getValidationResult(null)
+
+    const [, result4] = schema4.getValidationResult(null)
     expectTypeOf(result4).toEqualTypeOf<null>()
     expect(result4).toBeNull()
 
@@ -3989,30 +3857,30 @@ describe('literal', () => {
       B = 2,
     }
     const schema5 = j.literal(Foo.A)
-    const ajvSchema5 = AjvSchema.create(schema5)
-    const [, result5] = ajvSchema5.getValidationResult(Foo.A)
+
+    const [, result5] = schema5.getValidationResult(Foo.A)
     expectTypeOf(result5).toEqualTypeOf<Foo.A>()
     expect(result5).toBe(Foo.A)
 
-    const [err1] = ajvSchema1.getValidationResult('mushroom' as any)
+    const [err1] = schema1.getValidationResult('mushroom' as any)
     expect(err1).toMatchInlineSnapshot(`
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: mushroom]
     `)
 
-    const [err2] = ajvSchema2.getValidationResult(3 as any)
+    const [err2] = schema2.getValidationResult(3 as any)
     expect(err2).toMatchInlineSnapshot(`
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: 3]
     `)
 
-    const [err3] = ajvSchema3.getValidationResult(false as any)
+    const [err3] = schema3.getValidationResult(false as any)
     expect(err3).toMatchInlineSnapshot(`
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: false]
     `)
 
-    const [err4] = ajvSchema4.getValidationResult({} as any)
+    const [err4] = schema4.getValidationResult({} as any)
     expect(err4).toMatchInlineSnapshot(`
       [AjvValidationError: Object must be equal to one of the allowed values
       Input: {}]
@@ -4023,12 +3891,11 @@ describe('literal', () => {
 describe('custom', () => {
   test('should accept a valid value', () => {
     const schema = j.number().custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
-    const ajvSchema = AjvSchema.create(schema)
 
-    const [err1] = ajvSchema.getValidationResult(1)
+    const [err1] = schema.getValidationResult(1)
     expect(err1).toBeNull()
 
-    const [err2] = ajvSchema.getValidationResult(3.14)
+    const [err2] = schema.getValidationResult(3.14)
     expect(err2).toMatchInlineSnapshot(`
       [AjvValidationError: Object not an integer!
       Input: 3.14]
@@ -4040,21 +3907,20 @@ describe('custom', () => {
       .number()
       .custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
       .custom(v => (v === 3 ? undefined : 'Three shall be the number thou shalt count!'))
-    const ajvSchema = AjvSchema.create(schema)
 
-    const [err1] = ajvSchema.getValidationResult(3.14)
+    const [err1] = schema.getValidationResult(3.14)
     expect(err1).toMatchInlineSnapshot(`
       [AjvValidationError: Object not an integer!
       Input: 3.14]
     `)
 
-    const [err2] = ajvSchema.getValidationResult(2)
+    const [err2] = schema.getValidationResult(2)
     expect(err2).toMatchInlineSnapshot(`
       [AjvValidationError: Object Three shall be the number thou shalt count!
       Input: 2]
     `)
 
-    const [err3, result3] = ajvSchema.getValidationResult(3)
+    const [err3, result3] = schema.getValidationResult(3)
     expect(err3).toBeNull()
     expect(result3).toBe(3)
   })
@@ -4063,16 +3929,14 @@ describe('custom', () => {
 describe('convert', () => {
   test('should convert a value in an object/array', () => {
     const schema1 = j.object<{ foo: number }>({ foo: j.number().convert(v => Math.round(v)) })
-    const ajvSchema1 = AjvSchema.create(schema1)
 
-    const [err11, result11] = ajvSchema1.getValidationResult({ foo: 3.14 })
+    const [err11, result11] = schema1.getValidationResult({ foo: 3.14 })
     expect(err11).toBeNull()
     expect(result11).toEqual({ foo: 3 })
 
     const schema2 = j.array(j.number().convert(v => Math.round(v)))
-    const ajvSchema2 = AjvSchema.create(schema2)
 
-    const [err21, result21] = ajvSchema2.getValidationResult([3.14])
+    const [err21, result21] = schema2.getValidationResult([3.14])
     expect(err21).toBeNull()
     expect(result21).toEqual([3])
   })
@@ -4084,9 +3948,8 @@ describe('convert', () => {
         .convert(v => Math.round(v))
         .convert(v => v ** 2),
     })
-    const ajvSchema = AjvSchema.create(schema)
 
-    const [err1, result1] = ajvSchema.getValidationResult({ foo: 3.14 })
+    const [err1, result1] = schema.getValidationResult({ foo: 3.14 })
     expect(err1).toBeNull()
     expect(result1).toEqual({ foo: 9 })
   })
@@ -4098,5 +3961,146 @@ describe('convert', () => {
     expect(() => ajvSchema.isValid(3.14)).toThrowErrorMatchingInlineSnapshot(
       `[AssertionError: You should only use \`convert()\` on a property of an object, or on an element of an array due to Ajv mutation issues.]`,
     )
+  })
+})
+
+describe('getValidationResult', () => {
+  test('should validate and infer the type', () => {
+    const schema = j.object<{ string: string; nested: { string: string } }>({
+      string: j.string(),
+      nested: j.object.infer({
+        string: j.string(),
+      }),
+    })
+
+    const [err, result] = schema.getValidationResult({
+      string: 'string',
+      nested: {
+        string: 'string',
+      },
+    })
+
+    expect(err).toBeNull()
+    expect(result).toEqual({
+      string: 'string',
+      nested: {
+        string: 'string',
+      },
+    })
+    expectTypeOf(result).toEqualTypeOf<{
+      string: string
+      nested: {
+        string: string
+      }
+    }>()
+  })
+
+  test('the AjvSchema is compiled and hidden on the schema instance', () => {
+    const schema = j.object<{ string: string; nested: { string: string } }>({
+      string: j.string(),
+      nested: j.object.infer({
+        string: j.string(),
+      }),
+    })
+
+    expect(schema[HIDDEN_AJV_SCHEMA]).toBeUndefined() // No pre-compiled AjvSchema by default
+
+    schema.getValidationResult({
+      string: 'string',
+      nested: {
+        string: 'string',
+      },
+    })
+
+    expect(schema[HIDDEN_AJV_SCHEMA]).toBeInstanceOf(AjvSchema) // Pre-compiled AjvSchema after running a validation
+
+    const schema1 = schema.optional()
+
+    expect(schema1[HIDDEN_AJV_SCHEMA]).toBeUndefined() // No pre-compiled AjvSchema after changing the schema
+  })
+})
+
+describe('getValidationFunction', () => {
+  test('should validate and infer the type', () => {
+    const schema = j.object<{ string: string; nested: { string: string } }>({
+      string: j.string(),
+      nested: j.object.infer({
+        string: j.string(),
+      }),
+    })
+
+    const validator = schema.getValidationFunction()
+
+    const [err, result] = validator({
+      string: 'string',
+      nested: {
+        string: 'string',
+      },
+    })
+
+    expect(err).toBeNull()
+    expect(result).toEqual({
+      string: 'string',
+      nested: {
+        string: 'string',
+      },
+    })
+    expectTypeOf(result).toEqualTypeOf<{
+      string: string
+      nested: {
+        string: string
+      }
+    }>()
+  })
+})
+
+describe('isValid', () => {
+  test('should validate', () => {
+    const schema = j.object<{ string: string; nested: { string: string } }>({
+      string: j.string(),
+      nested: j.object.infer({
+        string: j.string(),
+      }),
+    })
+
+    const isValid = schema.isValid({
+      string: 'string',
+      nested: {
+        string: 'string',
+      },
+    })
+
+    expect(isValid).toBe(true)
+  })
+})
+
+describe('validate', () => {
+  test('should validate and infer the type', () => {
+    const schema = j.object<{ string: string; nested: { string: string } }>({
+      string: j.string(),
+      nested: j.object.infer({
+        string: j.string(),
+      }),
+    })
+
+    const result = schema.validate({
+      string: 'string',
+      nested: {
+        string: 'string',
+      },
+    })
+
+    expect(result).toEqual({
+      string: 'string',
+      nested: {
+        string: 'string',
+      },
+    })
+    expectTypeOf(result).toEqualTypeOf<{
+      string: string
+      nested: {
+        string: string
+      }
+    }>()
   })
 })
