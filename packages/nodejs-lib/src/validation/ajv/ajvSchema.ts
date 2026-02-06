@@ -266,6 +266,8 @@ export class AjvSchema<OUT> {
   ): void {
     if (!errors) return
 
+    this.filterNullableAnyOfErrors(errors)
+
     const { errorMessages } = this.schema
 
     for (const error of errors) {
@@ -279,10 +281,71 @@ export class AjvSchema<OUT> {
         error.message = errorMessage
       } else if (errorMessages?.[error.keyword]) {
         error.message = errorMessages[error.keyword]
+      } else {
+        const unwrapped = unwrapNullableAnyOf(this.schema)
+        if (unwrapped?.errorMessages?.[error.keyword]) {
+          error.message = unwrapped.errorMessages[error.keyword]
+        }
       }
 
       error.instancePath = error.instancePath.replaceAll(/\/(\d+)/g, `[$1]`).replaceAll('/', '.')
     }
+  }
+
+  /**
+   * Filters out noisy errors produced by nullable anyOf patterns.
+   * When `nullable()` wraps a schema in `anyOf: [realSchema, { type: 'null' }]`,
+   * AJV produces "must be null" and "must match a schema in anyOf" errors
+   * that are confusing. This method splices them out, keeping only the real errors.
+   */
+  private filterNullableAnyOfErrors(
+    errors: ErrorObject<string, Record<string, any>, unknown>[],
+  ): void {
+    // Collect exact schemaPaths to remove (anyOf aggregates) and prefixes (null branches)
+    const exactPaths: string[] = []
+    const nullBranchPrefixes: string[] = []
+
+    for (const error of errors) {
+      if (error.keyword !== 'anyOf') continue
+
+      const parentSchema = this.resolveSchemaPath(error.schemaPath)
+      if (!parentSchema) continue
+
+      const nullIndex = unwrapNullableAnyOfIndex(parentSchema)
+      if (nullIndex === -1) continue
+
+      exactPaths.push(error.schemaPath) // e.g. "#/anyOf"
+      const anyOfBase = error.schemaPath.slice(0, -'anyOf'.length)
+      nullBranchPrefixes.push(`${anyOfBase}anyOf/${nullIndex}/`) // e.g. "#/anyOf/1/"
+    }
+
+    if (!exactPaths.length) return
+
+    for (let i = errors.length - 1; i >= 0; i--) {
+      const sp = errors[i]!.schemaPath
+      if (exactPaths.includes(sp) || nullBranchPrefixes.some(p => sp.startsWith(p))) {
+        errors.splice(i, 1)
+      }
+    }
+  }
+
+  /**
+   * Navigates the schema tree using an AJV schemaPath (e.g. "#/properties/foo/anyOf")
+   * and returns the parent schema containing the last keyword.
+   */
+  private resolveSchemaPath(schemaPath: string): JsonSchema | undefined {
+    // schemaPath looks like "#/properties/foo/anyOf" or "#/anyOf"
+    // We want the schema that contains the final keyword (e.g. "anyOf")
+    const segments = schemaPath.replace(/^#\//, '').split('/')
+    // Remove the last segment (the keyword itself, e.g. "anyOf")
+    segments.pop()
+
+    let current: any = this.schema
+    for (const segment of segments) {
+      if (!current || typeof current !== 'object') return undefined
+      current = current[segment]
+    }
+    return current as JsonSchema | undefined
   }
 
   private getErrorMessageForInstancePath(
@@ -312,6 +375,12 @@ export class AjvSchema<OUT> {
       return nextSchema.errorMessages[keyword]
     }
 
+    // Check through nullable wrapper
+    const unwrapped = unwrapNullableAnyOf(nextSchema)
+    if (unwrapped?.errorMessages?.[keyword]) {
+      return unwrapped.errorMessages[keyword]
+    }
+
     if (remainingSegments.length) {
       return this.traverseSchemaPath(nextSchema, remainingSegments, keyword)
     }
@@ -321,11 +390,15 @@ export class AjvSchema<OUT> {
 
   private getChildSchema(schema: JsonSchema, segment: string | undefined): JsonSchema | undefined {
     if (!segment) return undefined
-    if (/^\d+$/.test(segment) && schema.items) {
-      return this.getArrayItemSchema(schema, segment)
+
+    // Unwrap nullable anyOf to find properties/items through nullable wrappers
+    const effectiveSchema = unwrapNullableAnyOf(schema) ?? schema
+
+    if (/^\d+$/.test(segment) && effectiveSchema.items) {
+      return this.getArrayItemSchema(effectiveSchema, segment)
     }
 
-    return this.getObjectPropertySchema(schema, segment)
+    return this.getObjectPropertySchema(effectiveSchema, segment)
   }
 
   private getArrayItemSchema(schema: JsonSchema, indexSegment: string): JsonSchema | undefined {
@@ -341,6 +414,18 @@ export class AjvSchema<OUT> {
   private getObjectPropertySchema(schema: JsonSchema, segment: string): JsonSchema | undefined {
     return schema.properties?.[segment as keyof typeof schema.properties]
   }
+}
+
+function unwrapNullableAnyOf(schema: JsonSchema): JsonSchema | undefined {
+  const nullIndex = unwrapNullableAnyOfIndex(schema)
+  if (nullIndex === -1) return undefined
+  return schema.anyOf![1 - nullIndex]!
+}
+
+function unwrapNullableAnyOfIndex(schema: JsonSchema): number {
+  if (schema.anyOf?.length !== 2) return -1
+  const nullIndex = schema.anyOf.findIndex(s => s.type === 'null')
+  return nullIndex
 }
 
 const separator = '\n'

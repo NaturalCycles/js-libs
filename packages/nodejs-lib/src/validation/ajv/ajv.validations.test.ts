@@ -3607,6 +3607,102 @@ describe('anyOf', () => {
   })
 })
 
+describe('nullable anyOf error messages', () => {
+  test('should show clean error for nullable string with invalid input', () => {
+    const schema = j.string().nullable()
+    const [err] = schema.getValidationResult(123)
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be string
+      Input: 123]
+    `)
+  })
+
+  test('should show clean error for nullable number with invalid input', () => {
+    const schema = j.number().nullable()
+    const [err] = schema.getValidationResult('abc')
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be number
+      Input: abc]
+    `)
+  })
+
+  test('should show property errors for nullable object with invalid input', () => {
+    const schema = j
+      .object<{ name: string; age: number }>({
+        name: j.string(),
+        age: j.number(),
+      })
+      .nullable()
+    const [err] = schema.getValidationResult({ name: 123, age: 'x' })
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object.name must be string
+      Object.age must be number
+      Input: { name: 123, age: 'x' }]
+    `)
+  })
+
+  test('should propagate custom errorMessages through nullable', () => {
+    const schema = j
+      .string()
+      .regex(/^[a-z]+$/, { msg: 'must be lowercase' })
+      .nullable()
+    const [err] = schema.getValidationResult('ABC')
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be lowercase
+      Input: ABC]
+    `)
+  })
+
+  test('should accept null for nullable schemas', () => {
+    const [err1] = j.string().nullable().getValidationResult(null)
+    expect(err1).toBeNull()
+
+    const [err2] = j.string().nullable().getValidationResult('valid')
+    expect(err2).toBeNull()
+  })
+
+  test('should show clean error for nested nullable property', () => {
+    interface NullableFoo {
+      foo: string | null
+    }
+    const schema = j.object<NullableFoo>({ foo: j.string().nullable() })
+    const [err] = schema.getValidationResult({ foo: 123 })
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object.foo must be string
+      Input: { foo: 123 }]
+    `)
+  })
+
+  test('should preserve all errors for non-nullable anyOf', () => {
+    const schema = j.anyOf([j.string(), j.number()])
+    const [err] = schema.getValidationResult(true)
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be string
+      Object must be number
+      Object must match a schema in anyOf
+      Input: true]
+    `)
+  })
+
+  test('should show clean error for isoDate.optional(null) #1', () => {
+    const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
+    const [err] = schema.getValidationResult({ date: 123 })
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object.date must be string
+      Input: { date: 123 }]
+    `)
+  })
+
+  test('should show clean error for isoDate.optional(null) #2', () => {
+    const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
+    const [err] = schema.getValidationResult({ date: '2025-02-30' })
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object.date is an invalid IsoDate
+      Input: { date: '2025-02-30' }]
+    `)
+  })
+})
+
 describe('anyOfBy', () => {
   enum Foo {
     A = 1,
