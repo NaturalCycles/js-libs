@@ -63,9 +63,6 @@ than concurrent uploading). To overcome this limitation it's recommended to spec
 `AirtableTableSchema`, which allows order to be deterministic. Same order needs to be applied in the
 UI, to be consistent between UI and json export.
 
-# Packaging
+## chore-counter
 
-- `engines.node >= 10.13`: Latest Node.js LTS
-- `main: dist/index.js`: commonjs, es2018
-- `types: dist/index.d.ts`: typescript types
-- `/src` folder with source `*.ts` files included
+1

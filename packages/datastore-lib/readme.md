@@ -16,3 +16,7 @@
 - Streaming with RxJS Observable interface
 - Anonymization hook to be able to plug your implementation (privacy by design)
 - ...
+
+## chore-counter
+
+1

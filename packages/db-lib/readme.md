@@ -303,14 +303,6 @@ Passing empty array will actually return an array of empty objects (documented e
 .select(['id']) //=> [ { id: 'id1' }, { id: 'id2' }, ... ]
 ```
 
-# Exports
+## chore-counter
 
-- `/` root
-- `/adapter/file`
-- `/adapter/cachedb`
-- `/testing`
-  - dbTest
-  - daoTest
-  - Test models, utils, etc
-- `/validation`
-  - Joi validation schemas for DBQuery, CommonDBOptions, CommonSchema, etc
+1
