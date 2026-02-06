@@ -119,10 +119,10 @@ describe('z.isoDate', () => {
 
 function createAjvSchemaFromZod<T extends ZodType<any, any, any>>(
   schema: T,
-): AjvSchema<T['_input'], T['_output']> {
+): AjvSchema<T['_output']> {
   const jsonSchema = z.toJSONSchema(schema, {
     target: 'draft-2020-12',
-  }) as unknown as JsonSchema<T['_input'], T['_output']>
+  }) as unknown as JsonSchema<T['_output']>
 
   return AjvSchema.create(jsonSchema)
 }

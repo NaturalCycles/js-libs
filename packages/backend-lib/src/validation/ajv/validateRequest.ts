@@ -5,9 +5,9 @@ import { handleValidationError } from '../validateRequest.util.js'
 import type { ReqValidationOptions } from '../validateRequest.util.js'
 
 class AjvValidateRequest {
-  body<IN, OUT>(
+  body<OUT>(
     req: BackendRequest,
-    schema: SchemaHandledByAjv<IN, OUT>,
+    schema: SchemaHandledByAjv<OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
     return this.validate(
@@ -25,9 +25,9 @@ class AjvValidateRequest {
    *
    * Coercion mutates the input, even if the end result is that the input failed the validation.
    */
-  query<IN, OUT>(
+  query<OUT>(
     req: BackendRequest,
-    schema: SchemaHandledByAjv<IN, OUT>,
+    schema: SchemaHandledByAjv<OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
     const originalQuery = JSON.stringify(req.query)
@@ -43,9 +43,9 @@ class AjvValidateRequest {
    *
    * Coercion mutates the input, even if the end result is that the input failed the validation.
    */
-  params<IN, OUT>(
+  params<OUT>(
     req: BackendRequest,
-    schema: SchemaHandledByAjv<IN, OUT>,
+    schema: SchemaHandledByAjv<OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
     const originalParams = JSON.stringify(req.params)
@@ -63,9 +63,9 @@ class AjvValidateRequest {
    * We want to non-mutate the `req.headers`, because we anticipate that
    * there may be additional consumers for `req.headers` (e.g middlewares, etc).
    */
-  headers<IN, OUT>(
+  headers<OUT>(
     req: BackendRequest,
-    schema: SchemaHandledByAjv<IN, OUT>,
+    schema: SchemaHandledByAjv<OUT>,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
     return this.validate(req, 'headers', schema, undefined, {
@@ -74,14 +74,14 @@ class AjvValidateRequest {
     })
   }
 
-  private validate<IN, OUT>(
+  private validate<OUT>(
     req: BackendRequest,
     reqProperty: 'body' | 'params' | 'query' | 'headers',
-    schema: SchemaHandledByAjv<IN, OUT>,
-    getOriginalInput?: () => IN,
+    schema: SchemaHandledByAjv<OUT>,
+    getOriginalInput?: () => unknown,
     opt: ReqValidationOptions<AjvValidationError> = {},
   ): OUT {
-    const input = (req[reqProperty] || {}) as IN
+    const input = req[reqProperty] || {}
 
     const { coerceTypes, mutateInput } = opt
     const ajv = coerceTypes ? getCoercingAjv() : undefined

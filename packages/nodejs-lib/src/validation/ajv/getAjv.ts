@@ -570,7 +570,7 @@ export function createAjv(opt?: Options): Ajv2020 {
       const { propertyName, schemaDictionary } = config
 
       const isValidFnByKey: Record<any, ValidateFunction> = _mapObject(
-        schemaDictionary as Record<any, JsonSchemaTerminal<any, any, any>>,
+        schemaDictionary as Record<any, JsonSchemaTerminal<any, any>>,
         (key, value) => {
           return [key, ajv.compile(value)]
         },
@@ -607,7 +607,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     modifying: true,
     errors: true,
     schemaType: 'array',
-    compile(schemas: JsonSchemaTerminal<any, any, any>[], _parentSchema, _it) {
+    compile(schemas: JsonSchemaTerminal<any, any>[], _parentSchema, _it) {
       const validators = schemas.map(schema => ajv.compile(schema))
 
       function validate(data: AnyObject, ctx: any): boolean {

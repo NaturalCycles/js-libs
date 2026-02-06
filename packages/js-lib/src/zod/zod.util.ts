@@ -7,26 +7,26 @@ import type { ValidationFunction, ValidationFunctionResult } from '../validation
 
 export function getZodValidationFunction<T>(
   schema: ZodType<T>,
-): ValidationFunction<T, T, ZodValidationError> {
+): ValidationFunction<T, ZodValidationError> {
   return (input, opt) => {
     _assert(!opt?.mutateInput, 'mutateInput=true is not yet supported with Zod')
     return zSafeValidate(input, schema)
   }
 }
 
-export function zIsValid<T>(value: T, schema: ZodType<T>): boolean {
+export function zIsValid<T>(value: unknown, schema: ZodType<T>): boolean {
   const { success } = schema.safeParse(value)
   return success
 }
 
-export function zValidate<T>(value: T, schema: ZodType<T>): T {
+export function zValidate<T>(value: unknown, schema: ZodType<T>): T {
   const [err, data] = zSafeValidate(value, schema)
   if (err) throw err
   return data
 }
 
 export function zSafeValidate<T>(
-  input: T,
+  input: unknown,
   schema: ZodType<T>,
   // inputName?: string,
 ): ValidationFunctionResult<T, ZodValidationError> {
@@ -35,7 +35,7 @@ export function zSafeValidate<T>(
     return [null, r.data]
   }
 
-  return [new ZodValidationError(r.error, input, schema), r.data ?? input]
+  return [new ZodValidationError(r.error, input, schema), r.data ?? (input as T)]
 }
 
 export interface ZodValidationErrorData extends ErrorData {}

@@ -545,7 +545,7 @@ test('should pass `mutateInput` option to the validateBM method', async () => {
     db,
     validateBM: (bm, opt) => {
       expect(opt?.mutateInput).toBe(true)
-      return [null, bm]
+      return [null, bm as TestItemBM]
     },
   })
 

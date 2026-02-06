@@ -61,9 +61,9 @@ import {
  * On creation - compiles ajv validation function.
  * Provides convenient methods, error reporting, etc.
  */
-export class AjvSchema<IN = unknown, OUT = IN> {
+export class AjvSchema<OUT> {
   private constructor(
-    public schema: JsonSchema<IN, OUT>,
+    public schema: JsonSchema<OUT>,
     cfg: Partial<AjvSchemaCfg> = {},
   ) {
     this.cfg = {
@@ -82,10 +82,10 @@ export class AjvSchema<IN = unknown, OUT = IN> {
   /**
    * Shortcut for AjvSchema.create(schema, { lazy: true })
    */
-  static createLazy<IN, OUT>(
-    schema: SchemaHandledByAjv<IN, OUT>,
+  static createLazy<OUT>(
+    schema: SchemaHandledByAjv<OUT>,
     cfg?: Partial<AjvSchemaCfg>,
-  ): AjvSchema<IN, OUT> {
+  ): AjvSchema<OUT> {
     return AjvSchema.create(schema, {
       lazy: true,
       ...cfg,
@@ -101,21 +101,18 @@ export class AjvSchema<IN = unknown, OUT = IN> {
    * Implementation note: JsonSchemaBuilder goes first in the union type, otherwise TypeScript fails to infer <T> type
    * correctly for some reason.
    */
-  static create<IN, OUT = IN>(
-    schema: SchemaHandledByAjv<IN, OUT>,
-    cfg?: Partial<AjvSchemaCfg>,
-  ): AjvSchema<IN, OUT> {
+  static create<OUT>(schema: SchemaHandledByAjv<OUT>, cfg?: Partial<AjvSchemaCfg>): AjvSchema<OUT> {
     if (schema instanceof AjvSchema) return schema
 
-    if (AjvSchema.isSchemaWithCachedAjvSchema<typeof schema, IN, OUT>(schema)) {
-      return AjvSchema.requireCachedAjvSchema<typeof schema, IN, OUT>(schema)
+    if (AjvSchema.isSchemaWithCachedAjvSchema<typeof schema, OUT>(schema)) {
+      return AjvSchema.requireCachedAjvSchema<typeof schema, OUT>(schema)
     }
 
-    let jsonSchema: JsonSchema<IN, OUT>
+    let jsonSchema: JsonSchema<OUT>
 
     if (AjvSchema.isJsonSchemaBuilder(schema)) {
       // oxlint-disable typescript-eslint(no-unnecessary-type-assertion)
-      jsonSchema = (schema as JsonSchemaTerminal<IN, OUT, any>).build()
+      jsonSchema = (schema as JsonSchemaTerminal<OUT, any>).build()
       AjvSchema.requireValidJsonSchema(jsonSchema)
     } else {
       jsonSchema = schema
@@ -128,13 +125,13 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     // really upsets Ajv.
     delete jsonSchema.optionalField
 
-    const ajvSchema = new AjvSchema<IN, OUT>(jsonSchema, cfg)
+    const ajvSchema = new AjvSchema<OUT>(jsonSchema, cfg)
     AjvSchema.cacheAjvSchema(schema, ajvSchema)
 
     return ajvSchema
   }
 
-  static isJsonSchemaBuilder<IN, OUT>(schema: unknown): schema is JsonSchemaTerminal<IN, OUT, any> {
+  static isJsonSchemaBuilder<OUT>(schema: unknown): schema is JsonSchemaTerminal<OUT, any> {
     return schema instanceof JsonSchemaTerminal
   }
 
@@ -148,13 +145,13 @@ export class AjvSchema<IN = unknown, OUT = IN> {
    *
    * Returned object is always the same object (`===`) that was passed, so it is returned just for convenience.
    */
-  validate(input: IN, opt: AjvValidationOptions<IN> = {}): OUT {
+  validate(input: unknown, opt: AjvValidationOptions = {}): OUT {
     const [err, output] = this.getValidationResult(input, opt)
     if (err) throw err
     return output
   }
 
-  isValid(input: IN, opt?: AjvValidationOptions<IN>): boolean {
+  isValid(input: unknown, opt?: AjvValidationOptions): boolean {
     // todo: we can make it both fast and non-mutating by using Ajv
     // with "removeAdditional" and "useDefaults" disabled.
     const [err] = this.getValidationResult(input, opt)
@@ -162,8 +159,8 @@ export class AjvSchema<IN = unknown, OUT = IN> {
   }
 
   getValidationResult(
-    input: IN,
-    opt: AjvValidationOptions<IN> = {},
+    input: unknown,
+    opt: AjvValidationOptions = {},
   ): ValidationFunctionResult<OUT, AjvValidationError> {
     const fn = this.getAJVValidateFunction()
 
@@ -179,7 +176,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     const errors = fn.errors!
 
     const {
-      inputId = _isObject(input) ? input['id' as keyof IN] : undefined,
+      inputId = _isObject(input) ? (input as any)['id'] : undefined,
       inputName = this.cfg.inputName || 'Object',
     } = opt
     const dataVar = [inputName, inputId].filter(Boolean).join('.')
@@ -208,7 +205,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     return [err, item]
   }
 
-  getValidationFunction(): ValidationFunction<IN, OUT, AjvValidationError> {
+  getValidationFunction(): ValidationFunction<OUT, AjvValidationError> {
     return (input, opt) => {
       return this.getValidationResult(input, {
         mutateInput: opt?.mutateInput,
@@ -218,22 +215,20 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     }
   }
 
-  static isSchemaWithCachedAjvSchema<Base, IN, OUT>(
+  static isSchemaWithCachedAjvSchema<Base, OUT>(
     schema: Base,
-  ): schema is WithCachedAjvSchema<Base, IN, OUT> {
+  ): schema is WithCachedAjvSchema<Base, OUT> {
     return !!(schema as any)?.[HIDDEN_AJV_SCHEMA]
   }
 
-  static cacheAjvSchema<Base extends AnyObject, IN, OUT>(
+  static cacheAjvSchema<Base extends AnyObject, OUT>(
     schema: Base,
-    ajvSchema: AjvSchema<IN, OUT>,
-  ): WithCachedAjvSchema<Base, IN, OUT> {
+    ajvSchema: AjvSchema<OUT>,
+  ): WithCachedAjvSchema<Base, OUT> {
     return Object.assign(schema, { [HIDDEN_AJV_SCHEMA]: ajvSchema })
   }
 
-  static requireCachedAjvSchema<Base, IN, OUT>(
-    schema: WithCachedAjvSchema<Base, IN, OUT>,
-  ): AjvSchema<IN, OUT> {
+  static requireCachedAjvSchema<Base, OUT>(schema: WithCachedAjvSchema<Base, OUT>): AjvSchema<OUT> {
     return schema[HIDDEN_AJV_SCHEMA]
   }
 
@@ -274,7 +269,7 @@ export class AjvSchema<IN = unknown, OUT = IN> {
   }
 
   private getErrorMessageForInstancePath(
-    schema: JsonSchema<IN, OUT> | undefined,
+    schema: JsonSchema<OUT> | undefined,
     instancePath: string,
     keyword: string,
   ): string | undefined {
@@ -284,8 +279,8 @@ export class AjvSchema<IN = unknown, OUT = IN> {
     return this.traverseSchemaPath(schema, segments, keyword)
   }
 
-  private traverseSchemaPath<IN = unknown, OUT = IN>(
-    schema: JsonSchema<IN, OUT>,
+  private traverseSchemaPath<T>(
+    schema: JsonSchema<T>,
     segments: string[],
     keyword: string,
   ): string | undefined {
@@ -335,11 +330,11 @@ const separator = '\n'
 
 export const HIDDEN_AJV_SCHEMA = Symbol('HIDDEN_AJV_SCHEMA')
 
-export type WithCachedAjvSchema<Base, IN, OUT> = Base & {
-  [HIDDEN_AJV_SCHEMA]: AjvSchema<IN, OUT>
+export type WithCachedAjvSchema<Base, OUT> = Base & {
+  [HIDDEN_AJV_SCHEMA]: AjvSchema<OUT>
 }
 
-export interface AjvValidationOptions<IN> {
+export interface AjvValidationOptions {
   /**
    * Defaults to true,
    * because that's how AJV works by default,
@@ -367,7 +362,7 @@ export interface AjvValidationOptions<IN> {
    * can include it "how it was" in an error message. So, for that reason we'll use
    * `getOriginalInput()`, if it's provided.
    */
-  getOriginalInput?: () => IN
+  getOriginalInput?: () => unknown
 }
 
 export interface AjvSchemaCfg {
@@ -395,10 +390,10 @@ export interface AjvSchemaCfg {
   lazy?: boolean
 }
 
-export type SchemaHandledByAjv<IN, OUT = IN> =
-  | JsonSchemaTerminal<IN, OUT, any>
-  | JsonSchema<IN, OUT>
-  | AjvSchema<IN, OUT>
+export type SchemaHandledByAjv<OUT> =
+  | JsonSchemaTerminal<OUT, any>
+  | JsonSchema<OUT>
+  | AjvSchema<OUT>
 
 // ===== JsonSchemaBuilders ===== //
 
@@ -407,19 +402,19 @@ export const j = {
    * Matches literally any value - equivalent to TypeScript's `any` type.
    * Use sparingly, as it bypasses type validation entirely.
    */
-  any(): JsonSchemaAnyBuilder<any, any, false> {
+  any(): JsonSchemaAnyBuilder<any, false> {
     return new JsonSchemaAnyBuilder({})
   },
 
-  string(): JsonSchemaStringBuilder<string, string, false> {
+  string(): JsonSchemaStringBuilder<string, false> {
     return new JsonSchemaStringBuilder()
   },
 
-  number(): JsonSchemaNumberBuilder<number, number, false> {
+  number(): JsonSchemaNumberBuilder<number, false> {
     return new JsonSchemaNumberBuilder()
   },
 
-  boolean(): JsonSchemaBooleanBuilder<boolean, boolean, false> {
+  boolean(): JsonSchemaBooleanBuilder<boolean, false> {
     return new JsonSchemaBooleanBuilder()
   },
 
@@ -430,16 +425,16 @@ export const j = {
       return j.object<AnyObject>({}).allowAdditionalProperties()
     },
 
-    stringMap<S extends JsonSchemaTerminal<any, any, any>>(
+    stringMap<S extends JsonSchemaTerminal<any, any>>(
       schema: S,
-    ): JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>> {
+    ): JsonSchemaObjectBuilder<StringMap<SchemaOut<S>>> {
       const isValueOptional = schema.getSchema().optionalField
       const builtSchema = schema.build()
       const finalValueSchema: JsonSchema = isValueOptional
         ? { anyOf: [{ isUndefined: true }, builtSchema] }
         : builtSchema
 
-      return new JsonSchemaObjectBuilder<StringMap<SchemaIn<S>>, StringMap<SchemaOut<S>>>(
+      return new JsonSchemaObjectBuilder<StringMap<SchemaOut<S>>>(
         {},
         {
           hasIsOfTypeCheck: false,
@@ -487,21 +482,15 @@ export const j = {
     withRegexKeys,
   }),
 
-  array<IN, OUT, Opt>(
-    itemSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>,
-  ): JsonSchemaArrayBuilder<IN, OUT, Opt> {
+  array<OUT, Opt>(itemSchema: JsonSchemaAnyBuilder<OUT, Opt>): JsonSchemaArrayBuilder<OUT, Opt> {
     return new JsonSchemaArrayBuilder(itemSchema)
   },
 
-  tuple<const S extends JsonSchemaAnyBuilder<any, any, any>[]>(
-    items: S,
-  ): JsonSchemaTupleBuilder<S> {
+  tuple<const S extends JsonSchemaAnyBuilder<any, any>[]>(items: S): JsonSchemaTupleBuilder<S> {
     return new JsonSchemaTupleBuilder<S>(items)
   },
 
-  set<IN, OUT, Opt>(
-    itemSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>,
-  ): JsonSchemaSet2Builder<IN, OUT, Opt> {
+  set<OUT, Opt>(itemSchema: JsonSchemaAnyBuilder<OUT, Opt>): JsonSchemaSet2Builder<OUT, Opt> {
     return new JsonSchemaSet2Builder(itemSchema)
   },
 
@@ -557,18 +546,16 @@ export const j = {
    * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
    * Use `oneOf` when schemas are mutually exclusive.
    */
-  oneOf<
-    B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
-    IN = BuilderInUnion<B>,
-    OUT = BuilderOutUnion<B>,
-  >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
+  oneOf<B extends readonly JsonSchemaAnyBuilder<any, boolean>[], OUT = BuilderOutUnion<B>>(
+    items: [...B],
+  ): JsonSchemaAnyBuilder<OUT, false> {
     const schemas = items.map(b => b.build())
     _assert(
       schemas.every(hasNoObjectSchemas),
       'Do not use `oneOf` validation with non-primitive types!',
     )
 
-    return new JsonSchemaAnyBuilder<IN, OUT, false>({
+    return new JsonSchemaAnyBuilder<OUT, false>({
       oneOf: schemas,
     })
   },
@@ -584,18 +571,16 @@ export const j = {
    * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
    * Use `oneOf` when schemas are mutually exclusive.
    */
-  anyOf<
-    B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
-    IN = BuilderInUnion<B>,
-    OUT = BuilderOutUnion<B>,
-  >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
+  anyOf<B extends readonly JsonSchemaAnyBuilder<any, boolean>[], OUT = BuilderOutUnion<B>>(
+    items: [...B],
+  ): JsonSchemaAnyBuilder<OUT, false> {
     const schemas = items.map(b => b.build())
     _assert(
       schemas.every(hasNoObjectSchemas),
       'Do not use `anyOf` validation with non-primitive types!',
     )
 
-    return new JsonSchemaAnyBuilder<IN, OUT, false>({
+    return new JsonSchemaAnyBuilder<OUT, false>({
       anyOf: schemas,
     })
   },
@@ -612,13 +597,11 @@ export const j = {
    * const schema = j.anyOfBy('success', schemaMap)
    * ```
    */
-  anyOfBy<
-    P extends string,
-    D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
-    IN = AnyOfByIn<D>,
-    OUT = AnyOfByOut<D>,
-  >(propertyName: P, schemaDictionary: D): JsonSchemaAnyOfByBuilder<IN, OUT, P> {
-    return new JsonSchemaAnyOfByBuilder<IN, OUT, P>(propertyName, schemaDictionary)
+  anyOfBy<D extends Record<PropertyKey, JsonSchemaTerminal<any, any>>, OUT = AnyOfByOut<D>>(
+    propertyName: string,
+    schemaDictionary: D,
+  ): JsonSchemaAnyOfByBuilder<OUT> {
+    return new JsonSchemaAnyOfByBuilder<OUT>(propertyName, schemaDictionary)
   },
 
   /**
@@ -629,12 +612,10 @@ export const j = {
    * const schema = j.anyOfThese([successSchema, errorSchema])
    * ```
    */
-  anyOfThese<
-    B extends readonly JsonSchemaAnyBuilder<any, any, boolean>[],
-    IN = BuilderInUnion<B>,
-    OUT = BuilderOutUnion<B>,
-  >(items: [...B]): JsonSchemaAnyBuilder<IN, OUT, false> {
-    return new JsonSchemaAnyBuilder<IN, OUT, false>({
+  anyOfThese<B extends readonly JsonSchemaAnyBuilder<any, boolean>[], OUT = BuilderOutUnion<B>>(
+    items: [...B],
+  ): JsonSchemaAnyBuilder<OUT, false> {
+    return new JsonSchemaAnyBuilder<OUT, false>({
       anyOfThese: items.map(b => b.build()),
     })
   },
@@ -669,17 +650,17 @@ const TS_2000_MILLIS = TS_2000 * 1000
      With `Opt`, we can infer it as `{ foo?: string | undefined }`.
 */
 
-export class JsonSchemaTerminal<IN, OUT, Opt> {
-  protected [HIDDEN_AJV_SCHEMA]: AjvSchema<any, any> | undefined
+export class JsonSchemaTerminal<OUT, Opt> {
+  protected [HIDDEN_AJV_SCHEMA]: AjvSchema<any> | undefined
   protected schema: JsonSchema
 
   constructor(schema: JsonSchema) {
     this.schema = schema
   }
 
-  get ajvSchema(): AjvSchema<any, any> {
+  get ajvSchema(): AjvSchema<any> {
     if (!this[HIDDEN_AJV_SCHEMA]) {
-      this[HIDDEN_AJV_SCHEMA] = AjvSchema.create<IN, OUT>(this)
+      this[HIDDEN_AJV_SCHEMA] = AjvSchema.create<OUT>(this)
     }
 
     return this[HIDDEN_AJV_SCHEMA]
@@ -693,7 +674,7 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
    * Produces a "clean schema object" without methods.
    * Same as if it would be JSON.stringified.
    */
-  build(): JsonSchema<IN, OUT> {
+  build(): JsonSchema<OUT> {
     _assert(
       !(this.schema.optionalField && this.schema.default !== undefined),
       '.optional() and .default() should not be used together - the default value makes .optional() redundant and causes incorrect type inference',
@@ -702,7 +683,7 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
     const jsonSchema = _sortObject(
       deepCopyPreservingFunctions(this.schema) as AnyObject,
       JSON_SCHEMA_ORDER,
-    ) as JsonSchema<IN, OUT>
+    ) as JsonSchema<OUT>
 
     delete jsonSchema.optionalField
 
@@ -721,34 +702,33 @@ export class JsonSchemaTerminal<IN, OUT, Opt> {
     return clone
   }
 
-  validate(input: any, opt?: AjvValidationOptions<IN>): OUT {
+  validate(input: unknown, opt?: AjvValidationOptions): OUT {
     return this.ajvSchema.validate(input, opt)
   }
 
-  isValid(input: any, opt?: AjvValidationOptions<IN>): boolean {
+  isValid(input: unknown, opt?: AjvValidationOptions): boolean {
     return this.ajvSchema.isValid(input, opt)
   }
 
   getValidationResult(
-    input: any,
-    opt: AjvValidationOptions<IN> = {},
+    input: unknown,
+    opt: AjvValidationOptions = {},
   ): ValidationFunctionResult<OUT, AjvValidationError> {
     return this.ajvSchema.getValidationResult(input, opt)
   }
 
-  getValidationFunction(): ValidationFunction<any, OUT, AjvValidationError> {
+  getValidationFunction(): ValidationFunction<OUT, AjvValidationError> {
     return this.ajvSchema.getValidationFunction()
   }
 
   /**
    * @experimental
    */
-  in!: IN
   out!: OUT
   opt!: Opt
 }
 
-export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, OUT, Opt> {
+export class JsonSchemaAnyBuilder<OUT, Opt> extends JsonSchemaTerminal<OUT, Opt> {
   protected setErrorMessage(ruleName: string, errorMessage: string | undefined): void {
     if (_isUndefined(errorMessage)) return
 
@@ -811,12 +791,12 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
     return this.cloneAndUpdateSchema({ type: 'object', instanceof: of })
   }
 
-  optional(): JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true> {
+  optional(): JsonSchemaAnyBuilder<OUT | undefined, true> {
     const clone = this.cloneAndUpdateSchema({ optionalField: true })
-    return clone as unknown as JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true>
+    return clone as unknown as JsonSchemaAnyBuilder<OUT | undefined, true>
   }
 
-  nullable(): JsonSchemaAnyBuilder<IN | null, OUT | null, Opt> {
+  nullable(): JsonSchemaAnyBuilder<OUT | null, Opt> {
     return new JsonSchemaAnyBuilder({
       anyOf: [this.build(), { type: 'null' }],
     })
@@ -826,15 +806,15 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
    * @deprecated
    * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
    */
-  castAs<T>(): JsonSchemaAnyBuilder<T, T, Opt> {
-    return this as unknown as JsonSchemaAnyBuilder<T, T, Opt>
+  castAs<T>(): JsonSchemaAnyBuilder<T, Opt> {
+    return this as unknown as JsonSchemaAnyBuilder<T, Opt>
   }
 
   /**
    * Locks the given schema chain and no other modification can be done to it.
    */
-  final(): JsonSchemaTerminal<IN, OUT, Opt> {
-    return new JsonSchemaTerminal<IN, OUT, Opt>(this.schema)
+  final(): JsonSchemaTerminal<OUT, Opt> {
+    return new JsonSchemaTerminal<OUT, Opt>(this.schema)
   }
 
   /**
@@ -843,11 +823,11 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
    *
    * You may add multiple custom validators and they will be executed in the order you added them.
    */
-  custom<OUT2 = OUT>(validator: CustomValidatorFn): JsonSchemaAnyBuilder<IN, OUT2, Opt> {
+  custom<OUT2 = OUT>(validator: CustomValidatorFn): JsonSchemaAnyBuilder<OUT2, Opt> {
     const { customValidations = [] } = this.schema
     return this.cloneAndUpdateSchema({
       customValidations: [...customValidations, validator],
-    }) as unknown as JsonSchemaAnyBuilder<IN, OUT2, Opt>
+    }) as unknown as JsonSchemaAnyBuilder<OUT2, Opt>
   }
 
   /**
@@ -860,19 +840,18 @@ export class JsonSchemaAnyBuilder<IN, OUT, Opt> extends JsonSchemaTerminal<IN, O
    * This feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
    */
-  convert<OUT2>(converter: CustomConverterFn<OUT2>): JsonSchemaAnyBuilder<IN, OUT2, Opt> {
+  convert<OUT2>(converter: CustomConverterFn<OUT2>): JsonSchemaAnyBuilder<OUT2, Opt> {
     const { customConversions = [] } = this.schema
     return this.cloneAndUpdateSchema({
       customConversions: [...customConversions, converter],
-    }) as unknown as JsonSchemaAnyBuilder<IN, OUT2, Opt>
+    }) as unknown as JsonSchemaAnyBuilder<OUT2, Opt>
   }
 }
 
 export class JsonSchemaStringBuilder<
-  IN extends string | undefined = string,
-  OUT = IN,
+  OUT extends string | undefined = string,
   Opt extends boolean = false,
-> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
+> extends JsonSchemaAnyBuilder<OUT, Opt> {
   constructor() {
     super({
       type: 'string',
@@ -894,17 +873,19 @@ export class JsonSchemaStringBuilder<
     optionalValues?: T,
   ): T extends readonly (infer U)[]
     ? null extends U
-      ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
-      : JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true>
-    : JsonSchemaStringBuilder<IN | undefined, OUT | undefined, true> {
+      ? JsonSchemaTerminal<OUT | undefined, true>
+      : JsonSchemaStringBuilder<OUT | undefined, true>
+    : JsonSchemaStringBuilder<OUT | undefined, true> {
     if (!optionalValues) {
       return super.optional() as any
     }
 
     _typeCast<(string | null)[]>(optionalValues)
 
-    let newBuilder: JsonSchemaTerminal<IN | undefined, OUT | undefined, true> =
-      new JsonSchemaStringBuilder<IN, OUT, Opt>().optional()
+    let newBuilder: JsonSchemaTerminal<OUT | undefined, true> = new JsonSchemaStringBuilder<
+      OUT,
+      Opt
+    >().optional()
     const alternativesSchema = j.enum(optionalValues)
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
@@ -984,8 +965,8 @@ export class JsonSchemaStringBuilder<
     })
   }
 
-  branded<B extends string>(): JsonSchemaStringBuilder<B, B, Opt> {
-    return this as unknown as JsonSchemaStringBuilder<B, B, Opt>
+  branded<B extends string>(): JsonSchemaStringBuilder<B, Opt> {
+    return this as unknown as JsonSchemaStringBuilder<B, Opt>
   }
 
   /**
@@ -998,8 +979,8 @@ export class JsonSchemaStringBuilder<
     return new JsonSchemaIsoDateBuilder()
   }
 
-  isoDateTime(): JsonSchemaStringBuilder<IsoDateTime | IN, IsoDateTime, Opt> {
-    return this.cloneAndUpdateSchema({ IsoDateTime: true }).branded<IsoDateTime>() as any
+  isoDateTime(): JsonSchemaStringBuilder<IsoDateTime, Opt> {
+    return this.cloneAndUpdateSchema({ IsoDateTime: true }).branded<IsoDateTime>()
   }
 
   isoMonth(): JsonSchemaIsoMonthBuilder {
@@ -1052,9 +1033,9 @@ export class JsonSchemaStringBuilder<
    * All previous expectations in the schema chain are dropped - including `.optional()` -
    * because this call effectively starts a new schema chain as an `enum` validation.
    */
-  ianaTimezone(): JsonSchemaEnumBuilder<string | IANATimezone, IANATimezone, false> {
+  ianaTimezone(): JsonSchemaEnumBuilder<IANATimezone, false> {
     // UTC is added to assist unit-testing, which uses UTC by default (not technically a valid Iana timezone identifier)
-    return j.enum(TIMEZONES, { msg: 'is an invalid IANA timezone' }).branded<IANATimezone>() as any
+    return j.enum(TIMEZONES, { msg: 'is an invalid IANA timezone' }).branded<IANATimezone>()
   }
 
   base64Url(): this {
@@ -1073,7 +1054,6 @@ export interface JsonSchemaStringEmailOptions {
 }
 
 export class JsonSchemaIsoDateBuilder<Opt extends boolean = false> extends JsonSchemaAnyBuilder<
-  string | IsoDate,
   IsoDate,
   Opt
 > {
@@ -1096,8 +1076,8 @@ export class JsonSchemaIsoDateBuilder<Opt extends boolean = false> extends JsonS
   override optional<N extends null | undefined = undefined>(
     nullValue?: N,
   ): N extends null
-    ? JsonSchemaTerminal<string | IsoDate | null | undefined, IsoDate | undefined, true>
-    : JsonSchemaAnyBuilder<string | IsoDate | undefined, IsoDate | undefined, true> {
+    ? JsonSchemaTerminal<IsoDate | undefined, true>
+    : JsonSchemaAnyBuilder<IsoDate | undefined, true> {
     if (nullValue === undefined) {
       return super.optional() as any
     }
@@ -1149,7 +1129,6 @@ export interface JsonSchemaIsoDateOptions {
 }
 
 export class JsonSchemaIsoMonthBuilder<Opt extends boolean = false> extends JsonSchemaAnyBuilder<
-  string | IsoDate,
   IsoMonth,
   Opt
 > {
@@ -1164,10 +1143,9 @@ export class JsonSchemaIsoMonthBuilder<Opt extends boolean = false> extends Json
 export interface JsonSchemaIsoMonthOptions {}
 
 export class JsonSchemaNumberBuilder<
-  IN extends number | undefined = number,
-  OUT = IN,
+  OUT extends number | undefined = number,
   Opt extends boolean = false,
-> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
+> extends JsonSchemaAnyBuilder<OUT, Opt> {
   constructor() {
     super({
       type: 'number',
@@ -1189,17 +1167,19 @@ export class JsonSchemaNumberBuilder<
     optionalValues?: T,
   ): T extends readonly (infer U)[]
     ? null extends U
-      ? JsonSchemaTerminal<IN | undefined, OUT | undefined, true>
-      : JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true>
-    : JsonSchemaNumberBuilder<IN | undefined, OUT | undefined, true> {
+      ? JsonSchemaTerminal<OUT | undefined, true>
+      : JsonSchemaNumberBuilder<OUT | undefined, true>
+    : JsonSchemaNumberBuilder<OUT | undefined, true> {
     if (!optionalValues) {
       return super.optional() as any
     }
 
     _typeCast<(number | null)[]>(optionalValues)
 
-    let newBuilder: JsonSchemaTerminal<IN | undefined, OUT | undefined, true> =
-      new JsonSchemaNumberBuilder<IN, OUT, Opt>().optional()
+    let newBuilder: JsonSchemaTerminal<OUT | undefined, true> = new JsonSchemaNumberBuilder<
+      OUT,
+      Opt
+    >().optional()
     const alternativesSchema = j.enum(optionalValues)
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
@@ -1224,8 +1204,8 @@ export class JsonSchemaNumberBuilder<
     return this.cloneAndUpdateSchema({ type: 'integer' })
   }
 
-  branded<B extends number>(): JsonSchemaNumberBuilder<B, B, Opt> {
-    return this as unknown as JsonSchemaNumberBuilder<B, B, Opt>
+  branded<B extends number>(): JsonSchemaNumberBuilder<B, Opt> {
+    return this as unknown as JsonSchemaNumberBuilder<B, Opt>
   }
 
   multipleOf(multipleOf: number): this {
@@ -1301,23 +1281,19 @@ export class JsonSchemaNumberBuilder<
     return this
   }
 
-  unixTimestamp(): JsonSchemaNumberBuilder<UnixTimestamp, UnixTimestamp, Opt> {
+  unixTimestamp(): JsonSchemaNumberBuilder<UnixTimestamp, Opt> {
     return this.integer().min(0).max(TS_2500).branded<UnixTimestamp>()
   }
 
-  unixTimestamp2000(): JsonSchemaNumberBuilder<UnixTimestamp, UnixTimestamp, Opt> {
+  unixTimestamp2000(): JsonSchemaNumberBuilder<UnixTimestamp, Opt> {
     return this.integer().min(TS_2000).max(TS_2500).branded<UnixTimestamp>()
   }
 
-  unixTimestampMillis(): JsonSchemaNumberBuilder<UnixTimestampMillis, UnixTimestampMillis, Opt> {
+  unixTimestampMillis(): JsonSchemaNumberBuilder<UnixTimestampMillis, Opt> {
     return this.integer().min(0).max(TS_2500_MILLIS).branded<UnixTimestampMillis>()
   }
 
-  unixTimestamp2000Millis(): JsonSchemaNumberBuilder<
-    UnixTimestampMillis,
-    UnixTimestampMillis,
-    Opt
-  > {
+  unixTimestamp2000Millis(): JsonSchemaNumberBuilder<UnixTimestampMillis, Opt> {
     return this.integer().min(TS_2000_MILLIS).max(TS_2500_MILLIS).branded<UnixTimestampMillis>()
   }
 
@@ -1343,10 +1319,9 @@ export class JsonSchemaNumberBuilder<
 }
 
 export class JsonSchemaBooleanBuilder<
-  IN extends boolean | undefined = boolean,
-  OUT = IN,
+  OUT extends boolean | undefined = boolean,
   Opt extends boolean = false,
-> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
+> extends JsonSchemaAnyBuilder<OUT, Opt> {
   constructor() {
     super({
       type: 'boolean',
@@ -1359,18 +1334,12 @@ export class JsonSchemaBooleanBuilder<
    * This `optionalValue` feature only works when the current schema is nested in an object or array schema,
    * due to how mutability works in Ajv.
    */
-  override optional(
-    optionalValue?: boolean,
-  ): JsonSchemaBooleanBuilder<IN | undefined, OUT | undefined, true> {
+  override optional(optionalValue?: boolean): JsonSchemaBooleanBuilder<OUT | undefined, true> {
     if (typeof optionalValue === 'undefined') {
-      return super.optional() as unknown as JsonSchemaBooleanBuilder<
-        IN | undefined,
-        OUT | undefined,
-        true
-      >
+      return super.optional() as unknown as JsonSchemaBooleanBuilder<OUT | undefined, true>
     }
 
-    const newBuilder = new JsonSchemaBooleanBuilder<IN, OUT, Opt>().optional()
+    const newBuilder = new JsonSchemaBooleanBuilder<OUT, Opt>().optional()
     const alternativesSchema = j.enum([optionalValue])
     Object.assign(newBuilder.getSchema(), {
       anyOf: [this.build(), alternativesSchema.build()],
@@ -1382,10 +1351,9 @@ export class JsonSchemaBooleanBuilder<
 }
 
 export class JsonSchemaObjectBuilder<
-  IN extends AnyObject,
   OUT extends AnyObject,
   Opt extends boolean = false,
-> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
+> extends JsonSchemaAnyBuilder<OUT, Opt> {
   constructor(props?: AnyObject, opt?: JsonSchemaObjectBuilderOpts) {
     super({
       type: 'object',
@@ -1405,7 +1373,7 @@ export class JsonSchemaObjectBuilder<
     const required: string[] = []
 
     for (const [key, builder] of Object.entries(props)) {
-      const isOptional = (builder as JsonSchemaTerminal<any, any, any>).getSchema().optionalField
+      const isOptional = (builder as JsonSchemaTerminal<any, any>).getSchema().optionalField
       if (!isOptional) {
         required.push(key)
       }
@@ -1432,8 +1400,8 @@ export class JsonSchemaObjectBuilder<
   override optional<N extends null | undefined = undefined>(
     nullValue?: N,
   ): N extends null
-    ? JsonSchemaTerminal<IN | null | undefined, OUT | undefined, true>
-    : JsonSchemaAnyBuilder<IN | undefined, OUT | undefined, true> {
+    ? JsonSchemaTerminal<OUT | undefined, true>
+    : JsonSchemaAnyBuilder<OUT | undefined, true> {
     if (nullValue === undefined) {
       return super.optional() as any
     }
@@ -1456,35 +1424,25 @@ export class JsonSchemaObjectBuilder<
     return this.cloneAndUpdateSchema({ additionalProperties: true })
   }
 
-  extend<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
+  extend<P extends Record<string, JsonSchemaAnyBuilder<any, any>>>(
     props: P,
   ): JsonSchemaObjectBuilder<
-    RelaxIndexSignature<
-      OptionalDbEntityFields<
-        Override<
-          IN,
-          {
-            [K in keyof P]?: P[K] extends JsonSchemaAnyBuilder<infer IN2, any, any> ? IN2 : never
-          }
-        >
-      >
-    >,
     Override<
       OUT,
       {
         // required keys
-        [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+        [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, infer IsOpt>
           ? IsOpt extends true
             ? never
             : K
-          : never]: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+          : never]: P[K] extends JsonSchemaAnyBuilder<infer OUT2, any> ? OUT2 : never
       } & {
         // optional keys
-        [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+        [K in keyof P as P[K] extends JsonSchemaAnyBuilder<any, infer IsOpt>
           ? IsOpt extends true
             ? K
             : never
-          : never]?: P[K] extends JsonSchemaAnyBuilder<any, infer OUT2, any> ? OUT2 : never
+          : never]?: P[K] extends JsonSchemaAnyBuilder<infer OUT2, any> ? OUT2 : never
       }
     >,
     false
@@ -1518,13 +1476,13 @@ export class JsonSchemaObjectBuilder<
    *  const shuSchema = fooSchema.concat(barSchema).isOfType<Shu>() // important
    * ```
    */
-  concat<IN2 extends AnyObject, OUT2 extends AnyObject>(
-    other: JsonSchemaObjectBuilder<IN2, OUT2, any>,
-  ): JsonSchemaObjectBuilder<IN & IN2, OUT & OUT2, false> {
+  concat<OUT2 extends AnyObject>(
+    other: JsonSchemaObjectBuilder<OUT2, any>,
+  ): JsonSchemaObjectBuilder<OUT & OUT2, false> {
     const clone = this.clone()
     mergeJsonSchemaObjects(clone.schema as any, other.schema as any)
     _objectAssign(clone.schema, { hasIsOfTypeCheck: false })
-    return clone as unknown as JsonSchemaObjectBuilder<IN & IN2, OUT & OUT2, false>
+    return clone as unknown as JsonSchemaObjectBuilder<OUT & OUT2, false>
   }
 
   /**
@@ -1547,7 +1505,7 @@ export class JsonSchemaObjectBuilder<
     return this.cloneAndUpdateSchema({ maxProperties })
   }
 
-  exclusiveProperties(propNames: readonly (keyof IN & string)[]): this {
+  exclusiveProperties(propNames: readonly (keyof OUT & string)[]): this {
     const exclusiveProperties = this.schema.exclusiveProperties ?? []
     return this.cloneAndUpdateSchema({ exclusiveProperties: [...exclusiveProperties, propNames] })
   }
@@ -1555,42 +1513,27 @@ export class JsonSchemaObjectBuilder<
 
 interface JsonSchemaObjectBuilderOpts {
   hasIsOfTypeCheck?: false
-  patternProperties?: StringMap<JsonSchema<any, any>>
+  patternProperties?: StringMap<JsonSchema<any>>
   keySchema?: JsonSchema
 }
 
 export class JsonSchemaObjectInferringBuilder<
-  PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>,
+  PROPS extends Record<string, JsonSchemaAnyBuilder<any, any>>,
   Opt extends boolean = false,
 > extends JsonSchemaAnyBuilder<
   Expand<
     {
-      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, infer IsOpt>
         ? IsOpt extends true
           ? never
           : K
-        : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+        : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer OUT, any> ? OUT : never
     } & {
-      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, infer IsOpt>
         ? IsOpt extends true
           ? K
           : never
-        : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
-    }
-  >,
-  Expand<
-    {
-      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? never
-          : K
-        : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
-    } & {
-      [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-        ? IsOpt extends true
-          ? K
-          : never
-        : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+        : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer OUT, any> ? OUT : never
     }
   >,
   Opt
@@ -1611,7 +1554,7 @@ export class JsonSchemaObjectInferringBuilder<
     const required: string[] = []
 
     for (const [key, builder] of Object.entries(props)) {
-      const isOptional = (builder as JsonSchemaTerminal<any, any, any>).getSchema().optionalField
+      const isOptional = (builder as JsonSchemaTerminal<any, any>).getSchema().optionalField
       if (!isOptional) {
         required.push(key)
       }
@@ -1642,33 +1585,17 @@ export class JsonSchemaObjectInferringBuilder<
     ? JsonSchemaTerminal<
         | Expand<
             {
-              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, infer IsOpt>
                 ? IsOpt extends true
                   ? never
                   : K
-                : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer OUT, any> ? OUT : never
             } & {
-              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, infer IsOpt>
                 ? IsOpt extends true
                   ? K
                   : never
-                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
-            }
-          >
-        | undefined,
-        | Expand<
-            {
-              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-                ? IsOpt extends true
-                  ? never
-                  : K
-                : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
-            } & {
-              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-                ? IsOpt extends true
-                  ? K
-                  : never
-                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer OUT, any> ? OUT : never
             }
           >
         | undefined,
@@ -1677,33 +1604,17 @@ export class JsonSchemaObjectInferringBuilder<
     : JsonSchemaAnyBuilder<
         | Expand<
             {
-              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, infer IsOpt>
                 ? IsOpt extends true
                   ? never
                   : K
-                : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
+                : never]: PROPS[K] extends JsonSchemaAnyBuilder<infer OUT, any> ? OUT : never
             } & {
-              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
+              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, infer IsOpt>
                 ? IsOpt extends true
                   ? K
                   : never
-                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
-            }
-          >
-        | undefined,
-        | Expand<
-            {
-              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-                ? IsOpt extends true
-                  ? never
-                  : K
-                : never]: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
-            } & {
-              [K in keyof PROPS as PROPS[K] extends JsonSchemaAnyBuilder<any, any, infer IsOpt>
-                ? IsOpt extends true
-                  ? K
-                  : never
-                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+                : never]?: PROPS[K] extends JsonSchemaAnyBuilder<infer OUT, any> ? OUT : never
             }
           >
         | undefined,
@@ -1731,7 +1642,7 @@ export class JsonSchemaObjectInferringBuilder<
     return this.cloneAndUpdateSchema({ additionalProperties: true })
   }
 
-  extend<NEW_PROPS extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
+  extend<NEW_PROPS extends Record<string, JsonSchemaAnyBuilder<any, any>>>(
     props: NEW_PROPS,
   ): JsonSchemaObjectInferringBuilder<
     {
@@ -1779,8 +1690,8 @@ export class JsonSchemaObjectInferringBuilder<
   }
 }
 
-export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<IN[], OUT[], Opt> {
-  constructor(itemsSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>) {
+export class JsonSchemaArrayBuilder<OUT, Opt> extends JsonSchemaAnyBuilder<OUT[], Opt> {
+  constructor(itemsSchema: JsonSchemaAnyBuilder<OUT, Opt>) {
     super({
       type: 'array',
       items: itemsSchema.build(),
@@ -1811,12 +1722,8 @@ export class JsonSchemaArrayBuilder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<I
   }
 }
 
-export class JsonSchemaSet2Builder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<
-  Iterable<IN>,
-  Set2<OUT>,
-  Opt
-> {
-  constructor(itemsSchema: JsonSchemaAnyBuilder<IN, OUT, Opt>) {
+export class JsonSchemaSet2Builder<OUT, Opt> extends JsonSchemaAnyBuilder<Set2<OUT>, Opt> {
+  constructor(itemsSchema: JsonSchemaAnyBuilder<OUT, Opt>) {
     super({
       type: ['array', 'object'],
       Set2: itemsSchema.build(),
@@ -1832,11 +1739,7 @@ export class JsonSchemaSet2Builder<IN, OUT, Opt> extends JsonSchemaAnyBuilder<
   }
 }
 
-export class JsonSchemaBufferBuilder extends JsonSchemaAnyBuilder<
-  string | any[] | ArrayBuffer | Buffer,
-  Buffer,
-  false
-> {
+export class JsonSchemaBufferBuilder extends JsonSchemaAnyBuilder<Buffer, false> {
   constructor() {
     super({
       Buffer: true,
@@ -1845,11 +1748,10 @@ export class JsonSchemaBufferBuilder extends JsonSchemaAnyBuilder<
 }
 
 export class JsonSchemaEnumBuilder<
-  IN extends string | number | boolean | null,
-  OUT extends IN = IN,
+  OUT extends string | number | boolean | null,
   Opt extends boolean = false,
-> extends JsonSchemaAnyBuilder<IN, OUT, Opt> {
-  constructor(enumValues: readonly IN[], baseType: EnumBaseType, opt?: JsonBuilderRuleOpt) {
+> extends JsonSchemaAnyBuilder<OUT, Opt> {
+  constructor(enumValues: readonly OUT[], baseType: EnumBaseType, opt?: JsonBuilderRuleOpt) {
     const jsonSchema: JsonSchema = { enum: enumValues }
     // Specifying the base type helps in cases when we ask Ajv to coerce the types.
     // Having only the `enum` in the schema does not trigger a coercion in Ajv.
@@ -1862,16 +1764,14 @@ export class JsonSchemaEnumBuilder<
     if (opt?.msg) this.setErrorMessage('enum', opt.msg)
   }
 
-  branded<B extends IN>(): JsonSchemaEnumBuilder<B | IN, B, Opt> {
-    return this as unknown as JsonSchemaEnumBuilder<B | IN, B, Opt>
+  branded<B extends OUT>(): JsonSchemaEnumBuilder<B, Opt> {
+    return this as unknown as JsonSchemaEnumBuilder<B, Opt>
   }
 }
 
 export class JsonSchemaTupleBuilder<
-  ITEMS extends JsonSchemaAnyBuilder<any, any, any>[],
-> extends JsonSchemaAnyBuilder<TupleIn<ITEMS>, TupleOut<ITEMS>, false> {
-  private readonly _items: ITEMS
-
+  ITEMS extends JsonSchemaAnyBuilder<any, any>[],
+> extends JsonSchemaAnyBuilder<TupleOut<ITEMS>, false> {
   constructor(items: ITEMS) {
     super({
       type: 'array',
@@ -1879,22 +1779,13 @@ export class JsonSchemaTupleBuilder<
       minItems: items.length,
       maxItems: items.length,
     })
-
-    this._items = items
   }
 }
 
-export class JsonSchemaAnyOfByBuilder<
-  IN,
-  OUT,
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  _P extends string = string,
-> extends JsonSchemaAnyBuilder<AnyOfByInput<IN, _P> | IN, OUT, false> {
-  declare in: IN
-
+export class JsonSchemaAnyOfByBuilder<OUT> extends JsonSchemaAnyBuilder<OUT, false> {
   constructor(
     propertyName: string,
-    schemaDictionary: Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
+    schemaDictionary: Record<PropertyKey, JsonSchemaTerminal<any, any>>,
   ) {
     const builtSchemaDictionary: Record<string, JsonSchema> = {}
     for (const [key, schema] of Object.entries(schemaDictionary)) {
@@ -1912,17 +1803,10 @@ export class JsonSchemaAnyOfByBuilder<
   }
 }
 
-export class JsonSchemaAnyOfTheseBuilder<
-  IN,
-  OUT,
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  _P extends string = string,
-> extends JsonSchemaAnyBuilder<AnyOfByInput<IN, _P> | IN, OUT, false> {
-  declare in: IN
-
+export class JsonSchemaAnyOfTheseBuilder<OUT> extends JsonSchemaAnyBuilder<OUT, false> {
   constructor(
     propertyName: string,
-    schemaDictionary: Record<PropertyKey, JsonSchemaTerminal<any, any, any>>,
+    schemaDictionary: Record<PropertyKey, JsonSchemaTerminal<any, any>>,
   ) {
     const builtSchemaDictionary: Record<string, JsonSchema> = {}
     for (const [key, schema] of Object.entries(schemaDictionary)) {
@@ -1942,8 +1826,7 @@ export class JsonSchemaAnyOfTheseBuilder<
 
 type EnumBaseType = 'string' | 'number' | 'other'
 
-export interface JsonSchema<IN = unknown, OUT = IN> {
-  readonly in?: IN
+export interface JsonSchema<OUT = unknown> {
   readonly out?: OUT
 
   $schema?: string
@@ -1959,15 +1842,15 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
   items?: JsonSchema
   prefixItems?: JsonSchema[]
   properties?: {
-    [K in keyof IN & keyof OUT]: JsonSchema<IN[K], OUT[K]>
+    [K in keyof OUT]: JsonSchema<OUT[K]>
   }
-  patternProperties?: StringMap<JsonSchema<any, any>>
+  patternProperties?: StringMap<JsonSchema<any>>
   required?: string[]
   additionalProperties?: boolean
   minProperties?: number
   maxProperties?: number
 
-  default?: IN
+  default?: OUT
 
   // https://json-schema.org/understanding-json-schema/reference/conditionals.html#id6
   if?: JsonSchema
@@ -2031,17 +1914,17 @@ export interface JsonSchema<IN = unknown, OUT = IN> {
 }
 
 function object(props: AnyObject): never
-function object<IN extends AnyObject>(props: {
-  [K in keyof Required<IN>]-?: JsonSchemaTerminal<any, IN[K], any>
-}): JsonSchemaObjectBuilder<IN, IN, false>
+function object<OUT extends AnyObject>(props: {
+  [K in keyof Required<OUT>]-?: JsonSchemaTerminal<OUT[K], any>
+}): JsonSchemaObjectBuilder<OUT, false>
 
-function object<IN extends AnyObject>(props: {
-  [key in keyof IN]: JsonSchemaTerminal<any, IN[key], any>
-}): JsonSchemaObjectBuilder<IN, IN, false> {
-  return new JsonSchemaObjectBuilder<IN, IN, false>(props)
+function object<OUT extends AnyObject>(props: {
+  [key in keyof OUT]: JsonSchemaTerminal<OUT[key], any>
+}): JsonSchemaObjectBuilder<OUT, false> {
+  return new JsonSchemaObjectBuilder<OUT, false>(props)
 }
 
-function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any>>>(
+function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any>>>(
   props: P,
 ): JsonSchemaObjectInferringBuilder<P, false> {
   return new JsonSchemaObjectInferringBuilder<P, false>(props)
@@ -2049,24 +1932,27 @@ function objectInfer<P extends Record<string, JsonSchemaAnyBuilder<any, any, any
 
 function objectDbEntity(props: AnyObject): never
 function objectDbEntity<
-  IN extends BaseDBEntity,
-  EXTRA_KEYS extends Exclude<keyof IN, keyof BaseDBEntity> = Exclude<keyof IN, keyof BaseDBEntity>,
+  OUT extends BaseDBEntity,
+  EXTRA_KEYS extends Exclude<keyof OUT, keyof BaseDBEntity> = Exclude<
+    keyof OUT,
+    keyof BaseDBEntity
+  >,
 >(
   props: {
     // ✅ all non-system fields must be explicitly provided
-    [K in EXTRA_KEYS]-?: BuilderFor<IN[K]>
+    [K in EXTRA_KEYS]-?: BuilderFor<OUT[K]>
   } &
-    // ✅ if `id` differs, it’s required
-    (ExactMatch<IN['id'], BaseDBEntity['id']> extends true
+    // ✅ if `id` differs, it's required
+    (ExactMatch<OUT['id'], BaseDBEntity['id']> extends true
       ? { id?: BuilderFor<BaseDBEntity['id']> }
-      : { id: BuilderFor<IN['id']> }) &
-    (ExactMatch<IN['created'], BaseDBEntity['created']> extends true
+      : { id: BuilderFor<OUT['id']> }) &
+    (ExactMatch<OUT['created'], BaseDBEntity['created']> extends true
       ? { created?: BuilderFor<BaseDBEntity['created']> }
-      : { created: BuilderFor<IN['created']> }) &
-    (ExactMatch<IN['updated'], BaseDBEntity['updated']> extends true
+      : { created: BuilderFor<OUT['created']> }) &
+    (ExactMatch<OUT['updated'], BaseDBEntity['updated']> extends true
       ? { updated?: BuilderFor<BaseDBEntity['updated']> }
-      : { updated: BuilderFor<IN['updated']> }),
-): JsonSchemaObjectBuilder<IN, IN, false>
+      : { updated: BuilderFor<OUT['updated']> }),
+): JsonSchemaObjectBuilder<OUT, false>
 
 function objectDbEntity(props: AnyObject): any {
   return j.object({
@@ -2078,16 +1964,13 @@ function objectDbEntity(props: AnyObject): any {
 }
 
 function record<
-  KS extends JsonSchemaAnyBuilder<any, any, any>,
-  VS extends JsonSchemaAnyBuilder<any, any, any>,
+  KS extends JsonSchemaAnyBuilder<any, any>,
+  VS extends JsonSchemaAnyBuilder<any, any>,
   Opt extends boolean = SchemaOpt<VS>,
 >(
   keySchema: KS,
   valueSchema: VS,
 ): JsonSchemaObjectBuilder<
-  Opt extends true
-    ? Partial<Record<SchemaIn<KS>, SchemaIn<VS>>>
-    : Record<SchemaIn<KS>, SchemaIn<VS>>,
   Opt extends true
     ? Partial<Record<SchemaOut<KS>, SchemaOut<VS>>>
     : Record<SchemaOut<KS>, SchemaOut<VS>>,
@@ -2095,8 +1978,7 @@ function record<
 > {
   const keyJsonSchema = keySchema.build()
   // Check if value schema is optional before build() strips the optionalField flag
-  const isValueOptional = (valueSchema as JsonSchemaTerminal<any, any, any>).getSchema()
-    .optionalField
+  const isValueOptional = (valueSchema as JsonSchemaTerminal<any, any>).getSchema().optionalField
   const valueJsonSchema = valueSchema.build()
 
   // When value schema is optional, wrap in anyOf to allow undefined values
@@ -2105,9 +1987,6 @@ function record<
     : valueJsonSchema
 
   return new JsonSchemaObjectBuilder<
-    Opt extends true
-      ? Partial<Record<SchemaIn<KS>, SchemaIn<VS>>>
-      : Record<SchemaIn<KS>, SchemaIn<VS>>,
     Opt extends true
       ? Partial<Record<SchemaOut<KS>, SchemaOut<VS>>>
       : Record<SchemaOut<KS>, SchemaOut<VS>>,
@@ -2121,17 +2000,10 @@ function record<
   })
 }
 
-function withRegexKeys<
-  S extends JsonSchemaAnyBuilder<any, any, any>,
-  Opt extends boolean = SchemaOpt<S>,
->(
+function withRegexKeys<S extends JsonSchemaAnyBuilder<any, any>>(
   keyRegex: RegExp | string,
   schema: S,
-): JsonSchemaObjectBuilder<
-  Opt extends true ? StringMap<SchemaIn<S>> : StringMap<SchemaIn<S>>,
-  Opt extends true ? StringMap<SchemaOut<S>> : StringMap<SchemaOut<S>>,
-  false
-> {
+): JsonSchemaObjectBuilder<StringMap<SchemaOut<S>>, false> {
   if (keyRegex instanceof RegExp) {
     _assert(
       !keyRegex.flags,
@@ -2141,11 +2013,7 @@ function withRegexKeys<
   const pattern = keyRegex instanceof RegExp ? keyRegex.source : keyRegex
   const jsonSchema = schema.build()
 
-  return new JsonSchemaObjectBuilder<
-    Opt extends true ? StringMap<SchemaIn<S>> : StringMap<SchemaIn<S>>,
-    Opt extends true ? StringMap<SchemaOut<S>> : StringMap<SchemaOut<S>>,
-    false
-  >([], {
+  return new JsonSchemaObjectBuilder<StringMap<SchemaOut<S>>, false>([], {
     hasIsOfTypeCheck: false,
     patternProperties: {
       [pattern]: jsonSchema,
@@ -2158,14 +2026,13 @@ function withRegexKeys<
  */
 function withEnumKeys<
   const T extends readonly (string | number)[] | StringEnum | NumberEnum,
-  S extends JsonSchemaAnyBuilder<any, any, any>,
+  S extends JsonSchemaAnyBuilder<any, any>,
   K extends string | number = EnumKeyUnion<T>,
   Opt extends boolean = SchemaOpt<S>,
 >(
   keys: T,
   schema: S,
 ): JsonSchemaObjectBuilder<
-  Opt extends true ? { [P in K]?: SchemaIn<S> } : { [P in K]: SchemaIn<S> },
   Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> },
   false
 > {
@@ -2195,7 +2062,6 @@ function withEnumKeys<
   const props = Object.fromEntries(typedValues.map(key => [key, schema])) as any
 
   return new JsonSchemaObjectBuilder<
-    Opt extends true ? { [P in K]?: SchemaIn<S> } : { [P in K]: SchemaIn<S> },
     Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> },
     false
   >(props, { hasIsOfTypeCheck: false })
@@ -2256,10 +2122,6 @@ type IsAssignableRelaxed<A, B> =
       ? true
       : false
 
-type OptionalDbEntityFields<T> = T extends BaseDBEntity
-  ? Omit<T, keyof BaseDBEntity> & Partial<Pick<T, keyof BaseDBEntity>>
-  : T
-
 type ExactMatchBase<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
     ? (<T>() => T extends B ? 1 : 2) extends <T>() => T extends A ? 1 : 2
@@ -2274,29 +2136,15 @@ type ExactMatch<A, B> =
       ? true
       : ExactMatchBase<Expand<StripIndexSignatureDeep<A>>, Expand<StripIndexSignatureDeep<B>>>
 
-type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
-  [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
+type BuilderOutUnion<B extends readonly JsonSchemaAnyBuilder<any, any>[]> = {
+  [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<infer O, any> ? O : never
 }[number]
 
-type BuilderInUnion<B extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
-  [K in keyof B]: B[K] extends JsonSchemaAnyBuilder<infer I, any, any> ? I : never
-}[number]
-
-type AnyOfByIn<D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>> = {
-  [K in keyof D]: D[K] extends JsonSchemaTerminal<infer I, any, any> ? I : never
+type AnyOfByOut<D extends Record<PropertyKey, JsonSchemaTerminal<any, any>>> = {
+  [K in keyof D]: D[K] extends JsonSchemaTerminal<infer O, any> ? O : never
 }[keyof D]
 
-type AnyOfByOut<D extends Record<PropertyKey, JsonSchemaTerminal<any, any, any>>> = {
-  [K in keyof D]: D[K] extends JsonSchemaTerminal<any, infer O, any> ? O : never
-}[keyof D]
-
-type AnyOfByDiscriminant<IN, P extends string> = IN extends { [K in P]: infer V } ? V : never
-
-type AnyOfByInput<IN, P extends string, D = AnyOfByDiscriminant<IN, P>> = IN extends unknown
-  ? Omit<Partial<IN>, P> & { [K in P]?: D }
-  : never
-
-type BuilderFor<T> = JsonSchemaAnyBuilder<any, T, any>
+type BuilderFor<T> = JsonSchemaAnyBuilder<T, any>
 
 interface JsonBuilderRuleOpt {
   /**
@@ -2322,17 +2170,12 @@ type EnumKeyUnion<T> =
       ? T[keyof T]
       : never
 
-type SchemaIn<S> = S extends JsonSchemaAnyBuilder<infer IN, any, any> ? IN : never
-type SchemaOut<S> = S extends JsonSchemaAnyBuilder<any, infer OUT, any> ? OUT : never
+type SchemaOut<S> = S extends JsonSchemaAnyBuilder<infer OUT, any> ? OUT : never
 type SchemaOpt<S> =
-  S extends JsonSchemaAnyBuilder<any, any, infer Opt> ? (Opt extends true ? true : false) : false
+  S extends JsonSchemaAnyBuilder<any, infer Opt> ? (Opt extends true ? true : false) : false
 
-type TupleIn<T extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
-  [K in keyof T]: T[K] extends JsonSchemaAnyBuilder<infer I, any, any> ? I : never
-}
-
-type TupleOut<T extends readonly JsonSchemaAnyBuilder<any, any, any>[]> = {
-  [K in keyof T]: T[K] extends JsonSchemaAnyBuilder<any, infer O, any> ? O : never
+type TupleOut<T extends readonly JsonSchemaAnyBuilder<any, any>[]> = {
+  [K in keyof T]: T[K] extends JsonSchemaAnyBuilder<infer O, any> ? O : never
 }
 
 export type CustomValidatorFn = (v: any) => string | undefined

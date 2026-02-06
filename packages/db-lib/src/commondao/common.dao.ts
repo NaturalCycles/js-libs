@@ -926,11 +926,11 @@ export class CommonDao<
     return convertedValue
   }
 
-  async getTableSchema(): Promise<JsonSchema<any, DBM>> {
+  async getTableSchema(): Promise<JsonSchema<DBM>> {
     return await this.cfg.db.getTableSchema<DBM>(this.cfg.table)
   }
 
-  async createTable(schema: JsonSchema<any, DBM>, opt?: CommonDaoCreateOptions): Promise<void> {
+  async createTable(schema: JsonSchema<DBM>, opt?: CommonDaoCreateOptions): Promise<void> {
     this.requireWriteAccess()
     await this.cfg.db.createTable(this.cfg.table, schema, opt)
   }

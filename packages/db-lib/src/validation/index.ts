@@ -11,12 +11,9 @@ import type { DBQueryFilter, DBQueryOrder } from '../query/dbQuery.js'
 const dbTransactionSchema = j.object.any().castAs<DBTransaction>()
 
 // Schema that accepts any value (string, number, boolean, object, array, null)
-const anyValueSchema = new JsonSchemaAnyBuilder<any, any, false>({})
+const anyValueSchema = new JsonSchemaAnyBuilder<any, false>({})
 
-export const commonDBOptionsSchema = (): JsonSchemaObjectBuilder<
-  CommonDBOptions,
-  CommonDBOptions
-> =>
+export const commonDBOptionsSchema = (): JsonSchemaObjectBuilder<CommonDBOptions, false> =>
   j.object<CommonDBOptions>({
     tx: dbTransactionSchema.optional(),
   })

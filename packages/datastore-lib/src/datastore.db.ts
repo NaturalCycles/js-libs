@@ -602,7 +602,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
         if (dtype === DatastoreType.Blob) {
           s.properties![name] = {
             instanceof: 'Buffer',
-          } as JsonSchema<any, ROW[typeof name]>
+          } as JsonSchema<ROW[typeof name]>
         } else if (dtype === DatastoreType.Text || dtype === DatastoreType.String) {
           s.properties![name] = {
             type: 'string',

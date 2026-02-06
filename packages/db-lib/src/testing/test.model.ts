@@ -31,7 +31,7 @@ export const testItemTMSchema = j.object<TestItemTM>({
   even: j.boolean().optional(),
 })
 
-export const testItemBMSchema: JsonSchemaObjectBuilder<TestItemBM, TestItemBM, false> =
+export const testItemBMSchema: JsonSchemaObjectBuilder<TestItemBM, false> =
   j.object.dbEntity<TestItemBM>({
     // todo: figure out how to not copy-paste these 3 fields
     id: j.string(), // todo: not strictly needed here
