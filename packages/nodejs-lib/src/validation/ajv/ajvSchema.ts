@@ -11,7 +11,7 @@ import {
   getEnumType,
 } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
-import { _assert } from '@naturalcycles/js-lib/error'
+import { _assert, _try } from '@naturalcycles/js-lib/error'
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import { _deepCopy, _filterNullishValues, _sortObject } from '@naturalcycles/js-lib/object'
 import { _substringBefore } from '@naturalcycles/js-lib/string'
@@ -169,9 +169,26 @@ export class AjvSchema<OUT> {
         ? input // mutate
         : _deepCopy(input) // not mutate
 
-    const valid = fn(item) // mutates item, but not input
+    let valid = fn(item) // mutates item, but not input
     _typeCast<OUT>(item)
-    if (valid) return [null, item]
+
+    let output: OUT = item
+    if (valid && this.schema.postValidation) {
+      const [err, result] = _try(() => this.schema.postValidation!(output))
+      if (err) {
+        valid = false
+        ;(fn as any).errors = [
+          {
+            instancePath: '',
+            message: err.message,
+          },
+        ]
+      } else {
+        output = result
+      }
+    }
+
+    if (valid) return [null, output]
 
     const errors = fn.errors!
 
@@ -202,7 +219,7 @@ export class AjvSchema<OUT> {
         inputId,
       }),
     )
-    return [err, item]
+    return [err, output]
   }
 
   getValidationFunction(): ValidationFunction<OUT, AjvValidationError> {
@@ -719,6 +736,22 @@ export class JsonSchemaTerminal<OUT, Opt> {
 
   getValidationFunction(): ValidationFunction<OUT, AjvValidationError> {
     return this.ajvSchema.getValidationFunction()
+  }
+
+  /**
+   * Specify a function to be called after the normal validation is finished.
+   *
+   * This function will receive the validated, type-safe data, and you can use it
+   * to do further validations, e.g. conditional validations based on certain property values,
+   * or to do data modifications either by mutating the input or returning a new value.
+   *
+   * If you throw an error from this function, it will show up as an error in the validation.
+   */
+  postValidation<OUT2 = OUT>(fn: PostValidatonFn<OUT, OUT2>): JsonSchemaTerminal<OUT2, Opt> {
+    const clone = this.cloneAndUpdateSchema({
+      postValidation: fn,
+    })
+    return clone as unknown as JsonSchemaTerminal<OUT2, Opt>
   }
 
   /**
@@ -1911,6 +1944,7 @@ export interface JsonSchema<OUT = unknown> {
   precision?: number
   customValidations?: CustomValidatorFn[]
   customConversions?: CustomConverterFn<any>[]
+  postValidation?: PostValidatonFn<any, OUT>
 }
 
 function object(props: AnyObject): never
@@ -2178,6 +2212,7 @@ type TupleOut<T extends readonly JsonSchemaAnyBuilder<any, any>[]> = {
   [K in keyof T]: T[K] extends JsonSchemaAnyBuilder<infer O, any> ? O : never
 }
 
+export type PostValidatonFn<OUT, OUT2> = (v: OUT) => OUT2
 export type CustomValidatorFn = (v: any) => string | undefined
 export type CustomConverterFn<OUT> = (v: any) => OUT
 

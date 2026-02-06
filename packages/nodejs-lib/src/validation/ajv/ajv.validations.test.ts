@@ -3964,6 +3964,139 @@ describe('convert', () => {
   })
 })
 
+describe('postValidation', () => {
+  test('should call postValidation after successful validation', () => {
+    const calls: unknown[] = []
+    const schema = j
+      .string()
+      .minLength(1)
+      .postValidation(v => {
+        calls.push(v)
+        return v
+      })
+
+    const [err, result] = schema.getValidationResult('hello')
+
+    expect(err).toBeNull()
+    expect(result).toBe('hello')
+    expect(calls).toEqual(['hello'])
+  })
+
+  test('should not call postValidation when validation fails', () => {
+    const calls: unknown[] = []
+    const schema = j
+      .string()
+      .minLength(5)
+      .postValidation(v => {
+        calls.push(v)
+        return v
+      })
+
+    const [err] = schema.getValidationResult('hi')
+
+    expect(err).not.toBeNull()
+    expect(calls).toEqual([])
+  })
+
+  test('should return validation error when postValidation throws', () => {
+    const schema = j.string().postValidation(() => {
+      throw new Error('custom post-validation error')
+    })
+
+    const [err] = schema.getValidationResult('hello')
+
+    expect(err).not.toBeNull()
+    expect(err!.message).toContain('custom post-validation error')
+  })
+
+  test('should work with isValid', () => {
+    const schemaPass = j.string().postValidation(v => v)
+    const schemaFail = j.string().postValidation(() => {
+      throw new Error('nope')
+    })
+
+    expect(schemaPass.isValid('hello')).toBe(true)
+    expect(schemaFail.isValid('hello')).toBe(false)
+  })
+
+  test('should throw from validate when postValidation throws', () => {
+    const schema = j.string().postValidation(() => {
+      throw new Error('post error')
+    })
+
+    expect(() => schema.validate('hello')).toThrow('post error')
+  })
+
+  test('should allow mutating the input in an object schema', () => {
+    interface Foo {
+      name: string
+    }
+
+    const schema = j.object<Foo>({ name: j.string() }).postValidation(v => {
+      v.name = v.name.toUpperCase()
+      return v
+    })
+
+    const [err, result] = schema.getValidationResult({ name: 'hello' })
+
+    expect(err).toBeNull()
+    expect(result).toEqual({ name: 'HELLO' })
+  })
+
+  test('should support type narrowing via OUT2', () => {
+    interface Input {
+      value: string
+      computed?: number
+    }
+
+    interface Output {
+      value: string
+      computed: number
+    }
+
+    const schema = j
+      .object<Input>({ value: j.string(), computed: j.number().optional() })
+      .postValidation((v): Output => {
+        v.computed = v.value.length
+        return v as Output
+      })
+
+    const [err, result] = schema.getValidationResult({ value: 'hello' })
+
+    expect(err).toBeNull()
+    expectTypeOf(result).toEqualTypeOf<Output>()
+    expect(result).toEqual({ value: 'hello', computed: 5 })
+  })
+
+  test('should support optional schemas with postValidation', () => {
+    const schema = j
+      .string()
+      .optional()
+      .postValidation(v => v)
+
+    expectTypeOf(schema.out).toEqualTypeOf<string | undefined>()
+  })
+
+  test('should preserve optional typing through postValidation', () => {
+    const schema = j
+      .number()
+      .optional()
+      .postValidation(v => v)
+
+    expectTypeOf(schema.out).toEqualTypeOf<number | undefined>()
+    expectTypeOf(schema.opt).toEqualTypeOf<true>()
+  })
+
+  test('should allow changing the type from optional to required via postValidation', () => {
+    const schema = j
+      .string()
+      .optional()
+      .postValidation<string>(v => v ?? 'default')
+
+    expectTypeOf(schema.out).toEqualTypeOf<string>()
+  })
+})
+
 describe('getValidationResult', () => {
   test('should validate and infer the type', () => {
     const schema = j.object<{ string: string; nested: { string: string } }>({

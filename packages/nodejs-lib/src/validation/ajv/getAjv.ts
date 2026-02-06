@@ -725,6 +725,13 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
+  // postValidation is handled in AjvSchema.getValidationResult, not by Ajv itself.
+  // We register it here so Ajv's strict mode doesn't reject the keyword.
+  ajv.addKeyword({
+    keyword: 'postValidation',
+    valid: true,
+  })
+
   return ajv
 }
 
