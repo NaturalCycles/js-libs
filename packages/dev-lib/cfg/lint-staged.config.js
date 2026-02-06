@@ -57,7 +57,7 @@ if (oxlintConfigPath) {
     '--type-check',
     '--fix',
     '--fix-suggestions',
-    // '--fix-dangerously', // disabled, too unsafe
+    '--fix-dangerously',
     '--max-warnings=0',
   ]
     .filter(Boolean)
