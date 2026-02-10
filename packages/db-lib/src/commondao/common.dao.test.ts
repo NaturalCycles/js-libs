@@ -4,6 +4,7 @@ import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalc
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
 import type { BaseDBEntity, UnixTimestamp, Unsaved } from '@naturalcycles/js-lib/types'
 import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
@@ -800,6 +801,58 @@ describe('indexed', () => {
 
     const saveOptions = saveBatchSpy.mock.calls[0]![2]!
     // Properties NOT in indexed should be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['k2', 'k3', 'nested']))
+    // Properties IN indexed should NOT be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should correctly compute excludeFromIndexes when rows have different properties', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'even'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    // First row has minimal properties, second row has additional properties
+    const items = [
+      createTestItemBM(1),
+      { ...createTestItemBM(2), k2: 'extra', nested: { foo: 42 } },
+    ]
+
+    await dao.saveBatch(items)
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // All properties NOT in indexed should be in excludeFromIndexes, including those only in second row
+    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['k2', 'k3', 'nested']))
+    // Properties IN indexed should NOT be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should correctly compute excludeFromIndexes for streamSave when rows have different properties', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'even'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    // First row has minimal properties, second row has additional properties
+    const items = [
+      createTestItemBM(1),
+      { ...createTestItemBM(2), k2: 'extra', nested: { foo: 42 } },
+    ]
+
+    await dao.streamSave(Pipeline.fromArray(items))
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // All properties NOT in indexed should be in excludeFromIndexes, including those only in second row
     expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['k2', 'k3', 'nested']))
     // Properties IN indexed should NOT be in excludeFromIndexes
     expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
