@@ -113,8 +113,18 @@ export interface CommonDaoCfg<
 
   /**
    * Used by e.g Datastore.
+   * Lists properties to EXCLUDE from indexing.
+   * Mutually exclusive with `indexed`.
    */
   excludeFromIndexes?: (keyof DBM)[]
+
+  /**
+   * Inverted alternative to `excludeFromIndexes`:
+   * lists only the properties that SHOULD be indexed.
+   * All other properties will be excluded from indexing at save time.
+   * Mutually exclusive with `excludeFromIndexes`.
+   */
+  indexed?: (keyof DBM)[]
 
   /**
    * Used by e.g Firestore.

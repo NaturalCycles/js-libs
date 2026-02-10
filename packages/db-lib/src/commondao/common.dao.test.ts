@@ -749,6 +749,90 @@ test('should not be able to query by a non-indexed property', async () => {
   )
 })
 
+describe('indexed', () => {
+  test('should throw when both excludeFromIndexes and indexed are set', () => {
+    expect(
+      () =>
+        new CommonDao<TestItemBM>({
+          table: TEST_TABLE,
+          db,
+          excludeFromIndexes: ['k1'],
+          indexed: ['k2'],
+        }),
+    ).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: excludeFromIndexes and indexed are mutually exclusive]`,
+    )
+  })
+
+  test('should prevent queries on non-indexed properties', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'even'],
+    })
+
+    await dao.saveBatch(createTestItemsBM(5))
+
+    // Querying on indexed property should work
+    expect(await dao.query().filterEq('k1', 'v1').runQueryCount()).toBe(1)
+
+    // Querying by id should always work
+    expect(await dao.query().filterEq('id', 'id1').runQueryCount()).toBe(1)
+
+    // Querying on non-indexed property should throw
+    await expect(
+      dao.query().filterEq('k2', 'v2').runQueryCount(),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: cannot query on non-indexed property: TEST_TABLE.k2]`,
+    )
+  })
+
+  test('should correctly pass excludeFromIndexes to db.saveBatch', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'even'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.saveBatch(createTestItemsBM(1))
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // Properties NOT in indexed should be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['k2', 'k3', 'nested']))
+    // Properties IN indexed should NOT be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should work together with compress', async () => {
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['id'],
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // __compressed should be in excludeFromIndexes (added by compress logic)
+    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['__compressed']))
+
+    // Verify data round-trips correctly
+    const result = await dao.getById('id1')
+    expect(result).toMatchObject({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+    saveBatchSpy.mockRestore()
+  })
+})
+
 describe('auto compression', () => {
   test('should work', async () => {
     const dao = new CommonDao<Item>({

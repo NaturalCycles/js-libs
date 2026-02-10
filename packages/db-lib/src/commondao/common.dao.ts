@@ -1,5 +1,5 @@
 import { _isTruthy } from '@naturalcycles/js-lib'
-import { _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
+import { _difference, _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { _deepJsonEquals } from '@naturalcycles/js-lib/object/deepEquals.js'
@@ -91,9 +91,15 @@ export class CommonDao<
       delete this.cfg.hooks!.createRandomId
     }
 
+    _assert(
+      !(this.cfg.excludeFromIndexes && this.cfg.indexed),
+      'excludeFromIndexes and indexed are mutually exclusive',
+    )
+
     // If the auto-compression is enabled,
     // then we need to ensure that the '__compressed' property is part of the index exclusion list.
-    if (this.cfg.compress?.keys) {
+    // Skip when `indexed` is configured — __compressed is naturally excluded since it won't be in the indexed list.
+    if (this.cfg.compress?.keys && !this.cfg.indexed) {
       const current = this.cfg.excludeFromIndexes
       this.cfg.excludeFromIndexes = current ? [...current] : []
       if (!this.cfg.excludeFromIndexes.includes('__compressed' as any)) {
@@ -469,9 +475,9 @@ export class CommonDao<
     const dbm = await this.bmToDBM(bm, opt) // validates BM
     this.cfg.hooks!.beforeSave?.(dbm)
     const table = opt.table || this.cfg.table
-    const saveOptions = this.prepareSaveOptions(opt)
 
     const row = await this.dbmToStorageRow(dbm)
+    const saveOptions = this.prepareSaveOptions(opt, Object.keys(row))
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -487,9 +493,9 @@ export class CommonDao<
     const validDbm = await this.anyToDBM(dbm, opt)
     this.cfg.hooks!.beforeSave?.(validDbm)
     const table = opt.table || this.cfg.table
-    const saveOptions = this.prepareSaveOptions(opt)
 
     const row = await this.dbmToStorageRow(validDbm)
+    const saveOptions = this.prepareSaveOptions(opt, Object.keys(row))
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -508,9 +514,9 @@ export class CommonDao<
       dbms.forEach(dbm => this.cfg.hooks!.beforeSave!(dbm))
     }
     const table = opt.table || this.cfg.table
-    const saveOptions = this.prepareSaveOptions(opt)
 
     const rows = await this.dbmsToStorageRows(dbms)
+    const saveOptions = this.prepareSaveOptions(opt, Object.keys(rows[0]!))
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -532,9 +538,9 @@ export class CommonDao<
       validDbms.forEach(dbm => this.cfg.hooks!.beforeSave!(dbm))
     }
     const table = opt.table || this.cfg.table
-    const saveOptions = this.prepareSaveOptions(opt)
 
     const rows = await this.dbmsToStorageRows(validDbms)
+    const saveOptions = this.prepareSaveOptions(opt, Object.keys(rows[0]!))
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -546,11 +552,14 @@ export class CommonDao<
 
   private prepareSaveOptions(
     opt: CommonDaoSaveOptions<BM, DBM>,
+    rowKeys?: string[],
   ): CommonDBSaveOptions<ObjectWithId> {
     let {
       saveMethod,
       assignGeneratedIds = this.cfg.assignGeneratedIds,
-      excludeFromIndexes = this.cfg.excludeFromIndexes,
+      excludeFromIndexes = this.cfg.indexed && rowKeys
+        ? this.computeExcludeFromIndexes(rowKeys)
+        : this.cfg.excludeFromIndexes,
     } = opt
 
     // If the user passed in custom `excludeFromIndexes` with the save() call,
@@ -575,6 +584,10 @@ export class CommonDao<
     }
   }
 
+  private computeExcludeFromIndexes(rowKeys: string[]): (keyof DBM)[] {
+    return _difference(rowKeys, this.cfg.indexed! as string[]) as (keyof DBM)[]
+  }
+
   /**
    * "Streaming" is implemented by buffering incoming rows into **batches**
    * (of size opt.chunkSize, which defaults to 500),
@@ -591,7 +604,11 @@ export class CommonDao<
     opt.skipValidation ??= true
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    const saveOptions = this.prepareSaveOptions(opt)
+    // When `indexed` is configured, defer saveOptions until the first batch arrives,
+    // because we need the actual storage row keys to compute excludeFromIndexes.
+    let saveOptions: CommonDBSaveOptions<ObjectWithId> | undefined = this.cfg.indexed
+      ? undefined
+      : this.prepareSaveOptions(opt)
     const { beforeSave } = this.cfg.hooks!
 
     const { chunkSize = 500, chunkConcurrency = 32, errorMode } = opt
@@ -609,6 +626,7 @@ export class CommonDao<
       .chunk(chunkSize)
       .map(
         async batch => {
+          saveOptions ??= this.prepareSaveOptions(opt, Object.keys(batch[0]!))
           await this.cfg.db.saveBatch(table, batch, saveOptions)
           return batch
         },
@@ -1273,12 +1291,24 @@ export class CommonDao<
    * Throws if query uses a property that is in `excludeFromIndexes` list.
    */
   private validateQueryIndexes(q: DBQuery<DBM>): void {
-    const { excludeFromIndexes, indexes } = this.cfg
+    const { excludeFromIndexes, indexed, indexes } = this.cfg
 
     if (excludeFromIndexes) {
       for (const f of q._filters) {
         _assert(
           !excludeFromIndexes.includes(f.name),
+          `cannot query on non-indexed property: ${this.cfg.table}.${f.name as string}`,
+          {
+            query: q.pretty(),
+          },
+        )
+      }
+    }
+
+    if (indexed) {
+      for (const f of q._filters) {
+        _assert(
+          f.name === 'id' || indexed.includes(f.name),
           `cannot query on non-indexed property: ${this.cfg.table}.${f.name as string}`,
           {
             query: q.pretty(),
