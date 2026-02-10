@@ -31,6 +31,18 @@ describe('immutability', () => {
   })
 })
 
+describe('any', () => {
+  test('should accept any value', () => {
+    const schema = j.any()
+
+    const validCases: any[] = ['hello', 42, true, null, { a: 1 }, [1, 2], undefined]
+    validCases.forEach(value => {
+      const [err] = schema.getValidationResult(value)
+      expect(err, _stringify(value)).toBeNull()
+    })
+  })
+})
+
 describe('string', () => {
   test('should work correctly with type inference', () => {
     const schema = j.string()
@@ -40,6 +52,28 @@ describe('string', () => {
     expect(err).toBeNull()
     expect(result).toBe('foo')
     expectTypeOf(result).toEqualTypeOf<string>()
+  })
+
+  describe('nullable', () => {
+    test('should accept both strings and null', () => {
+      const schema = j.string().nullable()
+
+      const [err1] = schema.getValidationResult('hello')
+      expect(err1).toBeNull()
+
+      const [err2] = schema.getValidationResult(null)
+      expect(err2).toBeNull()
+    })
+
+    test('should reject non-string, non-null values', () => {
+      const schema = j.string().nullable()
+
+      const invalidCases: any[] = [42, true, {}, []]
+      invalidCases.forEach(value => {
+        const [err] = schema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
   })
 
   describe('optional(values)', () => {
@@ -824,6 +858,22 @@ describe('string', () => {
         })
       })
 
+      test('should work with [) inclusiveness - include start, exclude end', () => {
+        const schema = j.string().isoDate().between('2018-06-20', '2018-06-22', '[)')
+
+        const validCases: any[] = ['2018-06-20', '2018-06-21']
+        validCases.forEach(date => {
+          const [err] = schema.getValidationResult(date)
+          expect(err, String(date)).toBeNull()
+        })
+
+        const invalidCases: any[] = ['2018-06-19', '2018-06-22', '2018-06-23']
+        invalidCases.forEach(date => {
+          const [err] = schema.getValidationResult(date)
+          expect(err, String(date)).not.toBeNull()
+        })
+      })
+
       test('should reject invalid date for the rule', () => {
         const schema1 = j.string().isoDate().between('abcd', '2018-06-22', '[]')
         const [err1] = schema1.getValidationResult('2018-06-21')
@@ -1397,6 +1447,28 @@ describe('number', () => {
     })
   })
 
+  describe('nullable', () => {
+    test('should accept both numbers and null', () => {
+      const schema = j.number().nullable()
+
+      const [err1] = schema.getValidationResult(42)
+      expect(err1).toBeNull()
+
+      const [err2] = schema.getValidationResult(null)
+      expect(err2).toBeNull()
+    })
+
+    test('should reject non-number, non-null values', () => {
+      const schema = j.number().nullable()
+
+      const invalidCases: any[] = ['abc', true, {}, []]
+      invalidCases.forEach(value => {
+        const [err] = schema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
+  })
+
   describe('optional(values)', () => {
     test('should convert specific values to `undefined`', () => {
       const schema = j.object<{ foo?: number }>({ foo: j.number().optional([6147]) })
@@ -1470,6 +1542,28 @@ describe('number', () => {
     test('should reject a number with an invalid value', () => {
       const invalidCases = [1, 3]
       const schema = j.number().multipleOf(2)
+
+      invalidCases.forEach(value => {
+        const [err] = schema.getValidationResult(value)
+        expect(err, String(value)).not.toBeNull()
+      })
+    })
+  })
+
+  describe('integer', () => {
+    test('should accept integers', () => {
+      const testCases = [-2, 0, 1, 100]
+      const schema = j.number().integer()
+
+      testCases.forEach(value => {
+        const [err] = schema.getValidationResult(value)
+        expect(err, String(value)).toBeNull()
+      })
+    })
+
+    test('should reject floats', () => {
+      const invalidCases = [1.5, 3.14, -0.1]
+      const schema = j.number().integer()
 
       invalidCases.forEach(value => {
         const [err] = schema.getValidationResult(value)
@@ -2031,6 +2125,31 @@ describe('boolean', () => {
     })
   })
 
+  describe('nullable', () => {
+    test('should accept both booleans and null', () => {
+      const schema = j.boolean().nullable()
+
+      const [err1] = schema.getValidationResult(true)
+      expect(err1).toBeNull()
+
+      const [err2] = schema.getValidationResult(false)
+      expect(err2).toBeNull()
+
+      const [err3] = schema.getValidationResult(null)
+      expect(err3).toBeNull()
+    })
+
+    test('should reject non-boolean, non-null values', () => {
+      const schema = j.boolean().nullable()
+
+      const invalidCases: any[] = ['a', 0, {}, []]
+      invalidCases.forEach(value => {
+        const [err] = schema.getValidationResult(value)
+        expect(err, _stringify(value)).not.toBeNull()
+      })
+    })
+  })
+
   describe('optional(values)', () => {
     test('should convert specific values to `undefined`', () => {
       const schema = j.object<{ foo?: boolean }>({ foo: j.boolean().optional(false) })
@@ -2218,6 +2337,22 @@ describe('array', () => {
       })
     })
   })
+
+  describe('unique', () => {
+    test('should accept arrays with unique items', () => {
+      const schema = j.array(j.number()).unique()
+
+      const [err] = schema.getValidationResult([1, 2, 3])
+      expect(err).toBeNull()
+    })
+
+    test('should reject arrays with duplicate items', () => {
+      const schema = j.array(j.number()).unique()
+
+      const [err] = schema.getValidationResult([1, 2, 2])
+      expect(err).not.toBeNull()
+    })
+  })
 })
 
 describe('tuple', () => {
@@ -2334,6 +2469,34 @@ describe('set', () => {
 
     expect(err).toBeNull()
     expect(result.set.toArray()).toEqual(['foo', 'bar'])
+  })
+
+  describe('min', () => {
+    test('should reject sets with fewer items', () => {
+      const schema = j.object
+        .infer({ set: j.set(j.string()).min(2) })
+        .isOfType<{ set: Set2<string> }>()
+
+      const [err1] = schema.getValidationResult({ set: ['a', 'b'] })
+      expect(err1).toBeNull()
+
+      const [err2] = schema.getValidationResult({ set: ['a'] })
+      expect(err2).not.toBeNull()
+    })
+  })
+
+  describe('max', () => {
+    test('should reject sets with more items', () => {
+      const schema = j.object
+        .infer({ set: j.set(j.string()).max(2) })
+        .isOfType<{ set: Set2<string> }>()
+
+      const [err1] = schema.getValidationResult({ set: ['a', 'b'] })
+      expect(err1).toBeNull()
+
+      const [err2] = schema.getValidationResult({ set: ['a', 'b', 'c'] })
+      expect(err2).not.toBeNull()
+    })
   })
 })
 
@@ -2718,6 +2881,34 @@ describe('object', () => {
       })
       expectTypeOf(result).toEqualTypeOf<DB>()
     })
+
+    test('should work as an instance method on j.object', () => {
+      interface Foo {
+        foo: string
+      }
+      interface FooDB extends BaseDBEntity {
+        foo: string
+      }
+
+      const baseSchema = j.object<Foo>({ foo: j.string() })
+      const dbSchema = baseSchema.dbEntity().isOfType<FooDB>()
+
+      const [err, result] = dbSchema.getValidationResult({
+        id: 'id1',
+        created: MOCK_TS_2018_06_21,
+        updated: MOCK_TS_2018_06_21,
+        foo: 'hello',
+      })
+
+      expect(err).toBeNull()
+      expect(result).toEqual({
+        id: 'id1',
+        created: MOCK_TS_2018_06_21,
+        updated: MOCK_TS_2018_06_21,
+        foo: 'hello',
+      })
+      expectTypeOf(result).toExtend<FooDB>()
+    })
   })
 
   describe('.infer', () => {
@@ -2877,6 +3068,33 @@ describe('object', () => {
           string: 'hello',
           foo: 'world',
         })
+      })
+    })
+
+    describe('.dbEntity instance method', () => {
+      test('should extend an inferred object schema with base DB fields', () => {
+        interface FooDB extends BaseDBEntity {
+          foo: string
+        }
+
+        const baseSchema = j.object.infer({ foo: j.string() })
+        const dbSchema = baseSchema.dbEntity().isOfType<FooDB>()
+
+        const [err, result] = dbSchema.getValidationResult({
+          id: 'id1',
+          created: MOCK_TS_2018_06_21,
+          updated: MOCK_TS_2018_06_21,
+          foo: 'hello',
+        })
+
+        expect(err).toBeNull()
+        expect(result).toEqual({
+          id: 'id1',
+          created: MOCK_TS_2018_06_21,
+          updated: MOCK_TS_2018_06_21,
+          foo: 'hello',
+        })
+        expectTypeOf(result).toExtend<FooDB>()
       })
     })
   })
@@ -3349,6 +3567,23 @@ describe('object', () => {
       }
     })
   })
+
+  describe('.withRegexKeys', () => {
+    test('should accept keys matching the regex and strip non-matching keys', () => {
+      const schema = j.object.withRegexKeys(/^\d{3,4}$/, j.number()).isOfType<StringMap<number>>()
+
+      const [err, result] = schema.getValidationResult({ '123': 1, '1234': 2, abc: 3 })
+      expect(err).toBeNull()
+      expect(result).toEqual({ '123': 1, '1234': 2 })
+    })
+
+    test('should reject invalid value types', () => {
+      const schema = j.object.withRegexKeys(/^\d{3,4}$/, j.number()).isOfType<StringMap<number>>()
+
+      const [err] = schema.getValidationResult({ '123': 'not a number' })
+      expect(err).not.toBeNull()
+    })
+  })
 })
 
 describe('enum', () => {
@@ -3406,6 +3641,16 @@ describe('enum', () => {
     expect(err).toBeNull()
     expect(result).toBe(OompaLoompa.Bar)
     expectTypeOf(result).toEqualTypeOf<OompaLoompa>()
+  })
+
+  test('should produce custom error message when msg option is provided', () => {
+    const schema = j.enum(['foo', 'bar'], { msg: 'must be foo or bar' })
+
+    const [err] = schema.getValidationResult('baz')
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be foo or bar
+      Input: baz]
+    `)
   })
 })
 
@@ -3903,6 +4148,12 @@ describe('default', () => {
     expect(err4).toBeNull()
     expect(result4).toEqual({ foo: 'good', bar: 1, shu: true })
   })
+
+  test('.optional() + .default() should throw an assertion error', () => {
+    expect(() => j.string().optional().default('x').build()).toThrow(
+      '.optional() and .default() should not be used together',
+    )
+  })
 })
 
 describe('final', () => {
@@ -4331,5 +4582,45 @@ describe('validate', () => {
         string: string
       }
     }>()
+  })
+})
+
+describe('getOriginalInput option', () => {
+  test('should use getOriginalInput for error messages instead of mutated input', () => {
+    const schema = j.object<{ foo: string }>({ foo: j.string().minLength(5) })
+    const ajvSchema = AjvSchema.create(schema)
+
+    const input = { foo: 'hi', extra: 'stripped' }
+    const originalInput = { ...input }
+
+    const [err] = ajvSchema.getValidationResult(input, {
+      getOriginalInput: () => originalInput,
+    })
+
+    expect(err).not.toBeNull()
+    // The error message should contain 'extra' from the original input
+    expect(err!.message).toContain('extra')
+  })
+})
+
+describe('j.any().instanceof()', () => {
+  test('should validate class instances', () => {
+    const ajvSchema = AjvSchema.create({ type: 'object', instanceof: 'Date' })
+
+    const [err1] = ajvSchema.getValidationResult(new Date())
+    expect(err1).toBeNull()
+
+    const [err2] = ajvSchema.getValidationResult('not a date')
+    expect(err2).not.toBeNull()
+  })
+
+  test('should reject non-instances', () => {
+    const ajvSchema = AjvSchema.create({ type: 'object', instanceof: 'Date' })
+
+    const invalidCases: any[] = [42, true, null, {}, []]
+    invalidCases.forEach(value => {
+      const [err] = ajvSchema.getValidationResult(value)
+      expect(err, _stringify(value)).not.toBeNull()
+    })
   })
 })

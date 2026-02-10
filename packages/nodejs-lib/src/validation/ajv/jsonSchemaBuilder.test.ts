@@ -7,6 +7,8 @@ import type {
   Branded,
   IANATimezone,
   IsoDate,
+  IsoDateTime,
+  IsoMonth,
   StringMap,
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
@@ -70,6 +72,20 @@ describe('string', () => {
     })
   })
 
+  describe('isoDateTime', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.string().isoDateTime()
+      expectTypeOf(schema1.out).toEqualTypeOf<IsoDateTime>()
+    })
+  })
+
+  describe('isoMonth', () => {
+    test('should correctly infer the type', () => {
+      const schema1 = j.string().isoMonth()
+      expectTypeOf(schema1.out).toEqualTypeOf<IsoMonth>()
+    })
+  })
+
   describe('isoDate', () => {
     test('should correctly infer the type', () => {
       const schema1 = j.string().isoDate()
@@ -114,6 +130,13 @@ describe('number', () => {
     // number | undefined vs number
     const schema2 = j.number().optional().isOfType<number>()
     expectTypeOf(schema2).toBeNever()
+  })
+
+  describe('integer', () => {
+    test('should still infer number', () => {
+      const schema1 = j.number().integer()
+      expectTypeOf(schema1.out).toEqualTypeOf<number>()
+    })
   })
 
   describe('optional(values)', () => {
@@ -500,6 +523,19 @@ describe('object', () => {
         expectTypeOf(schema2.out).toEqualTypeOf<{ a: string | null; b?: number }>()
       })
     })
+
+    describe('.dbEntity instance method', () => {
+      test('should correctly infer the type', () => {
+        interface FooDB extends BaseDBEntity {
+          foo: string
+        }
+
+        const schema = j.object.infer({ foo: j.string() }).dbEntity().isOfType<FooDB>()
+
+        expectTypeOf(schema).not.toBeNever()
+        expectTypeOf(schema.out).toExtend<FooDB>()
+      })
+    })
   })
 
   describe('.any', () => {
@@ -832,5 +868,32 @@ describe('schema cloning with custom/convert', () => {
 
     expect(baseSchema.validate({ value: 3.7 })).toEqual({ value: 4 }) // just rounded
     expect(withExtraSchema.validate({ value: 3.7 })).toEqual({ value: 8 }) // rounded then doubled
+  })
+})
+
+describe('schema metadata methods', () => {
+  test('$id should appear in build output', () => {
+    const schema = j.string().$id('MyId').build()
+    expect(schema.$id).toBe('MyId')
+  })
+
+  test('$schema should appear in build output', () => {
+    const schema = j.string().$schema('http://json-schema.org/draft-07/schema#').build()
+    expect(schema.$schema).toBe('http://json-schema.org/draft-07/schema#')
+  })
+
+  test('title should appear in build output', () => {
+    const schema = j.string().title('My Title').build()
+    expect(schema.title).toBe('My Title')
+  })
+
+  test('description should appear in build output', () => {
+    const schema = j.string().description('My Description').build()
+    expect(schema.description).toBe('My Description')
+  })
+
+  test('deprecated should appear in build output', () => {
+    const schema = j.string().deprecated().build()
+    expect(schema.deprecated).toBe(true)
   })
 })
