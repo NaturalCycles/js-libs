@@ -305,6 +305,19 @@ export const j = {
     if (typeof v === 'number') baseType = 'number'
     return new JEnum<V>([v], baseType)
   },
+
+  /**
+   * Create a JSchema from a plain JsonSchema object.
+   * Useful when the schema is loaded from a JSON file or generated externally.
+   *
+   * Optionally accepts a custom Ajv instance and/or inputName for error messages.
+   */
+  fromSchema<OUT>(
+    schema: JsonSchema<OUT>,
+    cfg?: { ajv?: Ajv; inputName?: string },
+  ): JSchema<OUT, false> {
+    return new JSchema<OUT, false>(schema, cfg)
+  },
 }
 
 // ==== Symbol for caching compiled AjvSchema ====
@@ -329,15 +342,18 @@ export type WithCachedAjvSchema<Base, OUT> = Base & {
 export class JSchema<OUT, Opt> {
   protected [HIDDEN_AJV_SCHEMA]: AjvSchema<any> | undefined
   protected schema: JsonSchema
+  private _cfg?: { ajv?: Ajv; inputName?: string }
 
-  constructor(schema: JsonSchema) {
+  constructor(schema: JsonSchema, cfg?: { ajv?: Ajv; inputName?: string }) {
     this.schema = schema
+    this._cfg = cfg
   }
 
-  private _compiledResult: { fn: any; builtSchema: JsonSchema } | undefined
+  private _builtSchema?: JsonSchema
+  private _compiledFns?: WeakMap<Ajv, any>
 
-  private _getCompiled(): { fn: any; builtSchema: JsonSchema } {
-    if (!this._compiledResult) {
+  private _getBuiltSchema(): JsonSchema {
+    if (!this._builtSchema) {
       const builtSchema = this.build()
 
       if (this instanceof JBuilder) {
@@ -348,14 +364,29 @@ export class JSchema<OUT, Opt> {
       }
 
       delete builtSchema.optionalField
-      const fn = getAjv().compile(builtSchema as any)
-
-      // Cache AjvSchema wrapper for HIDDEN_AJV_SCHEMA backward compat
-      this[HIDDEN_AJV_SCHEMA] = AjvSchema._wrap<any>(builtSchema, fn)
-      this._compiledResult = { fn, builtSchema }
+      this._builtSchema = builtSchema
     }
 
-    return this._compiledResult
+    return this._builtSchema
+  }
+
+  private _getCompiled(overrideAjv?: Ajv): { fn: any; builtSchema: JsonSchema } {
+    const builtSchema = this._getBuiltSchema()
+    const ajv = overrideAjv ?? this._cfg?.ajv ?? getAjv()
+
+    this._compiledFns ??= new WeakMap()
+    let fn = this._compiledFns.get(ajv)
+    if (!fn) {
+      fn = ajv.compile(builtSchema as any)
+      this._compiledFns.set(ajv, fn)
+
+      // Cache AjvSchema wrapper for HIDDEN_AJV_SCHEMA backward compat (default ajv only)
+      if (!overrideAjv) {
+        this[HIDDEN_AJV_SCHEMA] = AjvSchema._wrap<any>(builtSchema, fn)
+      }
+    }
+
+    return { fn, builtSchema }
   }
 
   getSchema(): JsonSchema {
@@ -385,6 +416,7 @@ export class JSchema<OUT, Opt> {
   clone(): this {
     const cloned = Object.create(Object.getPrototypeOf(this))
     cloned.schema = deepCopyPreservingFunctions(this.schema)
+    cloned._cfg = this._cfg
     return cloned
   }
 
@@ -409,8 +441,9 @@ export class JSchema<OUT, Opt> {
     input: unknown,
     opt: AjvValidationOptions = {},
   ): ValidationFunctionResult<OUT, AjvValidationError> {
-    const { fn, builtSchema } = this._getCompiled()
-    const inputName = builtSchema.$id ? _substringBefore(builtSchema.$id, '.') : undefined
+    const { fn, builtSchema } = this._getCompiled(opt.ajv)
+    const inputName =
+      this._cfg?.inputName || (builtSchema.$id ? _substringBefore(builtSchema.$id, '.') : undefined)
     return executeValidation<OUT>(fn, builtSchema, input, opt, inputName)
   }
 
@@ -2025,6 +2058,13 @@ function deepCopyPreservingFunctions<T>(obj: T): T {
 // ==== Types & Interfaces ====
 
 export interface AjvValidationOptions {
+  /**
+   * Custom Ajv instance to use for this validation.
+   * Overrides the default Ajv or any Ajv set at construction time.
+   * Compiled functions are cached per Ajv instance.
+   */
+  ajv?: Ajv
+
   /**
    * Defaults to true,
    * because that's how AJV works by default,
