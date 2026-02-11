@@ -2,7 +2,7 @@
   "language": "@/js",
   "languageOptions": {
     "ecmaVersion": 2026,
-    "parser": "typescript-eslint/parser@8.54.0",
+    "parser": "typescript-eslint/parser@8.55.0",
     "parserOptions": {
       "extraFileExtensions": {
         "0": ".html"
@@ -14,10 +14,9 @@
   "linterOptions": {
     "reportUnusedDisableDirectives": 2
   },
-  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.54.0"],
+  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.55.0"],
   "rules": {
     "@typescript-eslint/class-literal-property-style": [2],
-    "@typescript-eslint/consistent-type-assertions": [2],
     "@typescript-eslint/explicit-member-accessibility": [
       2,
       {
@@ -135,12 +134,6 @@
       }
     ],
     "no-dupe-args": [2],
-    "no-misleading-character-class": [
-      2,
-      {
-        "allowEscape": false
-      }
-    ],
     "no-new-symbol": [2],
     "no-octal": [2],
     "no-unreachable": [2],

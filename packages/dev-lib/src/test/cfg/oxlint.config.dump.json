@@ -71,7 +71,9 @@
     "no-import-assign": "warn",
     "no-invalid-regexp": "warn",
     "no-irregular-whitespace": "warn",
+    "no-iterator": "warn",
     "no-loss-of-precision": "warn",
+    "no-misleading-character-class": "warn",
     "no-new": "deny",
     "no-new-native-nonconstructor": "warn",
     "no-new-wrappers": "deny",
@@ -234,8 +236,25 @@
     "typescript/adjacent-overload-signatures": "deny",
     "typescript/array-type": "deny",
     "typescript/await-thenable": "warn",
+    "typescript/ban-ts-comment": [
+      "deny",
+      [
+        {
+          "ts-expect-error": "allow-with-description",
+          "ts-ignore": true
+        }
+      ]
+    ],
     "typescript/ban-tslint-comment": "deny",
     "typescript/consistent-generic-constructors": ["deny", ["constructor"]],
+    "typescript/consistent-type-assertions": [
+      "deny",
+      [
+        {
+          "assertionStyle": "as"
+        }
+      ]
+    ],
     "typescript/consistent-type-definitions": ["deny", ["interface"]],
     "typescript/consistent-type-imports": "deny",
     "typescript/explicit-function-return-type": [
@@ -274,7 +293,17 @@
     ],
     "typescript/no-meaningless-void-operator": "warn",
     "typescript/no-misused-new": "warn",
-    "typescript/no-misused-promises": "allow",
+    "typescript/no-misused-promises": [
+      "deny",
+      [
+        {
+          "checksVoidReturn": {
+            "arguments": false,
+            "properties": false
+          }
+        }
+      ]
+    ],
     "typescript/no-misused-spread": "warn",
     "typescript/no-mixed-enums": "deny",
     "typescript/no-non-null-asserted-nullish-coalescing": "deny",
@@ -311,7 +340,10 @@
     "typescript/no-this-alias": "allow",
     "typescript/no-unnecessary-boolean-literal-compare": "deny",
     "typescript/no-unnecessary-parameter-property-assignment": "warn",
+    "typescript/no-unnecessary-template-expression": "deny",
+    "typescript/no-unnecessary-type-arguments": "allow",
     "typescript/no-unnecessary-type-assertion": "deny",
+    "typescript/no-unnecessary-type-constraint": "deny",
     "typescript/no-unsafe-declaration-merging": "warn",
     "typescript/no-unsafe-function-type": "deny",
     "typescript/no-unsafe-unary-minus": "warn",
@@ -328,6 +360,7 @@
     "typescript/prefer-namespace-keyword": "deny",
     "typescript/prefer-optional-chain": "allow",
     "typescript/prefer-promise-reject-errors": "deny",
+    "typescript/prefer-reduce-type-parameter": "deny",
     "typescript/prefer-ts-expect-error": "deny",
     "typescript/promise-function-async": [
       "deny",
@@ -345,8 +378,16 @@
     "typescript/restrict-plus-operands": "deny",
     "typescript/restrict-template-expressions": "allow",
     "typescript/return-await": ["deny", ["error-handling-correctness-only"]],
+    "typescript/switch-exhaustiveness-check": "deny",
     "typescript/triple-slash-reference": "warn",
-    "typescript/unbound-method": "allow",
+    "typescript/unbound-method": [
+      "allow",
+      [
+        {
+          "ignoreStatic": true
+        }
+      ]
+    ],
     "unicorn/catch-error-name": [
       "deny",
       [

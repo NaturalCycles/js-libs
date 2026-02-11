@@ -104,9 +104,15 @@
     "typescript/no-non-null-asserted-nullish-coalescing": 2,
     "typescript/no-require-imports": 2,
     "typescript/no-var-requires": 2,
+    "typescript/no-unnecessary-template-expression": 2,
+    "typescript/no-unnecessary-type-arguments": 0, // not good in the end
+    "typescript/no-unnecessary-type-constraint": 2,
+    // "typescript/no-unsafe-argument": 2, // looks good, but too strict for now
+    // "typescript/no-dynamic-delete": 2,
     "typescript/prefer-optional-chain": 0, // buggy
     "typescript/non-nullable-type-assertion-style": 2,
     "typescript/prefer-literal-enum-member": 2,
+    "typescript/prefer-reduce-type-parameter": 2,
     "typescript/promise-function-async": [
       2,
       {
@@ -118,12 +124,25 @@
     ],
     "typescript/prefer-for-of": 2,
     "typescript/no-confusing-non-null-assertion": 2,
+    "typescript/ban-ts-comment": [
+      2,
+      {
+        "ts-expect-error": "allow-with-description",
+        "ts-ignore": true
+      }
+    ],
     "typescript/ban-tslint-comment": 2,
     "typescript/prefer-function-type": 2,
     "typescript/prefer-namespace-keyword": 2,
     "typescript/consistent-generic-constructors": [2, "constructor"],
     "typescript/consistent-type-definitions": [2, "interface"],
     "typescript/consistent-type-imports": 2,
+    "typescript/consistent-type-assertions": [
+      2,
+      {
+        "assertionStyle": "as"
+      }
+    ],
     "typescript/no-inferrable-types": [
       2,
       {
@@ -140,12 +159,30 @@
     "typescript/return-await": [2, "error-handling-correctness-only"],
     "typescript/only-throw-error": 2,
     "typescript/no-unsafe-function-type": 2,
-    "typescript/no-misused-promises": 0,
+    "typescript/no-misused-promises": [
+      2,
+      {
+        "checksVoidReturn": {
+          // "variables": false,
+          // "inheritedMethods": false,
+          // "returns": false
+          "arguments": false,
+          "properties": false
+        }
+      }
+    ],
     "typescript/no-mixed-enums": 2,
     "typescript/no-unnecessary-type-assertion": 2,
     "typescript/no-unnecessary-boolean-literal-compare": 2,
     "typescript/no-base-to-string": 2,
-    "typescript/unbound-method": 0,
+    // disabled, as it fails on legit unit test patterns
+    "typescript/unbound-method": [
+      0,
+      {
+        "ignoreStatic": true
+      }
+    ],
+    "typescript/switch-exhaustiveness-check": 2,
     "typescript/require-array-sort-compare": 0, // not good
     "typescript/restrict-template-expressions": 0, // not good
     "typescript/no-redundant-type-constituents": 0, // `'a' | string` is still useful for DX
