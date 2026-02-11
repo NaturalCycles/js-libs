@@ -231,7 +231,7 @@ describe('object', () => {
       bar?: number
     }
 
-    // @ts-expect-error
+    // @ts-expect-error missing optional property `bar`
     const schema1 = j.object<Schema1>({
       foo: j.string(),
     })
@@ -377,7 +377,7 @@ describe('object', () => {
         foo: string
       }
 
-      // @ts-expect-error
+      // @ts-expect-error wrong type for `foo`
       const schema1 = j.object.dbEntity<DB>({ foo: j.number() })
 
       expectTypeOf(schema1).toBeNever()
@@ -391,7 +391,7 @@ describe('object', () => {
         shu?: number
       }
 
-      // @ts-expect-error
+      // @ts-expect-error missing optional property `shu`
       const schema1 = j.object.dbEntity<DB>({
         id: j.string().branded<Id>(),
         foo: j.string(),
@@ -407,7 +407,7 @@ describe('object', () => {
         foo: string
       }
 
-      // @ts-expect-error
+      // @ts-expect-error missing overridden property `id`
       const schema1 = j.object.dbEntity<DB>({
         foo: j.string(),
       })
@@ -765,9 +765,9 @@ describe('final', () => {
   test('should not allow to call other chain functions', () => {
     const schema = j.string().final()
 
-    // @ts-expect-error
+    // @ts-expect-error .optional() is not available on final schema
     expect(() => schema.optional()).toThrow('schema.optional is not a function')
-    // @ts-expect-error
+    // @ts-expect-error .nullable() is not available on final schema
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
   })
 })

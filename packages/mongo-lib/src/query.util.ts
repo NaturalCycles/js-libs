@@ -28,24 +28,21 @@ export function dbQueryToMongoQuery<ROW extends ObjectWithId>(
 
   // filter
   // oxlint-disable-next-line unicorn/no-array-reduce
-  const query = dbQuery._filters.reduce((q, f) => {
+  const query = dbQuery._filters.reduce<Filter<ROW>>((q, f) => {
     const fname = FNAME_MAP[f.name as string] || f.name
     q[fname as keyof Filter<ROW>] = {
       ...q[fname as keyof Filter<ROW>], // in case there is a "between" query
       [OP_MAP[f.op] || f.op]: f.val,
     }
     return q
-  }, {} as Filter<ROW>)
+  }, {})
 
   // order
   // oxlint-disable-next-line unicorn/no-array-reduce
-  options.sort = dbQuery._orders.reduce(
-    (map, ord) => {
-      map[FNAME_MAP[ord.name as string] || (ord.name as string)] = ord.descending ? -1 : 1
-      return map
-    },
-    {} as Record<string, SortDirection>,
-  )
+  options.sort = dbQuery._orders.reduce<Record<string, SortDirection>>((map, ord) => {
+    map[FNAME_MAP[ord.name as string] || (ord.name as string)] = ord.descending ? -1 : 1
+    return map
+  }, {})
 
   // limit
   options.limit = dbQuery._limitValue || undefined
@@ -53,12 +50,12 @@ export function dbQueryToMongoQuery<ROW extends ObjectWithId>(
   // selectedFields
   if (dbQuery._selectedFieldNames) {
     // oxlint-disable-next-line unicorn/no-array-reduce
-    options.projection = dbQuery._selectedFieldNames.reduce(
+    options.projection = dbQuery._selectedFieldNames.reduce<StringMap<number>>(
       (map, field) => {
         map[FNAME_MAP[field as string] || (field as string)] = 1
         return map
       },
-      { _id: 1 } as StringMap<number>,
+      { _id: 1 },
     )
   }
 

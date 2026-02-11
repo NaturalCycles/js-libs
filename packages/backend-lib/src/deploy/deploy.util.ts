@@ -162,19 +162,16 @@ export function createAppYaml(
     .split(',')
     .filter(Boolean)
     // oxlint-disable-next-line unicorn/no-array-reduce
-    .reduce(
-      (map, key) => {
-        const v = process.env[key]
-        if (!v) {
-          throw new Error(
-            `appYamlPassEnv.${key} is requested, but process.env.${key} is not defined!`,
-          )
-        }
-        map[key] = v
-        return map
-      },
-      {} as Record<string, string>,
-    )
+    .reduce<Record<string, string>>((map, key) => {
+      const v = process.env[key]
+      if (!v) {
+        throw new Error(
+          `appYamlPassEnv.${key} is requested, but process.env.${key} is not defined!`,
+        )
+      }
+      map[key] = v
+      return map
+    }, {})
 
   if (Object.keys(passEnv).length) {
     console.log(

@@ -265,7 +265,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
   private mapToAirtableRecord(r: AirtableApiRecord<T>, opts: AirtableDaoOptions = {}): T {
     const o = this.validate(
       {
-        // @ts-expect-error
+        // @ts-expect-error airtableId may not exist on T
         airtableId: r.id,
         ...r.fields,
       },

@@ -137,7 +137,7 @@ export class CommonDao<
   async getByIdAsDBM(id?: ID | null, opt: CommonDaoReadOptions = {}): Promise<DBM | null> {
     if (!id) return null
     const [row] = await this.loadByIds([id], opt)
-    return await (this.anyToDBM(row, opt) || null)
+    return await this.anyToDBM(row, opt)
   }
 
   async getByIds(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<BM[]> {
@@ -989,7 +989,7 @@ export class CommonDao<
    *   return dbm
    * }
    */
-  static async decompressLegacyRow<T extends ObjectWithId>(row: T): Promise<T> {
+  static async decompressLegacyRow<T extends ObjectWithId>(this: void, row: T): Promise<T> {
     // Check both __compressed (current) and data (legacy) for backward compatibility
     const compressed = (row as any).__compressed ?? (row as any).data
     if (!Buffer.isBuffer(compressed)) return row

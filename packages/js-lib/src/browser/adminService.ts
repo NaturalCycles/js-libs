@@ -103,6 +103,7 @@ export class AdminService {
 
   stopListening(): void {
     if (isServerSide()) return
+    // oxlint-disable-next-line typescript/unbound-method
     document.removeEventListener('keydown', this.keydownListener)
     this.listening = false
   }

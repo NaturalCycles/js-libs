@@ -56,7 +56,7 @@ export function experimentDao(db: CommonDB): ExperimentDao {
  * For simplicity let's not do that by having this function...
  */
 function parseMySQLDate(date: string): IsoDate {
-  // @ts-expect-error
+  // @ts-expect-error MySQL may return Date instead of string
   if (date instanceof Date) return localDate(date).toISODate()
   return date as IsoDate
 }

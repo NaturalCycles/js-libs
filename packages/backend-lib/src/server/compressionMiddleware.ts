@@ -114,8 +114,11 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
     let listeners: [string, (...args: any[]) => void][] | null = []
     let stream: zlib.Gzip | zlib.Deflate | zlib.BrotliCompress | zlib.ZstdCompress | undefined
 
+    // oxlint-disable-next-line typescript/unbound-method -- monkey-patching, rebound via .call()
     const _end = res.end
+    // oxlint-disable-next-line typescript/unbound-method -- monkey-patching, rebound via .call()
     const _on = res.on
+    // oxlint-disable-next-line typescript/unbound-method -- monkey-patching, rebound via .call()
     const _write = res.write
 
     // flush

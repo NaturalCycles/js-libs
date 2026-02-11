@@ -5,23 +5,24 @@ class Comparators {
   /**
    * Good for numbers.
    */
-  numericAsc(a: number, b: number): number {
+  numericAsc(this: void, a: number, b: number): number {
     return a - b
   }
 
-  numericDesc(a: number, b: number): number {
+  numericDesc(this: void, a: number, b: number): number {
     return b - a
   }
 
-  localeAsc(a: string, b: string): number {
+  localeAsc(this: void, a: string, b: string): number {
     return a.localeCompare(b)
   }
 
-  localeDesc(a: string, b: string): number {
+  localeDesc(this: void, a: string, b: string): number {
     return -a.localeCompare(b)
   }
 
   by<T, COMPARE_TYPE extends string | number>(
+    this: void,
     mapper: Mapper<T, COMPARE_TYPE>,
     opt: ComparatorByOptions = {},
   ): Comparator<T> {
@@ -37,19 +38,19 @@ class Comparators {
     }
   }
 
-  updatedAsc(a: { updated: number }, b: { updated: number }): number {
+  updatedAsc(this: void, a: { updated: number }, b: { updated: number }): number {
     return a.updated - b.updated
   }
 
-  updatedDesc(a: { updated: number }, b: { updated: number }): number {
+  updatedDesc(this: void, a: { updated: number }, b: { updated: number }): number {
     return b.updated - a.updated
   }
 
-  createdAsc(a: { created: number }, b: { created: number }): number {
+  createdAsc(this: void, a: { created: number }, b: { created: number }): number {
     return a.created - b.created
   }
 
-  createdDesc(a: { created: number }, b: { created: number }): number {
+  createdDesc(this: void, a: { created: number }, b: { created: number }): number {
     return b.created - a.created
   }
 }

@@ -52,9 +52,9 @@ runBenchScript({
   },
 })
 
-function generateObjects(count: number): [StringMap<string>, StringMap<string>] {
-  const obj1: StringMap<string> = {}
-  const obj2: StringMap<string> = {}
+function generateObjects(count: number): [StringMap, StringMap] {
+  const obj1: StringMap = {}
+  const obj2: StringMap = {}
   for (let i = 0; i < Math.floor(count / 2); i++) {
     obj1[`key1_${i}`] = `value${i}`
   }

@@ -2578,7 +2578,7 @@ describe('object', () => {
       missing: boolean
     }
 
-    // @ts-expect-error
+    // @ts-expect-error missing required property `missing`
     j.object<Foo>({ foo: j.string(), bar: j.string().optional() })
   })
 
@@ -4166,9 +4166,9 @@ describe('final', () => {
     const [err2] = schema.getValidationResult('abcd')
     expect(err2).not.toBeNull()
 
-    // @ts-expect-error
+    // @ts-expect-error .optional() is not available on final schema
     expect(() => schema.optional()).toThrow('schema.optional is not a function')
-    // @ts-expect-error
+    // @ts-expect-error .nullable() is not available on final schema
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
   })
 })
