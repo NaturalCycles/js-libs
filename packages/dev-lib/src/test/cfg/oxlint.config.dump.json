@@ -378,7 +378,7 @@
     "typescript/restrict-plus-operands": "deny",
     "typescript/restrict-template-expressions": "allow",
     "typescript/return-await": ["deny", ["error-handling-correctness-only"]],
-    "typescript/switch-exhaustiveness-check": "deny",
+    "typescript/switch-exhaustiveness-check": "allow",
     "typescript/triple-slash-reference": "warn",
     "typescript/unbound-method": [
       "allow",

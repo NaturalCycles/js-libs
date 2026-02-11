@@ -182,7 +182,7 @@
         "ignoreStatic": true
       }
     ],
-    "typescript/switch-exhaustiveness-check": 2,
+    "typescript/switch-exhaustiveness-check": 0, // not good
     "typescript/require-array-sort-compare": 0, // not good
     "typescript/restrict-template-expressions": 0, // not good
     "typescript/no-redundant-type-constituents": 0, // `'a' | string` is still useful for DX
