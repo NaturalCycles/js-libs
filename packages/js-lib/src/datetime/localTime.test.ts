@@ -41,6 +41,7 @@ test('basic', () => {
   expect(lt.day).toBe(1)
   expect(lt.week).toBe(52)
   expect(lt.toISODateTime()).toBe('2022-01-01T00:00:00')
+  expect(lt.toISODateTimeWithZ()).toBe('2022-01-01T00:00:00Z')
   expect(lt.toString()).toBe('2022-01-01T00:00:00')
   expect(lt.toPretty()).toBe('2022-01-01 00:00:00')
   expect(lt.toPretty(false)).toBe('2022-01-01 00:00')

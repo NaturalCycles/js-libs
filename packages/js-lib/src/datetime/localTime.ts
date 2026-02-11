@@ -687,6 +687,18 @@ export class LocalTime {
   }
 
   /**
+   * Returns e.g: `1984-06-21T17:56:21Z`
+   *
+   * IsoDateTime "format" is ambiguous.
+   * Normally what we mean by it is `1984-06-21T17:56:21` (without Z).
+   * But sometimes you need Z.
+   * So, when you need Z - use this function.
+   */
+  toISODateTimeWithZ(): IsoDateTime {
+    return (this.toISODateTime() + 'Z') as IsoDateTime
+  }
+
+  /**
    * Returns e.g: `1984-06-21T17:56:21`
    */
   toISODateTime(): IsoDateTime {
