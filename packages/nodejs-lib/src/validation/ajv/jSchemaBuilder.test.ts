@@ -13,7 +13,9 @@ import type {
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
+import { getCoercingAjv } from './getAjv.js'
 import { AjvSchema, j } from './jSchema.js'
+import type { JsonSchema } from './jSchema.js'
 
 describe('any', () => {
   test('should correctly infer the type', () => {
@@ -895,5 +897,114 @@ describe('schema metadata methods', () => {
   test('deprecated should appear in build output', () => {
     const schema = j.string().deprecated().build()
     expect(schema.deprecated).toBe(true)
+  })
+})
+
+describe('j.fromSchema', () => {
+  test('should validate with a plain JsonSchema', () => {
+    const schema = j.fromSchema<string>({ type: 'string' })
+    expect(schema.validate('hello')).toBe('hello')
+    expect(() => schema.validate(123)).toThrow('must be string')
+  })
+
+  test('should support inputName in error messages', () => {
+    const schema = j.fromSchema<string>({ type: 'string' }, { inputName: 'my-config.yaml' })
+    const [err] = schema.getValidationResult(123)
+    expect(err).toBeDefined()
+    expect(err!.message).toContain('my-config.yaml')
+  })
+
+  test('should support custom ajv at construction time', () => {
+    const plainSchema: JsonSchema<{ count: number }> = {
+      type: 'object',
+      properties: {
+        count: { type: 'number' },
+      },
+      required: ['count'],
+      additionalProperties: false,
+    }
+
+    // Without coercing ajv, string "5" should fail for type: number
+    const strict = j.fromSchema<{ count: number }>(plainSchema)
+    const [err] = strict.getValidationResult({ count: '5' })
+    expect(err).toBeDefined()
+
+    // With coercing ajv at construction time, string "5" should be coerced to number 5
+    const coercing = j.fromSchema<{ count: number }>(plainSchema, { ajv: getCoercingAjv() })
+    expect(coercing.validate({ count: '5' })).toEqual({ count: 5 })
+  })
+
+  test('should support custom ajv at validation time', () => {
+    const schema = j.fromSchema<{ count: number }>({
+      type: 'object',
+      properties: {
+        count: { type: 'number' },
+      },
+      required: ['count'],
+      additionalProperties: false,
+    })
+
+    // Without coercing ajv, string "5" should fail
+    const [err] = schema.getValidationResult({ count: '5' })
+    expect(err).toBeDefined()
+
+    // With coercing ajv at validation time, string "5" should be coerced to number 5
+    expect(schema.validate({ count: '5' }, { ajv: getCoercingAjv() })).toEqual({ count: 5 })
+
+    // The same schema still works without coercion for normal calls
+    expect(schema.validate({ count: 5 })).toEqual({ count: 5 })
+  })
+
+  test('should support custom ajv at validation time on builders', () => {
+    const schema = j
+      .object<{ count: number }>({
+        count: j.number(),
+      })
+      .isOfType<{ count: number }>()
+
+    // Without coercing ajv, string "5" should fail
+    const [err] = schema.getValidationResult({ count: '5' })
+    expect(err).toBeDefined()
+
+    // With coercing ajv at validation time
+    expect(schema.validate({ count: '5' }, { ajv: getCoercingAjv() })).toEqual({ count: 5 })
+  })
+
+  test('should support postValidation', () => {
+    const schema = j.fromSchema<string>({ type: 'string' }).postValidation(v => v.toUpperCase())
+
+    expect(schema.validate('hello')).toBe('HELLO')
+  })
+
+  test('postValidation should preserve cfg', () => {
+    const schema = j
+      .fromSchema<string>({ type: 'string' }, { inputName: 'my-input' })
+      .postValidation(v => {
+        if (v === 'bad') throw new Error('nope')
+        return v
+      })
+
+    const [err] = schema.getValidationResult('bad')
+    expect(err).toBeDefined()
+    expect(err!.message).toContain('my-input')
+  })
+
+  test('should support getValidationFunction', () => {
+    const schema = j.fromSchema<string>({ type: 'string' })
+    const fn = schema.getValidationFunction()
+    const [err, result] = fn('hello')
+    expect(err).toBeNull()
+    expect(result).toBe('hello')
+  })
+
+  test('should not require isOfType check for object schemas', () => {
+    // j.fromSchema wraps in JSchema (not JBuilder), so isOfType check is skipped
+    const schema = j.fromSchema<{ name: string }>({
+      type: 'object',
+      properties: { name: { type: 'string' } },
+      required: ['name'],
+      additionalProperties: false,
+    })
+    expect(schema.validate({ name: 'test' })).toEqual({ name: 'test' })
   })
 })
