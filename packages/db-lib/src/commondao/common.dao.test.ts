@@ -801,14 +801,17 @@ describe('indexed', () => {
 
     const saveOptions = saveBatchSpy.mock.calls[0]![2]!
     // Properties NOT in indexed should be in excludeFromIndexes
-    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['k2', 'k3', 'nested']))
+    // Non-primitive 'nested' uses wildcard to exclude all sub-properties
+    expect(saveOptions.excludeFromIndexes).toEqual(
+      expect.arrayContaining(['k2', 'k3', 'nested', 'nested.*']),
+    )
     // Properties IN indexed should NOT be in excludeFromIndexes
     expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
 
     saveBatchSpy.mockRestore()
   })
 
-  test('should correctly compute excludeFromIndexes when rows have different properties', async () => {
+  test('should compute excludeFromIndexes for streamSave', async () => {
     const dao = new CommonDao<TestItemBM>({
       table: TEST_TABLE,
       db,
@@ -817,44 +820,12 @@ describe('indexed', () => {
 
     const saveBatchSpy = vi.spyOn(db, 'saveBatch')
 
-    // First row has minimal properties, second row has additional properties
-    const items = [
-      createTestItemBM(1),
-      { ...createTestItemBM(2), k2: 'extra', nested: { foo: 42 } },
-    ]
-
-    await dao.saveBatch(items)
+    await dao.streamSave(Pipeline.fromArray(createTestItemsBM(2)))
 
     const saveOptions = saveBatchSpy.mock.calls[0]![2]!
-    // All properties NOT in indexed should be in excludeFromIndexes, including those only in second row
-    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['k2', 'k3', 'nested']))
-    // Properties IN indexed should NOT be in excludeFromIndexes
-    expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
-
-    saveBatchSpy.mockRestore()
-  })
-
-  test('should correctly compute excludeFromIndexes for streamSave when rows have different properties', async () => {
-    const dao = new CommonDao<TestItemBM>({
-      table: TEST_TABLE,
-      db,
-      indexed: ['k1', 'even'],
-    })
-
-    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
-
-    // First row has minimal properties, second row has additional properties
-    const items = [
-      createTestItemBM(1),
-      { ...createTestItemBM(2), k2: 'extra', nested: { foo: 42 } },
-    ]
-
-    await dao.streamSave(Pipeline.fromArray(items))
-
-    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
-    // All properties NOT in indexed should be in excludeFromIndexes, including those only in second row
-    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['k2', 'k3', 'nested']))
-    // Properties IN indexed should NOT be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).toEqual(
+      expect.arrayContaining(['k2', 'k3', 'nested', 'nested.*']),
+    )
     expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
 
     saveBatchSpy.mockRestore()
@@ -883,6 +854,83 @@ describe('indexed', () => {
     expect(result).toMatchObject({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
 
     saveBatchSpy.mockRestore()
+  })
+
+  test('nested indexed path should exclude non-indexed sub-properties', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'nested.foo'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    // Use a row with nested: { foo, bar } so we can verify per-sub-property precision
+    await dao.save({ id: 'id1', k1: 'v1', nested: { foo: 1, bar: 2 } as any })
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // nested.foo is indexed, so it should NOT be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['nested.foo']))
+    // nested.bar is NOT indexed, so it SHOULD be in excludeFromIndexes
+    // Parent 'nested' is also excluded (embedded entity itself doesn't need an index entry)
+    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['nested', 'nested.bar']))
+    // Properties NOT in indexed should still be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).toEqual(
+      expect.arrayContaining(['id', 'created', 'updated']),
+    )
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should handle deeply nested indexed paths', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'nested.deep.value'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.save({
+      id: 'id1',
+      k1: 'v1',
+      nested: { deep: { value: 1, other: 2 }, shallow: 3 } as any,
+    })
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // Intermediate objects and non-indexed leaves are excluded
+    expect(saveOptions.excludeFromIndexes).toEqual(
+      expect.arrayContaining(['nested', 'nested.deep', 'nested.deep.other', 'nested.shallow']),
+    )
+    // Indexed leaf is NOT excluded
+    expect(saveOptions.excludeFromIndexes).not.toEqual(
+      expect.arrayContaining(['nested.deep.value']),
+    )
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('nested indexed path should allow querying on parent property', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'nested.foo'],
+    })
+
+    await dao.saveBatch(createTestItemsBM(5))
+
+    // Querying on parent of nested indexed path should not throw
+    await dao.query().filterEq('nested', { foo: 1 }).runQueryCount()
+
+    // Querying on directly indexed property should still work
+    expect(await dao.query().filterEq('k1', 'v1').runQueryCount()).toBe(1)
+
+    // Querying on non-indexed property should still throw
+    await expect(
+      dao.query().filterEq('k2', 'v2').runQueryCount(),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: cannot query on non-indexed property: TEST_TABLE.k2]`,
+    )
   })
 })
 

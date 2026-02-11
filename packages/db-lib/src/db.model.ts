@@ -70,7 +70,7 @@ export interface CommonDBReadOptions extends CommonDBOptions {
  * All properties default to undefined.
  */
 export interface CommonDBSaveOptions<ROW extends ObjectWithId> extends CommonDBOptions {
-  excludeFromIndexes?: (keyof ROW)[]
+  excludeFromIndexes?: (keyof ROW | (string & {}))[]
 
   /**
    * Default is `upsert`

@@ -116,7 +116,7 @@ export interface CommonDaoCfg<
    * Lists properties to EXCLUDE from indexing.
    * Mutually exclusive with `indexed`.
    */
-  excludeFromIndexes?: (keyof DBM)[]
+  excludeFromIndexes?: (keyof DBM | (string & {}))[]
 
   /**
    * Inverted alternative to `excludeFromIndexes`:
@@ -124,7 +124,7 @@ export interface CommonDaoCfg<
    * All other properties will be excluded from indexing at save time.
    * Mutually exclusive with `excludeFromIndexes`.
    */
-  indexed?: (keyof DBM)[]
+  indexed?: (keyof DBM | (string & {}))[]
 
   /**
    * Used by e.g Firestore.
