@@ -73,6 +73,13 @@ export interface CommonDBSaveOptions<ROW extends ObjectWithId> extends CommonDBO
   excludeFromIndexes?: (keyof ROW)[]
 
   /**
+   * Inclusion list of indexed properties.
+   * When provided, the DB layer can derive `excludeFromIndexes` from the data being saved.
+   * Supports dot-notation for nested properties (e.g. `"address.city"`).
+   */
+  indexes?: ((string & keyof ROW) | (string & {}))[]
+
+  /**
    * Default is `upsert`
    */
   saveMethod?: CommonDBSaveMethod

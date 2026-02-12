@@ -22,6 +22,7 @@ export const commonDBSaveOptionsSchema = <ROW extends ObjectWithId>() =>
   j.object<CommonDBSaveOptions<ROW>>({
     tx: dbTransactionSchema.optional(),
     excludeFromIndexes: j.array(j.string().castAs<keyof ROW>()).optional(),
+    indexes: j.array(j.string()).optional(),
     saveMethod: j.enum(['upsert', 'insert', 'update'] as const).optional(),
     assignGeneratedIds: j.boolean().optional(),
   })

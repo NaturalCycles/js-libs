@@ -553,6 +553,11 @@ export class CommonDao<
       excludeFromIndexes = this.cfg.excludeFromIndexes,
     } = opt
 
+    _assert(
+      !excludeFromIndexes?.length || !this.cfg.indexes?.length,
+      'Cannot use both "excludeFromIndexes" and "indexes"',
+    )
+
     // If the user passed in custom `excludeFromIndexes` with the save() call,
     // and the auto-compression is enabled,
     // then we need to ensure that the '__compressed' property is part of the list.
@@ -570,6 +575,9 @@ export class CommonDao<
     return {
       ...opt,
       excludeFromIndexes: excludeFromIndexes as (keyof ObjectWithId)[],
+      indexes: this.cfg.indexes?.map(idx =>
+        typeof idx === 'object' ? (idx.name as string) : (idx as string),
+      ),
       saveMethod,
       assignGeneratedIds,
     }

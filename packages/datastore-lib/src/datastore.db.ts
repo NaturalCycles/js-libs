@@ -324,9 +324,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     opt: DatastoreDBSaveOptions<ROW> = {},
   ): Promise<void> {
     const ds = this.ds()
-    const entities = rows.map(obj =>
-      this.toDatastoreEntity(ds, table, obj, opt.excludeFromIndexes as string[]),
-    )
+    const entities = rows.map(obj => this.toDatastoreEntity(ds, table, obj, opt))
 
     const method = methodMap[opt.saveMethod || 'upsert'] || 'save'
 
@@ -541,12 +539,16 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     ds: Datastore,
     kind: string,
     o: T,
-    excludeFromIndexes: string[] = [],
+    opt: DatastoreDBSaveOptions<T> = {},
   ): DatastorePayload<T> {
     const key = this.getDsKey(o) || this.key(ds, kind, o.id)
     const data = Object.assign({}, o) as any
     delete data.id
     delete data[this.KEY]
+
+    const excludeFromIndexes = opt.indexes
+      ? indexesToExcludeFromIndexes(data, opt.indexes)
+      : (opt.excludeFromIndexes as string[]) || []
 
     return {
       key,
@@ -722,4 +724,69 @@ export class DatastoreDBTransaction implements DBTransaction {
 
 function idComparator<T extends ObjectWithId>(a: T, b: T): number {
   return a.id > b.id ? 1 : a.id < b.id ? -1 : 0
+}
+
+/**
+ * Derives `excludeFromIndexes` from an inclusion list of indexed properties + the actual data.
+ * Walks the data object and collects all property paths that are NOT in the `indexes` list.
+ */
+export function indexesToExcludeFromIndexes(
+  data: Record<string, unknown>,
+  indexes: string[],
+): string[] {
+  const result: string[] = []
+  walk(data, '', result, indexes)
+  return result
+}
+
+function walk(
+  data: Record<string, unknown>,
+  prefix: string,
+  result: string[],
+  indexes: string[],
+): void {
+  for (const key of Object.keys(data)) {
+    const fullPath = prefix ? `${prefix}.${key}` : key
+
+    // This property is indexed — skip it entirely
+    if (indexes.includes(fullPath)) continue
+
+    const value = data[key]
+
+    const obj = asObject(value)
+    if (obj) {
+      // Check if any index targets a sub-property of this path
+      const pfx = `${fullPath}.`
+      if (indexes.some(idx => idx.startsWith(pfx))) {
+        // Recurse into the object to exclude only non-indexed sub-properties
+        walk(obj, fullPath, result, indexes)
+      } else {
+        // No sub-property is indexed — exclude the whole subtree
+        result.push(fullPath, `${fullPath}.*`)
+      }
+    } else {
+      // Primitive, null, undefined, array of primitives — exclude
+      result.push(fullPath)
+    }
+  }
+}
+
+/**
+ * Returns the object to recurse into, or undefined if the value is primitive.
+ * For arrays of objects, returns the first element (Datastore embeds array elements
+ * with the same property paths as a single object, e.g. `items.sku`).
+ */
+function asObject(value: unknown): Record<string, unknown> | undefined {
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>
+  }
+  if (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    typeof value[0] === 'object' &&
+    value[0] !== null
+  ) {
+    return value[0] as Record<string, unknown>
+  }
+  return undefined
 }
