@@ -4,6 +4,7 @@ import type { Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/
 import type { DBQuery } from '@naturalcycles/db-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
@@ -179,7 +180,9 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
         },
         {
           name: `FirestoreStreamReadable.query(${table})`,
-          predicate: err => RETRY_ON.some(s => err?.message?.toLowerCase()?.includes(s)),
+          predicate: err =>
+            err instanceof TimeoutError ||
+            RETRY_ON.some(s => err?.message?.toLowerCase()?.includes(s)),
           maxAttempts: 5,
           delay: 5000,
           delayMultiplier: 2,

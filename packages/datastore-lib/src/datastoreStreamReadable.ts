@@ -7,6 +7,7 @@ import type {
 } from '@google-cloud/datastore/build/src/query.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { TimeoutError } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
@@ -214,7 +215,9 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
         },
         {
           name: `DatastoreStreamReadable.query(${table})`,
-          predicate: err => RETRY_ON.some(s => err?.message?.toLowerCase()?.includes(s)),
+          predicate: err =>
+            err instanceof TimeoutError ||
+            RETRY_ON.some(s => err?.message?.toLowerCase()?.includes(s)),
           maxAttempts: 5,
           delay: 5000,
           delayMultiplier: 2,
