@@ -4,6 +4,7 @@ import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalc
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
 import type { BaseDBEntity, UnixTimestamp, Unsaved } from '@naturalcycles/js-lib/types'
 import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
@@ -747,6 +748,190 @@ test('should not be able to query by a non-indexed property', async () => {
   ).rejects.toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: cannot query on non-indexed property: TEST_TABLE.k1]`,
   )
+})
+
+describe('indexed', () => {
+  test('should throw when both excludeFromIndexes and indexed are set', () => {
+    expect(
+      () =>
+        new CommonDao<TestItemBM>({
+          table: TEST_TABLE,
+          db,
+          excludeFromIndexes: ['k1'],
+          indexed: ['k2'],
+        }),
+    ).toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: excludeFromIndexes and indexed are mutually exclusive]`,
+    )
+  })
+
+  test('should prevent queries on non-indexed properties', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'even'],
+    })
+
+    await dao.saveBatch(createTestItemsBM(5))
+
+    // Querying on indexed property should work
+    expect(await dao.query().filterEq('k1', 'v1').runQueryCount()).toBe(1)
+
+    // Querying by id should always work
+    expect(await dao.query().filterEq('id', 'id1').runQueryCount()).toBe(1)
+
+    // Querying on non-indexed property should throw
+    await expect(
+      dao.query().filterEq('k2', 'v2').runQueryCount(),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: cannot query on non-indexed property: TEST_TABLE.k2]`,
+    )
+  })
+
+  test('should correctly pass excludeFromIndexes to db.saveBatch', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'even'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.saveBatch(createTestItemsBM(1))
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // Properties NOT in indexed should be in excludeFromIndexes
+    // Non-primitive 'nested' uses wildcard to exclude all sub-properties
+    expect(saveOptions.excludeFromIndexes).toEqual(
+      expect.arrayContaining(['k2', 'k3', 'nested', 'nested.*']),
+    )
+    // Properties IN indexed should NOT be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should compute excludeFromIndexes for streamSave', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'even'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.streamSave(Pipeline.fromArray(createTestItemsBM(2)))
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    expect(saveOptions.excludeFromIndexes).toEqual(
+      expect.arrayContaining(['k2', 'k3', 'nested', 'nested.*']),
+    )
+    expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['k1', 'even']))
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should work together with compress', async () => {
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['id'],
+      compress: {
+        keys: ['obj', 'shu'],
+      },
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // __compressed should be in excludeFromIndexes (added by compress logic)
+    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['__compressed']))
+
+    // Verify data round-trips correctly
+    const result = await dao.getById('id1')
+    expect(result).toMatchObject({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('nested indexed path should exclude non-indexed sub-properties', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'nested.foo'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    // Use a row with nested: { foo, bar } so we can verify per-sub-property precision
+    await dao.save({ id: 'id1', k1: 'v1', nested: { foo: 1, bar: 2 } as any })
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // nested.foo is indexed, so it should NOT be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).not.toEqual(expect.arrayContaining(['nested.foo']))
+    // nested.bar is NOT indexed, so it SHOULD be in excludeFromIndexes
+    // Parent 'nested' is also excluded (embedded entity itself doesn't need an index entry)
+    expect(saveOptions.excludeFromIndexes).toEqual(expect.arrayContaining(['nested', 'nested.bar']))
+    // Properties NOT in indexed should still be in excludeFromIndexes
+    expect(saveOptions.excludeFromIndexes).toEqual(
+      expect.arrayContaining(['id', 'created', 'updated']),
+    )
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should handle deeply nested indexed paths', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'nested.deep.value'],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.save({
+      id: 'id1',
+      k1: 'v1',
+      nested: { deep: { value: 1, other: 2 }, shallow: 3 } as any,
+    })
+
+    const saveOptions = saveBatchSpy.mock.calls[0]![2]!
+    // Intermediate objects and non-indexed leaves are excluded
+    expect(saveOptions.excludeFromIndexes).toEqual(
+      expect.arrayContaining(['nested', 'nested.deep', 'nested.deep.other', 'nested.shallow']),
+    )
+    // Indexed leaf is NOT excluded
+    expect(saveOptions.excludeFromIndexes).not.toEqual(
+      expect.arrayContaining(['nested.deep.value']),
+    )
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('nested indexed path should allow querying on parent property', async () => {
+    const dao = new CommonDao<TestItemBM>({
+      table: TEST_TABLE,
+      db,
+      indexed: ['k1', 'nested.foo'],
+    })
+
+    await dao.saveBatch(createTestItemsBM(5))
+
+    // Querying on parent of nested indexed path should not throw
+    await dao.query().filterEq('nested', { foo: 1 }).runQueryCount()
+
+    // Querying on directly indexed property should still work
+    expect(await dao.query().filterEq('k1', 'v1').runQueryCount()).toBe(1)
+
+    // Querying on non-indexed property should still throw
+    await expect(
+      dao.query().filterEq('k2', 'v2').runQueryCount(),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `[AssertionError: cannot query on non-indexed property: TEST_TABLE.k2]`,
+    )
+  })
 })
 
 describe('auto compression', () => {

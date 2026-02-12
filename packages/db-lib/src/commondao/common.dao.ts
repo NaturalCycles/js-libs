@@ -67,6 +67,9 @@ export class CommonDao<
   DBM extends BaseDBEntity = BM,
   ID extends string = BM['id'],
 > {
+  private indexedSet?: Set<string>
+  private indexedPrefixes?: Set<string>
+
   constructor(public cfg: CommonDaoCfg<BM, DBM, ID>) {
     this.cfg = {
       generateId: true,
@@ -91,9 +94,29 @@ export class CommonDao<
       delete this.cfg.hooks!.createRandomId
     }
 
+    _assert(
+      !(this.cfg.excludeFromIndexes && this.cfg.indexed),
+      'excludeFromIndexes and indexed are mutually exclusive',
+    )
+
+    if (this.cfg.indexed) {
+      const indexed = this.cfg.indexed as string[]
+      this.indexedSet = new Set(indexed)
+      // Collect all ancestor prefixes of dotted paths
+      // e.g. indexed: ['a.b.c'] → indexedPrefixes: Set{'a', 'a.b'}
+      this.indexedPrefixes = new Set()
+      for (const path of indexed) {
+        const parts = path.split('.')
+        for (let i = 1; i < parts.length; i++) {
+          this.indexedPrefixes.add(parts.slice(0, i).join('.'))
+        }
+      }
+    }
+
     // If the auto-compression is enabled,
     // then we need to ensure that the '__compressed' property is part of the index exclusion list.
-    if (this.cfg.compress?.keys) {
+    // Skip when `indexed` is configured — __compressed is naturally excluded since it won't be in the indexed list.
+    if (this.cfg.compress?.keys && !this.cfg.indexed) {
       const current = this.cfg.excludeFromIndexes
       this.cfg.excludeFromIndexes = current ? [...current] : []
       if (!this.cfg.excludeFromIndexes.includes('__compressed' as any)) {
@@ -469,9 +492,9 @@ export class CommonDao<
     const dbm = await this.bmToDBM(bm, opt) // validates BM
     this.cfg.hooks!.beforeSave?.(dbm)
     const table = opt.table || this.cfg.table
-    const saveOptions = this.prepareSaveOptions(opt)
 
     const row = await this.dbmToStorageRow(dbm)
+    const saveOptions = this.prepareSaveOptions(opt, row)
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -487,9 +510,9 @@ export class CommonDao<
     const validDbm = await this.anyToDBM(dbm, opt)
     this.cfg.hooks!.beforeSave?.(validDbm)
     const table = opt.table || this.cfg.table
-    const saveOptions = this.prepareSaveOptions(opt)
 
     const row = await this.dbmToStorageRow(validDbm)
+    const saveOptions = this.prepareSaveOptions(opt, row)
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -508,9 +531,9 @@ export class CommonDao<
       dbms.forEach(dbm => this.cfg.hooks!.beforeSave!(dbm))
     }
     const table = opt.table || this.cfg.table
-    const saveOptions = this.prepareSaveOptions(opt)
 
     const rows = await this.dbmsToStorageRows(dbms)
+    const saveOptions = this.prepareSaveOptions(opt, rows[0])
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -532,9 +555,9 @@ export class CommonDao<
       validDbms.forEach(dbm => this.cfg.hooks!.beforeSave!(dbm))
     }
     const table = opt.table || this.cfg.table
-    const saveOptions = this.prepareSaveOptions(opt)
 
     const rows = await this.dbmsToStorageRows(validDbms)
+    const saveOptions = this.prepareSaveOptions(opt, rows[0])
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -546,11 +569,14 @@ export class CommonDao<
 
   private prepareSaveOptions(
     opt: CommonDaoSaveOptions<BM, DBM>,
+    row?: ObjectWithId,
   ): CommonDBSaveOptions<ObjectWithId> {
     let {
       saveMethod,
       assignGeneratedIds = this.cfg.assignGeneratedIds,
-      excludeFromIndexes = this.cfg.excludeFromIndexes,
+      excludeFromIndexes = this.indexedSet && row
+        ? this.computeExcludeFromIndexes(row)
+        : this.cfg.excludeFromIndexes,
     } = opt
 
     // If the user passed in custom `excludeFromIndexes` with the save() call,
@@ -575,6 +601,38 @@ export class CommonDao<
     }
   }
 
+  private computeExcludeFromIndexes(row: ObjectWithId): string[] {
+    return this.collectExclusions(row as Record<string, unknown>, '')
+  }
+
+  /**
+   * Recursively collects property paths to exclude from Datastore indexing.
+   * Uses `path.*` wildcard when an entire nested object has no indexed sub-paths.
+   */
+  private collectExclusions(obj: Record<string, unknown>, prefix: string): string[] {
+    const excluded: string[] = []
+
+    for (const key of Object.keys(obj)) {
+      const path = prefix ? `${prefix}.${key}` : key
+      if (this.indexedSet!.has(path)) continue
+
+      excluded.push(path)
+
+      const value = obj[key]
+      if (isPlainObject(value)) {
+        if (this.indexedPrefixes!.has(path)) {
+          // Some sub-paths are indexed — recurse to exclude selectively
+          excluded.push(...this.collectExclusions(value, path))
+        } else {
+          // No indexed sub-paths — wildcard excludes all depths
+          excluded.push(`${path}.*`)
+        }
+      }
+    }
+
+    return excluded
+  }
+
   /**
    * "Streaming" is implemented by buffering incoming rows into **batches**
    * (of size opt.chunkSize, which defaults to 500),
@@ -591,7 +649,8 @@ export class CommonDao<
     opt.skipValidation ??= true
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    const saveOptions = this.prepareSaveOptions(opt)
+    // Defer saveOptions until the first batch arrives so `indexed` can inspect row keys
+    let saveOptions: CommonDBSaveOptions<ObjectWithId> | undefined
     const { beforeSave } = this.cfg.hooks!
 
     const { chunkSize = 500, chunkConcurrency = 32, errorMode } = opt
@@ -609,6 +668,7 @@ export class CommonDao<
       .chunk(chunkSize)
       .map(
         async batch => {
+          saveOptions ??= this.prepareSaveOptions(opt, batch[0])
           await this.cfg.db.saveBatch(table, batch, saveOptions)
           return batch
         },
@@ -1287,6 +1347,20 @@ export class CommonDao<
       }
     }
 
+    if (this.indexedSet) {
+      for (const f of q._filters) {
+        _assert(
+          f.name === 'id' ||
+            this.indexedSet.has(f.name as string) ||
+            this.indexedPrefixes!.has(f.name as string),
+          `cannot query on non-indexed property: ${this.cfg.table}.${f.name as string}`,
+          {
+            query: q.pretty(),
+          },
+        )
+      }
+    }
+
     if (indexes) {
       for (const f of q._filters) {
         _assert(
@@ -1338,6 +1412,16 @@ export type InferDBM<DAO> = DAO extends CommonDao<any, infer DBM> ? DBM : never
 export type InferID<DAO> = DAO extends CommonDao<any, any, infer ID> ? ID : never
 
 export type AnyDao = CommonDao<any>
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    !Buffer.isBuffer(value) &&
+    !(value instanceof Date)
+  )
+}
 
 /**
  * Represents a DBM whose properties have been compressed into a `data` Buffer.
