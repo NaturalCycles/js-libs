@@ -1001,14 +1001,6 @@ class LocalTimeFactory {
   // }
 
   /**
-   * Returns the IANA timezone e.g `Europe/Stockholm`.
-   * https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-   */
-  getTimezone(): IANATimezone {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone as IANATimezone
-  }
-
-  /**
    * Returns true if passed IANA timezone is valid/supported.
    * E.g `Europe/Stockholm` is valid, but `Europe/Stockholm2` is not.
    *

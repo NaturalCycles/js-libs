@@ -23,3 +23,7 @@ test('should return different instances for different options', () => {
   const b = Intl2.DateTimeFormat('en-US', { year: '2-digit' })
   expect(a).not.toBe(b)
 })
+
+test('getTimezone', () => {
+  expect(Intl2.getTimezone()).toBe('UTC')
+})

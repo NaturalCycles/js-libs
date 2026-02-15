@@ -1,4 +1,5 @@
 import { _Memo } from '../decorators/memo.decorator.js'
+import type { IANATimezone } from '../types.js'
 
 /**
  * Returns cached Intl.* formatters, because they are known to be
@@ -10,6 +11,15 @@ import { _Memo } from '../decorators/memo.decorator.js'
  * to be able to cache them better. Just pass {} for options.
  */
 class MemoizedIntl {
+  /**
+   * Returns the IANA timezone e.g `Europe/Stockholm`.
+   * https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+   */
+  @_Memo()
+  getTimezone(): IANATimezone {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone as IANATimezone
+  }
+
   @_Memo()
   DateTimeFormat(
     locales: Intl.LocalesArgument,
