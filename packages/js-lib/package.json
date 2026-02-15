@@ -52,6 +52,7 @@
     "./error": "./dist/error/index.js",
     "./error/*.js": "./dist/error/*.js",
     "./http": "./dist/http/index.js",
+    "./intl": "./dist/intl/intl.js",
     "./log": "./dist/log/commonLogger.js",
     "./math": "./dist/math/index.js",
     "./math/*.js": "./dist/math/*.js",

@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import enGB from 'dayjs/locale/en-gb.js'
 import { expect, test } from 'vitest'
 import { _range } from '../array/range.js'
+import { Intl2 } from '../intl/intl.js'
 import { expectWithMessage, isUTC } from '../test/test.util.js'
 import type {
   IANATimezone,
@@ -406,7 +407,7 @@ test('format', () => {
   const fmt: LocalTimeFormatter = ld => `${ld.year}-${String(ld.month).padStart(2, '0')}`
   expect(localTime('1984-06-21' as IsoDate).format(fmt)).toBe('1984-06')
 
-  const fmt2 = new Intl.DateTimeFormat('ru', {
+  const fmt2 = Intl2.DateTimeFormat('ru', {
     month: 'long',
     day: 'numeric',
     hour: '2-digit',

@@ -8,6 +8,7 @@ It's a separate script, because our jest setup always runs in UTC.
 
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { localDate } from '../src/datetime/index.js'
+import { Intl2 } from '../src/intl/intl.js'
 
 runScript(async () => {
   let d = localDate.today().toDateInUTC()
@@ -16,7 +17,7 @@ runScript(async () => {
   console.log(d.toUTCString())
   console.log(d.getTimezoneOffset())
   console.log(
-    new Intl.DateTimeFormat('en-US', {
+    Intl2.DateTimeFormat('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -25,7 +26,7 @@ runScript(async () => {
     }).format(d),
   )
   console.log(
-    new Intl.DateTimeFormat('en-US', {
+    Intl2.DateTimeFormat('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -40,7 +41,7 @@ runScript(async () => {
   console.log(d.toUTCString())
   console.log(d.getTimezoneOffset())
   console.log(
-    new Intl.DateTimeFormat('en-US', {
+    Intl2.DateTimeFormat('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -49,7 +50,7 @@ runScript(async () => {
     }).format(d),
   )
   console.log(
-    new Intl.DateTimeFormat('en-US', {
+    Intl2.DateTimeFormat('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',

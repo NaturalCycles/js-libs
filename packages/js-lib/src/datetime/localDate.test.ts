@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { expect, test } from 'vitest'
 import { _range } from '../array/range.js'
+import { Intl2 } from '../intl/intl.js'
 import { expectWithMessage, isUTC } from '../test/test.util.js'
 import type { IsoDate } from '../types.js'
 import type { LocalDateFormatter, LocalDateUnit } from './localDate.js'
@@ -312,7 +313,7 @@ test('format', () => {
   const fmt2: LocalDateFormatter = ld => `${String(ld.month).padStart(2, '0')}/${ld.year}`
   expect(localDate('1984-06-21' as IsoDate).format(fmt2)).toBe('06/1984')
 
-  const fmt3 = new Intl.DateTimeFormat('ru', {
+  const fmt3 = Intl2.DateTimeFormat('ru', {
     month: 'long',
     day: 'numeric',
   })
