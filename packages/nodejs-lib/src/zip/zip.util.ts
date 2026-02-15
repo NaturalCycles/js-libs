@@ -96,6 +96,14 @@ export async function zstdCompress(
   return await zstdCompressAsync(input, zstdLevelToOptions(level, options))
 }
 
+export function zstdCompressSync(
+  input: Buffer | string,
+  level?: Integer, // defaults to 3
+  options: ZstdOptions = {},
+): Buffer<ArrayBuffer> {
+  return zlib.zstdCompressSync(input, zstdLevelToOptions(level, options))
+}
+
 export function zstdLevelToOptions(level: Integer | undefined, opt: ZstdOptions = {}): ZstdOptions {
   if (!level) return opt
 
@@ -120,6 +128,14 @@ export async function zstdDecompress(
   options: ZstdOptions = {},
 ): Promise<Buffer<ArrayBuffer>> {
   return await zstdDecompressAsync(input, options)
+}
+
+export function zstdDecompressToStringSync(input: Buffer, options: ZstdOptions = {}): string {
+  return zlib.zstdDecompressSync(input, options).toString()
+}
+
+export function zstdDecompressSync(input: Buffer, options: ZstdOptions = {}): Buffer<ArrayBuffer> {
+  return zlib.zstdDecompressSync(input, options)
 }
 
 const ZSTD_MAGIC_NUMBER = 0xfd2fb528

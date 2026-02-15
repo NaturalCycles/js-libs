@@ -12,8 +12,11 @@ import {
   isGzipBuffer,
   isZstdBuffer,
   zstdCompress,
+  zstdCompressSync,
   zstdDecompress,
+  zstdDecompressSync,
   zstdDecompressToString,
+  zstdDecompressToStringSync,
 } from './zip.util.js'
 
 test('deflate/inflate', async () => {
@@ -40,6 +43,19 @@ test('zstd compress/decompress', async () => {
   const sBuf = Buffer.from(s)
   compressedBuf = await zstdCompress(sBuf)
   const decompressedBuf = await zstdDecompress(compressedBuf)
+  expect(decompressedBuf).toEqual(sBuf)
+})
+
+test('zstd compress/decompress sync', () => {
+  const s = 'abcd1234$%^'
+
+  let compressedBuf = zstdCompressSync(s)
+  const decompressedStr = zstdDecompressToStringSync(compressedBuf)
+  expect(decompressedStr).toBe(s)
+
+  const sBuf = Buffer.from(s)
+  compressedBuf = zstdCompressSync(sBuf)
+  const decompressedBuf = zstdDecompressSync(compressedBuf)
   expect(decompressedBuf).toEqual(sBuf)
 })
 
