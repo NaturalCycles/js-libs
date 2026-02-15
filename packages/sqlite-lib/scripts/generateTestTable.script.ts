@@ -24,7 +24,7 @@ runScript(async () => {
 
   await db.ping()
   await db.createTable(TEST_TABLE, { dropIfExists: true })
-  await db.beginTransaction()
+  db.beginTransaction()
 
   // const items = _range(1, 1_000_001).map(n => ({
   //   id: `id_${n}`,
@@ -51,6 +51,6 @@ runScript(async () => {
       { concurrency: 16 },
     )
 
-  await db.endTransaction()
-  await db.close()
+  db.endTransaction()
+  db.close()
 })

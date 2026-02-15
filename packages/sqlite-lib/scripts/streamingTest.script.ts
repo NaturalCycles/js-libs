@@ -15,7 +15,7 @@ runScript(async () => {
   // "Better" is 6 seconds vs 14 seconds before
   // const db = new BetterSqliteKeyValueDB({ filename })
 
-  await db.open()
+  db.open()
 
   const count = await db.count(TEST_TABLE)
   console.log({ count })
@@ -35,5 +35,5 @@ runScript(async () => {
       //
     })
 
-  await db.close()
+  db.close()
 })
