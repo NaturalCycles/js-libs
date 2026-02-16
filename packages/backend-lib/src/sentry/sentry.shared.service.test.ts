@@ -1,4 +1,4 @@
-import * as sentry from '@sentry/node'
+import * as sentry from '@sentry/node-core/light'
 import { test } from 'vitest'
 import { SentrySharedService } from './sentry.shared.service.js'
 

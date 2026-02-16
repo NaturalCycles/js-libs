@@ -1,4 +1,4 @@
-import * as sentry from '@sentry/node'
+import * as sentry from '@sentry/node-core/light'
 
 sentry.init({
   // no config here

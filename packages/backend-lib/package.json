@@ -18,7 +18,7 @@
     "deploy-health-check-debug2": "tsx src/bin/deploy-health-check.ts --url https://api-master2.naturalcycles.com --thresholdUnhealthy 5"
   },
   "peerDependencies": {
-    "@sentry/node": "^10"
+    "@sentry/node-core": "^10"
   },
   "dependencies": {
     "@naturalcycles/db-lib": "workspace:^10",
@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
-    "@sentry/node": "^10",
+    "@sentry/node-core": "^10",
     "@typescript/native-preview": "catalog:",
     "fastify": "^5"
   },

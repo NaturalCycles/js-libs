@@ -3,8 +3,8 @@ import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
 import type { Primitive, StringMap } from '@naturalcycles/js-lib/types'
 import type { InspectAnyOptions } from '@naturalcycles/nodejs-lib'
 import { _inspect } from '@naturalcycles/nodejs-lib'
-import type { Breadcrumb, SeverityLevel } from '@sentry/node'
-import type * as SentryLib from '@sentry/node'
+import type { Breadcrumb, SeverityLevel } from '@sentry/node-core/light'
+import type * as SentryLib from '@sentry/node-core/light'
 import { getRequestLogger } from '../server/asyncLocalStorageMiddleware.js'
 
 export interface SentrySharedServiceCfg {
