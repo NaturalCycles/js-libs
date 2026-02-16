@@ -84,7 +84,6 @@
     "no-self-assign": "warn",
     "no-sequences": "deny",
     "no-setter-return": "warn",
-    "no-shadow": "allow",
     "no-shadow-restricted-names": "warn",
     "no-sparse-arrays": "warn",
     "no-this-before-super": "warn",

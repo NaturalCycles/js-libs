@@ -32,7 +32,7 @@
     "lint-staged": "^16",
     "micromatch": "^4",
     "oxfmt": "^0",
-    "oxlint": "^1",
+    "oxlint": "catalog:",
     "oxlint-tsgolint": "^0"
   },
   "peerDependencies": {
