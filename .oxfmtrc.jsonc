@@ -15,8 +15,8 @@
   "experimentalSortImports": {
     "newlinesBetween": false,
     "groups": [
-      "side-effect",
-      "side-effect-style",
+      "side_effect",
+      "side_effect-style",
       "builtin",
       "external",
       ["internal", "parent", "sibling", "index"],

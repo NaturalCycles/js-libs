@@ -16,7 +16,6 @@
   },
   "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.55.0"],
   "rules": {
-    "@typescript-eslint/class-literal-property-style": [2],
     "@typescript-eslint/explicit-member-accessibility": [
       2,
       {

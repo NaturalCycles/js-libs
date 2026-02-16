@@ -36,6 +36,7 @@
     "@stylistic/lines-between-class-members": [2, "always", { "exceptAfterSingleLine": true }],
     "complexity": [2, { "max": 40 }],
     "no-this-alias": 0,
+    "no-shadow": 0, // too many shadows in the codebase already
     "no-async-promise-executor": 0,
     "no-standalone-expect": 0,
     "no-conditional-expect": 0,
@@ -96,6 +97,7 @@
     "oxc/approx-constant": 2,
     "oxc/misrefactored-assign-op": 2,
     "promise/spec-only": 2,
+    "typescript/class-literal-property-style": 2,
     "typescript/explicit-function-return-type": [2, { "allowExpressions": true }],
     // "typescript/explicit-module-boundary-types": [2, {"allowArgumentsExplicitlyTypedAsAny": true}]
     "typescript/no-empty-object-type": [2, { "allowInterfaces": "always" }],

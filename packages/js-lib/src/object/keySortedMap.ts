@@ -22,7 +22,11 @@ export interface KeySortedMapOptions<K> {
  *
  * @experimental
  */
-export class KeySortedMap<K, V> implements Map<K, V> {
+// oxlint-disable-next-line no-unsafe-declaration-merging -- Map<K,V> workaround for oxlint TS2420 false positive
+export interface KeySortedMap<K, V> extends Map<K, V> {}
+
+// oxlint-disable-next-line no-unsafe-declaration-merging -- Map<K,V> workaround for oxlint TS2420 false positive
+export class KeySortedMap<K, V> {
   private readonly map: Map<K, V>
   readonly #sortedKeys: K[]
 
@@ -140,7 +144,7 @@ export class KeySortedMap<K, V> implements Map<K, V> {
     return 'abc'
   }
 
-  [Symbol.toStringTag] = 'KeySortedMap'
+  readonly [Symbol.toStringTag] = 'KeySortedMap'
 
   /**
    * Zero-allocation callbacks over sorted data (faster than spreading to arrays).
@@ -148,7 +152,7 @@ export class KeySortedMap<K, V> implements Map<K, V> {
   forEach(cb: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void {
     const { map } = this
     for (const k of this.#sortedKeys) {
-      cb.call(thisArg, map.get(k)!, k, this)
+      cb.call(thisArg, map.get(k)!, k, this as unknown as Map<K, V>)
     }
   }
 

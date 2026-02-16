@@ -17,7 +17,11 @@ export interface LazyKeySortedMapOptions<K> {
  *
  * @experimental
  */
-export class LazyKeySortedMap<K, V> implements Map<K, V> {
+// oxlint-disable-next-line no-unsafe-declaration-merging -- Map<K,V> workaround for oxlint TS2420 false positive
+export interface LazyKeySortedMap<K, V> extends Map<K, V> {}
+
+// oxlint-disable-next-line no-unsafe-declaration-merging -- Map<K,V> workaround for oxlint TS2420 false positive
+export class LazyKeySortedMap<K, V> {
   private readonly map: Map<K, V>
   private readonly maybeSortedKeys: K[]
   private keysAreSorted = false
@@ -117,7 +121,7 @@ export class LazyKeySortedMap<K, V> implements Map<K, V> {
     return this.entries()
   }
 
-  [Symbol.toStringTag] = 'KeySortedMap'
+  readonly [Symbol.toStringTag] = 'KeySortedMap'
 
   /**
    * Zero-allocation callbacks over sorted data (faster than spreading to arrays).
@@ -125,7 +129,7 @@ export class LazyKeySortedMap<K, V> implements Map<K, V> {
   forEach(cb: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void {
     const { map } = this
     for (const k of this.getSortedKeys()) {
-      cb.call(thisArg, map.get(k)!, k, this)
+      cb.call(thisArg, map.get(k)!, k, this as unknown as Map<K, V>)
     }
   }
 
