@@ -13,7 +13,7 @@ import type {
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
-import { AjvSchema, j } from './ajvSchema.js'
+import { AjvSchema, j } from './jSchema.js'
 
 describe('any', () => {
   test('should correctly infer the type', () => {

@@ -1,8 +1,8 @@
 import type { JSONSchemaType } from 'ajv'
 import { format } from 'oxfmt'
 import { expect, test } from 'vitest'
-import { j } from './ajvSchema.js'
 import { createAjv } from './getAjv.js'
+import { j } from './jSchema.js'
 // oxlint-disable no-var-requires, no-require-imports, no-commonjs, extensions
 const standaloneCode = require('ajv/dist/standalone')
 

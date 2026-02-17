@@ -18,7 +18,7 @@ import type {
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
-import { AjvSchema, HIDDEN_AJV_SCHEMA, j } from './ajvSchema.js'
+import { AjvSchema, HIDDEN_AJV_SCHEMA, j } from './jSchema.js'
 
 describe('immutability', () => {
   test('the rule chains should return new instances', () => {
