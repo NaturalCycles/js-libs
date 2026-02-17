@@ -3,7 +3,7 @@ import { _range, _sortBy } from '@naturalcycles/js-lib/array'
 import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalcycles/js-lib/error'
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
 import type { BaseDBEntity, UnixTimestamp, Unsaved } from '@naturalcycles/js-lib/types'
-import { AjvSchema, AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
+import { AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
@@ -24,7 +24,7 @@ const db = new InMemoryDB()
 const daoCfg: CommonDaoCfg<TestItemBM, TestItemDBM> = {
   table: TEST_TABLE,
   db,
-  validateBM: AjvSchema.create(testItemBMSchema).getValidationFunction(),
+  validateBM: testItemBMSchema.getValidationFunction(),
   hooks: {
     parseNaturalId: id => {
       if (throwError && id === 'id3') throw new Error('error_from_parseNaturalId')
@@ -629,7 +629,7 @@ test('ajvSchema', async () => {
   const dao = new CommonDao({
     table: TEST_TABLE,
     db,
-    validateBM: AjvSchema.create(testItemBMSchema).getValidationFunction(),
+    validateBM: testItemBMSchema.getValidationFunction(),
   })
 
   const items = createTestItemsBM(3)

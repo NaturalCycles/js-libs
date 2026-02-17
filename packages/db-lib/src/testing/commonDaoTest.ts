@@ -1,7 +1,6 @@
 import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _deepCopy, _filterObject, _omit, _pick } from '@naturalcycles/js-lib/object'
-import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { CommonDao } from '../commondao/common.dao.js'
 import type { CommonDB } from '../commondb/common.db.js'
@@ -21,7 +20,7 @@ export async function runCommonDaoTest(
   const dao = new CommonDao({
     table: TEST_TABLE,
     db,
-    validateBM: AjvSchema.create(testItemBMSchema).getValidationFunction(),
+    validateBM: testItemBMSchema.getValidationFunction(),
   })
 
   const items = createTestItemsBM(3)

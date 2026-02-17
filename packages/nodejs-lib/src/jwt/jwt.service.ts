@@ -4,7 +4,7 @@ import { _errorDataAppend } from '@naturalcycles/js-lib/error/error.util.js'
 import type { AnyObject, JWTString } from '@naturalcycles/js-lib/types'
 import type { Algorithm, JwtHeader, SignOptions, VerifyOptions } from 'jsonwebtoken'
 import jsonwebtoken from 'jsonwebtoken'
-import type { AjvSchema } from '../validation/ajv/jSchema.js'
+import type { AjvSchema, JSchema } from '../validation/ajv/jSchema.js'
 export { jsonwebtoken }
 export type { Algorithm, JwtHeader, SignOptions, VerifyOptions }
 
@@ -63,7 +63,11 @@ export interface JWTServiceCfg {
 export class JWTService {
   constructor(public cfg: JWTServiceCfg) {}
 
-  sign<T extends AnyObject>(payload: T, schema?: AjvSchema<T>, opt: SignOptions = {}): JWTString {
+  sign<T extends AnyObject>(
+    payload: T,
+    schema?: JSchema<T, any> | AjvSchema<T>,
+    opt: SignOptions = {},
+  ): JWTString {
     _assert(
       this.cfg.privateKey,
       'JWTService: privateKey is required to be able to verify, but not provided',
@@ -81,7 +85,7 @@ export class JWTService {
 
   verify<T extends AnyObject>(
     token: JWTString,
-    schema?: AjvSchema<T>,
+    schema?: JSchema<T, any> | AjvSchema<T>,
     opt: VerifyOptions = {},
     publicKey?: string, // allows to override public key
   ): T {
@@ -112,7 +116,7 @@ export class JWTService {
 
   decode<T extends AnyObject>(
     token: JWTString,
-    schema?: AjvSchema<T>,
+    schema?: JSchema<T, any> | AjvSchema<T>,
   ): {
     header: JwtHeader
     payload: T

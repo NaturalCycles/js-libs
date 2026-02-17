@@ -6,7 +6,7 @@ pn tsx scripts/validation.bench.script.ts
 
 import http from 'node:http'
 import { runCannon } from '@naturalcycles/bench-lib'
-import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import express from 'express'
 import type { BackendApplication } from '../src/index.js'
@@ -16,11 +16,9 @@ interface PwInput {
   pw: string
 }
 
-const pwInputSchemaAjv = AjvSchema.create<PwInput>(
-  j.object<PwInput>({
-    pw: j.string().minLength(6),
-  }),
-)
+const pwInputSchemaAjv = j.object<PwInput>({
+  pw: j.string().minLength(6),
+})
 
 function createApp(): BackendApplication {
   const app = express()

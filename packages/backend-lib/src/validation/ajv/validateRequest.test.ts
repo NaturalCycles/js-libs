@@ -1,6 +1,6 @@
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
-import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { getDefaultRouter } from '../../express/getDefaultRouter.js'
 import { debugResource } from '../../test/debug.resource.js'
@@ -114,14 +114,12 @@ describe('ajvValidateRequest', () => {
       resource.get('/', async (req, res) => {
         validateRequest.headers(
           req,
-          AjvSchema.create(
-            j.object<{ shortstring: string; numeric: string; bool: string; sessionid: string }>({
-              shortstring: j.string().minLength(8).maxLength(16),
-              numeric: j.string(),
-              bool: j.string(),
-              sessionid: j.string(),
-            }),
-          ),
+          j.object<{ shortstring: string; numeric: string; bool: string; sessionid: string }>({
+            shortstring: j.string().minLength(8).maxLength(16),
+            numeric: j.string(),
+            bool: j.string(),
+            sessionid: j.string(),
+          }),
           { redactPaths: ['sessionid'] },
         )
 
@@ -192,12 +190,10 @@ describe('ajvValidateRequest', () => {
       const resource = getDefaultRouter().get('/', async (req, res) => {
         const validatedHeaders = validateRequest.headers(
           req,
-          AjvSchema.create(
-            j.object<{ shortstring: string; numeric: string }>({
-              shortstring: j.string().minLength(8).maxLength(16),
-              numeric: j.string(),
-            }),
-          ),
+          j.object<{ shortstring: string; numeric: string }>({
+            shortstring: j.string().minLength(8).maxLength(16),
+            numeric: j.string(),
+          }),
         )
 
         res.json({ ok: 1, headers: req.headers, validatedHeaders })

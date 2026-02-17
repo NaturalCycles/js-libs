@@ -2,7 +2,7 @@ import { _omit } from '@naturalcycles/js-lib/object'
 import { expect, test } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
 import { testDir } from '../test/paths.cnst.js'
-import { AjvSchema, j } from '../validation/ajv/index.js'
+import { j } from '../validation/ajv/index.js'
 import { JWTService } from './jwt.service.js'
 
 const jwtService = new JWTService({
@@ -16,12 +16,10 @@ interface Data {
   num: number
 }
 
-const dataSchema = AjvSchema.create(
-  j.object<Data>({
-    accountId: j.string(),
-    num: j.number(),
-  }),
-)
+const dataSchema = j.object<Data>({
+  accountId: j.string(),
+  num: j.number(),
+})
 
 const data1: Data = {
   accountId: 'abc123',

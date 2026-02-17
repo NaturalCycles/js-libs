@@ -9,7 +9,6 @@ pn tsx scripts/cannon.ts
 import { expressFunctionFactory, runCannon } from '@naturalcycles/bench-lib'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { stringId } from '@naturalcycles/nodejs-lib'
-import { AjvSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { CommonDao } from '../src/commondao/index.js'
 import { InMemoryDB } from '../src/inmemory/index.js'
@@ -39,7 +38,7 @@ const db = new InMemoryDB()
 const dao = new CommonDao({
   table: TEST_TABLE,
   db,
-  validateBM: AjvSchema.create(testItemBMSchema).getValidationFunction(),
+  validateBM: testItemBMSchema.getValidationFunction(),
 })
 
 async function register1(): Promise<any> {
@@ -67,7 +66,7 @@ async function registerFull(): Promise<any> {
   return { item }
 }
 
-const testItemBMValidator = AjvSchema.create(testItemBMSchema)
+const testItemBMValidator = testItemBMSchema
 
 async function validate1(): Promise<any> {
   const item = createTestItemsBM(1).map(r => _omit(r, ['id']))[0]!
