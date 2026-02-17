@@ -14,8 +14,8 @@ import type {
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import { getCoercingAjv } from './getAjv.js'
-import { AjvSchema, j } from './jSchema.js'
 import type { JsonSchema } from './jSchema.js'
+import { AjvSchema, j } from './jSchema.js'
 
 describe('any', () => {
   test('should correctly infer the type', () => {
@@ -210,7 +210,7 @@ describe('object', () => {
     }
 
     const schema1 = j.object<Schema1>({
-      // @ts-expect-error There is already a warning here
+      // @ts-expect-error That's the purpose of the test, that's why. There. Explained. There is already a warning here
       foo: j.number(),
     })
 
@@ -233,7 +233,7 @@ describe('object', () => {
       bar?: number
     }
 
-    // @ts-expect-error
+    // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
     const schema1 = j.object<Schema1>({
       foo: j.string(),
     })
@@ -248,7 +248,7 @@ describe('object', () => {
 
     const schema1 = j.object<Schema1>({
       foo: j.string(),
-      // @ts-expect-error There is already a warning here
+      // @ts-expect-error That's the purpose of the test, that's why. There. Explained. There is already a warning here
       bar: j.number().optional(),
     })
 
@@ -379,7 +379,7 @@ describe('object', () => {
         foo: string
       }
 
-      // @ts-expect-error
+      // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
       const schema1 = j.object.dbEntity<DB>({ foo: j.number() })
 
       expectTypeOf(schema1).toBeNever()
@@ -393,7 +393,7 @@ describe('object', () => {
         shu?: number
       }
 
-      // @ts-expect-error
+      // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
       const schema1 = j.object.dbEntity<DB>({
         id: j.string().branded<Id>(),
         foo: j.string(),
@@ -409,7 +409,7 @@ describe('object', () => {
         foo: string
       }
 
-      // @ts-expect-error
+      // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
       const schema1 = j.object.dbEntity<DB>({
         foo: j.string(),
       })
@@ -767,9 +767,9 @@ describe('final', () => {
   test('should not allow to call other chain functions', () => {
     const schema = j.string().final()
 
-    // @ts-expect-error
+    // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
     expect(() => schema.optional()).toThrow('schema.optional is not a function')
-    // @ts-expect-error
+    // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
   })
 })
