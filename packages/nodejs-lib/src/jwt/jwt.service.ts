@@ -4,7 +4,7 @@ import { _errorDataAppend } from '@naturalcycles/js-lib/error/error.util.js'
 import type { AnyObject, JWTString } from '@naturalcycles/js-lib/types'
 import type { Algorithm, JwtHeader, SignOptions, VerifyOptions } from 'jsonwebtoken'
 import jsonwebtoken from 'jsonwebtoken'
-import type { AjvSchema } from '../validation/ajv/ajvSchema.js'
+import type { AjvSchema } from '../validation/ajv/jSchema.js'
 export { jsonwebtoken }
 export type { Algorithm, JwtHeader, SignOptions, VerifyOptions }
 

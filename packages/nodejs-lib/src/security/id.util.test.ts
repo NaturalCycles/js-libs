@@ -9,7 +9,7 @@ import {
   stringIdNonAmbiguous,
   unmockStringId,
 } from '../index.js'
-import { AjvSchema, j } from '../validation/ajv/ajvSchema.js'
+import { AjvSchema, j } from '../validation/ajv/jSchema.js'
 import { BASE62_REGEX, BASE64_REGEX, BASE64URL_REGEX } from '../validation/regexes.js'
 
 const stringIdRegex = /^[a-z0-9]*$/

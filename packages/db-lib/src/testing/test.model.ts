@@ -1,7 +1,7 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type { JSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
-import type { JsonSchemaObjectBuilder } from '@naturalcycles/nodejs-lib/ajv'
 
 const MOCK_TS_2018_06_21 = 1529539200 as UnixTimestamp
 
@@ -31,19 +31,18 @@ export const testItemTMSchema = j.object<TestItemTM>({
   even: j.boolean().optional(),
 })
 
-export const testItemBMSchema: JsonSchemaObjectBuilder<TestItemBM, false> =
-  j.object.dbEntity<TestItemBM>({
-    // todo: figure out how to not copy-paste these 3 fields
-    id: j.string(), // todo: not strictly needed here
-    created: j.number().integer().unixTimestamp(),
-    updated: j.number().integer().unixTimestamp(),
-    k1: j.string(),
-    k2: j.string().nullable().optional(),
-    k3: j.number().optional(),
-    even: j.boolean().optional(),
-    b1: j.buffer().optional(),
-    nested: j.object.infer({ foo: j.number() }).optional(),
-  })
+export const testItemBMSchema: JSchema<TestItemBM, false> = j.object.dbEntity<TestItemBM>({
+  // todo: figure out how to not copy-paste these 3 fields
+  id: j.string(), // todo: not strictly needed here
+  created: j.number().integer().unixTimestamp(),
+  updated: j.number().integer().unixTimestamp(),
+  k1: j.string(),
+  k2: j.string().nullable().optional(),
+  k3: j.number().optional(),
+  even: j.boolean().optional(),
+  b1: j.buffer().optional(),
+  nested: j.object.infer({ foo: j.number() }).optional(),
+})
 
 export function createTestItemDBM(num = 1): TestItemDBM {
   return {

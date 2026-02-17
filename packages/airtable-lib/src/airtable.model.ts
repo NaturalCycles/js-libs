@@ -1,6 +1,6 @@
 import type { ValidationFunction } from '@naturalcycles/js-lib'
 import type { AppError } from '@naturalcycles/js-lib/error'
-import type { JsonSchemaAnyBuilder } from '@naturalcycles/nodejs-lib/ajv'
+import type { JSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
 import type { AirtableApiSort } from './airtable.api.js'
 
@@ -84,11 +84,11 @@ export interface AirtableRecord {
 
 export const airtableIdSchema = j.string()
 
-export function airtableMultipleLinkSchema<T = any>(): JsonSchemaAnyBuilder<T[], false> {
+export function airtableMultipleLinkSchema<T = any>(): JSchema<T[], false> {
   return j.array(j.string()).default([]).castAs<T[]>()
 }
 
-export function airtableSingleLinkSchema<T = any>(): JsonSchemaAnyBuilder<T[], false> {
+export function airtableSingleLinkSchema<T = any>(): JSchema<T[], false> {
   return j.array(j.string()).maxLength(1).default([]).castAs<T[]>()
 }
 
