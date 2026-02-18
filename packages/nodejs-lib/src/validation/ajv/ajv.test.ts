@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest'
 import { fs2 } from '../../fs/fs2.js'
 import { testDir } from '../../test/paths.cnst.js'
 import { AjvValidationError } from './ajvValidationError.js'
+import { getCoercingAjv } from './getAjv.js'
 import type { JsonSchema } from './jSchema.js'
 import { AjvSchema, j } from './jSchema.js'
 
@@ -246,6 +247,46 @@ test('buffer', () => {
   schema.validate(Buffer.from('abc'), { mutateInput: true })
 
   expect(schema.isValid('a b c' as any)).toBe(false)
+})
+
+describe('getValidationFunction with custom ajv', () => {
+  const objectSchema = j.object<Simple>({
+    s: j.string(),
+    int: j.number().optional(),
+  })
+
+  test('should use custom ajv from options', () => {
+    const coercingAjv = getCoercingAjv()
+    const validateFn = objectSchema.getValidationFunction({ ajv: coercingAjv })
+
+    // Coercing ajv converts string "5" to number 5 inside an object
+    const [err, result] = validateFn({ s: 'hello', int: '5' as any })
+    expect(err).toBeNull()
+    expect(result).toEqual({ s: 'hello', int: 5 })
+  })
+
+  test('should fail without coercing ajv', () => {
+    const validateFn = objectSchema.getValidationFunction()
+
+    // Default ajv does NOT coerce types
+    const [err] = validateFn({ s: 'hello', int: '5' as any })
+    expect(err).toBeInstanceOf(AjvValidationError)
+  })
+
+  test('per-call options should override outer options', () => {
+    const validateFn = objectSchema.getValidationFunction({ inputName: 'Outer' })
+    const [err] = validateFn({ int: 5 } as any, { inputName: 'Inner' })
+    expect(err).toBeInstanceOf(AjvValidationError)
+    expect(err!.message).toContain('Inner')
+    expect(err!.message).not.toContain('Outer')
+  })
+
+  test('outer options should apply when per-call options are not provided', () => {
+    const validateFn = objectSchema.getValidationFunction({ inputName: 'MyObject' })
+    const [err] = validateFn({ int: 5 } as any)
+    expect(err).toBeInstanceOf(AjvValidationError)
+    expect(err!.message).toContain('MyObject')
+  })
 })
 
 describe('regex flags', () => {

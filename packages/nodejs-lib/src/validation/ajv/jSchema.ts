@@ -447,12 +447,15 @@ export class JSchema<OUT, Opt> {
     return executeValidation<OUT>(fn, builtSchema, input, opt, inputName)
   }
 
-  getValidationFunction(): ValidationFunction<OUT, AjvValidationError> {
-    return (input, opt) => {
+  getValidationFunction(
+    opt: AjvValidationOptions = {},
+  ): ValidationFunction<OUT, AjvValidationError> {
+    return (input, opt2) => {
       return this.getValidationResult(input, {
-        mutateInput: opt?.mutateInput,
-        inputName: opt?.inputName,
-        inputId: opt?.inputId,
+        ajv: opt.ajv,
+        mutateInput: opt2?.mutateInput ?? opt.mutateInput,
+        inputName: opt2?.inputName ?? opt.inputName,
+        inputId: opt2?.inputId ?? opt.inputId,
       })
     }
   }
