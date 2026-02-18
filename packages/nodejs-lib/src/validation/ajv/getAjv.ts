@@ -3,17 +3,17 @@ import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import { Ajv2020 } from 'ajv/dist/2020.js'
 import type { Options, ValidateFunction } from 'ajv/dist/2020.js'
+import { Ajv2020 } from 'ajv/dist/2020.js'
 import { validTLDs } from '../tlds.js'
 import type {
   CustomConverterFn,
   CustomValidatorFn,
+  JSchema,
   JsonSchemaIsoDateOptions,
   JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
-  JsonSchemaTerminal,
-} from './ajvSchema.js'
+} from './jSchema.js'
 
 /* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 // oxlint-disable unicorn/prefer-code-point
@@ -570,7 +570,7 @@ export function createAjv(opt?: Options): Ajv2020 {
       const { propertyName, schemaDictionary } = config
 
       const isValidFnByKey: Record<any, ValidateFunction> = _mapObject(
-        schemaDictionary as Record<any, JsonSchemaTerminal<any, any>>,
+        schemaDictionary as Record<any, JSchema<any, any>>,
         (key, value) => {
           return [key, ajv.compile(value)]
         },
@@ -607,7 +607,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     modifying: true,
     errors: true,
     schemaType: 'array',
-    compile(schemas: JsonSchemaTerminal<any, any>[], _parentSchema, _it) {
+    compile(schemas: JSchema<any, any>[], _parentSchema, _it) {
       const validators = schemas.map(schema => ajv.compile(schema))
 
       function validate(data: AnyObject, ctx: any): boolean {

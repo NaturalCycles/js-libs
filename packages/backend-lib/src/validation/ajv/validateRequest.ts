@@ -1,4 +1,4 @@
-import { AjvSchema, getCoercingAjv } from '@naturalcycles/nodejs-lib/ajv'
+import { AjvSchema, getCoercingAjv, JSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { AjvValidationError, SchemaHandledByAjv } from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../../server/server.model.js'
 import { handleValidationError } from '../validateRequest.util.js'
@@ -85,9 +85,14 @@ class AjvValidateRequest {
 
     const { coerceTypes, mutateInput } = opt
     const ajv = coerceTypes ? getCoercingAjv() : undefined
-    const ajvSchema = AjvSchema.create(schema, { ajv })
 
-    const [error, output] = ajvSchema.getValidationResult(input, {
+    const validatable =
+      schema instanceof JSchema || schema instanceof AjvSchema
+        ? schema
+        : new JSchema<OUT, false>(schema)
+
+    const [error, output] = validatable.getValidationResult(input, {
+      ajv,
       inputName: `request.${reqProperty}`,
       getOriginalInput,
       mutateInput,

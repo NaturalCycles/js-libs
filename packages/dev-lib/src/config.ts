@@ -1,4 +1,4 @@
-import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 
 /**
@@ -13,22 +13,17 @@ export async function readDevLibConfigIfPresent(cwd = process.cwd()): Promise<De
     console.log(`read ${devLibConfigPath}`)
   }
 
-  return devLibConfigSchema.validate(cfg)
+  return devLibConfigSchema.validate(cfg, { inputName: 'dev-lib.config.js' })
 }
 
-const devLibConfigSchema = AjvSchema.create(
-  j.object<DevLibConfig>({
-    commitlint: j.object
-      .infer({
-        requireScope: j.boolean().optional(),
-        allowedScopes: j.array(j.string()).optional(),
-      })
-      .optional(),
-  }),
-  {
-    inputName: 'dev-lib.config.js',
-  },
-)
+const devLibConfigSchema = j.object<DevLibConfig>({
+  commitlint: j.object
+    .infer({
+      requireScope: j.boolean().optional(),
+      allowedScopes: j.array(j.string()).optional(),
+    })
+    .optional(),
+})
 
 export interface DevLibConfig {
   commitlint?: DevLibCommitlintConfig

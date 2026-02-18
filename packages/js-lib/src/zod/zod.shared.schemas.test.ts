@@ -1,4 +1,4 @@
-import { AjvSchema, getAjv } from '@naturalcycles/nodejs-lib/ajv'
+import { getAjv, JSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { describe, expect, test } from 'vitest'
 import type { IsoDate, UnixTimestamp } from '../types.js'
@@ -119,10 +119,10 @@ describe('z.isoDate', () => {
 
 function createAjvSchemaFromZod<T extends ZodType<any, any, any>>(
   schema: T,
-): AjvSchema<T['_output']> {
+): JSchema<T['_output'], false> {
   const jsonSchema = z.toJSONSchema(schema, {
     target: 'draft-2020-12',
   }) as unknown as JsonSchema<T['_output']>
 
-  return AjvSchema.create(jsonSchema)
+  return new JSchema(jsonSchema)
 }

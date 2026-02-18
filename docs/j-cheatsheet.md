@@ -38,11 +38,11 @@ Transforms
 
 Validation
 
-- `AjvSchema.validate()` mutates input by default.
+- `schema.validate()` mutates input by default.
 - Use `{ mutateInput: false }` to avoid mutation.
-- `AjvSchema.create(schema).getValidationResult(...)` returns `[error, output]` (output may be
+- `schema.create(schema).getValidationResult(...)` returns `[error, output]` (output may be
   transformed).
-- `AjvSchema.validate()` strips unknown properties unless `.allowAdditionalProperties()` is set.
+- `schema.validate()` strips unknown properties unless `.allowAdditionalProperties()` is set.
 
 Where to look
 

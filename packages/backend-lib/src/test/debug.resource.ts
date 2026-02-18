@@ -1,6 +1,6 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { z } from '@naturalcycles/js-lib/zod'
-import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { validateRequest } from '../validation/ajv/validateRequest.js'
 import { zodValidateRequest } from '../validation/zod/zodValidateRequest.js'
@@ -16,11 +16,9 @@ interface PwInput {
   pw: string
 }
 
-const changePasswordSchemaAjv = AjvSchema.create<PwInput>(
-  j.object<PwInput>({
-    pw: j.string().minLength(8),
-  }),
-)
+const changePasswordSchemaAjv = j.object<PwInput>({
+  pw: j.string().minLength(8),
+})
 
 const changePasswordSchemaZod = z.object({
   pw: z.string().min(8),

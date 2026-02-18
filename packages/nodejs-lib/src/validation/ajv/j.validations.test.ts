@@ -18,7 +18,7 @@ import type {
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
-import { AjvSchema, HIDDEN_AJV_SCHEMA, j } from './ajvSchema.js'
+import { AjvSchema, HIDDEN_AJV_SCHEMA, j } from './jSchema.js'
 
 describe('immutability', () => {
   test('the rule chains should return new instances', () => {
@@ -118,7 +118,7 @@ describe('string', () => {
       // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
       // which doesn't have string-specific methods like minLength().
       // This prevents mistakes at compile time rather than failing at runtime.
-      // @ts-expect-error - minLength doesn't exist on JsonSchemaTerminal
+      // @ts-expect-error That's the purpose of the test, that's why we have the expect error. - minLength doesn't exist on JsonSchemaTerminal
       expect(() => schema.minLength(1)).toThrow(TypeError)
     })
 
@@ -1506,7 +1506,7 @@ describe('number', () => {
       // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
       // which doesn't have number-specific methods like min().
       // This prevents mistakes at compile time rather than failing at runtime.
-      // @ts-expect-error - min doesn't exist on JsonSchemaTerminal
+      // @ts-expect-error That's the purpose of the test, that's why we have the expect error. - min doesn't exist on JsonSchemaTerminal
       expect(() => schema.min(1)).toThrow(TypeError)
     })
 
@@ -2578,7 +2578,7 @@ describe('object', () => {
       missing: boolean
     }
 
-    // @ts-expect-error missing required property `missing`
+    // @ts-expect-error That's the purpose of the test, that's why we have the expect error.
     j.object<Foo>({ foo: j.string(), bar: j.string().optional() })
   })
 
@@ -2860,7 +2860,7 @@ describe('object', () => {
         foo: string
       }
 
-      // @ts-expect-error wrong schema
+      // @ts-expect-error That's the purpose of the test, that's why we have the expect error. wrong schema
       const _ = j.object.dbEntity<DB>({ foo: j.number() })
 
       const schema = j.object.dbEntity<DB>({ foo: j.string() })
@@ -3182,7 +3182,7 @@ describe('object', () => {
       // When `null` is passed to optional(), the return type is JsonSchemaTerminal,
       // which doesn't have object-specific methods like extend().
       // This prevents mistakes at compile time rather than failing at runtime.
-      // @ts-expect-error - extend doesn't exist on JsonSchemaTerminal
+      // @ts-expect-error That's the purpose of the test, that's why we have the expect error. - extend doesn't exist on JsonSchemaTerminal
       expect(() => schema.extend({})).toThrow(TypeError)
     })
 
@@ -4166,9 +4166,9 @@ describe('final', () => {
     const [err2] = schema.getValidationResult('abcd')
     expect(err2).not.toBeNull()
 
-    // @ts-expect-error .optional() is not available on final schema
+    // @ts-expect-error That's the purpose of the test, that's why we have the expect error.
     expect(() => schema.optional()).toThrow('schema.optional is not a function')
-    // @ts-expect-error .nullable() is not available on final schema
+    // @ts-expect-error That's the purpose of the test, that's why we have the expect error.
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
   })
 })

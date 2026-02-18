@@ -1,9 +1,8 @@
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
-import { j, JsonSchemaAnyBuilder } from '@naturalcycles/nodejs-lib/ajv'
-import type { JsonSchemaObjectBuilder } from '@naturalcycles/nodejs-lib/ajv'
+import { j, JBuilder } from '@naturalcycles/nodejs-lib/ajv'
 import type { CommonDBOptions, CommonDBSaveOptions, DBTransaction } from '../db.model.js'
-import { dbQueryFilterOperatorValues } from '../query/dbQuery.js'
 import type { DBQueryFilter, DBQueryOrder } from '../query/dbQuery.js'
+import { dbQueryFilterOperatorValues } from '../query/dbQuery.js'
 
 // oxlint-disable typescript/explicit-function-return-type
 
@@ -11,9 +10,9 @@ import type { DBQueryFilter, DBQueryOrder } from '../query/dbQuery.js'
 const dbTransactionSchema = j.object.any().castAs<DBTransaction>()
 
 // Schema that accepts any value (string, number, boolean, object, array, null)
-const anyValueSchema = new JsonSchemaAnyBuilder<any, false>({})
+const anyValueSchema = new JBuilder<any, false>({})
 
-export const commonDBOptionsSchema = (): JsonSchemaObjectBuilder<CommonDBOptions, false> =>
+export const commonDBOptionsSchema = (): JBuilder<CommonDBOptions, false> =>
   j.object<CommonDBOptions>({
     tx: dbTransactionSchema.optional(),
   })

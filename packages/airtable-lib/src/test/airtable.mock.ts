@@ -1,6 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
-import { AjvSchema, j } from '@naturalcycles/nodejs-lib/ajv'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import type { AirtableAttachment, AirtableRecord } from '../airtable.model.js'
 import {
   airtableAttachmentsSchema,
@@ -156,14 +156,14 @@ export function mockBaseDao(airtableLib: AirtableLib, baseId: string): AirtableB
       new AirtableRemoteConnector<TestBase>(airtableLib),
     ],
     tableCfgMap: {
-      users: { validationFn: AjvSchema.create(userSchema).getValidationFunction(), idField: 'id' },
-      roles: { validationFn: AjvSchema.create(roleSchema).getValidationFunction(), idField: 'id' },
+      users: { validationFn: userSchema.getValidationFunction(), idField: 'id' },
+      roles: { validationFn: roleSchema.getValidationFunction(), idField: 'id' },
       permissions: {
-        validationFn: AjvSchema.create(permissionSchema).getValidationFunction(),
+        validationFn: permissionSchema.getValidationFunction(),
         idField: 'id',
       },
       categories: {
-        validationFn: AjvSchema.create(categorySchema).getValidationFunction(),
+        validationFn: categorySchema.getValidationFunction(),
         idField: 'id',
       },
     },
