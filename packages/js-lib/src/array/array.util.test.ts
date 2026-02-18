@@ -17,6 +17,8 @@ import {
   _find,
   _findLast,
   _first,
+  _firstLast,
+  _firstLastOrUndefined,
   _firstOrUndefined,
   _groupBy,
   _intersection,
@@ -425,6 +427,20 @@ test('_last', () => {
   // Should support passing readonly array
   const ro = [1, 2, 3] as readonly number[]
   expect(_last(ro)).toBe(3)
+})
+
+test('_firstLast', () => {
+  expect(() => _firstLast([])).toThrowErrorMatchingInlineSnapshot(
+    `[Error: _firstLast called on empty array]`,
+  )
+  expect(_firstLast([1])).toEqual([1, 1])
+  expect(_firstLast([1, 2])).toEqual([1, 2])
+  expect(_firstLast([1, 2, 3])).toEqual([1, 3])
+
+  expect(_firstLastOrUndefined([])).toBeUndefined()
+  expect(_firstLastOrUndefined([1])).toEqual([1, 1])
+  expect(_firstLastOrUndefined([1, 2])).toEqual([1, 2])
+  expect(_firstLastOrUndefined([1, 2, 3])).toEqual([1, 3])
 })
 
 test('_first', () => {

@@ -426,6 +426,16 @@ export function _shuffle<T>(array: T[], opt: MutateOptions = {}): T[] {
   return a
 }
 
+export function _firstLast<T>(array: readonly T[]): [first: T, last: T] {
+  if (!array.length) throw new Error('_firstLast called on empty array')
+  return [array[0]!, array[array.length - 1]!]
+}
+
+export function _firstLastOrUndefined<T>(array: readonly T[]): [first: T, last: T] | undefined {
+  if (!array.length) return
+  return [array[0]!, array[array.length - 1]!]
+}
+
 /**
  * Returns last item of non-empty array.
  * Throws if array is empty.
