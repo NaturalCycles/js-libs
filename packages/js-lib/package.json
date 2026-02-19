@@ -18,14 +18,10 @@
     "tslib": "^2"
   },
   "peerDependencies": {
-    "undici": "^7",
-    "zod": "^4"
+    "undici": "^7"
   },
   "peerDependenciesMeta": {
     "undici": {
-      "optional": true
-    },
-    "zod": {
       "optional": true
     }
   },
@@ -64,8 +60,7 @@
     "./semver": "./dist/semver.js",
     "./string": "./dist/string/index.js",
     "./string/*.js": "./dist/string/*.js",
-    "./types": "./dist/types.js",
-    "./zod": "./dist/zod/index.js"
+    "./types": "./dist/types.js"
   },
   "files": [
     "dist",

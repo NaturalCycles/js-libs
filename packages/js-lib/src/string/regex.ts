@@ -3,4 +3,4 @@
  *
  * Source: https://regexr.com/3e48o
  */
-export const SIMPLE_EMAIL_REGEX = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/
+export const SIMPLE_EMAIL_REGEX = /^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$/
