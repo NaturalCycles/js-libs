@@ -29,6 +29,7 @@ import type {
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { _objectAssign, _typeCast, JWT_REGEX } from '@naturalcycles/js-lib/types'
+import type { StandardJSONSchemaV1, StandardSchemaV1 } from '@standard-schema/spec'
 import type { Ajv, ErrorObject } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
 import {
@@ -339,7 +340,9 @@ export type WithCachedAjvSchema<Base, OUT> = Base & {
      With `Opt`, we can infer it as `{ foo?: string | undefined }`.
 */
 
-export class JSchema<OUT, Opt> {
+export class JSchema<OUT, Opt>
+  implements StandardSchemaV1<unknown, OUT>, StandardJSONSchemaV1<unknown, OUT>
+{
   protected [HIDDEN_AJV_SCHEMA]: AjvSchema<any> | undefined
   protected schema: JsonSchema
   private _cfg?: { ajv?: Ajv; inputName?: string }
@@ -424,6 +427,28 @@ export class JSchema<OUT, Opt> {
     const clone = this.clone()
     _objectAssign(clone.schema, schema)
     return clone
+  }
+
+  get ['~standard'](): StandardSchemaV1.Props<unknown, OUT> &
+    StandardJSONSchemaV1.Props<unknown, OUT> {
+    const value: StandardSchemaV1.Props<unknown, OUT> & StandardJSONSchemaV1.Props<unknown, OUT> = {
+      version: 1,
+      vendor: 'j',
+      validate: v => {
+        const [err, output] = this.getValidationResult(v)
+        if (err) {
+          // todo: make getValidationResult return issues with path, so we can pass the path here too
+          return { issues: [{ message: err.message }] }
+        }
+        return { value: output }
+      },
+      jsonSchema: {
+        input: () => this.build() as Record<string, unknown>,
+        output: () => this.build() as Record<string, unknown>,
+      },
+    }
+    Object.defineProperty(this, '~standard', { value })
+    return value
   }
 
   validate(input: unknown, opt?: AjvValidationOptions): OUT {

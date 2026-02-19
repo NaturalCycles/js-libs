@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@naturalcycles/js-lib": "workspace:^15",
+    "@standard-schema/spec": "^1",
     "@types/js-yaml": "^4",
     "@types/jsonwebtoken": "^9",
     "@types/yargs": "^16",
