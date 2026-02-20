@@ -348,6 +348,7 @@
     ],
     "jest/max-nested-describe": [0, { "max": 4 }], // not good
     "jest/no-alias-methods": 2,
+    "jest/prefer-mock-return-shorthand": 2,
     "vue/no-multiple-slot-args": 2,
     "vue/no-deprecated-destroyed-lifecycle": 2,
     "vue/define-emits-declaration": [2, "type-based"],

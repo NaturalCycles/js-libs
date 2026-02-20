@@ -3,7 +3,7 @@
   "extends": ["packages/dev-lib/cfg/oxlint.config.json"],
   "ignorePatterns": ["__exclude", "docs"],
   "rules": {
-    "import/extensions": 0,
+    // "import/extensions": 0, // todo: enable when oxlint bug is fixed
     "import/no-default-export": 0
   },
   "settings": {
