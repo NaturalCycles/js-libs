@@ -105,6 +105,16 @@ export type AnyAsyncFunction<T = any> = (...args: any[]) => Promise<T>
 export type AsyncFunction<T = any> = () => Promise<T>
 export type AnyPromisableFunction<T = any> = (...args: any[]) => Promisable<T>
 export type PromisableFunction<T = any> = () => Promisable<T>
+export type AnySyncFunction<T = any> = (...args: any[]) => NotPromise<T>
+export type SyncFunction<T = any> = () => NotPromise<T>
+
+/**
+ * Compile-time guard against accidentally returning a Promise from a sync context.
+ * Example usage: `fn: () => NotPromise<T>`
+ * This would fail if fn returns a Promise (e.g an async function).
+ */
+export type NotPromise<T> = [T] extends [PromiseLike<any>] ? never : T
+
 /**
  * A function that lazily calculates something.
  */

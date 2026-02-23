@@ -19,13 +19,16 @@ import {
 } from './types.js'
 import type {
   AnyObject,
+  AnySyncFunction,
   BaseDBEntity,
   Branded,
   IsoDate,
   IsoMonth,
+  NotPromise,
   Reviver,
   Saved,
   StringMap,
+  SyncFunction,
   UnixTimestamp,
   Unsaved,
   UnsavedId,
@@ -295,6 +298,47 @@ test('UnixTimestamp branded type', () => {
   const ts2: number = ts // compatible
   const _: UnixTimestamp = ts2 as UnixTimestamp // needs casting
   const __ = asUnixTimestamp(ts2) // casting with a helper function
+})
+
+test('NotPromise', () => {
+  // NotPromise resolves to T for non-promise types
+  expectTypeOf<NotPromise<string>>().toEqualTypeOf<string>()
+  expectTypeOf<NotPromise<number>>().toEqualTypeOf<number>()
+  expectTypeOf<NotPromise<void>>().toEqualTypeOf<void>()
+  expectTypeOf<NotPromise<boolean>>().toEqualTypeOf<boolean>()
+  expectTypeOf<NotPromise<{ a: number }>>().toEqualTypeOf<{ a: number }>()
+  expectTypeOf<NotPromise<undefined>>().toEqualTypeOf<undefined>()
+  expectTypeOf<NotPromise<null>>().toEqualTypeOf<null>()
+
+  // NotPromise resolves to never for promise types
+  expectTypeOf<NotPromise<Promise<string>>>().toEqualTypeOf<never>()
+  expectTypeOf<NotPromise<Promise<void>>>().toEqualTypeOf<never>()
+  expectTypeOf<NotPromise<PromiseLike<number>>>().toEqualTypeOf<never>()
+})
+
+test('SyncFunction', () => {
+  // Sync functions are assignable
+  const syncFn: SyncFunction<string> = () => 'hello'
+  expect(syncFn()).toBe('hello')
+
+  const syncVoid: SyncFunction<void> = () => {}
+  expect(syncVoid()).toBeUndefined()
+
+  // Async functions are NOT assignable to SyncFunction
+  const asyncFn = async (): Promise<string> => 'hello'
+  // @ts-expect-error async function returns Promise, not assignable to SyncFunction
+  const __rejectAsync: SyncFunction<string> = asyncFn
+})
+
+test('AnySyncFunction', () => {
+  // Sync functions with args are assignable
+  const syncFn: AnySyncFunction<number> = (a: number, b: number) => a + b
+  expect(syncFn(1, 2)).toBe(3)
+
+  // Async functions are NOT assignable to AnySyncFunction
+  const asyncFn = async (x: number): Promise<number> => x * 2
+  // @ts-expect-error async function returns Promise, not assignable to AnySyncFunction
+  const __rejectAsync: AnySyncFunction<number> = asyncFn
 })
 
 test('asUnixTimestamp2000', () => {
