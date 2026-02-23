@@ -1,0 +1,20 @@
+version: 2
+registries:
+  # https://docs.github.com/en/enterprise-cloud@latest/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/configuring-access-to-private-registries-for-dependabot
+  private-repos:
+    type: git
+    url: https://github.com
+    username: x-access-token
+    password: ${{secrets.ORG_READ_PRIVATE_REPOS}}
+updates:
+  - package-ecosystem: github-actions
+    # https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#directories-or-directory--
+    directory: /
+    schedule:
+      interval: weekly
+    registries:
+      - private-repos
+    groups:
+      github-actions:
+        patterns:
+          - '*'
