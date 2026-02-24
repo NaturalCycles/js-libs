@@ -2,7 +2,7 @@
   "language": "@/js",
   "languageOptions": {
     "ecmaVersion": 2026,
-    "parser": "typescript-eslint/parser@8.56.0",
+    "parser": "typescript-eslint/parser@8.56.1",
     "parserOptions": {
       "extraFileExtensions": {
         "0": ".html"
@@ -14,7 +14,7 @@
   "linterOptions": {
     "reportUnusedDisableDirectives": 2
   },
-  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.56.0"],
+  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.56.1"],
   "rules": {
     "@typescript-eslint/explicit-member-accessibility": [
       2,

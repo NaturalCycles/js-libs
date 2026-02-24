@@ -11,8 +11,8 @@
   "semi": false,
   "singleQuote": true,
   "tabWidth": 2,
-  "experimentalSortPackageJson": false,
-  "experimentalSortImports": {
+  "sortPackageJson": false,
+  "sortImports": {
     "newlinesBetween": false,
     "groups": [
       "side_effect",
