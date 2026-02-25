@@ -506,6 +506,9 @@ export class JSchema<OUT, Opt>
    */
   out!: OUT
   opt!: Opt
+
+  /** Forces OUT to be invariant (prevents covariant subtype matching in object property constraints). */
+  declare protected _invariantOut: (x: OUT) => void
 }
 
 // ==== JBuilder (chainable base) ====

@@ -4624,3 +4624,77 @@ describe('j.any().instanceof()', () => {
     })
   })
 })
+
+describe('type inference check', () => {
+  type GarminUserId = Branded<'userId', string>
+
+  test('should work when the schema and the type matches', () => {
+    interface GarminUserState {
+      hasValidToken?: boolean
+      lastSyncTimestamp?: UnixTimestamp | null
+      lastUsedDeviceTypeName?: string
+      userId: GarminUserId
+      lastAuthDate: IsoDate
+    }
+
+    const garminUserStateSchema = j.object<GarminUserState>({
+      hasValidToken: j.boolean().optional(),
+      lastSyncTimestamp: j.number().unixTimestamp2000().nullable().optional(),
+      lastUsedDeviceTypeName: j.string().optional(),
+      userId: j.string().branded<GarminUserId>(),
+      lastAuthDate: j.string().isoDate(),
+    })
+
+    expectTypeOf(garminUserStateSchema.out).toEqualTypeOf<GarminUserState>()
+  })
+
+  test('should collapse the schema to never when optionality is missing', () => {
+    interface GarminUserState {
+      hasValidToken?: boolean
+      lastSyncTimestamp?: UnixTimestamp | null
+      lastUsedDeviceTypeName?: string
+      userId?: GarminUserId
+      lastAuthDate?: IsoDate
+    }
+
+    const garminUserStateSchema = j.object<GarminUserState>({
+      // @ts-expect-error missing .optional()
+      hasValidToken: j.boolean(),
+      // @ts-expect-error missing .optional()
+      lastSyncTimestamp: j.number().unixTimestamp2000().nullable(),
+      // @ts-expect-error missing .optional()
+      lastUsedDeviceTypeName: j.string(),
+      // @ts-expect-error missing .optional()
+      userId: j.string().branded<GarminUserId>(),
+      // @ts-expect-error missing .optional()
+      lastAuthDate: j.string().isoDate(),
+    })
+
+    expectTypeOf(garminUserStateSchema).toEqualTypeOf<never>()
+  })
+
+  test('should collapse the schema to never when optionality is not needed', () => {
+    interface GarminUserState {
+      hasValidToken: boolean
+      lastSyncTimestamp: UnixTimestamp | null
+      lastUsedDeviceTypeName: string
+      userId: GarminUserId
+      lastAuthDate: IsoDate
+    }
+
+    const garminUserStateSchema = j.object<GarminUserState>({
+      // @ts-expect-error unnecessary .optional()
+      hasValidToken: j.boolean().optional(),
+      // @ts-expect-error unnecessary .optional()
+      lastSyncTimestamp: j.number().unixTimestamp2000().nullable().optional(),
+      // @ts-expect-error unnecessary .optional()
+      lastUsedDeviceTypeName: j.string().optional(),
+      // @ts-expect-error unnecessary .optional()
+      userId: j.string().branded<GarminUserId>().optional(),
+      // @ts-expect-error unnecessary .optional()
+      lastAuthDate: j.string().isoDate().optional(),
+    })
+
+    expectTypeOf(garminUserStateSchema).toEqualTypeOf<never>()
+  })
+})
