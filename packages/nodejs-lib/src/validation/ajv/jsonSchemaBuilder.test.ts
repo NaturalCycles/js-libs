@@ -94,11 +94,11 @@ describe('string', () => {
 
     describe('optional(null)', () => {
       test('should correctly infer the type', () => {
-        const schema1 = j.string().isoDate().optional(null)
+        const schema1 = j.string().isoDate().optional([null])
         expectTypeOf(schema1.out).toEqualTypeOf<IsoDate | undefined>()
 
         const schema2 = j.object<{ date?: IsoDate }>({
-          date: j.string().isoDate().optional(null),
+          date: j.string().isoDate().optional([null]),
         })
         expectTypeOf(schema2.out).toEqualTypeOf<{ date?: IsoDate }>()
       })
@@ -161,7 +161,7 @@ describe('boolean', () => {
 
   describe('optional(values)', () => {
     test('should correctly infer the type', () => {
-      const schema1 = j.boolean().optional(false)
+      const schema1 = j.boolean().optional([false])
       expectTypeOf(schema1.out).toEqualTypeOf<boolean | undefined>()
     })
   })

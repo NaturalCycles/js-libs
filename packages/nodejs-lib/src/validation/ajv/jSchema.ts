@@ -567,9 +567,68 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     return this.cloneAndUpdateSchema({ type: 'object', instanceof: of })
   }
 
-  optional(): JBuilder<OUT | undefined, true> {
-    const clone = this.cloneAndUpdateSchema({ optionalField: true })
-    return clone as unknown as JBuilder<OUT | undefined, true>
+  /**
+   * @param optionalValues List of values that should be considered/converted as `undefined`.
+   *
+   * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
+   * due to how mutability works in Ajv.
+   *
+   * Make sure this `optional()` call is at the end of your call chain.
+   *
+   * When `null` is included in optionalValues, the return type becomes `JSchema`
+   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
+   */
+  optional<T extends readonly (string | number | boolean | null)[] | undefined = undefined>(
+    optionalValues?: T,
+  ): T extends readonly (string | number | boolean | null)[]
+    ? JSchema<OUT | undefined, true>
+    : JBuilder<OUT | undefined, true> {
+    if (!optionalValues?.length) {
+      const clone = this.cloneAndUpdateSchema({ optionalField: true })
+      return clone as any
+    }
+
+    const builtSchema = this.build()
+
+    // When optionalValues is just [null], use a simple null-wrapping structure.
+    // If the schema already has anyOf with a null branch (from nullable()),
+    // inject optionalValues directly into it.
+    if (optionalValues.length === 1 && optionalValues[0] === null) {
+      if (builtSchema.anyOf) {
+        const nullBranch = builtSchema.anyOf.find(b => b.type === 'null')
+        if (nullBranch) {
+          nullBranch.optionalValues = [null]
+          return new JSchema({ ...builtSchema, optionalField: true }) as any
+        }
+      }
+
+      // Wrap with null type branch
+      return new JSchema({
+        anyOf: [{ type: 'null', optionalValues: [null] }, builtSchema],
+        optionalField: true,
+      }) as any
+    }
+
+    // General case: create anyOf with current schema + alternatives.
+    // Preserve the original type for Ajv strict mode (optionalValues keyword requires a type).
+    const alternativesSchema = j.enum(optionalValues).build()
+    const innerSchema: JsonSchema = {
+      ...(builtSchema.type ? { type: builtSchema.type } : {}),
+      anyOf: [builtSchema, alternativesSchema],
+      optionalValues: [...optionalValues],
+    }
+
+    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
+    // so we must allow `null` values to be parsed by Ajv,
+    // but the typing should not reflect that.
+    if (optionalValues.includes(null)) {
+      return new JSchema({
+        anyOf: [{ type: 'null', optionalValues: [...optionalValues] }, innerSchema],
+        optionalField: true,
+      }) as any
+    }
+
+    return new JSchema({ ...innerSchema, optionalField: true }) as any
   }
 
   nullable(): JBuilder<OUT | null, Opt> {
@@ -641,51 +700,6 @@ export class JString<
     super({
       type: 'string',
     })
-  }
-
-  /**
-   * @param optionalValues List of values that should be considered/converted as `undefined`.
-   *
-   * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
-   * due to how mutability works in Ajv.
-   *
-   * Make sure this `optional()` call is at the end of your call chain.
-   *
-   * When `null` is included in optionalValues, the return type becomes `JSchema`
-   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
-   */
-  override optional<T extends readonly (string | null)[] | undefined = undefined>(
-    optionalValues?: T,
-  ): T extends readonly (infer U)[]
-    ? null extends U
-      ? JSchema<OUT | undefined, true>
-      : JString<OUT | undefined, true>
-    : JString<OUT | undefined, true> {
-    if (!optionalValues) {
-      return super.optional() as any
-    }
-
-    _typeCast<(string | null)[]>(optionalValues)
-
-    let newBuilder: JSchema<OUT | undefined, true> = new JString<OUT, Opt>().optional()
-    const alternativesSchema = j.enum(optionalValues)
-    Object.assign(newBuilder.getSchema(), {
-      anyOf: [this.build(), alternativesSchema.build()],
-      optionalValues,
-    })
-
-    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
-    // so we must allow `null` values to be parsed by Ajv,
-    // but the typing should not reflect that.
-    // We also cannot accept more rules attached, since we're not building a StringSchema anymore.
-    if (optionalValues.includes(null)) {
-      newBuilder = new JSchema({
-        anyOf: [{ type: 'null', optionalValues }, newBuilder.build()],
-        optionalField: true,
-      })
-    }
-
-    return newBuilder as any
   }
 
   regex(pattern: RegExp, opt?: JsonBuilderRuleOpt): this {
@@ -846,32 +860,6 @@ export class JIsoDate<Opt extends boolean = false> extends JBuilder<IsoDate, Opt
     })
   }
 
-  /**
-   * @param nullValue Pass `null` to have `null` values be considered/converted as `undefined`.
-   *
-   * This `null` feature only works when the current schema is nested in an object or array schema,
-   * due to how mutability works in Ajv.
-   *
-   * When `null` is passed, the return type becomes `JSchema`
-   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
-   */
-  override optional<N extends null | undefined = undefined>(
-    nullValue?: N,
-  ): N extends null ? JSchema<IsoDate | undefined, true> : JBuilder<IsoDate | undefined, true> {
-    if (nullValue === undefined) {
-      return super.optional() as any
-    }
-
-    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
-    // so we must allow `null` values to be parsed by Ajv,
-    // but the typing should not reflect that.
-    // We also cannot accept more rules attached, since we're not building an ObjectSchema anymore.
-    return new JSchema({
-      anyOf: [{ type: 'null', optionalValues: [null] }, this.build()],
-      optionalField: true,
-    }) as any
-  }
-
   before(date: string): this {
     return this.cloneAndUpdateSchema({ IsoDate: { before: date } })
   }
@@ -918,51 +906,6 @@ export class JNumber<
     super({
       type: 'number',
     })
-  }
-
-  /**
-   * @param optionalValues List of values that should be considered/converted as `undefined`.
-   *
-   * This `optionalValues` feature only works when the current schema is nested in an object or array schema,
-   * due to how mutability works in Ajv.
-   *
-   * Make sure this `optional()` call is at the end of your call chain.
-   *
-   * When `null` is included in optionalValues, the return type becomes `JSchema`
-   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
-   */
-  override optional<T extends readonly (number | null)[] | undefined = undefined>(
-    optionalValues?: T,
-  ): T extends readonly (infer U)[]
-    ? null extends U
-      ? JSchema<OUT | undefined, true>
-      : JNumber<OUT | undefined, true>
-    : JNumber<OUT | undefined, true> {
-    if (!optionalValues) {
-      return super.optional() as any
-    }
-
-    _typeCast<(number | null)[]>(optionalValues)
-
-    let newBuilder: JSchema<OUT | undefined, true> = new JNumber<OUT, Opt>().optional()
-    const alternativesSchema = j.enum(optionalValues)
-    Object.assign(newBuilder.getSchema(), {
-      anyOf: [this.build(), alternativesSchema.build()],
-      optionalValues,
-    })
-
-    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
-    // so we must allow `null` values to be parsed by Ajv,
-    // but the typing should not reflect that.
-    // We also cannot accept more rules attached, since we're not building a NumberSchema anymore.
-    if (optionalValues.includes(null)) {
-      newBuilder = new JSchema({
-        anyOf: [{ type: 'null', optionalValues }, newBuilder.build()],
-        optionalField: true,
-      })
-    }
-
-    return newBuilder as any
   }
 
   integer(): this {
@@ -1092,27 +1035,6 @@ export class JBoolean<
       type: 'boolean',
     })
   }
-
-  /**
-   * @param optionalValue One of the two possible boolean values that should be considered/converted as `undefined`.
-   *
-   * This `optionalValue` feature only works when the current schema is nested in an object or array schema,
-   * due to how mutability works in Ajv.
-   */
-  override optional(optionalValue?: boolean): JBoolean<OUT | undefined, true> {
-    if (typeof optionalValue === 'undefined') {
-      return super.optional() as unknown as JBoolean<OUT | undefined, true>
-    }
-
-    const newBuilder = new JBoolean<OUT, Opt>().optional()
-    const alternativesSchema = j.enum([optionalValue])
-    Object.assign(newBuilder.getSchema(), {
-      anyOf: [this.build(), alternativesSchema.build()],
-      optionalValues: [optionalValue],
-    })
-
-    return newBuilder
-  }
 }
 
 export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends JBuilder<
@@ -1131,32 +1053,6 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
     })
 
     if (props) addPropertiesToSchema(this.schema, props)
-  }
-
-  /**
-   * @param nullValue Pass `null` to have `null` values be considered/converted as `undefined`.
-   *
-   * This `null` feature only works when the current schema is nested in an object or array schema,
-   * due to how mutability works in Ajv.
-   *
-   * When `null` is passed, the return type becomes `JSchema`
-   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
-   */
-  override optional<N extends null | undefined = undefined>(
-    nullValue?: N,
-  ): N extends null ? JSchema<OUT | undefined, true> : JBuilder<OUT | undefined, true> {
-    if (nullValue === undefined) {
-      return super.optional() as any
-    }
-
-    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
-    // so we must allow `null` values to be parsed by Ajv,
-    // but the typing should not reflect that.
-    // We also cannot accept more rules attached, since we're not building an ObjectSchema anymore.
-    return new JSchema({
-      anyOf: [{ type: 'null', optionalValues: [null] }, this.build()],
-      optionalField: true,
-    }) as any
   }
 
   /**
@@ -1277,71 +1173,6 @@ export class JObjectInfer<
     })
 
     if (props) addPropertiesToSchema(this.schema, props)
-  }
-
-  /**
-   * @param nullValue Pass `null` to have `null` values be considered/converted as `undefined`.
-   *
-   * This `null` feature only works when the current schema is nested in an object or array schema,
-   * due to how mutability works in Ajv.
-   *
-   * When `null` is passed, the return type becomes `JSchema`
-   * (no further chaining allowed) because the schema is wrapped in an anyOf structure.
-   */
-  // @ts-expect-error override adds optional parameter which is compatible but TS can't verify complex mapped types
-  override optional<N extends null | undefined = undefined>(
-    nullValue?: N,
-  ): N extends null
-    ? JSchema<
-        | Expand<
-            {
-              [K in keyof PROPS as PROPS[K] extends JBuilder<any, infer IsOpt>
-                ? IsOpt extends true
-                  ? never
-                  : K
-                : never]: PROPS[K] extends JBuilder<infer OUT, any> ? OUT : never
-            } & {
-              [K in keyof PROPS as PROPS[K] extends JBuilder<any, infer IsOpt>
-                ? IsOpt extends true
-                  ? K
-                  : never
-                : never]?: PROPS[K] extends JBuilder<infer OUT, any> ? OUT : never
-            }
-          >
-        | undefined,
-        true
-      >
-    : JBuilder<
-        | Expand<
-            {
-              [K in keyof PROPS as PROPS[K] extends JBuilder<any, infer IsOpt>
-                ? IsOpt extends true
-                  ? never
-                  : K
-                : never]: PROPS[K] extends JBuilder<infer OUT, any> ? OUT : never
-            } & {
-              [K in keyof PROPS as PROPS[K] extends JBuilder<any, infer IsOpt>
-                ? IsOpt extends true
-                  ? K
-                  : never
-                : never]?: PROPS[K] extends JBuilder<infer OUT, any> ? OUT : never
-            }
-          >
-        | undefined,
-        true
-      > {
-    if (nullValue === undefined) {
-      return super.optional() as any
-    }
-
-    // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
-    // so we must allow `null` values to be parsed by Ajv,
-    // but the typing should not reflect that.
-    // We also cannot accept more rules attached, since we're not building an ObjectSchema anymore.
-    return new JSchema({
-      anyOf: [{ type: 'null', optionalValues: [null] }, this.build()],
-      optionalField: true,
-    }) as any
   }
 
   /**

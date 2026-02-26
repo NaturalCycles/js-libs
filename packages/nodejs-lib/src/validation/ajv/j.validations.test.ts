@@ -708,7 +708,7 @@ describe('string', () => {
 
     describe('optional(values)', () => {
       test('should work with `null` values', () => {
-        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
+        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
 
         const [err1, result1] = schema.getValidationResult({ date: '2025-01-15' as IsoDate })
         expect(err1).toBeNull()
@@ -720,11 +720,43 @@ describe('string', () => {
       })
 
       test('should still be an optional field when passing in `null`', () => {
-        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
+        const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
 
         const [err1, result1] = schema.getValidationResult({})
         expect(err1).toBeNull()
         expect(result1).toEqual({})
+      })
+
+      test('should work even after a `nullable()` call', () => {
+        const schema = j.object<{ foo?: string | null }>({
+          foo: j.string().nullable().optional([null]),
+        })
+
+        const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
+        expect(err1).toBeNull()
+        expect(result1).toEqual({ foo: 'foo' })
+
+        const [err2, result2] = schema.getValidationResult({ foo: null })
+        expect(err2).toBeNull()
+        expect(result2).toEqual({ foo: undefined })
+      })
+
+      test('should not mutate the base builder when deriving optional([null]) from nullable()', () => {
+        const base = j.string().nullable()
+
+        // Derive two independent optional schemas from the same base
+        const schema1 = j.object<{ foo?: string | null }>({ foo: base.optional([null]) })
+        const schema2 = j.object<{ foo: string | null }>({ foo: base })
+
+        // schema1 should convert null to undefined
+        const [err1, result1] = schema1.getValidationResult({ foo: null })
+        expect(err1).toBeNull()
+        expect(result1).toEqual({ foo: undefined })
+
+        // schema2 (non-optional) should still accept null as-is
+        const [err2, result2] = schema2.getValidationResult({ foo: null })
+        expect(err2).toBeNull()
+        expect(result2).toEqual({ foo: null })
       })
     })
 
@@ -2152,7 +2184,7 @@ describe('boolean', () => {
 
   describe('optional(values)', () => {
     test('should convert specific values to `undefined`', () => {
-      const schema = j.object<{ foo?: boolean }>({ foo: j.boolean().optional(false) })
+      const schema = j.object<{ foo?: boolean }>({ foo: j.boolean().optional([false]) })
 
       const [err1, result1] = schema.getValidationResult({ foo: true })
 
@@ -3120,7 +3152,7 @@ describe('object', () => {
         inner?: Inner
       }
       const schema = j.object<Outer>({
-        inner: j.object<Inner>({ foo: j.string() }).optional(null),
+        inner: j.object<Inner>({ foo: j.string() }).optional([null]),
       })
 
       const [err1, result1] = schema.getValidationResult({ inner: { foo: 'bar' } })
@@ -3141,7 +3173,7 @@ describe('object', () => {
         inner?: { foo: string }
       }
       const schema = j.object<Outer>({
-        inner: j.object.infer({ foo: j.string() }).optional(null),
+        inner: j.object.infer({ foo: j.string() }).optional([null]),
       })
 
       const [err1, result1] = schema.getValidationResult({ inner: { foo: 'bar' } })
@@ -3161,7 +3193,7 @@ describe('object', () => {
         inner?: Inner
       }
       const schema = j.object<Outer>({
-        inner: j.object.dbEntity<Inner>({ foo: j.string() }).optional(null),
+        inner: j.object.dbEntity<Inner>({ foo: j.string() }).optional([null]),
       })
 
       const [err1, result1] = schema.getValidationResult({
@@ -3178,7 +3210,7 @@ describe('object', () => {
     })
 
     test('should not allow chaining after `optional(null)` (compile-time error)', () => {
-      const schema = j.object<{ foo: string }>({ foo: j.string() }).optional(null)
+      const schema = j.object<{ foo: string }>({ foo: j.string() }).optional([null])
       // When `null` is passed to optional(), the return type is JsonSchemaTerminal,
       // which doesn't have object-specific methods like extend().
       // This prevents mistakes at compile time rather than failing at runtime.
@@ -3187,7 +3219,7 @@ describe('object', () => {
     })
 
     test('should throw when used on a standalone schema (and not in an object/array)', () => {
-      const schema = j.object<{ foo: string }>({ foo: j.string() }).optional(null)
+      const schema = j.object<{ foo: string }>({ foo: j.string() }).optional([null])
       const ajvSchema = AjvSchema.create(schema)
 
       // The check only triggers when the value is `null` (not when it's a valid object)
@@ -3201,7 +3233,7 @@ describe('object', () => {
         inner?: { foo: string }
       }
       const schema = j.object<Outer>({
-        inner: j.object<{ foo: string }>({ foo: j.string() }).optional(null),
+        inner: j.object<{ foo: string }>({ foo: j.string() }).optional([null]),
       })
 
       const [err1, result1] = schema.getValidationResult({})
@@ -3929,8 +3961,8 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should show clean error for isoDate.optional(null) #1', () => {
-    const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
+  test('should show clean error for isoDate.optional([null]) #1', () => {
+    const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
     const [err] = schema.getValidationResult({ date: 123 })
     expect(err).toMatchInlineSnapshot(`
       [AjvValidationError: Object.date must be string
@@ -3938,8 +3970,8 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should show clean error for isoDate.optional(null) #2', () => {
-    const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional(null) })
+  test('should show clean error for isoDate.optional([null]) #2', () => {
+    const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
     const [err] = schema.getValidationResult({ date: '2025-02-30' })
     expect(err).toMatchInlineSnapshot(`
       [AjvValidationError: Object.date is an invalid IsoDate
