@@ -539,6 +539,14 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     this.schema.errorMessages[ruleName] = errorMessage
   }
 
+  /**
+   * @deprecated
+   * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
+   */
+  override castAs<T>(): JBuilder<T, Opt> {
+    return this as unknown as JBuilder<T, Opt>
+  }
+
   $schema($schema: string): this {
     return this.cloneAndUpdateSchema({ $schema })
   }

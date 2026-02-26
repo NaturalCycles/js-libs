@@ -7,19 +7,19 @@ import { dbQueryFilterOperatorValues } from '../query/dbQuery.js'
 // oxlint-disable typescript/explicit-function-return-type
 
 // DBTransaction schema - validates presence without deep validation
-const dbTransactionSchema = j.object.any()
+const dbTransactionSchema = j.object.any().castAs<DBTransaction>()
 
 // Schema that accepts any value (string, number, boolean, object, array, null)
 const anyValueSchema = new JBuilder<any, false>({})
 
 export const commonDBOptionsSchema = (): JBuilder<CommonDBOptions, false> =>
   j.object<CommonDBOptions>({
-    tx: dbTransactionSchema.optional().castAs<DBTransaction | undefined>(),
+    tx: dbTransactionSchema.optional(),
   })
 
 export const commonDBSaveOptionsSchema = <ROW extends ObjectWithId>() =>
   j.object<CommonDBSaveOptions<ROW>>({
-    tx: dbTransactionSchema.optional().castAs<DBTransaction | undefined>(),
+    tx: dbTransactionSchema.optional(),
     excludeFromIndexes: j.array(j.string().castAs<keyof ROW>()).optional(),
     saveMethod: j.enum(['upsert', 'insert', 'update'] as const).optional(),
     assignGeneratedIds: j.boolean().optional(),
