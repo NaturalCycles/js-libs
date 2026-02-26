@@ -18,6 +18,7 @@ import type {
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { describe, expect, expectTypeOf, test } from 'vitest'
+import type { JSchema } from './jSchema.js'
 import { AjvSchema, HIDDEN_AJV_SCHEMA, j } from './jSchema.js'
 
 describe('immutability', () => {
@@ -4153,6 +4154,12 @@ describe('castAs', () => {
     expect(err).toBeNull()
     expect(result).toEqual({ foo: 'hello' })
     expectTypeOf(result).toEqualTypeOf<{ bar: number }>()
+  })
+
+  test('should work on JSchema (non-JBuilder) instances', () => {
+    // .optional(['']) returns a JSchema, not a JBuilder
+    const schema = j.string().optional(['']).castAs<string | undefined>()
+    expectTypeOf(schema).toEqualTypeOf<JSchema<string | undefined, true>>()
   })
 })
 

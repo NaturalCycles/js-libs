@@ -397,6 +397,24 @@ export class JSchema<OUT, Opt>
   }
 
   /**
+   * @deprecated
+   * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
+   */
+  castAs<T>(): JSchema<T, Opt> {
+    return this as unknown as JSchema<T, Opt>
+  }
+
+  /**
+   * A helper function that takes a type parameter and compares it with the type inferred from the schema.
+   *
+   * When the type inferred from the schema differs from the passed-in type,
+   * the schema becomes unusable, by turning its type into `never`.
+   */
+  isOfType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
+    return this.cloneAndUpdateSchema({ hasIsOfTypeCheck: true }) as any
+  }
+
+  /**
    * Produces a "clean schema object" without methods.
    * Same as if it would be JSON.stringified.
    */
@@ -521,16 +539,6 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     this.schema.errorMessages[ruleName] = errorMessage
   }
 
-  /**
-   * A helper function that takes a type parameter and compares it with the type inferred from the schema.
-   *
-   * When the type inferred from the schema differs from the passed-in type,
-   * the schema becomes unusable, by turning its type into `never`.
-   */
-  isOfType<ExpectedType>(): ExactMatch<ExpectedType, OUT> extends true ? this : never {
-    return this.cloneAndUpdateSchema({ hasIsOfTypeCheck: true }) as any
-  }
-
   $schema($schema: string): this {
     return this.cloneAndUpdateSchema({ $schema })
   }
@@ -635,14 +643,6 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     return new JBuilder({
       anyOf: [this.build(), { type: 'null' }],
     })
-  }
-
-  /**
-   * @deprecated
-   * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
-   */
-  castAs<T>(): JBuilder<T, Opt> {
-    return this as unknown as JBuilder<T, Opt>
   }
 
   /**
