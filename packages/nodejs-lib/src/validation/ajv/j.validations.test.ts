@@ -4730,3 +4730,19 @@ describe('type inference check', () => {
     expectTypeOf(garminUserStateSchema).toEqualTypeOf<never>()
   })
 })
+
+test('xxx', () => {
+  interface ZendeskTriggerWebhookBody {
+    assignee: {
+      email?: string // empty = not set
+    }
+  }
+
+  const zendeskWebhookBodySchema = j.object<ZendeskTriggerWebhookBody>({
+    assignee: j.object.infer({
+      email: j.string().email().optional(['']),
+    }),
+  })
+
+  expectTypeOf(zendeskWebhookBodySchema).not.toEqualTypeOf<never>()
+})

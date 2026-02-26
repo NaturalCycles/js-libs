@@ -1144,22 +1144,22 @@ interface JObjectOpts {
 }
 
 export class JObjectInfer<
-  PROPS extends Record<string, JBuilder<any, any>>,
+  PROPS extends Record<string, JSchema<any, any>>,
   Opt extends boolean = false,
 > extends JBuilder<
   Expand<
     {
-      [K in keyof PROPS as PROPS[K] extends JBuilder<any, infer IsOpt>
+      [K in keyof PROPS as PROPS[K] extends JSchema<any, infer IsOpt>
         ? IsOpt extends true
           ? never
           : K
-        : never]: PROPS[K] extends JBuilder<infer OUT, any> ? OUT : never
+        : never]: PROPS[K] extends JSchema<infer OUT, any> ? OUT : never
     } & {
-      [K in keyof PROPS as PROPS[K] extends JBuilder<any, infer IsOpt>
+      [K in keyof PROPS as PROPS[K] extends JSchema<any, infer IsOpt>
         ? IsOpt extends true
           ? K
           : never
-        : never]?: PROPS[K] extends JBuilder<infer OUT, any> ? OUT : never
+        : never]?: PROPS[K] extends JSchema<infer OUT, any> ? OUT : never
     }
   >,
   Opt
@@ -1183,7 +1183,7 @@ export class JObjectInfer<
     return this.cloneAndUpdateSchema({ additionalProperties: true })
   }
 
-  extend<NEW_PROPS extends Record<string, JBuilder<any, any>>>(
+  extend<NEW_PROPS extends Record<string, JSchema<any, any>>>(
     props: NEW_PROPS,
   ): JObjectInfer<
     {
@@ -1326,7 +1326,7 @@ function object<OUT extends AnyObject>(props: {
   return new JObject<OUT, false>(props)
 }
 
-function objectInfer<P extends Record<string, JBuilder<any, any>>>(
+function objectInfer<P extends Record<string, JSchema<any, any>>>(
   props: P,
 ): JObjectInfer<P, false> {
   return new JObjectInfer<P, false>(props)
