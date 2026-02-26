@@ -140,15 +140,15 @@ export const j = {
     withRegexKeys,
   }),
 
-  array<OUT, Opt>(itemSchema: JBuilder<OUT, Opt>): JArray<OUT, Opt> {
+  array<OUT, Opt>(itemSchema: JSchema<OUT, Opt>): JArray<OUT, Opt> {
     return new JArray(itemSchema)
   },
 
-  tuple<const S extends JBuilder<any, any>[]>(items: S): JTuple<S> {
+  tuple<const S extends JSchema<any, any>[]>(items: S): JTuple<S> {
     return new JTuple<S>(items)
   },
 
-  set<OUT, Opt>(itemSchema: JBuilder<OUT, Opt>): JSet2Builder<OUT, Opt> {
+  set<OUT, Opt>(itemSchema: JSchema<OUT, Opt>): JSet2Builder<OUT, Opt> {
     return new JSet2Builder(itemSchema)
   },
 
@@ -206,7 +206,7 @@ export const j = {
    * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
    * Use `oneOf` when schemas are mutually exclusive.
    */
-  oneOf<B extends readonly JBuilder<any, boolean>[], OUT = BuilderOutUnion<B>>(
+  oneOf<B extends readonly JSchema<any, boolean>[], OUT = BuilderOutUnion<B>>(
     items: [...B],
   ): JBuilder<OUT, false> {
     const schemas = items.map(b => b.build())
@@ -231,7 +231,7 @@ export const j = {
    * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
    * Use `oneOf` when schemas are mutually exclusive.
    */
-  anyOf<B extends readonly JBuilder<any, boolean>[], OUT = BuilderOutUnion<B>>(
+  anyOf<B extends readonly JSchema<any, boolean>[], OUT = BuilderOutUnion<B>>(
     items: [...B],
   ): JBuilder<OUT, false> {
     const schemas = items.map(b => b.build())
@@ -284,7 +284,7 @@ export const j = {
    * const schema = j.anyOfThese([successSchema, errorSchema])
    * ```
    */
-  anyOfThese<B extends readonly JBuilder<any, boolean>[], OUT = BuilderOutUnion<B>>(
+  anyOfThese<B extends readonly JSchema<any, boolean>[], OUT = BuilderOutUnion<B>>(
     items: [...B],
   ): JBuilder<OUT, false> {
     return new JBuilder<OUT, false>({
@@ -1063,25 +1063,25 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
     return this.cloneAndUpdateSchema({ additionalProperties: true })
   }
 
-  extend<P extends Record<string, JBuilder<any, any>>>(
+  extend<P extends Record<string, JSchema<any, any>>>(
     props: P,
   ): JObject<
     Override<
       OUT,
       {
         // required keys
-        [K in keyof P as P[K] extends JBuilder<any, infer IsOpt>
+        [K in keyof P as P[K] extends JSchema<any, infer IsOpt>
           ? IsOpt extends true
             ? never
             : K
-          : never]: P[K] extends JBuilder<infer OUT2, any> ? OUT2 : never
+          : never]: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
       } & {
         // optional keys
-        [K in keyof P as P[K] extends JBuilder<any, infer IsOpt>
+        [K in keyof P as P[K] extends JSchema<any, infer IsOpt>
           ? IsOpt extends true
             ? K
             : never
-          : never]?: P[K] extends JBuilder<infer OUT2, any> ? OUT2 : never
+          : never]?: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
       }
     >,
     false
@@ -1232,7 +1232,7 @@ export class JObjectInfer<
 }
 
 export class JArray<OUT, Opt> extends JBuilder<OUT[], Opt> {
-  constructor(itemsSchema: JBuilder<OUT, Opt>) {
+  constructor(itemsSchema: JSchema<OUT, Opt>) {
     super({
       type: 'array',
       items: itemsSchema.build(),
@@ -1264,7 +1264,7 @@ export class JArray<OUT, Opt> extends JBuilder<OUT[], Opt> {
 }
 
 class JSet2Builder<OUT, Opt> extends JBuilder<Set2<OUT>, Opt> {
-  constructor(itemsSchema: JBuilder<OUT, Opt>) {
+  constructor(itemsSchema: JSchema<OUT, Opt>) {
     super({
       type: ['array', 'object'],
       Set2: itemsSchema.build(),
@@ -1302,7 +1302,7 @@ export class JEnum<
   }
 }
 
-export class JTuple<ITEMS extends JBuilder<any, any>[]> extends JBuilder<TupleOut<ITEMS>, false> {
+export class JTuple<ITEMS extends JSchema<any, any>[]> extends JBuilder<TupleOut<ITEMS>, false> {
   constructor(items: ITEMS) {
     super({
       type: 'array',
@@ -1366,8 +1366,8 @@ function objectDbEntity(props: AnyObject): any {
 }
 
 function record<
-  KS extends JBuilder<any, any>,
-  VS extends JBuilder<any, any>,
+  KS extends JSchema<any, any>,
+  VS extends JSchema<any, any>,
   Opt extends boolean = SchemaOpt<VS>,
 >(
   keySchema: KS,
@@ -1402,7 +1402,7 @@ function record<
   })
 }
 
-function withRegexKeys<S extends JBuilder<any, any>>(
+function withRegexKeys<S extends JSchema<any, any>>(
   keyRegex: RegExp | string,
   schema: S,
 ): JObject<StringMap<SchemaOut<S>>, false> {
@@ -1428,7 +1428,7 @@ function withRegexKeys<S extends JBuilder<any, any>>(
  */
 function withEnumKeys<
   const T extends readonly (string | number)[] | StringEnum | NumberEnum,
-  S extends JBuilder<any, any>,
+  S extends JSchema<any, any>,
   K extends string | number = EnumKeyUnion<T>,
   Opt extends boolean = SchemaOpt<S>,
 >(
@@ -2117,15 +2117,15 @@ type ExactMatch<A, B> =
       ? true
       : ExactMatchBase<Expand<StripIndexSignatureDeep<A>>, Expand<StripIndexSignatureDeep<B>>>
 
-type BuilderOutUnion<B extends readonly JBuilder<any, any>[]> = {
-  [K in keyof B]: B[K] extends JBuilder<infer O, any> ? O : never
+type BuilderOutUnion<B extends readonly JSchema<any, any>[]> = {
+  [K in keyof B]: B[K] extends JSchema<infer O, any> ? O : never
 }[number]
 
 type AnyOfByOut<D extends Record<PropertyKey, JSchema<any, any>>> = {
   [K in keyof D]: D[K] extends JSchema<infer O, any> ? O : never
 }[keyof D]
 
-type BuilderFor<T> = JBuilder<T, any>
+type BuilderFor<T> = JSchema<T, any>
 
 export interface JsonBuilderRuleOpt {
   /**
@@ -2151,9 +2151,9 @@ type EnumKeyUnion<T> =
       ? T[keyof T]
       : never
 
-type SchemaOut<S> = S extends JBuilder<infer OUT, any> ? OUT : never
-type SchemaOpt<S> = S extends JBuilder<any, infer Opt> ? (Opt extends true ? true : false) : false
+type SchemaOut<S> = S extends JSchema<infer OUT, any> ? OUT : never
+type SchemaOpt<S> = S extends JSchema<any, infer Opt> ? (Opt extends true ? true : false) : false
 
-type TupleOut<T extends readonly JBuilder<any, any>[]> = {
-  [K in keyof T]: T[K] extends JBuilder<infer O, any> ? O : never
+type TupleOut<T extends readonly JSchema<any, any>[]> = {
+  [K in keyof T]: T[K] extends JSchema<infer O, any> ? O : never
 }
