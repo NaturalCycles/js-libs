@@ -40,8 +40,8 @@ export interface CommonDaoHooks<
    */
   beforeCreate: (bm: Partial<BM>) => Partial<BM>
 
-  beforeDBMToBM: (dbm: DBM) => Partial<BM> | Promise<Partial<BM>>
-  beforeBMToDBM: (bm: BM) => Partial<DBM> | Promise<Partial<DBM>>
+  beforeDBMToBM: (dbm: DBM) => Partial<BM>
+  beforeBMToDBM: (bm: BM) => Partial<DBM>
 
   /**
    * Allows to access the DBM just after it has been loaded from the DB.

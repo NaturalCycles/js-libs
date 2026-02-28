@@ -4,7 +4,6 @@ import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalc
 import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
 import type { BaseDBEntity, UnixTimestamp, Unsaved } from '@naturalcycles/js-lib/types'
 import { AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
-import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import type { TestItemBM, TestItemDBM } from '../testing/index.js'
@@ -68,8 +67,8 @@ test('common', async () => {
   expect(await dao.deleteByQuery(dao.query())).toBe(0)
   expect(await dao.deleteByQuery(dao.query(), { chunkSize: 500 })).toBe(0)
 
-  expect(await dao.anyToDBM(undefined)).toBeNull()
-  expect(await dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
+  expect(dao.anyToDBM(undefined)).toBeNull()
+  expect(dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
 })
 
 test('multiGet', async () => {
@@ -240,7 +239,7 @@ test('should propagate pipe errors', async () => {
       })
       .forEachSync(r => void results.push(r)),
   ).rejects.toThrowErrorMatchingInlineSnapshot(
-    `[AggregateError: transformMap2 resulted in 1 error(s)]`,
+    `[AggregateError: transformMapSync resulted in 1 error(s)]`,
   )
   _sortBy(results, r => r.k3, { mutate: true })
   expect(results).toEqual(items.filter(i => i.id !== 'id3'))
@@ -663,21 +662,21 @@ interface Item extends BaseDBEntity {
   shu?: string
 }
 
-test('zipping/unzipping via async hook', async () => {
+test('json parsing/stringifying via hook', async () => {
   const dao = new CommonDao<Item>({
     table: TEST_TABLE,
     db,
     hooks: {
-      async beforeBMToDBM(bm) {
+      beforeBMToDBM(bm) {
         return {
           ...bm,
-          obj: await deflateString(JSON.stringify(bm.obj)),
+          obj: JSON.stringify(bm.obj),
         }
       },
-      async beforeDBMToBM(dbm) {
+      beforeDBMToBM(dbm) {
         return {
           ...dbm,
-          obj: JSON.parse(await inflateToString(dbm.obj)),
+          obj: JSON.parse(dbm.obj),
         }
       },
     },
@@ -758,11 +757,11 @@ describe('auto compression', () => {
         keys: ['obj', 'shu'],
       },
       hooks: {
-        async beforeBMToDBM(bm) {
+        beforeBMToDBM(bm) {
           expect(bm).not.toHaveProperty('__compressed')
           return bm
         },
-        async beforeDBMToBM(dbm) {
+        beforeDBMToBM(dbm) {
           // After decompression, the __compressed property is set to undefined (not deleted for performance)
           expect(dbm).toHaveProperty('__compressed')
           expect((dbm as any)['__compressed']).toBeUndefined()
@@ -1057,11 +1056,11 @@ describe('auto compression', () => {
     test('bmToDBM and dbmToBM', async () => {
       const dao = createDao()
       const item = createItem(1)
-      const dbm = await dao.bmToDBM(item as Item)
+      const dbm = dao.bmToDBM(item as Item)
       // bmToDBM should NOT compress - DBM is the logical type
       expectDecompressed(dbm, 1)
 
-      const bm = await dao.dbmToBM(dbm)
+      const bm = dao.dbmToBM(dbm)
       expectDecompressed(bm, 1)
     })
 
@@ -1090,7 +1089,7 @@ describe('auto compression', () => {
       const dao = createDao()
       const item = createItem(1) as Item
       dao.assignIdCreatedUpdated(item)
-      const dbm = await dao.bmToDBM(item)
+      const dbm = dao.bmToDBM(item)
 
       const storageRow = (await dao.dbmToStorageRow(dbm)) as any
       expect(storageRow.id).toBe('id1')
@@ -1103,7 +1102,7 @@ describe('auto compression', () => {
       const dao = createDao()
       const item = createItem(1) as Item
       dao.assignIdCreatedUpdated(item)
-      const dbm = await dao.bmToDBM(item)
+      const dbm = dao.bmToDBM(item)
       const storageRow = await dao.dbmToStorageRow(dbm)
 
       const restored = await dao.storageRowToDBM(storageRow)
@@ -1114,7 +1113,7 @@ describe('auto compression', () => {
       const dao = createDao()
       const item = createItem(1) as Item
       dao.assignIdCreatedUpdated(item)
-      const dbm = await dao.bmToDBM(item)
+      const dbm = dao.bmToDBM(item)
 
       // Round-trip: DBM -> storage -> DBM
       const storageRow = await dao.dbmToStorageRow(dbm)
@@ -1131,7 +1130,7 @@ describe('auto compression', () => {
       const dao = createDao()
       const item = createItem(1) as Item
       dao.assignIdCreatedUpdated(item)
-      const dbm = await dao.bmToDBM(item)
+      const dbm = dao.bmToDBM(item)
 
       // Write directly to DB using storage row
       const storageRow = await dao.dbmToStorageRow(dbm)
@@ -1273,105 +1272,5 @@ describe('auto compression', () => {
     )
 
     saveBatchSpy.mockRestore()
-  })
-
-  test('should be possible to opt-out using decompressLegacyRow hook', async () => {
-    const daoWithCompression = new CommonDao<Item>({
-      table: TEST_TABLE,
-      db,
-      compress: {
-        keys: ['obj', 'shu'],
-      },
-    })
-
-    const items1 = _range(2).map(n => ({
-      id: `id${n}`,
-      obj: {
-        objId: `objId${n}`,
-      },
-      shu: `shu${n}`,
-    }))
-
-    await daoWithCompression.saveBatch(items1)
-
-    // Create a DAO without compression, but with the decompressLegacyRow hook
-    // to handle legacy compressed data
-    const daoWithoutCompression = new CommonDao<Item>({
-      table: TEST_TABLE,
-      db,
-      hooks: {
-        beforeDBMToBM: CommonDao.decompressLegacyRow,
-      },
-    })
-
-    // Should still be able to fetch compressed data properly via the hook
-    const fetchedItems1 = await daoWithoutCompression.getAll()
-    expect(fetchedItems1).toMatchInlineSnapshot(`
-      [
-        {
-          "created": 1529539200,
-          "id": "id0",
-          "obj": {
-            "objId": "objId0",
-          },
-          "shu": "shu0",
-          "updated": 1529539200,
-        },
-        {
-          "created": 1529539200,
-          "id": "id1",
-          "obj": {
-            "objId": "objId1",
-          },
-          "shu": "shu1",
-          "updated": 1529539200,
-        },
-      ]
-    `)
-
-    const items2 = _range(2, 4).map(n => ({
-      id: `id${n}`,
-      obj: {
-        objId: `objId${n}`,
-      },
-      shu: `shu${n}`,
-    }))
-
-    await daoWithoutCompression.saveBatch(items2)
-
-    // Should stop compressing newly saved data
-    const { data } = dao.cfg.db as InMemoryDB
-    expect(data[TEST_TABLE]).toEqual({
-      id0: {
-        created: 1529539200,
-        __compressed: expect.any(Buffer),
-        id: 'id0',
-        updated: 1529539200,
-      },
-      id1: {
-        created: 1529539200,
-        __compressed: expect.any(Buffer),
-        id: 'id1',
-        updated: 1529539200,
-      },
-      id2: {
-        created: 1529539200,
-        id: 'id2',
-        obj: {
-          objId: 'objId2',
-        },
-        shu: 'shu2',
-        updated: 1529539200,
-      },
-      id3: {
-        created: 1529539200,
-        id: 'id3',
-        obj: {
-          objId: 'objId3',
-        },
-        shu: 'shu3',
-        updated: 1529539200,
-      },
-    })
   })
 })
