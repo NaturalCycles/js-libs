@@ -25,7 +25,6 @@ trustPolicyExclude:
   - semver@5.7.2
   - jose@4.15.9
   - undici@5.29.0
-  - undici-types@6.21.0
 blockExoticSubdeps: true
 auditConfig:
   ignoreGhsas:
