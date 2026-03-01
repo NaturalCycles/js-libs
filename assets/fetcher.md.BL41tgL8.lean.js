@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as e,ae as t}from"./chunks/framework.BxjyvXIc.js";const E=JSON.parse('{"title":"Fetcher","description":"","frontmatter":{},"headers":[],"relativePath":"fetcher.md","filePath":"fetcher.md"}'),n={name:"fetcher.md"};function l(h,s,r,p,k,o){return a(),e("div",null,[...s[0]||(s[0]=[t("",19)])])}const c=i(n,[["render",l]]);export{E as __pageData,c as default};

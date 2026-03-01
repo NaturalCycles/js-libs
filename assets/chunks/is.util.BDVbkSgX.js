@@ -1,0 +1,1 @@
+function e(t){return typeof t=="object"&&t!==null&&!Array.isArray(t)||!1}function i(t){return t==null||typeof t=="number"||typeof t=="boolean"||typeof t=="string"||typeof t=="bigint"||typeof t=="symbol"}export{i as _,e as a};

@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as n,ae as h}from"./chunks/framework.BxjyvXIc.js";const g=JSON.parse('{"title":"Math","description":"","frontmatter":{},"headers":[],"relativePath":"math.md","filePath":"math.md"}'),t={name:"math.md"};function e(l,s,k,p,r,d){return a(),n("div",null,[...s[0]||(s[0]=[h("",27)])])}const y=i(t,[["render",e]]);export{g as __pageData,y as default};
