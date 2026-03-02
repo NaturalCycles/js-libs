@@ -84,6 +84,7 @@
     "no-self-assign": "warn",
     "no-sequences": "deny",
     "no-setter-return": "warn",
+    "no-shadow": "allow",
     "no-shadow-restricted-names": "warn",
     "no-sparse-arrays": "warn",
     "no-this-before-super": "warn",
@@ -100,6 +101,10 @@
       "deny",
       [
         {
+          "fix": {
+            "imports": "fix",
+            "variables": "suggestion"
+          },
           "varsIgnorePattern": "^(_$|__)",
           "argsIgnorePattern": "^_",
           "destructuredArrayIgnorePattern": "^_"
@@ -133,7 +138,7 @@
     "import/consistent-type-specifier-style": "deny",
     "import/default": "warn",
     "import/extensions": [
-      "deny",
+      "allow",
       [
         "always",
         {
@@ -193,6 +198,7 @@
     "jest/prefer-hooks-in-order": "deny",
     "jest/prefer-hooks-on-top": "deny",
     "jest/prefer-mock-promise-shorthand": "deny",
+    "jest/prefer-mock-return-shorthand": "deny",
     "jest/prefer-spy-on": "deny",
     "jest/prefer-to-be": "deny",
     "jest/prefer-to-contain": "deny",
@@ -559,5 +565,9 @@
     "builtin": true
   },
   "globals": {},
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
   "ignorePatterns": []
 }
