@@ -3423,7 +3423,7 @@ describe('object', () => {
       }
       const schema = j.object
         .withEnumKeys(E, j.number().optional())
-        .isOfType<Partial<Record<E, number | undefined>>>()
+        .isOfType<Partial<Record<`${E}`, number>>>()
 
       const validCases: any[] = [{}, { '1': 1 }, { '1': 1, '2': 2 }]
       for (const data of validCases) {
@@ -3454,7 +3454,7 @@ describe('object', () => {
 
       const schema = j.object
         .withEnumKeys(E, j.number().optional())
-        .isOfType<Partial<Record<E, number | undefined>>>()
+        .isOfType<Partial<Record<E, number>>>()
 
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }, { a: 1, b: 2 }]
       for (const data of validCases) {
@@ -3527,6 +3527,105 @@ describe('object', () => {
       )
     })
 
+    describe('type narrowing', () => {
+      test('should not match StringMap for NumberEnum', () => {
+        enum E {
+          A = 1,
+          B = 2,
+        }
+
+        const schema = j.object.withEnumKeys(E, j.number().optional())
+
+        // should NOT exactly match StringMap
+        expectTypeOf(schema.isOfType<StringMap<number>>()).toBeNever()
+
+        // should match the correct Partial<Record<`${E}`, ...>> type
+        expectTypeOf(schema.isOfType<Partial<Record<`${E}`, number>>>()).not.toBeNever()
+      })
+
+      test('should not match StringMap for StringEnum', () => {
+        enum E {
+          A = 'a',
+          B = 'b',
+        }
+
+        const schema = j.object.withEnumKeys(E, j.number().optional())
+
+        // should NOT exactly match StringMap
+        expectTypeOf(schema.isOfType<StringMap<number>>()).toBeNever()
+
+        // should match the correct Partial<Record<E, ...>> type
+        expectTypeOf(schema.isOfType<Partial<Record<E, number>>>()).not.toBeNever()
+      })
+
+      test('should not match Record<string, V>', () => {
+        enum E {
+          A = 'a',
+          B = 'b',
+        }
+
+        const schema = j.object.withEnumKeys(E, j.number().optional())
+
+        // should NOT exactly match Record<string, V>
+        expectTypeOf(schema.isOfType<Partial<Record<string, number>>>()).toBeNever()
+
+        // should match the correct Partial<Record<E, ...>> type
+        expectTypeOf(schema.isOfType<Partial<Record<E, number>>>()).not.toBeNever()
+      })
+
+      test('should reject Record<number, V> for NumberEnum', () => {
+        enum E {
+          A = 1,
+          B = 2,
+        }
+
+        const schema = j.object.withEnumKeys(E, j.number())
+
+        // After the fix, keys are '1' | '2' (strings), not 1 | 2 (numbers)
+        // So Record<number, number> should NOT match
+        expectTypeOf(schema.isOfType<Record<number, number>>()).toBeNever()
+
+        // But Record<`${E}`, number> should match
+        expectTypeOf(schema.isOfType<Record<`${E}`, number>>()).not.toBeNever()
+      })
+    })
+
+    describe('j.object compatibility', () => {
+      test('should work with Partial<Record<E, V>>', () => {
+        enum E {
+          A = 'a',
+          B = 'b',
+        }
+
+        interface Foo {
+          foo: Partial<Record<E, number>>
+        }
+
+        const schema = j.object<Foo>({
+          foo: j.object.withEnumKeys(E, j.number().optional()),
+        })
+
+        expectTypeOf(schema).not.toEqualTypeOf<never>()
+      })
+
+      test('should work with Record<E, V>', () => {
+        enum E {
+          A = 'a',
+          B = 'b',
+        }
+
+        interface Foo {
+          foo: Record<E, number>
+        }
+
+        const schema = j.object<Foo>({
+          foo: j.object.withEnumKeys(E, j.number()),
+        })
+
+        expectTypeOf(schema.out).toEqualTypeOf<Foo>()
+      })
+    })
+
     describe('minProperties', () => {
       test('should work for withEnumKeys as well', () => {
         enum E {
@@ -3537,7 +3636,7 @@ describe('object', () => {
         const schema = j.object
           .withEnumKeys(E, j.number().optional())
           .minProperties(1)
-          .isOfType<Partial<Record<E, number | undefined>>>()
+          .isOfType<Partial<Record<E, number>>>()
 
         const validCases: any[] = [{ a: 1 }, { a: 1, b: 2 }]
         for (const data of validCases) {
@@ -4752,4 +4851,162 @@ test('xxx', () => {
   })
 
   expectTypeOf(zendeskWebhookBodySchema).not.toEqualTypeOf<never>()
+})
+
+describe('type invariance', () => {
+  // Verifying that JSchema is invariant in its OUT parameter,
+  // which makes j.object<T>() strict about type matching.
+
+  describe('record', () => {
+    test('should reject numeric key schemas', () => {
+      // JSON keys are always strings, so numeric key schemas can never work.
+      // record() throws at runtime and returns never at the type level.
+      expect(() => j.object.record(j.number(), j.string())).toThrow(
+        'record() key schema must validate strings, not numbers',
+      )
+      expect(() => j.object.record(j.number().integer(), j.string())).toThrow(
+        'record() key schema must validate strings, not numbers',
+      )
+    })
+
+    test('should reject numeric enum key schemas', () => {
+      // j.enum with numeric values produces a union of numeric literals
+      const enumSchema = j.enum([1, 2, 3])
+
+      // When used as record keys, the resulting type has numeric keys — but JSON keys are strings.
+      // record() should reject this at runtime.
+      expect(() => j.object.record(enumSchema, j.string())).toThrow(
+        'record() key schema must validate strings, not numbers',
+      )
+    })
+
+    test('should accept string-based key schemas', () => {
+      const schema1 = j.object.record(j.string(), j.number())
+      expectTypeOf(schema1).not.toBeNever()
+
+      const schema2 = j.object.record(j.string().regex(/^\d+$/), j.number())
+      expectTypeOf(schema2).not.toBeNever()
+    })
+
+    test('should not satisfy Record<E, V> in j.object', () => {
+      enum E {
+        A = 'a',
+        B = 'b',
+      }
+
+      interface Foo {
+        data: Record<E, number>
+      }
+
+      // JSchema is invariant: Record<string, number> !== Record<E, number>
+      const schema = j.object<Foo>({
+        // @ts-expect-error record(j.string(), ...) is too broad for Record<E, number>
+        data: j.object.record(j.string(), j.number()),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
+  })
+
+  describe('stringMap', () => {
+    test('should not satisfy Record<E, V> in j.object', () => {
+      enum E {
+        A = 'a',
+        B = 'b',
+      }
+
+      interface Foo {
+        data: Record<E, number>
+      }
+
+      // JSchema is invariant: StringMap<number> !== Record<E, number>
+      const schema = j.object<Foo>({
+        // @ts-expect-error stringMap is too broad for Record<E, number>
+        data: j.object.stringMap(j.number()),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
+  })
+
+  describe('j.object<T>', () => {
+    test('should reject optional schema for required property', () => {
+      interface Foo {
+        name: string // required
+      }
+
+      // JSchema is invariant: string | undefined !== string
+      const schema = j.object<Foo>({
+        // @ts-expect-error optional schema does not satisfy required property
+        name: j.string().optional(),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
+
+    test('should reject required schema for optional property', () => {
+      interface Foo {
+        name?: string // optional (string | undefined)
+      }
+
+      // JSchema is invariant: string !== string | undefined
+      const schema = j.object<Foo>({
+        // @ts-expect-error required schema does not satisfy optional property
+        name: j.string(),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
+
+    test('should reject wrong value type', () => {
+      interface Foo {
+        name: string
+      }
+
+      const schema = j.object<Foo>({
+        // @ts-expect-error number is not assignable to string
+        name: j.number(),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
+
+    test('should reject nullable schema for non-nullable property', () => {
+      interface Foo {
+        name: string
+      }
+
+      const schema = j.object<Foo>({
+        // @ts-expect-error string | null does not match string
+        name: j.string().nullable(),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
+
+    test('should accept nullable schema for nullable property', () => {
+      interface Foo {
+        name: string | null
+      }
+
+      const schema = j.object<Foo>({
+        name: j.string().nullable(),
+      })
+
+      expectTypeOf(schema).not.toBeNever()
+    })
+
+    test('should reject non-nullable schema for nullable property', () => {
+      interface Foo {
+        name: string | null
+      }
+
+      const schema = j.object<Foo>({
+        // @ts-expect-error string does not match string | null
+        name: j.string(),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
+  })
 })
