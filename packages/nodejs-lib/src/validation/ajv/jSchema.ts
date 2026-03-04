@@ -1380,13 +1380,20 @@ function record<
 >(
   keySchema: KS,
   valueSchema: VS,
-): JObject<
-  Opt extends true
-    ? Partial<Record<SchemaOut<KS>, SchemaOut<VS>>>
-    : Record<SchemaOut<KS>, SchemaOut<VS>>,
-  false
-> {
+): SchemaOut<KS> extends string
+  ? JObject<
+      Opt extends true
+        ? Partial<Record<SchemaOut<KS>, SchemaOut<VS>>>
+        : Record<SchemaOut<KS>, SchemaOut<VS>>,
+      false
+    >
+  : never {
   const keyJsonSchema = keySchema.build()
+
+  _assert(
+    keyJsonSchema.type !== 'number' && keyJsonSchema.type !== 'integer',
+    'record() key schema must validate strings, not numbers. JSON object keys are always strings.',
+  )
   // Check if value schema is optional before build() strips the optionalField flag
   const isValueOptional = (valueSchema as JSchema<any, any>).getSchema().optionalField
   const valueJsonSchema = valueSchema.build()
@@ -1396,18 +1403,13 @@ function record<
     ? { anyOf: [{ isUndefined: true }, valueJsonSchema] }
     : valueJsonSchema
 
-  return new JObject<
-    Opt extends true
-      ? Partial<Record<SchemaOut<KS>, SchemaOut<VS>>>
-      : Record<SchemaOut<KS>, SchemaOut<VS>>,
-    false
-  >([], {
+  return new JObject([], {
     hasIsOfTypeCheck: false,
     keySchema: keyJsonSchema,
     patternProperties: {
       ['^.*$']: finalValueSchema,
     },
-  })
+  }) as any
 }
 
 function withRegexKeys<S extends JSchema<any, any>>(
@@ -2151,12 +2153,12 @@ export interface JsonBuilderRuleOpt {
 }
 
 type EnumKeyUnion<T> =
-  // array of literals -> union of its elements
+  // array of literals -> union of its elements (stringified)
   T extends readonly (infer U)[]
-    ? U
-    : // enum object -> union of its values
+    ? `${U & (string | number)}`
+    : // enum object -> union of its values (stringified)
       T extends StringEnum | NumberEnum
-      ? T[keyof T]
+      ? `${T[keyof T] & (string | number)}`
       : never
 
 type SchemaOut<S> = S extends JSchema<infer OUT, any> ? OUT : never
