@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as n,ae as t}from"./chunks/framework.BxjyvXIc.js";const g=JSON.parse('{"title":"Time","description":"","frontmatter":{},"headers":[],"relativePath":"time.md","filePath":"time.md"}'),h={name:"time.md"};function l(e,s,k,p,r,d){return a(),n("div",null,[...s[0]||(s[0]=[t("",16)])])}const o=i(h,[["render",l]]);export{g as __pageData,o as default};

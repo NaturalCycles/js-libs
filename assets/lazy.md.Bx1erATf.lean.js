@@ -1,0 +1,1 @@
+import{_ as a,o as i,c as e,ae as n}from"./chunks/framework.BxjyvXIc.js";const y=JSON.parse('{"title":"Lazy","description":"","frontmatter":{},"headers":[],"relativePath":"lazy.md","filePath":"lazy.md"}'),t={name:"lazy.md"};function l(p,s,h,k,r,d){return i(),e("div",null,[...s[0]||(s[0]=[n("",9)])])}const c=a(t,[["render",l]]);export{y as __pageData,c as default};
