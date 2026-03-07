@@ -17,9 +17,6 @@
     "deploy-health-check-debug1": "tsx src/bin/deploy-health-check.ts --url https://api-master.naturalcycles.com",
     "deploy-health-check-debug2": "tsx src/bin/deploy-health-check.ts --url https://api-master2.naturalcycles.com --thresholdUnhealthy 5"
   },
-  "peerDependencies": {
-    "@sentry/node-core": "^10"
-  },
   "dependencies": {
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
@@ -37,14 +34,28 @@
     "cors": "^2",
     "dotenv": "^17",
     "express": "^5",
-    "firebase-admin": "^13",
     "helmet": "^8",
     "negotiator": "^1",
     "on-headers": "^1",
     "on-finished": "^2",
-    "simple-git": "^3",
     "tslib": "^2",
     "vary": "^1"
+  },
+  "peerDependencies": {
+    "@sentry/node-core": "^10",
+    "firebase-admin": "^13",
+    "simple-git": "^3"
+  },
+  "peerDependenciesMeta": {
+    "@sentry/node-core": {
+      "optional": true
+    },
+    "firebase-admin": {
+      "optional": true
+    },
+    "simple-git": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
