@@ -22,17 +22,16 @@
   "dependencies": {
     "@naturalcycles/js-lib": "workspace:^15",
     "@standard-schema/spec": "^1",
-    "@types/js-yaml": "^4",
     "@types/jsonwebtoken": "^9",
     "@types/yargs": "^16",
     "ajv": "^8",
     "chalk": "^5",
     "dotenv": "^17",
-    "js-yaml": "^4",
     "jsonwebtoken": "^9",
     "lru-cache": "^11",
     "tinyglobby": "^0.2",
     "tslib": "^2",
+    "yaml": "^2",
     "yargs": "^18"
   },
   "devDependencies": {
