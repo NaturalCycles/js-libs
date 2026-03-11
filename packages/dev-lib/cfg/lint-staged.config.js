@@ -50,16 +50,7 @@ if (eslintConfigPath) {
 let oxlintCmd = undefined
 
 if (oxlintConfigPath) {
-  oxlintCmd = [
-    'oxlint',
-    // '--report-unused-disable-directives', // wrongly reports disabled eslint (not oxlint) rules
-    '--type-aware',
-    '--type-check',
-    '--fix',
-    '--fix-suggestions',
-    '--fix-dangerously',
-    '--max-warnings=0',
-  ]
+  oxlintCmd = ['oxlint', '--fix', '--fix-suggestions', '--fix-dangerously']
     .filter(Boolean)
     .join(' ')
 }

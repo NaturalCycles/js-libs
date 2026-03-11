@@ -18,6 +18,9 @@
   ],
   "jsPlugins": ["./oxlint-plugin-stylistic.mjs"],
   "options": {
+    "reportUnusedDisableDirectives": "deny",
+    "maxWarnings": 0,
+    "denyWarnings": true,
     "typeAware": true,
     "typeCheck": true
   },

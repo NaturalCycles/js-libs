@@ -274,15 +274,9 @@ export function runOxlint(fix = true): boolean {
 
   exec2.spawn(oxlintPath, {
     name: ['oxlint', !fix && '--no-fix'].filter(Boolean).join(' '),
-    args: [
-      // '--report-unused-disable-directives', // wrongly reports disabled eslint (not oxlint) rules
-      '--max-warnings=0',
-      '--type-aware',
-      '--type-check',
-      fix && '--fix',
-      fix && '--fix-suggestions',
-      fix && '--fix-dangerously',
-    ].filter(_isTruthy),
+    args: [fix && '--fix', fix && '--fix-suggestions', fix && '--fix-dangerously'].filter(
+      _isTruthy,
+    ),
     shell: false,
   })
   return true

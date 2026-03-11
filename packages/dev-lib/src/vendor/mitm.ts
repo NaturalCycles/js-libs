@@ -12,12 +12,10 @@ import type * as TlsType from 'node:tls'
 
 // Use require() to get mutable module objects (ESM namespace objects are frozen)
 const require = createRequire(import.meta.url)
-/* eslint-disable @typescript-eslint/naming-convention -- vendored code uses PascalCase for modules */
 const Net = require('node:net') as typeof NetType & Record<string, unknown>
 const Tls = require('node:tls') as typeof TlsType & Record<string, unknown>
 const Http = require('node:http') as typeof HttpType & Record<string, unknown>
 const Https = require('node:https') as typeof HttpsType & Record<string, unknown>
-/* eslint-enable @typescript-eslint/naming-convention */
 
 export interface SocketOptions {
   port: number

@@ -16,8 +16,8 @@
     "quick-check": "pnpm build && pnpm lint && VITEST_REPORTER=dot pnpm test",
     "qc": "pnpm quick-check",
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
-    "lint": "oxlint --type-aware --type-check --max-warnings=0 --fix --fix-suggestions && oxfmt",
-    "lint:ci": "oxlint --type-aware --type-check --max-warnings=0 && oxfmt --check",
+    "lint": "oxlint --fix --fix-suggestions && oxfmt",
+    "lint:ci": "oxlint && oxfmt --check",
     "test": "vitest run",
     "test:dot": "VITEST_REPORTER=dot vitest run",
     "test:summary": "VITEST_REPORTER=summary vitest run",
@@ -108,5 +108,5 @@
   "engines": {
     "node": ">=24.11.0"
   },
-  "packageManager": "pnpm@10.30.0"
+  "packageManager": "pnpm@10.32.1"
 }

@@ -567,7 +567,10 @@
   "globals": {},
   "options": {
     "typeAware": true,
-    "typeCheck": true
+    "typeCheck": true,
+    "denyWarnings": true,
+    "maxWarnings": 0,
+    "reportUnusedDisableDirectives": "deny"
   },
   "ignorePatterns": []
 }
