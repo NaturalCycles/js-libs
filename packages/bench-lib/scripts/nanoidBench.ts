@@ -12,8 +12,6 @@ import { nanoid } from '@naturalcycles/nodejs-lib'
 import { nanoid as nanoidNonSecure } from 'nanoid/non-secure'
 import { runBenchScript } from '../src/index.js'
 
-/* eslint-disable no-useless-assignment */
-
 runBenchScript({
   fns: {
     nanoidNonSecure: () => {

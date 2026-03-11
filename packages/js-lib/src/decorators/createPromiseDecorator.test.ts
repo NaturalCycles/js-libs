@@ -12,13 +12,11 @@ const thenFn = vi.fn(r => r.res)
 const catchFn = vi.fn()
 const finallyFn = vi.fn()
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const DummyDecorator = (): MethodDecorator =>
   _createPromiseDecorator({
     decoratorName: 'Dummy',
   })
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const Loader = (params: LoaderDecoratorParams): MethodDecorator =>
   _createPromiseDecorator(
     {

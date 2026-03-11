@@ -1,5 +1,3 @@
-/* eslint-disable id-denylist */
-
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import type {
   AnyObject,

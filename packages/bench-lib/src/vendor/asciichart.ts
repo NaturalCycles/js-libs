@@ -8,7 +8,6 @@ Adapted for typescript.
 Super-experimental!
  */
 
-// oxlint-disable no-new-array -- vendored ASCII chart relies on Array constructors
 export const asciiColor = {
   black: '\u001B[30m',
   red: '\u001B[31m',

@@ -3,7 +3,7 @@ import { format } from 'oxfmt'
 import { expect, test } from 'vitest'
 import { createAjv } from './getAjv.js'
 import { j } from './jSchema.js'
-// oxlint-disable no-var-requires, no-require-imports, no-commonjs, extensions
+// oxlint-disable no-var-requires, no-require-imports, no-commonjs
 const standaloneCode = require('ajv/dist/standalone')
 
 const ajv = createAjv({

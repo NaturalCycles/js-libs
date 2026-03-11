@@ -521,8 +521,6 @@ type ReadonlyObjectDeep<ObjectType extends object> = {
   readonly [KeyType in keyof ObjectType]: ReadonlyDeep<ObjectType[KeyType]>
 }
 
-// oxlint-enable
-
 /**
  Makes one property of T required instead of optional.
  @example

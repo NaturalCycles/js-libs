@@ -15,7 +15,6 @@ import type {
   JsonSchemaStringEmailOptions,
 } from './jSchema.js'
 
-/* eslint-disable @typescript-eslint/prefer-string-starts-ends-with */
 // oxlint-disable unicorn/prefer-code-point
 
 const AJV_OPTIONS: Options = {

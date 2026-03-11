@@ -129,12 +129,12 @@ export interface DatastoreStats {
 export enum DatastoreType {
   Blob = 'Blob',
   Text = 'Text',
-  String = 'String', // eslint-disable-line id-denylist
+  String = 'String',
   EmbeddedEntity = 'EmbeddedEntity',
   Float = 'Float',
   Integer = 'Integer',
   DATE_TIME = 'Date/Time',
-  Boolean = 'Boolean', // eslint-disable-line id-denylist
+  Boolean = 'Boolean',
   NULL = 'NULL',
 }
 

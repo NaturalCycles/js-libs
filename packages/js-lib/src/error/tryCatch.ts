@@ -65,7 +65,6 @@ export function _tryCatch<T extends AnyFunction>(fn: T, opt: TryCatchOptions = {
   } as any
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const _TryCatch =
   (opt: TryCatchOptions = {}): MethodDecorator =>
   (_target, _key, descriptor) => {

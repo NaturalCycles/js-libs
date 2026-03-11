@@ -8,9 +8,7 @@ export enum AirtableErrorCode {
   AIRTABLE_ERROR = 'AIRTABLE_ERROR',
 }
 
-// oxlint-disable no-unused-vars
 export type AirtableId = string
-// oxlint-enable
 
 /* Example:
 

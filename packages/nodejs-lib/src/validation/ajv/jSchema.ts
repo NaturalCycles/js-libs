@@ -1,6 +1,3 @@
-/* eslint-disable id-denylist */
-// oxlint-disable max-lines
-
 import type { ValidationFunction, ValidationFunctionResult } from '@naturalcycles/js-lib'
 import {
   _isObject,
@@ -1122,7 +1119,7 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
   /**
    * Extends the current schema with `id`, `created` and `updated` according to NC DB conventions.
    */
-  // oxlint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+  // oxlint-disable-next-line @typescript-eslint/explicit-function-return-type
   dbEntity() {
     return this.extend({
       id: j.string(),
@@ -1229,7 +1226,7 @@ export class JObjectInfer<
   /**
    * Extends the current schema with `id`, `created` and `updated` according to NC DB conventions.
    */
-  // oxlint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types
+  // oxlint-disable-next-line @typescript-eslint/explicit-function-return-type
   dbEntity() {
     return this.extend({
       id: j.string(),

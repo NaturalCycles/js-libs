@@ -43,7 +43,6 @@ export interface AsyncMemoInstance {
  *
  * @experimental consider normal `@_Memo` for most of the cases, it's stable and predictable
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const _AsyncMemo =
   <FN>(opt: AsyncMemoOptions<FN>): MethodDecorator<FN> =>
   (target, key, descriptor) => {

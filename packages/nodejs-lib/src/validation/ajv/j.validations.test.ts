@@ -1,4 +1,3 @@
-/* eslint-disable id-denylist */
 /* oxlint-disable @typescript-eslint/explicit-function-return-type */
 
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'

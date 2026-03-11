@@ -4,8 +4,6 @@ pn tsx scripts/byBench.ts
 
  */
 
-// oxlint-disable
-
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import { _range } from '../src/array/index.js'
 import type { Mapper, StringMap } from '../src/types.js'

@@ -50,12 +50,9 @@ export interface ReadableTyped<T = unknown> extends Readable {
 }
 
 // oxlint-disable no-unused-vars
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface WritableTyped<_T> extends Writable {}
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface TransformTyped<_IN = unknown, _OUT = unknown> extends Transform {}
-// oxlint-enable
 
 export interface TransformOptions {
   /**

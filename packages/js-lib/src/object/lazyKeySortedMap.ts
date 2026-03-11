@@ -20,7 +20,6 @@ export interface LazyKeySortedMapOptions<K> {
 // oxlint-disable-next-line no-unsafe-declaration-merging -- Map<K,V> workaround for oxlint TS2420 false positive
 export interface LazyKeySortedMap<K, V> extends Map<K, V> {}
 
-// oxlint-disable-next-line no-unsafe-declaration-merging -- Map<K,V> workaround for oxlint TS2420 false positive
 export class LazyKeySortedMap<K, V> {
   private readonly map: Map<K, V>
   private readonly maybeSortedKeys: K[]

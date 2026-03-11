@@ -25,7 +25,6 @@ export interface KeySortedMapOptions<K> {
 // oxlint-disable-next-line no-unsafe-declaration-merging -- Map<K,V> workaround for oxlint TS2420 false positive
 export interface KeySortedMap<K, V> extends Map<K, V> {}
 
-// oxlint-disable-next-line no-unsafe-declaration-merging -- Map<K,V> workaround for oxlint TS2420 false positive
 export class KeySortedMap<K, V> {
   private readonly map: Map<K, V>
   readonly #sortedKeys: K[]

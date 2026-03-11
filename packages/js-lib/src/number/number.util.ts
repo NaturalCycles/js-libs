@@ -50,7 +50,6 @@ export function _isBetween<T extends number | string>(
 }
 
 export function _clamp(x: number, minIncl: number, maxIncl: number): number {
-  // oxlint-disable-next-line unicorn/prefer-math-min-max
   return x <= minIncl ? minIncl : x >= maxIncl ? maxIncl : x
 }
 

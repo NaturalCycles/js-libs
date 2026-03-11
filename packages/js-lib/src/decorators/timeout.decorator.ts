@@ -3,7 +3,6 @@ import type { PTimeoutOptions } from '../promise/pTimeout.js'
 import { pTimeout } from '../promise/pTimeout.js'
 import { _getMethodSignature } from './decorator.util.js'
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export function _Timeout(opt: PTimeoutOptions): MethodDecorator {
   return (_target, key, descriptor) => {
     _assert(typeof descriptor.value === 'function', '@_Timeout can be applied only to methods')

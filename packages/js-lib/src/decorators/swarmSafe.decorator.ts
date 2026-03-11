@@ -9,7 +9,6 @@ import { _getTargetMethodSignature } from './decorator.util.js'
  * Does not support `cacheKey`.
  * So, the same Promise is returned, regardless of the arguments.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const _SwarmSafe = (): MethodDecorator => (target, key, descriptor) => {
   if (typeof descriptor.value !== 'function') {
     throw new TypeError('@_SwarmSafe can be applied only to methods')

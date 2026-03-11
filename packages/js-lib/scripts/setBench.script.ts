@@ -6,8 +6,6 @@ pn tsx scripts/setBench
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 
-// oxlint-disable no-unused-vars
-
 const a1 = [1, 2, 3, 7, 9]
 const a2match = [11, 12, 13, 14, 7, 4, 5]
 const a2noMatch = [11, 12, 13, 14, 75, 4, 5]

@@ -56,7 +56,6 @@ export interface MemoInstance {
  * http://inlehmansterms.net/2015/03/01/javascript-memoization/
  * https://community.risingstack.com/the-worlds-fastest-javascript-memoization-library/
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const _Memo =
   <FN>(opt: MemoOptions<FN> = {}): MethodDecorator<FN> =>
   (target, key, descriptor) => {

@@ -62,7 +62,6 @@ class FS2 {
 
   async readJsonAsync<T = unknown>(filePath: string): Promise<T> {
     const str = await fsp.readFile(filePath, 'utf8')
-    // eslint-disable-next-line @typescript-eslint/return-await
     return _jsonParse(str)
   }
 

@@ -20,7 +20,6 @@ export function _safeJsonStringify(
   }
 }
 
-// oxlint-disable no-unused-expressions
 function serializer(replacer?: Reviver, cycleReplacer?: Reviver): Reviver {
   const stack: any[] = []
   const keys: string[] = []
