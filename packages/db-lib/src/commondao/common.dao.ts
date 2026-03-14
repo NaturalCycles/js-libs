@@ -856,13 +856,11 @@ export class CommonDao<
     _typeCast<Compressed<DBM>>(dbm)
     if (!Buffer.isBuffer(dbm.__compressed)) return // No compressed data
 
-    try {
-      // todo: stop supporting Inflate when we are sure that we have migrated everything to zstd
-      const bufferString = await decompressZstdOrInflateToString(dbm.__compressed)
-      const properties = JSON.parse(bufferString)
-      dbm.__compressed = undefined
-      Object.assign(dbm, properties)
-    } catch {}
+    // todo: stop supporting Inflate when we are sure that we have migrated everything to zstd
+    const bufferString = await decompressZstdOrInflateToString(dbm.__compressed)
+    const properties = JSON.parse(bufferString)
+    dbm.__compressed = undefined
+    Object.assign(dbm, properties)
   }
 
   anyToDBM(dbm: undefined, opt?: CommonDaoOptions): null
