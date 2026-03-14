@@ -137,6 +137,7 @@ test('pRetry should time out and keep stack', async () => {
     "TimeoutError: "pRetry function" timed out after 10 ms
         at pRetry pRetry.ts
         at myFunction pRetry.test.ts
+        at new Promise (<anonymous>)
         at new Promise (<anonymous>)"
   `)
 })
