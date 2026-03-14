@@ -33,7 +33,8 @@
     "micromatch": "^4",
     "oxfmt": "^0",
     "oxlint": "catalog:",
-    "oxlint-tsgolint": "^0"
+    "oxlint-tsgolint": "^0",
+    "std-env": "^4"
   },
   "peerDependencies": {
     "@eslint/js": "^9",

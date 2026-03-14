@@ -23,5 +23,3 @@ export function getSharedConfig(cwd?: string): InlineConfig
 export const CollectReporter: any
 
 export class SummaryReporter {}
-
-export class SummaryOnlyReporter {}

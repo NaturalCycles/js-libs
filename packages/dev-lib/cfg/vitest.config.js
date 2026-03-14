@@ -1,11 +1,10 @@
 import fs from 'node:fs'
+import { isAgent } from 'std-env'
 import { defineConfig } from 'vitest/config'
-import { SummaryOnlyReporter } from './summaryOnlyReporter.js'
 import { SummaryReporter } from './summaryReporter.js'
 import { VitestAlphabeticSequencer } from './vitestAlphabeticSequencer.js'
 export { SummaryReporter } from './summaryReporter.js'
 export { CollectReporter } from './collectReporter.js'
-export { SummaryOnlyReporter } from './summaryOnlyReporter.js'
 
 const runsInIDE = doesItRunInIDE()
 const testType = getTestType(runsInIDE)
@@ -124,18 +123,18 @@ export function getSharedConfig(cwd) {
 
 function getReporters(junitReporterEnabled, testType) {
   // VITEST_REPORTER env var allows overriding the default reporter
-  // e.g., VITEST_REPORTER=summary for minimal output
-  const { VITEST_REPORTER, CLAUDE_CODE } = process.env
-
-  if (VITEST_REPORTER === 'summary' || CLAUDE_CODE) {
-    return [new SummaryOnlyReporter()]
+  const { VITEST_REPORTER, GITHUB_ACTIONS } = process.env
+  if (VITEST_REPORTER) {
+    return [VITEST_REPORTER]
   }
-  if (VITEST_REPORTER === 'dot') {
-    return ['dot']
+
+  if (isAgent) {
+    return ['agent']
   }
 
   return [
     'default',
+    GITHUB_ACTIONS && 'github-actions',
     new SummaryReporter(),
     junitReporterEnabled && [
       'junit',

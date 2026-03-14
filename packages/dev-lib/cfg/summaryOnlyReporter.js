@@ -4,7 +4,7 @@ import { _ms } from '@naturalcycles/js-lib/datetime'
  * A minimal reporter that only shows failures and the final summary.
  * No per-test, no per-file output - just failures and final summary.
  *
- * Use via: VITEST_REPORTER=summary vitest run
+ * @deprecated because 'agent' reported is introduced and is better
  */
 export class SummaryOnlyReporter {
   onTestRunEnd(testModules) {
