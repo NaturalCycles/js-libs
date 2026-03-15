@@ -55,3 +55,6 @@ When changing code - DON'T remove pre-existing code comments, preserve them inst
   incremental steps.
 
 When asked to make a commit - do NOT add `Co-Authored-By: Claude`.
+
+Never touch files in `__exclude` folder - they are archived and not used anywhere. They only exist
+for history preservation purposes.
