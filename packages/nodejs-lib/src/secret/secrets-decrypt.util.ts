@@ -1,7 +1,6 @@
-import fs from 'node:fs'
+import fs, { globSync } from 'node:fs'
 import path from 'node:path'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { globSync } from 'tinyglobby'
 import { dimGrey, yellow } from '../colors/colors.js'
 import { fs2 } from '../fs/fs2.js'
 import { decryptObject, decryptRandomIVBuffer } from '../security/crypto.util.js'
