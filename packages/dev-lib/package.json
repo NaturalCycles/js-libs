@@ -30,7 +30,7 @@
     "eslint-plugin-oxlint": "^1",
     "globals": "^17",
     "lint-staged": "^16",
-    "micromatch": "^4",
+    "picomatch": "^4",
     "oxfmt": "^0",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "^0",

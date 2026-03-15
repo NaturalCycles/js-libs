@@ -16,7 +16,7 @@ import fs from 'node:fs'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { semver2 } from '@naturalcycles/js-lib/semver'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
-import micromatch from 'micromatch'
+import picomatch from 'picomatch'
 import { prettierExtensionsAll, lintExclude, minActionlintVersion } from './_cnst.js'
 
 const oxfmtConfigPath = ['.oxfmtrc.jsonc', '.oxfmtrc.json'].find(fs.existsSync)
@@ -132,7 +132,8 @@ export function runActionlintOxfmt(match) {
 }
 
 function getFilesList(match) {
-  return micromatch.not(match, lintExclude).join(' ')
+  const isExcluded = picomatch(lintExclude)
+  return match.filter(f => !isExcluded(f)).join(' ')
 }
 
 function canRunBinary(name) {
