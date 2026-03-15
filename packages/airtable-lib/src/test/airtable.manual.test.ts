@@ -1,6 +1,5 @@
-import 'dotenv/config'
 import { _omit } from '@naturalcycles/js-lib/object'
-import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { expect, test } from 'vitest'
 import { AirtableDB } from '../airtableDB.js'
 import { AirtableLib } from '../airtableLib.js'
@@ -13,6 +12,8 @@ import {
   mockTableDao1,
   mockTableDao2,
 } from './airtable.mock.js'
+
+loadEnvFileIfExists()
 
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = requireEnvKeys(
   'AIRTABLE_API_KEY',

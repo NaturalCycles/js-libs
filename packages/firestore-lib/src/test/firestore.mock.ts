@@ -1,7 +1,8 @@
-import 'dotenv/config'
-import { base64ToString, requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { base64ToString, loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import * as firebaseAdmin from 'firebase-admin'
 import { FirestoreDB } from '../index.js'
+
+loadEnvFileIfExists()
 
 const { FIREBASE_DB_URL, SECRET_FIREBASE } = requireEnvKeys('FIREBASE_DB_URL', 'SECRET_FIREBASE')
 const credential = firebaseAdmin.credential.cert(JSON.parse(base64ToString(SECRET_FIREBASE)))

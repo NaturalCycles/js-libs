@@ -1,8 +1,9 @@
-import 'dotenv/config'
 import { runCommonKeyValueDBTest, TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { MySQLKeyValueDB } from '../mysqlKeyValueDB.js'
+
+loadEnvFileIfExists()
 
 const { MYSQL_HOST, MYSQL_USER, MYSQL_PW, MYSQL_DB } = requireEnvKeys(
   'MYSQL_HOST',

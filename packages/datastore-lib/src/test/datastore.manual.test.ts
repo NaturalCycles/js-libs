@@ -6,13 +6,13 @@ import {
 } from '@naturalcycles/db-lib/testing'
 import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
-import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { describe, expect, test } from 'vitest'
 import { DatastoreDB } from '../datastore.db.js'
 
 testOnline()
 
-import 'dotenv/config'
+loadEnvFileIfExists()
 const { SECRET_GCP_SERVICE_ACCOUNT } = requireEnvKeys('SECRET_GCP_SERVICE_ACCOUNT')
 process.env['APP_ENV'] = 'master'
 

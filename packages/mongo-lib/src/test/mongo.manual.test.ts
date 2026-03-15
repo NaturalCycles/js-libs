@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { CommonDao } from '@naturalcycles/db-lib/dao'
 import {
   createTestItemsBM,
@@ -7,9 +6,11 @@ import {
   TEST_TABLE,
   testItemBMSchema,
 } from '@naturalcycles/db-lib/testing'
-import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { afterAll, describe, test } from 'vitest'
 import { MongoDB } from '../mongo.db.js'
+
+loadEnvFileIfExists()
 const { MONGO_URI } = requireEnvKeys('MONGO_URI')
 
 const mongoDB = new MongoDB({

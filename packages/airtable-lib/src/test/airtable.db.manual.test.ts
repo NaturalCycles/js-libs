@@ -1,9 +1,10 @@
-import 'dotenv/config'
 import type { CommonDBImplementationQuirks } from '@naturalcycles/db-lib/testing'
 import { runCommonDaoTest, runCommonDBTest } from '@naturalcycles/db-lib/testing'
-import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { describe, test } from 'vitest'
 import { AirtableDB } from '../airtableDB.js'
+
+loadEnvFileIfExists()
 
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = requireEnvKeys(
   'AIRTABLE_API_KEY',
