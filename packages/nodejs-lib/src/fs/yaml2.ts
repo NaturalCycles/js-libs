@@ -10,6 +10,8 @@ import type {
 import { parse, stringify } from 'yaml'
 import { fs2 } from './fs2.js'
 
+export type YamlParseOptions = ParseOptions & DocumentOptions & SchemaOptions
+
 export type YamlStringifyOptions = DocumentOptions &
   SchemaOptions &
   ParseOptions &
@@ -17,12 +19,12 @@ export type YamlStringifyOptions = DocumentOptions &
   ToStringOptions
 
 class Yaml2 {
-  readYaml<T = unknown>(filePath: string): T {
-    return parse(fs.readFileSync(filePath, 'utf8')) as T
+  readYaml<T = unknown>(filePath: string, opt?: YamlParseOptions): T {
+    return parse(fs.readFileSync(filePath, 'utf8'), opt) as T
   }
 
-  async readYamlAsync<T = unknown>(filePath: string): Promise<T> {
-    return parse(await fsp.readFile(filePath, 'utf8')) as T
+  async readYamlAsync<T = unknown>(filePath: string, opt?: YamlParseOptions): Promise<T> {
+    return parse(await fsp.readFile(filePath, 'utf8'), opt) as T
   }
 
   writeYaml(filePath: string, data: any, opt?: YamlStringifyOptions): void {
