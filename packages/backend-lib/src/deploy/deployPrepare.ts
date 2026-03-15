@@ -1,3 +1,4 @@
+import { loadEnvFileIfExists } from '@naturalcycles/nodejs-lib'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
@@ -69,7 +70,7 @@ const DEFAULT_FILES = [
 const defaultFilesDir = `${srcDir}/deploy/files-default`
 
 export async function deployPrepare(opt: DeployPrepareOptions = {}): Promise<DeployInfo> {
-  await import('dotenv/config') // ensure .env is loaded
+  loadEnvFileIfExists()
 
   const { projectDir = '.', targetDir = './tmp/deploy', createNpmrc = true } = opt
 

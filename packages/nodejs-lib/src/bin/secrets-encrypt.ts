@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import 'dotenv/config'
 import { dimGrey } from '../colors/colors.js'
 import { runScript } from '../script/runScript.js'
 import type { EncryptCLIOptions } from '../secret/secrets-encrypt.util.js'

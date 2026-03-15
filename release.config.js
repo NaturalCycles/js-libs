@@ -1,4 +1,5 @@
-import 'dotenv/config'
+// import { loadEnvFileIfExists } from '@naturalcycles/nodejs-lib'
+// loadEnvFileIfExists()
 console.log('root release.config.js is loaded!')
 
 /** @type {import('semantic-release').Options} */

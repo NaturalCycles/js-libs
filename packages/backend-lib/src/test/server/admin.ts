@@ -1,8 +1,9 @@
-import 'dotenv/config'
-import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
+import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { createAdminMiddleware } from '../../admin/adminMiddleware.js'
 import { BaseAdminService } from '../../admin/base.admin.service.js'
 import { FirebaseSharedService } from '../../admin/firebase.shared.service.js'
+
+loadEnvFileIfExists()
 
 const { FIREBASE_SERVICE_ACCOUNT_PATH, FIREBASE_API_KEY, FIREBASE_AUTH_DOMAIN } = requireEnvKeys(
   'FIREBASE_SERVICE_ACCOUNT_PATH',

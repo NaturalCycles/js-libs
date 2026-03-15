@@ -32,7 +32,6 @@
     "compressible": "^2",
     "cookie-parser": "^1",
     "cors": "^2",
-    "dotenv": "^17",
     "express": "^5",
     "helmet": "^8",
     "negotiator": "^1",

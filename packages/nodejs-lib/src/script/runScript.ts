@@ -1,11 +1,13 @@
-import 'dotenv/config'
 import os from 'node:os'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { setGlobalStringifyFunction } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { dimGrey } from '../colors/colors.js'
+import { loadEnvFileIfExists } from '../node.util.js'
 import { inspectStringifyFn } from '../string/inspect.js'
+
+loadEnvFileIfExists()
 
 export interface RunScriptOptions {
   /**

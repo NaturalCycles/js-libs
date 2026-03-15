@@ -91,7 +91,6 @@
     "@types/node": "^25",
     "@typescript/native-preview": "catalog:",
     "@vitest/coverage-v8": "^4",
-    "dotenv": "^17",
     "husky": "^9",
     "oxfmt": "^0",
     "oxlint": "catalog:",

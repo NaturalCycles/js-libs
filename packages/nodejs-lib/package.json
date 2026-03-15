@@ -26,7 +26,6 @@
     "@types/yargs": "^16",
     "ajv": "^8",
     "ansis": "^4",
-    "dotenv": "^17",
     "jsonwebtoken": "^9",
     "lru-cache": "^11",
     "tinyglobby": "^0.2",

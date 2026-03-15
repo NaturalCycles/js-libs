@@ -15,7 +15,7 @@ const secretMap: StringMap = {}
  * Does NOT delete previous secrets from secretMap.
  */
 export function loadSecretsFromEnv(): void {
-  // require('dotenv').config() // ensure .env is loaded
+  // loadEnvFileIfExists() // ensure .env is loaded
 
   const secrets: StringMap = {}
   Object.keys(process.env)
