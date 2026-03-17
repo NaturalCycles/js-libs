@@ -43,7 +43,6 @@
     "husky": "^9",
     "stylelint": "^17",
     "stylelint-config-standard-scss": "^17",
-    "typescript": "^5",
     "typescript-eslint": "^8"
   },
   "peerDependenciesMeta": {
@@ -62,9 +61,6 @@
     "stylelint-config-standard-scss": {
       "optional": true
     },
-    "typescript": {
-      "optional": true
-    },
     "typescript-eslint": {
       "optional": true
     }
@@ -72,8 +68,7 @@
   "devDependencies": {
     "@types/node": "^25",
     "@types/prompts": "^2",
-    "@typescript/native-preview": "catalog:",
-    "typescript": "^5"
+    "@typescript/native-preview": "catalog:"
   },
   "exports": {
     "./cfg/": "./cfg/",
