@@ -296,6 +296,78 @@ describe('object', () => {
       const schema5 = schema2.isOfType<{ a: string | null; b: string }>()
       expectTypeOf(schema5).toBeNever()
     })
+
+    test('dbEntity().extend() should support isOfType without type assertion workaround', () => {
+      interface Base {
+        name: string
+        email: string
+        lang: string
+        active: boolean
+        score?: number
+        tags: string[]
+        notes?: string
+      }
+      const baseSchema = j.object<Base>({
+        name: j.string(),
+        email: j.string(),
+        lang: j.string(),
+        active: j.boolean(),
+        score: j.number().optional(),
+        tags: j.array(j.string()),
+        notes: j.string().optional(),
+      })
+
+      interface EntityBM extends BaseDBEntity {
+        name: string
+        email: string
+        lang: string
+        active: boolean
+        score?: number
+        tags: string[]
+        notes?: string
+        extra: number
+        flag?: boolean
+      }
+
+      // This pattern previously required `as ReturnType<typeof schema.castAs<EntityBM>>`
+      // because isOfType returned `never` due to nested Override types
+      const schema = baseSchema
+        .dbEntity()
+        .extend({
+          extra: j.number(),
+          flag: j.boolean().optional(),
+        })
+        .isOfType<EntityBM>()
+
+      expectTypeOf(schema).not.toBeNever()
+      expectTypeOf(schema.out).toEqualTypeOf<EntityBM>()
+    })
+
+    test('extend().extend() should support isOfType', () => {
+      interface Base {
+        a: string
+        b?: number
+      }
+      const baseSchema = j.object<Base>({
+        a: j.string(),
+        b: j.number().optional(),
+      })
+
+      interface Extended {
+        a: string
+        b?: number
+        c: boolean
+        d: string
+      }
+
+      const schema = baseSchema
+        .extend({ c: j.boolean() })
+        .extend({ d: j.string() })
+        .isOfType<Extended>()
+
+      expectTypeOf(schema).not.toBeNever()
+      expectTypeOf(schema.out).toEqualTypeOf<Extended>()
+    })
   })
 
   describe('concat', () => {

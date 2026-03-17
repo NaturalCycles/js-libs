@@ -1071,23 +1071,25 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
   extend<P extends Record<string, JSchema<any, any>>>(
     props: P,
   ): JObject<
-    Override<
-      OUT,
-      {
-        // required keys
-        [K in keyof P as P[K] extends JSchema<any, infer IsOpt>
-          ? IsOpt extends true
-            ? never
-            : K
-          : never]: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
-      } & {
-        // optional keys
-        [K in keyof P as P[K] extends JSchema<any, infer IsOpt>
-          ? IsOpt extends true
-            ? K
-            : never
-          : never]?: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
-      }
+    Expand<
+      Override<
+        OUT,
+        {
+          // required keys
+          [K in keyof P as P[K] extends JSchema<any, infer IsOpt>
+            ? IsOpt extends true
+              ? never
+              : K
+            : never]: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
+        } & {
+          // optional keys
+          [K in keyof P as P[K] extends JSchema<any, infer IsOpt>
+            ? IsOpt extends true
+              ? K
+              : never
+            : never]?: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
+        }
+      >
     >,
     false
   > {
