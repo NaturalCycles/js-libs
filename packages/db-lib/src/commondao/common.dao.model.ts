@@ -1,7 +1,7 @@
 import type { ValidationFunction } from '@naturalcycles/js-lib'
 import type { AppError, ErrorMode } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import type { BaseDBEntity, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type { BaseDBEntity, Integer, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import type { TransformLogProgressOptions } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBCreateOptions, CommonDBOptions, CommonDBSaveOptions } from '../db.model.js'
@@ -219,6 +219,11 @@ export interface CommonDaoCfg<
    */
   compress?: {
     keys: (keyof DBM)[]
+    /**
+     * zstd compression level.
+     * Undefined will default to level 1 (not the 3, which is the zstd default)
+     */
+    level?: Integer
   }
 }
 

@@ -841,10 +841,10 @@ export class CommonDao<
   private async compress(dbm: DBM): Promise<void> {
     if (!this.cfg.compress?.keys.length) return // No compression requested
 
-    const { keys } = this.cfg.compress
+    const { keys, level = 1 } = this.cfg.compress
     const properties = _pick(dbm, keys)
     const bufferString = JSON.stringify(properties)
-    const __compressed = await zstdCompress(bufferString)
+    const __compressed = await zstdCompress(bufferString, level)
     _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
     Object.assign(dbm, { __compressed })
   }
