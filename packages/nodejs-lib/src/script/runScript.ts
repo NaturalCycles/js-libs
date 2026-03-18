@@ -1,6 +1,6 @@
 import os from 'node:os'
+import { AsyncManager } from '@naturalcycles/js-lib'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { setGlobalStringifyFunction } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { dimGrey } from '../colors/colors.js'
@@ -76,9 +76,10 @@ export function runScript(fn: (...args: any[]) => any, opt: RunScriptOptions = {
     try {
       await fn()
 
-      await pDelay() // to ensure all async operations are completed
-
       if (DEBUG_RUN_SCRIPT) logger.log(`runScript promise resolved`)
+
+      // to ensure all async operations are completed (with a timeout)
+      await AsyncManager.allDone(600_000)
 
       if (!noExit) {
         setImmediate(() => process.exit(0))
