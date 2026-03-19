@@ -224,6 +224,12 @@ export interface CommonDaoCfg<
      * Undefined will default to level 1 (not the 3, which is the zstd default)
      */
     level?: Integer
+    /**
+     * When enabled, zstd decompression will be performed synchronously.
+     *
+     * @experimental
+     */
+    syncMode?: boolean
   }
 }
 

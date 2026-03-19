@@ -14,6 +14,10 @@ export async function decompressZstdOrInflateToString(buf: Buffer): Promise<stri
   return (await decompressZstdOrInflate(buf)).toString()
 }
 
+export function decompressZstdOrInflateToStringSync(buf: Buffer): string {
+  return decompressZstdOrInflateSync(buf).toString()
+}
+
 /**
  * Detects if Buffer is zstd-compressed.
  * Otherwise attempts to Inflate.
@@ -23,6 +27,13 @@ export async function decompressZstdOrInflate(buf: Buffer): Promise<Buffer<Array
     return await zstdDecompressAsync(buf)
   }
   return await inflate(buf)
+}
+
+export function decompressZstdOrInflateSync(buf: Buffer): Buffer<ArrayBuffer> {
+  if (isZstdBuffer(buf)) {
+    return zlib.zstdDecompressSync(buf)
+  }
+  return zlib.inflateSync(buf)
 }
 
 /**

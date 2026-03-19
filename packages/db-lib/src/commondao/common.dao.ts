@@ -27,7 +27,11 @@ import type {
 import { stringId } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
-import { decompressZstdOrInflateToString, zstdCompress } from '@naturalcycles/nodejs-lib/zip'
+import {
+  decompressZstdOrInflateToString,
+  decompressZstdOrInflateToStringSync,
+  zstdCompress,
+} from '@naturalcycles/nodejs-lib/zip'
 import { DBLibError } from '../cnst.js'
 import type {
   CommonDBSaveOptions,
@@ -829,7 +833,11 @@ export class CommonDao<
   async storageRowToDBM(row: ObjectWithId): Promise<DBM> {
     if (!this.cfg.compress?.keys.length) return row as DBM
     const dbm = { ...(row as DBM) }
-    await this.decompress(dbm)
+    if (this.cfg.compress.syncMode) {
+      this.decompressSync(dbm)
+    } else {
+      await this.decompress(dbm)
+    }
     return dbm
   }
 
@@ -838,6 +846,13 @@ export class CommonDao<
    */
   async storageRowsToDBMs(rows: ObjectWithId[]): Promise<DBM[]> {
     if (!this.cfg.compress?.keys.length) return rows as DBM[]
+    if (this.cfg.compress.syncMode) {
+      return rows.map(row => {
+        const dbm = { ...(row as DBM) }
+        this.decompressSync(dbm)
+        return dbm
+      })
+    }
     return await pMap(rows, async row => await this.storageRowToDBM(row))
   }
 
@@ -864,6 +879,19 @@ export class CommonDao<
 
     // todo: stop supporting Inflate when we are sure that we have migrated everything to zstd
     const bufferString = await decompressZstdOrInflateToString(dbm.__compressed)
+    const properties = JSON.parse(bufferString)
+    dbm.__compressed = undefined
+    Object.assign(dbm, properties)
+  }
+
+  /**
+   * Mutates `dbm`.
+   */
+  private decompressSync(dbm: DBM): void {
+    _typeCast<Compressed<DBM>>(dbm)
+    if (!Buffer.isBuffer(dbm.__compressed)) return // No compressed data
+
+    const bufferString = decompressZstdOrInflateToStringSync(dbm.__compressed)
     const properties = JSON.parse(bufferString)
     dbm.__compressed = undefined
     Object.assign(dbm, properties)
