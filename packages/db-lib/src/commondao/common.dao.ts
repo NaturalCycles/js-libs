@@ -27,11 +27,7 @@ import type {
 import { stringId } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
-import {
-  decompressZstdOrInflateToString,
-  decompressZstdOrInflateToStringSync,
-  zstdCompress,
-} from '@naturalcycles/nodejs-lib/zip'
+import { zip2 } from '@naturalcycles/nodejs-lib/zip'
 import { DBLibError } from '../cnst.js'
 import type {
   CommonDBSaveOptions,
@@ -159,7 +155,7 @@ export class CommonDao<
     if (!ids.length) return []
     const table = opt.table || this.cfg.table
     const rows = await (opt.tx || this.cfg.db).getByIds<DBM>(table, ids, opt)
-    return await this.storageRowsToDBMs(rows)
+    return this.storageRowsToDBM(rows)
   }
 
   async getBy(by: keyof DBM, value: any, limit = 0, opt?: CommonDaoReadOptions): Promise<BM[]> {
@@ -220,7 +216,7 @@ export class CommonDao<
     q.table = opt.table || q.table
     const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
-    const rows = isPartialQuery ? rawRows : await this.storageRowsToDBMs(rawRows)
+    const rows = isPartialQuery ? rawRows : this.storageRowsToDBM(rawRows)
     const bms = isPartialQuery ? (rows as any[]) : this.dbmsToBM(rows, opt)
     return {
       rows: bms,
@@ -241,7 +237,7 @@ export class CommonDao<
     q.table = opt.table || q.table
     const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
-    const rows = isPartialQuery ? rawRows : await this.storageRowsToDBMs(rawRows)
+    const rows = isPartialQuery ? rawRows : this.storageRowsToDBM(rawRows)
     const dbms = isPartialQuery ? rows : this.anyToDBMs(rows, opt)
     return { rows: dbms, ...queryResult }
   }
@@ -258,10 +254,7 @@ export class CommonDao<
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
     if (this.cfg.compress?.keys.length) {
-      pipeline = pipeline.map(async row => await this.storageRowToDBM(row), {
-        // lowered, to reduce the total buffer size a bit for uncompressed objects
-        highWaterMark: 16,
-      })
+      pipeline = pipeline.mapSync(row => this.storageRowToDBM(row))
     }
 
     const isPartialQuery = !!q._selectedFieldNames
@@ -279,10 +272,7 @@ export class CommonDao<
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
     if (this.cfg.compress?.keys.length) {
-      pipeline = pipeline.map(async row => await this.storageRowToDBM(row), {
-        // lowered, to reduce the total buffer size a bit for uncompressed objects
-        highWaterMark: 16,
-      })
+      pipeline = pipeline.mapSync(row => this.storageRowToDBM(row))
     }
 
     const isPartialQuery = !!q._selectedFieldNames
@@ -481,7 +471,7 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const row = await this.dbmToStorageRow(dbm)
+    const row = this.dbmToStorageRow(dbm)
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -499,7 +489,7 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const row = await this.dbmToStorageRow(validDbm)
+    const row = this.dbmToStorageRow(validDbm)
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -520,7 +510,7 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const rows = await this.dbmsToStorageRows(dbms)
+    const rows = this.dbmsToStorageRows(dbms)
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -544,7 +534,7 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const rows = await this.dbmsToStorageRows(validDbms)
+    const rows = this.dbmsToStorageRows(validDbms)
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -612,7 +602,7 @@ export class CommonDao<
           this.assignIdCreatedUpdated(bm, opt)
           const dbm = this.bmToDBM(bm, opt)
           beforeSave?.(dbm)
-          return await this.dbmToStorageRow(dbm)
+          return this.dbmToStorageRow(dbm)
         },
         { errorMode },
       )
@@ -806,19 +796,23 @@ export class CommonDao<
    * const storageRow = await dao.dbmToStorageRow(dbm)
    * await db.saveBatch(table, [storageRow])
    */
-  async dbmToStorageRow(dbm: DBM): Promise<ObjectWithId> {
+  dbmToStorageRow(dbm: DBM): ObjectWithId {
     if (!this.cfg.compress?.keys.length) return dbm
     const row = { ...dbm }
-    await this.compress(row)
+    this.compress(row)
     return row
   }
 
   /**
    * Converts multiple DBMs to storage rows.
    */
-  async dbmsToStorageRows(dbms: DBM[]): Promise<ObjectWithId[]> {
+  dbmsToStorageRows(dbms: DBM[]): ObjectWithId[] {
     if (!this.cfg.compress?.keys.length) return dbms
-    return await pMap(dbms, async dbm => await this.dbmToStorageRow(dbm))
+    return dbms.map(dbm => {
+      const row = { ...dbm }
+      this.compress(row)
+      return row
+    })
   }
 
   /**
@@ -830,42 +824,35 @@ export class CommonDao<
    * const rows = await db.getByIds(table, ids)
    * const dbms = await Promise.all(rows.map(row => dao.storageRowToDBM(row)))
    */
-  async storageRowToDBM(row: ObjectWithId): Promise<DBM> {
+  storageRowToDBM(row: ObjectWithId): DBM {
     if (!this.cfg.compress?.keys.length) return row as DBM
     const dbm = { ...(row as DBM) }
-    if (this.cfg.compress.syncMode) {
-      this.decompressSync(dbm)
-    } else {
-      await this.decompress(dbm)
-    }
+    this.decompress(dbm)
     return dbm
   }
 
   /**
    * Converts multiple storage rows to DBMs.
    */
-  async storageRowsToDBMs(rows: ObjectWithId[]): Promise<DBM[]> {
+  storageRowsToDBM(rows: ObjectWithId[]): DBM[] {
     if (!this.cfg.compress?.keys.length) return rows as DBM[]
-    if (this.cfg.compress.syncMode) {
-      return rows.map(row => {
-        const dbm = { ...(row as DBM) }
-        this.decompressSync(dbm)
-        return dbm
-      })
-    }
-    return await pMap(rows, async row => await this.storageRowToDBM(row))
+    return rows.map(row => {
+      const dbm = { ...(row as DBM) }
+      this.decompress(dbm)
+      return dbm
+    })
   }
 
   /**
    * Mutates `dbm`.
    */
-  private async compress(dbm: DBM): Promise<void> {
+  private compress(dbm: DBM): void {
     if (!this.cfg.compress?.keys.length) return // No compression requested
 
     const { keys, level = 1 } = this.cfg.compress
     const properties = _pick(dbm, keys)
     const bufferString = JSON.stringify(properties)
-    const __compressed = await zstdCompress(bufferString, level)
+    const __compressed = zip2.zstdCompressSync(bufferString, level)
     _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
     Object.assign(dbm, { __compressed })
   }
@@ -873,25 +860,11 @@ export class CommonDao<
   /**
    * Mutates `dbm`.
    */
-  private async decompress(dbm: DBM): Promise<void> {
+  private decompress(dbm: DBM): void {
     _typeCast<Compressed<DBM>>(dbm)
     if (!Buffer.isBuffer(dbm.__compressed)) return // No compressed data
 
-    // todo: stop supporting Inflate when we are sure that we have migrated everything to zstd
-    const bufferString = await decompressZstdOrInflateToString(dbm.__compressed)
-    const properties = JSON.parse(bufferString)
-    dbm.__compressed = undefined
-    Object.assign(dbm, properties)
-  }
-
-  /**
-   * Mutates `dbm`.
-   */
-  private decompressSync(dbm: DBM): void {
-    _typeCast<Compressed<DBM>>(dbm)
-    if (!Buffer.isBuffer(dbm.__compressed)) return // No compressed data
-
-    const bufferString = decompressZstdOrInflateToStringSync(dbm.__compressed)
+    const bufferString = zip2.zstdDecompressToStringSync(dbm.__compressed)
     const properties = JSON.parse(bufferString)
     dbm.__compressed = undefined
     Object.assign(dbm, properties)
@@ -1029,7 +1002,7 @@ export class CommonDao<
 
     const dbmByTableById = CommonDao.multiGetMapByTableById(dbmsByTable)
 
-    return (await CommonDao.prepareMultiGetOutput(inputMap, dbmByTableById, opt)) as any
+    return CommonDao.prepareMultiGetOutput(inputMap, dbmByTableById, opt) as any
   }
 
   private static prepareMultiGetIds(
@@ -1075,22 +1048,22 @@ export class CommonDao<
     return dbmByTableById
   }
 
-  private static async prepareMultiGetOutput(
+  private static prepareMultiGetOutput(
     inputMap: StringMap<DaoWithIds<AnyDao> | DaoWithId<AnyDao>>,
     dbmByTableById: StringMap<StringMap<ObjectWithId>>,
     opt: CommonDaoReadOptions = {},
-  ): Promise<StringMap<unknown>> {
+  ): StringMap<unknown> {
     const bmsByProp: StringMap<unknown> = {}
 
     // Loop over input props again, to produce the output of the same shape as requested
-    await pMap(_stringMapEntries(inputMap), async ([prop, input]) => {
+    for (const [prop, input] of _stringMapEntries(inputMap)) {
       const { dao } = input
       const { table } = dao.cfg
       if ('id' in input) {
         // Singular
         const row = dbmByTableById[table]![input.id]
         // Decompress before converting to BM
-        const dbm = row ? await dao.storageRowToDBM(row) : undefined
+        const dbm = row ? dao.storageRowToDBM(row) : undefined
         bmsByProp[prop] = dao.dbmToBM(dbm, opt) || null
       } else {
         // Plural
@@ -1098,10 +1071,10 @@ export class CommonDao<
         // Without filtering - every prop will get ALL rows from that table.
         const rows = input.ids.map(id => dbmByTableById[table]![id]).filter(_isTruthy)
         // Decompress before converting to BM
-        const dbms = await dao.storageRowsToDBMs(rows)
+        const dbms = dao.storageRowsToDBM(rows)
         bmsByProp[prop] = dao.dbmsToBM(dbms, opt)
       }
-    })
+    }
 
     return bmsByProp as any
   }
@@ -1140,7 +1113,7 @@ export class CommonDao<
     if (!inputs.length) return
     const { db } = inputs[0]!.dao.cfg
     const dbmsByTable: StringMap<any[]> = {}
-    await pMap(inputs, async input => {
+    for (const input of inputs) {
       const { dao } = input
       const { table } = dao.cfg
       dbmsByTable[table] ||= []
@@ -1163,7 +1136,7 @@ export class CommonDao<
         dao.assignIdCreatedUpdated(row, opt)
         const dbm = dao.bmToDBM(row, opt)
         dao.cfg.hooks!.beforeSave?.(dbm)
-        const storageRow = await dao.dbmToStorageRow(dbm)
+        const storageRow = dao.dbmToStorageRow(dbm)
         dbmsByTable[table].push(storageRow)
       } else {
         // Plural
@@ -1172,10 +1145,10 @@ export class CommonDao<
         if (dao.cfg.hooks!.beforeSave) {
           dbms.forEach(dbm => dao.cfg.hooks!.beforeSave!(dbm))
         }
-        const storageRows = await dao.dbmsToStorageRows(dbms)
+        const storageRows = dao.dbmsToStorageRows(dbms)
         dbmsByTable[table].push(...storageRows)
       }
-    })
+    }
 
     await db.multiSave(dbmsByTable)
   }

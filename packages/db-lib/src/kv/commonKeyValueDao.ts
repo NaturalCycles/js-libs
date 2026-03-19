@@ -1,16 +1,9 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { SKIP } from '@naturalcycles/js-lib/types'
 import type { Integer, KeyValueTuple } from '@naturalcycles/js-lib/types'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
-import {
-  decompressZstdOrInflateToString,
-  deflateString,
-  inflateToString,
-  zstdCompress,
-  zstdDecompressToString,
-} from '@naturalcycles/nodejs-lib/zip'
+import { zip2 } from '@naturalcycles/nodejs-lib/zip'
 import type { CommonDaoLogLevel } from '../commondao/common.dao.model.js'
 import type { CommonDBCreateOptions } from '../db.model.js'
 import type {
@@ -52,8 +45,8 @@ export interface CommonKeyValueDaoCfg<V> {
 export type CommonKeyValueDaoSaveOptions = CommonKeyValueDBSaveBatchOptions
 
 export interface CommonKeyValueDaoTransformer<V> {
-  valueToBuffer: (v: V) => Promise<Buffer>
-  bufferToValue: (buf: Buffer) => Promise<V>
+  valueToBuffer: (v: V) => Buffer
+  bufferToValue: (buf: Buffer) => V
 }
 
 /**
@@ -63,8 +56,8 @@ export function commonKeyValueDaoDeflatedJsonTransformer<
   T = any,
 >(): CommonKeyValueDaoTransformer<T> {
   return {
-    valueToBuffer: async v => await deflateString(JSON.stringify(v)),
-    bufferToValue: async buf => JSON.parse(await inflateToString(buf)),
+    valueToBuffer: v => zip2.deflateSync(JSON.stringify(v)),
+    bufferToValue: buf => JSON.parse(zip2.inflateToStringSync(buf)),
   }
 }
 
@@ -72,8 +65,8 @@ export function commonKeyValueDaoZstdJsonTransformer<T = any>(
   level: Integer | undefined, // defaults to 3
 ): CommonKeyValueDaoTransformer<T> {
   return {
-    valueToBuffer: async v => await zstdCompress(JSON.stringify(v), level),
-    bufferToValue: async buf => JSON.parse(await zstdDecompressToString(buf)),
+    valueToBuffer: v => zip2.zstdCompressSync(JSON.stringify(v), level),
+    bufferToValue: buf => JSON.parse(zip2.zstdDecompressToStringSync(buf)),
   }
 }
 
@@ -83,8 +76,8 @@ export function commonKeyValueDaoZstdJsonTransformer<T = any>(
  */
 export function commonKeyValueDaoCompressedTransformer<T = any>(): CommonKeyValueDaoTransformer<T> {
   return {
-    valueToBuffer: async v => await zstdCompress(JSON.stringify(v)),
-    bufferToValue: async buf => JSON.parse(await decompressZstdOrInflateToString(buf)),
+    valueToBuffer: v => zip2.zstdCompressSync(JSON.stringify(v)),
+    bufferToValue: buf => JSON.parse(zip2.decompressZstdOrInflateToStringSync(buf)),
   }
 }
 
@@ -155,10 +148,7 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
     const entries = await this.cfg.db.getByIds(this.cfg.table, ids)
     if (!this.cfg.transformer) return entries as any
 
-    return await pMap(entries, async ([id, raw]) => [
-      id,
-      await this.cfg.transformer!.bufferToValue(raw),
-    ])
+    return entries.map(([id, raw]) => [id, this.cfg.transformer!.bufferToValue(raw)])
   }
 
   async getByIdsAsBuffer(ids: K[]): Promise<KeyValueDBTuple[]> {
@@ -179,7 +169,7 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
     if (!transformer) {
       rawEntries = entries as any
     } else {
-      rawEntries = await pMap(entries, async ([id, v]) => [id, await transformer.valueToBuffer(v)])
+      rawEntries = entries.map(([id, v]) => [id, transformer.valueToBuffer(v)])
     }
 
     await this.cfg.db.saveBatch(this.cfg.table, rawEntries, opt)
@@ -204,17 +194,14 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
       return this.cfg.db.streamValues(this.cfg.table, limit) as Pipeline<V>
     }
 
-    return this.cfg.db.streamValues(this.cfg.table, limit).map(
-      async buf => {
-        try {
-          return await transformer.bufferToValue(buf)
-        } catch (err) {
-          this.cfg.logger.error(err)
-          return SKIP
-        }
-      },
-      { concurrency: 32 },
-    )
+    return this.cfg.db.streamValues(this.cfg.table, limit).mapSync(buf => {
+      try {
+        return transformer.bufferToValue(buf)
+      } catch (err) {
+        this.cfg.logger.error(err)
+        return SKIP
+      }
+    })
   }
 
   streamEntries(limit?: number): Pipeline<KeyValueTuple<K, V>> {
@@ -224,17 +211,14 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
       return this.cfg.db.streamEntries(this.cfg.table, limit) as Pipeline<KeyValueTuple<K, V>>
     }
 
-    return this.cfg.db.streamEntries(this.cfg.table, limit).map(
-      async ([id, buf]) => {
-        try {
-          return [id as K, await transformer.bufferToValue(buf)]
-        } catch (err) {
-          this.cfg.logger.error(err)
-          return SKIP
-        }
-      },
-      { concurrency: 32 },
-    )
+    return this.cfg.db.streamEntries(this.cfg.table, limit).mapSync(([id, buf]) => {
+      try {
+        return [id as K, transformer.bufferToValue(buf)]
+      } catch (err) {
+        this.cfg.logger.error(err)
+        return SKIP
+      }
+    })
   }
 
   async getAllKeys(limit?: number): Promise<K[]> {
