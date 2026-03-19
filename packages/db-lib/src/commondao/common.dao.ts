@@ -254,7 +254,10 @@ export class CommonDao<
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
     if (this.cfg.compress?.keys.length) {
-      pipeline = pipeline.map(async row => await this.storageRowToDBM(row))
+      pipeline = pipeline.map(async row => await this.storageRowToDBM(row), {
+        // lowered, to reduce the total buffer size a bit for uncompressed objects
+        highWaterMark: 16,
+      })
     }
 
     const isPartialQuery = !!q._selectedFieldNames
@@ -272,7 +275,10 @@ export class CommonDao<
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
     if (this.cfg.compress?.keys.length) {
-      pipeline = pipeline.map(async row => await this.storageRowToDBM(row))
+      pipeline = pipeline.map(async row => await this.storageRowToDBM(row), {
+        // lowered, to reduce the total buffer size a bit for uncompressed objects
+        highWaterMark: 16,
+      })
     }
 
     const isPartialQuery = !!q._selectedFieldNames
