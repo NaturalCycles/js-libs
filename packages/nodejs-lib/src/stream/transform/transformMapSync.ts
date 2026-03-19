@@ -88,6 +88,7 @@ export function transformMapSync<IN = any, OUT = IN>(
 
   return new Transform({
     objectMode,
+    highWaterMark: 1,
     ...opt,
     transform(chunk: IN, _, cb) {
       // Stop processing if isSettled

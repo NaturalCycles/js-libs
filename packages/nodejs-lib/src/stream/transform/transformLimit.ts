@@ -18,7 +18,7 @@ export interface TransformLimitOptions extends TransformOptions {
 }
 
 export function transformLimit<IN>(opt: TransformLimitOptions): TransformTyped<IN, IN> {
-  const { limit, signal, objectMode = true, highWaterMark } = opt
+  const { limit, signal, objectMode = true, highWaterMark = 1 } = opt
 
   if (!limit) {
     return transformNoOp()

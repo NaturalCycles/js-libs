@@ -18,6 +18,7 @@ export function transformChunk<IN = any>(
 
   return new Transform({
     objectMode: true,
+    highWaterMark: 1,
     ...opt,
     transform(chunk, _, cb) {
       buf.push(chunk)

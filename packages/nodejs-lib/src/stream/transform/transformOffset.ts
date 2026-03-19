@@ -22,6 +22,7 @@ export function transformOffset<IN>(opt: TransformOffsetOptions): TransformTyped
   let i = 0 // so we start first chunk with 1
   return new Transform({
     objectMode: true,
+    highWaterMark: 1,
     ...opt,
     transform(chunk: IN, _, cb) {
       if (++i <= offset) {

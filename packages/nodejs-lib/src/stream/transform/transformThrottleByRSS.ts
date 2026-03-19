@@ -60,7 +60,7 @@ export function transformThrottleByRSS<T>(
     pollTimeout = 30 * 60_000, // 30 min
     onPollTimeout = 'open-the-floodgates',
     objectMode = true,
-    highWaterMark,
+    highWaterMark = 1,
   } = opt
 
   const maxRSSBytes = maxRSS * 1024 * 1024

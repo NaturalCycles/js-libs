@@ -18,7 +18,7 @@ export function transformFork<T>(
   fn: (pipeline: Pipeline<T>) => Promise<void>,
   opt: TransformOptions = {},
 ): TransformTyped<T, T> {
-  const { objectMode = true, highWaterMark } = opt
+  const { objectMode = true, highWaterMark = 1 } = opt
   const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
 
   let lock: DeferredPromise | undefined

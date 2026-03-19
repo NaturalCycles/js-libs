@@ -40,7 +40,7 @@ export interface TransformThrottleOptions extends TransformOptions {
  * @experimental
  */
 export function transformThrottle<T>(opt: TransformThrottleOptions): TransformTyped<T, T> {
-  const { throughput, interval, objectMode = true, highWaterMark } = opt
+  const { throughput, interval, objectMode = true, highWaterMark = 1 } = opt
 
   let count = 0
   let start: UnixTimestampMillis

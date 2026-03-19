@@ -29,7 +29,7 @@ export interface TransformWarmupOptions extends TransformOptions {
  * @experimental
  */
 export function transformWarmup<T>(opt: TransformWarmupOptions): TransformTyped<T, T> {
-  const { concurrency, warmupSeconds, objectMode = true, highWaterMark } = opt
+  const { concurrency, warmupSeconds, objectMode = true, highWaterMark = 1 } = opt
   const warmupMs = warmupSeconds * 1000
   const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
 

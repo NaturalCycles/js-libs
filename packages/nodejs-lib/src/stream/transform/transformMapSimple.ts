@@ -30,7 +30,7 @@ export function transformMapSimple<IN = any, OUT = IN>(
     errorMode = ErrorMode.THROW_IMMEDIATELY,
     logger = console,
     objectMode = true,
-    highWaterMark,
+    highWaterMark = 1,
   } = opt
 
   return new Transform({

@@ -9,6 +9,7 @@ import type { TransformTyped } from '../stream.model.js'
 export function transformNoOp<T = any>(): TransformTyped<T, T> {
   return new Transform({
     objectMode: true,
+    highWaterMark: 1,
     transform(chunk: T, _, cb) {
       cb(null, chunk)
     },
