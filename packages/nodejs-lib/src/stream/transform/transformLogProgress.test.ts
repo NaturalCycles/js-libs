@@ -24,8 +24,6 @@ test('transformLogProgress', async () => {
     .logProgress({
       logEvery: 2,
       peakRSS: true,
-      logSizes: true,
-      logZippedSizes: true,
       extra: (_r, index) => {
         // console.log(r, index)
 

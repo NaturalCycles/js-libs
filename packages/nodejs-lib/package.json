@@ -55,7 +55,7 @@
     "./stream/*.js": "./dist/stream/*.js",
     "./yargs": "./dist/yargs/yargs.util.js",
     "./ajv": "./dist/validation/ajv/index.js",
-    "./zip": "./dist/zip/zip.util.js"
+    "./zip": "./dist/zip/zip2.js"
   },
   "bin": {
     "kpy": "dist/bin/kpy.js",

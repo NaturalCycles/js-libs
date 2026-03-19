@@ -6,7 +6,6 @@ import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { SimpleMovingAverage } from '@naturalcycles/js-lib/math'
 import type { AnyObject, PositiveInteger, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { boldWhite, dimGrey, hasColors, white, yellow } from '../colors/colors.js'
-import { SizeStack } from './sizeStack.js'
 import type { ReadableMapper } from './stream.model.js'
 
 export interface ProgressLoggerCfg<T = any> {
@@ -112,29 +111,6 @@ export interface ProgressLoggerCfg<T = any> {
    * Defaults to 1.
    */
   chunkSize?: PositiveInteger
-
-  /**
-   * Experimental logging of item (shunk) sizes, when json-stringified.
-   *
-   * Defaults to false.
-   *
-   * @experimental
-   */
-  logSizes?: boolean
-
-  /**
-   * How many last item sizes to keep in a buffer, to calculate stats (p50, p90, avg, etc).
-   * Defaults to 100_000.
-   * Cannot be Infinity.
-   */
-  logSizesBuffer?: number
-
-  /**
-   * Works in addition to `logSizes`. Adds "zipped sizes".
-   *
-   * @experimental
-   */
-  logZippedSizes?: boolean
 }
 
 export interface ProgressLogItem extends AnyObject {
@@ -189,8 +165,6 @@ export class ProgressLogger<T> implements Disposable {
   private processedLastSecond!: number
   private progress!: number
   private peakRSS!: number
-  private sizes?: SizeStack
-  private sizesZipped?: SizeStack
 
   private start(): void {
     this.started = Date.now() as UnixTimestampMillis
@@ -199,20 +173,11 @@ export class ProgressLogger<T> implements Disposable {
     this.processedLastSecond = 0
     this.progress = 0
     this.peakRSS = 0
-    this.sizes = this.cfg.logSizes ? new SizeStack('json', this.cfg.logSizesBuffer) : undefined
-    this.sizesZipped = this.cfg.logZippedSizes
-      ? new SizeStack('json.gz', this.cfg.logSizesBuffer)
-      : undefined
   }
 
   log(chunk?: T): void {
     this.progress++
     this.processedLastSecond++
-
-    if (this.sizes) {
-      // Check it, cause gzipping might be delayed here..
-      void SizeStack.countItem(chunk, this.cfg.logger, this.sizes, this.sizesZipped)
-    }
 
     if (this.cfg.logProgress && this.progress % this.cfg.logEvery === 0) {
       this.logStats(chunk, false, this.progress % this.logEvery10 === 0)
@@ -274,14 +239,6 @@ export class ProgressLogger<T> implements Disposable {
     if (logRPS) Object.assign(o, { rps10, rpsTotal })
 
     logger.log(inspect(o, inspectOpt))
-
-    if (this.sizes?.items.length) {
-      logger.log(this.sizes.getStats())
-
-      if (this.sizesZipped?.items.length) {
-        logger.log(this.sizesZipped.getStats())
-      }
-    }
 
     if (tenx) {
       const perHour = _hc((batchedProgress * 1000 * 60 * 60) / (now - this.started))

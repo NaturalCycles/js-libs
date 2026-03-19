@@ -19,7 +19,7 @@ import type {
   SKIP,
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
-import { zstdLevelToOptions } from '../zip/zip.util.js'
+import { zip2 } from '../zip/zip2.js'
 import { createReadStreamAsNDJson } from './ndjson/createReadStreamAsNDJson.js'
 import { transformJsonParse } from './ndjson/transformJsonParse.js'
 import { transformToNDJson } from './ndjson/transformToNDJson.js'
@@ -359,7 +359,7 @@ export class Pipeline<T = unknown> {
     level?: Integer, // defaults to 3
     opt?: ZstdOptions,
   ): Pipeline<Uint8Array> {
-    this.transforms.push(createZstdCompress(zstdLevelToOptions(level, opt)))
+    this.transforms.push(createZstdCompress(zip2.zstdLevelToOptions(level, opt)))
     this.objectMode = false
     return this as any
   }
@@ -406,7 +406,7 @@ export class Pipeline<T = unknown> {
         }),
       )
     } else if (outputFilePath.endsWith('.zst')) {
-      this.transforms.push(createZstdCompress(zstdLevelToOptions(level)))
+      this.transforms.push(createZstdCompress(zip2.zstdLevelToOptions(level)))
     }
     this.destination = fs2.createWriteStream(outputFilePath, {
       // highWaterMark: 64 * 1024, // no observed speedup
