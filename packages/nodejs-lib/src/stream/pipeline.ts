@@ -51,6 +51,8 @@ import { transformSplitOnNewline } from './transform/transformSplit.js'
 import { transformTap, transformTapSync } from './transform/transformTap.js'
 import { transformThrottle } from './transform/transformThrottle.js'
 import type { TransformThrottleOptions } from './transform/transformThrottle.js'
+import { transformThrottleByRSS } from './transform/transformThrottleByRSS.js'
+import type { TransformThrottleByRSSOptions } from './transform/transformThrottleByRSS.js'
 import { transformWarmup } from './transform/transformWarmup.js'
 import type { TransformWarmupOptions } from './transform/transformWarmup.js'
 import { writablePushToArray } from './writable/writablePushToArray.js'
@@ -246,6 +248,11 @@ export class Pipeline<T = unknown> {
 
   throttle(opt: TransformThrottleOptions): this {
     this.transforms.push(transformThrottle(opt))
+    return this
+  }
+
+  throttleByRSS(opt: TransformThrottleByRSSOptions): this {
+    this.transforms.push(transformThrottleByRSS(opt))
     return this
   }
 
