@@ -7,7 +7,7 @@ import {
   pExpectedError,
 } from '@naturalcycles/js-lib/error'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
-import { deflateString } from '@naturalcycles/nodejs-lib/zip'
+import { zip2 } from '@naturalcycles/nodejs-lib/zip'
 import { afterAll, expect, test } from 'vitest'
 import { getDefaultRouter } from './express/getDefaultRouter.js'
 import { safeJsonMiddleware } from './server/safeJsonMiddleware.js'
@@ -61,7 +61,7 @@ test('should support compressed body', async () => {
     items: _range(1, 10_001).map(id => ({ id })),
   }
 
-  const body = await deflateString(JSON.stringify(input))
+  const body = zip2.deflateSync(JSON.stringify(input))
   console.log(body.byteLength)
 
   const output = await app.post('compressedBody', {

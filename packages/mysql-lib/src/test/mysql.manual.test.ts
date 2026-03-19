@@ -10,7 +10,7 @@ import {
 } from '@naturalcycles/db-lib/testing'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
-import { deflateString, inflateToString } from '@naturalcycles/nodejs-lib/zip'
+import { zip2 } from '@naturalcycles/nodejs-lib/zip'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { MysqlDB } from '../mysql.db.js'
 
@@ -102,7 +102,7 @@ test('fieldName with dot', async () => {
 test('buffer', async () => {
   const table = TEST_TABLE + '2'
 
-  const extra = await deflateString('hello buffer')
+  const extra = zip2.zstdCompressSync('hello buffer')
 
   const items = createTestItemsDBM(5).map(r => ({ ...r, extra }))
 
@@ -116,7 +116,7 @@ test('buffer', async () => {
   await db.saveBatch(table, items)
   const { rows } = await db.runQuery<any>(new DBQuery(table))
   // console.log(items2)
-  console.log(await inflateToString(rows[0]!['extra']))
+  console.log(zip2.zstdDecompressToStringSync(rows[0]!['extra']))
   expect(rows).toEqual(items)
 })
 
