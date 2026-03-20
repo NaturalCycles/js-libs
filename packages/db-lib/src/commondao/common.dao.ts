@@ -597,8 +597,8 @@ export class CommonDao<
     const { chunkSize = 500, chunkConcurrency = 32, errorMode } = opt
 
     await p
-      .map(
-        async bm => {
+      .mapSync(
+        bm => {
           this.assignIdCreatedUpdated(bm, opt)
           const dbm = this.bmToDBM(bm, opt)
           beforeSave?.(dbm)
