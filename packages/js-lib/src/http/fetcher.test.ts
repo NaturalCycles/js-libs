@@ -161,7 +161,6 @@ test('mocking fetch', async () => {
   _assertIsError(err, HttpRequestError)
 
   // This is how "default tooling" prints errors
-  // oxlint-disable-next-line @typescript-eslint/no-base-to-string
   expect(String(err)).toMatchInlineSnapshot(`"HttpRequestError: 500 GET some"`)
 
   // This is how Jest prints errors
