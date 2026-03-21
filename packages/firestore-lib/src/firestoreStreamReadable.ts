@@ -1,6 +1,11 @@
 import { Readable } from 'node:stream'
 import { FieldPath } from '@google-cloud/firestore'
-import type { Query, QueryDocumentSnapshot, QuerySnapshot } from '@google-cloud/firestore'
+import type {
+  Query,
+  QueryDocumentSnapshot,
+  QuerySnapshot,
+  Timestamp,
+} from '@google-cloud/firestore'
 import type { DBQuery } from '@naturalcycles/db-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
@@ -12,6 +17,7 @@ import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import type { FirestoreDBStreamOptions } from './firestore.db.js'
 import { unescapeDocId } from './firestore.util.js'
+import { readAtToReadTime } from './query.util.js'
 
 export class FirestoreStreamReadable<T extends ObjectWithId = any>
   extends Readable
@@ -30,6 +36,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
    */
   countReads = 0
 
+  private readonly readTime?: Timestamp
   private readonly opt: FirestoreDBStreamOptions & { batchSize: number; highWaterMark: number }
   private logger: CommonLogger
 
@@ -49,7 +56,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       batchSize,
       highWaterMark,
     }
-    // todo: support PITR!
+    this.readTime = readAtToReadTime(opt)
 
     this.originalLimit = dbQuery._limitValue
     this.table = dbQuery.table
@@ -176,6 +183,12 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     try {
       return await pRetry(
         async () => {
+          if (this.readTime) {
+            return await this.q.firestore.runTransaction(tx => tx.get(q), {
+              readOnly: true,
+              readTime: this.readTime,
+            })
+          }
           return await q.get()
         },
         {

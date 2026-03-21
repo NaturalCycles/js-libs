@@ -1,7 +1,20 @@
-import { FieldPath } from '@google-cloud/firestore'
+import { FieldPath, Timestamp } from '@google-cloud/firestore'
 import type { Query, WhereFilterOp } from '@google-cloud/firestore'
-import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
+import type { CommonDBReadOptions, DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
+import { _round } from '@naturalcycles/js-lib'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
+
+export function readAtToReadTime(opt: CommonDBReadOptions): Timestamp | undefined {
+  if (!opt.readAt) return
+
+  // Same logic as Datastore: round to whole minutes, guard against future
+  let readTimeMs = _round(opt.readAt, 60) * 1000
+  if (readTimeMs >= Date.now() - 1000) {
+    readTimeMs -= 60_000
+  }
+
+  return Timestamp.fromMillis(readTimeMs)
+}
 
 // Map DBQueryFilterOp to WhereFilterOp
 // Currently it's fully aligned!

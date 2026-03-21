@@ -35,7 +35,7 @@ import type { ReadableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { escapeDocId, unescapeDocId } from './firestore.util.js'
 import { FirestoreShardedReadable } from './firestoreShardedReadable.js'
 import { FirestoreStreamReadable } from './firestoreStreamReadable.js'
-import { dbQueryToFirestoreQuery } from './query.util.js'
+import { dbQueryToFirestoreQuery, readAtToReadTime } from './query.util.js'
 
 export class FirestoreDB extends BaseCommonDB implements CommonDB {
   constructor(cfg: FirestoreDBCfg) {
@@ -63,16 +63,20 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   ): Promise<ROW[]> {
     if (!ids.length) return []
 
-    // todo: support PITR: https://firebase.google.com/docs/firestore/enterprise/use-pitr#read-pitr
-
     const { firestore } = this.cfg
     const col = firestore.collection(table)
+    const refs = ids.map(id => col.doc(escapeDocId(id)))
 
-    return (
-      await ((opt.tx as FirestoreDBTransaction)?.tx || firestore).getAll(
-        ...ids.map(id => col.doc(escapeDocId(id))),
-      )
-    )
+    const readTime = readAtToReadTime(opt)
+    if (readTime) {
+      _assert(!opt.tx, 'readAt is not supported inside an existing transaction')
+    }
+
+    const snapshots = await (readTime
+      ? firestore.runTransaction(tx => tx.getAll(...refs), { readOnly: true, readTime })
+      : ((opt.tx as FirestoreDBTransaction)?.tx || firestore).getAll(...refs))
+
+    return snapshots
       .map(doc => {
         const data = doc.data()
         if (data === undefined) return
@@ -97,7 +101,15 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       refs.push(...ids.map(id => col.doc(escapeDocId(id))))
     }
 
-    const snapshots = await ((opt.tx as FirestoreDBTransaction)?.tx || firestore).getAll(...refs)
+    const readTime = readAtToReadTime(opt)
+    if (readTime) {
+      _assert(!opt.tx, 'readAt is not supported inside an existing transaction')
+    }
+
+    const snapshots = await (readTime
+      ? firestore.runTransaction(tx => tx.getAll(...refs), { readOnly: true, readTime })
+      : ((opt.tx as FirestoreDBTransaction)?.tx || firestore).getAll(...refs))
+
     snapshots.forEach(snap => {
       const data = snap.data()
       if (data === undefined) return
@@ -115,7 +127,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   // QUERY
   override async runQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
-    opt?: FirestoreDBOptions,
+    opt: FirestoreDBReadOptions = {},
   ): Promise<RunQueryResult<ROW>> {
     const idFilter = q._filters.find(f => f.name === 'id')
     if (idFilter) {
@@ -127,7 +139,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
 
-    let rows = await this.runFirestoreQuery<ROW>(firestoreQuery)
+    let rows = await this.runFirestoreQuery<ROW>(firestoreQuery, opt)
 
     // Special case when projection query didn't specify 'id'
     if (q._selectedFieldNames && !q._selectedFieldNames.includes('id')) {
@@ -137,15 +149,36 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
     return { rows }
   }
 
-  async runFirestoreQuery<ROW extends ObjectWithId>(q: Query): Promise<ROW[]> {
+  async runFirestoreQuery<ROW extends ObjectWithId>(
+    q: Query,
+    opt: FirestoreDBReadOptions = {},
+  ): Promise<ROW[]> {
+    const readTime = readAtToReadTime(opt)
+    if (readTime) {
+      const qs = await this.cfg.firestore.runTransaction(tx => tx.get(q), {
+        readOnly: true,
+        readTime,
+      })
+      return this.querySnapshotToArray(qs)
+    }
     return this.querySnapshotToArray(await q.get())
   }
 
   override async runQueryCount<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
-    _opt?: FirestoreDBOptions,
+    opt: FirestoreDBReadOptions = {},
   ): Promise<number> {
     const firestoreQuery = dbQueryToFirestoreQuery(q, this.cfg.firestore.collection(q.table))
+
+    const readTime = readAtToReadTime(opt)
+    if (readTime) {
+      const r = await this.cfg.firestore.runTransaction(tx => tx.get(firestoreQuery.count()), {
+        readOnly: true,
+        readTime,
+      })
+      return r.data().count
+    }
+
     const r = await firestoreQuery.count().get()
     return r.data().count
   }
@@ -163,7 +196,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
       ...opt_,
     }
 
-    if (opt.experimentalCursorStream) {
+    if (opt.experimentalCursorStream || opt.readAt) {
       return Pipeline.from(new FirestoreStreamReadable(firestoreQuery, q, opt))
     }
 
