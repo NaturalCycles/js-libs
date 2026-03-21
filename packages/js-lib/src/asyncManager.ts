@@ -93,4 +93,7 @@ class AsyncManagerImpl {
  */
 export const AsyncManager = new AsyncManagerImpl()
 
+// Shorthand alias
+export const runInBackground = AsyncManager.runInBackground.bind(AsyncManager)
+
 export type OnErrorHook = (err: Error) => any
