@@ -1339,9 +1339,11 @@ export class JTuple<ITEMS extends JSchema<any, any>[]> extends JBuilder<TupleOut
 // ==== Standalone functions for j.object ====
 
 function object(props: AnyObject): never
-function object<OUT extends AnyObject>(props: {
-  [K in keyof Required<OUT>]-?: JSchema<OUT[K], any>
-}): JObject<OUT, false>
+function object<OUT extends AnyObject>(
+  props: [keyof OUT] extends [never]
+    ? Record<string, never>
+    : { [K in keyof Required<OUT>]-?: JSchema<OUT[K], any> },
+): [keyof OUT] extends [never] ? never : JObject<OUT, false>
 
 function object<OUT extends AnyObject>(props: {
   [key in keyof OUT]: JSchema<OUT[key], any>

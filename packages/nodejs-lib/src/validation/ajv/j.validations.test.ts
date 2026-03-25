@@ -3715,6 +3715,17 @@ describe('object', () => {
       expect(err).not.toBeNull()
     })
   })
+
+  test('should collapse to never when OUT has no keys but props are provided', () => {
+    interface Foo {}
+
+    const schema = j.object<Foo>({
+      // @ts-expect-error - Foo has no properties, so passing { id } is a type error
+      id: j.string(),
+    })
+
+    expectTypeOf(schema).toBeNever()
+  })
 })
 
 describe('enum', () => {
