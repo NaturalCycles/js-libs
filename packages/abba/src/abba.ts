@@ -157,7 +157,7 @@ export class Abba {
    */
   async saveExperiment(
     experiment: Experiment,
-    buckets: Unsaved<Bucket>[],
+    buckets: (Unsaved<Bucket> | BucketInput)[],
   ): Promise<ExperimentWithBuckets> {
     if (experiment.status === AssignmentStatus.Active) {
       validateTotalBucketRatio(buckets)
