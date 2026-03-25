@@ -135,6 +135,22 @@ export const j = {
      */
     withEnumKeys,
     withRegexKeys,
+
+    /**
+     * Validates that the value is an instance of the given class/constructor.
+     *
+     * ```ts
+     * j.object.instanceOf(Date) // typed as Date
+     * j.object.instanceOf(Date).optional() // typed as Date | undefined
+     * ```
+     */
+    instanceOf<T>(ctor: new (...args: any[]) => T): JBuilder<T, false> {
+      return new JBuilder<T, false>({
+        type: 'object',
+        instanceof: ctor.name,
+        hasIsOfTypeCheck: true,
+      })
+    },
   }),
 
   array<OUT, Opt>(itemSchema: JSchema<OUT, Opt>): JArray<OUT, Opt> {
@@ -1531,8 +1547,7 @@ export class AjvSchema<OUT> {
     let jsonSchema: JsonSchema<OUT>
 
     if (schema instanceof JSchema) {
-      // oxlint-disable typescript-eslint(no-unnecessary-type-assertion)
-      jsonSchema = (schema as JSchema<OUT, any>).build()
+      jsonSchema = schema.build()
       AjvSchema.requireValidJsonSchema(jsonSchema)
     } else {
       jsonSchema = schema
@@ -1654,7 +1669,7 @@ function executeValidation<OUT>(
     const [err, result] = _try(() => builtSchema.postValidation!(output))
     if (err) {
       valid = false
-      ;(fn as any).errors = [
+      fn.errors = [
         {
           instancePath: '',
           message: err.message,

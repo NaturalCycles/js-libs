@@ -4740,6 +4740,121 @@ describe('getOriginalInput option', () => {
   })
 })
 
+describe('j.object.instanceOf()', () => {
+  test('should validate Date instances', () => {
+    const schema = j.object.instanceOf(Date)
+
+    const [err, result] = schema.getValidationResult(new Date())
+
+    expect(err).toBeNull()
+    expect(result).toBeInstanceOf(Date)
+    expectTypeOf(result).toEqualTypeOf<Date>()
+  })
+
+  test('should have correct type inference with optional', () => {
+    const schema = j.object.instanceOf(Date).optional()
+
+    const [err, result] = schema.getValidationResult(new Date())
+    expect(err).toBeNull()
+    expectTypeOf(result).toEqualTypeOf<Date | undefined>()
+  })
+
+  test('should have correct type inference with nullable', () => {
+    const schema = j.object.instanceOf(Date).nullable()
+
+    const [err, result] = schema.getValidationResult(new Date())
+    expect(err).toBeNull()
+    expectTypeOf(result).toEqualTypeOf<Date | null>()
+  })
+
+  test('should reject non-Date values', () => {
+    const schema = j.object.instanceOf(Date)
+
+    const invalidCases: any[] = [42, 'not a date', true, null, {}, []]
+    invalidCases.forEach(value => {
+      const [err] = schema.getValidationResult(value)
+      expect(err, _stringify(value)).not.toBeNull()
+    })
+  })
+
+  test('should work with RegExp', () => {
+    const schema = j.object.instanceOf(RegExp)
+
+    const [err, result] = schema.getValidationResult(/foo/)
+
+    expect(err).toBeNull()
+    expect(result).toBeInstanceOf(RegExp)
+    expectTypeOf(result).toEqualTypeOf<RegExp>()
+
+    const [err2] = schema.getValidationResult('not a regex')
+    expect(err2).not.toBeNull()
+  })
+
+  test('should work with custom classes', () => {
+    class MyClass {
+      constructor(public value: number) {}
+    }
+
+    const schema = j.object.instanceOf(MyClass)
+
+    const instance = new MyClass(42)
+    const [err, result] = schema.getValidationResult(instance)
+
+    expect(err).toBeNull()
+    expect(result).toBeInstanceOf(MyClass)
+    expectTypeOf(result).toEqualTypeOf<MyClass>()
+
+    const [err2] = schema.getValidationResult({ value: 42 })
+    expect(err2).not.toBeNull()
+  })
+
+  test('should work with subclasses', () => {
+    class Base {
+      constructor(public id: number) {}
+    }
+
+    class Child extends Base {
+      constructor(
+        id: number,
+        public name: string,
+      ) {
+        super(id)
+      }
+    }
+
+    const schema = j.object.instanceOf(Base)
+
+    const [err1] = schema.getValidationResult(new Base(1))
+    expect(err1).toBeNull()
+
+    const [err2] = schema.getValidationResult(new Child(1, 'test'))
+    expect(err2).toBeNull()
+  })
+
+  test('should work as a property in an object schema', () => {
+    interface WithDate {
+      created: Date
+      name: string
+    }
+
+    const schema = j
+      .object<WithDate>({
+        created: j.object.instanceOf(Date),
+        name: j.string(),
+      })
+      .isOfType<WithDate>()
+
+    const [err, result] = schema.getValidationResult({
+      created: new Date(),
+      name: 'test',
+    })
+
+    expect(err).toBeNull()
+    expect(result.created).toBeInstanceOf(Date)
+    expectTypeOf(result).toEqualTypeOf<WithDate>()
+  })
+})
+
 describe('j.any().instanceof()', () => {
   test('should validate class instances', () => {
     const ajvSchema = AjvSchema.create({ type: 'object', instanceof: 'Date' })
