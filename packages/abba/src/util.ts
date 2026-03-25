@@ -3,6 +3,7 @@ import type { Unsaved } from '@naturalcycles/js-lib/types'
 import { satisfies } from 'semver'
 import type {
   Bucket,
+  BucketInput,
   ExclusionSet,
   Experiment,
   ExperimentWithBuckets,
@@ -87,7 +88,7 @@ export function determineBucket(buckets: Bucket[]): Bucket {
 /**
  * Validate the total ratio of the buckets equals 100
  */
-export function validateTotalBucketRatio(buckets: Unsaved<Bucket>[]): void {
+export function validateTotalBucketRatio(buckets: (Unsaved<Bucket> | BucketInput)[]): void {
   const bucketSum = buckets.reduce((sum, current) => sum + current.ratio, 0)
   if (bucketSum !== 100) {
     throw new Error('Total bucket ratio must be 100 before you can activate an experiment')

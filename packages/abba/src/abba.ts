@@ -6,16 +6,18 @@ import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { Unsaved } from '@naturalcycles/js-lib/types'
 import { LRUMemoCache } from '@naturalcycles/nodejs-lib/lruMemoCache'
 import { bucketDao } from './dao/bucket.dao.js'
-import { experimentDao } from './dao/experiment.dao.js'
 import type { GetAllExperimentsOpts } from './dao/experiment.dao.js'
+import { experimentDao } from './dao/experiment.dao.js'
 import { userAssignmentDao } from './dao/userAssignment.dao.js'
 import type {
   AbbaConfig,
   Bucket,
   BucketAssignmentStatistics,
+  BucketInput,
   DecoratedUserAssignment,
   Experiment,
   ExperimentAssignmentStatistics,
+  ExperimentInput,
   ExperimentWithBuckets,
   SegmentationData,
   UserAssignment,
@@ -118,12 +120,19 @@ export class Abba {
    * Cold method.
    */
   async createExperiment(
-    experiment: Experiment,
-    buckets: Bucket[],
+    input: ExperimentInput,
+    buckets: BucketInput[],
   ): Promise<ExperimentWithBuckets> {
-    if (experiment.status === AssignmentStatus.Active) {
+    if (input.status === AssignmentStatus.Active) {
       validateTotalBucketRatio(buckets)
     }
+
+    const experiment = {
+      ...input,
+      deleted: false,
+      description: input.description ?? null,
+      rules: input.rules ?? [],
+    } satisfies Unsaved<Experiment>
 
     const created = await this.experimentDao.save(experiment)
     const createdbuckets = await this.bucketDao.saveBatch(

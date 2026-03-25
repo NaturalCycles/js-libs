@@ -43,6 +43,19 @@ export type Experiment = BaseExperiment & {
   data: AnyObject | null
 }
 
+export interface ExperimentInput {
+  id?: string
+  key: string
+  status: AssignmentStatus
+  sampling: number
+  description?: string | null
+  rules: SegmentationRule[] | null
+  startDateIncl: IsoDate
+  endDateExcl: IsoDate
+  exclusions: string[]
+  data: AnyObject | null
+}
+
 export type ExperimentWithBuckets = Experiment & {
   buckets: Bucket[]
 }
@@ -55,6 +68,14 @@ export type BaseBucket = BaseDBEntity & {
 
 export type Bucket = BaseBucket & {
   data: AnyObject | null
+}
+
+export interface BucketInput {
+  id?: string
+  key: string
+  ratio: number
+  data: AnyObject | null
+  experimentId?: string
 }
 
 export type UserAssignment = BaseDBEntity & {
