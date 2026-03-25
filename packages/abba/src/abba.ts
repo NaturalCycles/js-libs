@@ -37,11 +37,15 @@ import {
 const CACHE_TTL = 600_000
 
 export class Abba {
-  private experimentDao = experimentDao(this.cfg.db)
-  private bucketDao = bucketDao(this.cfg.db)
-  private userAssignmentDao = userAssignmentDao(this.cfg.db)
+  private experimentDao
+  private bucketDao
+  private userAssignmentDao
 
-  constructor(public cfg: AbbaConfig) {}
+  constructor(public cfg: AbbaConfig) {
+    this.experimentDao = experimentDao(cfg.db)
+    this.bucketDao = bucketDao(cfg.db)
+    this.userAssignmentDao = userAssignmentDao(cfg.db)
+  }
 
   /**
    * Returns all experiments.
