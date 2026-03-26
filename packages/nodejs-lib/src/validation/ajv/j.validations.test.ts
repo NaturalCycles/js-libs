@@ -5133,5 +5133,61 @@ describe('type invariance', () => {
 
       expectTypeOf(schema).toBeNever()
     })
+
+    test('should reject anyOfThese union that widens the expected array element type', () => {
+      interface Foo {
+        id: string
+        content: string
+      }
+      interface Bar {
+        content: string
+      }
+      interface Input {
+        field: Foo[]
+      }
+
+      const fooSchema = j.object<Foo>({
+        id: j.string(),
+        content: j.string(),
+      })
+      const barSchema = j.object<Bar>({
+        content: j.string(),
+      })
+      const schema = j.object<Input>({
+        // @ts-expect-error anyOfThese produces (Foo | Bar)[] which doesn't match Foo[]
+        field: j.array(j.anyOfThese([fooSchema, barSchema])),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
+
+    test('should reject anyOfBy union that widens the expected type', () => {
+      interface Success {
+        ok: true
+        data: string
+      }
+      interface Failure {
+        ok: false
+        error: string
+      }
+      interface Input {
+        result: Success
+      }
+
+      const successSchema = j.object<Success>({
+        ok: j.boolean() as JSchema<true, false>,
+        data: j.string(),
+      })
+      const failureSchema = j.object<Failure>({
+        ok: j.boolean() as JSchema<false, false>,
+        error: j.string(),
+      })
+      const schema = j.object<Input>({
+        // @ts-expect-error anyOfBy produces Success | Failure which doesn't match Success
+        result: j.anyOfBy('ok', { true: successSchema, false: failureSchema }),
+      })
+
+      expectTypeOf(schema).toBeNever()
+    })
   })
 })

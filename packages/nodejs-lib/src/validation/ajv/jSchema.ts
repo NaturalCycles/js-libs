@@ -219,16 +219,16 @@ export const j = {
    * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
    * Use `oneOf` when schemas are mutually exclusive.
    */
-  oneOf<B extends readonly JSchema<any, boolean>[], OUT = BuilderOutUnion<B>>(
+  oneOf<B extends readonly JSchema<any, boolean>[]>(
     items: [...B],
-  ): JBuilder<OUT, false> {
+  ): JBuilder<BuilderOutUnion<B>, false> {
     const schemas = items.map(b => b.build())
     _assert(
       schemas.every(hasNoObjectSchemas),
       'Do not use `oneOf` validation with non-primitive types!',
     )
 
-    return new JBuilder<OUT, false>({
+    return new JBuilder<BuilderOutUnion<B>, false>({
       oneOf: schemas,
     })
   },
@@ -244,16 +244,16 @@ export const j = {
    * Use `anyOf` when schemas may overlap (e.g., AccountId | PartnerId with same format).
    * Use `oneOf` when schemas are mutually exclusive.
    */
-  anyOf<B extends readonly JSchema<any, boolean>[], OUT = BuilderOutUnion<B>>(
+  anyOf<B extends readonly JSchema<any, boolean>[]>(
     items: [...B],
-  ): JBuilder<OUT, false> {
+  ): JBuilder<BuilderOutUnion<B>, false> {
     const schemas = items.map(b => b.build())
     _assert(
       schemas.every(hasNoObjectSchemas),
       'Do not use `anyOf` validation with non-primitive types!',
     )
 
-    return new JBuilder<OUT, false>({
+    return new JBuilder<BuilderOutUnion<B>, false>({
       anyOf: schemas,
     })
   },
@@ -270,16 +270,16 @@ export const j = {
    * const schema = j.anyOfBy('success', schemaMap)
    * ```
    */
-  anyOfBy<D extends Record<PropertyKey, JSchema<any, any>>, OUT = AnyOfByOut<D>>(
+  anyOfBy<D extends Record<PropertyKey, JSchema<any, any>>>(
     propertyName: string,
     schemaDictionary: D,
-  ): JBuilder<OUT, false> {
+  ): JBuilder<AnyOfByOut<D>, false> {
     const builtSchemaDictionary: Record<string, JsonSchema> = {}
     for (const [key, schema] of Object.entries(schemaDictionary)) {
       builtSchemaDictionary[key] = schema.build()
     }
 
-    return new JBuilder<OUT, false>({
+    return new JBuilder<AnyOfByOut<D>, false>({
       type: 'object',
       hasIsOfTypeCheck: true,
       anyOfBy: {
@@ -297,10 +297,10 @@ export const j = {
    * const schema = j.anyOfThese([successSchema, errorSchema])
    * ```
    */
-  anyOfThese<B extends readonly JSchema<any, boolean>[], OUT = BuilderOutUnion<B>>(
+  anyOfThese<B extends readonly JSchema<any, boolean>[]>(
     items: [...B],
-  ): JBuilder<OUT, false> {
-    return new JBuilder<OUT, false>({
+  ): JBuilder<BuilderOutUnion<B>, false> {
+    return new JBuilder<BuilderOutUnion<B>, false>({
       anyOfThese: items.map(b => b.build()),
     })
   },
