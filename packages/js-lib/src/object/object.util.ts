@@ -153,6 +153,8 @@ export function _filterObject<T extends AnyObject>(
     return obj
   }
 
+  // Not vulnerable to prototype pollution: writes to a new {}, where __proto__
+  // assignment only changes the new object's prototype, not Object.prototype.
   const r = {} as T
   for (const [k, v] of _objectEntries(obj)) {
     if (predicate(k, v, obj)) {
@@ -178,6 +180,8 @@ export function _mapValues<OUT = unknown, IN extends AnyObject = AnyObject>(
   mapper: ObjectMapper<IN, any>,
   opt: MutateOptions = {},
 ): OUT {
+  // Not vulnerable to prototype pollution: writes to a new {} (or mutates the
+  // source in-place where own data properties shadow the __proto__ accessor).
   const map: any = opt.mutate ? obj : {}
   for (const [k, v] of Object.entries(obj)) {
     map[k] = mapper(k, v, obj)
@@ -194,6 +198,8 @@ export function _mapValues<OUT = unknown, IN extends AnyObject = AnyObject>(
  * To skip some key-value pairs - use _mapObject instead.
  */
 export function _mapKeys<T extends AnyObject>(obj: T, mapper: ObjectMapper<T, string>): T {
+  // Not vulnerable to prototype pollution: writes to a new {}, where __proto__
+  // assignment only changes the new object's prototype, not Object.prototype.
   const map = {} as T
   for (const [k, v] of Object.entries(obj)) {
     map[mapper(k, v, obj) as keyof T] = v
@@ -221,6 +227,8 @@ export function _mapObject<OUT = unknown, IN extends AnyObject = AnyObject>(
   obj: IN,
   mapper: ObjectMapper<IN, KeyValueTuple<string, any> | typeof SKIP>,
 ): OUT {
+  // Not vulnerable to prototype pollution: writes to a new {}, where __proto__
+  // assignment only changes the new object's prototype, not Object.prototype.
   const map: any = {}
   for (const [k, v] of Object.entries(obj)) {
     const r = mapper(k, v, obj)
@@ -260,6 +268,8 @@ export function _deepCopy<T>(o: T, reviver?: Reviver): T {
  * otherwise it's not worth it (use normal object spread then).
  */
 export function _mergeObjects<T>(obj1: StringMap<T>, obj2: StringMap<T>): StringMap<T> {
+  // Not vulnerable to prototype pollution: writes to a new {}, where __proto__
+  // assignment only changes the new object's prototype, not Object.prototype.
   const map: StringMap<T> = {}
   for (const k of Object.keys(obj1)) map[k] = obj1[k]
   for (const k of Object.keys(obj2)) map[k] = obj2[k]
@@ -316,6 +326,8 @@ export function _merge<T extends AnyObject>(target: T, ...sources: any[]): T {
     if (!_isObject(source)) continue
 
     for (const key of Object.keys(source)) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue
+
       if (_isObject(source[key])) {
         ;(target as any)[key] ||= {}
         _merge(target[key], source[key])
@@ -340,6 +352,9 @@ export function _deepTrim<T extends AnyObject | string>(o: T): T {
     return o.trim() as T
   }
   if (typeof o === 'object') {
+    // Not vulnerable to prototype pollution: mutates in-place on the same object.
+    // If __proto__ is an own data property (e.g. from JSON.parse), reads and writes
+    // go through the own property, not the Object.prototype accessor.
     for (const k of Object.keys(o)) {
       o[k] = _deepTrim(o[k])
     }
@@ -361,6 +376,10 @@ export function _unset<T extends AnyObject>(obj: T, prop: string): void {
   }
 
   const segs = prop.split('.')
+
+  // Prevent prototype pollution
+  if (segs.includes('__proto__') || segs.includes('constructor')) return
+
   let last = segs.pop()
   while (segs.length && segs[segs.length - 1]!.endsWith('\\')) {
     last = segs.pop()!.slice(0, -1) + '.' + last
@@ -431,6 +450,11 @@ export function _set<T extends AnyObject>(obj: T, path: PropertyPath, value: any
     return obj as any
   }
 
+  // Prevent prototype pollution
+  if ((path as any[]).includes('__proto__') || (path as any[]).includes('constructor')) {
+    return obj
+  }
+
   // oxlint-disable-next-line unicorn/no-array-reduce
   ;(path as any[]).slice(0, -1).reduce(
     (
@@ -487,6 +511,8 @@ export function _has<T extends AnyObject>(obj: T, path: string): boolean {
  * Based on: https://github.com/substack/deep-freeze/blob/master/index.js
  */
 export function _deepFreeze(o: any): void {
+  // Not vulnerable to prototype pollution: read-only traversal, only calls
+  // Object.freeze — never assigns properties from one object to another.
   Object.freeze(o)
 
   Object.getOwnPropertyNames(o).forEach(prop => {

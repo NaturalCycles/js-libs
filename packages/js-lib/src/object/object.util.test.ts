@@ -507,6 +507,16 @@ test('_merge', () => {
     `)
 })
 
+test('_merge should not allow prototype pollution', () => {
+  const malicious = JSON.parse('{"__proto__":{"polluted":"yes"}}')
+  _merge({}, malicious)
+  expect(({} as any).polluted).toBeUndefined()
+
+  const malicious2 = JSON.parse('{"constructor":{"prototype":{"polluted2":"yes"}}}')
+  _merge({}, malicious2)
+  expect(({} as any).polluted2).toBeUndefined()
+})
+
 test('_invert', () => {
   const o = {
     a: 'ak',
@@ -591,6 +601,23 @@ test.each([
 ])('_set %s %s %s to be %s', (obj, path, value, expected) => {
   expect(_set(obj, path, value)).toEqual(expected)
   expect(obj).toEqual(expected)
+})
+
+test('_set should not allow prototype pollution', () => {
+  _set({}, '__proto__.polluted', 'yes')
+  expect(({} as any).polluted).toBeUndefined()
+
+  _set({}, ['__proto__', 'polluted2'], 'yes')
+  expect(({} as any).polluted2).toBeUndefined()
+
+  _set({}, 'constructor.prototype.polluted3', 'yes')
+  expect(({} as any).polluted3).toBeUndefined()
+})
+
+test('_unset should not allow prototype pollution', () => {
+  const origToString = Object.prototype.toString
+  _unset({}, '__proto__.toString')
+  expect(Object.prototype.toString).toBe(origToString)
 })
 
 test('_mapKeys', () => {

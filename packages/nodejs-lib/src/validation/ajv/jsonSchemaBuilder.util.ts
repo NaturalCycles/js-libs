@@ -55,6 +55,8 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
   const s2 = schema2 as any
 
   // Merge `properties`
+  // Not vulnerable to prototype pollution: writes to s1.properties (a nested object),
+  // where __proto__ assignment only changes that object's prototype, not Object.prototype.
   Object.entries(s2.properties).forEach(([k, v]) => {
     s1.properties[k] = v
   })
