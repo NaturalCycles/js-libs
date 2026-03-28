@@ -37,9 +37,9 @@
     "std-env": "^4"
   },
   "peerDependencies": {
-    "@eslint/js": "^9",
+    "@eslint/js": "^10",
     "@typescript/native-preview": "^7.0.0-0",
-    "eslint": "^9",
+    "eslint": "^10",
     "husky": "^9",
     "stylelint": "^17",
     "stylelint-config-standard-scss": "^17",
