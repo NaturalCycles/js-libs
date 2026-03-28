@@ -532,6 +532,7 @@ export class LocalDate {
   }
 
   format(fmt: Intl.DateTimeFormat | LocalDateFormatter): string {
+    // oxlint-disable-next-line no-restricted-globals
     if (fmt instanceof Intl.DateTimeFormat) {
       return fmt.format(this.toDate())
     }

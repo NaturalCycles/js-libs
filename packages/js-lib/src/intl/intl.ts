@@ -1,6 +1,8 @@
 import { _Memo } from '../decorators/memo.decorator.js'
 import type { IANATimezone } from '../types.js'
 
+// oxlint-disable no-restricted-globals
+
 /**
  * Returns cached Intl.* formatters, because they are known to be
  * very slow to create.

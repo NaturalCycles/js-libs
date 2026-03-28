@@ -1,6 +1,8 @@
 import { expect, test } from 'vitest'
 import { Intl2 } from './intl.js'
 
+// oxlint-disable no-restricted-globals
+
 test('should return a DateTimeFormat instance', () => {
   const fmt = Intl2.DateTimeFormat('en-US', { year: 'numeric' })
   expect(fmt).toBeInstanceOf(Intl.DateTimeFormat)

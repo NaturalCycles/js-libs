@@ -603,6 +603,7 @@ const TIMEZONES_FROM_WIKI = [
   'Zulu',
 ] as IANATimezone[]
 
+// oxlint-disable-next-line no-restricted-globals
 const TIMEZONES_FROM_JS = Intl.supportedValuesOf('timeZone') as IANATimezone[]
 
 /**

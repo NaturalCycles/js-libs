@@ -778,6 +778,7 @@ export class LocalTime {
   }
 
   format(fmt: Intl.DateTimeFormat | LocalTimeFormatter): string {
+    // oxlint-disable-next-line no-restricted-globals
     if (fmt instanceof Intl.DateTimeFormat) {
       return fmt.format(this.$date)
     }
@@ -1009,6 +1010,7 @@ class LocalTimeFactory {
    */
   isTimezoneValid(tz: string): boolean {
     if (tz === 'UTC') return true // we deliberately consider UTC a valid timezone, while it's mostly used in testing
+    // oxlint-disable-next-line no-restricted-globals
     return Intl.supportedValuesOf('timeZone').includes(tz)
   }
 

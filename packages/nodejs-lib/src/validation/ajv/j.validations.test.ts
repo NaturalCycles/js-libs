@@ -1379,6 +1379,7 @@ describe('string', () => {
     })
 
     test('should accept valid data', () => {
+      // oxlint-disable-next-line no-restricted-globals
       const testCases = [...Intl.supportedValuesOf('timeZone'), 'UTC']
       const schema = j.string().ianaTimezone()
 
