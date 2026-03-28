@@ -266,7 +266,7 @@ function runESLint(extensions = eslintExtensions.split(','), fix = true): boolea
  */
 export function runOxlint(fix = true): boolean {
   if (!hasOxlintConfig()) {
-    console.log('.oxlintrc.json is not found, skipping to run oxlint')
+    console.log('oxlint.config.ts is not found, skipping to run oxlint')
     return false
   }
 
@@ -287,7 +287,7 @@ export function runOxlint(fix = true): boolean {
  */
 export function runOxfmt(fix = true): boolean {
   if (!hasOxfmtConfig()) {
-    console.log('.oxfmtrc.json(c) is not found, skipping to run oxfmt')
+    console.log('oxfmt.config.ts is not found, skipping to run oxfmt')
     return false
   }
 
@@ -302,16 +302,16 @@ export function runOxfmt(fix = true): boolean {
 }
 
 export function requireOxlintConfig(): void {
-  _assert(hasOxlintConfig(), '.oxlintrc.json config is not found')
+  _assert(hasOxlintConfig(), 'oxlint.config.ts config is not found')
 }
 
 export function hasOxlintConfig(): boolean {
-  const oxlintConfigPath = `.oxlintrc.json`
+  const oxlintConfigPath = `oxlint.config.ts`
   return existsSync(oxlintConfigPath)
 }
 
 export function hasOxfmtConfig(): boolean {
-  return ['.oxfmtrc.jsonc', '.oxfmtrc.json'].some(existsSync)
+  return ['oxfmt.config.ts'].some(existsSync)
 }
 
 const stylelintPaths = [

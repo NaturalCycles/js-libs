@@ -19,13 +19,13 @@ import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import picomatch from 'picomatch'
 import { prettierExtensionsAll, lintExclude, minActionlintVersion } from './_cnst.js'
 
-const oxfmtConfigPath = ['.oxfmtrc.jsonc', '.oxfmtrc.json'].find(fs.existsSync)
+const oxfmtConfigPath = ['oxfmt.config.ts'].find(fs.existsSync)
 
 const stylelintConfigPath = [`stylelint.config.js`].find(fs.existsSync)
 
 const eslintConfigPath = ['eslint.config.js'].find(fs.existsSync)
 
-const oxlintConfigPath = ['.oxlintrc.json'].find(fs.existsSync)
+const oxlintConfigPath = ['oxlint.config.ts'].find(fs.existsSync)
 
 let oxfmtCmd = undefined
 

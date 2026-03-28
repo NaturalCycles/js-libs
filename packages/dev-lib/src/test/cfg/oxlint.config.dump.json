@@ -1,7 +1,6 @@
 {
-  "$schema": "../node_modules/oxlint/configuration_schema.json",
   "plugins": ["unicorn", "typescript", "oxc", "import", "jsdoc", "vitest", "promise", "node"],
-  "jsPlugins": ["./oxlint-plugin-stylistic.mjs"],
+  "jsPlugins": ["cfg/oxlint-plugin-stylistic.mjs"],
   "categories": {},
   "rules": {
     "complexity": [
@@ -572,5 +571,5 @@
     "maxWarnings": 0,
     "reportUnusedDisableDirectives": "deny"
   },
-  "ignorePatterns": []
+  "ignorePatterns": ["__exclude"]
 }

@@ -73,7 +73,8 @@
   "exports": {
     "./cfg/": "./cfg/",
     "./cfg/eslint.config.js": "./cfg/eslint.config.js",
-    "./cfg/oxlint.config.json": "./cfg/oxlint.config.json",
+    "./cfg/oxfmt.config.js": "./cfg/oxfmt.config.js",
+    "./cfg/oxlint.config.js": "./cfg/oxlint.config.js",
     "./cfg/stylelint.config.js": "./cfg/stylelint.config.js",
     "./cfg/tsconfig.src.json": "./cfg/tsconfig.src.json",
     "./cfg/tsconfig.scripts.json": "./cfg/tsconfig.scripts.json",
