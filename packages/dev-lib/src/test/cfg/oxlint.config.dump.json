@@ -87,7 +87,18 @@
     "no-nonoctal-decimal-escape": "warn",
     "no-obj-calls": "warn",
     "no-regex-spaces": "deny",
-    "no-restricted-globals": ["deny", ["event", "__dirname", "__filename"]],
+    "no-restricted-globals": [
+      "deny",
+      [
+        "event",
+        "__dirname",
+        "__filename",
+        {
+          "name": "Intl",
+          "message": "Use Intl2 instead."
+        }
+      ]
+    ],
     "no-self-assign": "warn",
     "no-sequences": "deny",
     "no-setter-return": "warn",

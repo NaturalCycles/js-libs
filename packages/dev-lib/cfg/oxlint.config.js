@@ -90,7 +90,16 @@ export const sharedConfig = {
     'no-regex-spaces': 2,
     'no-sequences': 2,
     'no-implicit-coercion': [2, { allow: ['!!'] }],
-    'no-restricted-globals': [2, 'event', '__dirname', '__filename'],
+    'no-restricted-globals': [
+      2,
+      'event',
+      '__dirname',
+      '__filename',
+      {
+        name: 'Intl',
+        message: 'Use Intl2 instead.',
+      },
+    ],
     'no-unused-expressions': 2,
     'no-var': 2,
     'unicode-bom': 2,
