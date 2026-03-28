@@ -41,6 +41,14 @@
     "no-dupe-else-if": "warn",
     "no-dupe-keys": "warn",
     "no-duplicate-case": "warn",
+    "no-duplicate-imports": [
+      "allow",
+      [
+        {
+          "allowSeparateTypeImports": true
+        }
+      ]
+    ],
     "no-empty": [
       "deny",
       [

@@ -96,6 +96,12 @@ export const sharedConfig = {
     'unicode-bom': 2,
     'no-extend-native': 2,
     'no-extra-bind': 2,
+    'no-duplicate-imports': [
+      0, // disabled until auto-fix is there
+      {
+        allowSeparateTypeImports: true,
+      },
+    ],
     'no-new': 2,
     'no-unexpected-multiline': 2,
     'no-unneeded-ternary': 2,

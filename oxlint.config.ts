@@ -4,6 +4,10 @@ export default defineOxlintConfig({
   ignorePatterns: ['docs'],
   rules: {
     'import/no-default-export': 0,
+    'no-duplicate-imports': [
+      2, // experimental, no auto-fix yet
+      { allowSeparateTypeImports: true },
+    ],
   },
   overrides: [
     {
