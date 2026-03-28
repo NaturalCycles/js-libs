@@ -5,9 +5,14 @@ export function defineOxlintConfig(config) {
     ...sharedConfig,
     ...config,
     ignorePatterns: [...sharedConfig.ignorePatterns, ...(config.ignorePatterns || [])],
+    jsPlugins: [...sharedConfig.jsPlugins, ...(config.jsPlugins || [])],
     rules: {
       ...sharedConfig.rules,
       ...config.rules,
+    },
+    options: {
+      ...sharedConfig.options,
+      ...config.options,
     },
     settings: {
       ...sharedConfig.settings,
