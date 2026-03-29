@@ -1,5 +1,3 @@
-$schema: https://unpkg.com/@naturalcycles/backend-lib/resources/backendCfg.schema.json
-
 gaeProject: test-project
 
 # gaeProjectByBranch:

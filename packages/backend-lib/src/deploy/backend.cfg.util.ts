@@ -1,10 +1,7 @@
-import { _lazyValue } from '@naturalcycles/js-lib'
 import type { StringMap } from '@naturalcycles/js-lib/types'
-import { JSchema } from '@naturalcycles/nodejs-lib/ajv'
-import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
+import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { yaml2 } from '@naturalcycles/nodejs-lib/yaml2'
-import { resourcesDir } from '../paths.cnst.js'
 
 export interface BackendCfg {
   gaeProject: string
@@ -40,9 +37,17 @@ export interface BackendCfg {
   appYamlPassEnv?: string
 }
 
-const getBackendCfgSchema = _lazyValue(() => {
-  const schemaJson = fs2.readJson<JsonSchema<BackendCfg>>(`${resourcesDir}/backendCfg.schema.json`)
-  return new JSchema<BackendCfg, false>(schemaJson, { inputName: 'backend.cfg.yaml' })
+export const backendCfgSchema = j.object<BackendCfg>({
+  gaeProject: j.string(),
+  gaeProjectByBranch: j.object.stringMap(j.string()).optional(),
+  gaeService: j.string(),
+  gaeServiceByBranch: j.object.stringMap(j.string()).optional(),
+  files: j.array(j.string()).optional(),
+  appEnvDefault: j.string(),
+  appEnvByBranch: j.object.stringMap(j.string()).optional(),
+  branchesWithTimestampVersions: j.array(j.string()).optional(),
+  hashedBranches: j.boolean().optional(),
+  appYamlPassEnv: j.string().optional(),
 })
 
 export function getBackendCfg(projectDir = '.'): BackendCfg {
@@ -54,6 +59,5 @@ export function getBackendCfg(projectDir = '.'): BackendCfg {
     ...yaml2.readYaml(backendCfgYamlPath),
   }
 
-  getBackendCfgSchema().validate(backendCfg)
-  return backendCfg
+  return backendCfgSchema.validate(backendCfg)
 }
