@@ -2141,7 +2141,21 @@ type ExactMatch<A, B> =
     ? IsAssignableRelaxed<B, A>
     : ExactMatchBase<Expand<A>, Expand<B>> extends true
       ? true
-      : ExactMatchBase<Expand<StripIndexSignatureDeep<A>>, Expand<StripIndexSignatureDeep<B>>>
+      : ExactMatchBase<
+            Expand<StripIndexSignatureDeep<A>>,
+            Expand<StripIndexSignatureDeep<B>>
+          > extends true
+        ? true
+        : // Fallback for types that are structurally identical but have different internal
+          // representations (e.g. enum values from T[keyof T] vs direct enum references).
+          // Keys must match exactly; then check mutual structural assignability.
+          ExactMatchBase<keyof Expand<A>, keyof Expand<B>> extends true
+          ? [Expand<A>] extends [Expand<B>]
+            ? [Expand<B>] extends [Expand<A>]
+              ? true
+              : false
+            : false
+          : false
 
 type BuilderOutUnion<B extends readonly JSchema<any, any>[]> = {
   [K in keyof B]: B[K] extends JSchema<infer O, any> ? O : never

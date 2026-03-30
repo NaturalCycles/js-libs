@@ -2797,6 +2797,55 @@ describe('object', () => {
 
       expectTypeOf(result).toExtend<Bar>()
     })
+
+    test('should support type extension', () => {
+      enum Color {
+        RED = 1,
+        BLUE = 2,
+      }
+
+      interface Base {
+        a?: string
+        b?: string
+        c?: number
+        d?: boolean
+        e?: string
+        f?: string
+        g?: number
+        h?: boolean
+        i?: string
+        k?: boolean
+        l?: boolean
+        m?: boolean
+        n?: boolean
+        o?: number
+      }
+
+      interface Extended extends Base {
+        color: Color
+      }
+
+      const baseSchema = j.object<Base>({
+        a: j.string().optional(),
+        b: j.string().optional(),
+        c: j.number().optional(),
+        d: j.boolean().optional(),
+        e: j.string().optional(),
+        f: j.string().optional(),
+        g: j.number().optional(),
+        h: j.boolean().optional(),
+        i: j.string().optional(),
+        k: j.boolean().optional(),
+        l: j.boolean().optional(),
+        m: j.boolean().optional(),
+        n: j.boolean().optional(),
+        o: j.number().optional(),
+      })
+
+      const extendedSchema = baseSchema.extend({ color: j.enum(Color) }).isOfType<Extended>()
+
+      expectTypeOf(extendedSchema).not.toBeNever()
+    })
   })
 
   describe('concat', () => {
