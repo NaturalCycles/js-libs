@@ -207,7 +207,14 @@ export const sharedConfig = {
     'typescript/array-type': 2,
     'typescript/prefer-enum-initializers': 2,
     'typescript/prefer-promise-reject-errors': 2,
+    'typescript/prefer-find': 2,
     'typescript/prefer-ts-expect-error': 2,
+    'typescript/prefer-string-starts-ends-with': [
+      2,
+      {
+        allowSingleElementEquality: 'always',
+      },
+    ],
     'typescript/require-await': 0, // not good yet
     'typescript/restrict-plus-operands': 2,
     'typescript/return-await': [2, 'error-handling-correctness-only'],
@@ -388,6 +395,7 @@ export const sharedConfig = {
     'vitest/prefer-spy-on': 2,
     'vitest/prefer-to-be': 2,
     'vitest/prefer-to-contain': 2,
+    'vitest/prefer-called-exactly-once-with': 2,
     'vitest/consistent-test-filename': 2,
     'vitest/warn-todo': 0,
     'jest/consistent-test-it': [

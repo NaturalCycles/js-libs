@@ -382,6 +382,7 @@
     "typescript/only-throw-error": "deny",
     "typescript/prefer-as-const": "warn",
     "typescript/prefer-enum-initializers": "deny",
+    "typescript/prefer-find": "deny",
     "typescript/prefer-for-of": "deny",
     "typescript/prefer-function-type": "deny",
     "typescript/prefer-literal-enum-member": "deny",
@@ -389,6 +390,14 @@
     "typescript/prefer-optional-chain": "allow",
     "typescript/prefer-promise-reject-errors": "deny",
     "typescript/prefer-reduce-type-parameter": "deny",
+    "typescript/prefer-string-starts-ends-with": [
+      "deny",
+      [
+        {
+          "allowSingleElementEquality": "always"
+        }
+      ]
+    ],
     "typescript/prefer-ts-expect-error": "deny",
     "typescript/promise-function-async": [
       "deny",
@@ -545,6 +554,7 @@
     "vitest/hoisted-apis-on-top": "warn",
     "vitest/no-conditional-tests": "warn",
     "vitest/no-import-node-test": "deny",
+    "vitest/prefer-called-exactly-once-with": "deny",
     "vitest/require-awaited-expect-poll": "warn",
     "vitest/require-local-test-context-for-concurrent-snapshots": "warn",
     "vitest/require-mock-type-parameters": "warn",

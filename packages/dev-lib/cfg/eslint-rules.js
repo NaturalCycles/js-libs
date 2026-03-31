@@ -323,7 +323,7 @@ export default {
     ],
     '@typescript-eslint/array-type': 0, // ox
     '@typescript-eslint/prefer-regexp-exec': 0, // auto-fixer breaks code sometimes!
-    '@typescript-eslint/prefer-find': 2,
+    '@typescript-eslint/prefer-find': 0, // ox
     'prefer-promise-reject-errors': 0,
     '@typescript-eslint/prefer-promise-reject-errors': 0, // ox
     // 'unicorn/prefer-import-meta-properties': 2,
@@ -488,7 +488,7 @@ export default {
     // }],
     '@typescript-eslint/prefer-includes': 0, // ox
     '@typescript-eslint/prefer-optional-chain': 2,
-    '@typescript-eslint/prefer-string-starts-ends-with': 2,
+    '@typescript-eslint/prefer-string-starts-ends-with': 0, // ox
     '@typescript-eslint/prefer-ts-expect-error': 0, // ox
     '@typescript-eslint/explicit-member-accessibility': [
       2,
