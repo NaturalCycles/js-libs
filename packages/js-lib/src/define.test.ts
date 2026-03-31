@@ -9,7 +9,7 @@ import {
 import type { AnyObject, Lazy } from './types.js'
 
 test('_lazyValue', () => {
-  const fn = vi.fn(() => 42)
+  const fn = vi.fn<() => number>(() => 42)
 
   const value = _lazyValue(fn)
   expectTypeOf(value).toEqualTypeOf<Lazy<number>>()
@@ -25,7 +25,7 @@ interface Obj {
 }
 
 test('_defineLazyProperty', () => {
-  const fn = vi.fn(() => 42)
+  const fn = vi.fn<() => number>(() => 42)
 
   const obj = {} as Obj
 
@@ -44,8 +44,8 @@ test('_defineLazyProperty', () => {
 })
 
 test('_defineLazyProps', () => {
-  const fn1 = vi.fn(() => 42)
-  const fn2 = vi.fn(() => 48)
+  const fn1 = vi.fn<() => number>(() => 42)
+  const fn2 = vi.fn<() => number>(() => 48)
 
   interface Obj2 {
     v1: number

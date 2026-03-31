@@ -205,7 +205,7 @@ test('scrubs different types of data', () => {
 })
 
 test('initializationVector is passed as param to scrubbers', () => {
-  const mockScrubber = vi.fn(() => 'modified')
+  const mockScrubber = vi.fn<ScrubberFn>(() => 'modified')
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
@@ -234,7 +234,7 @@ test('initializationVector is passed as param to scrubbers', () => {
 })
 
 test('Ensure initializationVector is random and affects saltedHashScrubber', () => {
-  const mockScrubber = vi.fn(saltedHashScrubber)
+  const mockScrubber = vi.fn<typeof saltedHashScrubber>(saltedHashScrubber)
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
@@ -266,7 +266,7 @@ test('Ensure initializationVector is random and affects saltedHashScrubber', () 
 })
 
 test('initializationVector passed to scrubber constructor is passed to scrubbers', () => {
-  const mockScrubber = vi.fn(saltedHashScrubber)
+  const mockScrubber = vi.fn<typeof saltedHashScrubber>(saltedHashScrubber)
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
@@ -300,7 +300,7 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
 
 test('supplying an initializationVector in config should take precedence', () => {
   const configVector = '123'
-  const mockScrubber = vi.fn(saltedHashScrubber)
+  const mockScrubber = vi.fn<typeof saltedHashScrubber>(saltedHashScrubber)
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
@@ -327,7 +327,7 @@ test('supplying an initializationVector in config should take precedence', () =>
 test('supplying an initializationVector in config of saltedHashEmailScrubber should produce consistent results', () => {
   const configVector = '123'
   const domain = '@example.com.br'
-  const mockScrubber = vi.fn(saltedHashEmailScrubber)
+  const mockScrubber = vi.fn<typeof saltedHashEmailScrubber>(saltedHashEmailScrubber)
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {

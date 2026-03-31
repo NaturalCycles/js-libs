@@ -7,10 +7,10 @@ interface LoaderDecoratorParams {
   type: string
 }
 
-const beforeFn = vi.fn()
-const thenFn = vi.fn(r => r.res)
-const catchFn = vi.fn()
-const finallyFn = vi.fn()
+const beforeFn = vi.fn<() => void>()
+const thenFn = vi.fn<(r: any) => any>(r => r.res)
+const catchFn = vi.fn<() => void>()
+const finallyFn = vi.fn<() => void>()
 
 const DummyDecorator = (): MethodDecorator =>
   _createPromiseDecorator({
