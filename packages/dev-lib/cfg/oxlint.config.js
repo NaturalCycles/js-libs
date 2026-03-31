@@ -52,7 +52,7 @@ export const sharedConfig = {
       'error',
       {
         fix: {
-          imports: 'fix',
+          imports: 'safe-fix',
           variables: 'suggestion',
         },
         varsIgnorePattern: '^(_$|__)',

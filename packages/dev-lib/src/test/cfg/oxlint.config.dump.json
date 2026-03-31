@@ -120,7 +120,7 @@
       [
         {
           "fix": {
-            "imports": "fix",
+            "imports": "safe-fix",
             "variables": "suggestion"
           },
           "varsIgnorePattern": "^(_$|__)",
@@ -545,7 +545,9 @@
     "vitest/hoisted-apis-on-top": "warn",
     "vitest/no-conditional-tests": "warn",
     "vitest/no-import-node-test": "deny",
+    "vitest/require-awaited-expect-poll": "warn",
     "vitest/require-local-test-context-for-concurrent-snapshots": "warn",
+    "vitest/require-mock-type-parameters": "warn",
     "vitest/warn-todo": "allow"
   },
   "settings": {
