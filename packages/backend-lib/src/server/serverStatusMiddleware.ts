@@ -13,7 +13,9 @@ const {
   K_SERVICE,
   K_REVISION,
   APP_ENV,
+  NODE_ENV,
   NODE_OPTIONS,
+  UV_THREADPOOL_SIZE,
   DEPLOY_BUILD_TIME,
   BUILD_VERSION,
 } = process.env
@@ -54,6 +56,8 @@ export function getServerStatusData(
     cpuInfo: processSharedUtil.cpuInfo(),
     versions,
     NODE_OPTIONS,
+    NODE_ENV,
+    UV_THREADPOOL_SIZE,
     ...extra,
   })
 }
