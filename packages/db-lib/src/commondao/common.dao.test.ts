@@ -1091,7 +1091,7 @@ describe('auto compression', () => {
       dao.assignIdCreatedUpdated(item)
       const dbm = dao.bmToDBM(item)
 
-      const storageRow = dao.dbmToStorageRow(dbm) as any
+      const storageRow = (await dao.dbmToStorageRow(dbm)) as any
       expect(storageRow.id).toBe('id1')
       expect(storageRow.__compressed).toBeInstanceOf(Buffer)
       expect(storageRow.obj).toBeUndefined()
@@ -1103,7 +1103,7 @@ describe('auto compression', () => {
       const item = createItem(1) as Item
       dao.assignIdCreatedUpdated(item)
       const dbm = dao.bmToDBM(item)
-      const storageRow = dao.dbmToStorageRow(dbm)
+      const storageRow = await dao.dbmToStorageRow(dbm)
 
       const restored = dao.storageRowToDBM(storageRow)
       expectDecompressed(restored, 1)
@@ -1116,7 +1116,7 @@ describe('auto compression', () => {
       const dbm = dao.bmToDBM(item)
 
       // Round-trip: DBM -> storage -> DBM
-      const storageRow = dao.dbmToStorageRow(dbm)
+      const storageRow = await dao.dbmToStorageRow(dbm)
       const restored = dao.storageRowToDBM(storageRow)
 
       expect(restored).toMatchObject({
@@ -1133,7 +1133,7 @@ describe('auto compression', () => {
       const dbm = dao.bmToDBM(item)
 
       // Write directly to DB using storage row
-      const storageRow = dao.dbmToStorageRow(dbm)
+      const storageRow = await dao.dbmToStorageRow(dbm)
       await db.saveBatch(TEST_TABLE, [storageRow] as any[])
 
       // Verify storage is compressed

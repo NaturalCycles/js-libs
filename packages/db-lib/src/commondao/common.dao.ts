@@ -471,7 +471,7 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const row = this.dbmToStorageRow(dbm)
+    const row = await this.dbmToStorageRow(dbm)
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -489,7 +489,7 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const row = this.dbmToStorageRow(validDbm)
+    const row = await this.dbmToStorageRow(validDbm)
     await (opt.tx || this.cfg.db).saveBatch(table, [row], saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -510,7 +510,7 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const rows = this.dbmsToStorageRows(dbms)
+    const rows = await this.dbmsToStorageRows(dbms)
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -534,7 +534,7 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const rows = this.dbmsToStorageRows(validDbms)
+    const rows = await this.dbmsToStorageRows(validDbms)
     await (opt.tx || this.cfg.db).saveBatch(table, rows, saveOptions)
 
     if (saveOptions.assignGeneratedIds) {
@@ -597,12 +597,12 @@ export class CommonDao<
     const { chunkSize = 500, chunkConcurrency = 32, errorMode } = opt
 
     await p
-      .mapSync(
-        bm => {
+      .map(
+        async bm => {
           this.assignIdCreatedUpdated(bm, opt)
           const dbm = this.bmToDBM(bm, opt)
           beforeSave?.(dbm)
-          return this.dbmToStorageRow(dbm)
+          return await this.dbmToStorageRow(dbm)
         },
         { errorMode },
       )
@@ -796,21 +796,21 @@ export class CommonDao<
    * const storageRow = await dao.dbmToStorageRow(dbm)
    * await db.saveBatch(table, [storageRow])
    */
-  dbmToStorageRow(dbm: DBM): ObjectWithId {
+  async dbmToStorageRow(dbm: DBM): Promise<ObjectWithId> {
     if (!this.cfg.compress?.keys.length) return dbm
     const row = { ...dbm }
-    this.compress(row)
+    await this.compress(row)
     return row
   }
 
   /**
    * Converts multiple DBMs to storage rows.
    */
-  dbmsToStorageRows(dbms: DBM[]): ObjectWithId[] {
+  async dbmsToStorageRows(dbms: DBM[]): Promise<ObjectWithId[]> {
     if (!this.cfg.compress?.keys.length) return dbms
-    return dbms.map(dbm => {
+    return await pMap(dbms, async dbm => {
       const row = { ...dbm }
-      this.compress(row)
+      await this.compress(row)
       return row
     })
   }
@@ -846,13 +846,15 @@ export class CommonDao<
   /**
    * Mutates `dbm`.
    */
-  private compress(dbm: DBM): void {
+  private async compress(dbm: DBM): Promise<void> {
     if (!this.cfg.compress?.keys.length) return // No compression requested
 
     const { keys, level = 1 } = this.cfg.compress
     const properties = _pick(dbm, keys)
     const bufferString = JSON.stringify(properties)
-    const __compressed = zip2.zstdCompressSync(bufferString, level)
+    // Unlike `decompress`, we're testing to use async zstd compression.
+    // Async Decompression leaks memory severely. But Compression seems fine.
+    const __compressed = await zip2.zstdCompress(bufferString, level)
     _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
     Object.assign(dbm, { __compressed })
   }
@@ -1113,7 +1115,7 @@ export class CommonDao<
     if (!inputs.length) return
     const { db } = inputs[0]!.dao.cfg
     const dbmsByTable: StringMap<any[]> = {}
-    for (const input of inputs) {
+    await pMap(inputs, async input => {
       const { dao } = input
       const { table } = dao.cfg
       dbmsByTable[table] ||= []
@@ -1136,7 +1138,7 @@ export class CommonDao<
         dao.assignIdCreatedUpdated(row, opt)
         const dbm = dao.bmToDBM(row, opt)
         dao.cfg.hooks!.beforeSave?.(dbm)
-        const storageRow = dao.dbmToStorageRow(dbm)
+        const storageRow = await dao.dbmToStorageRow(dbm)
         dbmsByTable[table].push(storageRow)
       } else {
         // Plural
@@ -1145,10 +1147,10 @@ export class CommonDao<
         if (dao.cfg.hooks!.beforeSave) {
           dbms.forEach(dbm => dao.cfg.hooks!.beforeSave!(dbm))
         }
-        const storageRows = dao.dbmsToStorageRows(dbms)
+        const storageRows = await dao.dbmsToStorageRows(dbms)
         dbmsByTable[table].push(...storageRows)
       }
-    }
+    })
 
     await db.multiSave(dbmsByTable)
   }
