@@ -133,10 +133,16 @@ class Zip2 {
     return (await zstdDecompressAsync(input, options)).toString()
   }
 
+  /**
+   * Warning! It leaks memory severely. Prefer sync.
+   */
   async zstdDecompress(input: Buffer, options: ZstdOptions = {}): Promise<Buffer<ArrayBuffer>> {
     return await zstdDecompressAsync(input, options)
   }
 
+  /**
+   * Warning! It leaks memory severely. Prefer sync.
+   */
   zstdDecompressToStringSync(input: Buffer, options: ZstdOptions = {}): string {
     return zlib.zstdDecompressSync(input, options).toString()
   }
