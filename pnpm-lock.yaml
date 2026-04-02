@@ -444,8 +444,8 @@ importers:
         specifier: ^2
         version: 2.8.1
       undici:
-        specifier: ^7
-        version: 7.24.7
+        specifier: ^8
+        version: 8.0.0
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: workspace:*
@@ -5618,6 +5618,10 @@ packages:
   undici@7.24.7:
     resolution: {integrity: sha512-H/nlJ/h0ggGC+uRL3ovD+G0i4bqhvsDOpbDv7At5eFLlj2b41L8QliGbnl2H7SnDiYhENphh1tQFJZf+MyfLsQ==}
     engines: {node: '>=20.18.1'}
+
+  undici@8.0.0:
+    resolution: {integrity: sha512-RGabV5g1ggSX5mU4k+B8BLWgb418gDbg0wAVFeiU00iOxtw4ufGsE6GFsuSd2uqOKooWSLf71JGapOFYpE8f+A==}
+    engines: {node: '>=22.19.0'}
 
   unicode-emoji-modifier-base@1.0.0:
     resolution: {integrity: sha512-yLSH4py7oFH3oG/9K+XWrz1pSi3dfUrWEnInbxMfArOfc1+33BlGPQtLsOYwvdMy11AwUBetYuaRxSPqgkq+8g==}
@@ -10933,6 +10937,8 @@ snapshots:
   undici@6.24.1: {}
 
   undici@7.24.7: {}
+
+  undici@8.0.0: {}
 
   unicode-emoji-modifier-base@1.0.0: {}
 

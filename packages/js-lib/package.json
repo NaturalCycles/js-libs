@@ -18,7 +18,7 @@
     "tslib": "^2"
   },
   "peerDependencies": {
-    "undici": "^7"
+    "undici": "^8"
   },
   "peerDependenciesMeta": {
     "undici": {
