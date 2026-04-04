@@ -1,16 +1,13 @@
 packages:
   - packages/*
 catalog:
-  '@typescript/native-preview': 7.0.0-dev.20260301.1
+  '@typescript/native-preview': 7.0.0-dev.20260401.1
   oxlint: ^1
 ignoredBuiltDependencies:
   - '@firebase/util'
   - protobufjs
 onlyBuiltDependencies:
-  - better-sqlite3
   - esbuild
-  - sqlite3
-  - unrs-resolver
 # minimumReleaseAge: 1440
 # minimumReleaseAgeExclude:
 #  - '@naturalcycles/*'
