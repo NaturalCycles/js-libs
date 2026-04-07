@@ -154,7 +154,7 @@ export const sharedConfig = {
     // "typescript/explicit-module-boundary-types": [2, {"allowArgumentsExplicitlyTypedAsAny": true}]
     'typescript/no-empty-object-type': [2, { allowInterfaces: 'always' }],
     'typescript/no-import-type-side-effects': 2,
-    'typescript/dot-notation': 2,
+    'typescript/dot-notation': 0, // annoying; we use vi.spyOn pattern to spy on ts-private methods
     // "typescript/no-namespace": 2,
     'typescript/no-non-null-asserted-nullish-coalescing': 2,
     'typescript/no-require-imports': 2,

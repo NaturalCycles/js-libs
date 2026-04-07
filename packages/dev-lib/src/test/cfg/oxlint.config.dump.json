@@ -289,7 +289,7 @@
     "typescript/consistent-type-definitions": ["deny", ["interface"]],
     "typescript/consistent-type-exports": "deny",
     "typescript/consistent-type-imports": "deny",
-    "typescript/dot-notation": "deny",
+    "typescript/dot-notation": "allow",
     "typescript/explicit-function-return-type": [
       "deny",
       [
