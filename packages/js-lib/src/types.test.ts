@@ -185,7 +185,7 @@ test('_stringMapValues, _stringMapEntries', () => {
   expect(_stringMapValuesSorted(o, v => v, 'desc')).toEqual([4, 3, 2])
 })
 
-test('_objectEntries', () => {
+test('_objectEntries with number Enum', () => {
   enum A {
     k1 = 1,
     k2 = 2,
@@ -198,7 +198,8 @@ test('_objectEntries', () => {
   }
 
   const entries = _objectEntries(map)
-  expectTypeOf(entries).toEqualTypeOf<[A, string][]>()
+  // Object.entries always returns string keys, so numeric enum keys become `${A}`
+  expectTypeOf(entries).toEqualTypeOf<[`${A}`, string][]>()
   expect(entries).toMatchInlineSnapshot(`
     [
       [
@@ -213,7 +214,36 @@ test('_objectEntries', () => {
   `)
 })
 
-test('_objectKeys with Enum', () => {
+test('_objectEntries with string Enum', () => {
+  enum B {
+    k1 = 'v1',
+    k2 = 'v2',
+    k3 = 'v3',
+  }
+
+  const map: Partial<Record<B, number>> = {
+    [B.k1]: 1,
+    [B.k2]: 2,
+  }
+
+  const entries = _objectEntries(map)
+  // String enum keys stay as-is
+  expectTypeOf(entries).toEqualTypeOf<[B, number][]>()
+  expect(entries).toMatchInlineSnapshot(`
+    [
+      [
+        "v1",
+        1,
+      ],
+      [
+        "v2",
+        2,
+      ],
+    ]
+  `)
+})
+
+test('_objectKeys with number Enum', () => {
   enum A {
     k1 = 1,
     k2 = 2,
@@ -225,12 +255,36 @@ test('_objectKeys with Enum', () => {
     [A.k2]: 'v2',
   }
 
-  const entries = _objectKeys(map)
-  expectTypeOf(entries).toEqualTypeOf<A[]>()
-  expect(entries).toMatchInlineSnapshot(`
+  const keys = _objectKeys(map)
+  // Object.keys always returns strings, so numeric enum keys become `${A}`
+  expectTypeOf(keys).toEqualTypeOf<`${A}`[]>()
+  expect(keys).toMatchInlineSnapshot(`
     [
       "1",
       "2",
+    ]
+  `)
+})
+
+test('_objectKeys with string Enum', () => {
+  enum B {
+    k1 = 'v1',
+    k2 = 'v2',
+    k3 = 'v3',
+  }
+
+  const map: Partial<Record<B, number>> = {
+    [B.k1]: 1,
+    [B.k2]: 2,
+  }
+
+  const keys = _objectKeys(map)
+  // String enum keys stay as-is
+  expectTypeOf(keys).toEqualTypeOf<B[]>()
+  expect(keys).toMatchInlineSnapshot(`
+    [
+      "v1",
+      "v2",
     ]
   `)
 })

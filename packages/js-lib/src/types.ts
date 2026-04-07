@@ -373,20 +373,27 @@ export const _stringMapEntries = Object.entries as <T>(map: StringMap<T>) => [k:
 /**
  * Alias of `Object.keys`, but returns keys typed as `keyof T`, not as just `string`.
  * This is how TypeScript should work, actually.
+ *
+ * Object.keys always returns strings, so numeric keys are stringified via `${K}`.
+ * Symbol keys are excluded (Object.keys does not return symbols).
  */
 export const _objectKeys = Object.keys as <K extends PropertyKey>(
   obj: Partial<Record<K, any>>,
-) => K[]
+) => (K extends string ? K : K extends number | bigint ? `${K}` : never)[]
 
 /**
  * Alias of `Object.entries`, but returns better-typed output.
+ *
+ * Difference with _stringMapEntries?
+ * Use _stringMapEntries when the object is a StringMap<T> - it'll correctly infer T being not undefined.
+ * If the object is not a StringMap - use _objectEntries - it'll correctly infer object keys, which can be typed as Enum.
  *
  * So e.g you can use _objectEntries(obj).map([k, v] => {})
  * and `k` will be `keyof obj` instead of generic `string`.
  */
 export const _objectEntries = Object.entries as <K extends PropertyKey, V>(
   obj: Partial<Record<K, V>>,
-) => [k: K, v: V][]
+) => [k: K extends string ? K : K extends number | bigint ? `${K}` : never, v: V][]
 
 export type NullishValue = null | undefined
 export type FalsyValue = false | '' | 0 | null | undefined
