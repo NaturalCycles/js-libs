@@ -899,6 +899,7 @@ class LocalTimeFactory {
    * Allows to input IsoDate, will set h:m:s to zeros.
    */
   parse(s: string): LocalTime {
+    // oxlint-disable-next-line typescript/no-unnecessary-type-conversion
     const d = this.parseLooselyOrUndefined(String(s))
     _assert(d, `Cannot parse "${s}" into LocalTime`)
     return new LocalTime(d)

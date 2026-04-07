@@ -104,8 +104,8 @@ class ProcessUtil {
     // oxlint-disable-next-line unicorn/no-array-reduce
     return os.cpus().reduce(
       (r, cpu) => {
-        r['idle'] += cpu.times.idle
-        Object.values(cpu.times).forEach(m => (r['total'] += m))
+        r.idle += cpu.times.idle
+        Object.values(cpu.times).forEach(m => (r.total += m))
         return r
       },
       {

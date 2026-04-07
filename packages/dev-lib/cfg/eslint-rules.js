@@ -266,7 +266,7 @@ export default {
     'no-duplicate-imports': 0, // too many false-positives (with e.g import type + import on next line)
     'no-var': 2,
     'no-with': 2,
-    'object-shorthand': 2,
+    'object-shorthand': 0, // ox
     'one-var': [2, 'never'],
     'prefer-const': [
       2,

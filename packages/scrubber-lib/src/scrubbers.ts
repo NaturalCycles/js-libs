@@ -307,7 +307,7 @@ export type RandomScrubberSQLFn = ScrubberSQLFn<RandomScrubberParams>
 
 export const randomScrubber: RandomScrubberFn = (_value, additionalParams) => {
   const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
-  return nanoIdCustomAlphabet(params.alphabet, params['length'])()
+  return nanoIdCustomAlphabet(params.alphabet, params.length)()
 }
 
 export const randomScrubberSQL: RandomScrubberSQLFn = additionalParams => {
@@ -339,7 +339,7 @@ export const randomEmailScrubber: RandomEmailScrubberFn = (_value, additionalPar
     domain: '@example.com',
     ...additionalParams,
   }
-  return nanoIdCustomAlphabet(params.alphabet, params['length'])() + params.domain
+  return nanoIdCustomAlphabet(params.alphabet, params.length)() + params.domain
 }
 
 export const randomEmailScrubberSQL: RandomEmailScrubberSQLFn = additionalParams => {

@@ -36,7 +36,7 @@ runBenchScript({
     // },
     hashCodeBase64url: () => {
       const _r = data.map(obj => {
-        return String(hashCode64(JSON.stringify(obj)))
+        return hashCode64(JSON.stringify(obj))
       })
     },
     // hashCodeBase36: done => {

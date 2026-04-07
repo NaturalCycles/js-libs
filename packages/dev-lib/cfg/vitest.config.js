@@ -10,7 +10,7 @@ const runsInIDE = doesItRunInIDE()
 const testType = getTestType(runsInIDE)
 const silent = shouldBeSilent(runsInIDE)
 const { include, exclude } = getIncludeAndExclude(testType)
-const isCI = !!process.env['CI']
+const isCI = !!process.env.CI
 const coverageEnabled = isCI && testType === 'unit'
 const junitReporterEnabled = isCI && testType !== 'manual'
 const maxWorkers = getMaxWorkers()
@@ -22,11 +22,11 @@ const pool = 'threads'
 process.env.TZ ||= 'UTC'
 
 if (testType === 'unit') {
-  process.env['APP_ENV'] = process.env['APP_ENV'] || 'test'
+  process.env.APP_ENV = process.env.APP_ENV || 'test'
 }
 
 if (silent) {
-  process.env['TEST_SILENT'] = 'true'
+  process.env.TEST_SILENT = 'true'
 }
 
 /**
@@ -167,7 +167,7 @@ function getTestType(runsInIDE) {
     }
   }
 
-  return process.env['TEST_TYPE'] || 'unit'
+  return process.env.TEST_TYPE || 'unit'
 }
 
 function shouldBeSilent(runsInIDE) {
@@ -228,6 +228,6 @@ function getIncludeAndExclude(testType) {
 }
 
 function getMaxWorkers() {
-  const cpuLimit = Number(process.env['CPU_LIMIT'])
+  const cpuLimit = Number(process.env.CPU_LIMIT)
   return cpuLimit || undefined
 }

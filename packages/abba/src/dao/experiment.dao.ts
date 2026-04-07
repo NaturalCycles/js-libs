@@ -26,11 +26,7 @@ export function experimentDao(db: CommonDB): ExperimentDao {
       beforeBMToDBM: bm => ({
         ...bm,
         rules: bm.rules.length ? JSON.stringify(bm.rules) : null,
-        // We add the map here to account for backwards compatibility where exclusion experimentIds were stored as a number
-        // TODO: Remove after some time when we are certain only strings are stored
-        exclusions: bm.exclusions.length
-          ? JSON.stringify(bm.exclusions.map(exclusion => exclusion.toString()))
-          : null,
+        exclusions: bm.exclusions.length ? JSON.stringify(bm.exclusions) : null,
         data: bm.data ? JSON.stringify(bm.data) : null,
       }),
       beforeDBMToBM: dbm => ({
@@ -38,12 +34,7 @@ export function experimentDao(db: CommonDB): ExperimentDao {
         startDateIncl: parseMySQLDate(dbm.startDateIncl),
         endDateExcl: parseMySQLDate(dbm.endDateExcl),
         rules: (dbm.rules && JSON.parse(dbm.rules)) || [],
-        // We add the map here to account for backwards compatibility where exclusion experimentIds were stored as a number
-        // TODO: Remove after some time when we are certain only strings are stored
-        exclusions:
-          (dbm.exclusions &&
-            JSON.parse(dbm.exclusions).map((exclusion: string | number) => exclusion.toString())) ||
-          [],
+        exclusions: (dbm.exclusions && JSON.parse(dbm.exclusions)) || [],
         data: dbm.data ? JSON.parse(dbm.data) : null,
       }),
     },

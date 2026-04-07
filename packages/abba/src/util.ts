@@ -124,12 +124,15 @@ export const segmentationRuleMap: Record<SegmentationRuleOperator, SegmentationR
     return !keyValue
   },
   [SegmentationRuleOperator.EqualsText](keyValue, ruleValue) {
+    // oxlint-disable-next-line typescript/no-unnecessary-type-conversion
     return keyValue?.toString() === ruleValue.toString()
   },
   [SegmentationRuleOperator.NotEqualsText](keyValue, ruleValue) {
+    // oxlint-disable-next-line typescript/no-unnecessary-type-conversion
     return keyValue?.toString() !== ruleValue.toString()
   },
   [SegmentationRuleOperator.Semver](keyValue, ruleValue) {
+    // oxlint-disable-next-line typescript/no-unnecessary-type-conversion
     return satisfies(keyValue?.toString() || '', ruleValue.toString())
   },
   [SegmentationRuleOperator.Regex](keyValue, ruleValue) {

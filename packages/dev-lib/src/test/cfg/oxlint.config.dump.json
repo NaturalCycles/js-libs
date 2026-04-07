@@ -129,6 +129,7 @@
         }
       ]
     ],
+    "no-useless-assignment": "allow",
     "no-useless-backreference": "warn",
     "no-useless-call": "deny",
     "no-useless-catch": "warn",
@@ -139,6 +140,7 @@
     "no-useless-return": "allow",
     "no-var": "deny",
     "no-with": "warn",
+    "object-shorthand": "deny",
     "prefer-const": [
       "deny",
       [
@@ -217,6 +219,7 @@
     "jest/prefer-hooks-on-top": "deny",
     "jest/prefer-mock-promise-shorthand": "deny",
     "jest/prefer-mock-return-shorthand": "deny",
+    "jest/prefer-snapshot-hint": "allow",
     "jest/prefer-spy-on": "deny",
     "jest/prefer-to-be": "deny",
     "jest/prefer-to-contain": "deny",
@@ -284,7 +287,9 @@
       ]
     ],
     "typescript/consistent-type-definitions": ["deny", ["interface"]],
+    "typescript/consistent-type-exports": "deny",
     "typescript/consistent-type-imports": "deny",
+    "typescript/dot-notation": "deny",
     "typescript/explicit-function-return-type": [
       "deny",
       [
@@ -372,6 +377,7 @@
     "typescript/no-unnecessary-type-arguments": "allow",
     "typescript/no-unnecessary-type-assertion": "deny",
     "typescript/no-unnecessary-type-constraint": "deny",
+    "typescript/no-unnecessary-type-conversion": "deny",
     "typescript/no-unsafe-declaration-merging": "warn",
     "typescript/no-unsafe-function-type": "deny",
     "typescript/no-unsafe-unary-minus": "warn",
@@ -469,6 +475,7 @@
     "unicorn/no-useless-collection-argument": "deny",
     "unicorn/no-useless-error-capture-stack-trace": "deny",
     "unicorn/no-useless-fallback-in-spread": "warn",
+    "unicorn/no-useless-iterator-to-array": "deny",
     "unicorn/no-useless-length-check": "warn",
     "unicorn/no-useless-promise-resolve-reject": "deny",
     "unicorn/no-useless-spread": "warn",
@@ -514,6 +521,7 @@
     "unicorn/prefer-dom-node-text-content": "deny",
     "unicorn/prefer-event-target": "deny",
     "unicorn/prefer-global-this": "deny",
+    "unicorn/prefer-import-meta-properties": "deny",
     "unicorn/prefer-includes": "deny",
     "unicorn/prefer-keyboard-event-key": "deny",
     "unicorn/prefer-logical-operator-over-ternary": "deny",
@@ -540,6 +548,7 @@
     "unicorn/require-module-attributes": "deny",
     "unicorn/require-module-specifiers": "deny",
     "unicorn/switch-case-braces": ["deny", ["always"]],
+    "unicorn/switch-case-break-position": "deny",
     "unicorn/text-encoding-identifier-case": [
       "deny",
       [

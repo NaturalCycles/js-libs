@@ -506,8 +506,8 @@ describe('string', () => {
 
       testCases.forEach(email => {
         const [err, value] = schema.getValidationResult(email)
-        expect(err, String(email)).toBeNull()
-        expect(value, String(email)).toBe(email)
+        expect(err, email).toBeNull()
+        expect(value, email).toBe(email)
       })
     })
 
@@ -672,7 +672,7 @@ describe('string', () => {
 
       testCases.forEach(date => {
         const [err] = schema.getValidationResult(date)
-        expect(err, String(date)).toBeNull()
+        expect(err, date).toBeNull()
       })
     })
 
@@ -964,7 +964,7 @@ describe('string', () => {
 
       testCases.forEach(date => {
         const [err] = schema.getValidationResult(date)
-        expect(err, String(date)).toBeNull()
+        expect(err, date).toBeNull()
       })
     })
 
@@ -1002,7 +1002,7 @@ describe('string', () => {
 
       invalidCases.forEach(date => {
         const [err] = schema.getValidationResult(date)
-        expect(err, String(date)).not.toBeNull()
+        expect(err, date).not.toBeNull()
       })
     })
   })
@@ -1104,7 +1104,7 @@ describe('string', () => {
 
       testCases.forEach(url => {
         const [err] = schema.getValidationResult(url)
-        expect(err, String(url)).toBeNull()
+        expect(err, url).toBeNull()
       })
     })
 
@@ -1139,7 +1139,7 @@ describe('string', () => {
 
       testCases.forEach(ipv4 => {
         const [err] = schema.getValidationResult(ipv4)
-        expect(err, String(ipv4)).toBeNull()
+        expect(err, ipv4).toBeNull()
       })
     })
 
@@ -1168,7 +1168,7 @@ describe('string', () => {
 
       testCases.forEach(ipv6 => {
         const [err] = schema.getValidationResult(ipv6)
-        expect(err, String(ipv6)).toBeNull()
+        expect(err, ipv6).toBeNull()
       })
     })
 
@@ -1199,7 +1199,7 @@ describe('string', () => {
 
       testCases.forEach(slug => {
         const [err] = schema.getValidationResult(slug)
-        expect(err, String(slug)).toBeNull()
+        expect(err, slug).toBeNull()
       })
     })
 
@@ -1229,7 +1229,7 @@ describe('string', () => {
 
       testCases.forEach(semver => {
         const [err] = schema.getValidationResult(semver)
-        expect(err, String(semver)).toBeNull()
+        expect(err, semver).toBeNull()
       })
     })
 
@@ -1261,7 +1261,7 @@ describe('string', () => {
 
       testCases.forEach(languageTag => {
         const [err] = schema.getValidationResult(languageTag)
-        expect(err, String(languageTag)).toBeNull()
+        expect(err, languageTag).toBeNull()
       })
     })
 
@@ -1291,7 +1291,7 @@ describe('string', () => {
 
       testCases.forEach(countryCode => {
         const [err] = schema.getValidationResult(countryCode)
-        expect(err, String(countryCode)).toBeNull()
+        expect(err, countryCode).toBeNull()
       })
     })
 
@@ -1322,7 +1322,7 @@ describe('string', () => {
 
       testCases.forEach(currency => {
         const [err] = schema.getValidationResult(currency)
-        expect(err, String(currency)).toBeNull()
+        expect(err, currency).toBeNull()
       })
     })
 
@@ -1385,7 +1385,7 @@ describe('string', () => {
 
       testCases.forEach(tz => {
         const [err] = schema.getValidationResult(tz)
-        expect(err, String(tz)).toBeNull()
+        expect(err, tz).toBeNull()
       })
     })
 
@@ -1407,13 +1407,13 @@ describe('string', () => {
 
       testCases.forEach(value => {
         const [err] = schema.getValidationResult(value)
-        expect(err, String(value)).toBeNull()
+        expect(err, value).toBeNull()
       })
 
       const invalidCases = ['!', '#', '+', '%', '<']
       invalidCases.forEach(value => {
         const [err] = schema.getValidationResult(value)
-        expect(err, String(value)).not.toBeNull()
+        expect(err, value).not.toBeNull()
       })
     })
   })
@@ -1429,7 +1429,7 @@ describe('string', () => {
 
       testCases.forEach(value => {
         const [err] = schema.getValidationResult(value)
-        expect(err, String(value)).toBeNull()
+        expect(err, value).toBeNull()
       })
 
       const invalidCases: any[] = [

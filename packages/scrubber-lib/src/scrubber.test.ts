@@ -65,9 +65,9 @@ test('applies to nested arrays', () => {
   _deepFreeze(users)
 
   const result = scrub(users)
-  expect(result[0]!['users'][0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
-  expect(result[0]!['users'][1]).toEqual({ name: 'Jane Doe', safe2: 'isSafe' })
-  expect(Array.isArray(result[0]!['users'])).toBe(true) // makes sure we don't convert array to objects
+  expect(result[0]!.users[0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
+  expect(result[0]!.users[1]).toEqual({ name: 'Jane Doe', safe2: 'isSafe' })
+  expect(Array.isArray(result[0]!.users)).toBe(true) // makes sure we don't convert array to objects
 })
 
 test('keeps not modified fields', () => {

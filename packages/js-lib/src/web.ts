@@ -27,6 +27,7 @@ export class InMemoryWebStorage implements Storage {
   }
 
   setItem(key: string, value: string): void {
+    // oxlint-disable-next-line typescript/no-unnecessary-type-conversion
     this.data[key] = String(value)
   }
 

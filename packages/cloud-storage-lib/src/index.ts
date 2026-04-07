@@ -1,6 +1,6 @@
 export * from './cloudStorage.js'
-export * from './commonStorage.js'
+export type * from './commonStorage.js'
 export * from './commonStorageBucket.js'
 export * from './commonStorageKeyValueDB.js'
 export * from './inMemoryCommonStorage.js'
-export * from './model.js'
+export type * from './model.js'

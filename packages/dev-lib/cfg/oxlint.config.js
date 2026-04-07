@@ -76,6 +76,8 @@ export const sharedConfig = {
     'no-conditional-expect': 0,
     'expect-expect': 0,
     'no-disabled-tests': 0,
+    'no-useless-assignment': 0, // buggy, gives false positives
+    'object-shorthand': 2,
     'valid-expect': 0,
     'valid-title': 0,
     'valid-describe-callback': 0,
@@ -147,14 +149,17 @@ export const sharedConfig = {
     'oxc/misrefactored-assign-op': 2,
     'promise/spec-only': 2,
     'typescript/class-literal-property-style': 2,
+    'typescript/consistent-type-exports': 2,
     'typescript/explicit-function-return-type': [2, { allowExpressions: true }],
     // "typescript/explicit-module-boundary-types": [2, {"allowArgumentsExplicitlyTypedAsAny": true}]
     'typescript/no-empty-object-type': [2, { allowInterfaces: 'always' }],
     'typescript/no-import-type-side-effects': 2,
+    'typescript/dot-notation': 2,
     // "typescript/no-namespace": 2,
     'typescript/no-non-null-asserted-nullish-coalescing': 2,
     'typescript/no-require-imports': 2,
     'typescript/no-var-requires': 2,
+    'typescript/no-unnecessary-type-conversion': 2,
     'typescript/no-unnecessary-template-expression': 2,
     'typescript/no-unnecessary-type-arguments': 0, // not good in the end
     'typescript/no-unnecessary-type-constraint': 2,
@@ -312,6 +317,7 @@ export const sharedConfig = {
     'unicorn/prefer-math-trunc': 2,
     'unicorn/prefer-includes': 2,
     'unicorn/prefer-response-static-json': 2,
+    'unicorn/switch-case-break-position': 2,
     'import/no-named-default': 2,
     'import/consistent-type-specifier-style': 2,
     'unicorn/no-new-array': 0, // it's actually ok
@@ -370,6 +376,8 @@ export const sharedConfig = {
     'unicorn/prefer-string-raw': 2,
     'unicorn/prefer-string-trim-start-end': 2,
     'unicorn/prefer-type-error': 2,
+    'unicorn/prefer-import-meta-properties': 2,
+    'unicorn/no-useless-iterator-to-array': 2,
     'unicorn/require-array-join-separator': 2,
     'unicorn/switch-case-braces': [2, 'always'],
     'unicorn/text-encoding-identifier-case': [
@@ -408,6 +416,7 @@ export const sharedConfig = {
     'jest/max-nested-describe': [0, { max: 4 }], // not good
     'jest/no-alias-methods': 2,
     'jest/prefer-mock-return-shorthand': 2,
+    'jest/prefer-snapshot-hint': 0, // annoying
     'vue/no-multiple-slot-args': 2,
     'vue/no-deprecated-destroyed-lifecycle': 2,
     'vue/define-emits-declaration': [2, 'type-based'],

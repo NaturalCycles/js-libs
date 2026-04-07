@@ -141,7 +141,6 @@
       }
     ],
     "no-useless-assignment": [2],
-    "object-shorthand": [2],
     "one-var": [2, "never"],
     "spaced-comment": [
       2,

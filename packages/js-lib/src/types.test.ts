@@ -157,7 +157,7 @@ test('types', () => {
 
 test('_stringMapValues, _stringMapEntries', () => {
   const o = { b: 2, c: 3, d: 4 }
-  const b = o['b'] // number
+  const b = o.b // number
   expectTypeOf(b).toEqualTypeOf<number>()
 
   const values = _stringMapValues(o) // number[]

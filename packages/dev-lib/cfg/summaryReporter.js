@@ -20,7 +20,7 @@ export class SummaryReporter {
 
     console.log('   Slowest:')
     stats.forEach(({ name, ms }) => {
-      console.log(String(_ms(ms)).padStart(10), name)
+      console.log(_ms(ms).padStart(10), name)
     })
   }
 }
