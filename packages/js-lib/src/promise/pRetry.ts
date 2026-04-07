@@ -2,7 +2,7 @@ import { _since } from '../datetime/time.util.js'
 import type { ErrorData } from '../error/error.model.js'
 import { _errorDataAppend } from '../error/error.util.js'
 import type { CommonLogger } from '../log/commonLogger.js'
-import type { AnyFunction, UnixTimestampMillis } from '../types.js'
+import type { AnyAsyncFunction, UnixTimestampMillis } from '../types.js'
 import { pDelay } from './pDelay.js'
 import { pTimeout } from './pTimeout.js'
 
@@ -98,7 +98,7 @@ export interface PRetryOptions {
  * Returns a Function (!), enhanced with retry capabilities.
  * Implements "Exponential back-off strategy" by multiplying the delay by `delayMultiplier` with each try.
  */
-export function pRetryFn<T extends AnyFunction>(fn: T, opt: PRetryOptions = {}): T {
+export function pRetryFn<T extends AnyAsyncFunction>(fn: T, opt: PRetryOptions = {}): T {
   return async function pRetryFunction(this: any, ...args: any[]) {
     return await pRetry(() => fn.call(this, ...args), opt)
   } as any

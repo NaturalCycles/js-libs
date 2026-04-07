@@ -64,10 +64,16 @@ export function pTimeoutFn<T extends AnyAsyncFunction>(fn: T, opt: PTimeoutOptio
  * Throws an Error if the Function is not resolved in a certain time.
  * If the Function rejects - passes this rejection further.
  */
-export async function pTimeout<T>(fn: AnyAsyncFunction<T>, opt: PTimeoutOptions): Promise<T> {
+export async function pTimeout<T>(
+  fn: (signal: AbortSignal) => Promise<T>,
+  opt: PTimeoutOptions,
+): Promise<T> {
+  const ac = new AbortController()
+  const { signal } = ac
+
   if (!opt.timeout) {
     // short-circuit to direct execution if 0 timeout is passed
-    return await fn()
+    return await fn(signal)
   }
 
   const { timeout, name = fn.name || 'pTimeout function', onTimeout } = opt
@@ -90,15 +96,17 @@ export async function pTimeout<T>(fn: AnyAsyncFunction<T>, opt: PTimeoutOptions)
           // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           reject(_errorDataAppend(err, opt.errorData))
         }
+        ac.abort(err)
         return
       }
 
       reject(err)
+      ac.abort(err)
     }, timeout)
 
     // Execute the Function
     try {
-      resolve(await fn())
+      resolve(await fn(signal))
     } catch (err) {
       reject(err as Error)
     } finally {
