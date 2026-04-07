@@ -38,7 +38,7 @@ test('defaults', () => {
         "credentials": undefined,
         "dispatcher": undefined,
         "headers": {
-          "user-agent": "fetcher/3",
+          "user-agent": "fetcher/4",
         },
         "method": "GET",
         "redirect": undefined,
@@ -84,7 +84,7 @@ test('defaults', () => {
         "dispatcher": undefined,
         "headers": {
           "accept": "application/json",
-          "user-agent": "fetcher/3",
+          "user-agent": "fetcher/4",
         },
         "method": "GET",
         "redirect": "follow",
@@ -436,13 +436,13 @@ test('should not mutate headers', async () => {
     {
       "a": "a",
       "accept": "application/json",
-      "user-agent": "fetcher/3",
+      "user-agent": "fetcher/4",
     }
   `)
   expect(a[1]).toMatchInlineSnapshot(`
     {
       "accept": "application/json",
-      "user-agent": "fetcher/3",
+      "user-agent": "fetcher/4",
     }
   `)
   expect(a[0]).not.toBe(a[1])
@@ -609,4 +609,129 @@ test('HttpRequestError', async () => {
   fetcher = getNonRetryFetcher()
   err = await fetcher.expectError({ url: 'someUrl', requestName })
   expect(err.data.requestName).toBe(requestName)
+})
+
+test('timeout should throw DOMException with name TimeoutError', async () => {
+  const fetcher = getNonRetryFetcher({
+    timeoutSeconds: 0.05,
+  })
+
+  // Mock fetch to hang forever (never resolve)
+  vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(
+    async (_url, init) =>
+      new Promise((_resolve, reject) => {
+        // Listen for abort signal to reject like real fetch does
+        init.signal?.addEventListener('abort', () => {
+          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(init.signal!.reason)
+        })
+      }),
+  )
+
+  const { err } = await fetcher.doFetch({ url: 'https://example.com' })
+  _assertIsError(err, HttpRequestError)
+  expect(err.cause).toBeDefined()
+  _assertIsErrorObject(err.cause)
+  // AbortSignal.timeout() produces a standard DOMException with name "TimeoutError"
+  expect(err.cause.name).toBe('TimeoutError')
+})
+
+test('timeout error is detectable via cause.name === TimeoutError', async () => {
+  const fetcher = getNonRetryFetcher({
+    timeoutSeconds: 0.05,
+  })
+
+  vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(
+    async (_url, init) =>
+      new Promise((_resolve, reject) => {
+        init.signal?.addEventListener('abort', () => {
+          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(init.signal!.reason)
+        })
+      }),
+  )
+
+  const [err] = await fetcher.tryFetch({ url: 'https://example.com' })
+  _assertIsError(err, HttpRequestError)
+  // Standard DOMException TimeoutError - detectable via cause.name
+  _assertIsErrorObject(err.cause)
+  expect(err.cause.name).toBe('TimeoutError')
+})
+
+test('signal - caller can abort the request', async () => {
+  const fetcher = getNonRetryFetcher()
+  const controller = new AbortController()
+
+  vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(
+    async (_url, init) =>
+      new Promise((_resolve, reject) => {
+        init.signal?.addEventListener('abort', () => {
+          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(init.signal!.reason)
+        })
+      }),
+  )
+
+  // Abort after 10ms
+  setTimeout(() => controller.abort(), 10)
+
+  const { err } = await fetcher.doFetch({ url: 'https://example.com', signal: controller.signal })
+  _assertIsError(err)
+  expect(err).toBeDefined()
+})
+
+test('signal - combined with timeout, whichever fires first wins', async () => {
+  const fetcher = getNonRetryFetcher({
+    timeoutSeconds: 10, // long timeout
+  })
+  const controller = new AbortController()
+
+  vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(
+    async (_url, init) =>
+      new Promise((_resolve, reject) => {
+        const { signal } = init
+        // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        if (signal?.aborted) return reject(signal.reason)
+        signal?.addEventListener('abort', () => {
+          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(signal.reason)
+        })
+      }),
+  )
+
+  // Caller aborts immediately - should win over the 10s timeout
+  controller.abort(new DOMException('user cancelled', 'AbortError'))
+
+  const { err } = await fetcher.doFetch({ url: 'https://example.com', signal: controller.signal })
+  _assertIsError(err)
+  _assertIsErrorObject(err.cause)
+  expect(err.cause.name).toBe('AbortError')
+  expect(err.cause.message).toContain('user cancelled')
+})
+
+test('signal - no timeout, only caller signal', async () => {
+  const fetcher = getNonRetryFetcher({
+    timeoutSeconds: 0,
+  })
+  const controller = new AbortController()
+
+  vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(
+    async (_url, init) =>
+      new Promise((_resolve, reject) => {
+        const { signal } = init
+        // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        if (signal?.aborted) return reject(signal.reason)
+        signal?.addEventListener('abort', () => {
+          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(signal.reason)
+        })
+      }),
+  )
+
+  controller.abort(new DOMException('cancelled', 'AbortError'))
+
+  const { err } = await fetcher.doFetch({ url: 'https://example.com', signal: controller.signal })
+  _assertIsError(err)
+  _assertIsErrorObject(err.cause)
+  expect(err.cause.name).toBe('AbortError')
 })

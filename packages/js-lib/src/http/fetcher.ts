@@ -3,6 +3,7 @@
 /// <reference lib="dom.iterable" preserve="true" />
 
 import type { ReadableStream as WebReadableStream } from 'node:stream/web'
+import { abortSignalAnyOrUndefined, abortSignalTimeoutOrUndefined } from '../abort.js'
 import { _ms, _since } from '../datetime/time.util.js'
 import { isServerSide } from '../env.js'
 import { _assertErrorClassOrRethrow, _assertIsError } from '../error/assert.js'
@@ -13,7 +14,6 @@ import {
   _errorDataAppend,
   _errorLikeToErrorObject,
   HttpRequestError,
-  TimeoutError,
   UnexpectedPassError,
 } from '../error/error.util.js'
 import { _clamp } from '../number/number.util.js'
@@ -68,7 +68,7 @@ export class Fetcher {
    *
    * Version is to be incremented every time a difference in behaviour (or a bugfix) is done.
    */
-  static readonly VERSION = 3
+  static readonly VERSION = 4
   /**
    * userAgent is statically exposed as Fetcher.userAgent.
    * It can be modified globally, and will be used (read) at the start of every request.
@@ -306,9 +306,9 @@ export class Fetcher {
     const req = this.normalizeOptions(opt)
     const { logger } = this.cfg
     const {
-      timeoutSeconds,
       init: { method },
     } = req
+    const timeoutMillis = req.timeoutSeconds ? req.timeoutSeconds * 1000 : undefined
 
     for (const hook of this.cfg.hooks.beforeRequest || []) {
       await hook(req)
@@ -332,21 +332,10 @@ export class Fetcher {
     while (!res.retryStatus.retryStopped) {
       req.started = Date.now() as UnixTimestampMillis
 
-      // setup timeout
-      let timeoutId: number | undefined
-      if (timeoutSeconds) {
-        // Used for Request timeout (when timeoutSeconds is set),
-        // but also for "downloadBody" timeout (even after request returned with 200, but before we loaded the body)
-        // UPD: no, not using for "downloadBody" currently
-        const abortController = new AbortController()
-        req.init.signal = abortController.signal
-        timeoutId = setTimeout(() => {
-          // console.log(`actual request timed out in ${_since(req.started)}`)
-          // Apparently, providing a `string` reason to abort() causes Undici to throw `invalid_argument` error,
-          // so, we're wrapping it in a TimeoutError instance
-          abortController.abort(new TimeoutError(`request timed out after ${timeoutSeconds} sec`))
-        }, timeoutSeconds * 1000) as any as number
-      }
+      req.init.signal = abortSignalAnyOrUndefined([
+        abortSignalTimeoutOrUndefined(timeoutMillis),
+        opt.signal,
+      ])
 
       if (req.logRequest) {
         const { retryAttempt } = res.retryStatus
@@ -372,13 +361,11 @@ export class Fetcher {
       } catch (err) {
         // For example, CORS error would result in "TypeError: failed to fetch" here
         // or, `fetch failed` with the cause of `unexpected redirect`
+        // AbortSignal.timeout() throws a DOMException with name "TimeoutError"
         res.err = _anyToError(err)
         res.ok = false
         // important to set it to undefined, otherwise it can keep the previous value (from previous try)
         res.fetchResponse = undefined
-      } finally {
-        clearTimeout(timeoutId)
-        // Separate Timeout will be introduced to "download and parse the body"
       }
       res.statusFamily = this.getStatusFamily(res)
       res.statusCode = res.fetchResponse?.status
@@ -390,7 +377,7 @@ export class Fetcher {
             async () =>
               await this.onOkResponse(res as FetcherResponse<T> & { fetchResponse: Response }),
             {
-              timeout: timeoutSeconds * 1000 || Number.POSITIVE_INFINITY,
+              timeout: timeoutMillis || Number.POSITIVE_INFINITY,
               name: 'Fetcher.downloadBody',
             },
           )

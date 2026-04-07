@@ -1,4 +1,3 @@
-export * from './abortable.js'
 export * from './pDefer.js'
 export * from './pDelay.js'
 export * from './pFilter.js'

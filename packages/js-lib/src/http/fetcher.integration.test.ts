@@ -142,7 +142,7 @@ test('timeout', async () => {
   // console.log(err)
   expect(_stringify(err)).toMatchInlineSnapshot(`
     "HttpRequestError: GET https://kg-backend3.appspot.com/slow
-    Caused by: TimeoutError: request timed out after 1 sec"
+    Caused by: TimeoutError: The operation was aborted due to timeout"
   `)
   expect(err.cause.name).toBe(TimeoutError.name)
 })

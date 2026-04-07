@@ -222,6 +222,13 @@ export interface FetcherOptions {
   timeoutSeconds?: number
 
   /**
+   * AbortSignal to allow the caller to abort the request.
+   * If `timeoutSeconds` is also set, the signals are combined via `AbortSignal.any()`,
+   * so the request aborts on whichever fires first.
+   */
+  signal?: AbortSignal
+
+  /**
    * Supports all the types that RequestInit.body supports.
    *
    * Useful when you want to e.g pass FormData.
