@@ -646,6 +646,9 @@ export class Fetcher {
    * statusCode of 0 (or absense of it) will BE retried.
    */
   private shouldRetry(res: FetcherResponse): boolean {
+    // Don't retry if the input AbortSignal was aborted
+    if (res.req.signal?.aborted) return false
+
     const { retryPost, retry3xx, retry4xx, retry5xx } = res.req
     const { method } = res.req.init
     if (method === 'POST' && !retryPost) return false

@@ -735,3 +735,31 @@ test('signal - no timeout, only caller signal', async () => {
   _assertIsErrorObject(err.cause)
   expect(err.cause.name).toBe('AbortError')
 })
+
+test('signal - aborted signal should not retry', async () => {
+  const fetchSpy = vi.spyOn(Fetcher, 'callNativeFetch')
+  let callCount = 0
+
+  fetchSpy.mockImplementation(
+    async (_url, init) =>
+      new Promise((_resolve, reject) => {
+        callCount++
+        const { signal } = init
+        // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+        if (signal?.aborted) return reject(signal.reason)
+        signal?.addEventListener('abort', () => {
+          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(signal.reason)
+        })
+      }),
+  )
+
+  const controller = new AbortController()
+  // Abort after 10ms
+  setTimeout(() => controller.abort(), 10)
+
+  const fetcher = getFetcher()
+  const { err } = await fetcher.doFetch({ url: 'https://example.com', signal: controller.signal })
+  _assertIsError(err)
+  expect(callCount).toBe(1)
+})
