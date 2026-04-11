@@ -12,7 +12,7 @@ jobs:
     if: "!contains(github.event.head_commit.message , 'skip ci')"
     steps:
       - { uses: actions/checkout@v6, with: { persist-credentials: false } }
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
       - { uses: actions/setup-node@v6, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm ci:setup
       #      - run: echo "CACHE_DATE=$(date +%F)" >> "$GITHUB_ENV"
@@ -39,7 +39,7 @@ jobs:
       pull-requests: write
     steps:
       - { uses: actions/checkout@v6, with: { persist-credentials: false } }
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
       - { uses: actions/setup-node@v6, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm ci:setup
       - run: pnpm release
@@ -51,7 +51,7 @@ jobs:
     if: github.ref_name == 'main'
     steps:
       - { uses: actions/checkout@v6, with: { persist-credentials: false } }
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
       - { uses: actions/setup-node@v6, with: { node-version: 'lts/*', cache: 'pnpm' } }
       - run: pnpm ci:setup
       - run: pnpm docs:build
