@@ -2,6 +2,7 @@
 import { _isBackendErrorResponseObject, _isErrorLike, _isErrorObject } from '../error/error.util.js'
 import type { ErrorLike } from '../error/index.js'
 import type { Reviver } from '../types.js'
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { _jsonParseIfPossible } from './json.util.js'
 import { _safeJsonStringify } from './safeJsonStringify.js'
 import { _truncateMiddle } from './string.util.js'

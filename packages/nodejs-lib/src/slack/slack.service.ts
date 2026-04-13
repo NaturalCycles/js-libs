@@ -156,7 +156,7 @@ export class SlackService<CTX = any> {
     warnChannel?: string
     errorChannel?: string
   }): CommonLogger {
-    const { minLogLevel = 'log', debugChannel, logChannel, warnChannel, errorChannel } = opt
+    const { minLogLevel, debugChannel, logChannel, warnChannel, errorChannel } = opt
     const defaultChannel = this.cfg.defaults?.channel || DEFAULTS.channel!
 
     const q = new PQueue({

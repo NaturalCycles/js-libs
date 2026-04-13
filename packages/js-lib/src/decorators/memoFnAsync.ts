@@ -2,7 +2,7 @@ import type { AnyAsyncFunction, MaybeParameters } from '../types.js'
 import { MISS } from '../types.js'
 import type { AsyncMemoOptions } from './asyncMemo.decorator.js'
 import type { AsyncMemoCache } from './memo.util.js'
-import { jsonMemoSerializer, MapMemoCache } from './memo.util.js'
+import { jsonMemoSerializer } from './memo.util.js'
 
 export interface MemoizedAsyncFunction {
   cache: AsyncMemoCache
@@ -15,11 +15,7 @@ export function _memoFnAsync<FN extends AnyAsyncFunction>(
   fn: FN,
   opt: AsyncMemoOptions<FN>,
 ): FN & MemoizedAsyncFunction {
-  const {
-    logger = console,
-    cacheFactory = () => new MapMemoCache(),
-    cacheKeyFn = jsonMemoSerializer,
-  } = opt
+  const { logger = console, cacheFactory, cacheKeyFn = jsonMemoSerializer } = opt
 
   const cache = cacheFactory()
 

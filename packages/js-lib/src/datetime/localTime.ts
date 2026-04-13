@@ -16,6 +16,7 @@ import type {
 import type { LocalDate } from './localDate.js'
 import { localDate } from './localDate.js'
 import { _ms } from './time.util.js'
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { WallTime } from './wallTime.js'
 
 export type LocalTimeUnit = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second'

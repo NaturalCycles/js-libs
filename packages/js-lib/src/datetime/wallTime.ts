@@ -1,6 +1,7 @@
 import type { IsoDate, IsoDateTime } from '../types.js'
 // oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { LocalDate } from './localDate.js'
+// oxlint-disable-next-line import/no-cycle -- intentional cycle
 import type { DateTimeObject, LocalTime } from './localTime.js'
 import { localTime } from './localTime.js'
 
