@@ -150,6 +150,8 @@ export const sharedConfig = {
     'promise/spec-only': 2,
     'typescript/class-literal-property-style': 2,
     'typescript/consistent-type-exports': 2,
+    'typescript/no-unnecessary-type-parameters': 0, // interesting, but I still disagree with it
+    'typescript/no-unnecessary-qualifier': 2,
     'typescript/explicit-function-return-type': [2, { allowExpressions: true }],
     // "typescript/explicit-module-boundary-types": [2, {"allowArgumentsExplicitlyTypedAsAny": true}]
     'typescript/no-empty-object-type': [2, { allowInterfaces: 'always' }],
