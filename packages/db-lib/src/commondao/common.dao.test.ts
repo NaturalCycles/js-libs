@@ -5,6 +5,7 @@ import { _deepFreeze, _omit } from '@naturalcycles/js-lib/object'
 import type { BaseDBEntity, UnixTimestamp, Unsaved } from '@naturalcycles/js-lib/types'
 import { AjvValidationError } from '@naturalcycles/nodejs-lib/ajv'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { CommonDBType } from '../commondb/common.db.js'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import type { TestItemBM, TestItemDBM } from '../testing/index.js'
 import {
@@ -1272,5 +1273,34 @@ describe('auto compression', () => {
     )
 
     saveBatchSpy.mockRestore()
+  })
+
+  test('should throw when used with a relational DB', () => {
+    const relationalDB = new InMemoryDB()
+    ;(relationalDB as any).dbType = CommonDBType.relational
+
+    expect(
+      () =>
+        new CommonDao<Item>({
+          table: TEST_TABLE,
+          db: relationalDB,
+          compress: {
+            keys: ['obj', 'shu'],
+          },
+        }),
+    ).toThrow(/compress feature is only supported on document DBs/)
+  })
+
+  test('should not throw when used with a document DB', () => {
+    expect(
+      () =>
+        new CommonDao<Item>({
+          table: TEST_TABLE,
+          db,
+          compress: {
+            keys: ['obj', 'shu'],
+          },
+        }),
+    ).not.toThrow()
   })
 })

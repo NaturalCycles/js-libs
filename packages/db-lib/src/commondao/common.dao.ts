@@ -29,6 +29,7 @@ import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { zip2 } from '@naturalcycles/nodejs-lib/zip'
 import { DBLibError } from '../cnst.js'
+import { CommonDBType } from '../commondb/common.db.js'
 import type {
   CommonDBSaveOptions,
   CommonDBTransactionOptions,
@@ -94,6 +95,15 @@ export class CommonDao<
     // If the auto-compression is enabled,
     // then we need to ensure that the '__compressed' property is part of the index exclusion list.
     if (this.cfg.compress?.keys) {
+      // Auto-compression stores a Buffer in a dedicated `__compressed` property and relies on
+      // `excludeFromIndexes`, both of which are Datastore-specific. Using it with a relational DB
+      // (e.g. MySQL) would require an explicit column/schema and would silently ignore
+      // `excludeFromIndexes` — so we block it at construction time.
+      _assert(
+        this.cfg.db.dbType === CommonDBType.document,
+        `CommonDao "${this.cfg.table}": compress feature is only supported on document DBs (e.g. Datastore), got dbType=${this.cfg.db.dbType}`,
+      )
+
       const current = this.cfg.excludeFromIndexes
       this.cfg.excludeFromIndexes = current ? [...current] : []
       if (!this.cfg.excludeFromIndexes.includes('__compressed' as any)) {
