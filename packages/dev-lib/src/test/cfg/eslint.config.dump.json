@@ -2,7 +2,7 @@
   "language": "@/js",
   "languageOptions": {
     "ecmaVersion": 2026,
-    "parser": "typescript-eslint/parser@8.58.1",
+    "parser": "typescript-eslint/parser@8.58.2",
     "parserOptions": {
       "extraFileExtensions": {
         "0": ".html"
@@ -14,7 +14,7 @@
   "linterOptions": {
     "reportUnusedDisableDirectives": 2
   },
-  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.58.1"],
+  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.58.2"],
   "rules": {
     "@typescript-eslint/explicit-member-accessibility": [
       2,
@@ -92,7 +92,6 @@
         ]
       }
     ],
-    "@typescript-eslint/no-unnecessary-qualifier": [2],
     "@typescript-eslint/prefer-optional-chain": [2],
     "@typescript-eslint/return-await": [2, "always"],
     "getter-return": [
