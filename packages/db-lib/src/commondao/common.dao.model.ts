@@ -224,6 +224,22 @@ export interface CommonDaoCfg<
      * Undefined will default to level 1 (not the 3, which is the zstd default)
      */
     level?: Integer
+    /**
+     * When truthy, if the compressed payload exceeds `maxChunkSize` the entity is
+     * transparently split into multiple storage rows.
+     *
+     * Layout:
+     * - Primary row at `id`: queryable fields + `__compressed: <chunk0>` + `__chunks: N` (when N > 1)
+     * - Extra chunk rows at `${id}__c${n}` (n=1..N-1): `{ id, __chunked: true, __compressed: <chunkN> }`
+     *
+     * Requires `keys` to be non-empty (chunking only splits the `__compressed` Buffer).
+     * Only supported on document DBs (e.g. Datastore) — same constraint as `compress`.
+     *
+     * User-facing entity ids MUST NOT match `/__c\d+$/` when chunking is enabled.
+     *
+     * @experimental
+     */
+    chunk?: boolean | { maxChunkSize?: Integer }
   }
 }
 
