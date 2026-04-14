@@ -1,6 +1,14 @@
 import type { CommonDB } from '@naturalcycles/db-lib'
 import type { AnyObject, BaseDBEntity, IsoDate } from '@naturalcycles/js-lib/types'
 
+export const AbbaErrorCode = {
+  ExperimentNotFound: 'abba/experimentNotFound',
+  ExperimentDeletionTooSoon: 'abba/experimentDeletionTooSoon',
+  SegmentationDataRequired: 'abba/segmentationDataRequired',
+  InvalidBucketRatio: 'abba/invalidBucketRatio',
+  BucketDeterminationFailed: 'abba/bucketDeterminationFailed',
+} as const
+
 export interface AbbaConfig {
   db: CommonDB
 }
