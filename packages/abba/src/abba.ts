@@ -23,7 +23,7 @@ import type {
   UserAssignment,
   UserExperiment,
 } from './types.js'
-import { AssignmentStatus } from './types.js'
+import { AbbaErrorCode, AssignmentStatus } from './types.js'
 import {
   canGenerateNewAssignments,
   generateUserAssignmentData,
@@ -233,6 +233,7 @@ export class Abba {
     _assert(
       hasBeenInactiveFor15Mins,
       'Experiment must be inactive for at least 15 minutes before deletion',
+      { code: AbbaErrorCode.ExperimentDeletionTooSoon },
     )
 
     await this.userAssignmentDao.deleteByExperimentId(experimentId)
@@ -257,7 +258,9 @@ export class Abba {
     segmentationData?: SegmentationData,
   ): Promise<DecoratedUserAssignment | null> {
     const experiment = await this.experimentDao.getByKey(experimentKey)
-    _assert(experiment, `Experiment does not exist: ${experimentKey}`)
+    _assert(experiment, `Experiment does not exist: ${experimentKey}`, {
+      code: AbbaErrorCode.ExperimentNotFound,
+    })
 
     // Inactive experiments should never return an assignment
     if (experiment.status === AssignmentStatus.Inactive) {
@@ -291,7 +294,9 @@ export class Abba {
       return null
     }
 
-    _assert(segmentationData, 'Segmentation data required when creating a new assignment')
+    _assert(segmentationData, 'Segmentation data required when creating a new assignment', {
+      code: AbbaErrorCode.SegmentationDataRequired,
+    })
 
     const experimentWithBuckets = { ...experiment, buckets }
     const assignment = generateUserAssignmentData(experimentWithBuckets, userId, segmentationData)

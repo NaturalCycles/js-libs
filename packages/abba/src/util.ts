@@ -1,4 +1,5 @@
 import { localDate } from '@naturalcycles/js-lib/datetime'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { Unsaved } from '@naturalcycles/js-lib/types'
 import { satisfies } from 'semver'
 import type {
@@ -13,7 +14,7 @@ import type {
   UserAssignment,
   UserExperiment,
 } from './types.js'
-import { AssignmentStatus, SegmentationRuleOperator } from './types.js'
+import { AbbaErrorCode, AssignmentStatus, SegmentationRuleOperator } from './types.js'
 
 /**
  * Generate a new assignment for a given user.
@@ -78,9 +79,9 @@ export function determineBucket(buckets: Bucket[]): Bucket {
     }
   })
 
-  if (!bucket) {
-    throw new Error('Could not detetermine bucket from ratios')
-  }
+  _assert(bucket, 'Could not determine bucket from ratios', {
+    code: AbbaErrorCode.BucketDeterminationFailed,
+  })
 
   return bucket
 }
@@ -90,9 +91,11 @@ export function determineBucket(buckets: Bucket[]): Bucket {
  */
 export function validateTotalBucketRatio(buckets: (Unsaved<Bucket> | BucketInput)[]): void {
   const bucketSum = buckets.reduce((sum, current) => sum + current.ratio, 0)
-  if (bucketSum !== 100) {
-    throw new Error('Total bucket ratio must be 100 before you can activate an experiment')
-  }
+  _assert(
+    bucketSum === 100,
+    'Total bucket ratio must be 100 before you can activate an experiment',
+    { code: AbbaErrorCode.InvalidBucketRatio },
+  )
 }
 
 /**
