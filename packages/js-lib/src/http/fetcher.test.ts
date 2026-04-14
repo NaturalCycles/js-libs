@@ -40,6 +40,7 @@ test('defaults', () => {
         "headers": {
           "user-agent": "fetcher/4",
         },
+        "keepalive": undefined,
         "method": "GET",
         "redirect": undefined,
       },
@@ -86,6 +87,7 @@ test('defaults', () => {
           "accept": "application/json",
           "user-agent": "fetcher/4",
         },
+        "keepalive": undefined,
         "method": "GET",
         "redirect": "follow",
       },
