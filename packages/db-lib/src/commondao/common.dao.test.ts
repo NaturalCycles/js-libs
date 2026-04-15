@@ -1320,20 +1320,27 @@ describe('auto chunking', () => {
     })
   })
 
-  test('round-trip large entity splits into N storage rows', async () => {
+  test('round-trip large entity splits into primary + chunks across two tables', async () => {
     const { dao, db: localDb } = newDao()
     const obj = makeLargeObj(SMALL_MAX * 4) // forces multiple chunks
     await dao.save({ id: 'big', obj })
 
-    const storage = localDb.data[TEST_TABLE]!
-    const ids = Object.keys(storage).sort()
-    expect(ids.length).toBeGreaterThan(1)
-    expect(ids[0]).toBe('big')
-    expect((storage['big'] as any).__chunks).toBeGreaterThanOrEqual(2)
-    // All overflow rows have __chunked: true and match the id pattern
-    for (const id of ids.slice(1)) {
+    const primaryTable = localDb.data[TEST_TABLE]!
+    const chunksTable = localDb.data[`${TEST_TABLE}__chunks`]!
+    // Primary table has just the primary
+    expect(Object.keys(primaryTable)).toEqual(['big'])
+    const n = (primaryTable['big'] as any).__chunks as number
+    expect(n).toBeGreaterThanOrEqual(2)
+
+    // Chunks table has n-1 extra chunk rows with primaryId and chunkIdx
+    const chunkIds = Object.keys(chunksTable).sort()
+    expect(chunkIds).toHaveLength(n - 1)
+    for (const id of chunkIds) {
       expect(id).toMatch(/^big__c\d+$/)
-      expect((storage[id] as any).__chunked).toBe(true)
+      const cr = chunksTable[id] as any
+      expect(cr.primaryId).toBe('big')
+      expect(typeof cr.chunkIdx).toBe('number')
+      expect(Buffer.isBuffer(cr.__compressed)).toBe(true)
     }
 
     const back = await dao.getById('big')
@@ -1347,11 +1354,12 @@ describe('auto chunking', () => {
     const initialN = (localDb.data[TEST_TABLE]!['e1'] as any).__chunks as number
     expect(initialN).toBeGreaterThanOrEqual(3)
 
-    // Re-save with much smaller payload — should now fit in 1 row, old chunks should be gone
+    // Re-save with much smaller payload — should now fit in 1 row, all chunks should be gone
     await dao.save({ id: 'e1', obj: { n: 1 } })
-    const ids = Object.keys(localDb.data[TEST_TABLE]!).sort()
-    expect(ids).toEqual(['e1'])
+    expect(Object.keys(localDb.data[TEST_TABLE]!)).toEqual(['e1'])
     expect((localDb.data[TEST_TABLE]!['e1'] as any).__chunks).toBeUndefined()
+    const chunksTable = localDb.data[`${TEST_TABLE}__chunks`] ?? {}
+    expect(Object.keys(chunksTable)).toEqual([])
   })
 
   test('orphan cleanup: N→M shrink where M > 1 deletes only stale chunks', async () => {
@@ -1368,55 +1376,25 @@ describe('auto chunking', () => {
     expect(newN).toBeGreaterThanOrEqual(2)
     expect(newN).toBeLessThan(initialN)
 
-    // Only primary + newN-1 chunk rows remain; old chunks beyond newN are gone
-    const ids = Object.keys(localDb.data[TEST_TABLE]!).sort()
-    expect(ids).toHaveLength(newN) // primary + (newN - 1) chunks
-    expect(ids[0]).toBe('e2')
+    // Primary table has just the primary; chunks table has exactly newN-1 rows
+    expect(Object.keys(localDb.data[TEST_TABLE]!)).toEqual(['e2'])
+    const chunksTable = localDb.data[`${TEST_TABLE}__chunks`]!
+    expect(Object.keys(chunksTable)).toHaveLength(newN - 1)
 
     // Round-trip still works
     const back = await dao.getById('e2')
     expect(back?.obj).toEqual(medBig)
   })
 
-  test('orphan cleanup uses PREV_CHUNKS symbol for exact range', async () => {
-    const { dao, db: localDb } = newDao()
-    const big = makeLargeObj(SMALL_MAX * 5)
-    await dao.save({ id: 'sym', obj: big })
-    const initialN = (localDb.data[TEST_TABLE]!['sym'] as any).__chunks as number
-    expect(initialN).toBeGreaterThanOrEqual(3)
-
-    // Read the entity — this stamps PREV_CHUNKS on the returned object
-    const loaded = await dao.getById('sym')
-    expect(loaded).toBeTruthy()
-
-    // Spy on deleteByIds to verify exact orphan range
-    const deleteSpy = vi.spyOn(localDb, 'deleteByIds')
-
-    // Re-save with a small payload (1 chunk) — orphan cleanup should target exactly
-    // indices initialN..initialN-1, not 1..99
-    loaded!.obj = { n: 1 }
-    await dao.save(loaded!)
-
-    // The deleteByIds call for orphans should contain at most initialN - 1 ids (indices 1..initialN-1),
-    // NOT 99 ids (indices 1..99)
-    const orphanDeleteCall = deleteSpy.mock.calls.find(call =>
-      call[1].some(id => id.startsWith('sym__c')),
-    )
-    expect(orphanDeleteCall).toBeDefined()
-    const deletedChunkIds = orphanDeleteCall![1].filter(id => id.startsWith('sym__c'))
-    expect(deletedChunkIds).toHaveLength(initialN - 1)
-
-    deleteSpy.mockRestore()
-  })
-
   test('deleteById removes all chunk rows', async () => {
     const { dao, db: localDb } = newDao()
     await dao.save({ id: 'del', obj: makeLargeObj(SMALL_MAX * 4) })
-    const ids = Object.keys(localDb.data[TEST_TABLE]!)
-    expect(ids.length).toBeGreaterThan(1)
+    const chunksTable = localDb.data[`${TEST_TABLE}__chunks`]!
+    expect(Object.keys(chunksTable).length).toBeGreaterThan(0)
 
     await dao.deleteById('del')
     expect(Object.keys(localDb.data[TEST_TABLE]!)).toEqual([])
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {})).toEqual([])
   })
 
   test('runQuery filters out chunk rows', async () => {
@@ -1483,10 +1461,9 @@ describe('auto chunking', () => {
 
     const back = await dao.getById('p1')
     expect(back?.obj).toEqual({ ...initial, extra: 'x' })
-    // Storage should still have primary + chunks
-    const ids = Object.keys(localDb.data[TEST_TABLE]!)
-    expect(ids.length).toBeGreaterThan(1)
-    expect(ids).toContain('p1')
+    // Primary exists; chunks table has chunk rows
+    expect(Object.keys(localDb.data[TEST_TABLE]!)).toContain('p1')
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {}).length).toBeGreaterThan(0)
   })
 
   test('patchByQuery throws when chunking enabled', async () => {
@@ -1503,33 +1480,28 @@ describe('auto chunking', () => {
     )
   })
 
-  test('runQueryCount throws on unfiltered query when chunking enabled', async () => {
+  test('runQueryCount is accurate regardless of filter (chunks live in a separate table)', async () => {
     const { dao } = newDao()
-    await expect(dao.query().runQueryCount()).rejects.toThrow(/requires at least one filter/)
-  })
-
-  test('runQueryCount works with a filter', async () => {
-    const { dao } = newDao()
-    await dao.save({ id: 'c1', obj: { n: 1 } })
+    await dao.save({ id: 'c1', obj: makeLargeObj(SMALL_MAX * 3) })
     await dao.save({ id: 'c2', obj: { n: 2 } })
 
-    const count = await dao.query().filterEq('id', 'c1').runQueryCount()
-    expect(count).toBe(1)
+    // Unfiltered count is correct now — chunks are in `${table}__chunks`, not this table.
+    expect(await dao.query().runQueryCount()).toBe(2)
+    expect(await dao.query().filterEq('id', 'c1').runQueryCount()).toBe(1)
   })
 
-  test('entity id matching chunk pattern is rejected even for small entities', async () => {
-    const { dao } = newDao()
-    // Small entity that doesn't need chunking — but the id matches the reserved pattern
-    await expect(dao.save({ id: 'bad__c1', obj: { n: 1 } })).rejects.toThrow(
-      /reserved chunk-id pattern/,
-    )
-    // Large entity that does need chunking
-    await expect(dao.save({ id: 'bad__c1', obj: makeLargeObj(SMALL_MAX * 3) })).rejects.toThrow(
-      /reserved chunk-id pattern/,
-    )
-  })
+  test(
+    String.raw`entity ids can freely match /__c\d+$/ — no collision with chunks table`,
+    async () => {
+      const { dao } = newDao()
+      // This used to be forbidden when chunks lived in the same table; now it's fine.
+      await dao.save({ id: 'item__c1', obj: { n: 1 } })
+      const back = await dao.getById('item__c1')
+      expect(back?.obj).toEqual({ n: 1 })
+    },
+  )
 
-  test('auto-adds __chunked and __chunks to excludeFromIndexes', async () => {
+  test('auto-adds __compressed and __chunks to excludeFromIndexes on primary', async () => {
     const { dao, db: localDb } = newDao()
     const saveBatchSpy = vi.spyOn(localDb, 'saveBatch')
 
@@ -1539,13 +1511,13 @@ describe('auto chunking', () => {
       TEST_TABLE,
       expect.any(Array),
       expect.objectContaining({
-        excludeFromIndexes: expect.arrayContaining(['__compressed', '__chunked', '__chunks']),
+        excludeFromIndexes: expect.arrayContaining(['__compressed', '__chunks']),
       }),
     )
     saveBatchSpy.mockRestore()
   })
 
-  test('deleteByQuery removes chunk rows', async () => {
+  test('deleteByQuery removes primaries and their chunks', async () => {
     const { dao, db: localDb } = newDao()
     await dao.save({ id: 'dq1', obj: makeLargeObj(SMALL_MAX * 3) })
     await dao.save({ id: 'dq2', obj: { n: 1 } })
@@ -1553,6 +1525,7 @@ describe('auto chunking', () => {
     const deleted = await dao.deleteByQuery(dao.query())
     expect(deleted).toBe(2)
     expect(Object.keys(localDb.data[TEST_TABLE] || {})).toEqual([])
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {})).toEqual([])
   })
 
   test('saveBatch with mix of chunked and non-chunked entities', async () => {
@@ -1571,8 +1544,9 @@ describe('auto chunking', () => {
     expect(byId['b3']!.obj).toEqual(big)
     expect(byId['b2']!.obj).toEqual({ n: 1 })
 
-    // Storage should have at least 5 rows (3 primaries + chunks for 2 big ones)
-    expect(Object.keys(localDb.data[TEST_TABLE]!).length).toBeGreaterThanOrEqual(5)
+    // Primary table has exactly 3 primaries; chunks table has chunks for b1 + b3
+    expect(Object.keys(localDb.data[TEST_TABLE]!).sort()).toEqual(['b1', 'b2', 'b3'])
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {}).length).toBeGreaterThan(0)
   })
 
   test('constructor rejects chunk without keys', () => {

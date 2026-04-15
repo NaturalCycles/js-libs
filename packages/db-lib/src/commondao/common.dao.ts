@@ -1,5 +1,6 @@
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
+import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { _deepJsonEquals } from '@naturalcycles/js-lib/object/deepEquals.js'
@@ -35,8 +36,7 @@ import type {
   CommonDBTransactionOptions,
   RunQueryResult,
 } from '../db.model.js'
-import type { DBQuery } from '../query/dbQuery.js'
-import { RunnableDBQuery } from '../query/dbQuery.js'
+import { DBQuery, RunnableDBQuery } from '../query/dbQuery.js'
 import type {
   CommonDaoCfg,
   CommonDaoCreateOptions,
@@ -54,10 +54,19 @@ import type {
 import { CommonDaoTransaction } from './commonDaoTransaction.js'
 
 /**
- * Reserved properties used by auto-compression and auto-chunking at the storage layer.
- * All are excluded from indexes automatically when `compress` is configured.
+ * Reserved properties on the PRIMARY row used by auto-compression and auto-chunking.
+ * Excluded from indexes automatically when `compress` is configured.
+ *
+ * Note: chunks live in a dedicated table (`${table}__chunks`), so no `__chunked` marker is needed.
  */
-const RESERVED_KEYS = ['__compressed', '__chunked', '__chunks'] as const
+const PRIMARY_RESERVED_KEYS = ['__compressed', '__chunks'] as const
+
+/**
+ * For chunk rows: only `__compressed` (the Buffer) is excluded from indexes.
+ * `primaryId` and `chunkIdx` ARE indexed — `primaryId` is used for parallel fetches via
+ * `filterIn('primaryId', [...])`.
+ */
+const CHUNK_RESERVED_KEYS = ['__compressed'] as const
 
 /**
  * Default threshold (in bytes) at which the `__compressed` Buffer is split into chunk rows.
@@ -66,27 +75,10 @@ const RESERVED_KEYS = ['__compressed', '__chunked', '__chunks'] as const
 const DEFAULT_MAX_CHUNK_SIZE = 900_000
 
 /**
- * Hard cap on the number of storage rows a single chunked entity may occupy.
+ * Hard cap on the number of chunk rows a single entity may occupy.
  * A 100-chunk entity is already ~90 MB compressed — using Datastore for that scale is a misuse.
  */
 const MAX_CHUNKS_PER_ENTITY = 100
-
-/**
- * Chunk ids are formed as `${id}__c${n}` for n >= 1. This matcher identifies a chunk id.
- */
-const CHUNK_ID_RE = /__c\d+$/
-
-/**
- * Symbol property stamped on objects returned from the read path when chunking is enabled.
- * Carries the chunk count from the last read, so the save path can compute the exact orphan
- * range (`newN..oldN`) instead of blindly deleting up to MAX_CHUNKS_PER_ENTITY.
- *
- * Survives `{...obj}` (spread copies own enumerable Symbol properties) but is invisible to
- * `Object.keys()`, `for..in`, `JSON.stringify()`, and Datastore serialization.
- *
- * Falls back to MAX_CHUNKS_PER_ENTITY when absent (new entity or object reconstructed from JSON).
- */
-const PREV_CHUNKS = Symbol('__prevChunks')
 
 /**
  * Lowest common denominator API between supported Databases.
@@ -152,7 +144,7 @@ export class CommonDao<
 
       const current = this.cfg.excludeFromIndexes
       this.cfg.excludeFromIndexes = current ? [...current] : []
-      for (const key of RESERVED_KEYS) {
+      for (const key of PRIMARY_RESERVED_KEYS) {
         if (!this.cfg.excludeFromIndexes.includes(key as any)) {
           this.cfg.excludeFromIndexes.push(key as any)
         }
@@ -212,11 +204,19 @@ export class CommonDao<
   private async loadByIds(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<DBM[]> {
     if (!ids.length) return []
     const table = opt.table || this.cfg.table
-    const rows = await (opt.tx || this.cfg.db).getByIds<DBM>(table, ids, opt)
-    // When chunking is enabled, fetch extra chunks and reassemble __compressed buffers
-    // before decompression.
-    await this.reassembleChunks(table, rows, opt)
-    return this.storageRowsToDBM(rows)
+    const dbOrTx = opt.tx || this.cfg.db
+
+    // Speculative parallel fetch: primaries + chunks in one round-trip. `fetchChunksByPrimaryIds`
+    // returns [] when compression isn't configured, so Promise.all stays branch-free.
+    // Cfg-independent dechunking: works even after `compress.chunk` is turned off
+    // (reassembly is driven by primary's `__chunks` metadata).
+    const [primaries, chunkRows] = await Promise.all([
+      dbOrTx.getByIds<DBM>(table, ids, opt),
+      this.fetchChunksByPrimaryIds(table, ids, opt),
+    ])
+
+    this.reassembleChunks(primaries, chunkRows)
+    return this.storageRowsToDBM(primaries)
   }
 
   async getBy(by: keyof DBM, value: any, limit = 0, opt?: CommonDaoReadOptions): Promise<BM[]> {
@@ -275,15 +275,15 @@ export class CommonDao<
   ): Promise<RunQueryResult<BM>> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
+    const { rows: primaries, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
-    // For partial queries: strip chunk rows but skip decompression.
-    // For full queries: reassembleChunks partitions out chunk rows, uses any locally available
-    // chunks from the query result, and fetches only the missing ones from the DB.
-    const dechunked = isPartialQuery
-      ? this.filterOutChunkRows(rawRows)
-      : await this.reassembleChunks(q.table, rawRows, opt)
-    const rows = isPartialQuery ? dechunked : this.storageRowsToDBM(dechunked)
+
+    // Full queries only: fetch chunks for any chunked primaries and reassemble (cfg-independent,
+    // driven by __chunks metadata on returned primaries).
+    if (!isPartialQuery) {
+      await this.fetchAndReassembleChunks(q.table, primaries, opt)
+    }
+    const rows = isPartialQuery ? primaries : this.storageRowsToDBM(primaries)
     const bms = isPartialQuery ? (rows as any[]) : this.dbmsToBM(rows, opt)
     return {
       rows: bms,
@@ -302,25 +302,36 @@ export class CommonDao<
   ): Promise<RunQueryResult<DBM>> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
+    const { rows: primaries, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
-    const dechunked = isPartialQuery
-      ? this.filterOutChunkRows(rawRows)
-      : await this.reassembleChunks(q.table, rawRows, opt)
-    const rows = isPartialQuery ? dechunked : this.storageRowsToDBM(dechunked)
+    if (!isPartialQuery) {
+      await this.fetchAndReassembleChunks(q.table, primaries, opt)
+    }
+    const rows = isPartialQuery ? primaries : this.storageRowsToDBM(primaries)
     const dbms = isPartialQuery ? rows : this.anyToDBMs(rows, opt)
     return { rows: dbms, ...queryResult }
+  }
+
+  /**
+   * For a batch of primaries, fetch their chunks (one `filterIn('primaryId', ids)` query) and
+   * reassemble in place. Cfg-independent — gated on the presence of `__chunks` metadata.
+   */
+  private async fetchAndReassembleChunks(
+    table: string,
+    primaries: any[],
+    opt: CommonDaoReadOptions,
+  ): Promise<void> {
+    const chunkedIds: string[] = []
+    for (const p of primaries) {
+      if (typeof p.__chunks === 'number' && p.__chunks > 1) chunkedIds.push(p.id)
+    }
+    const chunkRows = await this.fetchChunksByPrimaryIds(table, chunkedIds, opt)
+    this.reassembleChunks(primaries, chunkRows)
   }
 
   async runQueryCount(q: DBQuery<DBM>, opt: CommonDaoReadOptions = {}): Promise<number> {
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
-    // When chunking is enabled, unfiltered counts would include extra chunk rows.
-    // Chunk rows lack queryable fields so they can't match a filter — we require at least one.
-    _assert(
-      !this.cfg.compress?.chunk || q._filters.length > 0,
-      `CommonDao "${q.table}": runQueryCount requires at least one filter when compress.chunk is enabled (otherwise the count would include extra chunk rows).`,
-    )
     return await this.cfg.db.runQueryCount(q, opt)
   }
 
@@ -329,20 +340,17 @@ export class CommonDao<
     q.table = opt.table || q.table
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
-    // When chunking is enabled: drop extra chunk rows, then async-reassemble each primary.
-    if (this.cfg.compress?.chunk) {
-      pipeline = pipeline
-        .filterSync(row => {
-          _typeCast<Compressed<DBM>>(row)
-          return !row.__chunked
-        })
-        .map(async row => {
-          await this.reassembleChunks(q.table, [row], opt)
-          return this.storageRowToDBM(row)
-        })
-    } else if (this.cfg.compress?.keys.length) {
-      // Compression without chunking — sync decompression is sufficient.
-      pipeline = pipeline.mapSync(row => this.storageRowToDBM(row))
+    // Primaries only — chunks live in a separate table. If compression is configured, we may
+    // need to dechunk (cfg-independent, driven by each primary's __chunks metadata).
+    if (this.cfg.compress?.keys?.length) {
+      pipeline = pipeline.map(async row => {
+        _typeCast<Compressed<DBM>>(row)
+        const n = row.__chunks
+        if (typeof n === 'number' && n > 1) {
+          await this.fetchAndReassembleChunks(q.table, [row], opt)
+        }
+        return this.storageRowToDBM(row)
+      })
     }
 
     const isPartialQuery = !!q._selectedFieldNames
@@ -359,20 +367,15 @@ export class CommonDao<
     q.table = opt.table || q.table
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
-    // When chunking is enabled: drop extra chunk rows, then async-reassemble each primary.
-    if (this.cfg.compress?.chunk) {
-      pipeline = pipeline
-        .filterSync(row => {
-          _typeCast<Compressed<DBM>>(row)
-          return !row.__chunked
-        })
-        .map(async row => {
-          await this.reassembleChunks(q.table, [row], opt)
-          return this.storageRowToDBM(row)
-        })
-    } else if (this.cfg.compress?.keys.length) {
-      // Compression without chunking — sync decompression is sufficient.
-      pipeline = pipeline.mapSync(row => this.storageRowToDBM(row))
+    if (this.cfg.compress?.keys?.length) {
+      pipeline = pipeline.map(async row => {
+        _typeCast<Compressed<DBM>>(row)
+        const n = row.__chunks
+        if (typeof n === 'number' && n > 1) {
+          await this.fetchAndReassembleChunks(q.table, [row], opt)
+        }
+        return this.storageRowToDBM(row)
+      })
     }
 
     const isPartialQuery = !!q._selectedFieldNames
@@ -388,12 +391,7 @@ export class CommonDao<
     this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     const { rows } = await this.cfg.db.runQuery(q.select(['id']), opt)
-    const ids = rows.map(r => r.id as ID)
-    // Filter out extra chunk ids when chunking is enabled.
-    if (this.cfg.compress?.chunk) {
-      return ids.filter(id => !CHUNK_ID_RE.test(id))
-    }
-    return ids
+    return rows.map(r => r.id as ID)
   }
 
   streamQueryIds(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<ID> = {}): Pipeline<ID> {
@@ -401,13 +399,7 @@ export class CommonDao<
     q.table = opt.table || q.table
     opt.errorMode ||= ErrorMode.SUPPRESS
 
-    let pipeline = this.cfg.db
-      .streamQuery(q.select(['id']), opt)
-      .mapSync((r: ObjectWithId) => r.id as ID)
-    if (this.cfg.compress?.chunk) {
-      pipeline = pipeline.filterSync(id => !CHUNK_ID_RE.test(id as string))
-    }
-    return pipeline
+    return this.cfg.db.streamQuery(q.select(['id']), opt).mapSync((r: ObjectWithId) => r.id as ID)
   }
 
   /**
@@ -582,9 +574,8 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const rows = await this.dbmToStorageRowsWithChunks(dbm)
-    this.propagatePrevChunks(bm, rows)
-    await this.saveWithOrphanCleanup(table, rows, saveOptions, opt)
+    const { primary, chunks } = await this.dbmToPrimaryAndChunks(dbm)
+    await this.savePrimaryAndChunks(table, [primary], chunks, saveOptions, opt)
 
     if (saveOptions.assignGeneratedIds) {
       bm.id = dbm.id
@@ -601,9 +592,8 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const rows = await this.dbmToStorageRowsWithChunks(validDbm)
-    this.propagatePrevChunks(dbm, rows)
-    await this.saveWithOrphanCleanup(table, rows, saveOptions, opt)
+    const { primary, chunks } = await this.dbmToPrimaryAndChunks(validDbm)
+    await this.savePrimaryAndChunks(table, [primary], chunks, saveOptions, opt)
 
     if (saveOptions.assignGeneratedIds) {
       dbm.id = validDbm.id
@@ -623,14 +613,14 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const rows = (
-      await pMap(dbms, async (dbm, i) => {
-        const r = await this.dbmToStorageRowsWithChunks(dbm)
-        this.propagatePrevChunks(bms[i], r)
-        return r
-      })
-    ).flat()
-    await this.saveWithOrphanCleanup(table, rows, saveOptions, opt)
+    const primaries: ObjectWithId[] = []
+    const allChunks: ChunkRow[] = []
+    await pMap(dbms, async (dbm, i) => {
+      const { primary, chunks } = await this.dbmToPrimaryAndChunks(dbm)
+      primaries[i] = primary
+      if (chunks.length) allChunks.push(...chunks)
+    })
+    await this.savePrimaryAndChunks(table, primaries, allChunks, saveOptions, opt)
 
     if (saveOptions.assignGeneratedIds) {
       dbms.forEach((dbm, i) => (bms[i]!.id = dbm.id))
@@ -653,20 +643,54 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const saveOptions = this.prepareSaveOptions(opt)
 
-    const rows = (
-      await pMap(validDbms, async (validDbm, i) => {
-        const r = await this.dbmToStorageRowsWithChunks(validDbm)
-        this.propagatePrevChunks(dbms[i], r)
-        return r
-      })
-    ).flat()
-    await this.saveWithOrphanCleanup(table, rows, saveOptions, opt)
+    const primaries: ObjectWithId[] = []
+    const allChunks: ChunkRow[] = []
+    await pMap(validDbms, async (validDbm, i) => {
+      const { primary, chunks } = await this.dbmToPrimaryAndChunks(validDbm)
+      primaries[i] = primary
+      if (chunks.length) allChunks.push(...chunks)
+    })
+    await this.savePrimaryAndChunks(table, primaries, allChunks, saveOptions, opt)
 
     if (saveOptions.assignGeneratedIds) {
       validDbms.forEach((dbm, i) => (dbms[i]!.id = dbm.id))
     }
 
     return validDbms
+  }
+
+  /**
+   * Writes primaries to `table` and chunks to `${table}__chunks` in parallel, then cleans up
+   * any orphan chunks per primary. Atomicity is not mitigated — simplicity
+   * first. If either write fails, the other may still succeed (inconsistent state); a subsequent
+   * save fixes it via orphan cleanup.
+   */
+  private async savePrimaryAndChunks(
+    table: string,
+    primaries: ObjectWithId[],
+    chunks: ChunkRow[],
+    primarySaveOptions: CommonDBSaveOptions<ObjectWithId>,
+    opt: CommonDaoSaveOptions<BM, DBM>,
+  ): Promise<void> {
+    const dbOrTx = opt.tx || this.cfg.db
+    const writes: Promise<any>[] = [dbOrTx.saveBatch(table, primaries, primarySaveOptions)]
+    if (chunks.length) {
+      // Chunks table ops go through cfg.db (outside transactional scope).
+      writes.push(
+        this.cfg.db.saveBatch(chunksTableFor(table), chunks as any, this.chunkSaveOptions()),
+      )
+    }
+    await Promise.all(writes)
+
+    // Orphan cleanup per primary (cfg-independent — runs whenever compression is configured,
+    // so legacy chunks from a previously-chunked state get cleaned up even after chunking is
+    // turned off).
+    if (!this.cfg.compress?.keys?.length) return
+    await pMap(primaries, async primary => {
+      _typeCast<Compressed<DBM>>(primary)
+      const newN = primary.__chunks ?? 1
+      await this.cleanupOrphanChunks(table, primary.id, newN, opt)
+    })
   }
 
   private prepareSaveOptions(
@@ -683,7 +707,7 @@ export class CommonDao<
     // then we need to ensure that the reserved compression/chunking properties are in the list.
     if (this.cfg.compress?.keys) {
       excludeFromIndexes = excludeFromIndexes ? [...excludeFromIndexes] : []
-      for (const key of RESERVED_KEYS) {
+      for (const key of PRIMARY_RESERVED_KEYS) {
         if (!excludeFromIndexes.includes(key as any)) {
           excludeFromIndexes.push(key as any)
         }
@@ -723,39 +747,29 @@ export class CommonDao<
 
     const { chunkSize = 500, chunkConcurrency = 32, errorMode } = opt
 
-    // When chunking is enabled, each bm may produce multiple rows (primary + extra chunks);
-    // we flatten them into the stream before chunking for db.saveBatch.
-    // After each batch is saved, orphan chunks are cleaned up per primary.
+    // Convert bm → { primary, chunks } per row, accumulating into a window for batched writes.
+    // For each batch: write primaries to T and all chunks to T__chunks in parallel; then run
+    // orphan cleanup per primary.
     await p
       .map(
         async bm => {
           this.assignIdCreatedUpdated(bm, opt)
           const dbm = this.bmToDBM(bm, opt)
           beforeSave?.(dbm)
-          return await this.dbmToStorageRowsWithChunks(dbm)
+          return await this.dbmToPrimaryAndChunks(dbm)
         },
         { errorMode },
       )
-      .flatten<ObjectWithId>()
       .chunk(chunkSize)
       .map(
         async batch => {
-          await this.cfg.db.saveBatch(table, batch, saveOptions)
-          if (this.cfg.compress?.chunk) {
-            _typeCast<Compressed<DBM>[]>(batch)
-            const orphanIds: string[] = []
-            for (const row of batch) {
-              if (row.__chunked) continue
-              const newN = row.__chunks ?? 1
-              const oldN: number = (row as any)[PREV_CHUNKS] ?? MAX_CHUNKS_PER_ENTITY
-              for (let i = newN; i < oldN; i++) {
-                orphanIds.push(this.chunkIdFor(row.id, i))
-              }
-            }
-            if (orphanIds.length) {
-              await this.cfg.db.deleteByIds(table, orphanIds, opt)
-            }
+          const primaries: ObjectWithId[] = []
+          const chunks: ChunkRow[] = []
+          for (const b of batch) {
+            primaries.push(b.primary)
+            if (b.chunks.length) chunks.push(...b.chunks)
           }
+          await this.savePrimaryAndChunks(table, primaries, chunks, saveOptions, opt)
           return batch
         },
         {
@@ -786,13 +800,14 @@ export class CommonDao<
     const table = opt.table || this.cfg.table
     const dbOrTx = opt.tx || this.cfg.db
 
-    if (this.cfg.compress?.chunk) {
-      // Expand with all candidate chunk ids — deleteByIds is idempotent for non-existent ids.
-      const allIds = [...(ids as string[]), ...this.candidateChunkIds(ids as string[])]
-      await dbOrTx.deleteByIds(table, allIds, opt)
-      return ids.length
-    }
-    return await dbOrTx.deleteByIds(table, ids, opt)
+    // Parallel: delete primaries from T, delete any chunks from T__chunks via filterIn on primaryId.
+    // Cfg-independent: fires the chunks-delete whenever compression is configured, so legacy
+    // chunks are cleaned up even after chunking is turned off.
+    const [primaryDeleted] = await Promise.all([
+      dbOrTx.deleteByIds(table, ids, opt),
+      this.deleteChunksByPrimaryIds(table, ids as string[], opt),
+    ])
+    return primaryDeleted
   }
 
   /**
@@ -810,23 +825,19 @@ export class CommonDao<
     q.table = opt.table || q.table
     let deleted = 0
 
-    // When chunking is enabled, force the streaming path so we can expand each primary id
-    // to include its extra chunks. The direct db.deleteByQuery would otherwise leave chunks behind.
-    const useStreaming = opt.chunkSize || this.cfg.compress?.chunk
-    if (useStreaming) {
-      const { chunkSize = 500, chunkConcurrency = 8 } = opt
+    if (opt.chunkSize) {
+      const { chunkSize, chunkConcurrency = 8 } = opt
 
       await this.cfg.db
         .streamQuery<DBM>(q.select(['id']), opt)
         .mapSync(r => r.id)
-        // Filter out extra chunk ids that may incidentally match the query; we expand
-        // from primaries below.
-        .filterSync(id => (this.cfg.compress?.chunk ? !CHUNK_ID_RE.test(id) : true))
         .chunk(chunkSize)
         .map(
           async ids => {
-            const allIds = this.cfg.compress?.chunk ? [...ids, ...this.candidateChunkIds(ids)] : ids
-            await this.cfg.db.deleteByIds(q.table, allIds, opt)
+            await Promise.all([
+              this.cfg.db.deleteByIds(q.table, ids, opt),
+              this.deleteChunksByPrimaryIds(q.table, ids, opt),
+            ])
             deleted += ids.length
           },
           {
@@ -843,6 +854,17 @@ export class CommonDao<
           ...opt,
         })
         .run()
+    } else if (this.cfg.compress?.keys?.length) {
+      // Chunks have no user-queryable fields, so we can't directly delete by the user's query
+      // on the chunks kind. Get primary ids first, then delete primaries + chunks in parallel.
+      const { rows } = await this.cfg.db.runQuery(q.select(['id']), opt)
+      const ids = rows.map(r => r.id)
+      if (!ids.length) return 0
+      const [primaryDeleted] = await Promise.all([
+        this.cfg.db.deleteByIds(q.table, ids, opt),
+        this.deleteChunksByPrimaryIds(q.table, ids, opt),
+      ])
+      deleted = primaryDeleted
     } else {
       deleted = await this.cfg.db.deleteByQuery(q, opt)
     }
@@ -919,15 +941,7 @@ export class CommonDao<
     const bm = (this.cfg.hooks!.beforeDBMToBM?.(dbm) || dbm) as Partial<BM>
 
     // Validate/convert BM
-    const result = this.validateAndConvert(bm, 'load', opt)
-
-    // Preserve PREV_CHUNKS across the conversion pipeline (validateAndConvert creates a new object
-    // via _filterUndefinedValues which uses Object.entries, dropping Symbol properties).
-    if ((_dbm as any)[PREV_CHUNKS] !== undefined) {
-      ;(result as any)[PREV_CHUNKS] = (_dbm as any)[PREV_CHUNKS]
-    }
-
-    return result
+    return this.validateAndConvert(bm, 'load', opt)
   }
 
   dbmsToBM(dbms: DBM[], opt: CommonDaoOptions = {}): BM[] {
@@ -1048,45 +1062,77 @@ export class CommonDao<
   }
 
   // CHUNKING LAYER (below compression)
-  // Splits the `__compressed` Buffer across multiple storage rows when it exceeds `maxChunkSize`.
-  // Primary row at `id` carries queryable fields + chunk 0 + `__chunks: N`.
-  // Extra chunk rows at `${id}__c${n}` carry only `{ id, __chunked: true, __compressed: <sliceN> }`.
+  // Primaries live in the configured table; chunks live in `${table}__chunks`.
+  // Primary row carries queryable fields + chunk 0 in `__compressed` + `__chunks: N` (when N > 1).
+  // Chunk rows: `{ id, primaryId, chunkIdx, __compressed }`. `primaryId` is indexed for
+  // parallel fetch via `filterIn('primaryId', [...])`.
 
   /**
-   * Returns the chunk id for chunk index `n` (n >= 1) of entity `id`.
+   * Deterministic chunk id: `${primaryId}__c${chunkIdx}`. Kept for debuggability and for
+   * id-based orphan cleanup via deleteByIds.
    */
-  private chunkIdFor(id: string, n: number): string {
-    return `${id}__c${n}`
+  private chunkIdFor(primaryId: string, chunkIdx: number): string {
+    return `${primaryId}__c${chunkIdx}`
   }
 
   /**
-   * Converts a DBM to one or more storage rows, applying compression and — if enabled and needed —
-   * chunking. Returns `[primary, ...extraChunks]`. When no chunking is needed (or disabled),
-   * returns a single-element array.
+   * Fetches chunks for the given primary ids. Returns `[]` if compression is not configured
+   * on this DAO (so callers can fire this speculatively from `Promise.all` without branching).
    */
-  private async dbmToStorageRowsWithChunks(dbm: DBM): Promise<ObjectWithId[]> {
+  private async fetchChunksByPrimaryIds(
+    table: string,
+    primaryIds: string[],
+    opt: CommonDaoReadOptions,
+  ): Promise<ChunkRow[]> {
+    if (!this.cfg.compress?.keys?.length || !primaryIds.length) return []
+    // Chunks table queries always go through cfg.db (DBTransaction has no runQuery).
+    const { rows } = await this.cfg.db.runQuery<ChunkRow>(this.chunksQuery(table, primaryIds), opt)
+    return rows
+  }
+
+  /**
+   * Builds a query against the chunks table that matches all chunks belonging to the given
+   * primary ids. Used by both read paths (fetch-and-reassemble) and delete paths.
+   */
+  private chunksQuery(table: string, primaryIds: string[]): DBQuery<ChunkRow> {
+    return DBQuery.create<ChunkRow>(chunksTableFor(table)).filterIn('primaryId', primaryIds)
+  }
+
+  /**
+   * Deletes all chunks belonging to the given primary ids. No-op when compression is not
+   * configured on this DAO (so callers can fire this speculatively from `Promise.all` without
+   * branching).
+   */
+  private async deleteChunksByPrimaryIds(
+    table: string,
+    primaryIds: string[],
+    opt: CommonDaoOptions,
+  ): Promise<void> {
+    if (!this.cfg.compress?.keys?.length || !primaryIds.length) return
+    await this.cfg.db.deleteByQuery(this.chunksQuery(table, primaryIds), opt)
+  }
+
+  /**
+   * Converts a DBM to a primary row and (if chunking is enabled and payload exceeds the threshold)
+   * an array of chunk rows for the chunks table. Returns `{ primary, chunks }`.
+   */
+  private async dbmToPrimaryAndChunks(
+    dbm: DBM,
+  ): Promise<{ primary: ObjectWithId; chunks: ChunkRow[] }> {
     const primary = await this.dbmToStorageRow(dbm)
     const chunkCfg = this.cfg.compress?.chunk
-    if (!chunkCfg) return [primary]
+    if (!chunkCfg) return { primary, chunks: [] }
 
     _typeCast<Compressed<DBM>>(primary)
     const compressed = primary.__compressed
-    if (!Buffer.isBuffer(compressed)) return [primary] // Nothing to chunk
+    if (!Buffer.isBuffer(compressed)) return { primary, chunks: [] }
 
     const maxChunkSize =
       typeof chunkCfg === 'object'
         ? (chunkCfg.maxChunkSize ?? DEFAULT_MAX_CHUNK_SIZE)
         : DEFAULT_MAX_CHUNK_SIZE
 
-    // Always validate the id pattern when chunking is enabled — even if this particular entity
-    // fits in one row. An id like `test__c1` would be silently filtered out of queryIds /
-    // streamQueryIds results (which use CHUNK_ID_RE to drop chunk ids).
-    _assert(
-      !CHUNK_ID_RE.test(primary.id),
-      `CommonDao "${this.cfg.table}": entity id "${primary.id}" matches the reserved chunk-id pattern /__c\\d+$/`,
-    )
-
-    if (compressed.length <= maxChunkSize) return [primary] // Fits — single row
+    if (compressed.length <= maxChunkSize) return { primary, chunks: [] }
 
     const n = Math.ceil(compressed.length / maxChunkSize)
     _assert(
@@ -1094,165 +1140,116 @@ export class CommonDao<
       `CommonDao "${this.cfg.table}": entity ${primary.id} compressed payload (${compressed.length} bytes) would require ${n} chunks, exceeding the hard limit of ${MAX_CHUNKS_PER_ENTITY}`,
     )
 
-    // Use .slice() (copies) rather than .subarray() (view) — subarray pins the entire original
-    // buffer in memory as long as any chunk row is referenced.
-    primary.__compressed = compressed.slice(0, maxChunkSize)
+    // Use `Buffer.from(subarray)` to COPY the bytes. `subarray` alone returns a view that pins
+    // the entire original buffer in memory as long as any chunk references it; `Buffer.slice`
+    // is deprecated. `Buffer.from(Uint8Array)` allocates and copies.
+    primary.__compressed = Buffer.from(compressed.subarray(0, maxChunkSize))
     primary.__chunks = n
 
-    const extraChunks: ObjectWithId[] = []
+    const chunks: ChunkRow[] = []
     for (let i = 1; i < n; i++) {
-      extraChunks.push({
+      chunks.push({
         id: this.chunkIdFor(primary.id, i),
-        __chunked: true,
-        __compressed: compressed.slice(i * maxChunkSize, (i + 1) * maxChunkSize),
-      } as ObjectWithId)
+        primaryId: primary.id,
+        chunkIdx: i,
+        __compressed: Buffer.from(compressed.subarray(i * maxChunkSize, (i + 1) * maxChunkSize)),
+      })
     }
-    return [primary, ...extraChunks]
+    return { primary, chunks }
   }
 
   /**
-   * Accepts a mixed bag of rows (primaries + optional chunk rows). Partitions them internally,
-   * uses locally available chunks first, fetches any missing ones from the DB in a single batch,
-   * reassembles `__compressed` Buffers, and returns only the primaries.
+   * Reassembles chunked primaries in place. Cfg-independent — driven entirely by primary's
+   * `__chunks: N` metadata. Works even after `compress.chunk` is turned off (legacy data
+   * continues to read correctly until each entity is re-saved).
    *
-   * When called from paths that never include chunk rows (e.g. `loadByIds`), the local-chunk
-   * map is simply empty and everything is fetched — same behavior as before, zero overhead.
+   * `chunkRows` is the union of all chunks fetched from the chunks table for this set of
+   * primaries. Orphans (chunks without a live primary, or beyond the primary's declared N)
+   * are tolerated and ignored.
    */
-  private async reassembleChunks<R extends ObjectWithId>(
-    table: string,
-    rows: R[],
-    opt: CommonDaoReadOptions = {},
-  ): Promise<R[]> {
-    if (!this.cfg.compress?.chunk) return rows
+  private reassembleChunks(primaries: ObjectWithId[], chunkRows: ChunkRow[]): void {
+    if (!chunkRows.length) return
 
-    // Partition: primaries (no __chunked) vs locally available chunk rows.
-    const primaries: R[] = []
-    const localChunks = new Map<string, Compressed<any>>()
-    for (const row of rows) {
-      const c = row as Compressed<any>
-      if (c.__chunked) {
-        localChunks.set(c.id, c)
-      } else {
-        primaries.push(row)
-      }
+    // Group chunks by primaryId and sort each group by chunkIdx ascending.
+    const chunksByPrimaryId = new Map<string, ChunkRow[]>()
+    for (const cr of chunkRows) {
+      const list = chunksByPrimaryId.get(cr.primaryId) ?? []
+      list.push(cr)
+      chunksByPrimaryId.set(cr.primaryId, list)
+    }
+    for (const list of chunksByPrimaryId.values()) {
+      _sortBy(list, chunk => chunk.chunkIdx, { mutate: true })
     }
 
-    // Collect chunk ids needed for reassembly, filtering out locally available ones.
-    const missingChunkIds: string[] = []
-    const chunkOwners: { row: Compressed<any>; chunkCount: number }[] = []
     for (const row of primaries) {
-      const c = row as Compressed<any>
-      const n = c.__chunks
+      const primary = row as Compressed<any>
+      const n = primary.__chunks
       if (typeof n !== 'number' || n <= 1) continue
-      chunkOwners.push({ row: c, chunkCount: n })
-      for (let i = 1; i < n; i++) {
-        const cid = this.chunkIdFor(c.id, i)
-        if (!localChunks.has(cid)) {
-          missingChunkIds.push(cid)
-        }
-      }
-    }
-    if (!chunkOwners.length) return primaries
 
-    // Fetch only the missing chunks from the DB.
-    if (missingChunkIds.length) {
-      const fetched = await (opt.tx || this.cfg.db).getByIds<Compressed<any>>(
-        table,
-        missingChunkIds,
-        opt,
-      )
-      for (const cr of fetched) localChunks.set(cr.id, cr)
-    }
+      const chunksOfPrimary = chunksByPrimaryId.get(primary.id) ?? []
 
-    // Reassemble each chunked primary.
-    for (const { row, chunkCount } of chunkOwners) {
       const parts: Buffer[] = []
-      if (Buffer.isBuffer(row.__compressed)) parts.push(row.__compressed)
-      for (let i = 1; i < chunkCount; i++) {
-        const cr = localChunks.get(this.chunkIdFor(row.id, i))
+      if (Buffer.isBuffer(primary.__compressed)) parts.push(primary.__compressed)
+      // chunksOfPrimary[pos] is expected to have chunkIdx === pos + 1
+      // (chunkIdx 0 is the primary's own `__compressed`; extra chunks are 1..n-1).
+      const expectedCount = n - 1
+      for (let pos = 0; pos < expectedCount; pos++) {
+        const cr = chunksOfPrimary[pos]
+        const chunkIdx = pos + 1
         _assert(
-          cr && Buffer.isBuffer(cr.__compressed),
-          `CommonDao "${this.cfg.table}": missing chunk ${i}/${chunkCount - 1} for entity ${row.id}`,
+          cr && cr.chunkIdx === chunkIdx && Buffer.isBuffer(cr.__compressed),
+          `CommonDao "${this.cfg.table}": missing chunk ${chunkIdx}/${expectedCount} for entity ${primary.id}`,
         )
         parts.push(cr.__compressed)
       }
-      row.__compressed = Buffer.concat(parts)
-      row.__chunks = undefined
-      // Stamp the chunk count so the save path can compute exact orphan range.
-      row[PREV_CHUNKS] = chunkCount
-    }
-    return primaries
-  }
-
-  /**
-   * Carries the PREV_CHUNKS Symbol from a source object (the original BM/DBM the caller passed in)
-   * to the primary storage row (first element of `rows`). The BM→DBM conversion pipeline creates
-   * new objects, dropping the Symbol — this bridges the gap.
-   */
-  private propagatePrevChunks(source: any, rows: ObjectWithId[]): void {
-    if (!this.cfg.compress?.chunk) return
-    const prev = source?.[PREV_CHUNKS]
-    if (prev !== undefined && rows.length) {
-      ;(rows[0] as any)[PREV_CHUNKS] = prev
+      primary.__compressed = Buffer.concat(parts)
+      primary.__chunks = undefined
     }
   }
 
   /**
-   * Post-filter helper: drops extra chunk rows (`__chunked === true`) from a result set.
-   * Used in query paths where chunk rows may incidentally match unfiltered queries.
+   * Save options for chunk rows. Only `__compressed` is excluded from indexes — `primaryId`
+   * and `chunkIdx` ARE indexed so we can query chunks by primaryId cheaply.
    */
-  private filterOutChunkRows<R extends ObjectWithId>(rows: R[]): R[] {
-    if (!this.cfg.compress?.chunk) return rows
-    return rows.filter(r => !(r as Compressed<any>).__chunked)
+  private chunkSaveOptions(): CommonDBSaveOptions<ObjectWithId> {
+    return { excludeFromIndexes: [...CHUNK_RESERVED_KEYS] as any }
   }
 
   /**
-   * Saves `rows` (which may include primary + extra chunks), then deletes orphan chunk rows
-   * that would otherwise leak after a shrink (e.g. entity went from N=5 → N=2).
+   * Delete orphan chunks for a primary whose chunk count shrank (or disappeared entirely).
    *
-   * Uses the PREV_CHUNKS Symbol (stamped during reads) to compute the exact orphan range
-   * (`newN..oldN`). Falls back to `newN..MAX_CHUNKS_PER_ENTITY` when the Symbol is absent
-   * (new entity or object not from a DAO read).
+   * This implementation blindly deletes every candidate chunk id in the range
+   * `[newN, MAX_CHUNKS_PER_ENTITY)`. Most ids don't exist and the delete is idempotent, so
+   * the cost is ~99 no-op delete ops per chunked save — acceptable for most workloads.
+   *
+   * Showcase alternative (commented out): if you deploy a composite index
+   * `(primaryId ASC, chunkIdx ASC)` on `${table}__chunks`, you can use a single
+   * range-filtered `deleteByQuery` that targets exactly the stale chunks — zero id
+   * amplification, no MAX cap needed. Enable this path if orphan-cleanup ops ever show
+   * up as a hot spot in your Datastore bill.
    */
-  private async saveWithOrphanCleanup(
+  private async cleanupOrphanChunks(
     table: string,
-    rows: ObjectWithId[],
-    saveOptions: CommonDBSaveOptions<ObjectWithId>,
-    opt: CommonDaoSaveOptions<BM, DBM>,
+    primaryId: string,
+    newN: number,
+    opt: CommonDaoOptions,
   ): Promise<void> {
-    const dbOrTx = opt.tx || this.cfg.db
-    await dbOrTx.saveBatch(table, rows, saveOptions)
+    if (newN >= MAX_CHUNKS_PER_ENTITY) return
 
-    if (!this.cfg.compress?.chunk) return
-
-    // Collect orphan chunk ids across all primaries in one pass, then delete in a single call.
-    _typeCast<Compressed<DBM>[]>(rows)
     const orphanIds: string[] = []
-    for (const row of rows) {
-      if (row.__chunked) continue
-      const newN = row.__chunks ?? 1
-      const oldN: number = (row as any)[PREV_CHUNKS] ?? MAX_CHUNKS_PER_ENTITY
-      for (let i = newN; i < oldN; i++) {
-        orphanIds.push(this.chunkIdFor(row.id, i))
-      }
+    for (let i = newN; i < MAX_CHUNKS_PER_ENTITY; i++) {
+      orphanIds.push(this.chunkIdFor(primaryId, i))
     }
-    if (!orphanIds.length) return
-    await dbOrTx.deleteByIds(table, orphanIds, opt)
-  }
+    // Chunks table ops go through cfg.db (outside transactional scope).
+    await this.cfg.db.deleteByIds(chunksTableFor(table), orphanIds, opt)
 
-  /**
-   * For a list of primary entity ids, generates all candidate chunk ids (`${id}__c1` through
-   * `${id}__c${MAX-1}`). Used by delete paths — deleteByIds is idempotent for non-existent ids,
-   * so we can blindly delete all candidates without reading anything first.
-   */
-  private candidateChunkIds(ids: string[]): string[] {
-    const result: string[] = []
-    for (const id of ids) {
-      for (let i = 1; i < MAX_CHUNKS_PER_ENTITY; i++) {
-        result.push(this.chunkIdFor(id, i))
-      }
-    }
-    return result
+    // --- Showcase: composite-index alternative (requires (primaryId, chunkIdx) index) ---
+    // await this.cfg.db.deleteByQuery(
+    //   DBQuery.create<ChunkRow>(chunksTableFor(table))
+    //     .filterEq('primaryId', primaryId)
+    //     .filter('chunkIdx', '>=', newN),
+    //   opt,
+    // )
   }
 
   anyToDBM(dbm: undefined, opt?: CommonDaoOptions): null
@@ -1394,25 +1391,25 @@ export class CommonDao<
   }
 
   /**
-   * For each table whose input DAO has chunking enabled, fetch extra chunks for any rows
-   * with `__chunks > 1` and reassemble their `__compressed` buffers.
+   * For each table whose input DAO has compression configured, fetch the primaries' chunks
+   * from `${table}__chunks` and reassemble in place. Cfg-independent dechunking — driven by
+   * primary's __chunks metadata.
    */
   private static async multiGetReassembleChunks(
     inputMap: StringMap<DaoWithIds<AnyDao> | DaoWithId<AnyDao>>,
     dbmsByTable: StringMap<ObjectWithId[]>,
     opt: CommonDaoReadOptions,
   ): Promise<void> {
-    // Map table -> first dao we see for it (all DAOs for the same table share config shape)
     const daoByTable: StringMap<AnyDao> = {}
     for (const input of _stringMapValues(inputMap)) {
       const { table } = input.dao.cfg
       daoByTable[table] ||= input.dao
     }
 
-    for (const [table, rows] of _stringMapEntries(dbmsByTable)) {
+    for (const [table, primaries] of _stringMapEntries(dbmsByTable)) {
       const dao = daoByTable[table]
-      if (!dao?.cfg.compress?.chunk) continue
-      await (dao as any).reassembleChunks(table, rows, opt)
+      if (!dao?.cfg.compress?.keys?.length) continue
+      await (dao as any).fetchAndReassembleChunks(table, primaries, opt)
     }
   }
 
@@ -1517,15 +1514,17 @@ export class CommonDao<
       }
     }
 
-    // Expand ids with candidate chunk ids for tables whose DAO has chunking enabled.
+    // Collect chunks-cleanup operations for any table whose DAO has compression configured.
+    const chunkDeletes: Promise<unknown>[] = []
     for (const [table, ids] of _stringMapEntries(idsByTable)) {
       const dao = daoByTable[table]
-      if (dao?.cfg.compress?.chunk) {
-        idsByTable[table] = [...ids, ...(dao as any).candidateChunkIds(ids)]
-      }
+      if (!dao?.cfg.compress?.keys?.length || !ids.length) continue
+      chunkDeletes.push(db.deleteByQuery((dao as any).chunksQuery(table, ids), opt))
     }
 
-    return await db.multiDelete(idsByTable, opt)
+    // Delete primaries and chunks in parallel. Return the primary deletion count.
+    const [deletedCount] = await Promise.all([db.multiDelete(idsByTable, opt), ...chunkDeletes])
+    return deletedCount
   }
 
   static async multiSave(
@@ -1560,8 +1559,13 @@ export class CommonDao<
         dao.assignIdCreatedUpdated(row, opt)
         const dbm = dao.bmToDBM(row, opt)
         dao.cfg.hooks!.beforeSave?.(dbm)
-        const storageRows = await (dao as any).dbmToStorageRowsWithChunks(dbm)
-        dbmsByTable[table].push(...storageRows)
+        const { primary, chunks } = await (dao as any).dbmToPrimaryAndChunks(dbm)
+        dbmsByTable[table].push(primary)
+        if (chunks.length) {
+          const ct = chunksTableFor(table)
+          dbmsByTable[ct] ||= []
+          dbmsByTable[ct].push(...chunks)
+        }
       } else {
         // Plural
         input.rows.forEach(bm => dao.assignIdCreatedUpdated(bm, opt))
@@ -1569,31 +1573,28 @@ export class CommonDao<
         if (dao.cfg.hooks!.beforeSave) {
           dbms.forEach(dbm => dao.cfg.hooks!.beforeSave!(dbm))
         }
-        const storageRows = (
-          await pMap(dbms, (dbm: any) => (dao as any).dbmToStorageRowsWithChunks(dbm))
-        ).flat()
-        dbmsByTable[table].push(...storageRows)
+        await pMap(dbms, async (dbm: any) => {
+          const { primary, chunks } = await (dao as any).dbmToPrimaryAndChunks(dbm)
+          dbmsByTable[table]!.push(primary)
+          if (chunks.length) {
+            const ct = chunksTableFor(table)
+            dbmsByTable[ct] ||= []
+            dbmsByTable[ct].push(...chunks)
+          }
+        })
       }
     })
 
     await db.multiSave(dbmsByTable)
 
-    // Run orphan cleanup for any table whose DAO has chunking enabled — one deleteByIds per table.
+    // Orphan cleanup per primary for any table whose DAO has compression configured.
     for (const [table, rows] of _stringMapEntries(dbmsByTable)) {
       const dao = daoByTable[table]
-      if (!dao?.cfg.compress?.chunk) continue
-      const orphanIds: string[] = []
-      for (const row of rows) {
-        if (row.__chunked) continue
-        const newN = row.__chunks ?? 1
-        const oldN: number = row[PREV_CHUNKS] ?? MAX_CHUNKS_PER_ENTITY
-        for (let i = newN; i < oldN; i++) {
-          orphanIds.push((dao as any).chunkIdFor(row.id, i))
-        }
-      }
-      if (orphanIds.length) {
-        await db.deleteByIds(table, orphanIds, opt)
-      }
+      if (!dao?.cfg.compress?.keys?.length) continue
+      await pMap(rows, async (primary: any) => {
+        const newN = primary.__chunks ?? 1
+        await (dao as any).cleanupOrphanChunks(table, primary.id, newN, opt)
+      })
     }
   }
 
@@ -1682,6 +1683,13 @@ export class CommonDao<
 }
 
 /**
+ * Derives the chunks-table name for a given primary table. Chunks live in a dedicated kind.
+ */
+function chunksTableFor(table: string): string {
+  return `${table}__chunks`
+}
+
+/**
  * Transaction is committed when the function returns resolved Promise (aka "returns normally").
  *
  * Transaction is rolled back when the function returns rejected Promise (aka "throws").
@@ -1720,16 +1728,23 @@ export type InferID<DAO> = DAO extends CommonDao<any, any, infer ID> ? ID : neve
 export type AnyDao = CommonDao<any>
 
 /**
- * Represents a DBM whose properties have been compressed into a `__compressed` Buffer.
+ * Represents a PRIMARY row whose properties have been compressed into a `__compressed` Buffer.
  *
- * Used internally during compression/decompression so that DBM instances can
- * carry their compressed payload alongside the original type shape.
- *
- * `__chunks` is set on the primary row of a chunked entity (total chunk count, N >= 2).
- * `__chunked` is set to true on extra chunk rows (id suffixed with `__c${n}`).
+ * `__chunks: N` is set on the primary row of a chunked entity (total chunk count, N >= 2).
+ * The first chunk's bytes live in `__compressed` on the primary; chunks 1..N-1 live in
+ * the dedicated chunks table (`${table}__chunks`).
  */
 type Compressed<DBM> = DBM & {
   __compressed?: Buffer
-  __chunked?: boolean
   __chunks?: number
+}
+
+/**
+ * Shape of a row in the chunks table.
+ */
+interface ChunkRow {
+  id: string
+  primaryId: string
+  chunkIdx: number
+  __compressed: Buffer
 }
