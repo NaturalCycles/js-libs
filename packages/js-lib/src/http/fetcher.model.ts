@@ -263,6 +263,13 @@ export interface FetcherOptions {
    */
   redirect?: RequestRedirect
 
+  /**
+   * Default to false.
+   * When set to true, the request will not be aborted when the page is unloaded.
+   * Useful for sending analytics or tracking events that need to complete even if the user navigates away.
+   */
+  keepalive?: boolean
+
   // Removing RequestInit from options to simplify FetcherOptions interface.
   // Will instead only add hand-picked useful options, such as `credentials`.
   // init?: Partial<RequestInitNormalized>
@@ -361,6 +368,7 @@ export type RequestInitNormalized = Omit<RequestInit, 'method' | 'headers'> & {
   method: HttpMethod
   headers: Record<string, any>
   dispatcher?: Dispatcher
+  keepalive?: boolean
 }
 
 export interface FetcherSuccessResponse<BODY = unknown> {

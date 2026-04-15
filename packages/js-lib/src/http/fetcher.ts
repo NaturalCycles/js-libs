@@ -744,12 +744,13 @@ export class Fetcher {
           credentials: cfg.credentials,
           redirect: cfg.redirect,
           dispatcher: cfg.dispatcher,
+          keepalive: cfg.keepalive,
         },
         hooks: {},
         throwHttpErrors: true,
         errorData: {},
       },
-      _omit(cfg, ['method', 'credentials', 'headers', 'redirect', 'logger', 'name']),
+      _omit(cfg, ['method', 'credentials', 'headers', 'redirect', 'logger', 'name', 'keepalive']),
     )
 
     norm.init.headers = _mapKeys(norm.init.headers, k => k.toLowerCase())
@@ -804,6 +805,7 @@ export class Fetcher {
           method: opt.method || this.cfg.init.method,
           credentials: opt.credentials || this.cfg.init.credentials,
           redirect: opt.redirect || this.cfg.init.redirect || 'follow',
+          keepalive: opt.keepalive ?? this.cfg.init.keepalive,
         },
         {
           headers: _mapKeys(opt.headers || {}, k => k.toLowerCase()),
