@@ -1703,6 +1703,9 @@ function executeValidation<OUT>(
   // the error message Input would contain already mutated object print, such as Input: {}
   // Unless `getOriginalInput` function is provided - then it will be used to preserve the Input pureness.
   const inputStringified = _inspect(opt.getOriginalInput?.() || input, { maxLen: 4000 })
+  // fingerprint is captured before appending the dynamic Input snippet,
+  // so we can group repeated validation errors by rule rather than by unique request content.
+  const fingerprint = message
   message = [message, 'Input: ' + inputStringified].join(separator)
 
   const err = new AjvValidationError(
@@ -1711,6 +1714,7 @@ function executeValidation<OUT>(
       errors,
       inputName,
       inputId,
+      fingerprint,
     }),
   )
   return [err, output]
