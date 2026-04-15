@@ -226,16 +226,37 @@ export interface CommonDaoCfg<
     level?: Integer
     /**
      * When truthy, if the compressed payload exceeds `maxChunkSize` the entity is
-     * transparently split into multiple storage rows.
+     * transparently split across a primary row and a dedicated chunks kind.
      *
      * Layout:
-     * - Primary row at `id`: queryable fields + `__compressed: <chunk0>` + `__chunks: N` (when N > 1)
-     * - Extra chunk rows at `${id}__c${n}` (n=1..N-1): `{ id, __chunked: true, __compressed: <chunkN> }`
+     * - Primary row in `${table}`: queryable fields + `__compressed: <chunk0>` + `__chunks: N` (when N > 1)
+     * - Extra chunk rows in `${table}__chunks`: `{ id, primaryId, chunkIdx, __compressed }`
      *
      * Requires `keys` to be non-empty (chunking only splits the `__compressed` Buffer).
      * Only supported on document DBs (e.g. Datastore) — same constraint as `compress`.
      *
-     * User-facing entity ids MUST NOT match `/__c\d+$/` when chunking is enabled.
+     * ## Caveats
+     *
+     * **Naming collision**: the library reserves `${table}__chunks` as the chunks kind. Do not
+     * use a primary `table` name ending in `__chunks` when chunking is enabled, or it will
+     * collide with another DAO's chunks kind.
+     *
+     * **Transactions**: Datastore's `DBTransaction` only supports key-based ops, but chunks
+     * use queries (`runQuery` / `deleteByQuery`). Chunks operations therefore always run
+     * outside the caller's transaction. Consequences:
+     * - If a transaction wrapping `dao.save(chunkedEntity)` rolls back, the primary rolls back
+     *   but new chunks persist as orphans (harmless — ignored by reads, cleaned up by the
+     *   next successful save of the same id).
+     * - If the chunks-write fails after the primary has committed, reads will throw
+     *   "missing chunk" until the next successful save.
+     *
+     * These are accepted trade-offs for simplicity. Do not enable `chunk` for tables where
+     * strict transactional consistency on large-payload writes is required.
+     *
+     * **Orphan cleanup cost**: every save of a chunked entity issues up to
+     * `MAX_CHUNKS_PER_ENTITY - 1` no-op delete ops to clean up potential stale chunks. This is
+     * safe and idempotent but consumes delete quota. See `cleanupOrphanChunksForMany` for a
+     * showcase alternative using a composite index.
      *
      * @experimental
      */

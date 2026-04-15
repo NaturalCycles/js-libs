@@ -1,5 +1,5 @@
 import { _isTruthy } from '@naturalcycles/js-lib'
-import { _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
+import { _chunk, _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
 import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _assert, ErrorMode } from '@naturalcycles/js-lib/error'
@@ -79,6 +79,17 @@ const DEFAULT_MAX_CHUNK_SIZE = 900_000
  * A 100-chunk entity is already ~90 MB compressed — using Datastore for that scale is a misuse.
  */
 const MAX_CHUNKS_PER_ENTITY = 100
+
+/**
+ * Datastore `IN`-filter value limit (historically 30 in Datastore; larger in Firestore Datastore
+ * mode). We batch primary-id lists at this size for chunks-table queries.
+ */
+const FILTER_IN_BATCH_SIZE = 30
+
+/**
+ * Maximum ids per single `deleteByIds` API call (Datastore mutation-per-commit limit).
+ */
+const DELETE_BY_IDS_BATCH_SIZE = 500
 
 /**
  * Lowest common denominator API between supported Databases.
@@ -682,15 +693,11 @@ export class CommonDao<
     }
     await Promise.all(writes)
 
-    // Orphan cleanup per primary (cfg-independent — runs whenever compression is configured,
-    // so legacy chunks from a previously-chunked state get cleaned up even after chunking is
-    // turned off).
+    // Orphan cleanup — coalesce all candidate ids across primaries into one set of batched
+    // deleteByIds calls (respecting Datastore's 500-per-batch limit). Cfg-independent so
+    // legacy chunks get cleaned up even after chunking is turned off.
     if (!this.cfg.compress?.keys?.length) return
-    await pMap(primaries, async primary => {
-      _typeCast<Compressed<DBM>>(primary)
-      const newN = primary.__chunks ?? 1
-      await this.cleanupOrphanChunks(table, primary.id, newN, opt)
-    })
+    await this.cleanupOrphanChunksForMany(table, primaries, opt)
   }
 
   private prepareSaveOptions(
@@ -825,8 +832,15 @@ export class CommonDao<
     q.table = opt.table || q.table
     let deleted = 0
 
-    if (opt.chunkSize) {
-      const { chunkSize, chunkConcurrency = 8 } = opt
+    // When compression is configured, chunks live in `${table}__chunks` which has no
+    // user-queryable fields — we can't translate the user's query onto the chunks kind.
+    // We must fetch primary ids first, then delete primaries + chunks in parallel.
+    //
+    // Default to streaming (chunkSize = 500) to avoid loading all ids into memory on large
+    // deletes. Pass `opt.chunkSize` explicitly to tune.
+    const useStreaming = opt.chunkSize || this.cfg.compress?.keys?.length
+    if (useStreaming) {
+      const { chunkSize = 500, chunkConcurrency = 8 } = opt
 
       await this.cfg.db
         .streamQuery<DBM>(q.select(['id']), opt)
@@ -854,17 +868,6 @@ export class CommonDao<
           ...opt,
         })
         .run()
-    } else if (this.cfg.compress?.keys?.length) {
-      // Chunks have no user-queryable fields, so we can't directly delete by the user's query
-      // on the chunks kind. Get primary ids first, then delete primaries + chunks in parallel.
-      const { rows } = await this.cfg.db.runQuery(q.select(['id']), opt)
-      const ids = rows.map(r => r.id)
-      if (!ids.length) return 0
-      const [primaryDeleted] = await Promise.all([
-        this.cfg.db.deleteByIds(q.table, ids, opt),
-        this.deleteChunksByPrimaryIds(q.table, ids, opt),
-      ])
-      deleted = primaryDeleted
     } else {
       deleted = await this.cfg.db.deleteByQuery(q, opt)
     }
@@ -1086,13 +1089,19 @@ export class CommonDao<
   ): Promise<ChunkRow[]> {
     if (!this.cfg.compress?.keys?.length || !primaryIds.length) return []
     // Chunks table queries always go through cfg.db (DBTransaction has no runQuery).
-    const { rows } = await this.cfg.db.runQuery<ChunkRow>(this.chunksQuery(table, primaryIds), opt)
-    return rows
+    // Batch by FILTER_IN_BATCH_SIZE to respect Datastore's IN-filter value limit.
+    const results = await pMap(_chunk(primaryIds, FILTER_IN_BATCH_SIZE), async batch => {
+      const { rows } = await this.cfg.db.runQuery<ChunkRow>(this.chunksQuery(table, batch), opt)
+      return rows
+    })
+    return results.flat()
   }
 
   /**
    * Builds a query against the chunks table that matches all chunks belonging to the given
    * primary ids. Used by both read paths (fetch-and-reassemble) and delete paths.
+   *
+   * Callers must keep `primaryIds.length <= FILTER_IN_BATCH_SIZE`.
    */
   private chunksQuery(table: string, primaryIds: string[]): DBQuery<ChunkRow> {
     return DBQuery.create<ChunkRow>(chunksTableFor(table)).filterIn('primaryId', primaryIds)
@@ -1102,6 +1111,8 @@ export class CommonDao<
    * Deletes all chunks belonging to the given primary ids. No-op when compression is not
    * configured on this DAO (so callers can fire this speculatively from `Promise.all` without
    * branching).
+   *
+   * Batches by FILTER_IN_BATCH_SIZE to respect Datastore's IN-filter value limit.
    */
   private async deleteChunksByPrimaryIds(
     table: string,
@@ -1109,7 +1120,9 @@ export class CommonDao<
     opt: CommonDaoOptions,
   ): Promise<void> {
     if (!this.cfg.compress?.keys?.length || !primaryIds.length) return
-    await this.cfg.db.deleteByQuery(this.chunksQuery(table, primaryIds), opt)
+    await pMap(_chunk(primaryIds, FILTER_IN_BATCH_SIZE), batch =>
+      this.cfg.db.deleteByQuery(this.chunksQuery(table, batch), opt),
+    )
   }
 
   /**
@@ -1216,40 +1229,51 @@ export class CommonDao<
   }
 
   /**
-   * Delete orphan chunks for a primary whose chunk count shrank (or disappeared entirely).
+   * Delete orphan chunks for a batch of primaries after a save. Coalesces candidate chunk ids
+   * across all primaries into a single list, then splits into DELETE_BY_IDS_BATCH_SIZE-sized
+   * batches to respect Datastore's 500-mutations-per-commit limit.
    *
    * This implementation blindly deletes every candidate chunk id in the range
-   * `[newN, MAX_CHUNKS_PER_ENTITY)`. Most ids don't exist and the delete is idempotent, so
-   * the cost is ~99 no-op delete ops per chunked save — acceptable for most workloads.
+   * `[newN, MAX_CHUNKS_PER_ENTITY)` for each primary. Most ids don't exist and the delete is
+   * idempotent, so the cost is ~99 no-op delete ops per chunked primary — acceptable for most
+   * workloads.
    *
    * Showcase alternative (commented out): if you deploy a composite index
-   * `(primaryId ASC, chunkIdx ASC)` on `${table}__chunks`, you can use a single
-   * range-filtered `deleteByQuery` that targets exactly the stale chunks — zero id
-   * amplification, no MAX cap needed. Enable this path if orphan-cleanup ops ever show
-   * up as a hot spot in your Datastore bill.
+   * `(primaryId ASC, chunkIdx ASC)` on `${table}__chunks`, you can use one range-filtered
+   * `deleteByQuery` per primary that targets exactly the stale chunks — zero id amplification,
+   * no MAX cap needed. Enable this path if orphan-cleanup ops ever show up as a hot spot.
    */
-  private async cleanupOrphanChunks(
+  private async cleanupOrphanChunksForMany(
     table: string,
-    primaryId: string,
-    newN: number,
+    primaries: ObjectWithId[],
     opt: CommonDaoOptions,
   ): Promise<void> {
-    if (newN >= MAX_CHUNKS_PER_ENTITY) return
-
     const orphanIds: string[] = []
-    for (let i = newN; i < MAX_CHUNKS_PER_ENTITY; i++) {
-      orphanIds.push(this.chunkIdFor(primaryId, i))
+    for (const primary of primaries) {
+      const newN = (primary as Compressed<any>).__chunks ?? 1
+      if (newN >= MAX_CHUNKS_PER_ENTITY) continue
+      for (let i = newN; i < MAX_CHUNKS_PER_ENTITY; i++) {
+        orphanIds.push(this.chunkIdFor(primary.id, i))
+      }
     }
+    if (!orphanIds.length) return
+
     // Chunks table ops go through cfg.db (outside transactional scope).
-    await this.cfg.db.deleteByIds(chunksTableFor(table), orphanIds, opt)
+    const chunksTable = chunksTableFor(table)
+    await pMap(_chunk(orphanIds, DELETE_BY_IDS_BATCH_SIZE), batch =>
+      this.cfg.db.deleteByIds(chunksTable, batch, opt),
+    )
 
     // --- Showcase: composite-index alternative (requires (primaryId, chunkIdx) index) ---
-    // await this.cfg.db.deleteByQuery(
-    //   DBQuery.create<ChunkRow>(chunksTableFor(table))
-    //     .filterEq('primaryId', primaryId)
-    //     .filter('chunkIdx', '>=', newN),
-    //   opt,
-    // )
+    // await pMap(primaries, async primary => {
+    //   const newN = (primary as Compressed<any>).__chunks ?? 1
+    //   await this.cfg.db.deleteByQuery(
+    //     DBQuery.create<ChunkRow>(chunksTableFor(table))
+    //       .filterEq('primaryId', primary.id)
+    //       .filter('chunkIdx', '>=', newN),
+    //     opt,
+    //   )
+    // })
   }
 
   anyToDBM(dbm: undefined, opt?: CommonDaoOptions): null
@@ -1515,11 +1539,12 @@ export class CommonDao<
     }
 
     // Collect chunks-cleanup operations for any table whose DAO has compression configured.
+    // Route through `deleteChunksByPrimaryIds` so the filterIn batching applies.
     const chunkDeletes: Promise<unknown>[] = []
     for (const [table, ids] of _stringMapEntries(idsByTable)) {
       const dao = daoByTable[table]
       if (!dao?.cfg.compress?.keys?.length || !ids.length) continue
-      chunkDeletes.push(db.deleteByQuery((dao as any).chunksQuery(table, ids), opt))
+      chunkDeletes.push((dao as any).deleteChunksByPrimaryIds(table, ids, opt))
     }
 
     // Delete primaries and chunks in parallel. Return the primary deletion count.
@@ -1587,14 +1612,12 @@ export class CommonDao<
 
     await db.multiSave(dbmsByTable)
 
-    // Orphan cleanup per primary for any table whose DAO has compression configured.
+    // Orphan cleanup for any table whose DAO has compression configured. Skip rows that live
+    // in a chunks table (`${table}__chunks`) — those aren't primaries.
     for (const [table, rows] of _stringMapEntries(dbmsByTable)) {
       const dao = daoByTable[table]
       if (!dao?.cfg.compress?.keys?.length) continue
-      await pMap(rows, async (primary: any) => {
-        const newN = primary.__chunks ?? 1
-        await (dao as any).cleanupOrphanChunks(table, primary.id, newN, opt)
-      })
+      await (dao as any).cleanupOrphanChunksForMany(table, rows, opt)
     }
   }
 
