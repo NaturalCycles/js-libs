@@ -1386,6 +1386,50 @@ describe('auto chunking', () => {
     expect(back?.obj).toEqual(medBig)
   })
 
+  test('orphan cleanup deletes exact range (count-first, no 99-id amplification)', async () => {
+    const { dao, db: localDb } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 5)
+    await dao.save({ id: 'exact', obj: big })
+    const initialN = (localDb.data[TEST_TABLE]!['exact'] as any).__chunks as number
+    expect(initialN).toBeGreaterThanOrEqual(3)
+
+    // Spy on deleteByIds targeting the chunks table
+    const deleteSpy = vi.spyOn(localDb, 'deleteByIds')
+
+    // Shrink to a single row
+    await dao.save({ id: 'exact', obj: { n: 1 } })
+
+    // Orphan delete call(s) on the chunks table should contain exactly initialN - 1 ids,
+    // NOT the full MAX_CHUNKS_PER_ENTITY - 1 (99) candidate range.
+    const chunksDeleteCalls = deleteSpy.mock.calls.filter(
+      call => call[0] === `${TEST_TABLE}__chunks`,
+    )
+    const totalChunkIdsDeleted = chunksDeleteCalls.reduce((sum, call) => sum + call[1].length, 0)
+    expect(totalChunkIdsDeleted).toBe(initialN - 1)
+
+    deleteSpy.mockRestore()
+  })
+
+  test('orphan cleanup: no orphans → no delete call issued', async () => {
+    const { dao, db: localDb } = newDao()
+    // Save a chunked entity, then immediately re-save at the SAME chunk count
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.save({ id: 'same', obj: big })
+
+    const deleteSpy = vi.spyOn(localDb, 'deleteByIds')
+
+    // Re-save with equivalent payload (same approximate size → same N)
+    await dao.save({ id: 'same', obj: big })
+
+    // No orphan deletes should fire against the chunks table
+    const chunksDeleteCalls = deleteSpy.mock.calls.filter(
+      call => call[0] === `${TEST_TABLE}__chunks`,
+    )
+    expect(chunksDeleteCalls).toEqual([])
+
+    deleteSpy.mockRestore()
+  })
+
   test('deleteById removes all chunk rows', async () => {
     const { dao, db: localDb } = newDao()
     await dao.save({ id: 'del', obj: makeLargeObj(SMALL_MAX * 4) })
