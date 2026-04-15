@@ -36,27 +36,28 @@ describe('ajvValidateRequest', () => {
       expect(err.cause.message).not.toContain(pw)
       expect(err.cause.message).toContain('REDACTED')
       expect(err.cause).toMatchInlineSnapshot(`
-    {
-      "data": {
-        "backendResponseStatusCode": 400,
-        "errors": [
-          {
-            "instancePath": ".pw",
-            "keyword": "minLength",
-            "message": "must NOT have fewer than 8 characters",
-            "params": {
-              "limit": 8,
-            },
-            "schemaPath": "#/properties/pw/minLength",
+        {
+          "data": {
+            "backendResponseStatusCode": 400,
+            "errors": [
+              {
+                "instancePath": ".pw",
+                "keyword": "minLength",
+                "message": "must NOT have fewer than 8 characters",
+                "params": {
+                  "limit": 8,
+                },
+                "schemaPath": "#/properties/pw/minLength",
+              },
+            ],
+            "fingerprint": "request.body.pw must NOT have fewer than 8 characters",
+            "inputName": "request.body",
           },
-        ],
-        "inputName": "request.body",
-      },
-      "message": "request.body.pw must NOT have fewer than 8 characters
-    Input: { pw: 'REDACTED' }",
-      "name": "AppError",
-    }
-  `)
+          "message": "request.body.pw must NOT have fewer than 8 characters
+        Input: { pw: 'REDACTED' }",
+          "name": "AppError",
+        }
+      `)
 
       expect(_inspect(err.cause)).toMatchInlineSnapshot(`
     "AppError: request.body.pw must NOT have fewer than 8 characters

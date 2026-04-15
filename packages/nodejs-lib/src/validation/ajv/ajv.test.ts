@@ -59,6 +59,7 @@ test('simple', () => {
           "schemaPath": "#/required",
         },
       ],
+      "fingerprint": "simple must have required property 's'",
       "inputName": "simple",
     }
   `)
