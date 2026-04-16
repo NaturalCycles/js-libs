@@ -318,11 +318,13 @@ describe('regex flags', () => {
 
 describe('fingerprint for different keywords', () => {
   const testCases: {
+    inputName: string
     schema: JsonSchema
     data: any
     fingerprint: string
   }[] = [
     {
+      inputName: 'Item',
       schema: {
         type: 'object',
         properties: { name: { type: 'string' } },
@@ -332,6 +334,7 @@ describe('fingerprint for different keywords', () => {
       fingerprint: 'Item required:name',
     },
     {
+      inputName: 'User',
       schema: {
         type: 'object',
         properties: { name: { type: 'string' } },
@@ -341,6 +344,7 @@ describe('fingerprint for different keywords', () => {
       fingerprint: 'User.name type:string',
     },
     {
+      inputName: 'Credentials',
       schema: {
         type: 'object',
         properties: { password: { type: 'string', minLength: 8 } },
@@ -350,6 +354,7 @@ describe('fingerprint for different keywords', () => {
       fingerprint: 'Credentials.password minLength:8',
     },
     {
+      inputName: 'Contact',
       schema: {
         type: 'object',
         properties: { email: { type: 'string', pattern: '^[a-z]+$' } },
@@ -359,6 +364,7 @@ describe('fingerprint for different keywords', () => {
       fingerprint: 'Contact.email pattern:^[a-z]+$',
     },
     {
+      inputName: 'Record',
       schema: {
         type: 'object',
         properties: { status: { type: 'string', enum: ['active', 'inactive'] } },
@@ -368,6 +374,7 @@ describe('fingerprint for different keywords', () => {
       fingerprint: 'Record.status enum:active,inactive',
     },
     {
+      inputName: 'Person',
       schema: {
         type: 'object',
         properties: {
@@ -380,6 +387,7 @@ describe('fingerprint for different keywords', () => {
       fingerprint: 'Person required:name',
     },
     {
+      inputName: 'User',
       schema: {
         type: 'object',
         properties: {
@@ -403,6 +411,7 @@ describe('fingerprint for different keywords', () => {
       fingerprint: 'User.user.profile required:email',
     },
     {
+      inputName: 'List',
       schema: {
         type: 'object',
         properties: {
@@ -419,8 +428,7 @@ describe('fingerprint for different keywords', () => {
 
   test.each(testCases)(
     'should generate fingerprint $fingerprint',
-    ({ schema, data, fingerprint }) => {
-      const [inputName] = fingerprint.split(' ')
+    ({ inputName, schema, data, fingerprint }) => {
       const [err] = _try(
         () => AjvSchema.create(schema).validate(data, { inputName }),
         AjvValidationError,
