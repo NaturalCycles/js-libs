@@ -59,7 +59,7 @@ test('simple', () => {
           "schemaPath": "#/required",
         },
       ],
-      "fingerprint": "simple must have required property 's'",
+      "fingerprint": "simple required:s",
       "inputName": "simple",
     }
   `)
@@ -314,4 +314,118 @@ describe('regex flags', () => {
     expect(() => j.object.withRegexKeys(/hello/, j.string())).not.toThrow()
     expect(() => j.object.withRegexKeys('^[a-z]+$', j.string())).not.toThrow()
   })
+})
+
+describe('fingerprint for different keywords', () => {
+  const testCases: {
+    schema: JsonSchema
+    data: any
+    fingerprint: string
+  }[] = [
+    {
+      schema: {
+        type: 'object',
+        properties: { name: { type: 'string' } },
+        required: ['name'],
+      },
+      data: { id: 'unique-record-12345' },
+      fingerprint: 'Item required:name',
+    },
+    {
+      schema: {
+        type: 'object',
+        properties: { name: { type: 'string' } },
+        required: ['name'],
+      },
+      data: { name: 123 },
+      fingerprint: 'User.name type:string',
+    },
+    {
+      schema: {
+        type: 'object',
+        properties: { password: { type: 'string', minLength: 8 } },
+        required: ['password'],
+      },
+      data: { password: '123' },
+      fingerprint: 'Credentials.password minLength:8',
+    },
+    {
+      schema: {
+        type: 'object',
+        properties: { email: { type: 'string', pattern: '^[a-z]+$' } },
+        required: ['email'],
+      },
+      data: { email: 'INVALID@EMAIL.COM' },
+      fingerprint: 'Contact.email pattern:^[a-z]+$',
+    },
+    {
+      schema: {
+        type: 'object',
+        properties: { status: { type: 'string', enum: ['active', 'inactive'] } },
+        required: ['status'],
+      },
+      data: { status: 'unknown' },
+      fingerprint: 'Record.status enum:active,inactive',
+    },
+    {
+      schema: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          age: { type: 'number', minimum: 0 },
+        },
+        required: ['name', 'age'],
+      },
+      data: {},
+      fingerprint: 'Person required:name',
+    },
+    {
+      schema: {
+        type: 'object',
+        properties: {
+          user: {
+            type: 'object',
+            properties: {
+              profile: {
+                type: 'object',
+                properties: {
+                  email: { type: 'string' },
+                },
+                required: ['email'],
+              },
+            },
+            required: ['profile'],
+          },
+        },
+        required: ['user'],
+      },
+      data: { user: { profile: {} } },
+      fingerprint: 'User.user.profile required:email',
+    },
+    {
+      schema: {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] },
+          },
+        },
+      },
+      data: { items: [{ name: 'ok' }, { name: 123 }] },
+      fingerprint: 'List.items.name type:string',
+    },
+  ]
+
+  test.each(testCases)(
+    'should generate fingerprint $fingerprint',
+    ({ schema, data, fingerprint }) => {
+      const [inputName] = fingerprint.split(' ')
+      const [err] = _try(
+        () => AjvSchema.create(schema).validate(data, { inputName }),
+        AjvValidationError,
+      )
+      expect(err!.data.fingerprint).toBe(fingerprint)
+    },
+  )
 })
