@@ -1,7 +1,7 @@
 packages:
   - packages/*
 catalog:
-  '@typescript/native-preview': 7.0.0-dev.20260401.1
+  '@typescript/native-preview': 7.0.0-dev.20260415.1
   oxlint: ^1
 ignoredBuiltDependencies:
   - '@firebase/util'
