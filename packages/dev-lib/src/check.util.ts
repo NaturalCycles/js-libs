@@ -274,9 +274,12 @@ export function runOxlint(fix = true): boolean {
 
   exec2.spawn(oxlintPath, {
     name: ['oxlint', !fix && '--no-fix'].filter(Boolean).join(' '),
-    args: [fix && '--fix', fix && '--fix-suggestions', fix && '--fix-dangerously'].filter(
-      _isTruthy,
-    ),
+    args: [
+      '--no-error-on-unmatched-pattern',
+      fix && '--fix',
+      fix && '--fix-suggestions',
+      fix && '--fix-dangerously',
+    ].filter(_isTruthy),
     shell: false,
   })
   return true
