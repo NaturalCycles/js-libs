@@ -69,16 +69,12 @@ const stylelintCmd = stylelintExists ? `stylelint --fix --config ${stylelintConf
 
 const linters = {
   // oxlint, eslint, stylelint, oxfmt
-  [`./{src,scripts,e2e}/**/*.{${prettierExtensionsAll}}`]: match =>
-    runOxlintEslintStylelintOxfmt(match),
-
-  // Files in root dir: oxfmt
-  [`./*.{${prettierExtensionsAll}}`]: runOxfmt,
+  [`./**/*.{${prettierExtensionsAll}}`]: match => runOxlintEslintStylelintOxfmt(match),
 
   // ktlint
   '**/*.{kt,kts}': runKtlint,
 
-  './.github/**/*.{yml,yaml}': runActionlintOxfmt,
+  './.github/**/*.{yml,yaml}': runActionlint,
 }
 
 export function runOxlintEslintStylelintOxfmt(match) {
@@ -113,6 +109,20 @@ export function runKtlint(match) {
   }
 
   return [`${dir}/resources/ktlint -F ${filesList}`]
+}
+
+export function runActionlint(match) {
+  if (!match.length) return []
+
+  if (!canRunBinary('actionlint')) {
+    console.log(
+      `actionlint is not installed and won't be run.\nThis is how to install it: https://github.com/rhysd/actionlint/blob/main/docs/install.md`,
+    )
+    return []
+  }
+
+  requireActionlintVersion()
+  return ['actionlint']
 }
 
 export function runActionlintOxfmt(match) {
