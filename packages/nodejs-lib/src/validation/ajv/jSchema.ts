@@ -1692,6 +1692,10 @@ function executeValidation<OUT>(
   } = opt
   const dataVar = [inputName, inputId].filter(Boolean).join('.')
 
+  // Build fingerprint before applyImprovementsOnErrorMessages: after it, /items/0/name becomes
+  // .items[0].name, embedding the index into the segment and making it harder to strip without regex
+  const fingerprint = buildAjvErrorFingerprint(errors[0], inputName)
+
   applyImprovementsOnErrorMessages(errors, builtSchema)
 
   let message = getAjv().errorsText(errors, {
@@ -1703,9 +1707,6 @@ function executeValidation<OUT>(
   // the error message Input would contain already mutated object print, such as Input: {}
   // Unless `getOriginalInput` function is provided - then it will be used to preserve the Input pureness.
   const inputStringified = _inspect(opt.getOriginalInput?.() || input, { maxLen: 4000 })
-  // fingerprint is captured before appending the dynamic Input snippet,
-  // so we can group repeated validation errors by rule rather than by unique request content.
-  const fingerprint = message
   message = [message, 'Input: ' + inputStringified].join(separator)
 
   const err = new AjvValidationError(
@@ -1723,7 +1724,7 @@ function executeValidation<OUT>(
 // ==== Error formatting helpers ====
 
 function applyImprovementsOnErrorMessages(
-  errors: ErrorObject<string, Record<string, any>, unknown>[] | null | undefined,
+  errors: ErrorObject[] | null | undefined,
   schema: JsonSchema,
 ): void {
   if (!errors) return
@@ -1751,15 +1752,28 @@ function applyImprovementsOnErrorMessages(
 }
 
 /**
+ * Groups repeated validation errors by rule rather than by unique request content.
+ * Excludes instance-specific data like record IDs and array indices.
+ */
+function buildAjvErrorFingerprint(e: ErrorObject, inputName: string): string {
+  const value = Object.values(e.params || {})[0]
+  let rule = e.keyword
+  if (value !== undefined) rule += `:${value}`
+  const path = e.instancePath
+    .split('/')
+    .filter(s => s && isNaN(Number(s)))
+    .join('.')
+  const location = [inputName, path].filter(Boolean).join('.')
+  return [location, rule].join(' ')
+}
+
+/**
  * Filters out noisy errors produced by nullable anyOf patterns.
  * When `nullable()` wraps a schema in `anyOf: [realSchema, { type: 'null' }]`,
  * AJV produces "must be null" and "must match a schema in anyOf" errors
  * that are confusing. This method splices them out, keeping only the real errors.
  */
-function filterNullableAnyOfErrors(
-  errors: ErrorObject<string, Record<string, any>, unknown>[],
-  schema: JsonSchema,
-): void {
+function filterNullableAnyOfErrors(errors: ErrorObject[], schema: JsonSchema): void {
   // Collect exact schemaPaths to remove (anyOf aggregates) and prefixes (null branches)
   const exactPaths: string[] = []
   const nullBranchPrefixes: string[] = []

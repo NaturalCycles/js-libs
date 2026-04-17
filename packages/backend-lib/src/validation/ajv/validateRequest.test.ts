@@ -50,7 +50,7 @@ describe('ajvValidateRequest', () => {
                 "schemaPath": "#/properties/pw/minLength",
               },
             ],
-            "fingerprint": "request.body.pw must NOT have fewer than 8 characters",
+            "fingerprint": "request.body.pw minLength:8",
             "inputName": "request.body",
           },
           "message": "request.body.pw must NOT have fewer than 8 characters
