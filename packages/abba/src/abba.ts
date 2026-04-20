@@ -242,6 +242,17 @@ export class Abba {
     await this.updateExclusions(experimentId, [])
   }
 
+  async getExperimentWithBuckets(experimentId: string): Promise<ExperimentWithBuckets | undefined> {
+    const experiment = await this.experimentDao.getById(experimentId)
+    if (!experiment) return
+
+    const buckets = await this.bucketDao.getByExperimentId(experiment.id)
+    return {
+      ...experiment,
+      buckets,
+    }
+  }
+
   /**
    * Get an assignment for a given user. If existingOnly is false, it will attempt to generate a new assignment
    * Cold method.
