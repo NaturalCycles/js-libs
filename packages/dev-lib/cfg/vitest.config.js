@@ -93,7 +93,12 @@ export function getSharedConfig(cwd) {
     exclude,
     reporters: getReporters(junitReporterEnabled, testType),
     // outputFile location is specified for compatibility with the previous jest config
-    outputFile: junitReporterEnabled ? `./tmp/jest/${testType}.xml` : undefined,
+    outputFile: junitReporterEnabled
+      ? {
+          junit: `./tmp/jest/${testType}.xml`,
+          json: `./tmp/jest/${testType}.json`,
+        }
+      : undefined,
     coverage: {
       enabled: coverageEnabled,
       reporter: ['html', 'lcov', 'json', 'json-summary', !isCI && 'text'].filter(Boolean),
@@ -136,6 +141,7 @@ function getReporters(junitReporterEnabled, testType) {
     'default',
     GITHUB_ACTIONS && 'github-actions',
     new SummaryReporter(),
+    junitReporterEnabled && 'json',
     junitReporterEnabled && [
       'junit',
       {
