@@ -260,6 +260,26 @@ describe('getUserAssignment', () => {
   })
 })
 
+describe('getExperimentWithBuckets', () => {
+  test('returns the experiment by id, and its buckets', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment())
+    const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
+
+    const result = await abba.getExperimentWithBuckets(experiment.id)
+
+    expect(result).toEqual({
+      ...experiment,
+      buckets: [bucket],
+    })
+  })
+
+  test('returns undefined if experiment not found', async () => {
+    const result = await abba.getExperimentWithBuckets('nonExistentId')
+
+    expect(result).toBeUndefined()
+  })
+})
+
 describe('generateUserAssignments', () => {
   // We spy on getAllExperiments to avoid the cache
   test('Does not return existing assignment for experiments that are inactive', async () => {
