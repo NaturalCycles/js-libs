@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range, _sortBy } from '@naturalcycles/js-lib/array'
 import { ErrorMode, pExpectedError, pExpectedErrorString, pTry } from '@naturalcycles/js-lib/error'
@@ -1272,5 +1273,462 @@ describe('auto compression', () => {
     )
 
     saveBatchSpy.mockRestore()
+  })
+})
+
+describe('auto chunking', () => {
+  // Small threshold so tests can trigger chunking with reasonable payload sizes.
+  const SMALL_MAX = 128
+
+  // Build a payload that compresses to more than N bytes. Uses random base64 so content
+  // is incompressible; compressed length ≳ uncompressed length.
+  function makeLargeObj(approxUncompressedBytes: number): any {
+    const buf = randomBytes(approxUncompressedBytes)
+    return { blob: buf.toString('base64') }
+  }
+
+  function newDao(chunkCfg: boolean | { maxChunkSize?: number } = { maxChunkSize: SMALL_MAX }): {
+    dao: CommonDao<Item>
+    db: InMemoryDB
+  } {
+    const localDb = new InMemoryDB()
+    const dao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db: localDb,
+      compress: {
+        keys: ['obj'],
+        chunk: chunkCfg,
+      },
+    })
+    return { dao, db: localDb }
+  }
+
+  test('round-trip small entity saves as a single row', async () => {
+    const { dao, db: localDb } = newDao()
+    await dao.save({ id: 'abc', obj: { n: 1 } })
+
+    const storage = localDb.data[TEST_TABLE]!
+    expect(Object.keys(storage)).toEqual(['abc'])
+    expect((storage['abc'] as any).__chunks).toBeUndefined()
+
+    const back = await dao.getById('abc')
+    expect(back).toEqual({
+      id: 'abc',
+      obj: { n: 1 },
+      created: expect.any(Number),
+      updated: expect.any(Number),
+    })
+  })
+
+  test('round-trip large entity splits into primary + chunks across two tables', async () => {
+    const { dao, db: localDb } = newDao()
+    const obj = makeLargeObj(SMALL_MAX * 4) // forces multiple chunks
+    await dao.save({ id: 'big', obj })
+
+    const primaryTable = localDb.data[TEST_TABLE]!
+    const chunksTable = localDb.data[`${TEST_TABLE}__chunks`]!
+    // Primary table has just the primary
+    expect(Object.keys(primaryTable)).toEqual(['big'])
+    const n = (primaryTable['big'] as any).__chunks as number
+    expect(n).toBeGreaterThanOrEqual(2)
+
+    // Chunks table has n-1 extra chunk rows with primaryId and chunkIdx
+    const chunkIds = Object.keys(chunksTable).sort()
+    expect(chunkIds).toHaveLength(n - 1)
+    for (const id of chunkIds) {
+      expect(id).toMatch(/^big__c\d+$/)
+      const cr = chunksTable[id] as any
+      expect(cr.primaryId).toBe('big')
+      expect(typeof cr.chunkIdx).toBe('number')
+      expect(Buffer.isBuffer(cr.__compressed)).toBe(true)
+    }
+
+    const back = await dao.getById('big')
+    expect(back?.obj).toEqual(obj)
+  })
+
+  test('orphan cleanup: shrinking chunk count deletes stale chunks', async () => {
+    const { dao, db: localDb } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 5)
+    await dao.save({ id: 'e1', obj: big })
+    const initialN = (localDb.data[TEST_TABLE]!['e1'] as any).__chunks as number
+    expect(initialN).toBeGreaterThanOrEqual(3)
+
+    // Re-save with much smaller payload — should now fit in 1 row, all chunks should be gone
+    await dao.save({ id: 'e1', obj: { n: 1 } })
+    expect(Object.keys(localDb.data[TEST_TABLE]!)).toEqual(['e1'])
+    expect((localDb.data[TEST_TABLE]!['e1'] as any).__chunks).toBeUndefined()
+    const chunksTable = localDb.data[`${TEST_TABLE}__chunks`] ?? {}
+    expect(Object.keys(chunksTable)).toEqual([])
+  })
+
+  test('orphan cleanup: N→M shrink where M > 1 deletes only stale chunks', async () => {
+    const { dao, db: localDb } = newDao()
+    const veryBig = makeLargeObj(SMALL_MAX * 6)
+    await dao.save({ id: 'e2', obj: veryBig })
+    const initialN = (localDb.data[TEST_TABLE]!['e2'] as any).__chunks as number
+    expect(initialN).toBeGreaterThanOrEqual(4)
+
+    // Re-save with a smaller-but-still-chunked payload
+    const medBig = makeLargeObj(SMALL_MAX * 3)
+    await dao.save({ id: 'e2', obj: medBig })
+    const newN = (localDb.data[TEST_TABLE]!['e2'] as any).__chunks as number
+    expect(newN).toBeGreaterThanOrEqual(2)
+    expect(newN).toBeLessThan(initialN)
+
+    // Primary table has just the primary; chunks table has exactly newN-1 rows
+    expect(Object.keys(localDb.data[TEST_TABLE]!)).toEqual(['e2'])
+    const chunksTable = localDb.data[`${TEST_TABLE}__chunks`]!
+    expect(Object.keys(chunksTable)).toHaveLength(newN - 1)
+
+    // Round-trip still works
+    const back = await dao.getById('e2')
+    expect(back?.obj).toEqual(medBig)
+  })
+
+  test('orphan cleanup deletes exact range (count-first, no 99-id amplification)', async () => {
+    const { dao, db: localDb } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 5)
+    await dao.save({ id: 'exact', obj: big })
+    const initialN = (localDb.data[TEST_TABLE]!['exact'] as any).__chunks as number
+    expect(initialN).toBeGreaterThanOrEqual(3)
+
+    // Spy on deleteByIds targeting the chunks table
+    const deleteSpy = vi.spyOn(localDb, 'deleteByIds')
+
+    // Shrink to a single row
+    await dao.save({ id: 'exact', obj: { n: 1 } })
+
+    // Orphan delete call(s) on the chunks table should contain exactly initialN - 1 ids,
+    // NOT the full MAX_CHUNKS_PER_ENTITY - 1 (99) candidate range.
+    const chunksDeleteCalls = deleteSpy.mock.calls.filter(
+      call => call[0] === `${TEST_TABLE}__chunks`,
+    )
+    const totalChunkIdsDeleted = chunksDeleteCalls.reduce((sum, call) => sum + call[1].length, 0)
+    expect(totalChunkIdsDeleted).toBe(initialN - 1)
+
+    deleteSpy.mockRestore()
+  })
+
+  test('orphan cleanup: no orphans → no delete call issued', async () => {
+    const { dao, db: localDb } = newDao()
+    // Save a chunked entity, then immediately re-save at the SAME chunk count
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.save({ id: 'same', obj: big })
+
+    const deleteSpy = vi.spyOn(localDb, 'deleteByIds')
+
+    // Re-save with equivalent payload (same approximate size → same N)
+    await dao.save({ id: 'same', obj: big })
+
+    // No orphan deletes should fire against the chunks table
+    const chunksDeleteCalls = deleteSpy.mock.calls.filter(
+      call => call[0] === `${TEST_TABLE}__chunks`,
+    )
+    expect(chunksDeleteCalls).toEqual([])
+
+    deleteSpy.mockRestore()
+  })
+
+  test('deleteById removes all chunk rows', async () => {
+    const { dao, db: localDb } = newDao()
+    await dao.save({ id: 'del', obj: makeLargeObj(SMALL_MAX * 4) })
+    const chunksTable = localDb.data[`${TEST_TABLE}__chunks`]!
+    expect(Object.keys(chunksTable).length).toBeGreaterThan(0)
+
+    await dao.deleteById('del')
+    expect(Object.keys(localDb.data[TEST_TABLE]!)).toEqual([])
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {})).toEqual([])
+  })
+
+  test('runQuery filters out chunk rows', async () => {
+    const { dao } = newDao()
+    await dao.save({ id: 'one', obj: makeLargeObj(SMALL_MAX * 3) })
+    await dao.save({ id: 'two', obj: { small: true } })
+
+    const all = await dao.getAll()
+    expect(all.map(r => r.id).sort()).toEqual(['one', 'two'])
+    // Reassembly restored the full obj
+    const byId = Object.fromEntries(all.map(r => [r.id, r]))
+    expect(byId['one']!.obj).toEqual(expect.objectContaining({ blob: expect.any(String) }))
+  })
+
+  test('streamQuery filters and reassembles', async () => {
+    const { dao } = newDao()
+    await dao.save({ id: 's1', obj: makeLargeObj(SMALL_MAX * 3) })
+    await dao.save({ id: 's2', obj: { small: true } })
+
+    const results = await dao.streamQuery(dao.query()).toArray()
+    expect(results.map(r => r.id).sort()).toEqual(['s1', 's2'])
+    const byId = Object.fromEntries(results.map(r => [r.id, r]))
+    expect(byId['s1']!.obj).toEqual(expect.objectContaining({ blob: expect.any(String) }))
+  })
+
+  test('partial query (select) still filters chunk rows', async () => {
+    const { dao } = newDao()
+    await dao.save({ id: 'p1', obj: makeLargeObj(SMALL_MAX * 3) })
+    await dao.save({ id: 'p2', obj: { n: 1 } })
+
+    const ids = await dao.queryIds(dao.query())
+    expect(ids.sort()).toEqual(['p1', 'p2'])
+  })
+
+  test('queryIds and streamQueryIds exclude chunk ids', async () => {
+    const { dao } = newDao()
+    await dao.save({ id: 'q1', obj: makeLargeObj(SMALL_MAX * 3) })
+
+    const ids = await dao.queryIds(dao.query())
+    expect(ids).toEqual(['q1'])
+
+    const streamedIds = await dao.streamQueryIds(dao.query()).toArray()
+    expect(streamedIds).toEqual(['q1'])
+  })
+
+  test('getByIds mixed chunked + non-chunked', async () => {
+    const { dao } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.save({ id: 'm1', obj: big })
+    await dao.save({ id: 'm2', obj: { small: true } })
+
+    const results = await dao.getByIds(['m1', 'm2'])
+    expect(results.map(r => r.id).sort()).toEqual(['m1', 'm2'])
+    const byId = Object.fromEntries(results.map(r => [r.id, r]))
+    expect(byId['m1']!.obj).toEqual(big)
+  })
+
+  test('patchById on chunked entity re-chunks correctly', async () => {
+    const { dao, db: localDb } = newDao()
+    const initial = makeLargeObj(SMALL_MAX * 3)
+    await dao.save({ id: 'p1', obj: initial })
+
+    await dao.patchById('p1', { obj: { ...initial, extra: 'x' } })
+
+    const back = await dao.getById('p1')
+    expect(back?.obj).toEqual({ ...initial, extra: 'x' })
+    // Primary exists; chunks table has chunk rows
+    expect(Object.keys(localDb.data[TEST_TABLE]!)).toContain('p1')
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {}).length).toBeGreaterThan(0)
+  })
+
+  test('patchByQuery throws when chunking enabled', async () => {
+    const { dao } = newDao()
+    await expect(dao.patchByQuery(dao.query(), { obj: { n: 2 } })).rejects.toThrow(
+      /patchByQuery.*not supported/,
+    )
+  })
+
+  test('patchByIds throws when chunking enabled', async () => {
+    const { dao } = newDao()
+    await expect(dao.patchByIds(['x'], { obj: { n: 2 } })).rejects.toThrow(
+      /patchByQuery.*not supported/,
+    )
+  })
+
+  test('runQueryCount is accurate regardless of filter (chunks live in a separate table)', async () => {
+    const { dao } = newDao()
+    await dao.save({ id: 'c1', obj: makeLargeObj(SMALL_MAX * 3) })
+    await dao.save({ id: 'c2', obj: { n: 2 } })
+
+    // Unfiltered count is correct now — chunks are in `${table}__chunks`, not this table.
+    expect(await dao.query().runQueryCount()).toBe(2)
+    expect(await dao.query().filterEq('id', 'c1').runQueryCount()).toBe(1)
+  })
+
+  test(
+    String.raw`entity ids can freely match /__c\d+$/ — no collision with chunks table`,
+    async () => {
+      const { dao } = newDao()
+      // This used to be forbidden when chunks lived in the same table; now it's fine.
+      await dao.save({ id: 'item__c1', obj: { n: 1 } })
+      const back = await dao.getById('item__c1')
+      expect(back?.obj).toEqual({ n: 1 })
+    },
+  )
+
+  test('auto-adds __compressed and __chunks to excludeFromIndexes on primary', async () => {
+    const { dao, db: localDb } = newDao()
+    const saveBatchSpy = vi.spyOn(localDb, 'saveBatch')
+
+    await dao.save({ id: 'ei', obj: { n: 1 } })
+
+    expect(saveBatchSpy).toHaveBeenCalledWith(
+      TEST_TABLE,
+      expect.any(Array),
+      expect.objectContaining({
+        excludeFromIndexes: expect.arrayContaining(['__compressed', '__chunks']),
+      }),
+    )
+    saveBatchSpy.mockRestore()
+  })
+
+  test('deleteByQuery removes primaries and their chunks', async () => {
+    const { dao, db: localDb } = newDao()
+    await dao.save({ id: 'dq1', obj: makeLargeObj(SMALL_MAX * 3) })
+    await dao.save({ id: 'dq2', obj: { n: 1 } })
+
+    const deleted = await dao.deleteByQuery(dao.query())
+    expect(deleted).toBe(2)
+    expect(Object.keys(localDb.data[TEST_TABLE] || {})).toEqual([])
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {})).toEqual([])
+  })
+
+  test('saveBatch with mix of chunked and non-chunked entities', async () => {
+    const { dao, db: localDb } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.saveBatch([
+      { id: 'b1', obj: big },
+      { id: 'b2', obj: { n: 1 } },
+      { id: 'b3', obj: big },
+    ])
+
+    const results = await dao.getByIds(['b1', 'b2', 'b3'])
+    expect(results.map(r => r.id).sort()).toEqual(['b1', 'b2', 'b3'])
+    const byId = Object.fromEntries(results.map(r => [r.id, r]))
+    expect(byId['b1']!.obj).toEqual(big)
+    expect(byId['b3']!.obj).toEqual(big)
+    expect(byId['b2']!.obj).toEqual({ n: 1 })
+
+    // Primary table has exactly 3 primaries; chunks table has chunks for b1 + b3
+    expect(Object.keys(localDb.data[TEST_TABLE]!).sort()).toEqual(['b1', 'b2', 'b3'])
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {}).length).toBeGreaterThan(0)
+  })
+
+  test('constructor rejects chunk without keys', () => {
+    expect(
+      () =>
+        new CommonDao<Item>({
+          table: TEST_TABLE,
+          db,
+          compress: { keys: [], chunk: true },
+        }),
+    ).toThrow(/compress\.chunk requires compress\.keys to be non-empty/)
+  })
+
+  test('saveAsDBM + getByIdAsDBM round-trip for chunked entity', async () => {
+    const { dao } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.saveAsDBM({ id: 'dbm1', obj: big } as any)
+    const back = await dao.getByIdAsDBM('dbm1')
+    expect(back?.obj).toEqual(big)
+  })
+
+  test('saveBatchAsDBM + getByIdsAsDBM round-trip for chunked entities', async () => {
+    const { dao } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.saveBatchAsDBM([{ id: 'db1', obj: big } as any, { id: 'db2', obj: { n: 1 } } as any])
+    const back = await dao.getByIdsAsDBM(['db1', 'db2'])
+    expect(back.map(r => r.id).sort()).toEqual(['db1', 'db2'])
+    const byId = Object.fromEntries(back.map(r => [r.id, r]))
+    expect(byId['db1']!.obj).toEqual(big)
+  })
+
+  test('streamSave with chunking writes primaries + chunks', async () => {
+    const { dao, db: localDb } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    const { Pipeline } = await import('@naturalcycles/nodejs-lib/stream')
+    const p = Pipeline.fromArray<Item>([
+      { id: 'ss1', obj: big } as any,
+      { id: 'ss2', obj: { n: 1 } } as any,
+      { id: 'ss3', obj: big } as any,
+    ])
+    await dao.streamSave(p as any)
+
+    const results = await dao.getByIds(['ss1', 'ss2', 'ss3'])
+    expect(results.map(r => r.id).sort()).toEqual(['ss1', 'ss2', 'ss3'])
+    const byId = Object.fromEntries(results.map(r => [r.id, r]))
+    expect(byId['ss1']!.obj).toEqual(big)
+    expect(byId['ss3']!.obj).toEqual(big)
+    // Primaries in main table, chunks in chunks table
+    expect(Object.keys(localDb.data[TEST_TABLE]!).sort()).toEqual(['ss1', 'ss2', 'ss3'])
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {}).length).toBeGreaterThan(0)
+  })
+
+  test('streamQueryAsDBM with chunking reassembles per row', async () => {
+    const { dao } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.save({ id: 'sq1', obj: big })
+    await dao.save({ id: 'sq2', obj: { n: 1 } })
+
+    const rows = await dao.streamQueryAsDBM(dao.query()).toArray()
+    expect(rows.map(r => r.id).sort()).toEqual(['sq1', 'sq2'])
+    const byId = Object.fromEntries(rows.map(r => [r.id, r]))
+    expect(byId['sq1']!.obj).toEqual(big)
+  })
+
+  test('multiGet fetches chunked entities across tables', async () => {
+    const { dao } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.save({ id: 'mg1', obj: big })
+    await dao.save({ id: 'mg2', obj: { n: 1 } })
+
+    const result = await CommonDao.multiGet({
+      many: dao.withIds(['mg1', 'mg2']),
+    })
+    expect(result.many.map(r => r.id).sort()).toEqual(['mg1', 'mg2'])
+    const byId = Object.fromEntries(result.many.map(r => [r.id, r]))
+    expect(byId['mg1']!.obj).toEqual(big)
+  })
+
+  test('multiSave writes chunked entities across tables', async () => {
+    const { dao, db: localDb } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await CommonDao.multiSave([{ dao, rows: [{ id: 'ms1', obj: big } as any] }])
+    const back = await dao.getById('ms1')
+    expect(back?.obj).toEqual(big)
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {}).length).toBeGreaterThan(0)
+  })
+
+  test('multiDelete removes chunked entities and their chunks', async () => {
+    const { dao, db: localDb } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await dao.save({ id: 'md1', obj: big })
+    await dao.save({ id: 'md2', obj: { n: 1 } })
+
+    const deleted = await CommonDao.multiDelete([
+      { dao, id: 'md1' },
+      { dao, id: 'md2' },
+    ])
+    expect(deleted).toBe(2)
+    expect(Object.keys(localDb.data[TEST_TABLE]!)).toEqual([])
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {})).toEqual([])
+  })
+
+  test('cfg-independent read: legacy chunked data reads correctly after chunk is turned off', async () => {
+    // Save with chunking enabled
+    const localDb = new InMemoryDB()
+    const chunkedDao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db: localDb,
+      compress: { keys: ['obj'], chunk: { maxChunkSize: SMALL_MAX } },
+    })
+    const big = makeLargeObj(SMALL_MAX * 3)
+    await chunkedDao.save({ id: 'legacy', obj: big })
+    expect(Object.keys(localDb.data[`${TEST_TABLE}__chunks`] ?? {}).length).toBeGreaterThan(0)
+
+    // Build a new DAO with chunking DISABLED but compression still on
+    const unChunkedDao = new CommonDao<Item>({
+      table: TEST_TABLE,
+      db: localDb,
+      compress: { keys: ['obj'] }, // no .chunk
+    })
+    // Existing chunked data should still read back correctly
+    const back = await unChunkedDao.getById('legacy')
+    expect(back?.obj).toEqual(big)
+  })
+
+  test('filterIn batching: getByIds with > FILTER_IN_BATCH_SIZE chunked primaries', async () => {
+    const { dao } = newDao()
+    const big = makeLargeObj(SMALL_MAX * 3)
+    const ids = Array.from({ length: 40 }, (_, i) => `b${i}`)
+    // Save 40 chunked entities
+    for (const id of ids) {
+      await dao.save({ id, obj: big })
+    }
+    // getByIds with 40 primary ids: should batch the chunks-filterIn (30 + 10)
+    const rows = await dao.getByIds(ids)
+    expect(rows.map(r => r.id).sort()).toEqual([...ids].sort())
+    for (const r of rows) {
+      expect(r.obj).toEqual(big)
+    }
   })
 })
