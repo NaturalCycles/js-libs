@@ -276,6 +276,7 @@ export function runOxlint(fix = true): boolean {
     name: ['oxlint', !fix && '--no-fix'].filter(Boolean).join(' '),
     args: [
       '--no-error-on-unmatched-pattern',
+      '--disable-nested-config',
       fix && '--fix',
       fix && '--fix-suggestions',
       fix && '--fix-dangerously',
@@ -298,7 +299,9 @@ export function runOxfmt(fix = true): boolean {
 
   exec2.spawn(oxlintPath, {
     name: ['oxfmt', !fix && '--check'].filter(Boolean).join(' '),
-    args: [!fix && '--check', '--no-error-on-unmatched-pattern'].filter(_isTruthy),
+    args: [!fix && '--check', '--no-error-on-unmatched-pattern', '--disable-nested-config'].filter(
+      _isTruthy,
+    ),
     shell: false,
   })
   return true

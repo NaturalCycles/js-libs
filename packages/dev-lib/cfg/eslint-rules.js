@@ -491,7 +491,7 @@ export default {
     '@typescript-eslint/prefer-string-starts-ends-with': 0, // ox
     '@typescript-eslint/prefer-ts-expect-error': 0, // ox
     '@typescript-eslint/explicit-member-accessibility': [
-      2,
+      0, // ox
       {
         accessibility: 'no-public',
         overrides: { parameterProperties: 'off' },

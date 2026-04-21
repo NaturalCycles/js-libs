@@ -30,7 +30,7 @@ const oxlintConfigPath = ['oxlint.config.ts'].find(fs.existsSync)
 let oxfmtCmd = undefined
 
 if (oxfmtConfigPath) {
-  oxfmtCmd = 'oxfmt --no-error-on-unmatched-pattern'
+  oxfmtCmd = 'oxfmt --no-error-on-unmatched-pattern --disable-nested-config'
 }
 
 let eslintCmd = undefined
@@ -56,6 +56,7 @@ if (oxlintConfigPath) {
     '--fix-suggestions',
     '--fix-dangerously',
     '--no-error-on-unmatched-pattern',
+    '--disable-nested-config',
   ]
     .filter(Boolean)
     .join(' ')

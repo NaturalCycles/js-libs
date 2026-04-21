@@ -254,6 +254,13 @@ export const sharedConfig = {
     'typescript/require-array-sort-compare': 0, // not good
     'typescript/restrict-template-expressions': 0, // not good
     'typescript/no-redundant-type-constituents': 0, // `'a' | string` is still useful for DX
+    '@typescript-eslint/explicit-member-accessibility': [
+      2,
+      {
+        accessibility: 'no-public',
+        overrides: { parameterProperties: 'off' },
+      },
+    ],
     'typescript/no-restricted-types': [
       2,
       {

@@ -299,6 +299,17 @@
         }
       ]
     ],
+    "typescript/explicit-member-accessibility": [
+      "deny",
+      [
+        {
+          "accessibility": "no-public",
+          "overrides": {
+            "parameterProperties": "off"
+          }
+        }
+      ]
+    ],
     "typescript/no-array-delete": "warn",
     "typescript/no-base-to-string": "deny",
     "typescript/no-confusing-non-null-assertion": "deny",
@@ -602,6 +613,9 @@
     },
     "vitest": {
       "typecheck": false
+    },
+    "jest": {
+      "version": null
     }
   },
   "env": {

@@ -16,15 +16,6 @@
   },
   "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.59.0"],
   "rules": {
-    "@typescript-eslint/explicit-member-accessibility": [
-      2,
-      {
-        "accessibility": "no-public",
-        "overrides": {
-          "parameterProperties": "off"
-        }
-      }
-    ],
     "@typescript-eslint/method-signature-style": [2],
     "@typescript-eslint/naming-convention": [
       2,
