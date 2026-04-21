@@ -41,6 +41,7 @@ test('basic', () => {
 
 test('includes', () => {
   const int = DateInterval.parse('2022-02-24/2022-03-30')
+  // oxlint-disable jest/prefer-to-contain
   expect(int.includes('2022-02-23' as IsoDate)).toBe(false)
   expect(int.includes('2022-02-24' as IsoDate)).toBe(true)
   expect(int.includes('2022-02-25' as IsoDate)).toBe(true)

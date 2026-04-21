@@ -49,6 +49,7 @@ test('uniq', () => {
 test('shuffle', () => {
   const arr = new Array2(1, 2, 3, 4)
   const sequence = [0.75, 0.5, 0.1]
+  // oxlint-disable-next-line jest/prefer-mock-return-shorthand
   const randomSpy = vi.spyOn(Math, 'random').mockImplementation(() => sequence.shift() ?? 0)
 
   const shuffled = arr.shuffle()
