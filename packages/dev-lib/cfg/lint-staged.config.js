@@ -81,10 +81,14 @@ const linters = {
 export function runOxlintEslintStylelintOxfmt(match) {
   const filesList = getFilesList(match)
   if (!filesList) return []
+  const eslintFilesList = eslintCmd && getEslintFilesList(match)
 
-  return [oxlintCmd, eslintCmd, stylelintCmd, oxfmtCmd]
-    .filter(Boolean)
-    .map(s => `${s} ${filesList}`)
+  return [
+    oxlintCmd && `${oxlintCmd} ${filesList}`,
+    eslintFilesList && `${eslintCmd} ${eslintFilesList}`,
+    stylelintCmd && `${stylelintCmd} ${filesList}`,
+    oxfmtCmd && `${oxfmtCmd} ${filesList}`,
+  ].filter(Boolean)
 }
 
 export function runOxlintOxfmt(match) {
@@ -151,6 +155,11 @@ export function runActionlintOxfmt(match) {
 function getFilesList(match) {
   const isExcluded = picomatch(lintExclude)
   return match.filter(f => !isExcluded(f)).join(' ')
+}
+
+function getEslintFilesList(match) {
+  const isIncluded = picomatch('./{src,scripts,e2e}/**/*.{ts,tsx,html}')
+  return match.filter(f => isIncluded(f)).join(' ')
 }
 
 function canRunBinary(name) {
