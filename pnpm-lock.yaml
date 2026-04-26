@@ -49,10 +49,10 @@ importers:
         version: 0.46.0
       oxlint:
         specifier: 'catalog:'
-        version: 1.61.0(oxlint-tsgolint@0.21.1)
+        version: 1.61.0(oxlint-tsgolint@0.22.0)
       oxlint-tsgolint:
         specifier: ^0
-        version: 0.21.1
+        version: 0.22.0
       semantic-release:
         specifier: ^25
         version: 25.0.3(typescript@5.9.3)
@@ -67,7 +67,7 @@ importers:
         version: 8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)(yaml@2.8.3)
       vitepress:
         specifier: ^1
-        version: 1.6.4(@algolia/client-search@5.51.0)(@types/node@25.6.0)(lightningcss@1.32.0)(postcss@8.5.10)(search-insights@2.17.3)(typescript@5.9.3)
+        version: 1.6.4(@algolia/client-search@5.51.0)(@types/node@25.6.0)(lightningcss@1.32.0)(postcss@8.5.12)(search-insights@2.17.3)(typescript@5.9.3)
       vitest:
         specifier: ^4
         version: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(@vitest/coverage-v8@4.1.5)(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)(yaml@2.8.3))
@@ -359,7 +359,7 @@ importers:
         version: 10.2.1
       eslint-plugin-oxlint:
         specifier: ^1
-        version: 1.61.0(oxlint@1.61.0(oxlint-tsgolint@0.21.1))
+        version: 1.61.0(oxlint@1.61.0(oxlint-tsgolint@0.22.0))
       globals:
         specifier: ^17
         version: 17.5.0
@@ -374,10 +374,10 @@ importers:
         version: 0.46.0
       oxlint:
         specifier: 'catalog:'
-        version: 1.61.0(oxlint-tsgolint@0.21.1)
+        version: 1.61.0(oxlint-tsgolint@0.22.0)
       oxlint-tsgolint:
         specifier: ^0
-        version: 0.21.1
+        version: 0.22.0
       picomatch:
         specifier: ^4
         version: 4.0.4
@@ -392,7 +392,7 @@ importers:
         version: 17.9.0(typescript@5.9.3)
       stylelint-config-standard-scss:
         specifier: ^17
-        version: 17.0.0(postcss@8.5.10)(stylelint@17.9.0(typescript@5.9.3))
+        version: 17.0.0(postcss@8.5.12)(stylelint@17.9.0(typescript@5.9.3))
       typescript-eslint:
         specifier: ^8
         version: 8.59.0(eslint@10.2.1)(typescript@5.9.3)
@@ -1620,33 +1620,33 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@oxlint-tsgolint/darwin-arm64@0.21.1':
-    resolution: {integrity: sha512-7TLjyWe4wG9saJc992VWmaHq2hwKfOEEVTjheReXJXaDhavMZI4X9a6nKhbEng4IVkYtzjD2jw16vw2WFXLYLw==}
+  '@oxlint-tsgolint/darwin-arm64@0.22.0':
+    resolution: {integrity: sha512-/exgXceakHbQrzaHTtKOe7MuDATaWMCCWpsCDQCZKeYhLGXzComipTrCYnHzAXrdnNBb5r5K+RRf5A6ormrhMA==}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxlint-tsgolint/darwin-x64@0.21.1':
-    resolution: {integrity: sha512-7wf9Wf75nTzA7zpL9myhFe2RKvfuqGUOADNvUooCjEWvh7hmPz3lSEqTMh5Z/VQhzsG04mM9ACyghxhRzq7zFw==}
+  '@oxlint-tsgolint/darwin-x64@0.22.0':
+    resolution: {integrity: sha512-xFGdIahlmUbK+/MpZ5y08D0ewMGLDbd2Vki5wxVFYg50lSrtgPAtdDl+kqKZLNaFu0zpMar8n9wv1le05sL/jw==}
     cpu: [x64]
     os: [darwin]
 
-  '@oxlint-tsgolint/linux-arm64@0.21.1':
-    resolution: {integrity: sha512-IPuQN/Vd0Rjklg/cCGBbQyUuRBp2f6LQXpZYwk5ivOR6V/+CgiYsv8pn/PVY7gjeyoNvPQrXB7xMjHUO2YZbdw==}
+  '@oxlint-tsgolint/linux-arm64@0.22.0':
+    resolution: {integrity: sha512-53RvC9f77eUo+V1dfQNwGVnsIfPJFMibRR0ee128EUpYNDOZe/ojmCfuXJeU7cY91V7r7fZSm42KPJocXUX8og==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint-tsgolint/linux-x64@0.21.1':
-    resolution: {integrity: sha512-d1niGuTbh2qiv7dR7tqkbOcM5cIR63of0lMBFdEQavL1KrJV8zuRdwdi68K7MNGdgoR+J5A9ajpGGvsHwp1bPg==}
+  '@oxlint-tsgolint/linux-x64@0.22.0':
+    resolution: {integrity: sha512-evZcJAZ9hjNyuN69RnXwbt+U2pAOcYt+yvqukgugiCkRm4iBZ0R0CvpY1tgfG2XcGUhEPh8dljO+nPZTEVGpCQ==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint-tsgolint/win32-arm64@0.21.1':
-    resolution: {integrity: sha512-ICu9y2JLnFPvFqstnWPPNqBM8LK8BWw2OTeaR0UgEMm4hOSbrZAKv1/hwZYyiLqnCNjBL87AGSQIgTHCYlsipw==}
+  '@oxlint-tsgolint/win32-arm64@0.22.0':
+    resolution: {integrity: sha512-7jTO+k1mr5BxRAI2fxc1NRcE3MAbHNZ0Vef9SD1yAR6d1E6qEv5D/D7yuHpQpw6AO3qoecSVo2Jzr+JirN61+w==}
     cpu: [arm64]
     os: [win32]
 
-  '@oxlint-tsgolint/win32-x64@0.21.1':
-    resolution: {integrity: sha512-cTEFCFjCj6iXfrSHcvajSPNqhEA4TxSzU3gFxbdGSAUTNXGToU99IbdhWAPSbhcucoym0XE4Zl7E41NiSkNTug==}
+  '@oxlint-tsgolint/win32-x64@0.22.0':
+    resolution: {integrity: sha512-7lbl9XFcqO+scsynxMzTQdl0XUe6sBUCyY/oGWvCB+JmV4U+70vzSyZJdTEzzxtkZiNnUVFFh9RJLmoiQSne+w==}
     cpu: [x64]
     os: [win32]
 
@@ -3164,8 +3164,8 @@ packages:
     resolution: {integrity: sha512-Zf5H2Kxt2xjTvbJvP2ZWLEICxA6j+hAmMzIlypy4xcBg1vKVnx89Wy0GbS+kf5cwCVFFzdCFh2XSCFNULS6csw==}
     engines: {node: '>= 0.4'}
 
-  es-module-lexer@2.0.0:
-    resolution: {integrity: sha512-5POEcUuZybH7IdmGsD8wlf0AI55wMecM9rVBTI/qEAy2c1kTOm3DjFYjrBdI2K3BaJjJYfYFeRtM0t9ssnRuxw==}
+  es-module-lexer@2.1.0:
+    resolution: {integrity: sha512-n27zTYMjYu1aj4MjCWzSP7G9r75utsaoc8m61weK+W8JMBGGQybd43GstCXZ3WNmSFtGT9wi59qQTW6mhTR5LQ==}
 
   es-object-atoms@1.1.1:
     resolution: {integrity: sha512-FGgH2h8zKNim9ljj7dankFPcICIK9Cp5bm+c2gQSYePhpaG5+esrLODihIorn+Pe6FGJzWhXQotPv73jTaldXA==}
@@ -4615,8 +4615,8 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  oxlint-tsgolint@0.21.1:
-    resolution: {integrity: sha512-O2hxiT14C2HJkwzBU6CQBFPoagSd/IcV+Tt3e3UUaXFwbW4BO5DSDPSSboc3UM5MIDY+MLyepvtQwBQafNxWdw==}
+  oxlint-tsgolint@0.22.0:
+    resolution: {integrity: sha512-ku4MecLmCQIj1ScCtzNAqTuyl0BJQ02B36fJT+c5XQihHpYSFak+FC3GYO5fPyYk4oDwi0w0S7hTvrpNzuZhig==}
     hasBin: true
 
   oxlint@1.61.0:
@@ -4848,8 +4848,8 @@ packages:
   postcss-value-parser@4.2.0:
     resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
-  postcss@8.5.10:
-    resolution: {integrity: sha512-pMMHxBOZKFU6HgAZ4eyGnwXF/EvPGGqUr0MnZ5+99485wwW41kW91A4LOGxSHhgugZmSChL5AlElNdwlNgcnLQ==}
+  postcss@8.5.12:
+    resolution: {integrity: sha512-W62t/Se6rA0Az3DfCL0AqJwXuKwBeYg6nOaIgzP+xZ7N5BFCI7DYi1qs6ygUYT6rvfi6t9k65UMLJC+PHZpDAA==}
     engines: {node: ^10 || ^12 || >=14}
 
   preact@10.29.1:
@@ -6833,22 +6833,22 @@ snapshots:
   '@oxfmt/binding-win32-x64-msvc@0.46.0':
     optional: true
 
-  '@oxlint-tsgolint/darwin-arm64@0.21.1':
+  '@oxlint-tsgolint/darwin-arm64@0.22.0':
     optional: true
 
-  '@oxlint-tsgolint/darwin-x64@0.21.1':
+  '@oxlint-tsgolint/darwin-x64@0.22.0':
     optional: true
 
-  '@oxlint-tsgolint/linux-arm64@0.21.1':
+  '@oxlint-tsgolint/linux-arm64@0.22.0':
     optional: true
 
-  '@oxlint-tsgolint/linux-x64@0.21.1':
+  '@oxlint-tsgolint/linux-x64@0.22.0':
     optional: true
 
-  '@oxlint-tsgolint/win32-arm64@0.21.1':
+  '@oxlint-tsgolint/win32-arm64@0.22.0':
     optional: true
 
-  '@oxlint-tsgolint/win32-x64@0.21.1':
+  '@oxlint-tsgolint/win32-x64@0.22.0':
     optional: true
 
   '@oxlint/binding-android-arm-eabi@1.61.0':
@@ -7623,7 +7623,7 @@ snapshots:
       '@vue/shared': 3.5.33
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.10
+      postcss: 8.5.12
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.33':
@@ -8276,7 +8276,7 @@ snapshots:
 
   es-errors@1.3.0: {}
 
-  es-module-lexer@2.0.0: {}
+  es-module-lexer@2.1.0: {}
 
   es-object-atoms@1.1.1:
     dependencies:
@@ -8354,10 +8354,10 @@ snapshots:
 
   escape-string-regexp@5.0.0: {}
 
-  eslint-plugin-oxlint@1.61.0(oxlint@1.61.0(oxlint-tsgolint@0.21.1)):
+  eslint-plugin-oxlint@1.61.0(oxlint@1.61.0(oxlint-tsgolint@0.22.0)):
     dependencies:
       jsonc-parser: 3.3.1
-      oxlint: 1.61.0(oxlint-tsgolint@0.21.1)
+      oxlint: 1.61.0(oxlint-tsgolint@0.22.0)
 
   eslint-scope@9.1.2:
     dependencies:
@@ -9819,16 +9819,16 @@ snapshots:
       '@oxfmt/binding-win32-ia32-msvc': 0.46.0
       '@oxfmt/binding-win32-x64-msvc': 0.46.0
 
-  oxlint-tsgolint@0.21.1:
+  oxlint-tsgolint@0.22.0:
     optionalDependencies:
-      '@oxlint-tsgolint/darwin-arm64': 0.21.1
-      '@oxlint-tsgolint/darwin-x64': 0.21.1
-      '@oxlint-tsgolint/linux-arm64': 0.21.1
-      '@oxlint-tsgolint/linux-x64': 0.21.1
-      '@oxlint-tsgolint/win32-arm64': 0.21.1
-      '@oxlint-tsgolint/win32-x64': 0.21.1
+      '@oxlint-tsgolint/darwin-arm64': 0.22.0
+      '@oxlint-tsgolint/darwin-x64': 0.22.0
+      '@oxlint-tsgolint/linux-arm64': 0.22.0
+      '@oxlint-tsgolint/linux-x64': 0.22.0
+      '@oxlint-tsgolint/win32-arm64': 0.22.0
+      '@oxlint-tsgolint/win32-x64': 0.22.0
 
-  oxlint@1.61.0(oxlint-tsgolint@0.21.1):
+  oxlint@1.61.0(oxlint-tsgolint@0.22.0):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.61.0
       '@oxlint/binding-android-arm64': 1.61.0
@@ -9849,7 +9849,7 @@ snapshots:
       '@oxlint/binding-win32-arm64-msvc': 1.61.0
       '@oxlint/binding-win32-ia32-msvc': 1.61.0
       '@oxlint/binding-win32-x64-msvc': 1.61.0
-      oxlint-tsgolint: 0.21.1
+      oxlint-tsgolint: 0.22.0
 
   p-each-series@2.2.0: {}
 
@@ -10015,13 +10015,13 @@ snapshots:
 
   postcss-resolve-nested-selector@0.1.6: {}
 
-  postcss-safe-parser@7.0.1(postcss@8.5.10):
+  postcss-safe-parser@7.0.1(postcss@8.5.12):
     dependencies:
-      postcss: 8.5.10
+      postcss: 8.5.12
 
-  postcss-scss@4.0.9(postcss@8.5.10):
+  postcss-scss@4.0.9(postcss@8.5.12):
     dependencies:
-      postcss: 8.5.10
+      postcss: 8.5.12
 
   postcss-selector-parser@7.1.1:
     dependencies:
@@ -10030,7 +10030,7 @@ snapshots:
 
   postcss-value-parser@4.2.0: {}
 
-  postcss@8.5.10:
+  postcss@8.5.12:
     dependencies:
       nanoid: 3.3.11
       picocolors: 1.1.1
@@ -10671,26 +10671,26 @@ snapshots:
 
   stubs@3.0.0: {}
 
-  stylelint-config-recommended-scss@17.0.1(postcss@8.5.10)(stylelint@17.9.0(typescript@5.9.3)):
+  stylelint-config-recommended-scss@17.0.1(postcss@8.5.12)(stylelint@17.9.0(typescript@5.9.3)):
     dependencies:
-      postcss-scss: 4.0.9(postcss@8.5.10)
+      postcss-scss: 4.0.9(postcss@8.5.12)
       stylelint: 17.9.0(typescript@5.9.3)
       stylelint-config-recommended: 18.0.0(stylelint@17.9.0(typescript@5.9.3))
       stylelint-scss: 7.0.0(stylelint@17.9.0(typescript@5.9.3))
     optionalDependencies:
-      postcss: 8.5.10
+      postcss: 8.5.12
 
   stylelint-config-recommended@18.0.0(stylelint@17.9.0(typescript@5.9.3)):
     dependencies:
       stylelint: 17.9.0(typescript@5.9.3)
 
-  stylelint-config-standard-scss@17.0.0(postcss@8.5.10)(stylelint@17.9.0(typescript@5.9.3)):
+  stylelint-config-standard-scss@17.0.0(postcss@8.5.12)(stylelint@17.9.0(typescript@5.9.3)):
     dependencies:
       stylelint: 17.9.0(typescript@5.9.3)
-      stylelint-config-recommended-scss: 17.0.1(postcss@8.5.10)(stylelint@17.9.0(typescript@5.9.3))
+      stylelint-config-recommended-scss: 17.0.1(postcss@8.5.12)(stylelint@17.9.0(typescript@5.9.3))
       stylelint-config-standard: 40.0.0(stylelint@17.9.0(typescript@5.9.3))
     optionalDependencies:
-      postcss: 8.5.10
+      postcss: 8.5.12
 
   stylelint-config-standard@40.0.0(stylelint@17.9.0(typescript@5.9.3)):
     dependencies:
@@ -10738,8 +10738,8 @@ snapshots:
       micromatch: 4.0.8
       normalize-path: 3.0.0
       picocolors: 1.1.1
-      postcss: 8.5.10
-      postcss-safe-parser: 7.0.1(postcss@8.5.10)
+      postcss: 8.5.12
+      postcss-safe-parser: 7.0.1(postcss@8.5.12)
       postcss-selector-parser: 7.1.1
       postcss-value-parser: 4.2.0
       string-width: 8.2.0
@@ -11038,7 +11038,7 @@ snapshots:
   vite@5.4.21(@types/node@25.6.0)(lightningcss@1.32.0):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.5.10
+      postcss: 8.5.12
       rollup: 4.60.2
     optionalDependencies:
       '@types/node': 25.6.0
@@ -11049,7 +11049,7 @@ snapshots:
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
-      postcss: 8.5.10
+      postcss: 8.5.12
       rolldown: 1.0.0-rc.17
       tinyglobby: 0.2.16
     optionalDependencies:
@@ -11059,7 +11059,7 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.8.3
 
-  vitepress@1.6.4(@algolia/client-search@5.51.0)(@types/node@25.6.0)(lightningcss@1.32.0)(postcss@8.5.10)(search-insights@2.17.3)(typescript@5.9.3):
+  vitepress@1.6.4(@algolia/client-search@5.51.0)(@types/node@25.6.0)(lightningcss@1.32.0)(postcss@8.5.12)(search-insights@2.17.3)(typescript@5.9.3):
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.51.0)(search-insights@2.17.3)
@@ -11080,7 +11080,7 @@ snapshots:
       vite: 5.4.21(@types/node@25.6.0)(lightningcss@1.32.0)
       vue: 3.5.33(typescript@5.9.3)
     optionalDependencies:
-      postcss: 8.5.10
+      postcss: 8.5.12
     transitivePeerDependencies:
       - '@algolia/client-search'
       - '@types/node'
@@ -11117,7 +11117,7 @@ snapshots:
       '@vitest/snapshot': 4.1.5
       '@vitest/spy': 4.1.5
       '@vitest/utils': 4.1.5
-      es-module-lexer: 2.0.0
+      es-module-lexer: 2.1.0
       expect-type: 1.3.0
       magic-string: 0.30.21
       obug: 2.1.1
