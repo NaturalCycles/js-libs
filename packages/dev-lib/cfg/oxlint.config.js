@@ -42,6 +42,7 @@ export const sharedConfig = {
   jsPlugins: [`${import.meta.dirname}/oxlint-plugin-stylistic.mjs`],
   options: {
     reportUnusedDisableDirectives: 'deny',
+    respectEslintDisableDirectives: false,
     maxWarnings: 0,
     denyWarnings: true,
     typeAware: true,
@@ -74,12 +75,16 @@ export const sharedConfig = {
     'no-async-promise-executor': 0,
     'no-standalone-expect': 0,
     'no-conditional-expect': 0,
+    'vitest/no-conditional-expect': 0,
     'expect-expect': 0,
+    'vitest/expect-expect': 0,
     'no-disabled-tests': 0,
+    'vitest/no-disabled-tests': 0,
     'no-useless-assignment': 0, // buggy, gives false positives
     'object-shorthand': 2,
     'valid-expect': 0,
     'valid-title': 0,
+    'vitest/valid-title': 0,
     'valid-describe-callback': 0,
     'jsdoc/require-yields': 0,
     'no-new-wrappers': 2,
@@ -147,6 +152,7 @@ export const sharedConfig = {
     'oxc/no-const-enum': 2,
     'oxc/approx-constant': 2,
     'oxc/misrefactored-assign-op': 2,
+    'oxc/branches-sharing-code': 0, // todo: consider later
     'promise/spec-only': 2,
     'typescript/class-literal-property-style': 2,
     'typescript/consistent-type-exports': 2,
