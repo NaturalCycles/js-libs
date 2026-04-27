@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process'
 import { basename } from 'node:path'
+import { _uniq } from '@naturalcycles/js-lib/array'
 import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { exec2 } from '../exec2/exec2.js'
 
@@ -30,7 +31,7 @@ class Git2 {
   }
 
   /**
-   * Returns true if there were changes
+   * @returns true if there were changes
    */
   commitAll(msg: string): boolean {
     // git commit -a -m "style(lint-all): $GIT_MSG" || true
@@ -133,6 +134,59 @@ class Git2 {
       .map(s => s.trim())
       .filter(s => !s.includes(' -> '))
       .map(s => s.split('/')[1]!)
+  }
+
+  gitRefExists(ref: string): boolean {
+    try {
+      exec2.exec(`git rev-parse --verify --quiet ${ref}`)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  getTrackedFiles(): string[] {
+    try {
+      return exec2
+        .exec('git ls-files')
+        .split('\n')
+        .filter(s => s.trim().length)
+    } catch {
+      return []
+    }
+  }
+
+  getUntrackedFiles(): string[] {
+    try {
+      return exec2
+        .exec('git ls-files --others --exclude-standard')
+        .split('\n')
+        .filter(s => s.trim().length)
+    } catch {
+      return []
+    }
+  }
+
+  getTrackedChangedFiles(diffBase: string, diffFilter = 'AMR'): string[] {
+    try {
+      return exec2
+        .exec(`git diff --name-only --diff-filter=${diffFilter} ${diffBase}`)
+        .split('\n')
+        .filter(s => s.trim().length)
+    } catch {
+      return []
+    }
+  }
+
+  /**
+   * @returns both tracked changed and untracked files
+   */
+  getAllChangedFiles(diffBase: string): string[] {
+    const tracked = this.getTrackedChangedFiles(diffBase)
+    const untracked = this.getUntrackedFiles()
+
+    const changes = [...tracked, ...untracked]
+    return _uniq(changes)
   }
 }
 
