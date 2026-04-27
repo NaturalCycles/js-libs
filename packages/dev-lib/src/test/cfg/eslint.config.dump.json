@@ -85,12 +85,6 @@
     ],
     "@typescript-eslint/prefer-optional-chain": [2],
     "@typescript-eslint/return-await": [2, "always"],
-    "getter-return": [
-      2,
-      {
-        "allowImplicit": false
-      }
-    ],
     "id-denylist": [
       2,
       "any",
@@ -123,7 +117,6 @@
     "no-dupe-args": [2],
     "no-new-symbol": [2],
     "no-octal": [2],
-    "no-unreachable": [2],
     "no-unreachable-loop": [
       2,
       {
