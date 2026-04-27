@@ -44,7 +44,7 @@ export function loadHotjar(hjid: number): void {
     return
   }
 
-  /* eslint-disable */
+  /* oxlint-disable */
   // oxfmt-ignore
   ;((h: any, o, t, j, a?: any, r?: any) => {
     h.hj =
@@ -59,5 +59,5 @@ export function loadHotjar(hjid: number): void {
     r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv
     a.append(r)
   })(globalThis, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=')
-  /* eslint-enable */
+  /* oxlint-enable */
 }

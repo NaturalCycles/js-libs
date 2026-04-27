@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* oxlint-disable */
 
 /**
  * @file Old inclusion of 3rd party `type-fest` lib inlined here.

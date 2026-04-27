@@ -4,7 +4,7 @@ pn tsx scripts/startsWithBench
 
  */
 
-/* eslint-disable */
+/* oxlint-disable */
 
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import { _range } from '../src/array/index.js'

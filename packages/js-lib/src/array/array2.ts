@@ -10,7 +10,7 @@ export class Array2<T> extends Array<T> {
     return new Array2(...items)
   }
 
-  // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+  // oxlint-disable-next-line @typescript-eslint/class-literal-property-style
   get [Symbol.toStringTag](): string {
     return 'Array2'
   }

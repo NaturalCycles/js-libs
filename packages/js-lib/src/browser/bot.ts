@@ -131,7 +131,7 @@ export class BotDetectionService {
     if (isServerSide()) return false
     let cdpCheck1 = false
     try {
-      /* eslint-disable */
+      /* oxlint-disable */
       const e = new window.Error()
       window.Object.defineProperty(e, 'stack', {
         configurable: false,
@@ -143,7 +143,7 @@ export class BotDetectionService {
       })
       // This is part of the detection and shouldn't be deleted
       window.console.debug(e)
-      /* eslint-enable */
+      /* oxlint-enable */
     } catch {}
     return cdpCheck1
   }

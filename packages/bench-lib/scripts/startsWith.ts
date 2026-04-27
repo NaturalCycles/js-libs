@@ -9,7 +9,7 @@ import { runBenchScript } from '../src/index.js'
 
 const strings = _range(100).map(String)
 
-/* eslint-disable */
+/* oxlint-disable */
 
 runBenchScript({
   fns: {

@@ -1933,11 +1933,9 @@ function hasNoObjectSchemas(schema: JsonSchema): boolean {
     return true
   } else if (schema.type === 'array') {
     return !schema.items || hasNoObjectSchemas(schema.items)
-  } else {
-    return !!schema.type && ['string', 'number', 'integer', 'boolean', 'null'].includes(schema.type)
   }
 
-  return false
+  return !!schema.type && ['string', 'number', 'integer', 'boolean', 'null'].includes(schema.type)
 }
 
 type EnumBaseType = 'string' | 'number' | 'other'
