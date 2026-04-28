@@ -3,19 +3,16 @@ packages:
 catalog:
   '@typescript/native-preview': beta
   oxlint: ^1
-ignoredBuiltDependencies:
-  - '@firebase/util'
-  - protobufjs
-onlyBuiltDependencies:
-  - esbuild
-# minimumReleaseAge: 1440
-# minimumReleaseAgeExclude:
-#  - '@naturalcycles/*'
-#  - vitest
-#  - '@vitest/*'
-#  - oxlint
-#  - oxlint-tsgolint
-#  - '@oxlint/*'
+minimumReleaseAgeExclude:
+  - '@naturalcycles/*'
+  - vitest
+  - '@vitest/*'
+  - oxfmt
+  - '@oxfmt/*'
+  - eslint-plugin-oxlint
+  - oxlint
+  - oxlint-tsgolint
+  - '@oxlint/*'
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - vite@5.4.21
@@ -29,6 +26,9 @@ auditConfig:
     - GHSA-67mh-4wv8-2f99
 strictDepBuilds: true
 ignoreWorkspaceCycles: true
-ignorePatchFailures: false
 publicHoistPattern:
   - '@typescript/native-preview'
+allowBuilds:
+  esbuild: true
+  '@firebase/util': false
+  protobufjs: false
