@@ -5,6 +5,8 @@ catalog:
   oxlint: ^1
 minimumReleaseAgeExclude:
   - '@naturalcycles/*'
+  - '@anolilab/*'
+  - '@semantic-release/*'
   - vitest
   - '@vitest/*'
   - oxfmt
