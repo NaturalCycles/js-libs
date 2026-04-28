@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { kpySync } from '../fs/kpy.js'
 import { runScript } from '../script/runScript.js'
 import { _yargs } from '../yargs/yargs.util.js'

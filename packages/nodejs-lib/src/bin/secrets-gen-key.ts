@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { randomBytes } from 'node:crypto'
 import { dimGrey } from '../colors/colors.js'
 import { runScript } from '../script/runScript.js'

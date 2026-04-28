@@ -75,6 +75,7 @@
     "./testing": "./dist/testing/index.js"
   },
   "files": [
+    "bin",
     "dist",
     "cfg",
     "resources",
@@ -85,10 +86,10 @@
     "!src/**/__exclude"
   ],
   "bin": {
-    "deploy-gae": "dist/bin/deploy-gae.js",
-    "undeploy-gae": "dist/bin/undeploy-gae.js",
-    "deploy-prepare": "dist/bin/deploy-prepare.js",
-    "deploy-health-check": "dist/bin/deploy-health-check.js"
+    "deploy-gae": "bin/deploy-gae.js",
+    "undeploy-gae": "bin/undeploy-gae.js",
+    "deploy-prepare": "bin/deploy-prepare.js",
+    "deploy-health-check": "bin/deploy-health-check.js"
   },
   "types": "dist/index.d.ts",
   "publishConfig": {

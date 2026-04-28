@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { runScript } from '../script/runScript.js'
 import { SlackService } from '../slack/index.js'
 import { _yargs } from '../yargs/yargs.util.js'

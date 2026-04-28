@@ -88,6 +88,7 @@
     "./testing/testOffline": "./dist/testing/testOffline.js"
   },
   "files": [
+    "bin",
     "dist",
     "scripts/tsconfig.json",
     "cfg/overwrite/.gitignore",
@@ -96,8 +97,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "out": "dist/bin/out.js",
-    "dev-lib": "dist/bin/dev-lib.js"
+    "out": "bin/out.js",
+    "dev-lib": "bin/dev-lib.js"
   },
   "engines": {
     "node": ">=24.10.0"

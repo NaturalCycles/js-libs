@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { json2env } from '../fs/json2env.js'
 import { runScript } from '../script/runScript.js'
 import { _yargs } from '../yargs/yargs.util.js'

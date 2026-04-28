@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /*
 
 yarn deploy-health-check --url https://service-dot-yourproject.appspot.com

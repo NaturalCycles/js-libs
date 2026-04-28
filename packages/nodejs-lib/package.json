@@ -58,15 +58,16 @@
     "./zip": "./dist/zip/zip2.js"
   },
   "bin": {
-    "kpy": "dist/bin/kpy.js",
-    "json2env": "dist/bin/json2env.js",
-    "generate-build-info": "dist/bin/generate-build-info.js",
-    "slack-this": "dist/bin/slack-this.js",
-    "secrets-gen-key": "dist/bin/secrets-gen-key.js",
-    "secrets-encrypt": "dist/bin/secrets-encrypt.js",
-    "secrets-decrypt": "dist/bin/secrets-decrypt.js"
+    "kpy": "bin/kpy.js",
+    "json2env": "bin/json2env.js",
+    "generate-build-info": "bin/generate-build-info.js",
+    "slack-this": "bin/slack-this.js",
+    "secrets-gen-key": "bin/secrets-gen-key.js",
+    "secrets-encrypt": "bin/secrets-encrypt.js",
+    "secrets-decrypt": "bin/secrets-decrypt.js"
   },
   "files": [
+    "bin",
     "dist",
     "src",
     "!src/test",

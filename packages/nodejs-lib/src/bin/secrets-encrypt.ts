@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { dimGrey } from '../colors/colors.js'
 import { runScript } from '../script/runScript.js'
 import type { EncryptCLIOptions } from '../secret/secrets-encrypt.util.js'
