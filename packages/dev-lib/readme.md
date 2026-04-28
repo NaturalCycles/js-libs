@@ -13,12 +13,10 @@
 
 ## Tools that dev-lib enables
 
-- Prettier
+- oxfmt
 - oxlint
-- ESLint
-- Biome
-- Stylelint
-- Vitest
+- stylelint
+- vitest
 - ktlint
 - actionlint
 - lint-staged

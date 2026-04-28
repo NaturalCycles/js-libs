@@ -85,7 +85,6 @@
     "@naturalcycles/bench-lib": "workspace:*",
     "@naturalcycles/dev-lib": "workspace:*",
     "@naturalcycles/nodejs-lib": "workspace:*",
-    "@semantic-release/git": "^10",
     "@types/node": "^25",
     "@typescript/native-preview": "catalog:",
     "@vitest/coverage-v8": "^4",
