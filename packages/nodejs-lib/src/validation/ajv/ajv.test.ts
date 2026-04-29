@@ -364,6 +364,22 @@ describe('fingerprint for different keywords', () => {
       fingerprint: 'Contact.email pattern:^[a-z]+$',
     },
     {
+      inputName: 'Contact',
+      schema: {
+        type: 'object',
+        properties: {
+          email: {
+            type: 'string',
+            pattern: '^[a-z]+$',
+            errorMessages: { pattern: 'must be lowercase' },
+          },
+        },
+        required: ['email'],
+      },
+      data: { email: 'INVALID@EMAIL.COM' },
+      fingerprint: 'Contact.email pattern:must be lowercase',
+    },
+    {
       inputName: 'Record',
       schema: {
         type: 'object',
@@ -372,6 +388,22 @@ describe('fingerprint for different keywords', () => {
       },
       data: { status: 'unknown' },
       fingerprint: 'Record.status enum:active,inactive',
+    },
+    {
+      inputName: 'Record',
+      schema: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['active', 'inactive'],
+            errorMessages: { enum: 'must be active or inactive' },
+          },
+        },
+        required: ['status'],
+      },
+      data: { status: 'unknown' },
+      fingerprint: 'Record.status enum:must be active or inactive',
     },
     {
       inputName: 'Person',
@@ -436,4 +468,109 @@ describe('fingerprint for different keywords', () => {
       expect(err!.data.fingerprint).toBe(fingerprint)
     },
   )
+})
+
+describe('error params with custom msg', () => {
+  test('should drop params when a custom msg overrides the rule', () => {
+    const schemaWithMsg = j.string().regex(/^[0-9]{2}$/, { msg: 'is not a valid Oompa-loompa' })
+    const [err] = schemaWithMsg.getValidationResult('abc')
+    expect(err!.data).toMatchInlineSnapshot(`
+      {
+        "errors": [
+          {
+            "instancePath": "",
+            "keyword": "pattern",
+            "message": "is not a valid Oompa-loompa",
+            "params": {},
+            "schemaPath": "#/pattern",
+          },
+        ],
+        "fingerprint": "Object pattern:is not a valid Oompa-loompa",
+        "inputName": "Object",
+      }
+    `)
+    expect(err!.data.errors[0]!.params).toEqual({})
+  })
+
+  test('should preserve params when no custom msg is provided', () => {
+    const plainSchema = j.string().regex(/^[0-9]{2}$/)
+
+    const [err] = plainSchema.getValidationResult('abc')
+
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must match pattern "^[0-9]{2}$"
+      Input: abc]
+    `)
+    expect(err!.data).toMatchInlineSnapshot(`
+      {
+        "errors": [
+          {
+            "instancePath": "",
+            "keyword": "pattern",
+            "message": "must match pattern "^[0-9]{2}$"",
+            "params": {
+              "pattern": "^[0-9]{2}$",
+            },
+            "schemaPath": "#/pattern",
+          },
+        ],
+        "fingerprint": "Object pattern:^[0-9]{2}$",
+        "inputName": "Object",
+      }
+    `)
+  })
+
+  test('should drop params for nested property with custom msg', () => {
+    const schema = j.object<{ foo: string }>({
+      foo: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
+    })
+
+    const [err] = schema.getValidationResult({ foo: 'def' })
+
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object.foo must equal "abc"
+      Input: { foo: 'def' }]
+    `)
+    expect(err!.data).toMatchInlineSnapshot(`
+      {
+        "errors": [
+          {
+            "instancePath": ".foo",
+            "keyword": "pattern",
+            "message": "must equal "abc"",
+            "params": {},
+            "schemaPath": "#/properties/foo/pattern",
+          },
+        ],
+        "fingerprint": "Object.foo pattern:must equal "abc"",
+        "inputName": "Object",
+      }
+    `)
+  })
+
+  test('should drop params for enum with custom msg', () => {
+    const schema = j.enum(['foo', 'bar'], { msg: 'must be foo or bar' })
+
+    const [err] = schema.getValidationResult('baz')
+
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be foo or bar
+      Input: baz]
+    `)
+    expect(err!.data).toMatchInlineSnapshot(`
+      {
+        "errors": [
+          {
+            "instancePath": "",
+            "keyword": "enum",
+            "message": "must be foo or bar",
+            "params": {},
+            "schemaPath": "#/enum",
+          },
+        ],
+        "fingerprint": "Object enum:must be foo or bar",
+        "inputName": "Object",
+      }
+    `)
+  })
 })

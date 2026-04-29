@@ -1694,7 +1694,11 @@ function executeValidation<OUT>(
 
   // Build fingerprint before applyImprovementsOnErrorMessages: after it, /items/0/name becomes
   // .items[0].name, embedding the index into the segment and making it harder to strip without regex
-  const fingerprint = buildAjvErrorFingerprint(errors[0], inputName)
+  const fingerprint = buildAjvErrorFingerprint(
+    errors[0],
+    inputName,
+    resolveCustomErrorMessage(builtSchema, errors[0]),
+  )
 
   applyImprovementsOnErrorMessages(errors, builtSchema)
 
@@ -1731,20 +1735,15 @@ function applyImprovementsOnErrorMessages(
 
   filterNullableAnyOfErrors(errors, schema)
 
-  const { errorMessages } = schema
-
   for (const error of errors) {
-    const errorMessage = getErrorMessageForInstancePath(schema, error.instancePath, error.keyword)
+    const customMessage = resolveCustomErrorMessage(schema, error)
 
-    if (errorMessage) {
-      error.message = errorMessage
-    } else if (errorMessages?.[error.keyword]) {
-      error.message = errorMessages[error.keyword]
-    } else {
-      const unwrapped = unwrapNullableAnyOf(schema)
-      if (unwrapped?.errorMessages?.[error.keyword]) {
-        error.message = unwrapped.errorMessages[error.keyword]
-      }
+    if (customMessage) {
+      error.message = customMessage
+      // A custom `msg` signals "the underlying rule param is an implementation detail".
+      // Drop params so consumers (e.g. HTTP responses, Sentry payloads) don't surface
+      // the raw regex/limit/etc. — the custom message is now the canonical rule label.
+      error.params = {}
     }
 
     error.instancePath = error.instancePath.replaceAll(/\/(\d+)/g, `[$1]`).replaceAll('/', '.')
@@ -1752,13 +1751,35 @@ function applyImprovementsOnErrorMessages(
 }
 
 /**
+ * Looks up the user-provided custom error message (set via `{ msg }` / `{ name }`)
+ * for a given AJV error, walking the schema along the error's instancePath and
+ * falling back to top-level `errorMessages` (including through nullable wrappers).
+ * Returns undefined if no custom message was registered for the failing keyword.
+ */
+function resolveCustomErrorMessage(schema: JsonSchema, error: ErrorObject): string | undefined {
+  const byPath = getErrorMessageForInstancePath(schema, error.instancePath, error.keyword)
+  if (byPath) return byPath
+  if (schema.errorMessages?.[error.keyword]) return schema.errorMessages[error.keyword]
+  const unwrapped = unwrapNullableAnyOf(schema)
+  return unwrapped?.errorMessages?.[error.keyword]
+}
+
+/**
  * Groups repeated validation errors by rule rather than by unique request content.
  * Excludes instance-specific data like record IDs and array indices.
+ *
+ * When a custom error message is registered for the failing rule, prefer it over
+ * the raw param value (e.g. regex source) — it is both stable across regex tweaks
+ * and avoids leaking the underlying pattern into Sentry fingerprints.
  */
-function buildAjvErrorFingerprint(e: ErrorObject, inputName: string): string {
-  const value = Object.values(e.params || {})[0]
+function buildAjvErrorFingerprint(
+  e: ErrorObject,
+  inputName: string,
+  customMessage: string | undefined,
+): string {
+  const ruleValue = customMessage ?? Object.values(e.params || {})[0]
   let rule = e.keyword
-  if (value !== undefined) rule += `:${value}`
+  if (ruleValue !== undefined) rule += `:${ruleValue}`
   const path = e.instancePath
     .split('/')
     .filter(s => s && isNaN(Number(s)))
