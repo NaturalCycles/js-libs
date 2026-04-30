@@ -17,7 +17,7 @@ import {
   typecheckWithTSC,
   typecheckWithTSGO,
 } from '../check.util.js'
-import { runCommitlint } from '../commitlint.js'
+import { runCommitlint } from '../commitlint.command.js'
 
 interface Command {
   name: string

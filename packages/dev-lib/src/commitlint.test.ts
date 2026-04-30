@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { validateCommitMessage } from './commitlint.js'
+import { validateCommitMessage } from './commitlint.util.js'
 
 // Valid messages
 test('valid: simple message', () => {
