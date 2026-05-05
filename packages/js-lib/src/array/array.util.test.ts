@@ -367,7 +367,7 @@ test('_shuffle', () => {
   Object.freeze(a) // should not be mutated
 
   const deterministicRandom = _createDeterministicRandom()
-  // oxlint-disable-next-line jest/prefer-mock-return-shorthand
+  // oxlint-disable-next-line vitest/prefer-mock-return-shorthand
   vi.spyOn(Math, 'random').mockImplementation(() => deterministicRandom())
 
   const b = _shuffle(a)

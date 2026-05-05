@@ -1598,9 +1598,7 @@ export class AjvSchema<OUT> {
   private _compiledFn: any
 
   private _getValidateFn(): any {
-    if (!this._compiledFn) {
-      this._compiledFn = this.cfg.ajv.compile(this.schema as any)
-    }
+    this._compiledFn ||= this.cfg.ajv.compile(this.schema as any)
     return this._compiledFn
   }
 

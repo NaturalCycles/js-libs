@@ -27,15 +27,12 @@ console.log({
   count,
   error,
 })
-// oxlint-disable-next-line unicorn/prefer-top-level-await typescript/no-floating-promises
-;(async () => {
-  for (let i = 1; i <= count; i++) {
-    await pDelay(1000)
-    console.log(i)
-  }
-  if (error) {
-    console.log('the error')
-    return process.exit(1)
-  }
-  console.log('done')
-})()
+for (let i = 1; i <= count; i++) {
+  await pDelay(1000)
+  console.log(i)
+}
+if (error) {
+  console.log('the error')
+  process.exit(1)
+}
+console.log('done')

@@ -467,7 +467,7 @@ export function _set<T extends AnyObject>(obj: T, path: PropertyPath, value: any
           a[c]
         : // No: create the key. Is the next key a potential array-index?
           (a[c] =
-            // oxlint-disable-next-line no-bitwise no-implicit-coercion unicorn/prefer-math-trunc
+            // oxlint-disable-next-line no-bitwise, no-implicit-coercion, unicorn/prefer-math-trunc
             Math.abs(path[i + 1]) >> 0 === +path[i + 1]
               ? [] // Yes: assign a new array object
               : {}), // No: assign a new plain object
