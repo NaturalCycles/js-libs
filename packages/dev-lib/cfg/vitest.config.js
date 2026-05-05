@@ -22,7 +22,7 @@ const pool = 'threads'
 process.env.TZ ||= 'UTC'
 
 if (testType === 'unit') {
-  process.env.APP_ENV = process.env.APP_ENV || 'test'
+  process.env.APP_ENV ||= 'test'
 }
 
 if (silent) {

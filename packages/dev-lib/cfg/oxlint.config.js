@@ -70,6 +70,13 @@ export const sharedConfig = {
     ],
     '@stylistic/lines-between-class-members': [2, 'always', { exceptAfterSingleLine: true }],
     complexity: [2, { max: 40 }],
+    'logical-assignment-operators': [
+      2,
+      'always',
+      {
+        enforceForIfStatements: true,
+      },
+    ],
     'no-this-alias': 0,
     'no-shadow': 0, // too many shadows in the codebase already
     'no-async-promise-executor': 0,
@@ -409,6 +416,8 @@ export const sharedConfig = {
     'vitest/prefer-hooks-in-order': 2,
     'vitest/prefer-hooks-on-top': 2,
     'vitest/prefer-mock-promise-shorthand': 2,
+    'vitest/prefer-mock-return-shorthand': 2,
+    'vitest/prefer-snapshot-hint': 0, // annoying
     'vitest/prefer-to-have-length': 2,
     'vitest/require-to-throw-message': 2,
     'vitest/valid-describe-callback': 0,
@@ -421,17 +430,15 @@ export const sharedConfig = {
     'vitest/prefer-called-exactly-once-with': 2,
     'vitest/consistent-test-filename': 2,
     'vitest/warn-todo': 0,
-    'jest/consistent-test-it': [
+    'vitest/consistent-test-it': [
       2,
       {
         fn: 'test',
         withinDescribe: 'test',
       },
     ],
-    'jest/max-nested-describe': [0, { max: 4 }], // not good
-    'jest/no-alias-methods': 2,
-    'jest/prefer-mock-return-shorthand': 2,
-    'jest/prefer-snapshot-hint': 0, // annoying
+    'vitest/max-nested-describe': [0, { max: 4 }], // not good
+    'vitest/no-alias-methods': 2,
     'vue/no-multiple-slot-args': 2,
     'vue/no-deprecated-destroyed-lifecycle': 2,
     'vue/define-emits-declaration': [2, 'type-based'],

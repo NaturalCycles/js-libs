@@ -107,13 +107,6 @@
         "properties": false
       }
     ],
-    "logical-assignment-operators": [
-      2,
-      "always",
-      {
-        "enforceForIfStatements": true
-      }
-    ],
     "no-dupe-args": [2],
     "no-new-symbol": [2],
     "no-octal": [2],

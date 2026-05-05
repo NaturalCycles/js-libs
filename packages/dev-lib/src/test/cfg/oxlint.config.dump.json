@@ -17,6 +17,15 @@
     "for-direction": "warn",
     "getter-return": "warn",
     "guard-for-in": "deny",
+    "logical-assignment-operators": [
+      "deny",
+      [
+        "always",
+        {
+          "enforceForIfStatements": true
+        }
+      ]
+    ],
     "max-params": [
       "deny",
       [
@@ -189,44 +198,6 @@
     "import/no-self-import": "deny",
     "import/no-unassigned-import": "allow",
     "import/no-webpack-loader-syntax": "deny",
-    "jest/consistent-test-it": [
-      "deny",
-      [
-        {
-          "fn": "test",
-          "withinDescribe": "test"
-        }
-      ]
-    ],
-    "jest/expect-expect": "allow",
-    "jest/max-nested-describe": [
-      "allow",
-      [
-        {
-          "max": 4
-        }
-      ]
-    ],
-    "jest/no-alias-methods": "deny",
-    "jest/no-conditional-expect": "allow",
-    "jest/no-disabled-tests": "allow",
-    "jest/no-export": "warn",
-    "jest/no-focused-tests": "warn",
-    "jest/no-standalone-expect": "allow",
-    "jest/no-test-return-statement": "deny",
-    "jest/prefer-hooks-in-order": "deny",
-    "jest/prefer-hooks-on-top": "deny",
-    "jest/prefer-mock-promise-shorthand": "deny",
-    "jest/prefer-mock-return-shorthand": "deny",
-    "jest/prefer-snapshot-hint": "allow",
-    "jest/prefer-spy-on": "deny",
-    "jest/prefer-to-be": "deny",
-    "jest/prefer-to-have-length": "deny",
-    "jest/require-to-throw-message": "deny",
-    "jest/valid-describe-callback": "allow",
-    "jest/valid-expect": "allow",
-    "jest/valid-expect-in-promise": "warn",
-    "jest/valid-title": "allow",
     "jsdoc/check-property-names": "warn",
     "jsdoc/check-tag-names": "warn",
     "jsdoc/implements-on-classes": "warn",
@@ -573,9 +544,27 @@
     ],
     "vitest/consistent-each-for": "warn",
     "vitest/consistent-test-filename": "deny",
+    "vitest/consistent-test-it": [
+      "deny",
+      [
+        {
+          "fn": "test",
+          "withinDescribe": "test"
+        }
+      ]
+    ],
     "vitest/consistent-vitest-vi": "deny",
     "vitest/expect-expect": "allow",
     "vitest/hoisted-apis-on-top": "warn",
+    "vitest/max-nested-describe": [
+      "allow",
+      [
+        {
+          "max": 4
+        }
+      ]
+    ],
+    "vitest/no-alias-methods": "deny",
     "vitest/no-conditional-expect": "allow",
     "vitest/no-conditional-tests": "warn",
     "vitest/no-disabled-tests": "allow",
@@ -584,12 +573,25 @@
     "vitest/no-identical-title": "deny",
     "vitest/no-import-node-test": "deny",
     "vitest/no-mocks-import": "deny",
+    "vitest/no-standalone-expect": "warn",
+    "vitest/no-test-return-statement": "deny",
     "vitest/prefer-called-exactly-once-with": "deny",
+    "vitest/prefer-hooks-in-order": "deny",
+    "vitest/prefer-hooks-on-top": "deny",
+    "vitest/prefer-mock-promise-shorthand": "deny",
+    "vitest/prefer-mock-return-shorthand": "deny",
+    "vitest/prefer-snapshot-hint": "allow",
+    "vitest/prefer-spy-on": "deny",
+    "vitest/prefer-to-be": "deny",
     "vitest/prefer-to-contain": "deny",
+    "vitest/prefer-to-have-length": "deny",
     "vitest/require-awaited-expect-poll": "warn",
     "vitest/require-local-test-context-for-concurrent-snapshots": "warn",
     "vitest/require-mock-type-parameters": "warn",
+    "vitest/require-to-throw-message": "deny",
+    "vitest/valid-describe-callback": "allow",
     "vitest/valid-expect": "allow",
+    "vitest/valid-expect-in-promise": "warn",
     "vitest/valid-title": "allow",
     "vitest/warn-todo": "allow"
   },
