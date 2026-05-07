@@ -29,7 +29,7 @@
     "@vitest/coverage-v8": "^4",
     "eslint-plugin-oxlint": "^1",
     "globals": "^17",
-    "lint-staged": "^16",
+    "lint-staged": "^17",
     "picomatch": "^4",
     "oxfmt": "^0",
     "oxlint": "catalog:",
