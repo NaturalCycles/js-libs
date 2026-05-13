@@ -29,6 +29,7 @@ import { _objectAssign, _typeCast, JWT_REGEX } from '@naturalcycles/js-lib/types
 import type { StandardJSONSchemaV1, StandardSchemaV1 } from '@standard-schema/spec'
 import type { Ajv, ErrorObject } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
+import { isCpfValid } from '../cpf.js'
 import {
   BASE64URL_REGEX,
   COUNTRY_CODE_REGEX,
@@ -866,6 +867,16 @@ export class JString<
 
   uuid(): this {
     return this.regex(UUID_REGEX, { msg: 'is an invalid UUID' })
+  }
+
+  cpf(): this {
+    const { customValidations = [] } = this.schema
+    return this.cloneAndUpdateSchema({
+      customValidations: [
+        ...customValidations,
+        v => (isCpfValid(v) ? undefined : 'is an invalid CPF number'),
+      ],
+    })
   }
 }
 
