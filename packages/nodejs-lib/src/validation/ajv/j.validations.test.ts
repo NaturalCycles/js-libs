@@ -1418,6 +1418,23 @@ describe('string', () => {
     })
   })
 
+  describe('cpf', () => {
+    const schema = j.string().cpf()
+
+    test('should accept valid CPF in both formatted and unformatted forms', () => {
+      const [errFormatted] = schema.getValidationResult('529.982.247-25')
+      expect(errFormatted).toBeNull()
+
+      const [errUnformatted] = schema.getValidationResult('52998224725')
+      expect(errUnformatted).toBeNull()
+    })
+
+    test('should reject invalid CPF with correct error message', () => {
+      const [err] = schema.getValidationResult('52998224726')
+      expect(err?.message).toContain('is an invalid CPF number')
+    })
+  })
+
   describe('uuid', () => {
     test('should accept valid data', () => {
       const testCases = [
