@@ -1,3 +1,7 @@
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { expect, test } from 'vitest'
 import { git2 } from './git2.js'
 
@@ -99,4 +103,30 @@ test('getAllChangedFiles', async () => {
   console.log(allChangedFiles)
 
   expect(allChangedFiles).toBeDefined()
+})
+
+test('commitAll does not allow shell injection in commit message', async () => {
+  if (process.platform === 'win32') return
+
+  const originalCwd = process.cwd()
+  const repoDir = mkdtempSync(join(tmpdir(), 'git2-commitall-'))
+  const marker = join(repoDir, 'marker.txt')
+  const maliciousMessage = `Normal commit message"; touch "${marker}"; #`
+
+  try {
+    process.chdir(repoDir)
+
+    execFileSync('git', ['init'], { stdio: 'pipe' })
+    execFileSync('git', ['config', 'user.email', 'test@test.com'], { stdio: 'pipe' })
+    execFileSync('git', ['config', 'user.name', 'test'], { stdio: 'pipe' })
+    writeFileSync('test.txt', 'hello')
+    execFileSync('git', ['add', 'test.txt'], { stdio: 'pipe' })
+
+    expect(existsSync(marker)).toBe(false)
+    expect(git2.commitAll(maliciousMessage)).toBe(true)
+    expect(existsSync(marker)).toBe(false)
+    expect(git2.getLastGitCommitMsg()).toBe(maliciousMessage)
+  } finally {
+    process.chdir(originalCwd)
+  }
 })

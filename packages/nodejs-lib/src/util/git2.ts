@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process'
+import { execSync, spawnSync } from 'node:child_process'
 import { basename } from 'node:path'
 import { _uniq } from '@naturalcycles/js-lib/array'
 import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
@@ -34,17 +34,12 @@ class Git2 {
    * @returns true if there were changes
    */
   commitAll(msg: string): boolean {
-    // git commit -a -m "style(lint-all): $GIT_MSG" || true
-    const cmd = `git commit -a --no-verify -m "${msg}"`
-    // const cmd = `git`
-    // const args = ['commit', '-a', '--no-verify', '-m', msg]
-    console.log(cmd)
-
     try {
-      execSync(cmd, {
+      const r = spawnSync('git', ['commit', '-a', '--no-verify', '-m', msg], {
         stdio: 'inherit',
       })
-      return true
+
+      return !r.error && !r.status
     } catch {
       return false
     }
