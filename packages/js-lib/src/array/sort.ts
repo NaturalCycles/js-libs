@@ -76,7 +76,8 @@ export function _sortBy<T, COMPARE_TYPE extends string | number>(
   mapper: Mapper<T, COMPARE_TYPE>,
   opt: SortOptions = {},
 ): T[] {
-  return (opt.mutate ? items : [...items]).sort(comparators.by(mapper, opt))
+  const cmp = comparators.by(mapper, opt)
+  return opt.mutate ? items.sort(cmp) : items.toSorted(cmp)
 }
 
 /**

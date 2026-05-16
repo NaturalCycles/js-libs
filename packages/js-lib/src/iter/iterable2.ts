@@ -25,7 +25,7 @@ export class Iterable2<T> implements Iterable<T> {
   }
 
   toArray(): T[] {
-    return [...this.it]
+    return Array.from(this.it)
   }
 
   forEach(cb: (v: T, i: number) => any | typeof END): void {

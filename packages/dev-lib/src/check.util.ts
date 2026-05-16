@@ -594,7 +594,7 @@ export function runTest(opt: RunTestOptions = {}): boolean {
 function runVitest(opt: RunTestOptions): void {
   const { integration, manual } = opt
   const processArgs = process.argv.slice(3)
-  const args: string[] = [...processArgs]
+  const args: string[] = processArgs.slice()
   const env: AnyObject = {}
   if (integration) {
     Object.assign(env, {

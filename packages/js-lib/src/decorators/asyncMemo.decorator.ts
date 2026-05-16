@@ -148,7 +148,7 @@ export const _AsyncMemo =
     _objectAssign(descriptor.value as AsyncMemoInstance, {
       clear: async () => {
         logger.log(`${methodSignature} @_AsyncMemo.clear()`)
-        await Promise.all([...instanceCache.values()].map(c => c.clear()))
+        await Promise.all(Array.from(instanceCache.values(), c => c.clear()))
         instanceCache.clear()
       },
       getInstanceCache: () => instanceCache,

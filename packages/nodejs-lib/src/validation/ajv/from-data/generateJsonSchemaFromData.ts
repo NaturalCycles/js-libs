@@ -36,7 +36,7 @@ function objectToJsonSchema<T extends AnyObject>(rows: AnyObject[]): JsonSchema<
 
   _stringMapEntries(typesByKey).forEach(([key, types]) => {
     const schema = mergeTypes(
-      [...types],
+      Array.from(types),
       rows.map(r => r[key]),
     )
     if (!schema) return

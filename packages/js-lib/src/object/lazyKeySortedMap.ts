@@ -28,7 +28,7 @@ export class LazyKeySortedMap<K, V> {
   constructor(entries: [K, V][] = [], opt: LazyKeySortedMapOptions<K> = {}) {
     this.#comparator = opt.comparator
     this.map = new Map(entries)
-    this.maybeSortedKeys = [...this.map.keys()]
+    this.maybeSortedKeys = Array.from(this.map.keys())
   }
 
   readonly #comparator: Comparator<K> | undefined

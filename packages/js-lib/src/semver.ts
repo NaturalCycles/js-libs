@@ -136,7 +136,8 @@ class SemverFactory {
    */
   sort(items: Semver[], opt: SortOptions = {}): Semver[] {
     const mod = opt.dir === 'desc' ? -1 : 1
-    return (opt.mutate ? items : [...items]).sort((a, b) => a.compare(b) * mod)
+    const cmp = (a: Semver, b: Semver): number => a.compare(b) * mod
+    return opt.mutate ? items.sort(cmp) : items.toSorted(cmp)
   }
 }
 

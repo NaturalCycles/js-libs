@@ -57,7 +57,7 @@ export function validateCommitMessage(
 
   // Step 2: Validate type
   if (!ALLOWED_TYPES.has(type!)) {
-    errors.push(`Invalid type "${type}". Allowed types: ${[...ALLOWED_TYPES].join(', ')}`)
+    errors.push(`Invalid type "${type}". Allowed types: ${Array.from(ALLOWED_TYPES).join(', ')}`)
   }
 
   // Step 3: Validate subject line length

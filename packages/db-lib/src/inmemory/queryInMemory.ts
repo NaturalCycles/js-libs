@@ -1,3 +1,4 @@
+import { comparators } from '@naturalcycles/js-lib/array'
 import { _get, _pick } from '@naturalcycles/js-lib/object/object.util.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { DBQuery, DBQueryFilterOperator } from '../query/dbQuery.js'
@@ -38,15 +39,9 @@ export function queryInMemory<ROW extends ObjectWithId>(q: DBQuery<ROW>, rows: R
   const [order] = q._orders
   if (order) {
     const { name, descending } = order
-    rows = rows.sort((a, b) => {
-      // oxlint-disable-next-line eqeqeq
-      if (a[name] == b[name]) return 0
-
-      if (descending) {
-        return a[name] < b[name] ? 1 : -1
-      }
-      return a[name] > b[name] ? 1 : -1
-    })
+    rows = rows.sort(
+      comparators.by(r => r[name] as string | number, { dir: descending ? 'desc' : 'asc' }),
+    )
   }
 
   // .offset()

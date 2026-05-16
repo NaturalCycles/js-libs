@@ -213,7 +213,7 @@ export async function runCommonDaoTest(
     if (support.dbQueryOrder) {
       test('query order by k1 desc', async () => {
         const rows = await dao.query().order('k1', true).runQuery()
-        expectMatch([...expectedItems].reverse(), rows, quirks)
+        expectMatch(expectedItems.toReversed(), rows, quirks)
       })
     }
 

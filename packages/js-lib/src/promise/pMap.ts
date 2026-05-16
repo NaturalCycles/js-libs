@@ -67,7 +67,7 @@ export async function pMap<IN, OUT>(
   mapper: AbortableAsyncMapper<IN, OUT>,
   opt: PMapOptions = {},
 ): Promise<OUT[]> {
-  const items = [...iterable]
+  const items = Array.from(iterable)
   const itemsLength = items.length
   if (itemsLength === 0) return [] // short circuit
 

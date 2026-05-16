@@ -95,7 +95,7 @@ export class CommonDao<
     // then we need to ensure that the '__compressed' property is part of the index exclusion list.
     if (this.cfg.compress?.keys) {
       const current = this.cfg.excludeFromIndexes
-      this.cfg.excludeFromIndexes = current ? [...current] : []
+      this.cfg.excludeFromIndexes = current ? current.slice() : []
       if (!this.cfg.excludeFromIndexes.includes('__compressed' as any)) {
         this.cfg.excludeFromIndexes.push('__compressed' as any)
       }
@@ -1028,7 +1028,7 @@ export class CommonDao<
 
     const idsByTable: StringMap<string[]> = {}
     for (const [table, idSet] of _stringMapEntries(idSetByTable)) {
-      idsByTable[table] = [...idSet]
+      idsByTable[table] = Array.from(idSet)
     }
     return idsByTable
   }

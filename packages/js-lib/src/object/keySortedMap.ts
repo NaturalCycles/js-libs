@@ -32,7 +32,7 @@ export class KeySortedMap<K, V> {
   constructor(entries: [K, V][] = [], opt: KeySortedMapOptions<K> = {}) {
     this.#comparator = opt.comparator
     this.map = new Map(entries)
-    this.#sortedKeys = [...this.map.keys()]
+    this.#sortedKeys = Array.from(this.map.keys())
     this.sortKeys()
   }
 

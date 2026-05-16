@@ -131,7 +131,7 @@ export function _stringify(obj: any, opt: StringifyOptions = {}): string {
 
       obj = Object.fromEntries(obj)
     } else if (obj instanceof Set) {
-      obj = [...obj]
+      obj = Array.from(obj)
     }
 
     try {

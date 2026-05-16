@@ -1,4 +1,5 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
+import { comparators } from '@naturalcycles/js-lib/array/sort.js'
 import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
@@ -119,7 +120,7 @@ test('transformMap2 with warmup passes all items', async () => {
     .toArray()
 
   // With concurrency, order is not guaranteed, so compare as sets
-  expect(results.sort((a, b) => a.id - b.id)).toEqual(data)
+  expect(results.sort(comparators.by(r => r.id))).toEqual(data)
 })
 
 test('transformMap2 warmup limits initial concurrency', async () => {
@@ -305,7 +306,7 @@ test('backpressure: handles fast producer with slow consumer', async () => {
   expect(results).toHaveLength(50)
   expect(maxInFlight).toBeLessThanOrEqual(concurrency)
   // Verify all items were processed correctly
-  expect(results.sort((a, b) => a - b)).toEqual(data.map(n => n * 2))
+  expect(results.sort(comparators.numericAsc)).toEqual(data.map(n => n * 2))
 })
 
 // Edge cases
@@ -374,7 +375,7 @@ test('edge case: SKIP filters items correctly', async () => {
     )
     .toArray()
 
-  expect(results.sort((a, b) => a - b)).toEqual([1, 3, 5, 7, 9])
+  expect(results.sort(comparators.numericAsc)).toEqual([1, 3, 5, 7, 9])
 })
 
 test('edge case: predicate filters output', async () => {
@@ -389,7 +390,7 @@ test('edge case: predicate filters output', async () => {
     )
     .toArray()
 
-  expect(results.sort((a, b) => a - b)).toEqual([12, 14, 16, 18, 20])
+  expect(results.sort(comparators.numericAsc)).toEqual([12, 14, 16, 18, 20])
 })
 
 test('edge case: asyncPredicate filters output', async () => {
@@ -407,7 +408,7 @@ test('edge case: asyncPredicate filters output', async () => {
     )
     .toArray()
 
-  expect(results.sort((a, b) => a - b)).toEqual([3, 6, 9])
+  expect(results.sort(comparators.numericAsc)).toEqual([3, 6, 9])
 })
 
 // Race condition and timing tests
@@ -479,7 +480,7 @@ test('flush waits for all in-flight operations', async () => {
     .run()
 
   // All items should complete before pipeline finishes
-  expect(completed.sort((a, b) => a - b)).toEqual(data)
+  expect(completed.sort(comparators.numericAsc)).toEqual(data)
 })
 
 test('stress: large number of items with high concurrency', async () => {

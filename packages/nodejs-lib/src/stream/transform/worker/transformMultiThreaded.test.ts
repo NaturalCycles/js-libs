@@ -1,4 +1,5 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
+import { comparators } from '@naturalcycles/js-lib/array/sort.js'
 import { expect, test } from 'vitest'
 import { testDir } from '../../../test/paths.cnst.js'
 import { Pipeline } from '../../index.js'
@@ -21,5 +22,5 @@ test('transformMultiThreaded', async () => {
     .toArray()
 
   // console.log(items2)
-  expect(items2.sort((a, b) => (a.id < b.id ? -1 : 1))).toEqual(items.filter(i => i.id <= 10))
+  expect(items2.sort(comparators.by(r => r.id))).toEqual(items.filter(i => i.id <= 10))
 }, 10_000)

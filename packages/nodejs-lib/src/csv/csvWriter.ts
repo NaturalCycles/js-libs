@@ -83,5 +83,5 @@ export function arrayToCSVColumns(arr: AnyObject[]): string[] {
       cols.add(col)
     }
   }
-  return [...cols]
+  return Array.from(cols)
 }

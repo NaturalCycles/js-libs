@@ -11,6 +11,7 @@ import type {
 import { BaseCommonDB, commonDBFullSupport, CommonDBType } from '@naturalcycles/db-lib'
 import { queryInMemory } from '@naturalcycles/db-lib/inmemory'
 import { _by } from '@naturalcycles/js-lib/array/array.util.js'
+import { comparators } from '@naturalcycles/js-lib/array/sort.js'
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { _mapValues, _omit } from '@naturalcycles/js-lib/object'
@@ -129,7 +130,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
         },
         opt,
       )
-    ).sort((a, b) => (a[idField as keyof ROW] > b[idField as keyof ROW] ? 1 : -1))
+    ).sort(comparators.by(r => r[idField as keyof ROW] as string | number))
   }
 
   override async deleteByIds(

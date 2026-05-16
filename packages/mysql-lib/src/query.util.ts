@@ -67,13 +67,13 @@ export function insertSQL(
     }
     return set
   }, new Set<string>())
-  const fields = [...fieldSet]
+  const fields = Array.from(fieldSet)
 
   const start = [
     verb,
     `INTO`,
     mysql.escapeId(table),
-    `(` + [...fields].map(f => mysql.escapeId(mapNameToMySQL(f))).join(',') + `)`,
+    `(` + fields.map(f => mysql.escapeId(mapNameToMySQL(f))).join(',') + `)`,
     `VALUES\n`,
   ].join(' ')
 

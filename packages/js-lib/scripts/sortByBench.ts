@@ -39,7 +39,7 @@ function _sortBy1<T>(
   dir: SortDirection = 'asc',
 ): T[] {
   const mod = dir === 'desc' ? -1 : 1
-  return (mutate ? items : [...items]).sort((_a, _b) => {
+  return (mutate ? items : items.slice()).sort((_a, _b) => {
     const a = mapper(_a)
     const b = mapper(_b)
     // if (typeof a === 'number' && typeof b === 'number') return (a - b) * mod
@@ -54,7 +54,7 @@ function _sortBy11<T>(
   dir: SortDirection = 'asc',
 ): T[] {
   const mod: number = dir === 'desc' ? -1 : 1
-  return (mutate ? items : [...items]).sort((_a, _b) => {
+  return (mutate ? items : items.slice()).sort((_a, _b) => {
     const a = mapper(_a)
     const b = mapper(_b)
     // if (typeof a === 'number' && typeof b === 'number') return (a - b) * mod

@@ -171,12 +171,12 @@ export class DBQuery<ROW extends ObjectWithId> {
 
   clone(): DBQuery<ROW> {
     return _objectAssign(new DBQuery<ROW>(this.table), {
-      _filters: [...this._filters],
+      _filters: this._filters.slice(),
       _limitValue: this._limitValue,
       _offsetValue: this._offsetValue,
-      _orders: [...this._orders],
-      _selectedFieldNames: this._selectedFieldNames && [...this._selectedFieldNames],
-      _groupByFieldNames: this._groupByFieldNames && [...this._groupByFieldNames],
+      _orders: this._orders.slice(),
+      _selectedFieldNames: this._selectedFieldNames?.slice(),
+      _groupByFieldNames: this._groupByFieldNames?.slice(),
       _distinct: this._distinct,
       _startCursor: this._startCursor,
       _endCursor: this._endCursor,

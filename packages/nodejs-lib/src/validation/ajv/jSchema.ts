@@ -644,7 +644,7 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     const innerSchema: JsonSchema = {
       ...(builtSchema.type ? { type: builtSchema.type } : {}),
       anyOf: [builtSchema, alternativesSchema],
-      optionalValues: [...optionalValues],
+      optionalValues: optionalValues.slice(),
     }
 
     // When `null` is specified, we want `null` to be stripped and the value to become `undefined`,
@@ -652,7 +652,7 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     // but the typing should not reflect that.
     if (optionalValues.includes(null)) {
       return new JSchema({
-        anyOf: [{ type: 'null', optionalValues: [...optionalValues] }, innerSchema],
+        anyOf: [{ type: 'null', optionalValues: optionalValues.slice() }, innerSchema],
         optionalField: true,
       }) as any
     }
@@ -1972,7 +1972,7 @@ function deepCopyPreservingFunctions<T>(obj: T): T {
     // customValidations/customConversions are arrays of functions - shallow copy the array
     ;(copy as any)[key] =
       (key === 'customValidations' || key === 'customConversions') && Array.isArray(value)
-        ? [...value]
+        ? value.slice()
         : deepCopyPreservingFunctions(value)
   }
   return copy

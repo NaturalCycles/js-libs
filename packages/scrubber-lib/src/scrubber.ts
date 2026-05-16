@@ -76,7 +76,7 @@ export class Scrubber {
 
   private applyScrubbers<T>(data: T, parents: string[] = []): T {
     const isArray = Array.isArray(data)
-    const dataCopy: any = Array.isArray(data) ? [...data] : { ...data }
+    const dataCopy: any = Array.isArray(data) ? data.slice() : { ...data }
 
     for (const key of Object.keys(dataCopy)) {
       let scrubberCurrentField = this.cfg.fields[key]

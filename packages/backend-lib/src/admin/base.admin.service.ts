@@ -168,7 +168,7 @@ export class BaseAdminService {
 
     return {
       email: email!,
-      permissions: [...hasPermissions],
+      permissions: Array.from(hasPermissions),
     }
   }
 
@@ -221,7 +221,7 @@ export class BaseAdminService {
 
     return {
       email,
-      permissions: [...grantedPermissions],
+      permissions: grantedPermissions.slice(),
     }
   }
 

@@ -33,7 +33,7 @@ export function _chunk<T>(array: readonly T[], size = 1): T[][] {
  * Removes duplicates from given array.
  */
 export function _uniq<T>(a: readonly T[]): T[] {
-  return [...new Set(a)]
+  return Array.from(new Set(a))
 }
 
 /**
@@ -95,7 +95,7 @@ export function _uniqBy<T>(arr: readonly T[], mapper: Mapper<T, any>): T[] {
     const key = item === undefined || item === null ? item : mapper(item)
     if (!map.has(key)) map.set(key, item)
   }
-  return [...map.values()]
+  return Array.from(map.values())
 }
 
 /**
@@ -192,7 +192,7 @@ export function _find<T>(items: readonly T[], predicate: AbortablePredicate<T>):
  * - in iOS Safari since 15.4
  */
 export function _findLast<T>(items: readonly T[], predicate: AbortablePredicate<T>): T | undefined {
-  return _find(items.slice().reverse(), predicate)
+  return _find(items.toReversed(), predicate)
 }
 
 export function _takeWhile<T>(items: readonly T[], predicate: Predicate<T>): T[] {
@@ -202,7 +202,7 @@ export function _takeWhile<T>(items: readonly T[], predicate: Predicate<T>): T[]
 
 export function _takeRightWhile<T>(items: readonly T[], predicate: Predicate<T>): T[] {
   let proceed = true
-  return [...items].reverse().filter((v, index) => (proceed &&= predicate(v, index)))
+  return items.toReversed().filter((v, index) => (proceed &&= predicate(v, index)))
 }
 
 export function _dropWhile<T>(items: readonly T[], predicate: Predicate<T>): T[] {
@@ -212,8 +212,8 @@ export function _dropWhile<T>(items: readonly T[], predicate: Predicate<T>): T[]
 
 export function _dropRightWhile<T>(items: readonly T[], predicate: Predicate<T>): T[] {
   let proceed = false
-  return [...items]
-    .reverse()
+  return items
+    .toReversed()
     .filter((v, index) => (proceed ||= !predicate(v, index)))
     .reverse()
 }
@@ -416,7 +416,7 @@ export function _mapToObject<T, V>(
  * Based on: https://stackoverflow.com/a/12646864/4919972
  */
 export function _shuffle<T>(array: T[], opt: MutateOptions = {}): T[] {
-  const a = opt.mutate ? array : [...array]
+  const a = opt.mutate ? array : array.slice()
 
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))

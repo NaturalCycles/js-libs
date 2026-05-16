@@ -192,7 +192,7 @@ export async function runCommonDBTest(
       test('query order by k1 desc', async () => {
         const q = new DBQuery<TestItemDBM>(TEST_TABLE).order('k1', true)
         const { rows } = await db.runQuery(q)
-        expectMatch([...items].reverse(), rows, quirks)
+        expectMatch(items.toReversed(), rows, quirks)
       })
     }
 

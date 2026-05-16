@@ -34,15 +34,15 @@ export class Set2<T = any> extends Set<T> {
   // last(): T {
 
   toArray(): T[] {
-    return [...this]
+    return Array.from(this)
   }
 
   toJSON(): T[] {
-    return [...this]
+    return Array.from(this)
   }
 
   override toString(): string {
-    return `Set2(${this.size}) ${JSON.stringify([...this])}`
+    return `Set2(${this.size}) ${JSON.stringify(Array.from(this))}`
   }
 
   // todo: consider more helpful .toString() ?

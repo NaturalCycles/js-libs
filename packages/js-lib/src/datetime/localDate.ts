@@ -721,7 +721,8 @@ class LocalDateFactory {
    */
   sort(items: LocalDate[], opt: SortOptions = {}): LocalDate[] {
     const mod = opt.dir === 'desc' ? -1 : 1
-    return (opt.mutate ? items : [...items]).sort((a, b) => a.compare(b) * mod)
+    const cmp = (a: LocalDate, b: LocalDate): number => a.compare(b) * mod
+    return opt.mutate ? items.sort(cmp) : items.toSorted(cmp)
   }
 
   /**

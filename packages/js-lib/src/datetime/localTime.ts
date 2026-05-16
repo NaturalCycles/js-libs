@@ -1,3 +1,4 @@
+import { comparators } from '../array/sort.js'
 import { _assert } from '../error/assert.js'
 import type {
   IANATimezone,
@@ -1017,13 +1018,8 @@ class LocalTimeFactory {
   }
 
   sort(items: LocalTime[], dir: SortDirection = 'asc', opt: MutateOptions = {}): LocalTime[] {
-    const mod = dir === 'desc' ? -1 : 1
-    return (opt.mutate ? items : [...items]).sort((a, b) => {
-      const v1 = a.$date.valueOf()
-      const v2 = b.$date.valueOf()
-      if (v1 === v2) return 0
-      return (v1 < v2 ? -1 : 1) * mod
-    })
+    const cmp = comparators.by((lt: LocalTime) => lt.$date.valueOf(), { dir })
+    return opt.mutate ? items.sort(cmp) : items.toSorted(cmp)
   }
 
   minOrUndefined(items: LocalTimeInputNullable[]): LocalTime | undefined {
