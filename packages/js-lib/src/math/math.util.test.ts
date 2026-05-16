@@ -130,4 +130,12 @@ test('_percentiles', () => {
 
 test('_median', () => {
   expect(_median([1, 2, 3])).toBe(2)
+  expect(_median([1, 2, 3, 4])).toBe(2.5)
+  expect(_median([5])).toBe(5)
+  expect(_median([3, 1, 2])).toBe(2)
+
+  // Should not mutate the input
+  const input = [3, 1, 2]
+  _median(input)
+  expect(input).toEqual([3, 1, 2])
 })

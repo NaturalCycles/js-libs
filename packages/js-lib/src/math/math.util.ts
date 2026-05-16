@@ -117,5 +117,8 @@ export function _percentiles(values: number[], pcs: number[]): Record<number, nu
  * // 2.5
  */
 export function _median(values: number[]): number {
-  return _percentile(values, 50)
+  const sorted = values.slice().sort(comparators.numericAsc)
+  const len = sorted.length
+  const mid = Math.floor(len / 2)
+  return len % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2
 }
