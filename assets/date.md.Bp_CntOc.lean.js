@@ -1,0 +1,1 @@
+import{_ as e,H as a,f as o,i as d}from"./chunks/framework.D542z0MJ.js";const p=JSON.parse('{"title":"LocalDate, LocalTime","description":"","frontmatter":{},"headers":[],"relativePath":"date.md","filePath":"date.md"}'),i={name:"date.md"};function r(l,t,s,n,c,m){return a(),o("div",null,[...t[0]||(t[0]=[d("",22)])])}const h=e(i,[["render",r]]);export{p as __pageData,h as default};

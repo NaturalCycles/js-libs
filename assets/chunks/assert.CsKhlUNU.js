@@ -1,0 +1,1 @@
+import{A as s}from"./stringify.CB1be1eX.js";function a(t,o=Error){if(!(t instanceof o))throw new s(`Expected to be instanceof ${o.name}, actual typeof: ${typeof t}`)}function f(t,o){if(!(t instanceof o))throw t}function i(t,o,n){if(typeof t!==o){const r=n;throw new s(r)}}export{f as _,a,i as b};
