@@ -469,14 +469,23 @@ export function _firstOrUndefined<T>(array: readonly T[]): T | undefined {
 }
 
 /**
- * Returns the first item of an iterable (Set, Map.values(), generator, etc.),
- * or `undefined` if the iterable is empty.
+ * Returns the first item of a non-empty iterable (Set, Map.values(), generator, etc.).
+ * Throws if the iterable is empty.
  *
  * Avoids the `Array.from(iter)[0]` pattern that materialises the entire iterable.
  * `for...of` with an early return advances the iterator exactly once; if the
  * iterator implements `return()` (generators, etc.), it is invoked for cleanup.
  */
-export function _firstFromIterable<T>(iter: Iterable<T>): T | undefined {
+export function _firstFromIterable<T>(iter: Iterable<T>): T {
+  for (const item of iter) return item
+  throw new Error('_firstFromIterable called on empty iterable')
+}
+
+/**
+ * Returns the first item of an iterable (or undefined if the iterable is empty).
+ * See `_firstFromIterable` for the iteration semantics.
+ */
+export function _firstOrUndefinedFromIterable<T>(iter: Iterable<T>): T | undefined {
   for (const item of iter) return item
   return undefined
 }

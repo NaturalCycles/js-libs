@@ -243,7 +243,8 @@ export function _findKeyByValue<T extends AnyObject>(obj: T, v: ValueOf<T>): key
 }
 
 /**
- * Returns the first key of the object, or `undefined` if the object is empty.
+ * Returns the first key of a non-empty object.
+ * Throws if the object is empty.
  *
  * Performance-optimised: uses `for...in` with an early return to avoid
  * allocating the full `Object.keys(obj)` array. The `Object.hasOwn` filter
@@ -253,7 +254,18 @@ export function _findKeyByValue<T extends AnyObject>(obj: T, v: ValueOf<T>): key
  * objects (integer-like keys ascending first, then string keys in
  * insertion order).
  */
-export function _firstKey<T extends AnyObject>(obj: T): keyof T | undefined {
+export function _firstKey<T extends AnyObject>(obj: T): keyof T {
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) return k as keyof T
+  }
+  throw new Error('_firstKey called on empty object')
+}
+
+/**
+ * Returns the first key of the object (or undefined if the object is empty).
+ * See `_firstKey` for the iteration-order contract.
+ */
+export function _firstKeyOrUndefined<T extends AnyObject>(obj: T): keyof T | undefined {
   for (const k in obj) {
     if (Object.hasOwn(obj, k)) return k as keyof T
   }
@@ -261,10 +273,22 @@ export function _firstKey<T extends AnyObject>(obj: T): keyof T | undefined {
 }
 
 /**
- * Returns the first value of the object, or `undefined` if the object is empty.
+ * Returns the first value of a non-empty object.
+ * Throws if the object is empty.
  * See `_firstKey` for the iteration-order contract.
  */
-export function _firstValue<T extends AnyObject>(obj: T): ValueOf<T> | undefined {
+export function _firstValue<T extends AnyObject>(obj: T): ValueOf<T> {
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) return obj[k] as ValueOf<T>
+  }
+  throw new Error('_firstValue called on empty object')
+}
+
+/**
+ * Returns the first value of the object (or undefined if the object is empty).
+ * See `_firstKey` for the iteration-order contract.
+ */
+export function _firstValueOrUndefined<T extends AnyObject>(obj: T): ValueOf<T> | undefined {
   for (const k in obj) {
     if (Object.hasOwn(obj, k)) return obj[k] as ValueOf<T>
   }
@@ -272,11 +296,24 @@ export function _firstValue<T extends AnyObject>(obj: T): ValueOf<T> | undefined
 }
 
 /**
- * Returns the first [key, value] tuple of the object,
- * or `undefined` if the object is empty.
+ * Returns the first [key, value] tuple of a non-empty object.
+ * Throws if the object is empty.
  * See `_firstKey` for the iteration-order contract.
  */
-export function _firstEntry<T extends AnyObject>(obj: T): [keyof T, ValueOf<T>] | undefined {
+export function _firstEntry<T extends AnyObject>(obj: T): [keyof T, ValueOf<T>] {
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) return [k as keyof T, obj[k] as ValueOf<T>]
+  }
+  throw new Error('_firstEntry called on empty object')
+}
+
+/**
+ * Returns the first [key, value] tuple of the object (or undefined if the object is empty).
+ * See `_firstKey` for the iteration-order contract.
+ */
+export function _firstEntryOrUndefined<T extends AnyObject>(
+  obj: T,
+): [keyof T, ValueOf<T>] | undefined {
   for (const k in obj) {
     if (Object.hasOwn(obj, k)) return [k as keyof T, obj[k] as ValueOf<T>]
   }

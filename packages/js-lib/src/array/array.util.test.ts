@@ -21,6 +21,7 @@ import {
   _firstLast,
   _firstLastOrUndefined,
   _firstOrUndefined,
+  _firstOrUndefinedFromIterable,
   _groupBy,
   _intersection,
   _intersectsWith,
@@ -462,13 +463,13 @@ test('_first', () => {
 })
 
 test('_firstFromIterable', () => {
-  expect(_firstFromIterable([])).toBeUndefined()
-  expect(_firstFromIterable([1, 2, 3])).toBe(1)
-  expect(_firstFromIterable(new Set([1, 2, 3]))).toBe(1)
-  expect(_firstFromIterable(new Set<number>())).toBeUndefined()
-  expect(_firstFromIterable(new Map([['a', 1]]).values())).toBe(1)
+  expect(_firstOrUndefinedFromIterable([])).toBeUndefined()
+  expect(_firstOrUndefinedFromIterable([1, 2, 3])).toBe(1)
+  expect(_firstOrUndefinedFromIterable(new Set([1, 2, 3]))).toBe(1)
+  expect(_firstOrUndefinedFromIterable(new Set<number>())).toBeUndefined()
+  expect(_firstOrUndefinedFromIterable(new Map([['a', 1]]).values())).toBe(1)
   expect(
-    _firstFromIterable(
+    _firstOrUndefinedFromIterable(
       new Map([
         ['a', 1],
         ['b', 2],
@@ -481,11 +482,21 @@ test('_firstFromIterable', () => {
     yield 'y'
   }
 
-  expect(_firstFromIterable(gen())).toBe('x')
+  expect(_firstOrUndefinedFromIterable(gen())).toBe('x')
 
   function* emptyGen(): Generator<string> {}
 
-  expect(_firstFromIterable(emptyGen())).toBeUndefined()
+  expect(_firstOrUndefinedFromIterable(emptyGen())).toBeUndefined()
+
+  // throwing variant
+  expect(() => _firstFromIterable([])).toThrowErrorMatchingInlineSnapshot(
+    `[Error: _firstFromIterable called on empty iterable]`,
+  )
+  expect(() => _firstFromIterable(new Set<number>())).toThrowErrorMatchingInlineSnapshot(
+    `[Error: _firstFromIterable called on empty iterable]`,
+  )
+  expect(_firstFromIterable([1, 2, 3])).toBe(1)
+  expect(_firstFromIterable(new Set(['a']))).toBe('a')
 })
 
 test('_min', () => {

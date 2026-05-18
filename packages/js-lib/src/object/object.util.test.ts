@@ -12,8 +12,11 @@ import {
   _filterUndefinedValues,
   _findKeyByValue,
   _firstEntry,
+  _firstEntryOrUndefined,
   _firstKey,
+  _firstKeyOrUndefined,
   _firstValue,
+  _firstValueOrUndefined,
   _get,
   _has,
   _hasProp,
@@ -687,26 +690,42 @@ test('_findKeyByValue', () => {
 })
 
 test('_firstKey', () => {
-  expect(_firstKey({ a: 1, b: 2 })).toBe('a')
-  expect(_firstKey({ x: 1 })).toBe('x')
-  expect(_firstKey({})).toBeUndefined()
+  expect(_firstKeyOrUndefined({ a: 1, b: 2 })).toBe('a')
+  expect(_firstKeyOrUndefined({ x: 1 })).toBe('x')
+  expect(_firstKeyOrUndefined({})).toBeUndefined()
   // V8 sorts integer-like keys ascending first, then string keys in insertion order
+  expect(_firstKeyOrUndefined({ 2: 'b', 1: 'a' })).toBe('1')
+  expect(_firstKeyOrUndefined({ b: 1, 1: 'a' })).toBe('1')
+
+  expect(() => _firstKey({})).toThrowErrorMatchingInlineSnapshot(
+    `[Error: _firstKey called on empty object]`,
+  )
+  expect(_firstKey({ a: 1, b: 2 })).toBe('a')
   expect(_firstKey({ 2: 'b', 1: 'a' })).toBe('1')
-  expect(_firstKey({ b: 1, 1: 'a' })).toBe('1')
 })
 
 test('_firstValue', () => {
+  expect(_firstValueOrUndefined({ a: 1, b: 2 })).toBe(1)
+  expect(_firstValueOrUndefined({ x: 'only' })).toBe('only')
+  expect(_firstValueOrUndefined({})).toBeUndefined()
+  expect(_firstValueOrUndefined({ 2: 'b', 1: 'a' })).toBe('a')
+
+  expect(() => _firstValue({})).toThrowErrorMatchingInlineSnapshot(
+    `[Error: _firstValue called on empty object]`,
+  )
   expect(_firstValue({ a: 1, b: 2 })).toBe(1)
-  expect(_firstValue({ x: 'only' })).toBe('only')
-  expect(_firstValue({})).toBeUndefined()
-  expect(_firstValue({ 2: 'b', 1: 'a' })).toBe('a')
 })
 
 test('_firstEntry', () => {
+  expect(_firstEntryOrUndefined({ a: 1, b: 2 })).toEqual(['a', 1])
+  expect(_firstEntryOrUndefined({ x: 'only' })).toEqual(['x', 'only'])
+  expect(_firstEntryOrUndefined({})).toBeUndefined()
+  expect(_firstEntryOrUndefined({ 2: 'b', 1: 'a' })).toEqual(['1', 'a'])
+
+  expect(() => _firstEntry({})).toThrowErrorMatchingInlineSnapshot(
+    `[Error: _firstEntry called on empty object]`,
+  )
   expect(_firstEntry({ a: 1, b: 2 })).toEqual(['a', 1])
-  expect(_firstEntry({ x: 'only' })).toEqual(['x', 'only'])
-  expect(_firstEntry({})).toBeUndefined()
-  expect(_firstEntry({ 2: 'b', 1: 'a' })).toEqual(['1', 'a'])
 })
 
 test('_deepFreeze', () => {
