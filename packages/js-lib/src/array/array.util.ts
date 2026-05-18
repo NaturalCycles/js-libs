@@ -468,6 +468,19 @@ export function _firstOrUndefined<T>(array: readonly T[]): T | undefined {
   return array[0]
 }
 
+/**
+ * Returns the first item of an iterable (Set, Map.values(), generator, etc.),
+ * or `undefined` if the iterable is empty.
+ *
+ * Avoids the `Array.from(iter)[0]` pattern that materialises the entire iterable.
+ * `for...of` with an early return advances the iterator exactly once; if the
+ * iterator implements `return()` (generators, etc.), it is invoked for cleanup.
+ */
+export function _firstFromIterable<T>(iter: Iterable<T>): T | undefined {
+  for (const item of iter) return item
+  return undefined
+}
+
 export function _minOrUndefined<T>(array: readonly T[]): NonNullable<T> | undefined {
   let min: NonNullable<T> | undefined
   for (const item of array) {

@@ -17,6 +17,7 @@ import {
   _find,
   _findLast,
   _first,
+  _firstFromIterable,
   _firstLast,
   _firstLastOrUndefined,
   _firstOrUndefined,
@@ -458,6 +459,33 @@ test('_first', () => {
   expect(_first([1, undefined])).toBe(1)
   expect(_first([1, 2])).toBe(1)
   expect(_first([1])).toBe(1)
+})
+
+test('_firstFromIterable', () => {
+  expect(_firstFromIterable([])).toBeUndefined()
+  expect(_firstFromIterable([1, 2, 3])).toBe(1)
+  expect(_firstFromIterable(new Set([1, 2, 3]))).toBe(1)
+  expect(_firstFromIterable(new Set<number>())).toBeUndefined()
+  expect(_firstFromIterable(new Map([['a', 1]]).values())).toBe(1)
+  expect(
+    _firstFromIterable(
+      new Map([
+        ['a', 1],
+        ['b', 2],
+      ]).keys(),
+    ),
+  ).toBe('a')
+
+  function* gen(): Generator<string> {
+    yield 'x'
+    yield 'y'
+  }
+
+  expect(_firstFromIterable(gen())).toBe('x')
+
+  function* emptyGen(): Generator<string> {}
+
+  expect(_firstFromIterable(emptyGen())).toBeUndefined()
 })
 
 test('_min', () => {

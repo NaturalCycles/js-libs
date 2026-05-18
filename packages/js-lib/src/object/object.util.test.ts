@@ -11,6 +11,9 @@ import {
   _filterObject,
   _filterUndefinedValues,
   _findKeyByValue,
+  _firstEntry,
+  _firstKey,
+  _firstValue,
   _get,
   _has,
   _hasProp,
@@ -681,6 +684,29 @@ test('_findKeyByValue', () => {
   const char = _findKeyByValue(map, 2)
   // typeof char should be `CHAR | undefined`, not `string | undefined`
   expect(char).toBe(CHAR.B)
+})
+
+test('_firstKey', () => {
+  expect(_firstKey({ a: 1, b: 2 })).toBe('a')
+  expect(_firstKey({ x: 1 })).toBe('x')
+  expect(_firstKey({})).toBeUndefined()
+  // V8 sorts integer-like keys ascending first, then string keys in insertion order
+  expect(_firstKey({ 2: 'b', 1: 'a' })).toBe('1')
+  expect(_firstKey({ b: 1, 1: 'a' })).toBe('1')
+})
+
+test('_firstValue', () => {
+  expect(_firstValue({ a: 1, b: 2 })).toBe(1)
+  expect(_firstValue({ x: 'only' })).toBe('only')
+  expect(_firstValue({})).toBeUndefined()
+  expect(_firstValue({ 2: 'b', 1: 'a' })).toBe('a')
+})
+
+test('_firstEntry', () => {
+  expect(_firstEntry({ a: 1, b: 2 })).toEqual(['a', 1])
+  expect(_firstEntry({ x: 'only' })).toEqual(['x', 'only'])
+  expect(_firstEntry({})).toBeUndefined()
+  expect(_firstEntry({ 2: 'b', 1: 'a' })).toEqual(['1', 'a'])
 })
 
 test('_deepFreeze', () => {

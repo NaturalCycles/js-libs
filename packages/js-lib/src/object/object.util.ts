@@ -242,6 +242,47 @@ export function _findKeyByValue<T extends AnyObject>(obj: T, v: ValueOf<T>): key
   return Object.entries(obj).find(([_, value]) => value === v)?.[0] as keyof T
 }
 
+/**
+ * Returns the first key of the object, or `undefined` if the object is empty.
+ *
+ * Performance-optimised: uses `for...in` with an early return to avoid
+ * allocating the full `Object.keys(obj)` array. The `Object.hasOwn` filter
+ * matches `Object.keys()` semantics (own enumerable string keys only) and
+ * satisfies the `guard-for-in` lint rule; cost is a single check before
+ * the early return. Iteration order matches `Object.keys()` for plain
+ * objects (integer-like keys ascending first, then string keys in
+ * insertion order).
+ */
+export function _firstKey<T extends AnyObject>(obj: T): keyof T | undefined {
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) return k as keyof T
+  }
+  return undefined
+}
+
+/**
+ * Returns the first value of the object, or `undefined` if the object is empty.
+ * See `_firstKey` for the iteration-order contract.
+ */
+export function _firstValue<T extends AnyObject>(obj: T): ValueOf<T> | undefined {
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) return obj[k] as ValueOf<T>
+  }
+  return undefined
+}
+
+/**
+ * Returns the first [key, value] tuple of the object,
+ * or `undefined` if the object is empty.
+ * See `_firstKey` for the iteration-order contract.
+ */
+export function _firstEntry<T extends AnyObject>(obj: T): [keyof T, ValueOf<T>] | undefined {
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) return [k as keyof T, obj[k] as ValueOf<T>]
+  }
+  return undefined
+}
+
 export function _objectNullValuesToUndefined<T extends AnyObject>(
   obj: T,
   opt: MutateOptions = {},

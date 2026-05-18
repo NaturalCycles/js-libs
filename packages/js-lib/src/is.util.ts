@@ -45,11 +45,19 @@ export function _isPrimitive(v: any): v is Primitive {
 }
 
 export function _isEmptyObject(obj: AnyObject): boolean {
-  return Object.keys(obj).length === 0
+  // for...in with early return avoids allocating the full Object.keys array.
+  // Object.hasOwn matches Object.keys() semantics (own enumerable keys only).
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) return false
+  }
+  return true
 }
 
 export function _isNotEmptyObject(obj: AnyObject): boolean {
-  return Object.keys(obj).length > 0
+  for (const k in obj) {
+    if (Object.hasOwn(obj, k)) return true
+  }
+  return false
 }
 
 /**
@@ -74,7 +82,10 @@ export function _isEmpty(obj: any): boolean {
   }
 
   if (typeof obj === 'object') {
-    return Object.keys(obj).length === 0
+    for (const k in obj) {
+      if (Object.hasOwn(obj, k)) return false
+    }
+    return true
   }
 
   return false
