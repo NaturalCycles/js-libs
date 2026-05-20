@@ -1,5 +1,6 @@
 import { testOffline } from '@naturalcycles/dev-lib/testing/testOffline'
 import { afterAll, vi } from 'vitest'
+
 testOffline()
 
 // vi.unstubAllEnvs()

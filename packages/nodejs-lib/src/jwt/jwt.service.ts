@@ -5,6 +5,7 @@ import type { AnyObject, JWTString } from '@naturalcycles/js-lib/types'
 import type { Algorithm, JwtHeader, SignOptions, VerifyOptions } from 'jsonwebtoken'
 import jsonwebtoken from 'jsonwebtoken'
 import type { AjvSchema, JSchema } from '../validation/ajv/jSchema.js'
+
 export { jsonwebtoken }
 export type { Algorithm, JwtHeader, SignOptions, VerifyOptions }
 

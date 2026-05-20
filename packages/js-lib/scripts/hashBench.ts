@@ -12,6 +12,7 @@ import { md5 } from '@naturalcycles/nodejs-lib'
 import cryptoJS from 'crypto-js'
 import { _range } from '../src/array/index.js'
 import { hashCode, hashCode64 } from '../src/string/index.js'
+
 const crypto = nodeCrypto.webcrypto
 
 const data = _range(100).map(n => ({
