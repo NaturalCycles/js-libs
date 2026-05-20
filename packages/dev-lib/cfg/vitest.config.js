@@ -3,6 +3,7 @@ import { isAgent } from 'std-env'
 import { defineConfig } from 'vitest/config'
 import { SummaryReporter } from './summaryReporter.js'
 import { VitestAlphabeticSequencer } from './vitestAlphabeticSequencer.js'
+
 export { SummaryReporter } from './summaryReporter.js'
 export { CollectReporter } from './collectReporter.js'
 

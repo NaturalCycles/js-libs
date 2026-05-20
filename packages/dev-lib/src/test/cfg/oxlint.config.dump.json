@@ -17,6 +17,18 @@
     "for-direction": "warn",
     "getter-return": "warn",
     "guard-for-in": "deny",
+    "id-match": [
+      "deny",
+      [
+        "^.+$",
+        {
+          "classFields": false,
+          "ignoreDestructuring": false,
+          "onlyDeclarations": false,
+          "properties": false
+        }
+      ]
+    ],
     "logical-assignment-operators": [
       "deny",
       [
@@ -85,6 +97,7 @@
         }
       ]
     ],
+    "no-implied-eval": "deny",
     "no-import-assign": "warn",
     "no-invalid-regexp": "warn",
     "no-irregular-whitespace": "warn",
@@ -178,6 +191,7 @@
       ]
     ],
     "import/namespace": "warn",
+    "import/newline-after-import": "deny",
     "import/no-absolute-path": "deny",
     "import/no-amd": "deny",
     "import/no-commonjs": "deny",
@@ -575,6 +589,7 @@
     "vitest/no-mocks-import": "deny",
     "vitest/no-standalone-expect": "warn",
     "vitest/no-test-return-statement": "deny",
+    "vitest/padding-around-after-all-blocks": "deny",
     "vitest/prefer-called-exactly-once-with": "deny",
     "vitest/prefer-hooks-in-order": "deny",
     "vitest/prefer-hooks-on-top": "deny",

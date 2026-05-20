@@ -93,9 +93,20 @@ export const sharedConfig = {
     'valid-title': 0,
     'vitest/valid-title': 0,
     'valid-describe-callback': 0,
+    'id-match': [
+      2,
+      '^.+$',
+      {
+        classFields: false,
+        ignoreDestructuring: false,
+        onlyDeclarations: false,
+        properties: false,
+      },
+    ],
     'jsdoc/require-yields': 0,
     'no-new-wrappers': 2,
     'no-useless-call': 2,
+    'no-implied-eval': 2,
     'no-accumulating-spread': 2,
     'no-map-spread': 0, // todo: consider, check the effect
     'prefer-array-find': 2,
@@ -142,6 +153,7 @@ export const sharedConfig = {
     'max-params': [2, { max: 5 }],
     'prefer-spread': 2,
     'import/extensions': [0, 'always', { ignorePackages: true }], // disabled as it's buggy; would be nice to enable eventually
+    'import/newline-after-import': 2,
     'import/no-amd': 2,
     'import/no-commonjs': 2,
     'import/no-cycle': 2,
@@ -413,6 +425,7 @@ export const sharedConfig = {
     'vitest/no-focused-tests': 2,
     'vitest/no-identical-title': 2,
     'vitest/no-test-return-statement': 2,
+    'vitest/padding-around-after-all-blocks': 2,
     'vitest/prefer-hooks-in-order': 2,
     'vitest/prefer-hooks-on-top': 2,
     'vitest/prefer-mock-promise-shorthand': 2,

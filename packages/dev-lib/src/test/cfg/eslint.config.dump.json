@@ -2,7 +2,7 @@
   "language": "@/js",
   "languageOptions": {
     "ecmaVersion": 2026,
-    "parser": "typescript-eslint/parser@8.59.3",
+    "parser": "typescript-eslint/parser@8.59.4",
     "parserOptions": {
       "extraFileExtensions": {
         "0": ".html"
@@ -14,7 +14,7 @@
   "linterOptions": {
     "reportUnusedDisableDirectives": 2
   },
-  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.59.3"],
+  "plugins": ["@", "@typescript-eslint:@typescript-eslint/eslint-plugin@8.59.4"],
   "rules": {
     "@typescript-eslint/method-signature-style": [2],
     "@typescript-eslint/naming-convention": [
@@ -96,16 +96,6 @@
       "boolean",
       "Undefined",
       "undefined"
-    ],
-    "id-match": [
-      2,
-      "^.+$",
-      {
-        "classFields": false,
-        "ignoreDestructuring": false,
-        "onlyDeclarations": false,
-        "properties": false
-      }
     ],
     "no-dupe-args": [2],
     "no-new-symbol": [2],
