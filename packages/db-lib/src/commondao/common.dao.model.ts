@@ -68,6 +68,15 @@ export interface CommonDaoHooks<
   beforeSave?: (dbm: DBM) => void
 
   /**
+   * Invoked when the `__compressed` Buffer for a row exceeds the
+   * `compress.warnSizeBytes` threshold. No-op unless both `compress.warnSizeBytes`
+   * is set and this hook is provided.
+   *
+   * Consumer decides how to surface the warning (Sentry, logger, metrics, etc.).
+   */
+  onOversizeWarning?: (info: { table: string; id: string; size: number; threshold: number }) => void
+
+  /**
    * If hook is defined - allows to prevent or modify the error thrown.
    * Return `false` to prevent throwing an error.
    * Return original `err` to pass the error through (will be thrown in CommonDao).
@@ -224,6 +233,14 @@ export interface CommonDaoCfg<
      * Undefined will default to level 1 (not the 3, which is the zstd default)
      */
     level?: Integer
+    /**
+     * If set, the `onOversizeWarning` hook is invoked whenever the resulting
+     * `__compressed` Buffer exceeds this size in bytes. Useful for monitoring
+     * rows approaching DB row-size limits (e.g. Datastore's 1MB per entity).
+     *
+     * No-op unless `hooks.onOversizeWarning` is also provided.
+     */
+    warnSizeBytes?: number
   }
 }
 

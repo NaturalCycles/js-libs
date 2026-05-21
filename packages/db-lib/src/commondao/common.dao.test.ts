@@ -1273,4 +1273,51 @@ describe('auto compression', () => {
 
     saveBatchSpy.mockRestore()
   })
+
+  describe('warnSizeBytes', () => {
+    type OnOversizeWarning = NonNullable<
+      NonNullable<CommonDaoCfg<Item>['hooks']>['onOversizeWarning']
+    >
+
+    test('fires onOversizeWarning when compressed payload exceeds threshold', async () => {
+      const onOversizeWarning = vi.fn<OnOversizeWarning>()
+      const dao = new CommonDao<Item>({
+        table: TEST_TABLE,
+        db,
+        compress: {
+          keys: ['obj', 'shu'],
+          warnSizeBytes: 1,
+        },
+        hooks: { onOversizeWarning },
+      })
+
+      await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+      expect(onOversizeWarning).toHaveBeenCalledTimes(1)
+      expect(onOversizeWarning).toHaveBeenCalledWith({
+        table: TEST_TABLE,
+        id: 'id1',
+        size: expect.any(Number),
+        threshold: 1,
+      })
+      expect(onOversizeWarning.mock.calls[0]![0].size).toBeGreaterThan(1)
+    })
+
+    test('does not fire when compressed payload is under threshold', async () => {
+      const onOversizeWarning = vi.fn<OnOversizeWarning>()
+      const dao = new CommonDao<Item>({
+        table: TEST_TABLE,
+        db,
+        compress: {
+          keys: ['obj', 'shu'],
+          warnSizeBytes: 1_000_000,
+        },
+        hooks: { onOversizeWarning },
+      })
+
+      await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+      expect(onOversizeWarning).not.toHaveBeenCalled()
+    })
+  })
 })
