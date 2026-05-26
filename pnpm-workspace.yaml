@@ -19,6 +19,7 @@ trustPolicyExclude:
   - semver@5.7.2
   - jose@4.15.9
   - undici@5.29.0
+  - tinyexec@1.2.2
 blockExoticSubdeps: true
 auditConfig:
   ignoreGhsas:
