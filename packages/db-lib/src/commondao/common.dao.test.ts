@@ -1273,4 +1273,73 @@ describe('auto compression', () => {
 
     saveBatchSpy.mockRestore()
   })
+
+  describe('warnSizeBytes', () => {
+    type OnOversizeWarning = NonNullable<
+      NonNullable<CommonDaoCfg<Item>['compress']>['onOversizeWarning']
+    >
+
+    test('fires onOversizeWarning when compressed payload exceeds threshold', async () => {
+      const onOversizeWarning = vi.fn<OnOversizeWarning>()
+      const dao = new CommonDao<Item>({
+        table: TEST_TABLE,
+        db,
+        compress: {
+          keys: ['obj', 'shu'],
+          warnSizeBytes: 1,
+          onOversizeWarning,
+        },
+      })
+
+      await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+      expect(onOversizeWarning).toHaveBeenCalledTimes(1)
+      const [dbm, size] = onOversizeWarning.mock.calls[0]!
+      expect(dbm).toMatchObject({
+        id: 'id1',
+        obj: { objId: 'objId1' },
+        shu: 'shu1',
+      })
+      // hook receives pre-mutation snapshot (no __compressed yet, source keys still present)
+      expect(dbm).not.toHaveProperty('__compressed')
+      expect(size).toBeGreaterThan(1)
+    })
+
+    test('hook receives a clone, not a reference to the mutated dbm', async () => {
+      let capturedDbm: Item | undefined
+      const dao = new CommonDao<Item>({
+        table: TEST_TABLE,
+        db,
+        compress: {
+          keys: ['obj', 'shu'],
+          warnSizeBytes: 1,
+          onOversizeWarning: dbm => {
+            capturedDbm = dbm
+          },
+        },
+      })
+
+      await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+      expect(capturedDbm).toMatchObject({ obj: { objId: 'objId1' }, shu: 'shu1' })
+      expect(capturedDbm).not.toHaveProperty('__compressed')
+    })
+
+    test('does not fire when compressed payload is under threshold', async () => {
+      const onOversizeWarning = vi.fn<OnOversizeWarning>()
+      const dao = new CommonDao<Item>({
+        table: TEST_TABLE,
+        db,
+        compress: {
+          keys: ['obj', 'shu'],
+          warnSizeBytes: 1_000_000,
+          onOversizeWarning,
+        },
+      })
+
+      await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+      expect(onOversizeWarning).not.toHaveBeenCalled()
+    })
+  })
 })

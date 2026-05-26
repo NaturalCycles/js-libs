@@ -849,12 +849,17 @@ export class CommonDao<
   private async compress(dbm: DBM): Promise<void> {
     if (!this.cfg.compress?.keys.length) return // No compression requested
 
-    const { keys, level = 1 } = this.cfg.compress
+    const { keys, level = 1, warnSizeBytes, onOversizeWarning } = this.cfg.compress
     const properties = _pick(dbm, keys)
     const bufferString = JSON.stringify(properties)
     // Unlike `decompress`, we're testing to use async zstd compression.
     // Async Decompression leaks memory severely. But Compression seems fine.
     const __compressed = await zip2.zstdCompress(bufferString, level)
+    if (warnSizeBytes && onOversizeWarning && __compressed.byteLength > warnSizeBytes) {
+      // Shallow-clone: `dbm` is mutated below (omit source keys + assign __compressed),
+      // so we hand the hook a snapshot of the pre-mutation state.
+      onOversizeWarning({ ...dbm }, __compressed.byteLength)
+    }
     _omitWithUndefined(dbm as any, _objectKeys(properties), { mutate: true })
     Object.assign(dbm, { __compressed })
   }

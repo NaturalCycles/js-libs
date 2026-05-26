@@ -224,6 +224,22 @@ export interface CommonDaoCfg<
      * Undefined will default to level 1 (not the 3, which is the zstd default)
      */
     level?: Integer
+    /**
+     * If set, `onOversizeWarning` is invoked whenever the resulting `__compressed`
+     * Buffer exceeds this size in bytes. Useful for monitoring rows approaching
+     * DB row-size limits (e.g. Datastore's 1MB per entity).
+     *
+     * No-op unless `onOversizeWarning` is also provided.
+     */
+    warnSizeBytes?: number
+    /**
+     * Invoked when the `__compressed` Buffer exceeds `warnSizeBytes`.
+     *
+     * Called with a shallow clone of the DBM (since the original is mutated
+     * later in the compression step) and the resulting compressed size in bytes.
+     * The consumer decides how to surface the warning (Sentry, logger, metrics, etc.).
+     */
+    onOversizeWarning?: (dbm: DBM, size: number) => void
   }
 }
 
