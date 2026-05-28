@@ -20,6 +20,7 @@ trustPolicyExclude:
   - jose@4.15.9
   - undici@5.29.0
   - tinyexec@1.2.2
+  - ast-v8-to-istanbul@1.0.2
 blockExoticSubdeps: true
 auditConfig:
   ignoreGhsas:
