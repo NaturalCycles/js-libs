@@ -1359,10 +1359,10 @@ describe('excludeFromIndexes builder', () => {
       db,
       excludeFromIndexes: ex => [
         'name',
-        ex.nested('nested', 'foo'),
-        ex.wildcard('config'),
-        ex.element('tags'),
-        ex.element('tags', 'score'),
+        ex.object('nested').property('foo'),
+        ex.object('config').wildcard(),
+        ex.array('tags').wildcard(),
+        ex.array('tags').property('score'),
       ],
     })
 
@@ -1414,7 +1414,7 @@ describe('excludeFromIndexes builder', () => {
       table: TEST_TABLE_2,
       db,
       compress: { keys: ['nested'] },
-      excludeFromIndexes: ex => [ex.nested('nested', 'foo')],
+      excludeFromIndexes: ex => [ex.object('nested').property('foo')],
     })
 
     const saveBatchSpy = vi.spyOn(db, 'saveBatch')
