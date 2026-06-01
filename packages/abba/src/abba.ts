@@ -412,6 +412,31 @@ export class Abba {
   }
 
   /**
+   * Returns all user IDs that are assigned to any of the given buckets in the given experiment.
+   *
+   * @param experimentKey - The `key` field of the experiment (not the DB id).
+   * @param bucketKeys - The `key` fields of the buckets to include.
+   */
+  async getUserIdsInBuckets(
+    experimentKey: string,
+    bucketKeys: readonly string[],
+  ): Promise<Set<string>> {
+    if (!bucketKeys.length) return new Set()
+
+    const experiment = await this.experimentDao.getByKey(experimentKey)
+    if (!experiment) return new Set()
+
+    const bucketKeySet = new Set(bucketKeys)
+    const experimentBuckets = await this.bucketDao.getByExperimentId(experiment.id)
+    const matchedBucketIds = experimentBuckets.filter(b => bucketKeySet.has(b.key)).map(b => b.id)
+
+    if (!matchedBucketIds.length) return new Set()
+
+    const userIds = await this.userAssignmentDao.getUserIdsByBucketIds(matchedBucketIds)
+    return new Set(userIds)
+  }
+
+  /**
    * Get assignment statistics for an experiment.
    * Cold method.
    */

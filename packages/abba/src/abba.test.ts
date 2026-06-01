@@ -460,6 +460,46 @@ describe('getAllExperimentsWithUserAssignments', () => {
   })
 })
 
+describe('getUserIdsInBuckets', () => {
+  test('returns empty Set when experiment key does not exist', async () => {
+    const result = await abba.getUserIdsInBuckets('nonexistent_key', ['control'])
+    expect(result).toEqual(new Set())
+  })
+
+  test('returns empty Set when none of the bucket keys match', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment({ key: 'exp_bucket_test' }))
+    await bucketsDAO.save(mockBucket(experiment.id, 'control', 100))
+
+    const result = await abba.getUserIdsInBuckets('exp_bucket_test', ['treatment'])
+    expect(result).toEqual(new Set())
+  })
+
+  test('returns correct user IDs when matching assignments exist', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment({ key: 'exp_user_ids' }))
+    const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'treatment', 100))
+    await userAssignmentsDAO.save(mockUserAssignment(experiment.id, bucket.id, { userId: 'user1' }))
+    await userAssignmentsDAO.save(mockUserAssignment(experiment.id, bucket.id, { userId: 'user2' }))
+
+    const result = await abba.getUserIdsInBuckets('exp_user_ids', ['treatment'])
+    expect(result).toEqual(new Set(['user1', 'user2']))
+  })
+
+  test('deduplicates user IDs when a user is assigned to multiple matching buckets', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment({ key: 'exp_dedup' }))
+    const bucket1 = await bucketsDAO.save(mockBucket(experiment.id, 'bucketA', 50))
+    const bucket2 = await bucketsDAO.save(mockBucket(experiment.id, 'bucketB', 50))
+    await userAssignmentsDAO.save(
+      mockUserAssignment(experiment.id, bucket1.id, { userId: 'sharedUser' }),
+    )
+    await userAssignmentsDAO.save(
+      mockUserAssignment(experiment.id, bucket2.id, { userId: 'sharedUser' }),
+    )
+
+    const result = await abba.getUserIdsInBuckets('exp_dedup', ['bucketA', 'bucketB'])
+    expect(result).toEqual(new Set(['sharedUser']))
+  })
+})
+
 describe('softDeleteExperiment', () => {
   test('should soft delete an experiment', async () => {
     const experiment = await experimentsDAO.save(

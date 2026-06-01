@@ -31,6 +31,18 @@ export class UserAssignmentDao extends CommonDao<UserAssignment> {
   async getCountByBucketId(bucketId: string): Promise<number> {
     return await this.query().filterEq('bucketId', bucketId).runQueryCount()
   }
+
+  async getUserIdsByBucketIds(bucketIds: string[]): Promise<string[]> {
+    if (!bucketIds.length) return []
+
+    const userIds = await this.query()
+      .filterIn('bucketId', bucketIds)
+      .select(['userId'])
+      .distinct()
+      .runQuerySingleColumn<string>()
+
+    return Array.from(new Set(userIds))
+  }
 }
 
 export function userAssignmentDao(db: CommonDB): UserAssignmentDao {
