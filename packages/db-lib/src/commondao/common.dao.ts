@@ -51,6 +51,7 @@ import type {
   CommonDaoStreamSaveOptions,
 } from './common.dao.model.js'
 import { CommonDaoTransaction } from './commonDaoTransaction.js'
+import type { ExcludePathSpec } from './excludePath.js'
 import { compileExcludePath, ExcludeFromIndexesBuilder } from './excludePath.js'
 
 /**
@@ -105,10 +106,12 @@ export class CommonDao<
 
     // Compile the user-provided array or builder function into a flat string[] used by the rest of the DAO.
     if (this.cfg.excludeFromIndexes) {
-      const specs =
-        typeof this.cfg.excludeFromIndexes === 'function'
-          ? this.cfg.excludeFromIndexes(new ExcludeFromIndexesBuilder<DBM>())
-          : this.cfg.excludeFromIndexes
+      let specs: ExcludePathSpec<DBM>[]
+      if (typeof this.cfg.excludeFromIndexes === 'function') {
+        specs = this.cfg.excludeFromIndexes(new ExcludeFromIndexesBuilder<DBM>())
+      } else {
+        specs = this.cfg.excludeFromIndexes
+      }
       this.compiledExcludeFromIndexes = specs.map(compileExcludePath)
     }
 
@@ -118,7 +121,7 @@ export class CommonDao<
 
     // If auto-compression is enabled, ensure '__compressed' is part of the exclusion list.
     if (this.cfg.compress?.keys) {
-      this.compiledExcludeFromIndexes ??= []
+      this.compiledExcludeFromIndexes ||= []
       if (!this.compiledExcludeFromIndexes.includes('__compressed')) {
         this.compiledExcludeFromIndexes.push('__compressed')
       }
@@ -579,17 +582,15 @@ export class CommonDao<
   private prepareSaveOptions(
     opt: CommonDaoSaveOptions<BM, DBM>,
   ): CommonDBSaveOptions<ObjectWithId> {
-    let {
-      saveMethod,
-      assignGeneratedIds = this.cfg.assignGeneratedIds,
-      excludeFromIndexes = this.compiledExcludeFromIndexes,
-    } = opt
+    let { saveMethod, assignGeneratedIds = this.cfg.assignGeneratedIds } = opt
+    const isExcludeFromIndexesOverride = opt.excludeFromIndexes !== undefined
+    let excludeFromIndexes = opt.excludeFromIndexes || this.compiledExcludeFromIndexes
 
     // If the user passed in a custom `excludeFromIndexes` with the save() call,
     // and the auto-compression is enabled,
     // then we need to ensure that the '__compressed' property is part of the list.
-    if (this.cfg.compress?.keys && excludeFromIndexes !== this.compiledExcludeFromIndexes) {
-      excludeFromIndexes ??= []
+    if (this.cfg.compress?.keys && isExcludeFromIndexesOverride) {
+      excludeFromIndexes ||= []
       if (!excludeFromIndexes.includes('__compressed' as any)) {
         excludeFromIndexes.push('__compressed' as any)
       }
