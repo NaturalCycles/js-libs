@@ -72,14 +72,6 @@ export class CommonDao<
   /** Compiled string form of `cfg.excludeFromIndexes`, populated in the constructor. */
   private compiledExcludeFromIndexes: string[] | undefined
 
-  /**
-   * Top-level keys among `compiledExcludeFromIndexes` (no `.` or `[`), used to short-circuit
-   * query validation. Only top-level excluded keys make filter-by-that-key a query that
-   * would silently return nothing; nested/wildcard/array-element exclusions leave the
-   * top-level key indexed.
-   */
-  private compiledExcludeTopLevelKeys: Set<string> | undefined
-
   constructor(public cfg: CommonDaoCfg<BM, DBM, ID>) {
     this.cfg = {
       generateId: true,
@@ -114,10 +106,6 @@ export class CommonDao<
       }
       this.compiledExcludeFromIndexes = specs.map(compileExcludePath)
     }
-
-    this.compiledExcludeTopLevelKeys = this.compiledExcludeFromIndexes
-      ? new Set(this.compiledExcludeFromIndexes.filter(s => !s.includes('.') && !s.includes('[')))
-      : undefined
 
     // If auto-compression is enabled, ensure '__compressed' is part of the exclusion list.
     if (this.cfg.compress?.keys) {
@@ -1250,12 +1238,12 @@ export class CommonDao<
    */
   private validateQueryIndexes(q: DBQuery<DBM>): void {
     const { indexes } = this.cfg
-    const excludeTopLevelKeys = this.compiledExcludeTopLevelKeys
+    const excludeFromIndexes = this.compiledExcludeFromIndexes
 
-    if (excludeTopLevelKeys) {
+    if (excludeFromIndexes) {
       for (const f of q._filters) {
         _assert(
-          !excludeTopLevelKeys.has(f.name),
+          !excludeFromIndexes.includes(f.name),
           `cannot query on non-indexed property: ${this.cfg.table}.${f.name}`,
           {
             query: q.pretty(),

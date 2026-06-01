@@ -429,8 +429,8 @@ export type CommonDaoCreateOptions = CommonDBCreateOptions
 /**
  * Legacy array form for `CommonDaoCfg.excludeFromIndexes`.
  *
- * @deprecated Use the function form: `excludeFromIndexes: ex => [...]`. The function
- * form receives a typed `ExcludeBuilder` directly, so you don't have to construct one
- * yourself with `createExcludeBuilder<DBM>()`.
+ * @deprecated Use the function form: `excludeFromIndexes: ex => [...]`. The function form
+ * receives a typed `ExcludeFromIndexesBuilder` as `ex`, giving access to the
+ * `.object(...)` / `.array(...)` / `.property(...)` / `.wildcard()` chain.
  */
 export type LegacyExcludeFromIndexesArray<DBM extends BaseDBEntity> = ExcludePathSpec<DBM>[]
