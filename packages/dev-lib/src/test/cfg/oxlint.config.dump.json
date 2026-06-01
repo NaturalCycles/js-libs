@@ -294,6 +294,7 @@
         }
       ]
     ],
+    "typescript/method-signature-style": "deny",
     "typescript/no-array-delete": "warn",
     "typescript/no-base-to-string": "deny",
     "typescript/no-confusing-non-null-assertion": "deny",

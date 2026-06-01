@@ -196,6 +196,7 @@ export const sharedConfig = {
     'typescript/non-nullable-type-assertion-style': 2,
     'typescript/prefer-literal-enum-member': 2,
     'typescript/prefer-reduce-type-parameter': 2,
+    'typescript/method-signature-style': 2,
     'typescript/promise-function-async': [
       2,
       {
