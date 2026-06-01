@@ -1,46 +1,6 @@
 import type { KeysMatching, Primitive, UnionKeyOf } from '@naturalcycles/js-lib/types'
 
 /**
- * Compiles a single `ExcludePathSpec` into the dotted/wildcard string form that the
- * underlying CommonDB layer expects (e.g. `'meta.author'`, `'config.*'`, `'tags[].*'`).
- */
-export function compileExcludePath<T>(spec: ExcludePathSpec<T>): string {
-  if (typeof spec === 'string') return spec
-  return spec.path
-}
-
-type ArrayElem<T> = T extends readonly (infer U)[] ? U : never
-type PrimitiveKeys<T> = KeysMatching<T, Primitive>
-type ArrayKeys<T> = KeysMatching<T, readonly unknown[]>
-type ObjectKeys<T> = Exclude<keyof T & string, PrimitiveKeys<T> | ArrayKeys<T>>
-// String keys of T's non-nullable value, distributed over unions. `never` if T is primitive
-// or array-typed, so call sites get a clean "not assignable to never" error instead of
-// `keyof string`/`keyof Array` noise (`'toFixed'`, `'push'`, etc.).
-type PropertyKeysOf<T> = [NonNullable<T>] extends [Primitive | readonly unknown[]]
-  ? never
-  : UnionKeyOf<NonNullable<T>> & string
-// Append a path segment to a prefix, handling the root (empty-prefix) case.
-type Join<P extends string, S extends string> = P extends '' ? S : `${P}.${S}`
-
-/**
- * Path expression for a single entry in `CommonDaoCfg.excludeFromIndexes`.
- *
- * - A plain `string` key for top-level fields (e.g. `'title'`).
- * - A `PathSpec` produced by the `ExcludeFromIndexesBuilder` chain for nested,
- *   wildcard, and array-element paths.
- */
-export type ExcludePathSpec<T> = (keyof T & string) | PathSpec
-
-/**
- * Free-form compiled path (e.g. `'meta.author.name'`, `'tags[].*'`). Produced by the
- * `ExcludeFromIndexesBuilder` chain. Consumers don't construct this directly.
- */
-export interface PathSpec {
-  readonly type: 'path'
-  readonly path: string
-}
-
-/**
  * Fluent builder for typed exclusion paths.
  *
  * Received as `ex` inside the function form of `CommonDaoCfg.excludeFromIndexes`.
@@ -116,4 +76,44 @@ export class ExcludeFromIndexesBuilder<Current, Prefix extends string = ''> {
   ): PathSpec {
     return { type: 'path', path: `${this.prefix}.*` }
   }
+}
+
+/**
+ * Compiles a single `ExcludePathSpec` into the dotted/wildcard string form that the
+ * underlying CommonDB layer expects (e.g. `'meta.author'`, `'config.*'`, `'tags[].*'`).
+ */
+export function compileExcludePath<T>(spec: ExcludePathSpec<T>): string {
+  if (typeof spec === 'string') return spec
+  return spec.path
+}
+
+type ObjectKeys<T> = Exclude<keyof T & string, PrimitiveKeys<T> | ArrayKeys<T>>
+type PrimitiveKeys<T> = KeysMatching<T, Primitive>
+type ArrayKeys<T> = KeysMatching<T, readonly unknown[]>
+// String keys of T's non-nullable value, distributed over unions. `never` if T is primitive
+// or array-typed, so call sites get a clean "not assignable to never" error instead of
+// `keyof string`/`keyof Array` noise (`'toFixed'`, `'push'`, etc.).
+type PropertyKeysOf<T> = [NonNullable<T>] extends [Primitive | readonly unknown[]]
+  ? never
+  : UnionKeyOf<NonNullable<T>> & string
+// Append a path segment to a prefix, handling the root (empty-prefix) case.
+type Join<P extends string, S extends string> = P extends '' ? S : `${P}.${S}`
+type ArrayElem<T> = T extends readonly (infer U)[] ? U : never
+
+/**
+ * Path expression for a single entry in `CommonDaoCfg.excludeFromIndexes`.
+ *
+ * - A plain `string` key for top-level fields (e.g. `'title'`).
+ * - A `PathSpec` produced by the `ExcludeFromIndexesBuilder` chain for nested,
+ *   wildcard, and array-element paths.
+ */
+export type ExcludePathSpec<T> = (keyof T & string) | PathSpec
+
+/**
+ * Free-form compiled path (e.g. `'meta.author.name'`, `'tags[].*'`). Produced by the
+ * `ExcludeFromIndexesBuilder` chain. Consumers don't construct this directly.
+ */
+export interface PathSpec {
+  readonly type: 'path'
+  readonly path: string
 }
