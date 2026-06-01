@@ -733,7 +733,7 @@ test('should not be able to query by a non-indexed property', async () => {
   const dao = new CommonDao<TestItemBM>({
     table: TEST_TABLE,
     db,
-    excludeFromIndexes: ['k1'],
+    excludeFromIndexes: () => ['k1'],
   })
 
   await dao.saveBatch(createTestItemsBM(5))
@@ -1341,5 +1341,94 @@ describe('auto compression', () => {
 
       expect(onOversizeWarning).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('excludeFromIndexes builder', () => {
+  interface NestedItem extends BaseDBEntity {
+    name: string
+    nested?: { foo: number; bar: string }
+    config?: { theme: string }
+    tags?: { label: string; score: number }[]
+  }
+
+  test('should compile builder specs to strings passed to db.saveBatch', async () => {
+    const db = new InMemoryDB()
+    const dao = new CommonDao<NestedItem>({
+      table: TEST_TABLE_2,
+      db,
+      excludeFromIndexes: ex => [
+        'name',
+        ex.nested('nested', 'foo'),
+        ex.wildcard('config'),
+        ex.element('tags'),
+        ex.element('tags', 'score'),
+      ],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.saveBatch([{ id: 'id1', name: 'a' }])
+
+    expect(saveBatchSpy).toHaveBeenCalledWith(
+      TEST_TABLE_2,
+      expect.any(Array),
+      expect.objectContaining({
+        excludeFromIndexes: ['name', 'nested.foo', 'config.*', 'tags[].*', 'tags[].score'],
+      }),
+    )
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should accept the plain array form of excludeFromIndexes', async () => {
+    const db = new InMemoryDB()
+    const dao = new CommonDao<NestedItem>({
+      table: TEST_TABLE_2,
+      db,
+      excludeFromIndexes: [
+        'name',
+        // builder helpers may still be used inline if desired, but plain string keys
+        // are the most common case for the array form:
+      ],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.saveBatch([{ id: 'id1', name: 'a' }])
+
+    expect(saveBatchSpy).toHaveBeenCalledWith(
+      TEST_TABLE_2,
+      expect.any(Array),
+      expect.objectContaining({
+        excludeFromIndexes: ['name'],
+      }),
+    )
+
+    saveBatchSpy.mockRestore()
+  })
+
+  test('should append __compressed alongside user-provided specs when compression is enabled', async () => {
+    const db = new InMemoryDB()
+    const dao = new CommonDao<NestedItem>({
+      table: TEST_TABLE_2,
+      db,
+      compress: { keys: ['nested'] },
+      excludeFromIndexes: ex => [ex.nested('nested', 'foo')],
+    })
+
+    const saveBatchSpy = vi.spyOn(db, 'saveBatch')
+
+    await dao.saveBatch([{ id: 'id1', name: 'a', nested: { foo: 1, bar: 'b' } }])
+
+    expect(saveBatchSpy).toHaveBeenCalledWith(
+      TEST_TABLE_2,
+      expect.any(Array),
+      expect.objectContaining({
+        excludeFromIndexes: expect.arrayContaining(['nested.foo', '__compressed']),
+      }),
+    )
+
+    saveBatchSpy.mockRestore()
   })
 })

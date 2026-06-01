@@ -35,7 +35,7 @@ export function dbQueryToDatastoreQuery<ROW extends ObjectWithId>(
     // `a == null` will return just that - rows with null values
     let { op, val } = f
     if (val === undefined) val = null
-    q = q.filter(new PropertyFilter(f.name as string, OP_MAP[op] || (op as any), val))
+    q = q.filter(new PropertyFilter(f.name, OP_MAP[op] || (op as any), val))
   }
 
   // limit
@@ -43,7 +43,7 @@ export function dbQueryToDatastoreQuery<ROW extends ObjectWithId>(
 
   // order
   for (const ord of dbQuery._orders) {
-    q = q.order(ord.name as string, { descending: ord.descending })
+    q = q.order(ord.name, { descending: ord.descending })
   }
 
   // select

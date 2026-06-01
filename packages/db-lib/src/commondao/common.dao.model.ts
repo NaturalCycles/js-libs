@@ -5,6 +5,7 @@ import type { BaseDBEntity, Integer, UnixTimestamp } from '@naturalcycles/js-lib
 import type { TransformLogProgressOptions } from '@naturalcycles/nodejs-lib/stream'
 import type { CommonDB } from '../commondb/common.db.js'
 import type { CommonDBCreateOptions, CommonDBOptions, CommonDBSaveOptions } from '../db.model.js'
+import type { ExcludeBuilder, ExcludePathSpec } from './excludePath.js'
 
 export interface CommonDaoHooks<
   BM extends BaseDBEntity,
@@ -112,9 +113,22 @@ export interface CommonDaoCfg<
   validateBM?: ValidationFunction<BM, any>
 
   /**
+   * Fields to exclude from indexing. Prefer the builder function form below for
+   * type-safe nested, wildcard, and array-element paths.
+   *
    * Used by e.g Datastore.
+   *
+   * @example
+   *   excludeFromIndexes: ex => [
+   *     'title',
+   *     ex.nested('meta', 'author'),
+   *     ex.wildcard('config'),
+   *     ex.element('tags'),
+   *   ]
    */
-  excludeFromIndexes?: (keyof DBM)[]
+  excludeFromIndexes?:
+    | LegacyExcludeFromIndexesArray<DBM>
+    | ((ex: ExcludeBuilder<DBM>) => ExcludePathSpec<DBM>[])
 
   /**
    * Used by e.g Firestore.
@@ -410,3 +424,12 @@ export interface CommonDaoStreamOptions<IN>
 }
 
 export type CommonDaoCreateOptions = CommonDBCreateOptions
+
+/**
+ * Legacy array form for `CommonDaoCfg.excludeFromIndexes`.
+ *
+ * @deprecated Use the builder function form instead: `excludeFromIndexes: ex => [...]`.
+ * It is more type-safe (nested paths, wildcards, array elements all checked against
+ * the row type) and is the preferred shape going forward.
+ */
+export type LegacyExcludeFromIndexesArray<DBM extends BaseDBEntity> = ExcludePathSpec<DBM>[]

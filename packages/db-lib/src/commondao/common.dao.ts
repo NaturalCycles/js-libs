@@ -51,6 +51,7 @@ import type {
   CommonDaoStreamSaveOptions,
 } from './common.dao.model.js'
 import { CommonDaoTransaction } from './commonDaoTransaction.js'
+import { compileExcludePath, createExcludeBuilder } from './excludePath.js'
 
 /**
  * Lowest common denominator API between supported Databases.
@@ -67,6 +68,9 @@ export class CommonDao<
   DBM extends BaseDBEntity = BM,
   ID extends string = BM['id'],
 > {
+  /** Compiled string form of `cfg.excludeFromIndexes`, populated in the constructor. */
+  private compiledExcludeFromIndexes: string[] | undefined
+
   constructor(public cfg: CommonDaoCfg<BM, DBM, ID>) {
     this.cfg = {
       generateId: true,
@@ -91,13 +95,20 @@ export class CommonDao<
       delete this.cfg.hooks!.createRandomId
     }
 
-    // If the auto-compression is enabled,
-    // then we need to ensure that the '__compressed' property is part of the index exclusion list.
+    // Compile the user-provided array or builder function into a flat string[] used by the rest of the DAO.
+    if (this.cfg.excludeFromIndexes) {
+      const specs =
+        typeof this.cfg.excludeFromIndexes === 'function'
+          ? this.cfg.excludeFromIndexes(createExcludeBuilder<DBM>())
+          : this.cfg.excludeFromIndexes
+      this.compiledExcludeFromIndexes = specs.map(compileExcludePath)
+    }
+
+    // If auto-compression is enabled, ensure '__compressed' is part of the exclusion list.
     if (this.cfg.compress?.keys) {
-      const current = this.cfg.excludeFromIndexes
-      this.cfg.excludeFromIndexes = current ? current.slice() : []
-      if (!this.cfg.excludeFromIndexes.includes('__compressed' as any)) {
-        this.cfg.excludeFromIndexes.push('__compressed' as any)
+      this.compiledExcludeFromIndexes ??= []
+      if (!this.compiledExcludeFromIndexes.includes('__compressed')) {
+        this.compiledExcludeFromIndexes.push('__compressed')
       }
     }
   }
@@ -158,11 +169,20 @@ export class CommonDao<
     return this.storageRowsToDBM(rows)
   }
 
-  async getBy(by: keyof DBM, value: any, limit = 0, opt?: CommonDaoReadOptions): Promise<BM[]> {
+  async getBy(
+    by: keyof DBM & string,
+    value: any,
+    limit = 0,
+    opt?: CommonDaoReadOptions,
+  ): Promise<BM[]> {
     return await this.query().filterEq(by, value).limit(limit).runQuery(opt)
   }
 
-  async getOneBy(by: keyof DBM, value: any, opt?: CommonDaoReadOptions): Promise<BM | null> {
+  async getOneBy(
+    by: keyof DBM & string,
+    value: any,
+    opt?: CommonDaoReadOptions,
+  ): Promise<BM | null> {
     const [bm] = await this.query().filterEq(by, value).limit(1).runQuery(opt)
     return bm || null
   }
@@ -550,13 +570,13 @@ export class CommonDao<
     let {
       saveMethod,
       assignGeneratedIds = this.cfg.assignGeneratedIds,
-      excludeFromIndexes = this.cfg.excludeFromIndexes,
+      excludeFromIndexes = this.compiledExcludeFromIndexes,
     } = opt
 
-    // If the user passed in custom `excludeFromIndexes` with the save() call,
+    // If the user passed in a custom `excludeFromIndexes` with the save() call,
     // and the auto-compression is enabled,
     // then we need to ensure that the '__compressed' property is part of the list.
-    if (this.cfg.compress?.keys) {
+    if (this.cfg.compress?.keys && excludeFromIndexes !== this.compiledExcludeFromIndexes) {
       excludeFromIndexes ??= []
       if (!excludeFromIndexes.includes('__compressed' as any)) {
         excludeFromIndexes.push('__compressed' as any)
@@ -1216,13 +1236,14 @@ export class CommonDao<
    * Throws if query uses a property that is in `excludeFromIndexes` list.
    */
   private validateQueryIndexes(q: DBQuery<DBM>): void {
-    const { excludeFromIndexes, indexes } = this.cfg
+    const { indexes } = this.cfg
+    const excludeFromIndexes = this.compiledExcludeFromIndexes
 
     if (excludeFromIndexes) {
       for (const f of q._filters) {
         _assert(
           !excludeFromIndexes.includes(f.name),
-          `cannot query on non-indexed property: ${this.cfg.table}.${f.name as string}`,
+          `cannot query on non-indexed property: ${this.cfg.table}.${f.name}`,
           {
             query: q.pretty(),
           },
@@ -1234,7 +1255,7 @@ export class CommonDao<
       for (const f of q._filters) {
         _assert(
           f.name === 'id' || indexes.includes(f.name),
-          `cannot query on non-indexed property: ${this.cfg.table}.${f.name as string}`,
+          `cannot query on non-indexed property: ${this.cfg.table}.${f.name}`,
           {
             query: q.pretty(),
           },

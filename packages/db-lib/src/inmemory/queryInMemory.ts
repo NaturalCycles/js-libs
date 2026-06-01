@@ -25,7 +25,7 @@ export function queryInMemory<ROW extends ObjectWithId>(q: DBQuery<ROW>, rows: R
   // oxlint-disable-next-line unicorn/no-array-reduce
   rows = q._filters.reduce((rows, filter) => {
     return rows.filter(row => {
-      const value = _get(row, filter.name as string)
+      const value = _get(row, filter.name)
       return FILTER_FNS[filter.op](value, filter.val)
     })
   }, rows)

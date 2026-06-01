@@ -233,7 +233,7 @@ function getWhereTokens(q: DBQuery<any>): string[] | null {
           // special treatment
 
           return [
-            mysql.escapeId(mapNameToMySQL(f.name as string)),
+            mysql.escapeId(mapNameToMySQL(f.name)),
             f.op === '==' ? 'IS NULL' : 'IS NOT NULL',
           ].join(' ')
         }
@@ -242,11 +242,11 @@ function getWhereTokens(q: DBQuery<any>): string[] | null {
           // special case for arrays
           if (!f.val.length) returnNull = true
 
-          return `${mysql.escapeId(mapNameToMySQL(f.name as string))} IN (${mysql.escape(f.val)})`
+          return `${mysql.escapeId(mapNameToMySQL(f.name))} IN (${mysql.escape(f.val)})`
         }
 
         return [
-          mysql.escapeId(mapNameToMySQL(f.name as string)),
+          mysql.escapeId(mapNameToMySQL(f.name)),
           OP_MAP[f.op] || f.op,
           mysql.escape(f.val),
         ].join(' ')

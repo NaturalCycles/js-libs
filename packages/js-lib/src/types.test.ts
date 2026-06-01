@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test } from 'vitest'
+import { describe, expect, expectTypeOf, test } from 'vitest'
 import { _stringMapValuesSorted } from './array/index.js'
 import { localTime } from './datetime/index.js'
 import { asUnixTimestamp, asUnixTimestamp2000 } from './error/index.js'
@@ -28,7 +28,9 @@ import type {
   Reviver,
   Saved,
   StringMap,
+  KeysMatching,
   SyncFunction,
+  UnionKeyOf,
   UnixTimestamp,
   Unsaved,
   UnsavedId,
@@ -408,4 +410,96 @@ test('asUnixTimestamp2000', () => {
   expect(() => asUnixTimestamp2000(tsInMillis)).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: Number is not a valid UnixTimestamp2000: 1657756800000]`,
   )
+})
+
+describe('UnionKeyOf', () => {
+  test('should return all keys for a single object type', () => {
+    interface Foo {
+      a: string
+      b: number
+    }
+    expectTypeOf<UnionKeyOf<Foo>>().toEqualTypeOf<'a' | 'b'>()
+  })
+
+  test('should return the union of keys from every union member', () => {
+    interface A {
+      foo: string
+      bar: number
+    }
+    interface B {
+      foo: string
+      baz: boolean
+    }
+    expectTypeOf<UnionKeyOf<A | B>>().toEqualTypeOf<'foo' | 'bar' | 'baz'>()
+  })
+
+  test('should differ from plain keyof, which returns only the shared keys of a union', () => {
+    interface A {
+      foo: string
+      bar: number
+    }
+    interface B {
+      foo: string
+      baz: boolean
+    }
+    expectTypeOf<keyof (A | B)>().toEqualTypeOf<'foo'>()
+    expectTypeOf<UnionKeyOf<A | B>>().toEqualTypeOf<'foo' | 'bar' | 'baz'>()
+  })
+
+  test('should handle discriminated unions', () => {
+    type Shape = { kind: 'circle'; radius: number } | { kind: 'square'; side: number }
+    expectTypeOf<UnionKeyOf<Shape>>().toEqualTypeOf<'kind' | 'radius' | 'side'>()
+  })
+
+  test('should return never for never', () => {
+    expectTypeOf<UnionKeyOf<never>>().toEqualTypeOf<never>()
+  })
+})
+
+describe('KeysMatching', () => {
+  test('should pick string keys whose value matches the condition', () => {
+    interface Foo {
+      a: string
+      b: number
+      c: string
+    }
+    expectTypeOf<KeysMatching<Foo, string>>().toEqualTypeOf<'a' | 'c'>()
+  })
+
+  test('should pick keys whose optional value matches after stripping undefined', () => {
+    interface Foo {
+      a: string[]
+      b?: number[]
+      c: { foo: number }
+    }
+    expectTypeOf<KeysMatching<Foo, readonly unknown[]>>().toEqualTypeOf<'a' | 'b'>()
+  })
+
+  test('should not distribute over union value types', () => {
+    // `foo`'s value is `string | number`. With distribution, both 'foo' would be
+    // picked for `string` and for `number`. The atomic `[X] extends [Y]` check
+    // requires the whole union to extend the condition.
+    interface Foo {
+      foo: string | number
+      bar: string
+    }
+    expectTypeOf<KeysMatching<Foo, string>>().toEqualTypeOf<'bar'>()
+    expectTypeOf<KeysMatching<Foo, string | number>>().toEqualTypeOf<'foo' | 'bar'>()
+  })
+
+  test('should compose with Exclude to express "object keys"', () => {
+    interface Foo {
+      a: string
+      b: { x: number }
+      c: number[]
+      d?: { y: string }
+    }
+    type ArrayKeys = KeysMatching<Foo, readonly unknown[]>
+    type PrimitiveKeys = KeysMatching<Foo, string | number | boolean>
+    type ObjectKeys = Exclude<keyof Foo & string, ArrayKeys | PrimitiveKeys>
+
+    expectTypeOf<ArrayKeys>().toEqualTypeOf<'c'>()
+    expectTypeOf<PrimitiveKeys>().toEqualTypeOf<'a'>()
+    expectTypeOf<ObjectKeys>().toEqualTypeOf<'b' | 'd'>()
+  })
 })

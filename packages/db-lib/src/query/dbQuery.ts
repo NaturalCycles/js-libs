@@ -56,13 +56,13 @@ export const dbQueryFilterOperatorValues: DBQueryFilterOperator[] = [
 ]
 
 export interface DBQueryFilter<ROW extends ObjectWithId> {
-  name: keyof ROW
+  name: keyof ROW & string
   op: DBQueryFilterOperator
   val: any
 }
 
 export interface DBQueryOrder<ROW extends ObjectWithId> {
-  name: keyof ROW
+  name: keyof ROW & string
   descending?: boolean
 }
 
@@ -108,17 +108,17 @@ export class DBQuery<ROW extends ObjectWithId> {
   _groupByFieldNames?: (keyof ROW)[]
   _distinct = false
 
-  filter(name: keyof ROW, op: DBQueryFilterOperator, val: any): this {
+  filter(name: keyof ROW & string, op: DBQueryFilterOperator, val: any): this {
     this._filters.push({ name, op, val })
     return this
   }
 
-  filterEq(name: keyof ROW, val: any): this {
+  filterEq(name: keyof ROW & string, val: any): this {
     this._filters.push({ name, op: '==', val })
     return this
   }
 
-  filterIn(name: keyof ROW, val: any[]): this {
+  filterIn(name: keyof ROW & string, val: any[]): this {
     this._filters.push({ name, op: 'in', val })
     return this
   }
@@ -136,7 +136,7 @@ export class DBQuery<ROW extends ObjectWithId> {
     return this
   }
 
-  order(name: keyof ROW, descending?: boolean): this {
+  order(name: keyof ROW & string, descending?: boolean): this {
     this._orders.push({
       name,
       descending,
@@ -201,8 +201,8 @@ export class DBQuery<ROW extends ObjectWithId> {
     }
 
     tokens.push(
-      ...this._filters.map(f => `${f.name as string}${f.op}${f.val}`),
-      ...this._orders.map(o => `order by ${o.name as string}${o.descending ? ' desc' : ''}`),
+      ...this._filters.map(f => `${f.name}${f.op}${f.val}`),
+      ...this._orders.map(o => `order by ${o.name}${o.descending ? ' desc' : ''}`),
     )
 
     if (this._groupByFieldNames) {

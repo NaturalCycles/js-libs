@@ -65,7 +65,7 @@ export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
   return q
 }
 
-function mapName<ROW extends ObjectWithId>(name: keyof ROW): string | FieldPath {
+function mapName<ROW extends ObjectWithId>(name: keyof ROW & string): string | FieldPath {
   if (name === 'id') return FieldPath.documentId()
-  return name as string
+  return name
 }

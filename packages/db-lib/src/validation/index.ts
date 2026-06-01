@@ -29,14 +29,14 @@ export const dbQueryFilterOperatorSchema = j.enum(dbQueryFilterOperatorValues)
 
 export const dbQueryFilterSchema = <ROW extends ObjectWithId>() =>
   j.object<DBQueryFilter<ROW>>({
-    name: j.string().castAs<keyof ROW>(),
+    name: j.string().castAs<keyof ROW & string>(),
     op: dbQueryFilterOperatorSchema,
     val: anyValueSchema,
   })
 
 export const dbQueryOrderSchema = <ROW extends ObjectWithId>() =>
   j.object<DBQueryOrder<ROW>>({
-    name: j.string().castAs<keyof ROW>(),
+    name: j.string().castAs<keyof ROW & string>(),
     descending: j.boolean().optional(),
   })
 

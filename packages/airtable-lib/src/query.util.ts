@@ -21,7 +21,7 @@ export function dbQueryToAirtableSelectOptions<ROW extends ObjectWithId>(
   if (q._filters.length) {
     const tokens = q._filters.map(f => {
       if (f.op === 'in') {
-        const pairs = (f.val as any[]).map(v => `{${f.name as string}}="${v}"`)
+        const pairs = (f.val as any[]).map(v => `{${f.name}}="${v}"`)
         return `OR(${pairs.join(',')})`
       }
 
@@ -30,7 +30,7 @@ export function dbQueryToAirtableSelectOptions<ROW extends ObjectWithId>(
         if (f.val) {
           v = 'TRUE()'
         } else {
-          return `OR({${String(f.name)}}=FALSE(),{${String(f.name)}}=BLANK())`
+          return `OR({${f.name}}=FALSE(),{${f.name}}=BLANK())`
         }
       } else {
         v = `"${f.val}"`
@@ -38,7 +38,7 @@ export function dbQueryToAirtableSelectOptions<ROW extends ObjectWithId>(
 
       const op = OP_MAP[f.op] || f.op
 
-      return `{${String(f.name)}}${op}${v}`
+      return `{${f.name}}${op}${v}`
     })
 
     o.filterByFormula = `AND(${tokens.join(',')})`

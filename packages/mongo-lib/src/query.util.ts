@@ -29,7 +29,7 @@ export function dbQueryToMongoQuery<ROW extends ObjectWithId>(
   // filter
   // oxlint-disable-next-line unicorn/no-array-reduce
   const query = dbQuery._filters.reduce<Filter<ROW>>((q, f) => {
-    const fname = FNAME_MAP[f.name as string] || f.name
+    const fname = FNAME_MAP[f.name] || f.name
     q[fname as keyof Filter<ROW>] = {
       ...q[fname as keyof Filter<ROW>], // in case there is a "between" query
       [OP_MAP[f.op] || f.op]: f.val,
@@ -40,7 +40,7 @@ export function dbQueryToMongoQuery<ROW extends ObjectWithId>(
   // order
   // oxlint-disable-next-line unicorn/no-array-reduce
   options.sort = dbQuery._orders.reduce<Record<string, SortDirection>>((map, ord) => {
-    map[FNAME_MAP[ord.name as string] || (ord.name as string)] = ord.descending ? -1 : 1
+    map[FNAME_MAP[ord.name] || ord.name] = ord.descending ? -1 : 1
     return map
   }, {})
 

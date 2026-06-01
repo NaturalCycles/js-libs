@@ -215,6 +215,57 @@ export type ValuesOf<T extends readonly any[]> = T[number]
  */
 export type ValueOf<T> = T[keyof T]
 
+/**
+ * Distributive `keyof`: returns the union of keys from every member of a union type,
+ * rather than just their intersection.
+ *
+ * `keyof (A | B)` returns only the keys that exist on **both** `A` and `B`
+ * (the safe overlap, since a value of type `A | B` could be either).
+ * `UnionKeyOf<A | B>` returns `keyof A | keyof B` — every key that exists on
+ * **any** member of the union.
+ *
+ * Useful when working with discriminated unions where you need to refer to a key
+ * that only exists on one variant (e.g. exclusion paths, key-based lookups that
+ * tolerate missing properties at runtime).
+ *
+ * @example
+ *
+ * type A = { foo: string; bar: number }
+ * type B = { foo: string; baz: boolean }
+ *
+ * type CommonKeys = keyof (A | B)     // 'foo'
+ * type AllKeys = UnionKeyOf<A | B>    // 'foo' | 'bar' | 'baz'
+ */
+export type UnionKeyOf<T> = T extends T ? keyof T : never
+
+/**
+ * String keys of `T` whose non-nullable value extends `V`.
+ *
+ * - Strips `null | undefined` from the value before checking, so optional fields
+ *   are classified by their underlying value type.
+ * - Treats the value type atomically (does not distribute over unions on the
+ *   value side), so a key with value `string | number` is picked by
+ *   `KeysMatching<T, string | number>` but not by `KeysMatching<T, string>`.
+ * - Returns only string keys, dropping `number` and `symbol` keys.
+ *
+ * Useful for partitioning the keys of a type by the shape of their values.
+ *
+ * @example
+ *
+ * interface Foo {
+ *   a: string
+ *   b: number
+ *   c?: string
+ *   d: string[]
+ * }
+ *
+ * type StringKeys = KeysMatching<Foo, string>           // 'a' | 'c'
+ * type ArrayKeys = KeysMatching<Foo, readonly unknown[]> // 'd'
+ */
+export type KeysMatching<T, V> = {
+  [K in keyof T & string]: [NonNullable<T[K]>] extends [V] ? K : never
+}[keyof T & string]
+
 export type KeyValueTuple<K, V> = [key: K, value: V]
 
 // Exclude<something, undefined> is used here to support StringMap<OBJ> (because values of StringMap add `undefined`)
