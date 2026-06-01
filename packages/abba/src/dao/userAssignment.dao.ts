@@ -1,5 +1,6 @@
 import type { CommonDB } from '@naturalcycles/db-lib'
 import { CommonDao } from '@naturalcycles/db-lib/dao'
+import { _uniq } from '@naturalcycles/js-lib/array'
 import type { UserAssignment } from '../types.js'
 
 export class UserAssignmentDao extends CommonDao<UserAssignment> {
@@ -41,7 +42,7 @@ export class UserAssignmentDao extends CommonDao<UserAssignment> {
       .distinct()
       .runQuerySingleColumn<string>()
 
-    return Array.from(new Set(userIds))
+    return _uniq(userIds)
   }
 }
 
