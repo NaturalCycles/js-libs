@@ -1,20 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { compileExcludePath, ExcludeFromIndexesBuilder } from './excludePath.js'
 
-interface Inner {
-  name: string
-  age: number
-}
-
-interface Sample {
-  id: string
-  title: string
-  meta?: { author: string; status: string; profile?: Inner }
-  config?: { theme: string }
-  tags?: { label: string; score: number }[]
-  scores?: number[]
-}
-
 const ex = new ExcludeFromIndexesBuilder<Sample>()
 
 describe('compileExcludePath', () => {
@@ -68,17 +54,17 @@ describe('ExcludeFromIndexesBuilder.array', () => {
   })
 
   test('should chain after a nested `object` to reach an inner array', () => {
-    // contrived but exercises composition: meta has no array — use a fresh shape
-    interface WithNestedArray {
-      id: string
-      group?: { entries?: { label: string }[] }
-    }
     const exN = new ExcludeFromIndexesBuilder<WithNestedArray>()
     expect(exN.object('group').array('entries').property('label')).toEqual({
       type: 'path',
       path: 'group.entries[].label',
     })
   })
+
+  interface WithNestedArray {
+    id: string
+    group?: { entries?: { label: string }[] }
+  }
 })
 
 describe('ExcludeFromIndexesBuilder type constraints', () => {
@@ -135,21 +121,6 @@ describe('ExcludeFromIndexesBuilder type constraints', () => {
 })
 
 describe('ExcludeFromIndexesBuilder with discriminated-union variants', () => {
-  interface VariantA {
-    kind: 'a'
-    sharedField: string
-    onlyOnA: string
-  }
-  interface VariantB {
-    kind: 'b'
-    sharedField: string
-    onlyOnB: number
-  }
-  interface WithUnion {
-    id: string
-    payload?: VariantA | VariantB
-  }
-
   const exU = new ExcludeFromIndexesBuilder<WithUnion>()
 
   test('should accept keys from any variant of a discriminated union', () => {
@@ -171,4 +142,33 @@ describe('ExcludeFromIndexesBuilder with discriminated-union variants', () => {
     // @ts-expect-error 'notAKey' is on neither variant
     exU.object('payload').property('notAKey')
   })
+
+  interface WithUnion {
+    id: string
+    payload?: VariantA | VariantB
+  }
+  interface VariantA {
+    kind: 'a'
+    sharedField: string
+    onlyOnA: string
+  }
+  interface VariantB {
+    kind: 'b'
+    sharedField: string
+    onlyOnB: number
+  }
 })
+
+interface Sample {
+  id: string
+  title: string
+  meta?: { author: string; status: string; profile?: Inner }
+  config?: { theme: string }
+  tags?: { label: string; score: number }[]
+  scores?: number[]
+}
+
+interface Inner {
+  name: string
+  age: number
+}
