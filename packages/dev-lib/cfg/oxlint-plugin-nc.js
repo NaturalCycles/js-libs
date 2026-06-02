@@ -6,7 +6,7 @@ const noAsXAsRule = {
     },
     messages: {
       asXAs:
-        'Avoid `as {{intermediate}} as X` double-casts. Add a type annotation and use `as any` if truly necessary.',
+        '`as {{intermediate}} as X` double-casts are inherently unsafe. Prefer to work with the compiler, not override it.',
     },
     schema: [],
   },
