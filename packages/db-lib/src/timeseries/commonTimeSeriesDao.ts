@@ -5,6 +5,7 @@ import type {
   CommonTimeSeriesDaoCfg,
   TimeSeriesDataPoint,
   TimeSeriesQuery,
+  TimeSeriesRow,
   TimeSeriesSaveBatchOp,
 } from './timeSeries.model.js'
 
@@ -82,7 +83,7 @@ export class CommonTimeSeriesDao {
     if (q.fromIncl) dbq.filter('ts', '>=', q.fromIncl)
     if (q.toExcl) dbq.filter('ts', '<', q.toExcl)
 
-    const { rows } = await this.cfg.db.runQuery(dbq)
+    const rows = (await this.cfg.db.runQuery(dbq)).rows as TimeSeriesRow[]
 
     // todo: query from aggregated tables when step is above 'hour'
 
