@@ -1,8 +1,3 @@
-import type * as HttpType from 'node:http'
-import type * as HttpsType from 'node:https'
-import { createRequire } from 'node:module'
-import type * as NetType from 'node:net'
-import type * as TlsType from 'node:tls'
 /**
  * Minimal vendored implementation of the `mitm` package.
  * Only supports the "connect" event with bypass() and disable() - that's all testOffline needs.
@@ -10,6 +5,11 @@ import type * as TlsType from 'node:tls'
  * Based on: https://github.com/moll/node-mitm
  */
 import type { AnyObject } from '@naturalcycles/js-lib/types'
+import type * as HttpType from 'node:http'
+import type * as HttpsType from 'node:https'
+import { createRequire } from 'node:module'
+import type * as NetType from 'node:net'
+import type * as TlsType from 'node:tls'
 
 // Use require() to get mutable module objects (ESM namespace objects are frozen)
 const require = createRequire(import.meta.url)
