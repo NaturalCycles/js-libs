@@ -153,16 +153,16 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
     if (!ids.length) return []
 
     const client = await this.client()
-    const items = (await client
+    const items = await client
       .db(this.cfg.db)
-      .collection(table)
+      .collection<MongoObject<ROW>>(table)
       .find({
         _id: {
           $in: ids as any[],
         },
       })
-      .toArray()) as any as MongoObject<ROW>[]
-    return items.map(i => this.mapFromMongo(i))
+      .toArray()
+    return items.map(i => this.mapFromMongo(i as MongoObject<ROW>))
   }
 
   override async deleteByIds(
@@ -195,11 +195,11 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
     const client = await this.client()
     const { query, options } = dbQueryToMongoQuery(q)
 
-    const items = (await client
+    const items = await client
       .db(this.cfg.db)
       .collection<ROW>(q.table)
       .find(query, options)
-      .toArray()) as any as MongoObject<ROW>[]
+      .toArray()
 
     let rows = items.map(i => this.mapFromMongo(i as any))
 

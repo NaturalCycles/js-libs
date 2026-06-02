@@ -95,7 +95,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
   @_Memo()
   async api(): Promise<AirtableApi> {
     // lazy-loading the library
-    const airtableApi = (await import('airtable')).default as any as AirtableApi
+    const airtableApi: AirtableApi = (await import('airtable')).default as any
 
     airtableApi.configure({
       // endpointURL: 'https://api.airtable.com',
