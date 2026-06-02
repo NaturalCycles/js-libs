@@ -414,7 +414,8 @@ export class JSchema<OUT, Opt>
    * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
    */
   castAs<T>(): JSchema<T, Opt> {
-    return this as any
+    // oxlint-disable-next-line nc/no-as-x-as -- Yep, it defeats the purpose of type-safe validation
+    return this as unknown as JSchema<T, Opt>
   }
 
   /**
@@ -529,7 +530,8 @@ export class JSchema<OUT, Opt>
     const clone = this.cloneAndUpdateSchema({
       postValidation: fn,
     })
-    return clone as any
+    // oxlint-disable-next-line nc/no-as-x-as -- postValidation may transform the output arbitrarily later, so we have to "trust me bro" the type here
+    return clone as unknown as JSchema<OUT2, Opt>
   }
 
   /**
@@ -681,9 +683,10 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
    */
   custom<OUT2 = OUT>(validator: CustomValidatorFn): JBuilder<OUT2, Opt> {
     const { customValidations = [] } = this.schema
+    // oxlint-disable-next-line nc/no-as-x-as -- custom validator may transform the output arbitrarily later, so we have to "trust me bro" the type here
     return this.cloneAndUpdateSchema({
       customValidations: [...customValidations, validator],
-    }) as any
+    }) as unknown as JBuilder<OUT2, Opt>
   }
 
   /**
@@ -698,9 +701,10 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
    */
   convert<OUT2>(converter: CustomConverterFn<OUT2>): JBuilder<OUT2, Opt> {
     const { customConversions = [] } = this.schema
+    // oxlint-disable-next-line nc/no-as-x-as -- converter may transform the output arbitrarily later, so we have to "trust me bro" the type here
     return this.cloneAndUpdateSchema({
       customConversions: [...customConversions, converter],
-    }) as any
+    }) as unknown as JBuilder<OUT2, Opt>
   }
 }
 
@@ -783,7 +787,8 @@ export class JString<
   }
 
   branded<B extends string>(): JString<B, Opt> {
-    return this as any
+    // oxlint-disable-next-line nc/no-as-x-as -- branding does not change the runtime structure, so we can safely as-x-as here
+    return this as unknown as JString<B, Opt>
   }
 
   /**
@@ -934,7 +939,8 @@ export class JNumber<
   }
 
   branded<B extends number>(): JNumber<B, Opt> {
-    return this as any
+    // oxlint-disable-next-line nc/no-as-x-as -- branding does not change the runtime structure, so we can safely as-x-as here
+    return this as unknown as JNumber<B, Opt>
   }
 
   multipleOf(multipleOf: number): this {
@@ -1131,7 +1137,7 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
     const clone = this.clone()
     mergeJsonSchemaObjects(clone.schema as any, other.schema as any)
     _objectAssign(clone.schema, { hasIsOfTypeCheck: false })
-    return clone as any
+    return clone as JObject<OUT & OUT2, false>
   }
 
   /**
@@ -1229,7 +1235,17 @@ export class JObjectInfer<
     // the new schema loses that quality.
     _objectAssign(newBuilder.schema, { hasIsOfTypeCheck: false })
 
-    return newBuilder as any
+    // oxlint-disable-next-line nc/no-as-x-as -- extend is not type-safe
+    return newBuilder as unknown as JObjectInfer<
+      {
+        [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
+          ? NEW_PROPS[K]
+          : K extends keyof PROPS
+            ? PROPS[K]
+            : never
+      },
+      Opt
+    >
   }
 
   /**
@@ -1312,7 +1328,8 @@ export class JEnum<
   }
 
   branded<B extends OUT>(): JEnum<B, Opt> {
-    return this as any
+    // oxlint-disable-next-line nc/no-as-x-as -- branding does not change the runtime structure, so we can safely as-x-as here
+    return this as unknown as JEnum<B, Opt>
   }
 }
 

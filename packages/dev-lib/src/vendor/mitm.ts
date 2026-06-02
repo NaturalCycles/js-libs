@@ -1,14 +1,15 @@
+import type * as HttpType from 'node:http'
+import type * as HttpsType from 'node:https'
+import { createRequire } from 'node:module'
+import type * as NetType from 'node:net'
+import type * as TlsType from 'node:tls'
 /**
  * Minimal vendored implementation of the `mitm` package.
  * Only supports the "connect" event with bypass() and disable() - that's all testOffline needs.
  *
  * Based on: https://github.com/moll/node-mitm
  */
-import type * as HttpType from 'node:http'
-import type * as HttpsType from 'node:https'
-import { createRequire } from 'node:module'
-import type * as NetType from 'node:net'
-import type * as TlsType from 'node:tls'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 
 // Use require() to get mutable module objects (ESM namespace objects are frozen)
 const require = createRequire(import.meta.url)
@@ -115,7 +116,11 @@ export function createMitm(): Mitm {
   function createTlsConnect(orig: typeof Tls.connect): typeof Tls.connect {
     return function (...args: Parameters<typeof Tls.connect>): TlsType.TLSSocket {
       const [opts, done] = normalizeArgs(args)
-      return connect(orig as any, opts, done) as TlsType.TLSSocket
+      return connect(
+        orig as (...a: unknown[]) => TlsType.TLSSocket,
+        opts,
+        done,
+      ) as TlsType.TLSSocket
     } as typeof Tls.connect
   }
 
@@ -125,12 +130,12 @@ export function createMitm(): Mitm {
 
   stub(Net, 'connect', netConnect)
   stub(Net, 'createConnection', netConnect)
-  stub(Http.Agent.prototype as any, 'createConnection', netConnect)
+  stub(Http.Agent.prototype as AnyObject, 'createConnection', netConnect)
   stub(Tls, 'connect', tlsConnect)
 
   // Disable keep-alive on global agents to force new connections
-  const httpAgent: Record<string, unknown> = Http.globalAgent as any
-  const httpsAgent: Record<string, unknown> = Https.globalAgent as any
+  const httpAgent = Http.globalAgent as AnyObject
+  const httpsAgent = Https.globalAgent as AnyObject
   if (httpAgent['keepAlive']) {
     stub(httpAgent, 'keepAlive', false)
   }

@@ -151,7 +151,7 @@ export class KeySortedMap<K, V> {
   forEach(cb: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void {
     const { map } = this
     for (const k of this.#sortedKeys) {
-      cb.call(thisArg, map.get(k)!, k, this as any)
+      cb.call(thisArg, map.get(k)!, k, this)
     }
   }
 
