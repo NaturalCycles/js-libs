@@ -110,7 +110,7 @@ export class SqliteKeyValueDB implements CommonKeyValueDB, CommonSyncKeyValueDB,
   getByIdsSync(table: string, ids: string[]): KeyValueDBTuple[] {
     const sql = `SELECT id,v FROM ${table} where id in (${ids.map(id => `'${id}'`).join(',')})`
     if (this.cfg.debug) this.cfg.logger.log(sql)
-    const rows: KeyValueObject[] = this.db.prepare(sql).all() as any
+    const rows = this.db.prepare(sql).all() as any as KeyValueObject[]
     return rows.map(r => [r.id, Buffer.from(r.v)])
   }
 

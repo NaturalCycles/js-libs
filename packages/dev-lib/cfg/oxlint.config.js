@@ -39,10 +39,7 @@ export const sharedConfig = {
     // "vue",
     'vitest',
   ],
-  jsPlugins: [
-    `${import.meta.dirname}/oxlint-plugin-stylistic.js`,
-    `${import.meta.dirname}/oxlint-plugin-nc.js`,
-  ],
+  jsPlugins: [`${import.meta.dirname}/oxlint-plugin-stylistic.js`],
   options: {
     reportUnusedDisableDirectives: 'deny',
     respectEslintDisableDirectives: false,
@@ -72,7 +69,6 @@ export const sharedConfig = {
       { blankLine: 'always', prev: '*', next: 'class' },
     ],
     '@stylistic/lines-between-class-members': [2, 'always', { exceptAfterSingleLine: true }],
-    'nc/no-as-x-as': 2,
     complexity: [2, { max: 40 }],
     'logical-assignment-operators': [
       2,

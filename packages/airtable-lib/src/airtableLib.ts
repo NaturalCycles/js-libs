@@ -8,7 +8,7 @@ export class AirtableLib {
   @_Memo()
   async api(): Promise<AirtableApi> {
     // lazy-loading the library
-    const airtableApi: AirtableApi = (await import('airtable')).default as any
+    const airtableApi = (await import('airtable')).default as any as AirtableApi
 
     const { apiKey } = this.airtableServiceCfg
 

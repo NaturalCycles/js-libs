@@ -276,8 +276,7 @@ export class CommonDao<
     }
 
     const isPartialQuery = !!q._selectedFieldNames
-    // oxlint-disable-next-line nc/no-as-x-as -- We want to lie here, to avoid the overhead of converting DBM to BM when it's a partial query (since we don't have all the data to create a full BM anyway).
-    if (isPartialQuery) return pipeline as unknown as Pipeline<BM>
+    if (isPartialQuery) return pipeline as any as Pipeline<BM>
 
     opt.skipValidation ??= true
     opt.errorMode ||= ErrorMode.SUPPRESS
