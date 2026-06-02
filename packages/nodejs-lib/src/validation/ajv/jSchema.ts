@@ -559,7 +559,8 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
    * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
    */
   override castAs<T>(): JBuilder<T, Opt> {
-    return this as any
+    // oxlint-disable-next-line nc/no-as-x-as -- Yep, it defeats the purpose of type-safe validation
+    return this as unknown as JBuilder<T, Opt>
   }
 
   $schema($schema: string): this {
