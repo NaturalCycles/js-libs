@@ -414,7 +414,7 @@ export class JSchema<OUT, Opt>
    * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
    */
   castAs<T>(): JSchema<T, Opt> {
-    return this as unknown as JSchema<T, Opt>
+    return this as any
   }
 
   /**
@@ -529,7 +529,7 @@ export class JSchema<OUT, Opt>
     const clone = this.cloneAndUpdateSchema({
       postValidation: fn,
     })
-    return clone as unknown as JSchema<OUT2, Opt>
+    return clone as any
   }
 
   /**
@@ -557,7 +557,7 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
    * The usage of this function is discouraged as it defeats the purpose of having type-safe validation.
    */
   override castAs<T>(): JBuilder<T, Opt> {
-    return this as unknown as JBuilder<T, Opt>
+    return this as any
   }
 
   $schema($schema: string): this {
@@ -683,7 +683,7 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     const { customValidations = [] } = this.schema
     return this.cloneAndUpdateSchema({
       customValidations: [...customValidations, validator],
-    }) as unknown as JBuilder<OUT2, Opt>
+    }) as any
   }
 
   /**
@@ -700,7 +700,7 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     const { customConversions = [] } = this.schema
     return this.cloneAndUpdateSchema({
       customConversions: [...customConversions, converter],
-    }) as unknown as JBuilder<OUT2, Opt>
+    }) as any
   }
 }
 
@@ -783,7 +783,7 @@ export class JString<
   }
 
   branded<B extends string>(): JString<B, Opt> {
-    return this as unknown as JString<B, Opt>
+    return this as any
   }
 
   /**
@@ -934,7 +934,7 @@ export class JNumber<
   }
 
   branded<B extends number>(): JNumber<B, Opt> {
-    return this as unknown as JNumber<B, Opt>
+    return this as any
   }
 
   multipleOf(multipleOf: number): this {
@@ -1131,7 +1131,7 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
     const clone = this.clone()
     mergeJsonSchemaObjects(clone.schema as any, other.schema as any)
     _objectAssign(clone.schema, { hasIsOfTypeCheck: false })
-    return clone as unknown as JObject<OUT & OUT2, false>
+    return clone as any
   }
 
   /**
@@ -1229,16 +1229,7 @@ export class JObjectInfer<
     // the new schema loses that quality.
     _objectAssign(newBuilder.schema, { hasIsOfTypeCheck: false })
 
-    return newBuilder as unknown as JObjectInfer<
-      {
-        [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
-          ? NEW_PROPS[K]
-          : K extends keyof PROPS
-            ? PROPS[K]
-            : never
-      },
-      Opt
-    >
+    return newBuilder as any
   }
 
   /**
@@ -1321,7 +1312,7 @@ export class JEnum<
   }
 
   branded<B extends OUT>(): JEnum<B, Opt> {
-    return this as unknown as JEnum<B, Opt>
+    return this as any
   }
 }
 

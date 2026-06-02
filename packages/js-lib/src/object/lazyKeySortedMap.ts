@@ -128,7 +128,7 @@ export class LazyKeySortedMap<K, V> {
   forEach(cb: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any): void {
     const { map } = this
     for (const k of this.getSortedKeys()) {
-      cb.call(thisArg, map.get(k)!, k, this as unknown as Map<K, V>)
+      cb.call(thisArg, map.get(k)!, k, this as any)
     }
   }
 

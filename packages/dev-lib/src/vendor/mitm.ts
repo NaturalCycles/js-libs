@@ -115,11 +115,7 @@ export function createMitm(): Mitm {
   function createTlsConnect(orig: typeof Tls.connect): typeof Tls.connect {
     return function (...args: Parameters<typeof Tls.connect>): TlsType.TLSSocket {
       const [opts, done] = normalizeArgs(args)
-      return connect(
-        orig as unknown as (...a: unknown[]) => NetType.Socket,
-        opts,
-        done,
-      ) as TlsType.TLSSocket
+      return connect(orig as any, opts, done) as TlsType.TLSSocket
     } as typeof Tls.connect
   }
 
@@ -129,12 +125,12 @@ export function createMitm(): Mitm {
 
   stub(Net, 'connect', netConnect)
   stub(Net, 'createConnection', netConnect)
-  stub(Http.Agent.prototype as unknown as Record<string, unknown>, 'createConnection', netConnect)
+  stub(Http.Agent.prototype as any, 'createConnection', netConnect)
   stub(Tls, 'connect', tlsConnect)
 
   // Disable keep-alive on global agents to force new connections
-  const httpAgent = Http.globalAgent as unknown as Record<string, unknown>
-  const httpsAgent = Https.globalAgent as unknown as Record<string, unknown>
+  const httpAgent: Record<string, unknown> = Http.globalAgent as any
+  const httpsAgent: Record<string, unknown> = Https.globalAgent as any
   if (httpAgent['keepAlive']) {
     stub(httpAgent, 'keepAlive', false)
   }
