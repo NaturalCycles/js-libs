@@ -1,4 +1,4 @@
-import { _shuffle } from '@naturalcycles/js-lib/array/array.util.js'
+import { _mapBy, _shuffle, _uniq } from '@naturalcycles/js-lib/array/array.util.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
@@ -19,6 +19,7 @@ import type {
   ExperimentAssignmentStatistics,
   ExperimentInput,
   ExperimentWithBuckets,
+  ManualUserAssignmentInput,
   SegmentationData,
   UserAssignment,
   UserExperiment,
@@ -326,6 +327,84 @@ export class Abba {
       bucketKey: bucket?.key || null,
       bucketData: bucket?.data || null,
     }
+  }
+
+  /**
+   * Manually assigns users to specific buckets, overwriting any existing assignments.
+   * Bypasses sampling, segmentation, exclusions, and experiment status. Intended for
+   * QA / internal testing where deterministic bucket placement is required.
+   *
+   * An empty input returns an empty array. If the input contains duplicate
+   * (userId, experimentKey) pairs, the last occurrence wins.
+   *
+   * Throws AbbaErrorCode.ExperimentNotFound or AbbaErrorCode.BucketNotFound on the
+   * first invalid row; no rows are written if validation fails.
+   *
+   * Cold method.
+   */
+  async saveManualUserAssignments(
+    inputs: readonly ManualUserAssignmentInput[],
+  ): Promise<DecoratedUserAssignment[]> {
+    if (!inputs.length) return []
+
+    const dedupedInputs = Array.from(
+      _mapBy(inputs, input => `${input.userId}|${input.experimentKey}`).values(),
+    )
+
+    const experimentKeys = _uniq(dedupedInputs.map(input => input.experimentKey))
+    const experiments = await pMap(experimentKeys, async experimentKey => {
+      const experiment = await this.experimentDao.getByKey(experimentKey)
+      _assert(experiment && !experiment.deleted, `Experiment does not exist: ${experimentKey}`, {
+        code: AbbaErrorCode.ExperimentNotFound,
+      })
+      const buckets = await this.bucketDao.getByExperimentId(experiment.id)
+      return { ...experiment, buckets }
+    })
+    const experimentByKey = _mapBy(experiments, experiment => experiment.key)
+
+    const resolvedInputs = dedupedInputs.map(input => {
+      const experiment = experimentByKey.get(input.experimentKey)!
+      const bucket = experiment.buckets.find(bucket => bucket.key === input.bucketKey)
+      _assert(
+        bucket,
+        `Bucket does not exist on experiment ${input.experimentKey}: ${input.bucketKey}`,
+        { code: AbbaErrorCode.BucketNotFound },
+      )
+      return { input, experiment, bucket }
+    })
+
+    const userIds = _uniq(dedupedInputs.map(input => input.userId))
+    const experimentIds = experiments.map(experiment => experiment.id)
+    const existingAssignments = await this.userAssignmentDao.getByUserIdsAndExperimentIds(
+      userIds,
+      experimentIds,
+    )
+    const existingByKey = _mapBy(
+      existingAssignments,
+      assignment => `${assignment.userId}|${assignment.experimentId}`,
+    )
+
+    const toSave: Unsaved<UserAssignment>[] = resolvedInputs.map(
+      ({ input, experiment, bucket }) => ({
+        ...existingByKey.get(`${input.userId}|${experiment.id}`),
+        userId: input.userId,
+        experimentId: experiment.id,
+        bucketId: bucket.id,
+      }),
+    )
+
+    const savedAssignments = await this.userAssignmentDao.saveBatch(toSave)
+
+    return savedAssignments.map((savedAssignment, i) => {
+      const resolvedInput = resolvedInputs[i]!
+      return {
+        ...savedAssignment,
+        experimentKey: resolvedInput.experiment.key,
+        experimentData: resolvedInput.experiment.data,
+        bucketKey: resolvedInput.bucket.key,
+        bucketData: resolvedInput.bucket.data,
+      }
+    })
   }
 
   /**
