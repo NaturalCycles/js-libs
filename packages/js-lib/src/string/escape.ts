@@ -12,13 +12,15 @@ Reasons:
  */
 
 // Multiple `.replace()` calls are actually faster than using replacer functions
-function _htmlEscape(s: string): string {
+import type { SafeHtml } from '../types.js'
+
+function _htmlEscape(s: string): SafeHtml {
   return s
     .replaceAll('&', '&amp;') // Must happen first or else it will escape other just-escaped characters.
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;')
     .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
+    .replaceAll('>', '&gt;') as SafeHtml
 }
 
 function _htmlUnescape(html: string): string {
@@ -30,7 +32,7 @@ function _htmlUnescape(html: string): string {
     .replaceAll('&amp;', '&') // Must happen last or else it will unescape other characters in the wrong order.
 }
 
-export function htmlEscape(strings: string | TemplateStringsArray, ...values: any[]): string {
+export function htmlEscape(strings: string | TemplateStringsArray, ...values: any[]): SafeHtml {
   if (typeof strings === 'string') {
     return _htmlEscape(strings)
   }
@@ -40,7 +42,7 @@ export function htmlEscape(strings: string | TemplateStringsArray, ...values: an
     output = output + _htmlEscape(String(value)) + strings[index + 1]
   }
 
-  return output
+  return output as SafeHtml
 }
 
 export function htmlUnescape(strings: string | TemplateStringsArray, ...values: any[]): string {

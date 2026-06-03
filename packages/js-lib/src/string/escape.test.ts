@@ -1,5 +1,10 @@
-import { expect, test } from 'vitest'
+import { expect, expectTypeOf, test } from 'vitest'
+import type { SafeHtml } from '../types.js'
 import { htmlEscape, htmlUnescape } from './escape.js'
+
+test('htmlEscape returns SafeHtml branded type', () => {
+  expectTypeOf(htmlEscape('foo')).toEqualTypeOf<SafeHtml>()
+})
 
 test('htmlEscape', () => {
   expect(htmlEscape('&<>"\'')).toBe('&amp;&lt;&gt;&quot;&#39;')

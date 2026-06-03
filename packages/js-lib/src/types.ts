@@ -348,6 +348,11 @@ export const JWT_REGEX = /^[\w-]+\.[\w-]+\.[\w-]+$/
 export type SemVerString = string
 
 /**
+ * HTML string that was safely escaped/sanitized.
+ */
+export type SafeHtml = Branded<string, 'SafeHtml'>
+
+/**
  * Named type for JSON.parse / JSON.stringify second argument
  */
 export type Reviver = (this: any, key: string, value: any) => any
