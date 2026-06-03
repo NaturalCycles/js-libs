@@ -1,7 +1,12 @@
+import { createWriteStream } from 'node:fs'
 import { promisify } from 'node:util'
 import type { ZlibOptions, ZstdOptions } from 'node:zlib'
 import zlib from 'node:zlib'
 import type { Integer } from '@naturalcycles/js-lib/types'
+import { openZip } from './zipReader.js'
+import type { ZipEntry } from './zipReader.js'
+import { createZipBuffer, zipPaths, ZipWriter } from './zipWriter.js'
+import type { ZipFileEntry, ZipPathsOptions } from './zipWriter.js'
 
 const deflateAsync = promisify(zlib.deflate.bind(zlib))
 const inflateAsync = promisify(zlib.inflate.bind(zlib))
@@ -157,6 +162,57 @@ class Zip2 {
 
   isGzipBuffer(input: Buffer): boolean {
     return input[0] === 0x1f && input[1] === 0x8b
+  }
+
+  /**
+   * Open a zip file and extract all of its entries into `destDir`, streaming each
+   * file to disk. Directories are created as needed.
+   *
+   * Path-traversal attempts (absolute paths, `..` segments, or paths escaping
+   * `destDir`) are rejected.
+   *
+   * Returns the list of extracted entries.
+   */
+  async extractZipFileToDirectory(zipFilePath: string, destDir: string): Promise<ZipEntry[]> {
+    const zip = await openZip(zipFilePath)
+    try {
+      return await zip.extractAll(destDir)
+    } finally {
+      await zip.close()
+    }
+  }
+
+  /**
+   * Create a zip archive on disk from a list of files and/or directories.
+   */
+  async zipPaths(paths: string[], outputZipFilePath: string, opt?: ZipPathsOptions): Promise<void> {
+    return await zipPaths(paths, outputZipFilePath, opt)
+  }
+
+  /**
+   * Create a zip archive on disk, returning a {@link ZipWriter} that streams to it.
+   *
+   * Add entries with {@link ZipWriter.addFile}/{@link ZipWriter.addBuffer}/etc.,
+   * then call {@link ZipWriter.finalize} (or use `await using`):
+   *
+   * ```ts
+   * const zip = createZip('archive.zip')
+   * await zip.addFile('./photo.jpg')
+   * await zip.addBuffer(Buffer.from('{"a":1}'), 'data.json')
+   * await zip.finalize()
+   * ```
+   */
+  createZip(filePath: string): ZipWriter {
+    return new ZipWriter(createWriteStream(filePath))
+  }
+
+  /**
+   * Build a zip archive entirely in memory and return it as a Buffer.
+   *
+   * For large archives or streamed inputs prefer {@link createZip} / {@link ZipWriter}.
+   */
+  async createZipBuffer(entries: ZipFileEntry[]): Promise<Buffer> {
+    return await createZipBuffer(entries)
   }
 }
 
