@@ -6,7 +6,7 @@ import { bucketDao } from './dao/bucket.dao.js'
 import { experimentDao } from './dao/experiment.dao.js'
 import { userAssignmentDao } from './dao/userAssignment.dao.js'
 import { mockBucket, mockExperiment, mockUserAssignment, mockUserId1 } from './test/mocks.js'
-import { AssignmentStatus } from './types.js'
+import { AssignmentStatus, SegmentationRuleOperator } from './types.js'
 import type { DecoratedUserAssignment } from './types.js'
 
 const db = new InMemoryDB({ logger: undefined })
@@ -528,5 +528,122 @@ describe('softDeleteExperiment', () => {
 
     const updatedExperiment2 = await experimentsDAO.requireById(experiment1Id)
     expect(updatedExperiment2.exclusions).toEqual([])
+  })
+})
+
+describe('saveManualUserAssignments', () => {
+  test('should create new assignments and overwrite existing ones in a single batch', async () => {
+    const experiment1 = await experimentsDAO.save(mockExperiment({ key: 'EXP_1' }))
+    const control1 = await bucketsDAO.save(mockBucket(experiment1.id, 'control', 50))
+    const test1 = await bucketsDAO.save(mockBucket(experiment1.id, 'test', 50))
+    const experiment2 = await experimentsDAO.save(mockExperiment({ key: 'EXP_2' }))
+    const test2 = await bucketsDAO.save(mockBucket(experiment2.id, 'test', 100))
+    const existing = await userAssignmentsDAO.save({
+      userId: 'userA',
+      experimentId: experiment1.id,
+      bucketId: control1.id,
+    })
+
+    const results = await abba.saveManualUserAssignments([
+      { userId: 'userA', experimentKey: 'EXP_1', bucketKey: 'test' },
+      { userId: 'userB', experimentKey: 'EXP_1', bucketKey: 'control' },
+      { userId: 'userA', experimentKey: 'EXP_2', bucketKey: 'test' },
+    ])
+
+    expect(results).toHaveLength(3)
+    expect(results[0]).toMatchObject({ id: existing.id, userId: 'userA', bucketId: test1.id })
+    expect(results[1]).toMatchObject({ userId: 'userB', bucketId: control1.id })
+    expect(results[2]).toMatchObject({ userId: 'userA', bucketId: test2.id })
+    const all = await userAssignmentsDAO.getBy('userId', 'userA')
+    expect(all).toHaveLength(2)
+  })
+
+  test('should return an empty array for an empty input', async () => {
+    const result = await abba.saveManualUserAssignments([])
+    expect(result).toEqual([])
+  })
+
+  test('should apply last-wins dedupe for duplicate (userId, experimentKey) pairs', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment())
+    await bucketsDAO.save(mockBucket(experiment.id, 'control', 50))
+    const testBucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 50))
+
+    const result = await abba.saveManualUserAssignments([
+      { userId: mockUserId1, experimentKey: experiment.key, bucketKey: 'control' },
+      { userId: mockUserId1, experimentKey: experiment.key, bucketKey: 'test' },
+    ])
+
+    expect(result).toHaveLength(1)
+    expect(result[0]!.bucketId).toBe(testBucket.id)
+    const persisted = await userAssignmentsDAO.getBy('userId', mockUserId1)
+    expect(persisted).toHaveLength(1)
+    expect(persisted[0]!.bucketId).toBe(testBucket.id)
+  })
+
+  test('should throw when any row references an unknown experiment', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment())
+    await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
+
+    await expect(
+      abba.saveManualUserAssignments([
+        { userId: 'userA', experimentKey: experiment.key, bucketKey: 'test' },
+        { userId: 'userB', experimentKey: 'NOPE', bucketKey: 'test' },
+      ]),
+    ).rejects.toThrow('Experiment does not exist: NOPE')
+    const written = await userAssignmentsDAO.getBy('userId', 'userA')
+    expect(written).toEqual([])
+  })
+
+  test('should throw when the experiment is soft-deleted', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment({ deleted: true }))
+    await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
+
+    await expect(
+      abba.saveManualUserAssignments([
+        { userId: mockUserId1, experimentKey: experiment.key, bucketKey: 'test' },
+      ]),
+    ).rejects.toThrow(`Experiment does not exist: ${experiment.key}`)
+  })
+
+  test('should throw when a bucket key does not belong to its experiment', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment())
+    await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
+
+    await expect(
+      abba.saveManualUserAssignments([
+        { userId: mockUserId1, experimentKey: experiment.key, bucketKey: 'control' },
+      ]),
+    ).rejects.toThrow(`Bucket does not exist on experiment ${experiment.key}: control`)
+  })
+
+  test.each([
+    ['Active', AssignmentStatus.Active],
+    ['Paused', AssignmentStatus.Paused],
+    ['Inactive', AssignmentStatus.Inactive],
+  ])('should succeed when the experiment status is %s', async (_name, status) => {
+    const experiment = await experimentsDAO.save(mockExperiment({ status }))
+    const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
+
+    const [result] = await abba.saveManualUserAssignments([
+      { userId: mockUserId1, experimentKey: experiment.key, bucketKey: bucket.key },
+    ])
+
+    expect(result!.bucketId).toBe(bucket.id)
+  })
+
+  test('should ignore segmentation rules and sampling', async () => {
+    const experiment = await experimentsDAO.save(
+      mockExperiment({
+        sampling: 0,
+        rules: [{ key: 'country', operator: SegmentationRuleOperator.EqualsText, value: 'SE' }],
+      }),
+    )
+    const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
+
+    const [result] = await abba.saveManualUserAssignments([
+      { userId: mockUserId1, experimentKey: experiment.key, bucketKey: bucket.key },
+    ])
+
+    expect(result!.bucketId).toBe(bucket.id)
   })
 })

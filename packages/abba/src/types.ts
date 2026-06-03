@@ -7,6 +7,7 @@ export const AbbaErrorCode = {
   SegmentationDataRequired: 'abba/segmentationDataRequired',
   InvalidBucketRatio: 'abba/invalidBucketRatio',
   BucketDeterminationFailed: 'abba/bucketDeterminationFailed',
+  BucketNotFound: 'abba/bucketNotFound',
 } as const
 
 export interface AbbaConfig {
@@ -90,6 +91,12 @@ export type UserAssignment = BaseDBEntity & {
   userId: string
   experimentId: string
   bucketId: string | null
+}
+
+export interface ManualUserAssignmentInput {
+  userId: string
+  experimentKey: string
+  bucketKey: string
 }
 
 export type DecoratedUserAssignment = UserAssignment & {

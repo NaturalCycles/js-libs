@@ -21,6 +21,20 @@ export class UserAssignmentDao extends CommonDao<UserAssignment> {
     return await this.runQuery(query)
   }
 
+  /**
+   * Returns every UserAssignment whose `userId` is in `userIds` AND whose `experimentId`
+   * is in `experimentIds`. This is the cross-product, not paired lookup: callers must
+   * filter the result by the specific (userId, experimentId) pairs they care about.
+   */
+  async getByUserIdsAndExperimentIds(
+    userIds: string[],
+    experimentIds: string[],
+  ): Promise<UserAssignment[]> {
+    if (!userIds.length || !experimentIds.length) return []
+    const query = this.query().filterIn('userId', userIds).filterIn('experimentId', experimentIds)
+    return await this.runQuery(query)
+  }
+
   async deleteByExperimentId(experimentId: string): Promise<void> {
     await this.query().filterEq('experimentId', experimentId).deleteByQuery()
   }
