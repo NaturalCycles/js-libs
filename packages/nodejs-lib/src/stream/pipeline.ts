@@ -8,6 +8,7 @@ import { createAbortableSignal } from '@naturalcycles/js-lib'
 import { _passthroughPredicate } from '@naturalcycles/js-lib/types'
 import type {
   AbortableAsyncMapper,
+  AbortableMapper,
   AsyncIndexedMapper,
   AsyncPredicate,
   END,
@@ -437,7 +438,7 @@ export class Pipeline<T = unknown> {
   }
 
   async forEachSync(
-    fn: IndexedMapper<T, void | typeof END>,
+    fn: AbortableMapper<T, void>,
     opt: TransformMapSyncOptions<T, void> & TransformLogProgressOptions<T> = {},
   ): Promise<void> {
     this.transforms.push(
