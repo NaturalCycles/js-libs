@@ -75,6 +75,9 @@ export function getSharedConfig(cwd) {
     maxWorkers,
     isolate: false,
     watch: false,
+    // Node 25 enabled the Web Storage API by default. Disable it so `localStorage` /
+    // `sessionStorage` are not defined in tests, matching Node 24 behavior.
+    execArgv: ['--no-experimental-webstorage'],
     // dir: 'src',
     restoreMocks: true,
     silent,
