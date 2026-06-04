@@ -420,7 +420,7 @@ export class Pipeline<T = unknown> {
   }
 
   async forEach(
-    fn: AsyncIndexedMapper<T, void | typeof END>,
+    fn: AbortableAsyncMapper<T, void>,
     opt: TransformMapOptions<T, void> & TransformLogProgressOptions<T> = {},
   ): Promise<void> {
     this.transforms.push(
