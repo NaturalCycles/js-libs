@@ -97,7 +97,7 @@ test('methodReturnsArray', () => {
 })
 
 test('instanceId', () => {
-  const c = new C()
-  ;(c as any as InstanceId).instanceId = 'instance_1'
+  const c = new C() as C & InstanceId
+  c.instanceId = 'instance_1'
   c.syncMethodSuccess()
 })

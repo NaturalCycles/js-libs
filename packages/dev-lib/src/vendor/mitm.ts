@@ -1,14 +1,15 @@
+import type * as HttpType from 'node:http'
+import type * as HttpsType from 'node:https'
+import { createRequire } from 'node:module'
+import type * as NetType from 'node:net'
+import type * as TlsType from 'node:tls'
 /**
  * Minimal vendored implementation of the `mitm` package.
  * Only supports the "connect" event with bypass() and disable() - that's all testOffline needs.
  *
  * Based on: https://github.com/moll/node-mitm
  */
-import type * as HttpType from 'node:http'
-import type * as HttpsType from 'node:https'
-import { createRequire } from 'node:module'
-import type * as NetType from 'node:net'
-import type * as TlsType from 'node:tls'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 
 // Use require() to get mutable module objects (ESM namespace objects are frozen)
 const require = createRequire(import.meta.url)
@@ -116,7 +117,7 @@ export function createMitm(): Mitm {
     return function (...args: Parameters<typeof Tls.connect>): TlsType.TLSSocket {
       const [opts, done] = normalizeArgs(args)
       return connect(
-        orig as unknown as (...a: unknown[]) => NetType.Socket,
+        orig as (...a: unknown[]) => TlsType.TLSSocket,
         opts,
         done,
       ) as TlsType.TLSSocket
@@ -129,12 +130,12 @@ export function createMitm(): Mitm {
 
   stub(Net, 'connect', netConnect)
   stub(Net, 'createConnection', netConnect)
-  stub(Http.Agent.prototype as unknown as Record<string, unknown>, 'createConnection', netConnect)
+  stub(Http.Agent.prototype as AnyObject, 'createConnection', netConnect)
   stub(Tls, 'connect', tlsConnect)
 
   // Disable keep-alive on global agents to force new connections
-  const httpAgent = Http.globalAgent as unknown as Record<string, unknown>
-  const httpsAgent = Https.globalAgent as unknown as Record<string, unknown>
+  const httpAgent = Http.globalAgent as AnyObject
+  const httpsAgent = Https.globalAgent as AnyObject
   if (httpAgent['keepAlive']) {
     stub(httpAgent, 'keepAlive', false)
   }

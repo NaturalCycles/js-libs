@@ -39,7 +39,7 @@ export const sharedConfig = {
     // "vue",
     'vitest',
   ],
-  jsPlugins: [`${import.meta.dirname}/oxlint-plugin-stylistic.mjs`],
+  jsPlugins: [`${import.meta.dirname}/oxlint-plugin-stylistic.js`],
   options: {
     reportUnusedDisableDirectives: 'deny',
     respectEslintDisableDirectives: false,

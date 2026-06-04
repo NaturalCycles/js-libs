@@ -16,7 +16,9 @@ import { AirtableTableDao } from '../airtableTableDao.js'
 
 export const AIRTABLE_CONNECTOR_REMOTE = Symbol('AIRTABLE_CONNECTOR_JSON')
 
-export class AirtableRemoteConnector<BASE = any> implements AirtableConnector<BASE> {
+export class AirtableRemoteConnector<
+  BASE extends Record<keyof BASE, AirtableRecord[]>,
+> implements AirtableConnector<BASE> {
   constructor(private airtableLib: AirtableLib) {}
 
   readonly TYPE = AIRTABLE_CONNECTOR_REMOTE
@@ -24,22 +26,21 @@ export class AirtableRemoteConnector<BASE = any> implements AirtableConnector<BA
   async fetch(baseDaoCfg: AirtableBaseDaoCfg<BASE>, opt: AirtableDaoOptions = {}): Promise<BASE> {
     const { tableCfgMap } = baseDaoCfg
 
-    const base = {} as BASE
+    const base: Record<string, AirtableRecord[]> = {}
 
     await pMap(
       Object.keys(tableCfgMap),
       async tableName => {
-        ;(base as any)[tableName] = await this.getTableDao(
-          baseDaoCfg,
-          tableName as keyof BASE,
-        ).getRecords(opt)
+        base[tableName] = await this.getTableDao(baseDaoCfg, tableName as keyof BASE).getRecords(
+          opt,
+        )
       },
       {
         concurrency: opt.concurrency || 4,
       },
     )
 
-    return base
+    return base as BASE
   }
 
   /**
@@ -71,7 +72,7 @@ export class AirtableRemoteConnector<BASE = any> implements AirtableConnector<BA
 
         // One-by-one to preserve order
         await pMap(
-          base[tableName] as any as AirtableRecord[],
+          base[tableName],
           async _r => {
             const oldId = _r.airtableId
 
@@ -112,7 +113,7 @@ export class AirtableRemoteConnector<BASE = any> implements AirtableConnector<BA
       async tableName => {
         const dao = this.getTableDao(baseDaoCfg, tableName)
 
-        const records = (base[tableName] as any as AirtableRecord[])
+        const records = base[tableName]
           // Only records with non-empty array values
           .filter(r => Object.values(r).some(v => isArrayOfLinks(v)))
 
@@ -124,7 +125,7 @@ export class AirtableRemoteConnector<BASE = any> implements AirtableConnector<BA
             let patch: AirtableRecord = _filterObject(r, (_k, v) => isArrayOfLinks(v))
             // console.log({patch1: patch})
             // use idMap
-            patch = _mapValues(patch, (_k, v) => (v as any as string[]).map(oldId => idMap[oldId]))
+            patch = _mapValues(patch, (_k, v) => (v as any).map((oldId: string) => idMap[oldId]))
             // console.log({patch2: patch})
             await dao.updateRecord(idMap[airtableId]!, patch, opt)
           },
