@@ -11,6 +11,16 @@ import type {
 import { dimGrey, dimRed, hasColors, white } from '../colors/colors.js'
 
 /**
+ * Default `maxBuffer` (in bytes) for the synchronous `exec`/`spawn`.
+ * Set to 10 MiB, which is higher than Node's own default of 1 MiB.
+ * Node's 1 MiB is too low for common large outputs (e.g. `git log`, `git diff`,
+ * `tsc`/`eslint` reports), while 10 MiB still bounds runaway processes to a
+ * memory level that won't OOM constrained deploy/CI environments.
+ * Can be overridden per-call via the `maxBuffer` option.
+ */
+const defaultMaxBuffer = 10 * 1024 * 1024
+
+/**
  * Set of utility functions to work with Spawn / Exec.
  *
  * How to decide between Spawn and Exec?
@@ -46,7 +56,7 @@ class Exec2 {
    * shell: true
    * log: true
    */
-  spawn(cmd: string, opt: SpawnOptions = {}): void {
+  spawn(cmd: string, opt: SpawnSyncOptions = {}): void {
     const {
       shell = true,
       cwd,
@@ -54,6 +64,7 @@ class Exec2 {
       passProcessEnv = true,
       forceColor = hasColors,
       stdio = 'inherit',
+      maxBuffer = defaultMaxBuffer,
     } = opt
     opt.log ??= true // by default log should be true, as we are printing the output
     opt.logStart ??= opt.log
@@ -66,6 +77,7 @@ class Exec2 {
       stdio,
       shell,
       cwd,
+      maxBuffer,
       env: {
         ...(passProcessEnv ? process.env : {}),
         ...(forceColor ? { FORCE_COLOR: '1' } : {}),
@@ -99,7 +111,7 @@ class Exec2 {
    * log: false
    */
   exec(cmd: string, opt: ExecOptions = {}): string {
-    const { cwd, env, passProcessEnv = true, timeout, stdio } = opt
+    const { cwd, env, passProcessEnv = true, timeout, stdio, maxBuffer = defaultMaxBuffer } = opt
     opt.logStart ??= opt.log ?? false
     opt.logFinish ??= opt.log ?? false
     const started = Date.now() as UnixTimestampMillis
@@ -112,6 +124,7 @@ class Exec2 {
         // shell: undefined,
         cwd,
         timeout,
+        maxBuffer,
         env: {
           ...(passProcessEnv ? process.env : {}),
           ...env,
@@ -355,6 +368,13 @@ export interface SpawnOutput {
   stderr: string
 }
 
+export interface SpawnSyncOptions extends SpawnOptions {
+  /**
+   * Defaults to 10 MiB (higher than Node's own default of 1 MiB).
+   */
+  maxBuffer?: number
+}
+
 export interface SpawnAsyncOptions extends SpawnOptions {
   /**
    * Defaults to true.
@@ -462,4 +482,9 @@ export interface ExecOptions {
    * beware that stdio: 'inherit', means we don't get the output returned.
    */
   stdio?: StdioOptions
+
+  /**
+   * Defaults to 10 MiB (higher than Node's own default of 1 MiB).
+   */
+  maxBuffer?: number
 }
