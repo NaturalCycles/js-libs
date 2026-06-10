@@ -1,7 +1,7 @@
 import { _Memo } from '@naturalcycles/js-lib/decorators'
 import { _assert, AppError } from '@naturalcycles/js-lib/error'
 import { dimGrey, green, red } from '@naturalcycles/nodejs-lib/colors'
-import type FirebaseAdmin from 'firebase-admin'
+import type { Auth } from 'firebase-admin/auth'
 import type { BackendRequest, BackendRequestHandler } from '../server/server.model.js'
 
 export interface AdminServiceCfg {
@@ -33,7 +33,7 @@ const adminInfoDisabled = (): AdminInfo => ({
  */
 export class BaseAdminService {
   constructor(
-    private loadFirebaseAuth: () => Promise<FirebaseAdmin.auth.Auth>,
+    private loadFirebaseAuth: () => Promise<Auth>,
     cfg: AdminServiceCfg,
   ) {
     this.cfg = {
@@ -112,7 +112,7 @@ export class BaseAdminService {
   }
 
   @_Memo()
-  private async getFirebaseAuth(): Promise<FirebaseAdmin.auth.Auth> {
+  private async getFirebaseAuth(): Promise<Auth> {
     return await this.loadFirebaseAuth()
   }
 

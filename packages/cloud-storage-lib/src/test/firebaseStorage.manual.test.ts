@@ -1,5 +1,6 @@
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
-import admin from 'firebase-admin'
+import { cert, initializeApp } from 'firebase-admin/app'
+import { getStorage } from 'firebase-admin/storage'
 import { describe, test } from 'vitest'
 import { CloudStorage } from '../cloudStorage.js'
 import { runCommonStorageTest } from '../testing/commonStorageTest.js'
@@ -9,14 +10,14 @@ const { FIREBASE_SERVICE_ACCOUNT, FIREBASE_BUCKET } = requireEnvKeys(
   'FIREBASE_BUCKET',
 )
 
-const credential = admin.credential.cert(JSON.parse(FIREBASE_SERVICE_ACCOUNT))
+const credential = cert(JSON.parse(FIREBASE_SERVICE_ACCOUNT))
 
-const app = admin.initializeApp({
+const app = initializeApp({
   credential,
   // storageBucket: FIREBASE_BUCKET,
 })
 
-const storage = CloudStorage.createFromStorage(app.storage() as any)
+const storage = CloudStorage.createFromStorage(getStorage(app) as any)
 
 describe(`runCommonStorageTest`, async () => {
   await runCommonStorageTest(storage, FIREBASE_BUCKET)

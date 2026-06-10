@@ -21,7 +21,7 @@
     "@naturalcycles/dev-lib": "workspace:*",
     "@types/node": "^25",
     "@typescript/native-preview": "catalog:",
-    "firebase-admin": "^13"
+    "firebase-admin": "^14"
   },
   "exports": {
     ".": "./dist/index.js"

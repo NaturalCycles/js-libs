@@ -1,6 +1,6 @@
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
-import type { AppOptions, ServiceAccount } from 'firebase-admin'
-import type FirebaseAdmin from 'firebase-admin'
+import type { App, AppOptions, ServiceAccount } from 'firebase-admin/app'
+import type { Auth } from 'firebase-admin/auth'
 
 export interface FirebaseSharedServiceCfg {
   /**
@@ -44,17 +44,15 @@ export class FirebaseSharedService {
   }
 
   @_Memo()
-  async admin(): Promise<FirebaseAdmin.app.App> {
+  async admin(): Promise<App> {
     const { serviceAccount } = this.cfg
 
     // lazy loading
-    const { default: admin } = await import('firebase-admin')
+    const { initializeApp, cert, applicationDefault } = await import('firebase-admin/app')
 
-    const credential = serviceAccount
-      ? admin.credential.cert(serviceAccount)
-      : admin.credential.applicationDefault()
+    const credential = serviceAccount ? cert(serviceAccount) : applicationDefault()
 
-    return admin.initializeApp(
+    return initializeApp(
       {
         credential,
         ...this.cfg.opt,
@@ -63,8 +61,9 @@ export class FirebaseSharedService {
     )
   }
 
-  async auth(): Promise<FirebaseAdmin.auth.Auth> {
-    const admin = await this.admin()
-    return admin.auth()
+  async auth(): Promise<Auth> {
+    const app = await this.admin()
+    const { getAuth } = await import('firebase-admin/auth')
+    return getAuth(app)
   }
 }

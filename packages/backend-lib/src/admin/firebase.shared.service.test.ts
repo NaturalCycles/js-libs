@@ -16,6 +16,6 @@ afterAll(async () => {
 test('firebase shared service', async () => {
   const admin = await service.admin()
   expect(typeof admin).toBe('object')
-  const auth = admin.auth()
+  const auth = await service.auth()
   expect(typeof auth.deleteUser).toBe('function')
 })
