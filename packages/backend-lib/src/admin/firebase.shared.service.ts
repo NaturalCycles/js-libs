@@ -1,6 +1,7 @@
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import type { App, AppOptions, ServiceAccount } from 'firebase-admin/app'
 import type { Auth } from 'firebase-admin/auth'
+import type { Messaging } from 'firebase-admin/messaging'
 
 export interface FirebaseSharedServiceCfg {
   /**
@@ -65,5 +66,11 @@ export class FirebaseSharedService {
     const app = await this.admin()
     const { getAuth } = await import('firebase-admin/auth')
     return getAuth(app)
+  }
+
+  async messaging(): Promise<Messaging> {
+    const app = await this.admin()
+    const { getMessaging } = await import('firebase-admin/messaging')
+    return getMessaging(app)
   }
 }
