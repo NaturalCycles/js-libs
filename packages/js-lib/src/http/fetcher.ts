@@ -629,6 +629,15 @@ export class Fetcher {
           this.cfg.logger.warn('retry-after could not be parsed')
         }
       }
+
+      // Cloudflare returns retry-after:0 but includes the real delay in the body as retry_after
+      if (!(timeout > 0) && res.body && typeof res.body === 'object') {
+        const bodyRetryAfter = (res.body as any).retry_after
+        if (typeof bodyRetryAfter === 'number' && bodyRetryAfter > 0) {
+          timeout = bodyRetryAfter * 1000
+          this.cfg.logger.log(`retry-after (from body): ${bodyRetryAfter}`)
+        }
+      }
     }
 
     if (!timeout) {

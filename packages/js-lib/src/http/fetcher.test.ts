@@ -377,6 +377,27 @@ test('retryAfter date', async () => {
   expect(r).toBe('ok')
 })
 
+test('retryAfter cloudflare body', async () => {
+  vi.useFakeTimers()
+  const fetcher = getFetcher({
+    debug: true,
+  })
+
+  // Cloudflare returns retry-after:0 but encodes the real wait in the JSON body as retry_after
+  const badResponse = (): Response =>
+    Response.json({ retry_after: 2 }, { status: 429, headers: { 'retry-after': '0' } })
+
+  vi.spyOn(Fetcher, 'callNativeFetch')
+    .mockResolvedValueOnce(badResponse())
+    .mockResolvedValueOnce(badResponse())
+    .mockResolvedValueOnce(new Response('ok'))
+
+  const promise = fetcher.getText('')
+  await vi.runAllTimersAsync()
+  const r = await promise
+  expect(r).toBe('ok')
+})
+
 test('tryFetch', async () => {
   vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(
     new Response('bad', {
