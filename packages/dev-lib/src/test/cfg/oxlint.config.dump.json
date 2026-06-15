@@ -557,7 +557,7 @@
         }
       ]
     ],
-    "vitest/consistent-each-for": "warn",
+    "vitest/consistent-each-for": "deny",
     "vitest/consistent-test-filename": "deny",
     "vitest/consistent-test-it": [
       "deny",

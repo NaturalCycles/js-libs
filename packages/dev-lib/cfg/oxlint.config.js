@@ -423,6 +423,7 @@ export const sharedConfig = {
     ],
     'vitest/no-duplicate-hooks': 2,
     'vitest/consistent-vitest-vi': 2,
+    'vitest/consistent-each-for': 2,
     'vitest/no-focused-tests': 2,
     'vitest/no-identical-title': 2,
     'vitest/no-test-return-statement': 2,
