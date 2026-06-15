@@ -40,7 +40,11 @@ export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
   }
 
   // limit
-  q = q.limit(dbQuery._limitValue)
+  // Careful here, Firestore just changed the behavior of limit(0) recently!
+  // Therefor we're guarding the limit(0) case and not sending the limit if it's zero.
+  if (dbQuery._limitValue) {
+    q = q.limit(dbQuery._limitValue)
+  }
 
   // selectedFields
   if (dbQuery._selectedFieldNames) {
