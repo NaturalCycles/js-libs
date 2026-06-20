@@ -1,7 +1,7 @@
 packages:
   - packages/*
 catalog:
-  '@typescript/native-preview': beta
+  'typescript': rc
   oxlint: ^1
 minimumReleaseAgeExclude:
   - '@naturalcycles/*'
@@ -30,7 +30,7 @@ auditConfig:
 strictDepBuilds: true
 ignoreWorkspaceCycles: true
 publicHoistPattern:
-  - '@typescript/native-preview'
+  - typescript
 allowBuilds:
   esbuild: true
   '@firebase/util': false

@@ -23,7 +23,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
     "@types/node": "^25",
-    "@typescript/native-preview": "catalog:"
+    "typescript": "catalog:"
   },
   "files": [
     "dist",

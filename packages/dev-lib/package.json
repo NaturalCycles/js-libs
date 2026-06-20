@@ -38,7 +38,7 @@
   },
   "peerDependencies": {
     "@eslint/js": "^10",
-    "@typescript/native-preview": "^7.0.0-0",
+    "typescript": "^7.0.1-rc",
     "eslint": "^10",
     "husky": "^9",
     "stylelint": "^17",
@@ -49,7 +49,7 @@
     "@eslint/js": {
       "optional": true
     },
-    "@typescript/native-preview": {
+    "typescript": {
       "optional": true
     },
     "eslint": {
@@ -68,7 +68,7 @@
   "devDependencies": {
     "@types/node": "^25",
     "@types/prompts": "^2",
-    "@typescript/native-preview": "catalog:"
+    "typescript": "catalog:"
   },
   "exports": {
     "./cfg/": "./cfg/",
