@@ -57,6 +57,7 @@
     "./promise": "./dist/promise/index.js",
     "./promise/*.js": "./dist/promise/*.js",
     "./nanoid": "./dist/nanoid.js",
+    "./qr": "./dist/qr/qr.js",
     "./semver": "./dist/semver.js",
     "./string": "./dist/string/index.js",
     "./string/*.js": "./dist/string/*.js",
