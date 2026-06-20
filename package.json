@@ -76,9 +76,9 @@
     "release:nodejs-lib": "pnpm --filter @naturalcycles/nodejs-lib exec -- semantic-release -e semantic-release-monorepo",
     "release:backend-lib": "pnpm --filter @naturalcycles/backend-lib exec -- semantic-release -e semantic-release-monorepo",
     "release:db-lib": "pnpm --filter @naturalcycles/db-lib exec -- semantic-release -e semantic-release-monorepo",
-    "docs:dev": "vitepress dev docs --open",
-    "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:dev": "pnpx vitepress@^1 dev docs --open",
+    "docs:build": "pnpx vitepress@^1 build docs",
+    "docs:preview": "pnpx vitepress@^1 preview docs"
   },
   "devDependencies": {
     "@anolilab/semantic-release-pnpm": "^8",
@@ -96,9 +96,7 @@
     "semantic-release-monorepo": "^8",
     "tsx": "^4",
     "vite": "^8",
-    "vitepress": "^1",
-    "vitest": "^4",
-    "vue": "^3"
+    "vitest": "^4"
   },
   "engines": {
     "node": ">=24.15.0"

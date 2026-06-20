@@ -1,6 +1,8 @@
-import { defineConfig } from 'vitepress'
-
-export default defineConfig({
+// vitepress is installed on-demand via `pnpx` (see package.json `docs:*` scripts),
+// so it is not resolvable as a local import here. `defineConfig` is just an identity
+// helper for typing, so we replace it with a JSDoc type annotation instead.
+/** @type {import('vitepress').UserConfig} */
+export default {
   base: '/js-libs/',
   title: 'js-libs',
   description:
@@ -51,4 +53,4 @@ export default defineConfig({
       },
     ],
   },
-})
+}
