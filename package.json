@@ -86,7 +86,7 @@
     "@naturalcycles/bench-lib": "workspace:*",
     "@naturalcycles/dev-lib": "workspace:*",
     "@naturalcycles/nodejs-lib": "workspace:*",
-    "@types/node": "^25",
+    "@types/node": "catalog:",
     "typescript": "catalog:",
     "@vitest/coverage-v8": "^4",
     "husky": "^9",

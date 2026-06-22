@@ -1,6 +1,7 @@
 packages:
   - packages/*
 catalog:
+  '@types/node': ^26
   'typescript': rc
   oxlint: ^1
 minimumReleaseAgeExclude:
@@ -20,8 +21,7 @@ trustPolicyExclude:
   - semver@5.7.2
   - jose@4.15.9
   - undici@5.29.0
-  - tinyexec@1.2.2
-  - ast-v8-to-istanbul@1.0.2
+  - nanoid@3.3.14
 blockExoticSubdeps: true
 auditConfig:
   ignoreGhsas:

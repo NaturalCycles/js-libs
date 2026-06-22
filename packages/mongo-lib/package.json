@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
-    "@types/node": "^25",
+    "@types/node": "catalog:",
     "typescript": "catalog:"
   },
   "exports": {

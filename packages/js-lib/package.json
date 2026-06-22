@@ -28,7 +28,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
     "@types/crypto-js": "^4",
-    "@types/node": "^25",
+    "@types/node": "catalog:",
     "@types/semver": "^7",
     "typescript": "catalog:",
     "crypto-js": "^4",
