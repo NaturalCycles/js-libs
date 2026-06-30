@@ -602,33 +602,33 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
         if (dtype === DatastoreType.Blob) {
           s.properties![name] = {
             instanceof: 'Buffer',
-          } as JsonSchema<ROW[typeof name]>
+          }
         } else if (dtype === DatastoreType.Text || dtype === DatastoreType.String) {
           s.properties![name] = {
             type: 'string',
-          } as JsonSchema<ROW[typeof name]>
+          }
         } else if (dtype === DatastoreType.EmbeddedEntity) {
           s.properties![name] = {
             type: 'object',
             additionalProperties: true,
             properties: {} as any,
             required: [],
-          } as JsonSchema<ROW[typeof name]>
+          }
         } else if (dtype === DatastoreType.Integer) {
           s.properties![name] = {
             type: 'integer',
-          } as JsonSchema<ROW[typeof name]>
+          }
         } else if (dtype === DatastoreType.Float) {
           s.properties![name] = {
             type: 'number',
-          } as JsonSchema<ROW[typeof name]>
+          }
         } else if (dtype === DatastoreType.Boolean) {
           s.properties![name] = {
             type: 'boolean',
-          } as JsonSchema<ROW[typeof name]>
+          }
         } else if (dtype === DatastoreType.DATE_TIME) {
           // Don't know how to map it properly
-          s.properties![name] = {} as JsonSchema<any>
+          s.properties![name] = {}
         } else if (dtype === DatastoreType.NULL) {
           // check, maybe we can just skip this type and do nothing?
           s.properties![name] ||= {

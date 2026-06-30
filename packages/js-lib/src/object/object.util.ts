@@ -239,7 +239,7 @@ export function _mapObject<OUT = unknown, IN extends AnyObject = AnyObject>(
 }
 
 export function _findKeyByValue<T extends AnyObject>(obj: T, v: ValueOf<T>): keyof T | undefined {
-  return Object.entries(obj).find(([_, value]) => value === v)?.[0] as keyof T
+  return Object.entries(obj).find(([_, value]) => value === v)?.[0]
 }
 
 /**
@@ -256,7 +256,7 @@ export function _findKeyByValue<T extends AnyObject>(obj: T, v: ValueOf<T>): key
  */
 export function _firstKey<T extends AnyObject>(obj: T): keyof T {
   for (const k in obj) {
-    if (Object.hasOwn(obj, k)) return k as keyof T
+    if (Object.hasOwn(obj, k)) return k
   }
   throw new Error('_firstKey called on empty object')
 }
@@ -267,7 +267,7 @@ export function _firstKey<T extends AnyObject>(obj: T): keyof T {
  */
 export function _firstKeyOrUndefined<T extends AnyObject>(obj: T): keyof T | undefined {
   for (const k in obj) {
-    if (Object.hasOwn(obj, k)) return k as keyof T
+    if (Object.hasOwn(obj, k)) return k
   }
   return undefined
 }
@@ -279,7 +279,7 @@ export function _firstKeyOrUndefined<T extends AnyObject>(obj: T): keyof T | und
  */
 export function _firstValue<T extends AnyObject>(obj: T): ValueOf<T> {
   for (const k in obj) {
-    if (Object.hasOwn(obj, k)) return obj[k] as ValueOf<T>
+    if (Object.hasOwn(obj, k)) return obj[k]
   }
   throw new Error('_firstValue called on empty object')
 }
@@ -290,7 +290,7 @@ export function _firstValue<T extends AnyObject>(obj: T): ValueOf<T> {
  */
 export function _firstValueOrUndefined<T extends AnyObject>(obj: T): ValueOf<T> | undefined {
   for (const k in obj) {
-    if (Object.hasOwn(obj, k)) return obj[k] as ValueOf<T>
+    if (Object.hasOwn(obj, k)) return obj[k]
   }
   return undefined
 }
@@ -302,7 +302,7 @@ export function _firstValueOrUndefined<T extends AnyObject>(obj: T): ValueOf<T> 
  */
 export function _firstEntry<T extends AnyObject>(obj: T): [keyof T, ValueOf<T>] {
   for (const k in obj) {
-    if (Object.hasOwn(obj, k)) return [k as keyof T, obj[k] as ValueOf<T>]
+    if (Object.hasOwn(obj, k)) return [k, obj[k]]
   }
   throw new Error('_firstEntry called on empty object')
 }
@@ -315,7 +315,7 @@ export function _firstEntryOrUndefined<T extends AnyObject>(
   obj: T,
 ): [keyof T, ValueOf<T>] | undefined {
   for (const k in obj) {
-    if (Object.hasOwn(obj, k)) return [k as keyof T, obj[k] as ValueOf<T>]
+    if (Object.hasOwn(obj, k)) return [k, obj[k]]
   }
   return undefined
 }
@@ -519,13 +519,13 @@ type PropertyPath = Many<PropertyKey>
  * Based on: https://stackoverflow.com/a/54733755/4919972
  */
 export function _set<T extends AnyObject>(obj: T, path: PropertyPath, value: any): T {
-  if (!obj || Object(obj) !== obj || !path) return obj as any // When obj is not an object
+  if (!obj || Object(obj) !== obj || !path) return obj // When obj is not an object
 
   // If not yet an array, get the keys from the string-path
   if (!Array.isArray(path)) {
     path = String(path).match(/[^.[\]]+/g) || []
   } else if (!path.length) {
-    return obj as any
+    return obj
   }
 
   // Prevent prototype pollution

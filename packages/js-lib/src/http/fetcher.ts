@@ -619,7 +619,7 @@ export class Fetcher {
           timeout = Number(retryAfterStr) * 1000
         } else {
           const date = new Date(retryAfterStr)
-          if (!Number.isNaN(date as any)) {
+          if (!Number.isNaN(date)) {
             timeout = Number(date) - Date.now()
           }
         }

@@ -31,7 +31,7 @@ export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
 
   // filter
   for (const f of dbQuery._filters) {
-    q = q.where(mapName(f.name), OP_MAP[f.op] || (f.op as WhereFilterOp), f.val)
+    q = q.where(mapName(f.name), OP_MAP[f.op] || f.op, f.val)
   }
 
   // order

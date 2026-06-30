@@ -276,7 +276,7 @@ describe('getValidationFunction with custom ajv', () => {
 
   test('per-call options should override outer options', () => {
     const validateFn = objectSchema.getValidationFunction({ inputName: 'Outer' })
-    const [err] = validateFn({ int: 5 } as any, { inputName: 'Inner' })
+    const [err] = validateFn({ int: 5 }, { inputName: 'Inner' })
     expect(err).toBeInstanceOf(AjvValidationError)
     expect(err!.message).toContain('Inner')
     expect(err!.message).not.toContain('Outer')
@@ -284,7 +284,7 @@ describe('getValidationFunction with custom ajv', () => {
 
   test('outer options should apply when per-call options are not provided', () => {
     const validateFn = objectSchema.getValidationFunction({ inputName: 'MyObject' })
-    const [err] = validateFn({ int: 5 } as any)
+    const [err] = validateFn({ int: 5 })
     expect(err).toBeInstanceOf(AjvValidationError)
     expect(err!.message).toContain('MyObject')
   })

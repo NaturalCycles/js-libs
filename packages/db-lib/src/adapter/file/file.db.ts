@@ -93,7 +93,7 @@ export class FileDB extends BaseCommonDB implements CommonDB {
       _assert(r.id, 'FileDB: row.id is required')
 
       if (!_deepEquals(byId[r.id], r)) {
-        byId[r.id] = r as any
+        byId[r.id] = r
         saved++
       }
     })

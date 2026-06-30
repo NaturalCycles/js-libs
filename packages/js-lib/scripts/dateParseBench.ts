@@ -52,7 +52,7 @@ runBenchScript({
       let _d: number
 
       strings.forEach(s => {
-        const matches: string[] | null = DATE.exec(s.slice(0, 10)) as string[]
+        const matches = DATE.exec(s.slice(0, 10))!
 
         _y = Number(matches[1])
         _m = Number(matches[2])

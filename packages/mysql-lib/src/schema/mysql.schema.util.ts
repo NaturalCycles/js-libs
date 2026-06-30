@@ -96,15 +96,15 @@ export function mysqlTableStatsToJsonSchemaField<T extends AnyObject = any>(
     }
 
     if (t.includes('text') || t.includes('char')) {
-      s.properties![name] = { type: 'string' } as JsonSchema<T[keyof T]>
+      s.properties![name] = { type: 'string' }
     } else if (t.includes('lob')) {
       s.properties![name] = { instanceof: 'Buffer' }
     } else if (t.startsWith('tinyint') || t.includes('(1)')) {
-      s.properties![name] = { type: 'boolean' } as JsonSchema<T[keyof T]>
+      s.properties![name] = { type: 'boolean' }
     } else if (t === 'int' || t.startsWith('int(')) {
-      s.properties![name] = { type: 'integer' } as JsonSchema<T[keyof T]>
+      s.properties![name] = { type: 'integer' }
     } else if (t.startsWith('float')) {
-      s.properties![name] = { type: 'number' } as JsonSchema<T[keyof T]>
+      s.properties![name] = { type: 'number' }
     } else {
       logger.log(s)
       throw new Error(`Unknown mysql field type ${name as string} ${stat.Type}`)

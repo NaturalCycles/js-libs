@@ -275,7 +275,7 @@ export class LocalTime {
    * Based on ISO: 1-7 is Mon-Sun.
    */
   get dayOfWeek(): ISODayOfWeek {
-    return (this.$date.getDay() || 7) as ISODayOfWeek
+    return this.$date.getDay() || 7
   }
 
   /**

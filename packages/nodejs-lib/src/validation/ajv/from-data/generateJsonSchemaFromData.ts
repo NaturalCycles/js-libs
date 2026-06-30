@@ -14,7 +14,7 @@ type Type = PrimitiveType | 'array' | 'object'
 export function generateJsonSchemaFromData<T extends AnyObject = AnyObject>(
   rows: AnyObject[],
 ): JsonSchema<T> {
-  return objectToJsonSchema<T>(rows as any)
+  return objectToJsonSchema<T>(rows)
 }
 
 function objectToJsonSchema<T extends AnyObject>(rows: AnyObject[]): JsonSchema<T> {
@@ -68,25 +68,25 @@ function mergeTypes(types: Type[], samples: any[]): JsonSchema | undefined {
   if (type === 'null') {
     return {
       type: 'null',
-    } as JsonSchema
+    }
   }
 
   if (type === 'boolean') {
     return {
       type: 'boolean',
-    } as JsonSchema
+    }
   }
 
   if (type === 'string') {
     return {
       type: 'string',
-    } as JsonSchema
+    }
   }
 
   if (type === 'number') {
     return {
       type: 'number',
-    } as JsonSchema
+    }
   }
 
   if (type === 'object') {
@@ -102,7 +102,7 @@ function mergeTypes(types: Type[], samples: any[]): JsonSchema | undefined {
     return {
       type: 'array',
       items: mergeTypes(itemTypes, items),
-    } as JsonSchema
+    }
   }
 }
 

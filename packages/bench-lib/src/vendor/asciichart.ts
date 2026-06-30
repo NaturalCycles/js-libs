@@ -49,7 +49,7 @@ export function asciiPlot(seriesInput: number[][], cfg: AsciiPlotOptions = {}): 
   // this function takes both one array and array of arrays
   // if an array of numbers is passed it is transformed to
   // an array of exactly one array with numbers
-  const series: number[][] = seriesInput as any
+  const series: number[][] = seriesInput
 
   // if (typeof(seriesInput[0]) === "number"){
   //   series = [seriesInput as number[]]

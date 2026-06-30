@@ -906,7 +906,7 @@ describe('auto compression', () => {
 
     test('saveAsDBM', async () => {
       const dao = createDao()
-      await dao.saveAsDBM(createItem(1) as any)
+      await dao.saveAsDBM(createItem(1))
       expectStorageCompressed(dao, 'id1')
     })
 
@@ -919,7 +919,7 @@ describe('auto compression', () => {
 
     test('saveBatchAsDBM', async () => {
       const dao = createDao()
-      await dao.saveBatchAsDBM([createItem(1), createItem(2)] as any)
+      await dao.saveBatchAsDBM([createItem(1), createItem(2)])
       expectStorageCompressed(dao, 'id1')
       expectStorageCompressed(dao, 'id2')
     })

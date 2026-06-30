@@ -495,7 +495,7 @@ export function _minOrUndefined<T>(array: readonly T[]): NonNullable<T> | undefi
   for (const item of array) {
     if (item === undefined || item === null) continue
     if (min === undefined || item < min) {
-      min = item as NonNullable<T>
+      min = item
     }
   }
   return min
@@ -515,7 +515,7 @@ export function _maxOrUndefined<T>(array: readonly T[]): NonNullable<T> | undefi
   for (const item of array) {
     if (item === undefined || item === null) continue
     if (max === undefined || item > max) {
-      max = item as NonNullable<T>
+      max = item
     }
   }
   return max

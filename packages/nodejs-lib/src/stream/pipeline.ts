@@ -341,7 +341,7 @@ export class Pipeline<T = unknown> {
       }),
     )
     this.objectMode = false
-    return this as any
+    return this
   }
 
   gunzip(this: Pipeline<Uint8Array>, opt?: ZlibOptions): Pipeline<Uint8Array> {
@@ -352,7 +352,7 @@ export class Pipeline<T = unknown> {
       }),
     )
     this.objectMode = false
-    return this as any
+    return this
   }
 
   zstdCompress(
@@ -362,7 +362,7 @@ export class Pipeline<T = unknown> {
   ): Pipeline<Uint8Array> {
     this.transforms.push(createZstdCompress(zip2.zstdLevelToOptions(level, opt)))
     this.objectMode = false
-    return this as any
+    return this
   }
 
   zstdDecompress(this: Pipeline<Uint8Array>, opt?: ZstdOptions): Pipeline<Uint8Array> {
@@ -373,7 +373,7 @@ export class Pipeline<T = unknown> {
       }),
     )
     this.objectMode = false
-    return this as any
+    return this
   }
 
   async toArray(opt?: TransformOptions): Promise<T[]> {

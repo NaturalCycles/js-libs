@@ -62,7 +62,7 @@ export function _debounce<T extends AnyFunction>(
   }
 
   function startTimer(pendingFunc: AnyFunction, wait: number): number {
-    return setTimeout(pendingFunc, wait) as any
+    return setTimeout(pendingFunc, wait)
   }
 
   function cancelTimer(id: number): void {

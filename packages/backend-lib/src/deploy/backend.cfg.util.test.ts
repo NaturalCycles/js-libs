@@ -64,7 +64,7 @@ test('rejects wrong type for files', () => {
 })
 
 test('strips additional properties', () => {
-  const result = backendCfgSchema.validate({ ...validMinimal, unknownProp: 'value' } as any)
+  const result = backendCfgSchema.validate({ ...validMinimal, unknownProp: 'value' })
   expect(result).toEqual(validMinimal)
   expect(result).not.toHaveProperty('unknownProp')
 })

@@ -15,7 +15,7 @@ export function _blockTimer(name?: string): Disposable {
     [Symbol.dispose](): void {
       console.log(`${name ? name + ' ' : ''}took ${_since(started)}`)
     },
-  } as any
+  }
 }
 
 /**

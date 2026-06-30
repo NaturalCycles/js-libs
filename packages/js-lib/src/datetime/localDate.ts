@@ -70,7 +70,7 @@ export class LocalDate {
   }
 
   get dayOfWeek(): ISODayOfWeek {
-    return (this.toDate().getDay() || 7) as ISODayOfWeek
+    return this.toDate().getDay() || 7
   }
 
   /**

@@ -79,7 +79,7 @@ export class CommonDao<
       ...cfg,
       hooks: {
         parseNaturalId: () => ({}),
-        beforeCreate: bm => bm as BM,
+        beforeCreate: bm => bm,
         onValidationError: err => err,
         ...cfg.hooks,
       } satisfies Partial<CommonDaoHooks<BM, DBM, ID>>,
@@ -922,7 +922,7 @@ export class CommonDao<
 
     const inputName = opt.table || this.cfg.table
 
-    const [error, convertedValue] = this.cfg.validateBM(input as BM, {
+    const [error, convertedValue] = this.cfg.validateBM(input, {
       // Passing `mutateInput` through allows to opt-out of mutation
       // for individual operations, e.g `someDao.save(myObj, { mutateInput: false })`
       // Default is undefined (the validation function decides whether to mutate or not).
@@ -1083,7 +1083,7 @@ export class CommonDao<
       }
     }
 
-    return bmsByProp as any
+    return bmsByProp
   }
 
   /**
