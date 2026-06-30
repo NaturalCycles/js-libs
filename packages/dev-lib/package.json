@@ -33,7 +33,7 @@
     "picomatch": "^4",
     "oxfmt": "^0",
     "oxlint": "catalog:",
-    "oxlint-tsgolint": "^0",
+    "oxlint-tsgolint": "catalog:",
     "std-env": "^4"
   },
   "peerDependencies": {

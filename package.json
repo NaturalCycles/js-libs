@@ -92,7 +92,7 @@
     "husky": "^9",
     "oxfmt": "^0",
     "oxlint": "catalog:",
-    "oxlint-tsgolint": "^0",
+    "oxlint-tsgolint": "catalog:",
     "semantic-release": "^25",
     "semantic-release-monorepo": "^8",
     "tsx": "^4",
