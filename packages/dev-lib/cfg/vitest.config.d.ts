@@ -20,6 +20,13 @@ export function defineVitestConfig(config?: Partial<ViteUserConfig>, cwd?: strin
  */
 export function getSharedConfig(cwd?: string): InlineConfig
 
+/**
+ * Reporters for the monorepo root config (Vitest `projects` mode), where
+ * `reporters` is a root-only option. Returns the compact 'agent' reporter for
+ * agents, otherwise the default reporters plus a monorepo-wide SummaryReporter.
+ */
+export function getRootReporters(): InlineConfig['reporters']
+
 export const CollectReporter: any
 
 export class SummaryReporter {}

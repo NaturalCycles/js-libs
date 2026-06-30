@@ -128,16 +128,10 @@ export function getSharedConfig(cwd) {
 }
 
 function getReporters(junitReporterEnabled, testType) {
-  // VITEST_REPORTER env var allows overriding the default reporter
-  const { VITEST_REPORTER, GITHUB_ACTIONS } = process.env
-  if (VITEST_REPORTER) {
-    return [VITEST_REPORTER]
-  }
+  const override = getReporterOverride()
+  if (override) return override
 
-  if (isAgent) {
-    return ['agent']
-  }
-
+  const { GITHUB_ACTIONS } = process.env
   return [
     'default',
     GITHUB_ACTIONS && 'github-actions',
@@ -150,6 +144,50 @@ function getReporters(junitReporterEnabled, testType) {
       },
     ],
   ].filter(Boolean)
+}
+
+/**
+ * Reporters for the monorepo root config (Vitest `projects` mode).
+ *
+ * `reporters` is a root-only Vitest option: per-project reporters are ignored
+ * when running via `projects`. So the per-package SummaryReporter never runs in
+ * the aggregate root run, and - crucially - a root-level SummaryReporter sees
+ * the test modules of ALL projects at once, letting it report the slowest tests
+ * across the entire monorepo.
+ *
+ * Use it in the root vitest.config.ts:
+ *
+ * export default defineConfig({
+ *   test: {
+ *     projects: ['./packages/*'],
+ *     reporters: getRootReporters(),
+ *   },
+ * })
+ */
+export function getRootReporters() {
+  const override = getReporterOverride()
+  if (override) return override
+
+  const { GITHUB_ACTIONS } = process.env
+  return ['default', GITHUB_ACTIONS && 'github-actions', new SummaryReporter()].filter(Boolean)
+}
+
+/**
+ * Reporter overrides shared by both the per-package and root configs:
+ * - VITEST_REPORTER env var fully replaces the reporter set
+ * - agents get the compact 'agent' reporter, with no summary
+ *
+ * Returns `undefined` when no override applies (caller uses its own defaults).
+ */
+function getReporterOverride() {
+  const { VITEST_REPORTER } = process.env
+  if (VITEST_REPORTER) {
+    return [VITEST_REPORTER]
+  }
+  if (isAgent) {
+    return ['agent']
+  }
+  return undefined
 }
 
 function doesItRunInIDE() {
