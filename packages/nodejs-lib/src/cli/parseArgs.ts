@@ -10,7 +10,10 @@ export type CliOptionType = 'string' | 'number' | 'boolean'
  * yargs `.options()` that we actually use.
  */
 export interface CliOption {
-  type: CliOptionType
+  /**
+   * Value type. Defaults to `'string'` when omitted.
+   */
+  type?: CliOptionType
   /**
    * Accept the flag multiple times, collecting values into an array.
    * `--id a --id b` => `['a', 'b']`. Replaces yargs `type: 'array'`.
@@ -39,23 +42,36 @@ export interface CliOption {
    * Single-character alias, e.g. `short: 'v'` enables `-v`.
    */
   short?: string
+  /**
+   * Transform the raw string value into the final value. The output type is
+   * inferred from the function's return type, so this is the way to produce
+   * branded types (e.g. `IsoDate`) or richer values (parsed numbers, JSON, ...).
+   *
+   * Applied per-element for `array` options. Receives the raw string token, so
+   * it fully owns conversion - built-in `number` coercion is not applied on top.
+   * NOT applied to `default` values: a `default` is taken to be in final form.
+   *
+   * @example transform: s => s as IsoDate
+   */
+  transform?: (value: string) => unknown
 }
 
 export type CliOptions = Record<string, CliOption>
 
 /**
- * Element value type of a single option, derived from `choices` (if present)
- * or `type`.
+ * Element value type of a single option, derived from `transform` (if present,
+ * its return type wins), then `choices`, then `type`. Defaults to `string` when
+ * none narrow it (so `type` is optional).
  */
-type ElemType<O extends CliOption> = O extends { choices: readonly (infer C)[] }
-  ? C
-  : O['type'] extends 'string'
-    ? string
-    : O['type'] extends 'number'
+type ElemType<O extends CliOption> = O extends { transform: (...args: any[]) => infer R }
+  ? R
+  : O extends { choices: readonly (infer C)[] }
+    ? C
+    : O extends { type: 'number' }
       ? number
-      : O['type'] extends 'boolean'
+      : O extends { type: 'boolean' }
         ? boolean
-        : never
+        : string
 
 /**
  * Full value type of a single option, applying `array` on top of the element
@@ -132,11 +148,12 @@ export class ParseArgsError extends Error {
  * top of node's `util.parseArgs`.
  *
  * @example
- * const { dir, limit } = _parseArgs({
- *   dir: { type: 'string', desc: 'Output directory' },
+ * const { dir, limit, date } = _parseArgs({
+ *   dir: { desc: 'Output directory' }, // type defaults to 'string'
  *   limit: { type: 'number', default: 100 },
+ *   date: { transform: s => s as IsoDate }, // inferred + converted via transform
  * })
- * // dir?: string   limit: number   _: string[]
+ * // dir?: string   limit: number   date?: IsoDate   _: string[]
  */
 export function _parseArgs<const O extends CliOptions>(
   options: O,
@@ -189,6 +206,9 @@ export function _parseArgs<const O extends CliOptions>(
 
   for (const [name, def] of Object.entries(options)) {
     let v = values[name]
+    // `transform` is only applied to arg-sourced values; a `default` is taken
+    // to be in final form (see CliOption.transform docs).
+    const fromArgs = v !== undefined
 
     if (v === undefined) {
       if (def.default !== undefined) {
@@ -205,7 +225,8 @@ export function _parseArgs<const O extends CliOptions>(
       v = Array.isArray(v) ? v : [v]
     }
 
-    if (def.type === 'number') {
+    // `transform` owns conversion, so built-in number coercion is skipped for it
+    if (def.type === 'number' && !def.transform) {
       v = Array.isArray(v) ? v.map(x => toNumber(x, name)) : toNumber(v, name)
     }
 
@@ -218,6 +239,11 @@ export function _parseArgs<const O extends CliOptions>(
           )
         }
       }
+    }
+
+    if (def.transform && fromArgs) {
+      const { transform } = def
+      v = Array.isArray(v) ? v.map(x => transform(x as string)) : transform(v as string)
     }
 
     result[name] = v
@@ -246,7 +272,8 @@ function buildHelp(options: CliOptions, usage?: string): string {
   lines.push('Options:')
   for (const [name, def] of Object.entries(options)) {
     const flag = def.short ? `-${def.short}, --${name}` : `--${name}`
-    const meta = [`[${def.array ? `${def.type}[]` : def.type}]`]
+    const type = def.type ?? 'string'
+    const meta = [`[${def.array ? `${type}[]` : type}]`]
     if (def.demandOption) meta.push('[required]')
     if (def.default !== undefined) meta.push(`[default: ${JSON.stringify(def.default)}]`)
     if (def.choices) meta.push(`[choices: ${def.choices.join(', ')}]`)

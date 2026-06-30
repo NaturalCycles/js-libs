@@ -1,3 +1,4 @@
+import type { IsoDate } from '@naturalcycles/js-lib/types'
 import { expect, expectTypeOf, test } from 'vitest'
 import { _parseArgs, ParseArgsError } from './parseArgs.js'
 
@@ -127,6 +128,59 @@ test('unknown option throws in strict mode', () => {
   expect(() => _parseArgs({ x: { type: 'string' } }, { args: ['--nope'], strict: true })).toThrow(
     ParseArgsError,
   )
+})
+
+test('type defaults to string', () => {
+  const args = _parseArgs({ s: {}, n: { type: 'number' } }, { args: ['--s', 'x', '--n', '5'] })
+  expect(args).toEqual({ _: [], s: 'x', n: 5 })
+  expectTypeOf(args.s).toEqualTypeOf<string | undefined>()
+  expectTypeOf(args.n).toEqualTypeOf<number | undefined>()
+})
+
+test('transform infers branded type and converts the value', () => {
+  const args = _parseArgs(
+    { date: { transform: s => s as IsoDate } },
+    { args: ['--date', '2020-01-01'] },
+  )
+  expect(args.date).toBe('2020-01-01')
+  expectTypeOf(args.date).toEqualTypeOf<IsoDate | undefined>()
+})
+
+test('transform can actually transform the value', () => {
+  const args = _parseArgs(
+    { name: { transform: s => s.toUpperCase() } },
+    { args: ['--name', 'abc'] },
+  )
+  expect(args.name).toBe('ABC')
+  expectTypeOf(args.name).toEqualTypeOf<string | undefined>()
+})
+
+test('transform applies per array element', () => {
+  const args = _parseArgs(
+    { ids: { array: true, transform: Number } },
+    { args: ['--ids', '1', '--ids', '2'] },
+  )
+  expect(args.ids).toEqual([1, 2])
+  expectTypeOf(args.ids).toEqualTypeOf<number[] | undefined>()
+})
+
+test('transform is not applied to default value', () => {
+  const seen: string[] = []
+  const args = _parseArgs(
+    {
+      date: {
+        default: '2020-01-01' as IsoDate,
+        transform: s => {
+          seen.push(s)
+          return s as IsoDate
+        },
+      },
+    },
+    { args: [] },
+  )
+  expect(args.date).toBe('2020-01-01')
+  expect(seen).toEqual([]) // transform not called for default
+  expectTypeOf(args.date).toEqualTypeOf<IsoDate>() // default present => required
 })
 
 test('env-var default stays optional', () => {
