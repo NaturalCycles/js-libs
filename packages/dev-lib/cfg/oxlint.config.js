@@ -122,7 +122,7 @@ export const sharedConfig = {
     'no-implicit-coercion': [2, { allow: ['!!'] }],
     'no-restricted-globals': [
       2,
-      // 'event', // todo: re-enable after regression is fixed
+      'event',
       '__dirname',
       '__filename',
       {

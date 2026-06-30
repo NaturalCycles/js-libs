@@ -113,6 +113,7 @@
     "no-restricted-globals": [
       "deny",
       [
+        "event",
         "__dirname",
         "__filename",
         {
