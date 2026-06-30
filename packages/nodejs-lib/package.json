@@ -23,15 +23,13 @@
     "@naturalcycles/js-lib": "workspace:^15",
     "@standard-schema/spec": "^1",
     "@types/jsonwebtoken": "^9",
-    "@types/yargs": "^16",
     "ajv": "^8",
     "ansis": "^4",
     "jsonwebtoken": "^9",
     "lru-cache": "^11",
     "tinyglobby": "^0.2",
     "tslib": "^2",
-    "yaml": "^2",
-    "yargs": "^18"
+    "yaml": "^2"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
@@ -39,6 +37,7 @@
   },
   "exports": {
     ".": "./dist/index.js",
+    "./args": "./dist/cli/parseArgs.js",
     "./lruMemoCache": "./dist/cache/lruMemoCache.js",
     "./colors": "./dist/colors/colors.js",
     "./csv": "./dist/csv/index.js",
@@ -53,7 +52,6 @@
     "./slack": "./dist/slack/index.js",
     "./stream": "./dist/stream/index.js",
     "./stream/*.js": "./dist/stream/*.js",
-    "./yargs": "./dist/yargs/yargs.util.js",
     "./ajv": "./dist/validation/ajv/index.js",
     "./zip": "./dist/zip/index.js"
   },

@@ -1,8 +1,8 @@
+import { _parseArgs } from '../cli/parseArgs.js'
 import { dimGrey } from '../colors/colors.js'
 import { runScript } from '../script/runScript.js'
 import type { EncryptCLIOptions } from '../secret/secrets-encrypt.util.js'
 import { secretsEncrypt } from '../secret/secrets-encrypt.util.js'
-import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(() => {
   const { pattern, file, encKeyBuffer, del, jsonMode } = getEncryptCLIOptions()
@@ -11,7 +11,7 @@ runScript(() => {
 })
 
 function getEncryptCLIOptions(): EncryptCLIOptions {
-  let { pattern, file, encKey, encKeyVar, del, jsonMode } = _yargs().options({
+  let { pattern, file, encKey, encKeyVar, del, jsonMode } = _parseArgs({
     pattern: {
       type: 'string',
       array: true,
@@ -48,7 +48,7 @@ function getEncryptCLIOptions(): EncryptCLIOptions {
       desc: 'JSON mode. Encrypts only json values, not the whole file',
       default: false,
     },
-  }).argv
+  })
 
   if (!encKey) {
     encKey = process.env[encKeyVar]
@@ -64,6 +64,5 @@ function getEncryptCLIOptions(): EncryptCLIOptions {
 
   const encKeyBuffer = Buffer.from(encKey, 'base64')
 
-  // `as any` because @types/yargs can't handle string[] type properly
-  return { pattern: pattern as any, file, encKeyBuffer, del, jsonMode }
+  return { pattern, file, encKeyBuffer, del, jsonMode }
 }

@@ -4,12 +4,12 @@ yarn deploy-prepare
 
  */
 
+import { _parseArgs } from '@naturalcycles/nodejs-lib/args'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
-import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
-import { deployPrepare, deployPrepareYargsOptions } from '../deploy/deployPrepare.js'
+import { deployPrepare, deployPrepareCliOptions } from '../deploy/deployPrepare.js'
 
 runScript(async () => {
-  const opt = _yargs().options(deployPrepareYargsOptions).argv
+  const opt = _parseArgs(deployPrepareCliOptions)
 
   await deployPrepare(opt)
 })

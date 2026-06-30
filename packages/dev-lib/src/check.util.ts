@@ -16,11 +16,11 @@ import type {
   StringMap,
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
+import { _parseArgs } from '@naturalcycles/nodejs-lib/args'
 import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
-import { _yargs } from '@naturalcycles/nodejs-lib/yargs'
 import {
   eslintExtensions,
   lintExclude,
@@ -200,7 +200,7 @@ interface EslintAllOptions {
  * Returns true if it ran
  */
 export function eslintAll(opt?: EslintAllOptions): boolean {
-  const { argv } = _yargs().options({
+  const argv = _parseArgs({
     ext: {
       type: 'string',
       default: eslintExtensions,
@@ -332,12 +332,12 @@ const stylelintPaths = [
  * Returns true if it ran.
  */
 export function stylelintAll(fix?: boolean): boolean {
-  const argv = _yargs().options({
+  const argv = _parseArgs({
     fix: {
       type: 'boolean',
       default: !CI, // defaults to false in CI, true otherwise
     },
-  }).argv
+  })
 
   fix ??= argv.fix
 

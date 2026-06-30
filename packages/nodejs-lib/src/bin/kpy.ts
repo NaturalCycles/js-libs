@@ -1,14 +1,13 @@
+import { _parseArgs } from '../cli/parseArgs.js'
 import { kpySync } from '../fs/kpy.js'
 import { runScript } from '../script/runScript.js'
-import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(() => {
   const {
     _: [baseDir, ...inputPatterns],
     ...opt
-  } = _yargs()
-    .demandCommand(2)
-    .options({
+  } = _parseArgs(
+    {
       silent: {
         type: 'boolean',
         desc: 'Suppress all text output',
@@ -32,11 +31,13 @@ runScript(() => {
       },
       move: {
         type: 'boolean',
-        descr: 'Move files instead of copy',
+        desc: 'Move files instead of copy',
       },
-    }).argv
+    },
+    { minPositionals: 2 },
+  )
 
-  const outputDir = inputPatterns.pop() as string
+  const outputDir = inputPatterns.pop()!
 
   /*
   console.log({
@@ -49,8 +50,8 @@ runScript(() => {
   })*/
 
   const kpyOpt = {
-    baseDir: baseDir as string,
-    inputPatterns: inputPatterns as string[],
+    baseDir: baseDir!,
+    inputPatterns,
     outputDir,
     ...opt,
     noOverwrite: !opt.overwrite,

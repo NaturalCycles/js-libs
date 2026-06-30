@@ -1,11 +1,10 @@
+import { _parseArgs } from '../cli/parseArgs.js'
 import { json2env } from '../fs/json2env.js'
 import { runScript } from '../script/runScript.js'
-import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(() => {
-  const { argv } = _yargs()
-    .demandCommand(1)
-    .options({
+  const argv = _parseArgs(
+    {
       prefix: {
         type: 'string',
       },
@@ -35,12 +34,16 @@ runScript(() => {
       silent: {
         type: 'boolean',
       },
-    })
+    },
+    {
+      minPositionals: 1,
+    },
+  )
 
   const { _: args, prefix, saveEnvFile, bashEnv, githubEnv, fail, debug, silent } = argv
   if (debug) console.log({ argv })
 
-  const jsonPath = args[0] as string
+  const jsonPath = args[0]!
 
   json2env({
     jsonPath,

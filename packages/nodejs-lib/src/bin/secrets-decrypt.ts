@@ -1,8 +1,8 @@
+import { _parseArgs } from '../cli/parseArgs.js'
 import { dimGrey } from '../colors/colors.js'
 import { runScript } from '../script/runScript.js'
 import type { DecryptCLIOptions } from '../secret/secrets-decrypt.util.js'
 import { secretsDecrypt } from '../secret/secrets-decrypt.util.js'
-import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(() => {
   const { dir, file, encKeyBuffer, del, jsonMode } = getDecryptCLIOptions()
@@ -11,9 +11,10 @@ runScript(() => {
 })
 
 function getDecryptCLIOptions(): DecryptCLIOptions {
-  let { dir, file, encKey, encKeyVar, del, jsonMode } = _yargs().options({
+  let { dir, file, encKey, encKeyVar, del, jsonMode } = _parseArgs({
     dir: {
-      type: 'array',
+      type: 'string',
+      array: true,
       desc: 'Directory with secrets. Can be many',
       // demandOption: true,
       default: './secret',
@@ -46,7 +47,7 @@ function getDecryptCLIOptions(): DecryptCLIOptions {
       desc: 'JSON mode. Encrypts only json values, not the whole file',
       default: false,
     },
-  }).argv
+  })
 
   if (!encKey) {
     encKey = process.env[encKeyVar]
@@ -62,6 +63,5 @@ function getDecryptCLIOptions(): DecryptCLIOptions {
 
   const encKeyBuffer = Buffer.from(encKey, 'base64')
 
-  // `as any` because @types/yargs can't handle string[] type properly
-  return { dir: dir as any, file, encKeyBuffer, del, jsonMode }
+  return { dir, file, encKeyBuffer, del, jsonMode }
 }

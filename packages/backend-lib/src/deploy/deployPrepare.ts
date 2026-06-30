@@ -1,4 +1,5 @@
 import { loadEnvFileIfExists } from '@naturalcycles/nodejs-lib'
+import type { CliOptions } from '@naturalcycles/nodejs-lib/args'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
@@ -19,7 +20,7 @@ export interface DeployPrepareOptions {
   appYamlPassEnv?: string
 }
 
-export const deployPrepareYargsOptions = {
+export const deployPrepareCliOptions = {
   projectDir: {
     type: 'string',
     default: '.',
@@ -37,7 +38,7 @@ export const deployPrepareYargsOptions = {
     type: 'string',
     desc: 'Comma-separated list of env variables that will be passed to app.yaml from process.env',
   },
-} as const
+} as const satisfies CliOptions
 
 const DEFAULT_FILES = [
   'dist',

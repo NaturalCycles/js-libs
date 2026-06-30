@@ -1,13 +1,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
+import { _parseArgs } from '../cli/parseArgs.js'
 import { appendToBashEnv, appendToGithubEnv, appendToGithubOutput } from '../fs/json2env.js'
 import { runScript } from '../script/runScript.js'
 import { generateBuildInfo } from '../util/buildInfo.util.js'
-import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(async () => {
-  const { dir, overrideTimestamp } = _yargs().options({
+  const { dir, overrideTimestamp } = _parseArgs({
     dir: {
       type: 'string',
       desc: 'Output directory',
@@ -16,7 +16,7 @@ runScript(async () => {
       type: 'number',
       desc: 'This unix timestamp will be used instead of "current time"',
     },
-  }).argv
+  })
 
   const buildInfo = generateBuildInfo({
     overrideTimestamp: overrideTimestamp as UnixTimestamp,

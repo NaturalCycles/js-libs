@@ -1,6 +1,6 @@
+import { _parseArgs } from '../cli/parseArgs.js'
 import { runScript } from '../script/runScript.js'
 import { SlackService } from '../slack/index.js'
-import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(async () => {
   const {
@@ -9,7 +9,7 @@ runScript(async () => {
     username,
     emoji,
     webhook: webhookUrl,
-  } = _yargs().options({
+  } = _parseArgs({
     channel: {
       type: 'string',
       demandOption: true,
@@ -30,7 +30,7 @@ runScript(async () => {
       type: 'string',
       default: process.env.SLACK_WEBHOOK_URL,
     },
-  }).argv
+  })
 
   if (!webhookUrl) {
     console.log(`Slack webhook is required, either via env.SLACK_WEBHOOK_URL or --webhook`)

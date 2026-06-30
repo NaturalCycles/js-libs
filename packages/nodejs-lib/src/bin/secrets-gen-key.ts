@@ -1,13 +1,15 @@
 import { randomBytes } from 'node:crypto'
+import { _parseArgs } from '../cli/parseArgs.js'
 import { dimGrey } from '../colors/colors.js'
 import { runScript } from '../script/runScript.js'
-import { _yargs } from '../yargs/yargs.util.js'
 
 runScript(() => {
-  const { sizeBytes } = _yargs().option('sizeBytes', {
-    type: 'number',
-    default: 256,
-  }).argv
+  const { sizeBytes } = _parseArgs({
+    sizeBytes: {
+      type: 'number',
+      default: 256,
+    },
+  })
 
   const key = randomBytes(sizeBytes).toString('base64')
 

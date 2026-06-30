@@ -8,6 +8,7 @@ import {
 } from '@naturalcycles/js-lib/object/object.util.js'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
+import type { CliOptions } from '@naturalcycles/nodejs-lib/args'
 import { dimGrey, red } from '@naturalcycles/nodejs-lib/colors'
 import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { coloredHttpCode } from '../server/request.log.util.js'
@@ -26,7 +27,7 @@ export interface DeployHealthCheckOptions {
   authHeader?: string
 }
 
-export const deployHealthCheckYargsOptions = {
+export const deployHealthCheckCliOptions = {
   thresholdHealthy: {
     type: 'number',
     default: 5,
@@ -69,7 +70,7 @@ export const deployHealthCheckYargsOptions = {
   authHeader: {
     type: 'string',
   },
-} as const
+} as const satisfies CliOptions
 
 const inspectOpt: InspectOptions = {
   colors: true,
