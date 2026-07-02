@@ -86,6 +86,8 @@ export class AdminService {
 
   private listening = false
 
+  private readonly boundKeydownListener = this.keydownListener.bind(this)
+
   /**
    * Start listening to keyboard events to toggle AdminMode when detected.
    */
@@ -96,14 +98,14 @@ export class AdminService {
 
     if (this.adminMode) this.toggleRedDotVisibility()
 
-    document.addEventListener('keydown', this.keydownListener.bind(this), { passive: true })
+    document.addEventListener('keydown', this.boundKeydownListener, { passive: true })
 
     this.listening = true
   }
 
   stopListening(): void {
     if (isServerSide()) return
-    document.removeEventListener('keydown', this.keydownListener)
+    document.removeEventListener('keydown', this.boundKeydownListener)
     this.listening = false
   }
 
