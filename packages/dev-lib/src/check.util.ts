@@ -606,6 +606,14 @@ function runVitest(opt: RunTestOptions): void {
     })
   }
 
+  // Default to "run once and exit" mode, rather than vitest's default of "watch"
+  // (which, in an interactive terminal, stays open waiting for input).
+  // Pass `--watch` (or `-w`, or the `watch` subcommand) explicitly to opt into watch mode.
+  const watch = args.some(a => a === '--watch' || a === '-w' || a === 'watch')
+  if (!watch) {
+    args.unshift('run')
+  }
+
   const vitestPath = findPackageBinPath('vitest', 'vitest')
 
   exec2.spawn(vitestPath, {

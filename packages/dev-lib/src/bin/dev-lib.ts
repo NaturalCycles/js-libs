@@ -70,7 +70,11 @@ const commands: Command[] = [
     fn: cleanBuild,
     desc: 'Cleans ./dist, then runs the build.',
   },
-  { name: 'test', fn: runTest, desc: 'Run vitest for *.test.ts files.' },
+  {
+    name: 'test',
+    fn: runTest,
+    desc: 'Run vitest for *.test.ts files. Runs once and exits; pass --watch to watch.',
+  },
   {
     name: 'test-integration',
     fn: () => runTest({ integration: true }),
