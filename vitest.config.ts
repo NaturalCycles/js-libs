@@ -1,4 +1,4 @@
-import { getRootReporters } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
+import { getRootOutputFile, getRootReporters } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -6,8 +6,11 @@ export default defineConfig({
     projects: ['./packages/*'],
     // Root-only reporters: agents get the compact 'agent' reporter,
     // everyone else gets the default reporters + a monorepo-wide SummaryReporter
-    // (slowest tests across ALL projects).
+    // (slowest tests across ALL projects), plus the junit/json reporters in CI.
     reporters: getRootReporters(),
+    // Root-only outputFile: pairs with the junit/json reporters above so the
+    // aggregate report is actually written in projects mode (see getRootOutputFile).
+    outputFile: getRootOutputFile(),
     silent: 'passed-only',
     // fileParallelism: false, // uncomment to debug
     deps: {

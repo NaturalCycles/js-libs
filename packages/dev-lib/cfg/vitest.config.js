@@ -93,13 +93,7 @@ export function getSharedConfig(cwd) {
     include,
     exclude,
     reporters: getReporters(junitReporterEnabled, testType),
-    // outputFile location is specified for compatibility with the previous jest config
-    outputFile: junitReporterEnabled
-      ? {
-          junit: `./tmp/jest/${testType}.xml`,
-          json: `./tmp/jest/${testType}.json`,
-        }
-      : undefined,
+    outputFile: getOutputFile(),
     coverage: {
       enabled: coverageEnabled,
       reporter: ['html', 'lcov', 'json', 'json-summary', !isCI && 'text'].filter(Boolean),
@@ -136,13 +130,7 @@ function getReporters(junitReporterEnabled, testType) {
     'default',
     GITHUB_ACTIONS && 'github-actions',
     new SummaryReporter(),
-    junitReporterEnabled && 'json',
-    junitReporterEnabled && [
-      'junit',
-      {
-        suiteName: `${testType} tests`,
-      },
-    ],
+    ...getJunitReporters(junitReporterEnabled, testType),
   ].filter(Boolean)
 }
 
@@ -169,7 +157,63 @@ export function getRootReporters() {
   if (override) return override
 
   const { GITHUB_ACTIONS } = process.env
-  return ['default', GITHUB_ACTIONS && 'github-actions', new SummaryReporter()].filter(Boolean)
+  return [
+    'default',
+    GITHUB_ACTIONS && 'github-actions',
+    new SummaryReporter(),
+    ...getJunitReporters(junitReporterEnabled, testType),
+  ].filter(Boolean)
+}
+
+/**
+ * `outputFile` for the junit/json reporters at the monorepo root config.
+ *
+ * Like `reporters`, `outputFile` is a root-only Vitest option: per-project
+ * `outputFile` is ignored when running via `projects`. So the root config must
+ * set it (alongside getRootReporters) for the junit/json report to be written
+ * in the aggregate root run.
+ *
+ * Use it in the root vitest.config.ts:
+ *
+ * export default defineConfig({
+ *   test: {
+ *     projects: ['./packages/*'],
+ *     reporters: getRootReporters(),
+ *     outputFile: getRootOutputFile(),
+ *   },
+ * })
+ */
+export function getRootOutputFile() {
+  return getOutputFile()
+}
+
+/**
+ * The junit + json reporters, enabled in CI (except for manual tests).
+ * Shared by the per-package (getReporters) and root (getRootReporters) configs.
+ */
+function getJunitReporters(junitReporterEnabled, testType) {
+  if (!junitReporterEnabled) return []
+  return [
+    'json',
+    [
+      'junit',
+      {
+        suiteName: `${testType} tests`,
+      },
+    ],
+  ]
+}
+
+/**
+ * outputFile location is specified for compatibility with the previous jest config.
+ */
+function getOutputFile() {
+  return junitReporterEnabled
+    ? {
+        junit: `./tmp/jest/${testType}.xml`,
+        json: `./tmp/jest/${testType}.json`,
+      }
+    : undefined
 }
 
 /**

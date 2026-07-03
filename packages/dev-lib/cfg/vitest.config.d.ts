@@ -27,6 +27,13 @@ export function getSharedConfig(cwd?: string): InlineConfig
  */
 export function getRootReporters(): InlineConfig['reporters']
 
+/**
+ * `outputFile` for the junit/json reporters at the monorepo root config (Vitest
+ * `projects` mode), where `outputFile` is a root-only option. Pair it with
+ * getRootReporters so the junit/json report is written in the aggregate root run.
+ */
+export function getRootOutputFile(): InlineConfig['outputFile']
+
 export const CollectReporter: any
 
 export class SummaryReporter {}
