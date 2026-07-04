@@ -1,4 +1,8 @@
-import { getRootOutputFile, getRootReporters } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
+import {
+  getRootCoverage,
+  getRootOutputFile,
+  getRootReporters,
+} from '@naturalcycles/dev-lib/cfg/vitest.config.js'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -11,6 +15,9 @@ export default defineConfig({
     // Root-only outputFile: pairs with the junit/json reporters above so the
     // aggregate report is actually written in projects mode (see getRootOutputFile).
     outputFile: getRootOutputFile(),
+    // Root-only coverage: per-project coverage config is ignored in projects
+    // mode, so the coverage report must be configured here (see getRootCoverage).
+    coverage: getRootCoverage(),
     silent: 'passed-only',
     // fileParallelism: false, // uncomment to debug
     deps: {

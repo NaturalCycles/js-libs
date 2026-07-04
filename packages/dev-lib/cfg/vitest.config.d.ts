@@ -34,6 +34,14 @@ export function getRootReporters(): InlineConfig['reporters']
  */
 export function getRootOutputFile(): InlineConfig['outputFile']
 
+/**
+ * `coverage` for the monorepo root config (Vitest `projects` mode), where
+ * `coverage` is a root-only option. Without it on the root config no coverage
+ * report is produced when running via `projects`. Produces a single unified
+ * report spanning all projects.
+ */
+export function getRootCoverage(): InlineConfig['coverage']
+
 export const CollectReporter: any
 
 export class SummaryReporter {}

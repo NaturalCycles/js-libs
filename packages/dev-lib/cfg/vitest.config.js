@@ -94,30 +94,7 @@ export function getSharedConfig(cwd) {
     exclude,
     reporters: getReporters(junitReporterEnabled, testType),
     outputFile: getOutputFile(),
-    coverage: {
-      enabled: coverageEnabled,
-      reporter: ['html', 'lcov', 'json', 'json-summary', !isCI && 'text'].filter(Boolean),
-      include: ['src/**/*.{ts,tsx}'],
-      exclude: [
-        '**/__exclude/**',
-        'scripts/**',
-        'public/**',
-        'src/index.{ts,tsx}',
-        'src/test/**',
-        'src/typings/**',
-        'src/{env,environment,environments}/**',
-        'src/bin/**',
-        'src/vendor/**',
-        '**/*.test.*',
-        '**/*.script.*',
-        '**/*.module.*',
-        '**/*.mock.*',
-        '**/*.page.{ts,tsx}',
-        '**/*.component.{ts,tsx}',
-        '**/*.directive.{ts,tsx}',
-        '**/*.modal.{ts,tsx}',
-      ],
-    },
+    coverage: getCoverageConfig(),
   }
 }
 
@@ -185,6 +162,75 @@ export function getRootReporters() {
  */
 export function getRootOutputFile() {
   return getOutputFile()
+}
+
+/**
+ * `coverage` config for the monorepo root config (Vitest `projects` mode).
+ *
+ * Like `reporters` and `outputFile`, `coverage` is a root-only Vitest option:
+ * it is read from the root project only (see Vitest's `getRootProject().
+ * serializedConfig.coverage`), so the per-package `coverage` set in
+ * getSharedConfig is IGNORED when running via `projects`. Without this on the
+ * root config no coverage report is produced at all (e.g. the CI upload of
+ * ./coverage/coverage-summary.json finds nothing).
+ *
+ * The report is a single, unified one spanning all projects: Vitest tracks
+ * coverage per-project internally but emits one report under `./coverage`.
+ * Per-project coverage `include` globs are matched unanchored against absolute
+ * paths, so executed files under `packages/<pkg>/src/**` are still included.
+ *
+ * Use it in the root vitest.config.ts:
+ *
+ * export default defineConfig({
+ *   test: {
+ *     projects: ['./packages/*'],
+ *     reporters: getRootReporters(),
+ *     outputFile: getRootOutputFile(),
+ *     coverage: getRootCoverage(),
+ *   },
+ * })
+ */
+export function getRootCoverage() {
+  return getCoverageConfig()
+}
+
+/**
+ * The coverage config, shared by the per-package (getSharedConfig) and root
+ * (getRootCoverage) configs. Only enabled for CI unit-test runs.
+ */
+function getCoverageConfig() {
+  return {
+    enabled: coverageEnabled,
+    reporter: ['html', 'lcov', 'json', 'json-summary', !isCI && 'text'].filter(Boolean),
+    // `**/src/**` (not root-anchored `src/**`) so the report covers `src/` at the
+    // repo root AND in every monorepo package (`packages/<pkg>/src/**`). This
+    // matters in `projects` mode, where coverage is produced once at the root:
+    // a root-anchored glob would list only root `src/` as untested files, and
+    // package sources that no test imports would silently drop off the report.
+    // Vitest always appends `**/node_modules/**` to exclude, so `**/src/**` is
+    // safe. The exclude globs below are likewise `**/`-prefixed so they keep
+    // matching inside packages (e.g. `packages/<pkg>/src/test/**`).
+    include: ['**/src/**/*.{ts,tsx}'],
+    exclude: [
+      '**/__exclude/**',
+      '**/scripts/**',
+      '**/public/**',
+      '**/src/index.{ts,tsx}',
+      '**/src/test/**',
+      '**/src/typings/**',
+      '**/src/{env,environment,environments}/**',
+      '**/src/bin/**',
+      '**/src/vendor/**',
+      '**/*.test.*',
+      '**/*.script.*',
+      '**/*.module.*',
+      '**/*.mock.*',
+      '**/*.page.{ts,tsx}',
+      '**/*.component.{ts,tsx}',
+      '**/*.directive.{ts,tsx}',
+      '**/*.modal.{ts,tsx}',
+    ],
+  }
 }
 
 /**
