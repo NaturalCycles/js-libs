@@ -18,6 +18,7 @@ import {
   typecheckWithTSGO,
 } from '../check.util.js'
 import { runCommitlint } from '../commitlint.command.js'
+import { releaseCommand } from '../release/release.command.js'
 
 interface Command {
   name: string
@@ -129,6 +130,12 @@ const commands: Command[] = [
   },
   { name: 'stylelint-no-fix', cliOnly: true, fn: () => stylelintAll(false) },
   { name: 'commitlint', fn: runCommitlint, desc: 'Run commitlint.', cliOnly: true },
+  {
+    name: 'release',
+    fn: releaseCommand,
+    desc: 'Release packages: analyze commits, publish to npm, tag, create GitHub Release. Supports --dry-run.',
+    cliOnly: true,
+  },
   {
     name: 'exit',
     fn: () => console.log('see you!'),

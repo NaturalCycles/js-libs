@@ -23,10 +23,48 @@ const devLibConfigSchema = j.object<DevLibConfig>({
       allowedScopes: j.array(j.string()).optional(),
     })
     .optional(),
+  release: j.object
+    .infer({
+      mode: j.enum(['monorepo', 'single'] as const).optional(),
+      branches: j.array(j.string()).optional(),
+      prereleaseBranches: j.array(j.string()).optional(),
+      successComments: j.boolean().optional(),
+    })
+    .optional(),
 })
 
 export interface DevLibConfig {
   commitlint?: DevLibCommitlintConfig
+  release?: DevLibReleaseConfig
+}
+
+/**
+ * Config for `dev-lib release`.
+ * The defaults are chosen so that a typical repo needs no config at all.
+ */
+export interface DevLibReleaseConfig {
+  /**
+   * 'monorepo' releases every non-private workspace package, tagged `<pkgName>-v<version>`.
+   * 'single' releases the root package, tagged `v<version>`.
+   * Defaults to auto-detection: 'monorepo' if pnpm-workspace.yaml exists, 'single' otherwise.
+   */
+  mode?: 'monorepo' | 'single'
+  /**
+   * Branches that produce stable releases (npm dist-tag `latest`).
+   * Defaults to ['main', 'master'].
+   */
+  branches?: string[]
+  /**
+   * Branch globs that produce prereleases, versioned `X.Y.Z-<branch>.N`
+   * and published under npm dist-tag = branch name.
+   * Defaults to ['beta-*'].
+   */
+  prereleaseBranches?: string[]
+  /**
+   * Post a ":tada: This PR is included in <release>" comment on each released PR.
+   * Defaults to true.
+   */
+  successComments?: boolean
 }
 
 export interface DevLibCommitlintConfig {

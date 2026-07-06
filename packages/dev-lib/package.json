@@ -34,6 +34,7 @@
     "oxfmt": "^0",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
+    "semver": "^7",
     "std-env": "^4"
   },
   "peerDependencies": {
@@ -67,7 +68,9 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/picomatch": "^4",
     "@types/prompts": "^2",
+    "@types/semver": "^7",
     "typescript": "catalog:"
   },
   "exports": {

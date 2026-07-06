@@ -381,6 +381,9 @@ importers:
       prompts:
         specifier: ^2
         version: 2.4.2
+      semver:
+        specifier: ^7
+        version: 7.8.5
       std-env:
         specifier: ^4
         version: 4.1.0
@@ -397,9 +400,15 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 26.1.0
+      '@types/picomatch':
+        specifier: ^4
+        version: 4.0.3
       '@types/prompts':
         specifier: ^2
         version: 2.4.9
+      '@types/semver':
+        specifier: ^7
+        version: 7.7.1
       typescript:
         specifier: 'catalog:'
         version: 7.0.1-rc
@@ -1825,6 +1834,9 @@ packages:
 
   '@types/on-headers@1.0.4':
     resolution: {integrity: sha512-D8Dy7oiM4fFQPA1TtHVTGPFNgCCYY132dTFLezhvlPiiiyKkuW6tVipPXpUOiuTUu8Kzd+ASKjULvZld197Dhw==}
+
+  '@types/picomatch@4.0.3':
+    resolution: {integrity: sha512-iG0T6+nYJ9FAPmx9SsUlnwcq1ZVRuCXcVEvWnntoPlrOpwtSTKNDC9uVAxTsC3PUvJ+99n4RpAcNgBbHX3JSnQ==}
 
   '@types/prompts@2.4.9':
     resolution: {integrity: sha512-qTxFi6Buiu8+50/+3DGIWLHM6QuWsEKugJnnP6iv2Mc4ncxE4A/OJkjuVOA+5X0X1S/nq5VJRa8Lu+nwcvbrKA==}
@@ -6275,6 +6287,8 @@ snapshots:
   '@types/on-headers@1.0.4':
     dependencies:
       '@types/node': 26.1.0
+
+  '@types/picomatch@4.0.3': {}
 
   '@types/prompts@2.4.9':
     dependencies:
