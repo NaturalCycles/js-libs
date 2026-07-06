@@ -67,10 +67,13 @@ export function getNextVersion(input: {
 
   if (!lastRelease) {
     const { firstReleaseVersion } = input
+    // 0.0.0 is the "version is managed by git tags" placeholder, never a real first release
     const first =
       (firstReleaseVersion &&
         !semver.prerelease(firstReleaseVersion) &&
-        semver.valid(firstReleaseVersion)) ||
+        semver.valid(firstReleaseVersion) &&
+        semver.gt(firstReleaseVersion, '0.0.0') &&
+        firstReleaseVersion) ||
       '1.0.0'
     return prereleaseId ? `${first}-${prereleaseId}.1` : first
   }

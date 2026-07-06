@@ -65,9 +65,9 @@ export async function releaseCommand(): Promise<void> {
     _assert(token, 'GITHUB_TOKEN (or GH_TOKEN) is required to release, or use --dry-run')
   }
 
-  ensureFullGitHistory()
+  ensureFullGitHistory(repo)
   if (!dryRun) {
-    checkHeadIsUpToDateWithRemote(branch)
+    checkHeadIsUpToDateWithRemote(branch, repo)
   }
 
   const mode = resolveReleaseMode(cfg.mode)

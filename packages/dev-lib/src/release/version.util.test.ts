@@ -57,6 +57,7 @@ test('getNextVersion: first release', () => {
   expect(next([], 'minor', stable)).toBe('1.0.0')
   expect(next([], 'minor', stable, '2.5.0')).toBe('2.5.0')
   expect(next([], 'minor', stable, 'garbage')).toBe('1.0.0')
+  expect(next([], 'minor', stable, '0.0.0')).toBe('1.0.0')
   expect(next([], 'minor', beta)).toBe('1.0.0-beta-x.1')
 })
 

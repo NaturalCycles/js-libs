@@ -27,18 +27,35 @@ export function getCurrentBranch(): string {
 /**
  * Make sure the full git history and all tags are available:
  * CI checkouts are often shallow and without tags, while release calculation is based on tags.
- * Tolerates fetch failures (e.g. offline local dry-run) with a warning.
+ *
+ * On a complete (non-shallow) clone a failed fetch is tolerated with a warning (e.g. offline
+ * local dry-run) - the local tags are complete enough. On a shallow clone a failed unshallow
+ * is fatal: a truncated history hides release tags and would make a released package look like
+ * a first release, publishing a wrong version.
  */
-export function ensureFullGitHistory(): void {
-  try {
-    const shallow = exec2.exec('git rev-parse --is-shallow-repository').trim() === 'true'
-    if (shallow) {
-      exec2.exec('git fetch --unshallow --tags --quiet', { log: true })
-    } else {
-      exec2.exec('git fetch --tags --quiet', { log: true })
+export function ensureFullGitHistory(repo: RepoInfo): void {
+  // Fetch from an authenticated url, not `origin`: private repos reject unauthenticated fetches,
+  // and CI checkouts don't persist git credentials (persist-credentials: false).
+  const remote = getAuthenticatedRemote(repo)
+  const shallow = exec2.exec('git rev-parse --is-shallow-repository').trim() === 'true'
+
+  if (shallow) {
+    console.log(dimGrey('git fetch --unshallow --tags'))
+    try {
+      exec2.exec(`git fetch --unshallow --tags --quiet "${remote}"`)
+    } catch {
+      // Sanitized: the original error contains the failed command incl. the token
+      throw new Error(
+        'git fetch --unshallow failed - refusing to release with a shallow git history, as version calculation depends on it',
+      )
     }
-  } catch (err) {
-    console.log(dimGrey(`git fetch failed, continuing with local tags/history: ${err}`))
+  } else {
+    console.log(dimGrey('git fetch --tags'))
+    try {
+      exec2.exec(`git fetch --tags --quiet "${remote}"`)
+    } catch {
+      console.log(dimGrey('git fetch --tags failed, continuing with local tags/history'))
+    }
   }
 }
 
@@ -46,12 +63,16 @@ export function ensureFullGitHistory(): void {
  * Abort if someone pushed to the branch since this checkout - releasing from a stale HEAD
  * would compute wrong versions/notes. No-op if the branch has no remote counterpart.
  */
-export function checkHeadIsUpToDateWithRemote(branch: string): void {
+export function checkHeadIsUpToDateWithRemote(branch: string, repo: RepoInfo): void {
+  const remote = getAuthenticatedRemote(repo)
   let remoteSha: string | undefined
   try {
-    remoteSha = exec2.exec(`git ls-remote origin "refs/heads/${branch}"`).split('\t')[0]?.trim()
-  } catch (err) {
-    console.log(dimGrey(`git ls-remote failed, skipping up-to-date check: ${err}`))
+    remoteSha = exec2
+      .exec(`git ls-remote "${remote}" "refs/heads/${branch}"`)
+      .split('\t')[0]
+      ?.trim()
+  } catch {
+    console.log(dimGrey('git ls-remote failed, skipping up-to-date check'))
     return
   }
   if (!remoteSha) return
@@ -98,19 +119,26 @@ export function getCommitsSince(tag: string | undefined, relativeDir?: string): 
 
 /**
  * Create the release tag on HEAD and push it to origin.
- * Uses a token-authenticated url when GITHUB_TOKEN is available,
- * since CI checkouts don't persist git credentials.
  */
 export function createAndPushTag(tag: string, repo: RepoInfo): void {
   exec2.exec(`git tag "${tag}"`)
-  const token = process.env['GITHUB_TOKEN'] || process.env['GH_TOKEN']
-  const pushUrl = token
-    ? `https://x-access-token:${token}@github.com/${repo.owner}/${repo.repo}.git`
-    : 'origin'
   try {
-    exec2.exec(`git push "${pushUrl}" "refs/tags/${tag}"`)
+    exec2.exec(`git push "${getAuthenticatedRemote(repo)}" "refs/tags/${tag}"`)
   } catch {
     // Sanitized rethrow: the original error message contains the failed command incl. the token
     throw new Error(`Failed to push tag ${tag} to origin`)
   }
+}
+
+/**
+ * Token-authenticated remote url when GITHUB_TOKEN is available, `origin` otherwise.
+ * CI checkouts don't persist git credentials (persist-credentials: false), so all remote
+ * git operations (fetch, ls-remote, push) go through this.
+ * NEVER log commands containing this url, and sanitize their errors - they carry the token.
+ */
+function getAuthenticatedRemote(repo: RepoInfo): string {
+  const token = process.env['GITHUB_TOKEN'] || process.env['GH_TOKEN']
+  return token
+    ? `https://x-access-token:${token}@github.com/${repo.owner}/${repo.repo}.git`
+    : 'origin'
 }
