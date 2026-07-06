@@ -39,6 +39,14 @@ class MemoizedIntl {
   }
 
   @_Memo()
+  DurationFormat(
+    locales: Intl.LocalesArgument,
+    options: Intl.DurationFormatOptions,
+  ): Intl.DurationFormat {
+    return new Intl.DurationFormat(locales, options)
+  }
+
+  @_Memo()
   NumberFormat(
     locales: Intl.LocalesArgument,
     options: Intl.NumberFormatOptions,
@@ -67,6 +75,11 @@ class MemoizedIntl {
     options: Intl.DisplayNamesOptions,
   ): Intl.DisplayNames {
     return new Intl.DisplayNames(locales, options)
+  }
+
+  @_Memo()
+  Segmenter(locales: Intl.LocalesArgument, options: Intl.SegmenterOptions): Intl.Segmenter {
+    return new Intl.Segmenter(locales, options)
   }
 }
 

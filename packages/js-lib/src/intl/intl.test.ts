@@ -29,3 +29,16 @@ test('should return different instances for different options', () => {
 test('getTimezone', () => {
   expect(Intl2.getTimezone()).toBe('UTC')
 })
+
+test('DurationFormat', () => {
+  const fmt = Intl2.DurationFormat('en-US', { style: 'long' })
+  expect(fmt).toBeInstanceOf(Intl.DurationFormat)
+  expect(fmt.format({ hours: 1, minutes: 30 })).toBe('1 hour, 30 minutes')
+})
+
+test('Segmenter', () => {
+  const seg = Intl2.Segmenter('en-US', { granularity: 'word' })
+  expect(seg).toBeInstanceOf(Intl.Segmenter)
+  const words = Array.from(seg.segment('hello world')).filter(s => s.isWordLike)
+  expect(words).toHaveLength(2)
+})
