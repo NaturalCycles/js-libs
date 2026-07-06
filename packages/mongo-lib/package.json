@@ -46,7 +46,7 @@
   "engines": {
     "node": ">=24.10.0"
   },
-  "version": "3.4.16",
+  "version": "0.0.0",
   "description": "MongoDB implementation of CommonDB interface",
   "author": "Natural Cycles Team",
   "license": "MIT"

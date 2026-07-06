@@ -46,7 +46,7 @@
   "engines": {
     "node": ">=24.10.0"
   },
-  "version": "1.2.1",
+  "version": "0.0.0",
   "description": "CommonDB implementation based on SQLite",
   "author": "Natural Cycles Team",
   "license": "MIT"

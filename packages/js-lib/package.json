@@ -1,7 +1,7 @@
 {
   "name": "@naturalcycles/js-lib",
   "type": "module",
-  "version": "15.0.0",
+  "version": "0.0.0",
   "scripts": {
     "build": "dev-lib build",
     "test": "dev-lib test",

@@ -1,7 +1,7 @@
 {
   "name": "@naturalcycles/db-lib",
   "type": "module",
-  "version": "10.1.2",
+  "version": "0.0.0",
   "scripts": {
     "build": "dev-lib build",
     "test": "dev-lib test",
