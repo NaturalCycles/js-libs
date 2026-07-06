@@ -26,7 +26,7 @@ export class GithubApi {
   async createRelease(input: { tag: string; notes: string; prerelease: boolean }): Promise<string> {
     const { repo } = this
     const { html_url: htmlUrl } = await this.fetcher.post<{ html_url: string }>(
-      `/repos/${repo.owner}/${repo.repo}/releases`,
+      `repos/${repo.owner}/${repo.repo}/releases`,
       {
         json: {
           tag_name: input.tag,
@@ -53,7 +53,7 @@ export class GithubApi {
     for (const commit of commits) {
       try {
         const prs = await this.fetcher.get<{ number: number; merged_at: string | null }[]>(
-          `/repos/${repo.owner}/${repo.repo}/commits/${commit.hash}/pulls`,
+          `repos/${repo.owner}/${repo.repo}/commits/${commit.hash}/pulls`,
         )
         for (const pr of prs) {
           if (pr.merged_at) prNumbers.add(pr.number)
@@ -65,7 +65,7 @@ export class GithubApi {
 
     for (const prNumber of prNumbers) {
       try {
-        await this.fetcher.post(`/repos/${repo.owner}/${repo.repo}/issues/${prNumber}/comments`, {
+        await this.fetcher.post(`repos/${repo.owner}/${repo.repo}/issues/${prNumber}/comments`, {
           json: {
             body: `:tada: This PR is included in [${input.tag}](${input.releaseUrl}) :tada:`,
           },
