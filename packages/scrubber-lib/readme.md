@@ -109,7 +109,7 @@ Allows, for example, removal of sensitive data for:
 
 ## Contributing
 
-Using [Semantic Release](https://github.com/semantic-release/semantic-release), tag your commit
-(when squashing the PR on merge) according to
-[Angular Commit Message Guidelines](https://github.com/angular/angular/blob/main/contributing-docs/commit-message-guidelines.md)
-with type (and optionally `(scope)`, as in, `fix(data): Description`.
+Releases are automated based on [Conventional Commits](https://www.conventionalcommits.org/): tag
+your commit (when squashing the PR on merge) with type (and optionally `(scope)`), as in
+`fix(data): Description`. `feat` commits produce a minor release, `fix`/`perf` a patch release, and
+a `BREAKING CHANGE` a major release.
