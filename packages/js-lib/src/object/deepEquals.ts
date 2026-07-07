@@ -53,7 +53,7 @@ export function _deepEquals<T>(a: T, b: T): boolean {
     if (Array.isArray(a)) {
       const length = a.length
       if (!Array.isArray(b) || length !== b.length) return false
-      for (let i = length; i-- !== 0; ) {
+      for (let i = length; i-- !== 0;) {
         if (!_deepEquals(a[i], b[i])) return false
       }
       return true
@@ -134,7 +134,7 @@ export function _deepJsonEquals<T>(a: T, b: T): boolean {
     if (Array.isArray(a)) {
       const length = a.length
       if (!Array.isArray(b) || length !== b.length) return false
-      for (let i = length; i-- !== 0; ) {
+      for (let i = length; i-- !== 0;) {
         if (!_deepJsonEquals(a[i], b[i])) return false
       }
       return true
