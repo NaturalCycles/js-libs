@@ -53,8 +53,13 @@ export class BackendServer {
       })
     })
 
-    // This is to fix GCP LoadBalancer race condition
-    this.server.keepAliveTimeout = 600 * 1000 // 10 minutes
+    // This is to fix GCP LoadBalancer race condition:
+    // GCLB's backend keep-alive timeout is fixed at 600s, and the backend must use
+    // a strictly higher value, otherwise the server can close an idle connection at the
+    // same moment GCLB reuses it, resulting in intermittent 502s.
+    // https://cloud.google.com/load-balancing/docs/https#timeouts_and_retries
+    this.server.keepAliveTimeout = 620 * 1000 // slightly above GCLB's 600s
+    this.server.headersTimeout = 630 * 1000 // conventionally kept above keepAliveTimeout
 
     let address = `http://localhost:${port}` // default
 
@@ -97,7 +102,7 @@ export class BackendServer {
     const shutdownTimeout = setTimeout(() => {
       console.log(boldGrey('Forceful shutdown after timeout'))
       process.exit(0)
-    }, this.cfg.forceShutdownTimeout ?? 10_000)
+    }, this.cfg.forceShutdownTimeout ?? 8000)
 
     try {
       await Promise.all([
@@ -146,7 +151,7 @@ export interface StartServerCfg extends DefaultAppCfg {
   onShutdown?: () => Promise<void>
 
   /**
-   * @default 3000
+   * @default 8_000
    */
   forceShutdownTimeout?: number
 
