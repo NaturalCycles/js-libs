@@ -29,6 +29,7 @@
     "@types/on-finished": "^2",
     "@types/on-headers": "^1",
     "@types/vary": "^1",
+    "busboy": "^1",
     "compressible": "^2",
     "cookie-parser": "^1",
     "cors": "^2",
@@ -59,6 +60,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
     "@sentry/node-core": "^10",
+    "@types/busboy": "^1",
     "typescript": "catalog:",
     "fastify": "^5"
   },
@@ -70,6 +72,7 @@
     "./deploy": "./dist/deploy/index.js",
     "./deploy/*.js": "./dist/deploy/*.js",
     "./express/*.js": "./dist/express/*.js",
+    "./upload": "./dist/upload/getUploadedFiles.js",
     "./validateRequest": "./dist/validation/ajv/validateRequest.js",
     "./onFinished": "./dist/onFinished.js",
     "./testing": "./dist/testing/index.js"
