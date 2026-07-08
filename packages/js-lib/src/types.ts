@@ -297,6 +297,8 @@ export type NumberOfMilliseconds = number
  */
 export type NumberOfPercent = number
 
+export type NumberOfBytes = number
+
 /**
  * Same as `number`, but with semantic meaning that it's an Integer.
  */
