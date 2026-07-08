@@ -13,9 +13,7 @@ import {
   runOxlint,
   runTest,
   stylelintAll,
-  typecheckWithTS,
-  typecheckWithTSC,
-  typecheckWithTSGO,
+  runTypecheck,
 } from '../check.util.js'
 import { runCommitlint } from '../commitlint.command.js'
 import { releaseCommand } from '../release/release.command.js'
@@ -38,23 +36,13 @@ const commands: Command[] = [
   { name: 'bt', fn: bt, desc: 'Build & Test: run "typecheck" and then "test".' },
   {
     name: 'typecheck',
-    fn: typecheckWithTS,
-    desc: 'Run typecheck via tsgo (if available) or tsc',
-  },
-  {
-    name: 'typecheck-with-tsc',
-    fn: typecheckWithTSC,
-    desc: 'Run typecheck (tsc) in folders (src, scripts, e2e) if there is tsconfig.json present.',
-  },
-  {
-    name: 'typecheck-with-tsgo',
-    fn: typecheckWithTSGO,
-    desc: 'Run typecheck (tsgo) in folders (src, scripts, e2e) if there is tsconfig.json present.',
+    fn: runTypecheck,
+    desc: 'Run typecheck',
   },
   {
     name: 'build',
     fn: buildProd,
-    desc: 'Run "build-copy" then tsgo with --emit and --noCheck, using tsconfig.prod.json',
+    desc: 'Run "build-copy" then tsc with --emit and --noCheck, using tsconfig.prod.json',
   },
   {
     name: 'build-copy',
@@ -202,7 +190,7 @@ async function quickCheck(): Promise<void> {
 async function bt(): Promise<void> {
   // Still using ts, as oxlint is found to fail in certain cases
   // await typecheckWithOxlint()
-  await typecheckWithTS()
+  await runTypecheck()
   runTest()
 }
 

@@ -42,13 +42,7 @@ export interface CheckOptions {
   stylelint?: boolean
   oxfmt?: boolean
   ktlint?: boolean
-  /**
-   * true - run tsgo, otherwise tsc
-   * tsgo - run tsgo
-   * tsc - run tsc
-   * false - skip
-   */
-  typecheck?: boolean | 'tsc' | 'tsgo'
+  typecheck?: boolean
   test?: boolean
 }
 
@@ -144,16 +138,8 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
 
   if (typecheck) {
     s = Date.now()
-    if (typecheck === 'tsgo') {
-      await typecheckWithTSGO()
-      timings['tsgo'] = Date.now() - s
-    } else if (typecheck === 'tsc') {
-      await typecheckWithTSC()
-      timings['tsc'] = Date.now() - s
-    } else {
-      await typecheckWithTS()
-      timings['typecheck'] = Date.now() - s
-    }
+    await runTypecheck()
+    timings['tsc'] = Date.now() - s
   }
 
   if (test) {
@@ -424,33 +410,11 @@ export function getActionLintVersion(): SemVerString | undefined {
 export function buildProd(): void {
   // fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
   buildCopy()
-
-  if (hasDependencyInNodeModules('@typescript/native-preview')) {
-    // now we trust tsgo to run prod builds
-    runTSGOProd()
-  } else {
-    runTSCProd()
-  }
+  runTSCProd()
 }
 
-/**
- * Uses tsgo if it's installed, otherwise tsc
- */
-export async function typecheckWithTS(): Promise<void> {
-  if (hasDependencyInNodeModules('@typescript/native-preview')) {
-    await typecheckWithTSGO()
-    return
-  }
-
-  await typecheckWithTSC()
-}
-
-export async function typecheckWithTSC(): Promise<void> {
+export async function runTypecheck(): Promise<void> {
   await runTSCInFolders(['src', 'scripts', 'e2e'], ['--noEmit'])
-}
-
-export async function typecheckWithTSGO(): Promise<void> {
-  await runTSGOInFolders(['src', 'scripts', 'e2e'], ['--noEmit', '--incremental', 'false'])
 }
 
 /**
@@ -496,56 +460,12 @@ async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
   })
 }
 
-/**
- * Use 'src' to indicate root.
- */
-export async function runTSGOInFolders(dirs: string[], args: string[] = []): Promise<void> {
-  // Run sequential, since tsgo (unlike tsc) uses all cpu cores already
-  for (const dir of dirs) {
-    await runTSGOInFolder(dir, args)
-  }
-}
-
-/**
- * Pass 'src' to run in root.
- */
-async function runTSGOInFolder(dir: string, args: string[] = []): Promise<void> {
-  let configDir = dir
-  if (dir === 'src') {
-    configDir = ''
-  }
-  const tsconfigPath = [configDir, 'tsconfig.json'].filter(Boolean).join('/')
-
-  if (!fs2.pathExists(tsconfigPath) || !fs2.pathExists(dir)) {
-    // console.log(`Skipping to run tsgo for ${tsconfigPath}, as it doesn't exist`)
-    return
-  }
-
-  const tsgoPath = findPackageBinPath('@typescript/native-preview', 'tsgo')
-
-  await exec2.spawnAsync(tsgoPath, {
-    args: ['-P', tsconfigPath, ...args],
-    shell: false,
-  })
-}
-
 export function runTSCProd(args: string[] = []): void {
   const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
 
   const tscPath = findPackageBinPath('typescript', 'tsc')
 
   exec2.spawn(tscPath, {
-    args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', '--incremental', 'false', ...args],
-    shell: false,
-  })
-}
-
-export function runTSGOProd(args: string[] = []): void {
-  const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
-
-  const tsgoPath = findPackageBinPath('@typescript/native-preview', 'tsgo')
-
-  exec2.spawn(tsgoPath, {
     args: ['-P', tsconfigPath, '--noEmit', 'false', '--noCheck', '--incremental', 'false', ...args],
     shell: false,
   })

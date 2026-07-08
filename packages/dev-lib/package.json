@@ -39,7 +39,7 @@
   },
   "peerDependencies": {
     "@eslint/js": "^10",
-    "typescript": "^7.0.1-rc",
+    "typescript": "^7",
     "eslint": "^10",
     "husky": "^9",
     "stylelint": "^17",
