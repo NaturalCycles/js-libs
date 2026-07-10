@@ -14,8 +14,6 @@ minimumReleaseAgeExclude:
   - eslint-plugin-oxlint
   - oxlint
   - oxlint-tsgolint
-  - typescript
-  - '@typescript/*'
   - '@oxlint/*'
 trustLockfile: true
 trustPolicy: no-downgrade
