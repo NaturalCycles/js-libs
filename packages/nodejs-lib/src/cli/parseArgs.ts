@@ -186,6 +186,7 @@ export function _parseArgs<const O extends CliOptions>(
         options: nodeOptions,
         allowPositionals: true,
         allowNegative: true, // native `--no-flag` support for booleans
+        tokens: true, // needed to detect the ambiguous `--boolFlag value` space form
         // In non-strict mode, unknown options are collected into `values` but
         // ignored below, since we only read declared options. See `strict` docs.
         strict,
@@ -201,6 +202,8 @@ export function _parseArgs<const O extends CliOptions>(
     process.stdout.write(buildHelp(options, usage))
     process.exit(0)
   }
+
+  assertNoSpaceValuedBoolean(parsed.tokens, options)
 
   const result: Record<string, unknown> = { _: parsed.positionals }
 
@@ -225,9 +228,33 @@ export function _parseArgs<const O extends CliOptions>(
       v = Array.isArray(v) ? v : [v]
     }
 
+    // A non-boolean option passed as a bare flag (`--out` with no value) comes back
+    // from node's parseArgs (in non-strict mode) as boolean `true`. Reject it: the
+    // user almost certainly forgot the value, and silently coercing `true` (to `1`
+    // for numbers, `"true"` for strings, or crashing a `transform`) would hide the
+    // mistake. Only arg-sourced values are checked; a boolean `default` is left
+    // alone. `def.type === 'boolean'` legitimately produces booleans, so skip it.
+    if (fromArgs && def.type !== 'boolean') {
+      const bareFlag = Array.isArray(v)
+        ? v.some(x => typeof x === 'boolean')
+        : typeof v === 'boolean'
+      if (bareFlag) {
+        throw new ParseArgsError(`Missing value for --${name}`)
+      }
+    }
+
     // `transform` owns conversion, so built-in number coercion is skipped for it
     if (def.type === 'number' && !def.transform) {
       v = Array.isArray(v) ? v.map(x => toNumber(x, name)) : toNumber(v, name)
+    }
+
+    // node's parseArgs (in non-strict mode) captures the inline value of
+    // `--flag=value` on a boolean option as a string ("false"/"true"), rather than
+    // rejecting it as strict mode does. Coerce known tokens so `--flag=false` means
+    // boolean false, not a truthy "false" string. Real booleans produced by
+    // `--flag` / `--no-flag` (and boolean defaults) pass through untouched.
+    if (def.type === 'boolean') {
+      v = Array.isArray(v) ? v.map(x => toBoolean(x, name)) : toBoolean(v, name)
     }
 
     if (def.choices) {
@@ -258,12 +285,47 @@ export function _parseArgs<const O extends CliOptions>(
   return result as InferCliArgs<O>
 }
 
+/**
+ * Reject the ambiguous `--boolFlag value` space form. node never consumes the
+ * next token as a boolean's value (getopt convention), so `--arg false` would
+ * silently yield `arg: true` and leak "false" into positionals. Unlike the
+ * `=value` form (handled by toBoolean) we can't recover the intended value here,
+ * so fail loudly. Only `true`/`false` tokens are treated as ambiguous; any other
+ * positional (e.g. a filename) is left as a genuine positional.
+ */
+function assertNoSpaceValuedBoolean(
+  tokens: NonNullable<ReturnType<typeof parseArgs>['tokens']>,
+  options: CliOptions,
+): void {
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const tok = tokens[i]!
+    // `tok.value === undefined` => bare flag (no inline `=value`); applies to
+    // declared boolean options only (unknown options are ignored, see `strict`).
+    if (tok.kind !== 'option' || tok.value !== undefined || options[tok.name]?.type !== 'boolean') {
+      continue
+    }
+    const next = tokens[i + 1]!
+    if (next.kind === 'positional' && (next.value === 'true' || next.value === 'false')) {
+      throw new ParseArgsError(
+        `Boolean option --${tok.name} does not take a space-separated value ("${next.value}"); use --${tok.name}=${next.value} or --${next.value === 'false' ? `no-${tok.name}` : tok.name}`,
+      )
+    }
+  }
+}
+
 function toNumber(raw: unknown, name: string): number {
   const n = Number(raw)
   if (Number.isNaN(n)) {
     throw new ParseArgsError(`Invalid number for --${name}: "${raw}"`)
   }
   return n
+}
+
+function toBoolean(raw: unknown, name: string): boolean {
+  if (typeof raw === 'boolean') return raw // real boolean from --flag / --no-flag / default
+  if (raw === 'true') return true
+  if (raw === 'false') return false
+  throw new ParseArgsError(`Invalid boolean for --${name}: "${raw}"`)
 }
 
 function buildHelp(options: CliOptions, usage?: string): string {

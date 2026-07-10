@@ -101,6 +101,63 @@ test('negated boolean (--no-flag)', () => {
   expectTypeOf(args.overwrite).toEqualTypeOf<boolean>()
 })
 
+test('boolean --flag=false coerces to boolean false', () => {
+  const args = _parseArgs(
+    { requireJira: { type: 'boolean', default: true } },
+    { args: ['--requireJira=false'] },
+  )
+  expect(args.requireJira).toBe(false)
+  expectTypeOf(args.requireJira).toEqualTypeOf<boolean>()
+})
+
+test('boolean --flag=true coerces to boolean true', () => {
+  const args = _parseArgs(
+    { requireJira: { type: 'boolean', default: false } },
+    { args: ['--requireJira=true'] },
+  )
+  expect(args.requireJira).toBe(true)
+})
+
+test('invalid boolean value throws', () => {
+  expect(() => _parseArgs({ b: { type: 'boolean' } }, { args: ['--b=nope'] })).toThrow(
+    /Invalid boolean for --b/,
+  )
+})
+
+test('boolean --flag with space-separated true/false throws (ambiguous)', () => {
+  // node never consumes the next token as a boolean's value, so `--arg false`
+  // would silently yield `arg: true` and leak "false" into positionals.
+  expect(() => _parseArgs({ arg: { type: 'boolean' } }, { args: ['--arg', 'false'] })).toThrow(
+    /Boolean option --arg does not take a space-separated value.*--arg=false or --no-arg/,
+  )
+  expect(() => _parseArgs({ arg: { type: 'boolean' } }, { args: ['--arg', 'true'] })).toThrow(
+    /--arg=true or --arg/,
+  )
+})
+
+test('boolean --flag followed by a non-boolean positional is left alone', () => {
+  const args = _parseArgs({ arg: { type: 'boolean' } }, { args: ['--arg', 'foo.txt'] })
+  expect(args).toEqual({ _: ['foo.txt'], arg: true })
+})
+
+test('non-boolean option passed as a bare flag throws (missing value)', () => {
+  // node returns boolean `true` for a bare flag in non-strict mode; without this
+  // guard a string field would be `true` and a number field would silently be `1`.
+  expect(() => _parseArgs({ x: { type: 'string' } }, { args: ['--x'] })).toThrow(
+    /Missing value for --x/,
+  )
+  expect(() => _parseArgs({ n: { type: 'number' } }, { args: ['--n'] })).toThrow(
+    /Missing value for --n/,
+  )
+  expect(() => _parseArgs({ s: {} }, { args: ['--s'] })).toThrow(/Missing value for --s/)
+  expect(() =>
+    _parseArgs({ date: { transform: s => s.toUpperCase() } }, { args: ['--date'] }),
+  ).toThrow(/Missing value for --date/)
+  expect(() => _parseArgs({ p: { type: 'string', array: true } }, { args: ['--p'] })).toThrow(
+    /Missing value for --p/,
+  )
+})
+
 test('short alias', () => {
   const args = _parseArgs({ verbose: { type: 'boolean', short: 'v' } }, { args: ['-v'] })
   expect(args.verbose).toBe(true)
