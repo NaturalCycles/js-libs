@@ -147,7 +147,7 @@ export const sharedConfig = {
     'no-useless-concat': 2,
     'no-useless-constructor': 2,
     'preserve-caught-error': 2,
-    eqeqeq: [2, 'smart'],
+    eqeqeq: [2, 'always', { null: 'ignore' }],
     curly: [2, 'multi-line'],
     'guard-for-in': 2,
     'max-params': [2, { max: 5 }],

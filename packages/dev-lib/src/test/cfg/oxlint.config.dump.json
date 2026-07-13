@@ -13,7 +13,15 @@
     ],
     "constructor-super": "warn",
     "curly": ["deny", ["multi-line"]],
-    "eqeqeq": ["deny", ["smart"]],
+    "eqeqeq": [
+      "deny",
+      [
+        "always",
+        {
+          "null": "ignore"
+        }
+      ]
+    ],
     "for-direction": "warn",
     "getter-return": "warn",
     "guard-for-in": "deny",
