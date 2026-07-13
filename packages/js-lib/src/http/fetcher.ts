@@ -42,6 +42,7 @@ import type {
   FetcherBeforeRequestHook,
   FetcherBeforeRetryHook,
   FetcherCfg,
+  FetcherErrorResponse,
   FetcherGraphQLOptions,
   FetcherInitHook,
   FetcherNormalizedCfg,
@@ -154,9 +155,20 @@ export class Fetcher {
     return this
   }
 
+  /**
+   * Clears the cached result of the init hooks, so they re-run before the next request.
+   * Useful when the state acquired during init (e.g an auth token) becomes stale.
+   * See also `cfg.hooks.shouldReinit`, which calls this automatically.
+   */
+  resetInit(): void {
+    this.initPromise = undefined
+    this.initGeneration++
+  }
+
   cfg: FetcherNormalizedCfg
 
   private initPromise?: Promise<void>
+  private initGeneration = 0
 
   static create(cfg: FetcherCfg & FetcherOptions = {}): Fetcher {
     return new Fetcher(cfg)
@@ -349,14 +361,16 @@ export class Fetcher {
    * Note: responseType defaults to the Fetcher's cfg responseType (`json`, unless overridden).
    */
   async doFetch<T = unknown>(opt: FetcherOptions): Promise<FetcherResponse<T>> {
+    let initGeneration = 0
     if (this.cfg.hooks.init) {
       try {
         await (this.initPromise ??= this.runInitHooks())
       } catch (err) {
         // Reset, so init hooks are re-attempted on the next request
-        this.initPromise = undefined
+        this.resetInit()
         throw err
       }
+      initGeneration = this.initGeneration
     }
 
     const req = this.normalizeOptions(opt)
@@ -469,7 +483,34 @@ export class Fetcher {
       await hook(res)
     }
 
+    if (res.err && (await this.detectStaleInit(opt, res, initGeneration))) {
+      // Stale init (e.g expired auth token) was detected and reset - retry the request once
+      return await this.doFetch<T>({ ...opt, [reinitAttempted]: true } as FetcherOptions)
+    }
+
     return res
+  }
+
+  /**
+   * Consults cfg.hooks.shouldReinit to detect "stale init" (e.g expired auth token).
+   * If detected - resets the init (so it re-runs) and returns true,
+   * telling the caller to retry the request. At most once per request.
+   */
+  private async detectStaleInit(
+    opt: FetcherOptions,
+    res: FetcherErrorResponse,
+    initGeneration: number,
+  ): Promise<boolean> {
+    const { shouldReinit, init } = this.cfg.hooks
+    if (!shouldReinit || !init) return false
+    if ((opt as any)[reinitAttempted]) return false
+    if (!(await shouldReinit(res))) return false
+
+    // Generation check prevents concurrent stale requests from resetting the already-fresh init
+    if (initGeneration === this.initGeneration) {
+      this.resetInit()
+    }
+    return true
   }
 
   private async runInitHooks(): Promise<void> {
@@ -969,6 +1010,10 @@ export class Fetcher {
 export function getFetcher(cfg: FetcherCfg & FetcherOptions = {}): Fetcher {
   return Fetcher.create(cfg)
 }
+
+// Marks FetcherOptions of a request that was already retried due to a reinit,
+// to guarantee at most one reinit per request
+const reinitAttempted = Symbol('reinitAttempted')
 
 const acceptByResponseType: Record<FetcherResponseType, string> = {
   text: 'text/plain',

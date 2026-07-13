@@ -1022,6 +1022,96 @@ test('failing init hook is re-attempted on the next request', async () => {
   expect(inits).toBe(2)
 })
 
+test('shouldReinit triggers reinit and a single retry', async () => {
+  let inits = 0
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async (_url, init) => {
+      if ((init.headers as any)['x-token'] === 'v2') return Response.json({ ok: 1 })
+      return new Response('unauthorized', { status: 401 })
+    },
+    hooks: { shouldReinit: res => res.statusCode === 401 },
+  }).onInit(cfg => {
+    inits++
+    cfg.init.headers['x-token'] = `v${inits}`
+  })
+
+  const r = await fetcher.get('someUrl')
+  expect(r).toEqual({ ok: 1 })
+  expect(inits).toBe(2)
+})
+
+test('shouldReinit retries at most once per request', async () => {
+  let inits = 0
+  let requests = 0
+  const fetcher = getNonRetryFetcher({
+    logger: commonLoggerNoop,
+    fetchFn: async () => {
+      requests++
+      return new Response('unauthorized', { status: 401 })
+    },
+    hooks: { shouldReinit: res => res.statusCode === 401 },
+  }).onInit(() => {
+    inits++
+  })
+
+  const [err] = await fetcher.tryFetch({ url: 'someUrl' })
+  expect(err).toBeInstanceOf(HttpRequestError)
+  expect(requests).toBe(2)
+  expect(inits).toBe(2)
+})
+
+test('shouldReinit returning false does not reinit', async () => {
+  let requests = 0
+  const fetcher = getNonRetryFetcher({
+    logger: commonLoggerNoop,
+    fetchFn: async () => {
+      requests++
+      return new Response('server error', { status: 500 })
+    },
+    hooks: { shouldReinit: res => res.statusCode === 401 },
+  }).onInit(() => {})
+
+  const [err] = await fetcher.tryFetch({ url: 'someUrl' })
+  expect(err).toBeInstanceOf(HttpRequestError)
+  expect(requests).toBe(1)
+})
+
+test('resetInit forces init hooks to re-run on the next request', async () => {
+  let inits = 0
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async () => Response.json({ ok: 1 }),
+  }).onInit(() => {
+    inits++
+  })
+
+  await fetcher.get('a')
+  await fetcher.get('b')
+  expect(inits).toBe(1)
+
+  fetcher.resetInit()
+  await fetcher.get('c')
+  expect(inits).toBe(2)
+})
+
+test('concurrent stale requests share a single reinit', async () => {
+  let inits = 0
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async (_url, init) => {
+      if ((init.headers as any)['x-token'] === 'v2') return Response.json({ ok: 1 })
+      return new Response('unauthorized', { status: 401 })
+    },
+    hooks: { shouldReinit: res => res.statusCode === 401 },
+  }).onInit(cfg => {
+    inits++
+    cfg.init.headers['x-token'] = `v${inits}`
+  })
+
+  const [a, b] = await Promise.all([fetcher.get('a'), fetcher.get('b')])
+  expect(a).toEqual({ ok: 1 })
+  expect(b).toEqual({ ok: 1 })
+  expect(inits).toBe(2)
+})
+
 test('fetchWithMeta returns body and response metadata', async () => {
   const fetcher = getNonRetryFetcher({
     fetchFn: async () => Response.json({ ok: 1 }, { headers: { 'x-next-cursor': 'abc' } }),

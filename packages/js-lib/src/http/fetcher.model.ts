@@ -59,6 +59,15 @@ export type FetcherOnErrorHook = (err: Error) => Promisable<void>
  * and set `cfg.init.headers` based on it.
  */
 export type FetcherInitHook = (cfg: FetcherNormalizedCfg) => Promisable<void>
+/**
+ * Decides, based on the error response, if the Fetcher init state is "stale",
+ * e.g the auth token acquired in the init hook has expired.
+ * Returning true triggers `resetInit()`, so the init hooks re-run,
+ * and the request is then retried (at most once per request).
+ *
+ * Only consulted when init hooks are defined and the request resulted in an error.
+ */
+export type FetcherShouldReinitFn = (res: FetcherErrorResponse) => Promisable<boolean>
 
 /**
  * FetcherCfg: configuration of the Fetcher instance. One per instance.
@@ -88,6 +97,13 @@ export interface FetcherCfg {
      * See FetcherInitHook docs.
      */
     init?: FetcherInitHook[]
+    /**
+     * Allows to detect "stale init" (e.g the auth token acquired in the init hook
+     * has expired) based on the error response, and trigger reinit+retry.
+     * Unlike other hooks, it's a single decision predicate, not an array.
+     * See FetcherShouldReinitFn docs.
+     */
+    shouldReinit?: FetcherShouldReinitFn
     /**
      * Allows to mutate req.
      */
