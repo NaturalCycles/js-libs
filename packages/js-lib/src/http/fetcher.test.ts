@@ -38,7 +38,7 @@ test('defaults', () => {
         "credentials": undefined,
         "dispatcher": undefined,
         "headers": {
-          "user-agent": "fetcher/4",
+          "user-agent": "fetcher/5",
         },
         "keepalive": undefined,
         "method": "GET",
@@ -55,6 +55,7 @@ test('defaults', () => {
       "responseType": "json",
       "retry": {
         "count": 2,
+        "maxRetryAfter": 600000,
         "timeout": 1000,
         "timeoutMax": 30000,
         "timeoutMultiplier": 2,
@@ -85,7 +86,7 @@ test('defaults', () => {
         "dispatcher": undefined,
         "headers": {
           "accept": "application/json",
-          "user-agent": "fetcher/4",
+          "user-agent": "fetcher/5",
         },
         "keepalive": undefined,
         "method": "GET",
@@ -99,10 +100,12 @@ test('defaults', () => {
       "responseType": "json",
       "retry": {
         "count": 2,
+        "maxRetryAfter": 600000,
         "timeout": 1000,
         "timeoutMax": 30000,
         "timeoutMultiplier": 2,
       },
+      "retry3xx": false,
       "retry4xx": false,
       "retry5xx": true,
       "retryPost": false,
@@ -438,13 +441,13 @@ test('should not mutate headers', async () => {
     {
       "a": "a",
       "accept": "application/json",
-      "user-agent": "fetcher/4",
+      "user-agent": "fetcher/5",
     }
   `)
   expect(a[1]).toMatchInlineSnapshot(`
     {
       "accept": "application/json",
-      "user-agent": "fetcher/4",
+      "user-agent": "fetcher/5",
     }
   `)
   expect(a[0]).not.toBe(a[1])
@@ -764,4 +767,293 @@ test('signal - aborted signal should not retry', async () => {
   const { err } = await fetcher.doFetch({ url: 'https://example.com', signal: controller.signal })
   _assertIsError(err)
   expect(callCount).toBe(1)
+})
+
+test('cfg-level retry3xx is honored', async () => {
+  const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+  let attempts = 0
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    retry3xx: true,
+    retry: { count: 1, timeout: 1 },
+    fetchFn: async () => {
+      attempts++
+      return new Response('', { status: 302 })
+    },
+  })
+
+  await fetcher.doFetch({ url: 'someUrl', redirect: 'manual' })
+  expect(attempts).toBe(2)
+  randomSpy.mockRestore()
+})
+
+test('throwHttpErrors=false still retries and returns error body', async () => {
+  const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+  let attempts = 0
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    throwHttpErrors: false,
+    retry: { count: 2, timeout: 1 },
+    fetchFn: async () => {
+      attempts++
+      return Response.json({ error: 'e' }, { status: 500 })
+    },
+  })
+
+  const r = await fetcher.get('someUrl')
+  expect(attempts).toBe(3)
+  expect(r).toEqual({ error: 'e' })
+  randomSpy.mockRestore()
+})
+
+test('throwHttpErrors=false still throws on network errors', async () => {
+  const fetcher = getNonRetryFetcher({
+    throwHttpErrors: false,
+    fetchFn: async () => {
+      throw new TypeError('failed to fetch')
+    },
+  })
+
+  await expect(fetcher.get('someUrl')).rejects.toThrow(HttpRequestError)
+})
+
+test('error cause is taken from the last retry attempt', async () => {
+  const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+  let attempts = 0
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    retry: { count: 1, timeout: 1 },
+    fetchFn: async () => {
+      attempts++
+      return Response.json(
+        {
+          error: { name: 'AppError', message: `attempt-${attempts}`, data: {} },
+        } satisfies BackendErrorResponseObject,
+        { status: 500 },
+      )
+    },
+  })
+
+  const { err } = await fetcher.doFetch({ url: 'someUrl' })
+  expect((err!.cause as ErrorObject).message).toBe('attempt-2')
+  randomSpy.mockRestore()
+})
+
+test('first retry delay uses the configured retry timeout', async () => {
+  vi.useFakeTimers()
+  const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+  let attempts = 0
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    retry: { count: 2, timeout: 1000, timeoutMax: 30_000, timeoutMultiplier: 2 },
+    fetchFn: async () => {
+      attempts++
+      return new Response('bad', { status: 500 })
+    },
+  })
+
+  const promise = fetcher.doFetch({ url: 'someUrl' })
+  await vi.advanceTimersByTimeAsync(999)
+  expect(attempts).toBe(1)
+  await vi.advanceTimersByTimeAsync(2) // 1st retry after ~1000 (not 2000)
+  expect(attempts).toBe(2)
+  await vi.advanceTimersByTimeAsync(1998)
+  expect(attempts).toBe(2)
+  await vi.advanceTimersByTimeAsync(2) // 2nd retry after ~2000 more
+  expect(attempts).toBe(3)
+  await promise
+  randomSpy.mockRestore()
+})
+
+test('per-request fetchFn is used', async () => {
+  const fetcher = getNonRetryFetcher()
+
+  const r = await fetcher.get('someUrl', {
+    fetchFn: async () => Response.json({ per: 'request' }),
+  })
+  expect(r).toEqual({ per: 'request' })
+})
+
+test('retry-after larger than timeoutMax is honored as-is', async () => {
+  vi.useFakeTimers()
+  let attempts = 0
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    retry: { count: 1, timeout: 1000, timeoutMax: 30_000, timeoutMultiplier: 2 },
+    fetchFn: async () => {
+      attempts++
+      return new Response('429 rate limited', {
+        status: 429,
+        headers: { 'retry-after': '60' }, // above timeoutMax (30s)
+      })
+    },
+  })
+
+  const promise = fetcher.doFetch({ url: 'someUrl' })
+  await vi.advanceTimersByTimeAsync(59_999)
+  expect(attempts).toBe(1) // not retried earlier (not clamped to timeoutMax)
+  await vi.advanceTimersByTimeAsync(2)
+  expect(attempts).toBe(2) // retried after the full server-indicated 60 seconds
+  await promise
+})
+
+test('retry-after exceeding maxRetryAfter stops retrying', async () => {
+  let attempts = 0
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    retry: { count: 2, timeout: 1000, timeoutMax: 30_000, timeoutMultiplier: 2 },
+    fetchFn: async () => {
+      attempts++
+      return new Response('429 rate limited', {
+        status: 429,
+        headers: { 'retry-after': '3600' }, // 1 hour, above maxRetryAfter (10 min)
+      })
+    },
+  })
+
+  // Real timers: should resolve immediately, without waiting for the 1 hour delay
+  const { err } = await fetcher.doFetch({ url: 'someUrl' })
+  _assertIsError(err, HttpRequestError)
+  expect(attempts).toBe(1)
+})
+
+test('x-ratelimit-reset with unix timestamp value', async () => {
+  vi.useFakeTimers()
+  let attempts = 0
+  const resetAt = Math.floor(Date.now() / 1000) + 10 // 10 seconds from now
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    retry: { count: 1, timeout: 1000, timeoutMax: 30_000, timeoutMultiplier: 2 },
+    fetchFn: async () => {
+      attempts++
+      return new Response('429 rate limited', {
+        status: 429,
+        headers: { 'x-ratelimit-reset': String(resetAt) },
+      })
+    },
+  })
+
+  const promise = fetcher.doFetch({ url: 'someUrl' })
+  await vi.advanceTimersByTimeAsync(8500)
+  expect(attempts).toBe(1) // not retried immediately, and not scheduled ~55 years from now
+  await vi.advanceTimersByTimeAsync(2000)
+  expect(attempts).toBe(2)
+  await promise
+})
+
+test('abort during retry backoff stops promptly without another attempt', async () => {
+  const controller = new AbortController()
+  let attempts = 0
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    retry: { count: 1, timeout: 60_000 },
+    fetchFn: async () => {
+      attempts++
+      return new Response('bad', { status: 500 })
+    },
+  })
+
+  setTimeout(() => controller.abort(), 20)
+  const started = Date.now()
+  const { err } = await fetcher.doFetch({ url: 'someUrl', signal: controller.signal })
+  _assertIsError(err, HttpRequestError)
+  expect(attempts).toBe(1)
+  expect(Date.now() - started).toBeLessThan(5000)
+})
+
+test('getBytes returns Uint8Array', async () => {
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async () => new Response(new Uint8Array([1, 2, 3])),
+  })
+
+  const r = await fetcher.getBytes('someUrl')
+  expect(r).toBeInstanceOf(Uint8Array)
+  expect(Array.from(r)).toEqual([1, 2, 3])
+})
+
+test('json option does not override explicitly-set content-type', async () => {
+  let headers: any
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async (_url, init) => {
+      headers = init.headers
+      return Response.json({ ok: 1 })
+    },
+  })
+
+  await fetcher.post('someUrl', {
+    json: { a: 1 },
+    headers: { 'Content-Type': 'application/vnd.api+json' },
+  })
+  expect(headers['content-type']).toBe('application/vnd.api+json')
+})
+
+test('init hooks run lazily, once per instance', async () => {
+  let inits = 0
+  const seenTokens: any[] = []
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async (_url, init) => {
+      seenTokens.push((init.headers as any)['x-token'])
+      return Response.json({ ok: 1 })
+    },
+  }).onInit(cfg => {
+    inits++
+    cfg.init.headers['x-token'] = 'secret'
+  })
+
+  expect(inits).toBe(0) // lazy - does not run on creation
+  await Promise.all([fetcher.get('a'), fetcher.get('b')])
+  expect(inits).toBe(1) // concurrent requests share a single init
+  await fetcher.get('c')
+  expect(inits).toBe(1)
+  expect(seenTokens).toEqual(['secret', 'secret', 'secret'])
+})
+
+test('failing init hook is re-attempted on the next request', async () => {
+  let inits = 0
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async () => Response.json({ ok: 1 }),
+  }).onInit(() => {
+    inits++
+    if (inits === 1) throw new Error('init failed')
+  })
+
+  await expect(fetcher.get('someUrl')).rejects.toThrow('init failed')
+  expect(await fetcher.get('someUrl')).toEqual({ ok: 1 })
+  expect(inits).toBe(2)
+})
+
+test('fetchWithMeta returns body and response metadata', async () => {
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async () => Response.json({ ok: 1 }, { headers: { 'x-next-cursor': 'abc' } }),
+  })
+
+  const res = await fetcher.fetchWithMeta<{ ok: number }>({ url: 'someUrl' })
+  expect(res.body).toEqual({ ok: 1 })
+  expect(res.statusCode).toBe(200)
+  expect(res.fetchResponse.headers.get('x-next-cursor')).toBe('abc')
+})
+
+test('timeoutSeconds=0 disables the body download timeout', async () => {
+  const slowBody = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      await new Promise(resolve => setTimeout(resolve, 30))
+      controller.enqueue(new TextEncoder().encode('slow but fine'))
+      controller.close()
+    },
+  })
+  const fetcher = getNonRetryFetcher({
+    timeoutSeconds: 0,
+    fetchFn: async () => new Response(slowBody),
+  })
+
+  const r = await fetcher.getText('someUrl')
+  expect(r).toBe('slow but fine')
+})
+
+test('fetchWithMeta throws on http error', async () => {
+  const fetcher = getNonRetryFetcher({
+    fetchFn: async () => new Response('bad', { status: 500 }),
+  })
+
+  await expect(fetcher.fetchWithMeta({ url: 'someUrl' })).rejects.toThrow(HttpRequestError)
 })

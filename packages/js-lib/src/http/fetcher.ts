@@ -26,7 +26,7 @@ import {
   _omit,
   _pick,
 } from '../object/object.util.js'
-import { pDelay } from '../promise/pDelay.js'
+import { pDelaySignal } from '../promise/pDelay.js'
 import { pTimeout } from '../promise/pTimeout.js'
 import { _toUrlOrNull } from '../string/index.js'
 import { _jsonParse, _jsonParseIfPossible } from '../string/json.util.js'
@@ -43,6 +43,7 @@ import type {
   FetcherBeforeRetryHook,
   FetcherCfg,
   FetcherGraphQLOptions,
+  FetcherInitHook,
   FetcherNormalizedCfg,
   FetcherOnErrorHook,
   FetcherOptions,
@@ -50,6 +51,7 @@ import type {
   FetcherResponse,
   FetcherResponseType,
   FetcherRetryOptions,
+  FetcherSuccessResponse,
   FetchFunction,
   GraphQLResponse,
   RequestInitNormalized,
@@ -68,7 +70,7 @@ export class Fetcher {
    *
    * Version is to be incremented every time a difference in behaviour (or a bugfix) is done.
    */
-  static readonly VERSION = 4
+  static readonly VERSION = 5
   /**
    * userAgent is statically exposed as Fetcher.userAgent.
    * It can be modified globally, and will be used (read) at the start of every request.
@@ -96,7 +98,9 @@ export class Fetcher {
         })
       }
 
-      if (method === 'HEAD') return // responseType=text
+      if (method === 'HEAD') {
+        continue // responseType=text
+      }
       ;(this as any)[`${m}Text`] = async (url: string, opt?: FetcherOptions): Promise<string> => {
         return await this.fetch<string>({
           url,
@@ -141,7 +145,18 @@ export class Fetcher {
     return this
   }
 
+  /**
+   * Init hooks run lazily, once per Fetcher instance, before the first request.
+   * See FetcherInitHook docs.
+   */
+  onInit(hook: FetcherInitHook): this {
+    ;(this.cfg.hooks.init ||= []).push(hook)
+    return this
+  }
+
   cfg: FetcherNormalizedCfg
+
+  private initPromise?: Promise<void>
 
   static create(cfg: FetcherCfg & FetcherOptions = {}): Fetcher {
     return new Fetcher(cfg)
@@ -178,10 +193,9 @@ export class Fetcher {
    * - Unwraps `response.errors` and throws, if it's defined (as GQL famously returns http 200 even for errors)
    *
    * Currently it only unwraps and uses the first error from the `errors` array, for simplicity.
-   *
-   * @experimental
    */
   async queryGraphQL<T = unknown>(opt: FetcherGraphQLOptions): Promise<T> {
+    opt = { ...opt } // avoid mutating the input options
     opt.method ||= this.cfg.init.method // defaults to GET
 
     const payload: AnyObject = _filterFalsyValues({
@@ -236,6 +250,18 @@ export class Fetcher {
     return data
   }
 
+  // responseType=bytes
+  /**
+   * Returns response body as Uint8Array.
+   */
+  async getBytes(url: string, opt?: FetcherOptions): Promise<Uint8Array> {
+    return await this.fetch({
+      url,
+      responseType: 'bytes',
+      ...opt,
+    })
+  }
+
   // responseType=readableStream
   /**
    * Returns raw fetchResponse.body, which is a ReadableStream<Uint8Array>
@@ -256,10 +282,29 @@ export class Fetcher {
 
   async fetch<T = unknown>(opt: FetcherOptions): Promise<T> {
     const res = await this.doFetch<T>(opt)
+    if (res.err && (res.req.throwHttpErrors || res.fetchResponse?.ok !== false)) {
+      // With throwHttpErrors=false only http errors (response received, but !ok) are returned instead of thrown.
+      // Other errors (network failure, timeout, body parsing) are still thrown.
+      throw res.err
+    }
+    return res.body as T
+  }
+
+  /**
+   * Like `fetch`, but returns the whole FetcherSuccessResponse, not just the body.
+   * Allows to access response metadata, e.g `fetchResponse.headers` and `statusCode`,
+   * while still throwing on errors (unlike `doFetch`).
+   *
+   * Note: `throwHttpErrors: false` is ignored here, http errors are always thrown -
+   * otherwise the returned FetcherSuccessResponse type would lie.
+   * Use `doFetch` if you don't want throwing.
+   */
+  async fetchWithMeta<T = unknown>(opt: FetcherOptions): Promise<FetcherSuccessResponse<T>> {
+    const res = await this.doFetch<T>(opt)
     if (res.err) {
       throw res.err
     }
-    return res.body
+    return res
   }
 
   /**
@@ -298,11 +343,22 @@ export class Fetcher {
   /**
    * Returns FetcherResponse.
    * Never throws, returns `err` property in the response instead.
+   * (Exception: errors thrown from init/beforeRequest hooks are re-thrown as-is.)
    * Use this method instead of `throwHttpErrors: false` or try-catching.
    *
-   * Note: responseType defaults to `void`, so, override it if you expect different.
+   * Note: responseType defaults to the Fetcher's cfg responseType (`json`, unless overridden).
    */
   async doFetch<T = unknown>(opt: FetcherOptions): Promise<FetcherResponse<T>> {
+    if (this.cfg.hooks.init) {
+      try {
+        await (this.initPromise ??= this.runInitHooks())
+      } catch (err) {
+        // Reset, so init hooks are re-attempted on the next request
+        this.initPromise = undefined
+        throw err
+      }
+    }
+
     const req = this.normalizeOptions(opt)
     const { logger } = this.cfg
     const {
@@ -331,6 +387,7 @@ export class Fetcher {
 
     while (!res.retryStatus.retryStopped) {
       req.started = Date.now() as UnixTimestampMillis
+      res.body = undefined
 
       req.init.signal = abortSignalAnyOrUndefined([
         abortSignalTimeoutOrUndefined(timeoutMillis),
@@ -350,10 +407,10 @@ export class Fetcher {
       }
 
       try {
-        res.fetchResponse = await (this.cfg.overrideFetchFn || Fetcher.callNativeFetch)(
+        res.fetchResponse = await (req.overrideFetchFn || Fetcher.callNativeFetch)(
           req.fullUrl,
           req.init,
-          this.cfg.fetchFn,
+          req.fetchFn,
         )
         res.ok = res.fetchResponse.ok
         // important to set it to undefined, otherwise it can keep the previous value (from previous try)
@@ -370,14 +427,15 @@ export class Fetcher {
       res.statusFamily = this.getStatusFamily(res)
       res.statusCode = res.fetchResponse?.status
 
-      if (res.fetchResponse?.ok || !req.throwHttpErrors) {
+      if (res.fetchResponse?.ok) {
         try {
           // We are applying a separate Timeout (as long as original Timeout for now) to "download and parse the body"
           await pTimeout(
             async () =>
               await this.onOkResponse(res as FetcherResponse<T> & { fetchResponse: Response }),
             {
-              timeout: timeoutMillis || Number.POSITIVE_INFINITY,
+              // 0 means "no timeout" for pTimeout
+              timeout: timeoutMillis ?? 0,
               name: 'Fetcher.downloadBody',
             },
           )
@@ -414,6 +472,12 @@ export class Fetcher {
     return res
   }
 
+  private async runInitHooks(): Promise<void> {
+    for (const hook of this.cfg.hooks.init || []) {
+      await hook(this.cfg)
+    }
+  }
+
   private async onOkResponse(
     res: FetcherResponse<any> & { fetchResponse: Response },
   ): Promise<void> {
@@ -441,9 +505,17 @@ export class Fetcher {
     } else if (responseType === 'text') {
       res.body = res.fetchResponse.body ? await res.fetchResponse.text() : ''
     } else if (responseType === 'arrayBuffer') {
-      res.body = res.fetchResponse.body ? await res.fetchResponse.arrayBuffer() : {}
+      res.body = res.fetchResponse.body ? await res.fetchResponse.arrayBuffer() : new ArrayBuffer(0)
+    } else if (responseType === 'bytes') {
+      // Not using fetchResponse.bytes(), as it's unavailable in older browsers (e.g Safari <18.4)
+      res.body = res.fetchResponse.body
+        ? new Uint8Array(await res.fetchResponse.arrayBuffer())
+        : new Uint8Array()
     } else if (responseType === 'blob') {
-      res.body = res.fetchResponse.body ? await res.fetchResponse.blob() : {}
+      res.body = res.fetchResponse.body ? await res.fetchResponse.blob() : new Blob()
+    } else if (responseType === 'void') {
+      // Cancel the body (without downloading it), to free the underlying connection for reuse
+      await res.fetchResponse.body?.cancel()
     } else if (responseType === 'readableStream') {
       res.body = res.fetchResponse.body
 
@@ -455,8 +527,7 @@ export class Fetcher {
 
     res.retryStatus.retryStopped = true
 
-    // res.err can happen on `failed to fetch` type of error, e.g JSON.parse, CORS, unexpected redirect
-    if ((!res.err || !req.throwHttpErrors) && req.logResponse) {
+    if (req.logResponse) {
       const { retryAttempt } = res.retryStatus
       const { logger } = this.cfg
       logger.log(
@@ -596,16 +667,33 @@ export class Fetcher {
     if (retryStatus.retryStopped) return
 
     retryStatus.retryAttempt++
+    const timeout = this.getRetryTimeout(res)
+    if (timeout === null) {
+      this.cfg.logger.warn(
+        `${res.signature} server-indicated delay exceeds maxRetryAfter, will not retry`,
+      )
+      retryStatus.retryStopped = true
+      return
+    }
+    // Increase the timeout for the next possible retry
     retryStatus.retryTimeout = _clamp(retryStatus.retryTimeout * timeoutMultiplier, 0, timeoutMax)
 
-    const timeout = this.getRetryTimeout(res)
     if (res.req.debug) {
       this.cfg.logger.log(` .. ${res.signature} waiting ${_ms(timeout)}`)
     }
-    await pDelay(timeout)
+    await pDelaySignal(timeout, res.req.signal)
+    if (res.req.signal?.aborted) {
+      // Aborted while waiting for the retry - stop, without issuing another request
+      retryStatus.retryStopped = true
+    }
   }
 
-  private getRetryTimeout(res: FetcherResponse): NumberOfMilliseconds {
+  /**
+   * Returns the delay before the next retry attempt.
+   * Returns null if the server-indicated delay exceeds `retry.maxRetryAfter`,
+   * meaning the retry should not be attempted at all.
+   */
+  private getRetryTimeout(res: FetcherResponse): NumberOfMilliseconds | null {
     let timeout: NumberOfMilliseconds = 0
 
     // Handling http 429 with specific retry headers
@@ -615,12 +703,19 @@ export class Fetcher {
         res.fetchResponse.headers.get('retry-after') ??
         res.fetchResponse.headers.get('x-ratelimit-reset')
       if (retryAfterStr) {
-        if (Number(retryAfterStr)) {
-          timeout = Number(retryAfterStr) * 1000
+        const retryAfterNumber = Number(retryAfterStr)
+        if (retryAfterNumber) {
+          if (retryAfterNumber > 10 ** 9) {
+            // Value is too large to be a "seconds from now" delay,
+            // treat it as a UnixTimestamp instead (e.g GitHub sends `x-ratelimit-reset` like that)
+            timeout = retryAfterNumber * 1000 - Date.now()
+          } else {
+            timeout = retryAfterNumber * 1000
+          }
         } else {
           const date = new Date(retryAfterStr)
-          if (!Number.isNaN(date)) {
-            timeout = Number(date) - Date.now()
+          if (!Number.isNaN(date.getTime())) {
+            timeout = date.getTime() - Date.now()
           }
         }
 
@@ -631,12 +726,16 @@ export class Fetcher {
       }
     }
 
-    if (!timeout) {
-      const noise = Math.random() * 500
-      timeout = res.retryStatus.retryTimeout + noise
+    if (timeout) {
+      if (timeout > res.req.retry.maxRetryAfter) {
+        return null
+      }
+      // Server-indicated delay is honored as-is (a negative value means "retry now")
+      return Math.max(0, timeout)
     }
 
-    return timeout
+    const noise = Math.random() * 500
+    return res.retryStatus.retryTimeout + noise
   }
 
   /**
@@ -775,6 +874,7 @@ export class Fetcher {
       ..._pick(this.cfg, [
         'timeoutSeconds',
         'retryPost',
+        'retry3xx',
         'retry4xx',
         'retry5xx',
         'responseType',
@@ -786,6 +886,8 @@ export class Fetcher {
         'debug',
         'throwHttpErrors',
         'errorData',
+        'fetchFn',
+        'overrideFetchFn',
       ]),
       started: Date.now() as UnixTimestampMillis,
       ..._omit(opt, ['method', 'headers', 'credentials']),
@@ -839,18 +941,19 @@ export class Fetcher {
 
     // setup request body
     // Unless it's a well-defined input type (json, text) - content-type is set automatically by the native fetch
+    // Explicitly passed `content-type` header always wins
     if (opt.json !== undefined) {
       req.init.body = JSON.stringify(opt.json)
-      req.init.headers['content-type'] = 'application/json'
+      req.init.headers['content-type'] ||= 'application/json'
     } else if (opt.text !== undefined) {
       req.init.body = opt.text
-      req.init.headers['content-type'] = 'text/plain'
+      req.init.headers['content-type'] ||= 'text/plain'
     } else if (opt.form) {
       if (opt.form instanceof URLSearchParams || opt.form instanceof FormData) {
         req.init.body = opt.form
       } else {
         req.init.body = new URLSearchParams(opt.form)
-        req.init.headers['content-type'] = 'application/x-www-form-urlencoded'
+        req.init.headers['content-type'] ||= 'application/x-www-form-urlencoded'
       }
     } else if (opt.body !== undefined) {
       req.init.body = opt.body
@@ -873,6 +976,7 @@ const acceptByResponseType: Record<FetcherResponseType, string> = {
   void: '*/*',
   readableStream: 'application/octet-stream',
   arrayBuffer: 'application/octet-stream',
+  bytes: 'application/octet-stream',
   blob: 'application/octet-stream',
 }
 
@@ -881,4 +985,5 @@ const defaultRetryOptions: FetcherRetryOptions = {
   timeout: 1000,
   timeoutMax: 30_000,
   timeoutMultiplier: 2,
+  maxRetryAfter: 600_000, // 10 minutes
 }

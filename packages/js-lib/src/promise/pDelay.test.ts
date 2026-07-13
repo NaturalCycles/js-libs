@@ -2,7 +2,7 @@ import { expect, test } from 'vitest'
 import { pExpectedError } from '../error/index.js'
 import { _isBetween } from '../index.js'
 import { timeSpan } from '../test/test.util.js'
-import { pDelay, pDelayFn } from './pDelay.js'
+import { pDelay, pDelayFn, pDelaySignal } from './pDelay.js'
 
 test('pDelay', async () => {
   const end = timeSpan()
@@ -47,4 +47,39 @@ test('pDelayFn abort', async () => {
   p.abort()
 
   await p
+})
+
+test('pDelaySignal without signal', async () => {
+  const end = timeSpan()
+  await pDelaySignal(100)
+  expect(_isBetween(end(), 90, 160, '[)')).toBe(true)
+})
+
+test('pDelaySignal with a signal that never aborts', async () => {
+  const controller = new AbortController()
+  const end = timeSpan()
+  await pDelaySignal(100, controller.signal)
+  expect(_isBetween(end(), 90, 160, '[)')).toBe(true)
+})
+
+test('pDelaySignal with an already-aborted signal resolves immediately', async () => {
+  const controller = new AbortController()
+  controller.abort()
+  const end = timeSpan()
+  await pDelaySignal(10_000, controller.signal)
+  expect(end()).toBeLessThan(50)
+})
+
+test('pDelaySignal resolves early when aborted mid-delay', async () => {
+  const controller = new AbortController()
+  setTimeout(() => controller.abort(), 20)
+  const end = timeSpan()
+  await pDelaySignal(10_000, controller.signal)
+  expect(_isBetween(end(), 15, 1000, '[)')).toBe(true)
+})
+
+test('pDelaySignal aborting after completion is a no-op', async () => {
+  const controller = new AbortController()
+  await pDelaySignal(10, controller.signal)
+  controller.abort() // should not throw
 })

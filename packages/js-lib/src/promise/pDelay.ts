@@ -14,6 +14,26 @@ export async function pDelay<T>(ms: NumberOfMilliseconds = 0, value?: T): Promis
   )
 }
 
+/**
+ * Like pDelay, but also resolves early (without an error) as soon as
+ * the passed AbortSignal aborts.
+ */
+export async function pDelaySignal(ms: NumberOfMilliseconds, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return
+
+  await new Promise<void>(resolve => {
+    const timer = setTimeout(done, ms)
+
+    function done(): void {
+      clearTimeout(timer)
+      signal?.removeEventListener('abort', done)
+      resolve()
+    }
+
+    signal?.addEventListener('abort', done)
+  })
+}
+
 /* oxlint-disable @typescript-eslint/promise-function-async */
 
 /**

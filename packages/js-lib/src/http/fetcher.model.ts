@@ -47,6 +47,18 @@ export type FetcherBeforeRetryHook = <BODY = unknown>(
  * Cannot cancel/prevent the error - AfterResponseHook can be used for that instead.
  */
 export type FetcherOnErrorHook = (err: Error) => Promisable<void>
+/**
+ * Init hooks run lazily, once per Fetcher instance, before the first request.
+ * All requests wait for the init hooks to complete, their result is cached,
+ * so they run at most once.
+ * If a hook throws - the error is re-thrown to the caller of the request,
+ * and init hooks are re-attempted on the next request.
+ *
+ * Receives the Fetcher's normalized cfg, which is allowed (and expected)
+ * to be mutated. Allows to do async initialization, e.g fetch an auth token
+ * and set `cfg.init.headers` based on it.
+ */
+export type FetcherInitHook = (cfg: FetcherNormalizedCfg) => Promisable<void>
 
 /**
  * FetcherCfg: configuration of the Fetcher instance. One per instance.
@@ -71,6 +83,11 @@ export interface FetcherCfg {
    * If you throw an error from the hook - it will be re-thrown as-is.
    */
   hooks?: {
+    /**
+     * Runs lazily, once per Fetcher instance, before the first request.
+     * See FetcherInitHook docs.
+     */
+    init?: FetcherInitHook[]
     /**
      * Allows to mutate req.
      */
@@ -155,6 +172,16 @@ export interface FetcherRetryOptions {
   timeout: NumberOfMilliseconds
   timeoutMax: NumberOfMilliseconds
   timeoutMultiplier: number
+  /**
+   * Upper limit for the server-indicated delay (`retry-after` and similar headers).
+   * Server-indicated delays within the limit are honored as-is (not affected by `timeoutMax`,
+   * which only limits the exponential backoff).
+   * If the server indicates a delay larger than this - the retry is NOT attempted,
+   * and the error is returned/thrown right away.
+   *
+   * Defaults to 10 minutes.
+   */
+  maxRetryAfter: NumberOfMilliseconds
 }
 
 export interface FetcherRequest extends Omit<
@@ -336,7 +363,9 @@ export interface FetcherOptions {
 
   /**
    * Default to true.
-   * Set to false to not throw on `!Response.ok`, but simply return `Response.body` as-is (json parsed, etc).
+   * Set to false to not throw on http errors (`!Response.ok`), but simply return the response body as-is (json parsed, etc).
+   * Retries still apply as usual.
+   * Non-http errors (network failure, timeout, body parse error) are still thrown.
    */
   throwHttpErrors?: boolean
 
@@ -404,6 +433,7 @@ export type FetcherResponseType =
   | 'text'
   | 'void'
   | 'arrayBuffer'
+  | 'bytes'
   | 'blob'
   | 'readableStream'
 
