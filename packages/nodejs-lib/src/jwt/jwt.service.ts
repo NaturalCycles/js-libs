@@ -51,6 +51,11 @@ export interface JWTServiceCfg {
 // jwt token is empty
 
 /**
+ * @deprecated use JWTService2 (jose-based) instead.
+ * Tokens are wire-compatible in both directions, only the API differs
+ * (async sign/verify, normalized JWTError).
+ * JWTService2 will be renamed to JWTService when this class is dropped.
+ *
  * Wraps popular `jsonwebtoken` library.
  * You should create one instance of JWTService for each pair of private/public key.
  *

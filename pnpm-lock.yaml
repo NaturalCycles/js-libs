@@ -548,6 +548,9 @@ importers:
       ansis:
         specifier: ^4
         version: 4.3.1
+      jose:
+        specifier: ^6
+        version: 6.2.3
       jsonwebtoken:
         specifier: ^9
         version: 9.0.3
