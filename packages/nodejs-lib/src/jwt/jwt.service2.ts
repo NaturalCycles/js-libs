@@ -106,6 +106,10 @@ export interface JWTSignOptions<T extends AnyObject = AnyObject> {
    */
   issuedAt?: UnixTimestamp
   /**
+   * Sets the `kid` (key id) header, required by some APIs (e.g Apple App Store Connect).
+   */
+  kid?: string
+  /**
    * Overrides cfg.schema for this call.
    */
   schema?: JSchema<T, any> | AjvSchema<T>
@@ -198,14 +202,19 @@ export class JWTService2<T extends AnyObject = AnyObject> {
       this.cfg.errorData,
     )
 
-    const { expiresAt, notBefore, issuer, audience, subject, jwtid, issuedAt, schema } = {
+    const { expiresAt, notBefore, issuer, audience, subject, jwtid, issuedAt, kid, schema } = {
       ...this.cfg.signOptions,
       ...opt,
     }
 
     ;(schema || this.cfg.schema)?.validate(payload)
 
-    const jwt = new SignJWT(payload).setProtectedHeader({ alg: this.cfg.algorithm, typ: 'JWT' })
+    // `kid: undefined` is dropped by JSON serialization, keeping the header unchanged when not set
+    const jwt = new SignJWT(payload).setProtectedHeader({
+      alg: this.cfg.algorithm,
+      typ: 'JWT',
+      kid,
+    })
     if (expiresAt !== null) jwt.setExpirationTime(expiresAt)
     if (notBefore !== undefined) jwt.setNotBefore(notBefore)
     if (issuer) jwt.setIssuer(issuer)
@@ -249,30 +258,20 @@ export class JWTService2<T extends AnyObject = AnyObject> {
   }
 
   decode<TT extends T = T>(token: JWTString, opt: JWTDecodeOptions<TT> = {}): JWTDecoded<TT> {
-    let header: JWTHeader
-    let payload: TT
+    let decoded: JWTDecoded<TT>
 
     try {
-      header = decodeProtectedHeader(token) as JWTHeader
-      payload = decodeJwt(token) as TT
+      decoded = jwtDecode<TT>(token)
     } catch (err) {
-      throw new JWTError(
-        'invalid token, unable to decode',
-        {
-          ...this.cfg.errorData,
-          code: 'JWT_INVALID',
-        },
-        { cause: err },
-      )
+      if (this.cfg.errorData) {
+        _errorDataAppend(err, this.cfg.errorData)
+      }
+      throw err
     }
 
-    this.validate(payload, opt.schema)
+    this.validate(decoded.payload, opt.schema)
 
-    return {
-      header,
-      payload,
-      signature: token.split('.')[2]!,
-    }
+    return decoded
   }
 
   /**
@@ -318,6 +317,31 @@ export class JWTService2<T extends AnyObject = AnyObject> {
       },
       { cause: err },
     )
+  }
+}
+
+/**
+ * Decodes a JWT without verifying its signature (no key needed) - never trust the result.
+ * Standalone version of JWTService2.decode, for when there's no service instance at hand
+ * (no schema validation, no errorData extension).
+ *
+ * Throws JWTError with code JWT_INVALID if the token cannot be decoded.
+ */
+export function jwtDecode<T extends AnyObject>(token: JWTString): JWTDecoded<T> {
+  let header: JWTHeader
+  let payload: T
+
+  try {
+    header = decodeProtectedHeader(token) as JWTHeader
+    payload = decodeJwt(token) as T
+  } catch (err) {
+    throw new JWTError('invalid token, unable to decode', { code: 'JWT_INVALID' }, { cause: err })
+  }
+
+  return {
+    header,
+    payload,
+    signature: token.split('.')[2]!,
   }
 }
 

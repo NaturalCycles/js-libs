@@ -1,13 +1,13 @@
 import { localTime } from '@naturalcycles/js-lib/datetime'
 import type { AppError } from '@naturalcycles/js-lib/error'
-import { pExpectedError } from '@naturalcycles/js-lib/error'
+import { _expectedError, pExpectedError } from '@naturalcycles/js-lib/error'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { expect, test } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
 import { testDir } from '../test/paths.cnst.js'
 import { j } from '../validation/ajv/index.js'
 import { JWTService } from './jwt.service.js'
-import { JWTError, JWTService2 } from './jwt.service2.js'
+import { JWTError, JWTService2, jwtDecode } from './jwt.service2.js'
 
 const privateKey = fs2.readText(`${testDir}/demoPrivateKey.pem`)
 
@@ -265,4 +265,24 @@ test('schema: cfg-level, opt-level override, claim stripping', async () => {
   })
   const verified = await jwtService2.verify(token1)
   expect(verified).toStrictEqual(data1)
+})
+
+test('kid header option', async () => {
+  const token1 = await noSchemaService.sign(data1, { expiresAt: null, kid: 'key-id-1' })
+  expect(jwtDecode(token1).header).toEqual({ alg: 'ES256', typ: 'JWT', kid: 'key-id-1' })
+
+  // without kid the header stays unchanged (kid: undefined is dropped by JSON serialization)
+  const token2 = await noSchemaService.sign(data1, { expiresAt: null })
+  expect(jwtDecode(token2).header).toEqual({ alg: 'ES256', typ: 'JWT' })
+})
+
+test('standalone jwtDecode', async () => {
+  const token1 = await jwtService2.sign(data1, { expiresAt: null })
+
+  const decoded = jwtDecode<Data>(token1)
+  expect(decoded.payload).toStrictEqual(data1)
+  expect(decoded.signature).toBeDefined()
+
+  const err = _expectedError(() => jwtDecode(token1.slice(1)), JWTError)
+  expect(err.data.code).toBe('JWT_INVALID')
 })
