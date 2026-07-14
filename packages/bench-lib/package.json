@@ -28,7 +28,7 @@
     "express": "^5",
     "fastify": "^5",
     "helmet": "^8",
-    "nanoid": "^5"
+    "nanoid": "^6"
   },
   "exports": {
     ".": "./dist/index.js"
