@@ -1,4 +1,5 @@
 import { localTime } from '@naturalcycles/js-lib/datetime'
+import type { AppError } from '@naturalcycles/js-lib/error'
 import { pExpectedError } from '@naturalcycles/js-lib/error'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { expect, test } from 'vitest'
@@ -243,6 +244,19 @@ test('schema: cfg-level, opt-level override, claim stripping', async () => {
   // verify with cfg.schema rejects a signature-valid token with non-conforming payload
   const err3 = await pExpectedError(jwtService2.verify(fooToken))
   expect(err3).not.toBeInstanceOf(JWTError)
+
+  // schema-validation errors on verify/decode are extended with cfg.errorData
+  // (a non-conforming token is as unauthorized as an invalid one)
+  const service401 = new JWTService2({
+    privateKey,
+    publicKey: privateKey,
+    algorithm: 'ES256',
+    schema: dataSchema,
+    errorData: { backendResponseStatusCode: 401 },
+  })
+  const err4 = await pExpectedError<AppError>(service401.verify(fooToken))
+  expect(err4).not.toBeInstanceOf(JWTError)
+  expect(err4.data.backendResponseStatusCode).toBe(401)
 
   // Strict schema strips standard claims from the returned payload (removeAdditional):
   // exp was set on sign, but is absent after schema validation

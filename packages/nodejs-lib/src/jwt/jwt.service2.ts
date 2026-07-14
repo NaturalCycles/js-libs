@@ -2,7 +2,7 @@ import { createPrivateKey, createPublicKey } from 'node:crypto'
 import type { KeyObject } from 'node:crypto'
 import type { ErrorData } from '@naturalcycles/js-lib/error'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
+import { _errorDataAppend, AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import type {
   AnyObject,
   JWTString,
@@ -243,7 +243,7 @@ export class JWTService2<T extends AnyObject = AnyObject> {
       throw this.normalizeError(err)
     }
 
-    ;(schema || this.cfg.schema)?.validate(data)
+    this.validate(data, schema)
 
     return data
   }
@@ -266,12 +266,29 @@ export class JWTService2<T extends AnyObject = AnyObject> {
       )
     }
 
-    ;(opt.schema || this.cfg.schema)?.validate(payload)
+    this.validate(payload, opt.schema)
 
     return {
       header,
       payload,
       signature: token.split('.')[2]!,
+    }
+  }
+
+  /**
+   * Schema-validation errors on Verify/Decode are extended with cfg.errorData:
+   * a token with a non-conforming payload is as unauthorized as an invalid one.
+   * (On Sign the payload comes from own code, not from user input, so a validation
+   * error there indicates a programming error and is thrown as-is.)
+   */
+  private validate<TT extends T>(payload: TT, schema?: JSchema<TT, any> | AjvSchema<TT>): void {
+    try {
+      ;(schema || this.cfg.schema)?.validate(payload)
+    } catch (err) {
+      if (this.cfg.errorData) {
+        _errorDataAppend(err, this.cfg.errorData)
+      }
+      throw err
     }
   }
 
