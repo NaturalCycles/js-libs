@@ -80,8 +80,7 @@ comparator functions. Available: `numericAsc`, `numericDesc`, `localeAsc`, `loca
 
 ## Workflow Rules
 
-- **Git:** Do NOT stage changes. Leave all modifications unstaged for manual review of the
-  incremental steps.
+- **Git:** Do NOT stage or unstage changes - leave all files in their current staged/unstaged state.
 
 When asked to make a commit - do NOT add `Co-Authored-By: Claude`.
 

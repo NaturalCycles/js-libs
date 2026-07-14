@@ -226,8 +226,8 @@ describe('ajvValidateRequest', () => {
     let app: ExpressApp
 
     enum AlgoVariant {
-      'THE_BIG_ALGO' = 1,
-      'THE_SMART_ALGO' = 2,
+      THE_BIG_ALGO = 1,
+      THE_SMART_ALGO = 2,
     }
 
     beforeAll(async () => {
@@ -275,8 +275,8 @@ describe('ajvValidateRequest', () => {
     let app: ExpressApp
 
     enum AlgoVariant {
-      'THE_BIG_ALGO' = 1,
-      'THE_SMART_ALGO' = 2,
+      THE_BIG_ALGO = 1,
+      THE_SMART_ALGO = 2,
     }
 
     beforeAll(async () => {

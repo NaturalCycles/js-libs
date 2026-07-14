@@ -249,8 +249,8 @@ export interface CommonDB {
 }
 
 export enum CommonDBType {
-  'document' = 'document',
-  'relational' = 'relational',
+  document = 'document',
+  relational = 'relational',
 }
 
 /**
