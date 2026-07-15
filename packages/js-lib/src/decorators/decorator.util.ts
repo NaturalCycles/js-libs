@@ -1,6 +1,17 @@
 import type { AnyObject, InstanceId } from '../types.js'
 
 /**
+ * Generic override of Typescript's built in legacy MethodDecorator, that
+ * allows us to infer the parameters of the decorated method from the parameters
+ * of a decorator.
+ */
+export type MethodDecorator<T> = (
+  target: AnyObject,
+  propertyKey: string | symbol,
+  descriptor: TypedPropertyDescriptor<T>,
+) => TypedPropertyDescriptor<T> | undefined
+
+/**
  * @returns
  * e.g `NameOfYourClass.methodName`
  * or `NameOfYourClass(instanceId).methodName`

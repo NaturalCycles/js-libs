@@ -2,8 +2,9 @@ import { _assert, _assertTypeOf } from '../error/assert.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import type { AnyFunction, AnyObject, MaybeParameters } from '../types.js'
 import { _objectAssign } from '../types.js'
+import type { MethodDecorator } from './decorator.util.js'
 import { _getTargetMethodSignature } from './decorator.util.js'
-import type { MemoCache, MethodDecorator } from './memo.util.js'
+import type { MemoCache } from './memo.util.js'
 import { jsonMemoSerializer, MapMemoCache } from './memo.util.js'
 
 export interface MemoOptions<FN> {
