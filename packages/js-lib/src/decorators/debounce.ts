@@ -346,6 +346,16 @@ export interface Cancelable {
   flush: () => void
 }
 
+/**
+ * Like `Cancelable`, but for the async debounced functions: `flush()` resolves with the flushed
+ * invocation's result (or `undefined` if nothing was pending), and `pending()` is exposed.
+ */
+export interface AsyncCancelable<T> {
+  cancel: () => void
+  flush: () => Promise<T | undefined>
+  pending: () => boolean
+}
+
 export interface ThrottleOptions {
   /**
    * Invoke on the leading edge of the window (immediately, on the first call).
@@ -428,4 +438,4 @@ export type AsyncDebounced<T extends AnyAsyncFunction> = ((
   this: ThisParameterType<T>,
   ...args: Parameters<T>
 ) => Promise<Awaited<ReturnType<T>> | undefined>) &
-  Cancelable
+  AsyncCancelable<Awaited<ReturnType<T>>>

@@ -69,4 +69,21 @@ describe('@_AsyncThrottle', () => {
     expect(await inst.ping(7)).toBe(7)
     expect(inst.calls).toBe(1)
   })
+
+  test('should resolve in-window calls with undefined when trailing is disabled', async () => {
+    class C {
+      calls = 0
+
+      @_AsyncThrottle(50, { trailing: false })
+      async ping(n: number): Promise<number> {
+        this.calls++
+        return n
+      }
+    }
+
+    const inst = new C()
+    expect(await inst.ping(1)).toBe(1)
+    expect(await inst.ping(2)).toBeUndefined()
+    expect(inst.calls).toBe(1)
+  })
 })
