@@ -1,3 +1,4 @@
+import { _anyToError } from '../error/error.util.js'
 import { pDefer } from '../promise/pDefer.js'
 import type { DeferredPromise } from '../promise/pDefer.js'
 import type { AnyAsyncFunction, AnyFunction } from '../types.js'
@@ -207,7 +208,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
       const result = await func.apply(thisArg, args!)
       d.resolve(result)
     } catch (err) {
-      d.reject(err as Error)
+      d.reject(_anyToError(err))
     }
   }
 

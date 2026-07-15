@@ -28,7 +28,7 @@ export function _Throttle<T extends AnyFunction>(
 /**
  * Like `@_Debounce`, but for async methods. Guarantees every call returns a real Promise that
  * resolves (or rejects) with the coalesced invocation's result, so the declared `Promise<T>` return
- * type stays accurate. Unlike `@_Debounce`, await`-ing a decorated method never silently yields
+ * type stays accurate. Unlike `@_Debounce`, `await`-ing a decorated method never silently yields
  * `undefined`.
  *
  * @experimental

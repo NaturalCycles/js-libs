@@ -1,7 +1,7 @@
 import type { AnyObject, InstanceId } from '../types.js'
 
 /**
- * Generic override of Typescript's built in legacy MethodDecorator, that
+ * Generic override of TypeScript's built-in legacy MethodDecorator, that
  * allows us to infer the parameters of the decorated method from the parameters
  * of a decorator.
  */
