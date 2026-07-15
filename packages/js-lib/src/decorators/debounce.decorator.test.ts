@@ -27,8 +27,10 @@ async function startTimer(fn: AnyFunction, interval: number, count: number): Pro
   await pDelay(1000) // extra wait
 }
 
-test('@debounce', async () => {
-  await startTimer(fn, 10, 10)
+describe('@_Debounce', () => {
+  test('should debounce decorated method calls', async () => {
+    await startTimer(fn, 10, 10)
+  })
 })
 
 describe('@_AsyncDebounce', () => {

@@ -3,40 +3,6 @@ import { pDefer } from '../promise/pDefer.js'
 import type { DeferredPromise } from '../promise/pDefer.js'
 import type { AnyAsyncFunction, AnyFunction } from '../types.js'
 
-export interface Cancelable {
-  cancel: () => void
-  flush: () => void
-}
-
-export interface ThrottleOptions {
-  /**
-   * @default true
-   */
-  leading?: boolean
-
-  /**
-   * @default true
-   */
-  trailing?: boolean
-}
-
-export interface DebounceOptions {
-  /**
-   * @default false
-   */
-  leading?: boolean
-
-  /**
-   * @default true
-   */
-  trailing?: boolean
-
-  /**
-   *
-   */
-  maxWait?: number
-}
-
 export function _debounce<T extends AnyFunction>(
   func: T,
   wait: number,
@@ -161,25 +127,21 @@ export function _throttle<T extends AnyFunction>(
 /**
  * Like `_debounce`, but for async functions.
  *
- * Unlike `_debounce` (which returns the previous invocation's stale `result` or `undefined`
- * for suppressed calls), `_asyncDebounce` always returns a real Promise. All calls that are
- * coalesced into a single invocation resolve (or reject) with that invocation's result.
- *
- * `cancel()` rejects any pending Promises, so awaiters never hang.
+ * Unlike `_debounce` (which returns a stale `result`/`undefined` for suppressed calls),
+ * `_asyncDebounce` always returns a real Promise, resolving with the coalesced invocation's result.
  *
  * @experimental
  */
 export function _asyncDebounce<T extends AnyAsyncFunction>(
   func: T,
   wait: number,
-  opt: DebounceOptions = {},
-): T & Cancelable {
+  opt: AsyncDebounceOptions = {},
+): AsyncDebounced<T> {
   let lastArgs: Parameters<T> | undefined
   let lastThis: ThisParameterType<T> | undefined
   let timerId: number | undefined
-  // The Promise shared by all calls coalesced into the next invocation.
-  // Undefined when there's no pending batch.
-  let deferred: DeferredPromise<Awaited<ReturnType<T>>> | undefined
+  // Promise shared by all calls coalesced into the next invocation (undefined when none pending).
+  let deferred: DeferredPromise<Awaited<ReturnType<T>> | undefined> | undefined
 
   const { leading = false, trailing = true } = opt
 
@@ -201,7 +163,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
     lastArgs = lastThis = undefined
     state.lastInvokeTime = time
 
-    // Detach the current batch's Promise and settle it with this invocation's result.
+    // Detach and settle the current batch.
     const d = deferred!
     deferred = undefined
     try {
@@ -212,7 +174,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
     }
   }
 
-  async function leadingEdge(time: number): Promise<Awaited<ReturnType<T>>> {
+  async function leadingEdge(time: number): Promise<Awaited<ReturnType<T>> | undefined> {
     // Reset any `maxWait` timer.
     state.lastInvokeTime = time
     // Start the timer for the trailing edge.
@@ -246,8 +208,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
       return
     }
     lastArgs = lastThis = undefined
-    // No invocation will happen for this batch (e.g. trailing=false) - resolve to
-    // undefined rather than leaving awaiters hanging forever.
+    // Dropped batch (only reachable with `trailing: false`): no invocation, so resolve `undefined`.
     if (deferred) {
       const d = deferred
       deferred = undefined
@@ -262,7 +223,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
     state.lastInvokeTime = 0
     state.lastCallTime = undefined
     lastArgs = lastThis = timerId = undefined
-    // Reject pending awaiters so they don't hang.
+    // Reject pending awaiters.
     if (deferred) {
       const d = deferred
       deferred = undefined
@@ -287,7 +248,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
   async function debounced(
     this: ThisParameterType<T>,
     ...args: Parameters<T>
-  ): Promise<Awaited<ReturnType<T>>> {
+  ): Promise<Awaited<ReturnType<T>> | undefined> {
     const time = Date.now()
     const isInvoking = shouldInvoke(time, state)
 
@@ -295,8 +256,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
     lastThis = this
     state.lastCallTime = time
 
-    // Ensure a pending batch Promise exists for this call to join.
-    deferred ||= pDefer<Awaited<ReturnType<T>>>()
+    deferred ||= pDefer<Awaited<ReturnType<T>> | undefined>()
     const currentDeferred = deferred
 
     if (isInvoking) {
@@ -330,8 +290,8 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
 export function _asyncThrottle<T extends AnyAsyncFunction>(
   func: T,
   wait: number,
-  opt: ThrottleOptions = {},
-): T & Cancelable {
+  opt: AsyncThrottleOptions = {},
+): AsyncDebounced<T> {
   return _asyncDebounce(func, wait, {
     leading: true,
     trailing: true,
@@ -380,3 +340,92 @@ interface DebounceTimerState {
   maxing: boolean
   maxWait: number | undefined
 }
+
+export interface Cancelable {
+  cancel: () => void
+  flush: () => void
+}
+
+export interface ThrottleOptions {
+  /**
+   * Invoke on the leading edge of the window (immediately, on the first call).
+   *
+   * @default true
+   */
+  leading?: boolean
+
+  /**
+   * Invoke on the trailing edge of the window (after `wait` has elapsed).
+   *
+   * @default true
+   */
+  trailing?: boolean
+}
+
+export interface DebounceOptions {
+  /**
+   * Invoke on the leading edge of the window (immediately, on the first call).
+   *
+   * @default false
+   */
+  leading?: boolean
+
+  /**
+   * Invoke on the trailing edge of the window (after `wait` has elapsed).
+   *
+   * @default true
+   */
+  trailing?: boolean
+
+  /**
+   * Maximum time `func` is allowed to be delayed before it's forcibly invoked.
+   */
+  maxWait?: number
+}
+
+export interface AsyncThrottleOptions {
+  /**
+   * Invoke on the leading edge of the window (immediately, on the first call).
+   *
+   * @default true
+   */
+  leading?: boolean
+
+  /**
+   * Invoke on the trailing edge of the window (after `wait` has elapsed).
+   *
+   * When `false`, calls dropped within the window (not served by a leading invocation) resolve
+   * with `undefined`. There's no invocation for them to await. This is why the returned function
+   * can resolve with `undefined` even though the original function's return type doesn't express that.
+   *
+   * @default true
+   */
+  trailing?: boolean
+}
+
+export interface AsyncDebounceOptions extends AsyncThrottleOptions {
+  /**
+   * Invoke on the leading edge of the window (immediately, on the first call).
+   *
+   * @default false
+   */
+  leading?: boolean
+
+  /**
+   * Maximum time `func` is allowed to be delayed before it's forcibly invoked.
+   */
+  maxWait?: number
+}
+
+/**
+ * The function returned by `_asyncDebounce`/`_asyncThrottle`. Same signature as `T`, but resolves
+ * `Awaited<ReturnType<T>> | undefined`
+ *
+ * This is because some configurations (e.g. `trailing: false`) may drop calls without invoking
+ * the original function, so there's no result to await.
+ */
+export type AsyncDebounced<T extends AnyAsyncFunction> = ((
+  this: ThisParameterType<T>,
+  ...args: Parameters<T>
+) => Promise<Awaited<ReturnType<T>> | undefined>) &
+  Cancelable

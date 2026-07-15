@@ -22,25 +22,27 @@ async function startTimer(fn: AnyFunction, interval: number, count: number): Pro
   await pDelay(2000) // extra wait
 }
 
-test('_debounce', async () => {
-  vi.useFakeTimers()
+describe('_debounce', () => {
+  test('should debounce calls with leading/trailing/maxWait', async () => {
+    vi.useFakeTimers()
 
-  const fn = _debounce(originalFn, 20, { leading: true, trailing: true, maxWait: 300 })
+    const fn = _debounce(originalFn, 20, { leading: true, trailing: true, maxWait: 300 })
 
-  const promise = startTimer(fn, 10, 10)
-  await vi.runAllTimersAsync()
-  await promise
+    const promise = startTimer(fn, 10, 10)
+    await vi.runAllTimersAsync()
+    await promise
+  })
+
+  // Test cases:
+  // _debounce leading=1 trailing=0 (default)
+  // _debounce leading=1 trailing=1
+  // _debounce leading=0 trailing=1
+  // _debounce leading=0 trailing=0
+  // _throttle leading=1 trailing=1 (default)
+  // _throttle leading=1 trailing=0
+  // _throttle leading=0 trailing=1
+  // _throttle leading=0 trailing=0
 })
-
-// Test cases:
-// _debounce leading=1 trailing=0 (default)
-// _debounce leading=1 trailing=1
-// _debounce leading=0 trailing=1
-// _debounce leading=0 trailing=0
-// _throttle leading=1 trailing=1 (default)
-// _throttle leading=1 trailing=0
-// _throttle leading=0 trailing=1
-// _throttle leading=0 trailing=0
 
 describe('_asyncDebounce', () => {
   test('should return a real promise (never undefined) resolving with the invocation result', async () => {
@@ -64,7 +66,7 @@ describe('_asyncDebounce', () => {
     }, 20)
 
     const results = await Promise.all([fn(1), fn(2), fn(3)])
-    expect(results).toEqual([3, 3, 3]) // trailing edge invokes with the last args
+    expect(results).toEqual([3, 3, 3])
     expect(calls).toBe(1)
   })
 
@@ -88,6 +90,12 @@ describe('_asyncDebounce', () => {
 
     await expect(p).rejects.toThrow('asyncDebounce cancelled')
   })
+
+  test('should resolve dropped calls with undefined when the config yields no invocation (trailing: false)', async () => {
+    const fn = _asyncDebounce(async (n: number) => n, 20, { trailing: false })
+
+    expect(await fn(1)).toBeUndefined()
+  })
 })
 
 describe('_asyncThrottle', () => {
@@ -100,5 +108,12 @@ describe('_asyncThrottle', () => {
 
     expect(await fn(7)).toBe(7)
     expect(calls).toBe(1)
+  })
+
+  test('should resolve the leading caller but resolve in-window callers with undefined when trailing is disabled', async () => {
+    const fn = _asyncThrottle(async (n: number) => n, 50, { trailing: false })
+
+    expect(await fn(1)).toBe(1)
+    expect(await fn(2)).toBeUndefined()
   })
 })

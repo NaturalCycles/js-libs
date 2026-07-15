@@ -1,5 +1,10 @@
 import type { AnyAsyncFunction, AnyFunction } from '../types.js'
-import type { DebounceOptions, ThrottleOptions } from './debounce.js'
+import type {
+  AsyncDebounceOptions,
+  AsyncThrottleOptions,
+  DebounceOptions,
+  ThrottleOptions,
+} from './debounce.js'
 import { _asyncDebounce, _asyncThrottle, _debounce, _throttle } from './debounce.js'
 import type { MethodDecorator } from './decorator.util.js'
 
@@ -26,36 +31,39 @@ export function _Throttle<T extends AnyFunction>(
 }
 
 /**
- * Like `@_Debounce`, but for async methods. Guarantees every call returns a real Promise that
- * resolves (or rejects) with the coalesced invocation's result, so the declared `Promise<T>` return
- * type stays accurate. Unlike `@_Debounce`, `await`-ing a decorated method never silently yields
- * `undefined`.
+ * Like `@_Debounce`, but for async methods: every call returns a real Promise resolving with the
+ * coalesced invocation's result, so `await`-ing never yields a stale value or a non-promise
+ *
+ * Be aware that the decorated method may resolve `undefined` if the config yields no invocation,
+ * which the method's `T` type can't express.
  *
  * @experimental
  */
 export function _AsyncDebounce<T extends AnyAsyncFunction>(
   wait: number,
-  opt: DebounceOptions = {},
+  opt: AsyncDebounceOptions = {},
 ): MethodDecorator<T> {
   return (_target, _key, descriptor) => {
     const originalFn = descriptor.value!
-    descriptor.value = _asyncDebounce<T>(originalFn, wait, opt)
+    descriptor.value = _asyncDebounce<T>(originalFn, wait, opt) as any
     return descriptor
   }
 }
 
 /**
- * Like `@_Throttle`, but for async methods. See `@_AsyncDebounce` for the Promise semantics.
+ * Like `@_Throttle`, but for async methods.
+ *
+ * @see {@link _AsyncDebounce}
  *
  * @experimental
  */
 export function _AsyncThrottle<T extends AnyAsyncFunction>(
   wait: number,
-  opt: ThrottleOptions = {},
+  opt: AsyncThrottleOptions = {},
 ): MethodDecorator<T> {
   return (_target, _key, descriptor) => {
     const originalFn = descriptor.value!
-    descriptor.value = _asyncThrottle<T>(originalFn, wait, opt)
+    descriptor.value = _asyncThrottle<T>(originalFn, wait, opt) as any
     return descriptor
   }
 }
