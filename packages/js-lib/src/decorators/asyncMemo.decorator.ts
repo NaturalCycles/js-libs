@@ -2,8 +2,9 @@ import { _assert, _assertTypeOf } from '../error/assert.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import type { AnyAsyncFunction, AnyFunction, AnyObject, MaybeParameters } from '../types.js'
 import { _objectAssign, MISS } from '../types.js'
+import type { MethodDecorator } from './decorator.util.js'
 import { _getTargetMethodSignature } from './decorator.util.js'
-import type { AsyncMemoCache, MethodDecorator } from './memo.util.js'
+import type { AsyncMemoCache } from './memo.util.js'
 import { jsonMemoSerializer } from './memo.util.js'
 
 export interface AsyncMemoOptions<FN> {
