@@ -49,8 +49,24 @@ export interface JWTService2Cfg<T extends AnyObject = AnyObject> {
    * Recommended: ES256
    * Keys (private/public) should be generated using proper settings
    * that fit the used Algorithm.
+   *
+   * Used for Sign, and (unless `verifyAlgorithms` is set) it's also
+   * the only algorithm accepted on Verify.
    */
   algorithm: JWTAlgorithm
+
+  /**
+   * JWS algorithms accepted on Verify. Defaults to `[algorithm]`.
+   *
+   * Only needed when one verifier must accept keys of different types
+   * (e.g a per-kid key set mixing EC and RSA keys). Keep the list as narrow as possible.
+   *
+   * The token's `alg` header chooses among these, but only within what the
+   * verification key can serve: a token/key algorithm mismatch fails with JWT_INVALID.
+   * (All JWTAlgorithms are asymmetric, so the classic algorithm-confusion attacks
+   * don't apply regardless.)
+   */
+  verifyAlgorithms?: JWTAlgorithm[]
 
   /**
    * If provided - payloads are validated against it on every Sign/Verify/Decode.
@@ -243,7 +259,7 @@ export class JWTService2<T extends AnyObject = AnyObject> {
 
     try {
       const { payload } = await jwtVerify(token, key, {
-        algorithms: [this.cfg.algorithm],
+        algorithms: this.cfg.verifyAlgorithms || [this.cfg.algorithm],
         ...joseOpt,
         currentDate: now === undefined ? undefined : new Date(now * 1000),
       })
@@ -304,6 +320,10 @@ export class JWTService2<T extends AnyObject = AnyObject> {
     } else if (err instanceof errors.JWTClaimValidationFailed && err.claim === 'nbf') {
       code = 'JWT_NOT_YET_VALID'
     } else if (err instanceof errors.JOSEError) {
+      code = 'JWT_INVALID'
+    } else if (this.cfg.verifyAlgorithms && err instanceof TypeError) {
+      // With multiple verifyAlgorithms, a token/key algorithm mismatch is reachable
+      // by untrusted input, and jose reports it as TypeError - treat it as an invalid token
       code = 'JWT_INVALID'
     } else {
       return err as Error

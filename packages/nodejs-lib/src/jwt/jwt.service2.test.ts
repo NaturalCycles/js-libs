@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from 'node:crypto'
 import { localTime } from '@naturalcycles/js-lib/datetime'
 import type { AppError } from '@naturalcycles/js-lib/error'
 import { _expectedError, pExpectedError } from '@naturalcycles/js-lib/error'
@@ -265,6 +266,42 @@ test('schema: cfg-level, opt-level override, claim stripping', async () => {
   })
   const verified = await jwtService2.verify(token1)
   expect(verified).toStrictEqual(data1)
+})
+
+test('verifyAlgorithms: one verifier accepting multiple key types', async () => {
+  const rsa = generateKeyPairSync('rsa', { modulusLength: 2048 })
+  const rsaPrivatePem = rsa.privateKey.export({ type: 'pkcs8', format: 'pem' })
+  const rsaPublicPem = rsa.publicKey.export({ type: 'spki', format: 'pem' })
+
+  const rsaSigner = new JWTService2({ privateKey: rsaPrivatePem, algorithm: 'RS256' })
+  const ecToken = await noSchemaService.sign(data1, { expiresAt: null })
+  const rsaToken = await rsaSigner.sign(data1, { expiresAt: null })
+
+  // One verifier for keys of both types (like Samsung's per-kid key set), key passed per call
+  const multiVerifier = new JWTService2({
+    algorithm: 'ES256', // Sign (unused here) and the default Verify algorithm
+    verifyAlgorithms: ['ES256', 'RS256'],
+  })
+
+  expect(await multiVerifier.verify<Data>(ecToken, { publicKey: privateKey })).toStrictEqual(data1)
+  expect(await multiVerifier.verify<Data>(rsaToken, { publicKey: rsaPublicPem })).toStrictEqual(
+    data1,
+  )
+
+  // Key/algorithm mismatch: the token's `alg` cannot steer verification
+  // onto a key of the wrong type - allowed algorithms are narrowed to fit the key
+  const err1 = await pExpectedError(
+    multiVerifier.verify(ecToken, { publicKey: rsaPublicPem }),
+    JWTError,
+  )
+  expect(err1.data.code).toBe('JWT_INVALID')
+
+  // Single-algorithm service rejects tokens of any other algorithm
+  const err2 = await pExpectedError(
+    noSchemaService.verify(rsaToken, { publicKey: rsaPublicPem }),
+    JWTError,
+  )
+  expect(err2.data.code).toBe('JWT_INVALID')
 })
 
 test('kid header option', async () => {
