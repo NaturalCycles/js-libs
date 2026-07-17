@@ -119,7 +119,6 @@ async function runCannonProfile(
   } = opt
 
   // `as any` suppresses TS7016 (autocannon has no type declarations)
-  // oxlint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   const { default: autocannon } = await import('autocannon' as any)
   const server = await serverFactory()
   await new Promise<void>(resolve => server.listen(0, resolve))
