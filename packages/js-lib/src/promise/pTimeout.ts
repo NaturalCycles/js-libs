@@ -108,7 +108,8 @@ export async function pTimeout<T>(
     try {
       resolve(await fn(signal))
     } catch (err) {
-      reject(err as Error)
+      // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+      reject(err)
     } finally {
       clearTimeout(timer)
     }

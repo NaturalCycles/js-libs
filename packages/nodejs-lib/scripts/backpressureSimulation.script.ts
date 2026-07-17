@@ -22,9 +22,9 @@ const concurrency = 2
 runScript(async () => {
   // emits: 0, 1, 2, 3 after 100ms each
   const readable = readableFromArray(_range(0, sourceCount), i =>
-    pDelay(sourceDelay, {
+    pDelay<Item>(sourceDelay, {
       id: String(i),
-    } as Item),
+    }),
   )
 
   await Pipeline.from(readable)

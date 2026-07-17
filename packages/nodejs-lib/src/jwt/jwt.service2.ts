@@ -330,7 +330,7 @@ export class JWTService2<T extends AnyObject = AnyObject> {
     }
 
     return new JWTError(
-      (err as Error).message,
+      err.message,
       {
         ...this.cfg.errorData,
         code,
@@ -353,7 +353,7 @@ export function jwtDecode<T extends AnyObject>(token: JWTString): JWTDecoded<T> 
 
   try {
     header = decodeProtectedHeader(token) as JWTHeader
-    payload = decodeJwt(token) as T
+    payload = decodeJwt(token)
   } catch (err) {
     throw new JWTError('invalid token, unable to decode', { code: 'JWT_INVALID' }, { cause: err })
   }

@@ -159,7 +159,8 @@ function runSafe<R>(fn: AsyncFunction<R>): Promise<R> {
     return fn()
   } catch (err) {
     // Handle synchronous throws
-    return Promise.reject(err as Error)
+    // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+    return Promise.reject(err)
   }
 }
 

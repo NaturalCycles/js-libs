@@ -486,11 +486,12 @@ describe('string', () => {
       type AccountId = Branded<string, 'AccountId'>
       const schema = j.string().branded<AccountId>()
 
-      const [err, result] = schema.getValidationResult('AccountId' as AccountId)
+      const input = 'AccountId' as AccountId
+      const [err, result] = schema.getValidationResult(input)
 
       expect(err).toBeNull()
-      expect(result).toBe('AccountId')
-      expectTypeOf(result).toEqualTypeOf<AccountId>()
+      expect(result).toBe(input)
+      expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
   })
 
@@ -1919,16 +1920,20 @@ describe('number', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp()
 
-      const [, result] = schema.getValidationResult(0 as UnixTimestamp)
-      expectTypeOf(result).toEqualTypeOf<UnixTimestamp>()
+      const input = 0 as UnixTimestamp
+      const [, result] = schema.getValidationResult(input)
+      expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
     test('should accept a number with a valid value', () => {
-      const testCases = [0, localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix]
+      const testCases: UnixTimestamp[] = [
+        0 as UnixTimestamp,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix,
+      ]
       const schema = j.number().unixTimestamp()
 
       testCases.forEach(value => {
-        const [err] = schema.getValidationResult(value as UnixTimestamp)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -1942,7 +1947,7 @@ describe('number', () => {
       const schema = j.number().unixTimestamp()
 
       invalidCases.forEach(value => {
-        const [err] = schema.getValidationResult(value as UnixTimestamp)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1952,12 +1957,13 @@ describe('number', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp2000()
 
-      const [, result] = schema.getValidationResult(0 as UnixTimestamp)
-      expectTypeOf(result).toEqualTypeOf<UnixTimestamp>()
+      const input = 0 as UnixTimestamp
+      const [, result] = schema.getValidationResult(input)
+      expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
     test('should accept a number with a valid value', () => {
-      const testCases = [
+      const testCases: UnixTimestamp[] = [
         localTime('2000-01-01T00:00:00Z' as IsoDateTime).unix,
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix,
       ]
@@ -1978,7 +1984,7 @@ describe('number', () => {
       const schema = j.number().unixTimestamp2000()
 
       invalidCases.forEach(value => {
-        const [err] = schema.getValidationResult(value as UnixTimestamp)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -1988,16 +1994,20 @@ describe('number', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestampMillis()
 
-      const [, result] = schema.getValidationResult(0 as UnixTimestampMillis)
-      expectTypeOf(result).toEqualTypeOf<UnixTimestampMillis>()
+      const input = 0 as UnixTimestampMillis
+      const [, result] = schema.getValidationResult(input)
+      expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
     test('should accept a number with a valid value', () => {
-      const testCases = [0, localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis]
+      const testCases: UnixTimestampMillis[] = [
+        0 as UnixTimestampMillis,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis,
+      ]
       const schema = j.number().unixTimestampMillis()
 
       testCases.forEach(value => {
-        const [err] = schema.getValidationResult(value as UnixTimestampMillis)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).toBeNull()
       })
     })
@@ -2011,7 +2021,7 @@ describe('number', () => {
       const schema = j.number().unixTimestampMillis()
 
       invalidCases.forEach(value => {
-        const [err] = schema.getValidationResult(value as UnixTimestampMillis)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
@@ -2021,12 +2031,13 @@ describe('number', () => {
     test('should brand the value', () => {
       const schema = j.number().unixTimestamp2000Millis()
 
-      const [, result] = schema.getValidationResult(0 as UnixTimestampMillis)
-      expectTypeOf(result).toEqualTypeOf<UnixTimestampMillis>()
+      const input = 0 as UnixTimestampMillis
+      const [, result] = schema.getValidationResult(input)
+      expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
     test('should accept a number with a valid value', () => {
-      const testCases = [
+      const testCases: UnixTimestampMillis[] = [
         localTime('2000-01-01T00:00:00Z' as IsoDateTime).unixMillis,
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis,
       ]
@@ -2047,7 +2058,7 @@ describe('number', () => {
       const schema = j.number().unixTimestamp2000Millis()
 
       invalidCases.forEach(value => {
-        const [err] = schema.getValidationResult(value as UnixTimestampMillis)
+        const [err] = schema.getValidationResult(value)
         expect(err, String(value)).not.toBeNull()
       })
     })
