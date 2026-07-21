@@ -62,7 +62,7 @@ export interface JWTService2Cfg<T extends AnyObject = AnyObject> {
    * (e.g a per-kid key set mixing EC and RSA keys). Keep the list as narrow as possible.
    *
    * The token's `alg` header chooses among these, but only within what the
-   * verification key can serve: a token/key algorithm mismatch fails with JWT_INVALID.
+   * verification key can serve: a token/key algorithm mismatch fails with JWTInvalidError.
    * (All JWTAlgorithms are asymmetric, so the classic algorithm-confusion attacks
    * don't apply regardless.)
    */
@@ -182,7 +182,8 @@ export interface JWTDecoded<T extends AnyObject> {
 /**
  * Wraps the `jose` library, exposing an implementation-agnostic API:
  * no jose types, options or errors leak out of this service.
- * All errors are normalized into JWTError with a stable `data.code`.
+ * All errors are normalized into JWTError subclasses
+ * (JWTExpiredError / JWTNotYetValidError / JWTInvalidError), matchable with `instanceof`.
  *
  * Successor of JWTService (jsonwebtoken-based). Tokens are wire-compatible
  * in both directions, so the two services can be swapped freely for the same key pair.
@@ -308,35 +309,28 @@ export class JWTService2<T extends AnyObject = AnyObject> {
   }
 
   /**
-   * jose errors are normalized into JWTError (extended with cfg.errorData).
+   * jose errors are normalized into JWTError subclasses (extended with cfg.errorData).
    * Non-jose errors (e.g TypeError from passing a key that doesn't fit the algorithm)
    * indicate a programming error and are passed through as-is.
    */
   private normalizeError(err: unknown): Error {
-    let code: JWTErrorCode
+    const { errorData } = this.cfg
 
     if (err instanceof errors.JWTExpired) {
-      code = 'JWT_EXPIRED'
-    } else if (err instanceof errors.JWTClaimValidationFailed && err.claim === 'nbf') {
-      code = 'JWT_NOT_YET_VALID'
-    } else if (err instanceof errors.JOSEError) {
-      code = 'JWT_INVALID'
-    } else if (this.cfg.verifyAlgorithms && err instanceof TypeError) {
+      return new JWTExpiredError(err.message, errorData, { payload: err.payload })
+    }
+    if (err instanceof errors.JWTClaimValidationFailed && err.claim === 'nbf') {
+      return new JWTNotYetValidError(err.message, errorData, { payload: err.payload })
+    }
+    if (err instanceof errors.JOSEError) {
+      return new JWTInvalidError(err.message, errorData)
+    }
+    if (this.cfg.verifyAlgorithms && err instanceof TypeError) {
       // With multiple verifyAlgorithms, a token/key algorithm mismatch is reachable
       // by untrusted input, and jose reports it as TypeError - treat it as an invalid token
-      code = 'JWT_INVALID'
-    } else {
-      return err as Error
+      return new JWTInvalidError(err.message, errorData)
     }
-
-    return new JWTError(
-      err.message,
-      {
-        ...this.cfg.errorData,
-        code,
-      },
-      { cause: err },
-    )
+    return err as Error
   }
 }
 
@@ -345,7 +339,7 @@ export class JWTService2<T extends AnyObject = AnyObject> {
  * Standalone version of JWTService2.decode, for when there's no service instance at hand
  * (no schema validation, no errorData extension).
  *
- * Throws JWTError with code JWT_INVALID if the token cannot be decoded.
+ * Throws JWTInvalidError if the token cannot be decoded.
  */
 export function jwtDecode<T extends AnyObject>(token: JWTString): JWTDecoded<T> {
   let header: JWTHeader
@@ -355,7 +349,8 @@ export function jwtDecode<T extends AnyObject>(token: JWTString): JWTDecoded<T> 
     header = decodeProtectedHeader(token) as JWTHeader
     payload = decodeJwt(token)
   } catch (err) {
-    throw new JWTError('invalid token, unable to decode', { code: 'JWT_INVALID' }, { cause: err })
+    // The underlying message is folded in, as it carries the only specific detail
+    throw new JWTInvalidError(`invalid token, unable to decode: ${(err as Error).message}`)
   }
 
   return {
@@ -372,17 +367,67 @@ export interface JWTErrorData extends ErrorData {
 }
 
 /**
- * Thrown by JWTService2 on any Verify/Decode failure.
+ * Thrown by JWTService2 on any Verify/Decode failure, always as one of its subclasses:
+ * - JWTExpiredError - `exp` claim check failed
+ * - JWTNotYetValidError - `nbf` claim check failed
+ * - JWTInvalidError - anything else (malformed token, wrong signature, other claim mismatches)
  *
- * `data.code` is stable and implementation-agnostic:
- * - JWT_EXPIRED - `exp` claim check failed
- * - JWT_NOT_YET_VALID - `nbf` claim check failed
- * - JWT_INVALID - anything else (malformed token, wrong signature, other claim mismatches)
+ * Match errors with `instanceof`, e.g `err instanceof JWTExpiredError`.
+ * `data.code` carries the same distinction ('JWT_EXPIRED' | 'JWT_NOT_YET_VALID' | 'JWT_INVALID'),
+ * for when the error crosses a serialization boundary (e.g ErrorObject over HTTP)
+ * where `instanceof` no longer works.
  *
- * The original underlying error is preserved in `cause`.
+ * The underlying jose error is deliberately NOT preserved in `cause`: everything useful
+ * from it is already carried (message is copied, the failed claim is the subclass,
+ * `payload` is exposed where trustworthy), and jose nests the raw JWT payload into its own
+ * `cause`, which would otherwise survive ErrorObject serialization and leak into logs.
  */
 export class JWTError extends AppError<JWTErrorData> {
-  constructor(message: string, data: JWTErrorData, opt?: { cause?: any }) {
-    super(message, data, { ...opt, name: 'JWTError' })
+  constructor(message: string, data: JWTErrorData) {
+    // `new.target.name` makes subclasses report their own name
+    super(message, data, { name: new.target.name })
+  }
+}
+
+/**
+ * The token is well-formed and its signature is valid, but the `exp` claim check failed.
+ *
+ * `payload` carries the decoded token payload: signature is verified before claims are
+ * checked, so the payload is trustworthy - it's just expired.
+ * (Note: it's the raw JWT payload, incl. standard claims; cfg.schema is not applied to it.)
+ */
+export class JWTExpiredError extends JWTError {
+  readonly payload: AnyObject
+
+  constructor(message: string, data: ErrorData = {}, opt: { payload?: AnyObject } = {}) {
+    super(message, { ...data, code: 'JWT_EXPIRED' })
+    this.payload = opt.payload || {}
+  }
+}
+
+/**
+ * The token is well-formed and its signature is valid, but the `nbf` claim check failed.
+ *
+ * `payload` carries the decoded token payload: signature is verified before claims are
+ * checked, so the payload is trustworthy - it's just not valid yet.
+ * (Note: it's the raw JWT payload, incl. standard claims; cfg.schema is not applied to it.)
+ */
+export class JWTNotYetValidError extends JWTError {
+  readonly payload: AnyObject
+
+  constructor(message: string, data: ErrorData = {}, opt: { payload?: AnyObject } = {}) {
+    super(message, { ...data, code: 'JWT_NOT_YET_VALID' })
+    this.payload = opt.payload || {}
+  }
+}
+
+/**
+ * The token could not be trusted: malformed token, wrong signature,
+ * or a claim mismatch other than exp/nbf (e.g issuer/audience).
+ * No payload is exposed - nothing from such a token should be used.
+ */
+export class JWTInvalidError extends JWTError {
+  constructor(message: string, data: ErrorData = {}) {
+    super(message, { ...data, code: 'JWT_INVALID' })
   }
 }

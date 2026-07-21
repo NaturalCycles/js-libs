@@ -8,7 +8,14 @@ import { fs2 } from '../fs/fs2.js'
 import { testDir } from '../test/paths.cnst.js'
 import { j } from '../validation/ajv/index.js'
 import { JWTService } from './jwt.service.js'
-import { JWTError, JWTService2, jwtDecode } from './jwt.service2.js'
+import {
+  JWTError,
+  JWTExpiredError,
+  JWTInvalidError,
+  JWTNotYetValidError,
+  JWTService2,
+  jwtDecode,
+} from './jwt.service2.js'
 
 const privateKey = fs2.readText(`${testDir}/demoPrivateKey.pem`)
 
@@ -97,24 +104,42 @@ test('expiresAt', async () => {
   expect(exp).toBe(expiresAt)
 })
 
-test('expired token throws JWT_EXPIRED', async () => {
+test('expired token throws JWTExpiredError', async () => {
   const expiredToken = await jwtService2.sign(data1, {
     expiresAt: localTime.now().minus(2, 'minute').unix,
   })
 
-  const err = await pExpectedError(jwtService2.verify(expiredToken), JWTError)
-  expect(err.data.code).toBe('JWT_EXPIRED')
-  expect(err.cause).toBeDefined()
+  const err = await pExpectedError(jwtService2.verify(expiredToken), JWTExpiredError)
+  expect(err).toBeInstanceOf(JWTError) // subclasses remain instanceof the base class
+  expect(err.name).toBe('JWTExpiredError')
+  expect(err.data.code).toBe('JWT_EXPIRED') // kept for serialized contexts (ErrorObject over HTTP)
+  // The jose error is not chained as cause: it would leak the raw payload into serialized logs
+  expect(err.cause).toBeUndefined()
+  // Signature was verified before the exp check, so the payload is exposed (raw, incl. claims)
+  expect(err.payload).toStrictEqual({ ...data1, exp: expect.any(Number) })
 })
 
-test('not-yet-valid token throws JWT_NOT_YET_VALID', async () => {
+test('not-yet-valid token throws JWTNotYetValidError', async () => {
   const token1 = await jwtService2.sign(data1, {
     expiresAt: null,
     notBefore: localTime.now().plus(1, 'hour').unix,
   })
 
-  const err = await pExpectedError(jwtService2.verify(token1), JWTError)
+  const err = await pExpectedError(jwtService2.verify(token1), JWTNotYetValidError)
+  expect(err).toBeInstanceOf(JWTError)
   expect(err.data.code).toBe('JWT_NOT_YET_VALID')
+  expect(err.payload).toStrictEqual({ ...data1, nbf: expect.any(Number) })
+})
+
+test('error subclasses are directly constructible, e.g for test mocks', () => {
+  const err = new JWTExpiredError('jwt expired')
+  expect(err.name).toBe('JWTExpiredError')
+  expect(err.data.code).toBe('JWT_EXPIRED')
+  expect(err.payload).toEqual({})
+
+  const err2 = new JWTInvalidError('invalid token')
+  expect(err2.name).toBe('JWTInvalidError')
+  expect(err2.data.code).toBe('JWT_INVALID')
 })
 
 test('verifyOptions: now and clockTolerance', async () => {
@@ -134,23 +159,21 @@ test('verifyOptions: now and clockTolerance', async () => {
   expect(verified2).toMatchObject(data1)
 
   // without tolerance it still fails
-  const err = await pExpectedError(jwtService2.verify(expiredToken), JWTError)
-  expect(err.data.code).toBe('JWT_EXPIRED')
+  await pExpectedError(jwtService2.verify(expiredToken), JWTExpiredError)
 })
 
-test('malformed and tampered tokens throw JWT_INVALID', async () => {
+test('malformed and tampered tokens throw JWTInvalidError', async () => {
   const token1 = await jwtService2.sign(data1, { expiresAt: null })
   const malformedToken = token1.slice(1)
   const tamperedToken = token1.slice(0, -3) + 'AAA'
 
-  const err1 = await pExpectedError(jwtService2.verify(malformedToken), JWTError)
+  const err1 = await pExpectedError(jwtService2.verify(malformedToken), JWTInvalidError)
   expect(err1.data.code).toBe('JWT_INVALID')
 
-  const err2 = await pExpectedError(jwtService2.verify(tamperedToken), JWTError)
-  expect(err2.data.code).toBe('JWT_INVALID')
+  await pExpectedError(jwtService2.verify(tamperedToken), JWTInvalidError)
 
   expect(() => jwtService2.decode(malformedToken)).toThrowErrorMatchingInlineSnapshot(
-    `[JWTError: invalid token, unable to decode]`,
+    `[JWTInvalidError: invalid token, unable to decode: Invalid Token or Protected Header formatting]`,
   )
 
   // tamperedToken has corrupted signature, but Decode doesn't use it
@@ -172,7 +195,7 @@ test('cfg.errorData is merged into JWTError data', async () => {
     expiresAt: localTime.now().minus(2, 'minute').unix,
   })
 
-  const err = await pExpectedError(service.verify(expiredToken), JWTError)
+  const err = await pExpectedError(service.verify(expiredToken), JWTExpiredError)
   expect(err.data).toMatchObject({
     code: 'JWT_EXPIRED',
     backendResponseStatusCode: 401,
@@ -201,12 +224,8 @@ test('standard claim signOptions', async () => {
   })
   expect(payload['iat']).toBe(issuedAt)
 
-  // mismatched issuer should fail with JWT_INVALID
-  const err = await pExpectedError(
-    noSchemaService.verify(token1, { issuer: 'other-issuer' }),
-    JWTError,
-  )
-  expect(err.data.code).toBe('JWT_INVALID')
+  // mismatched issuer should fail with JWTInvalidError
+  await pExpectedError(noSchemaService.verify(token1, { issuer: 'other-issuer' }), JWTInvalidError)
 })
 
 test('cfg.signOptions are applied to every sign', async () => {
@@ -290,18 +309,13 @@ test('verifyAlgorithms: one verifier accepting multiple key types', async () => 
 
   // Key/algorithm mismatch: the token's `alg` cannot steer verification
   // onto a key of the wrong type - allowed algorithms are narrowed to fit the key
-  const err1 = await pExpectedError(
-    multiVerifier.verify(ecToken, { publicKey: rsaPublicPem }),
-    JWTError,
-  )
-  expect(err1.data.code).toBe('JWT_INVALID')
+  await pExpectedError(multiVerifier.verify(ecToken, { publicKey: rsaPublicPem }), JWTInvalidError)
 
   // Single-algorithm service rejects tokens of any other algorithm
-  const err2 = await pExpectedError(
+  await pExpectedError(
     noSchemaService.verify(rsaToken, { publicKey: rsaPublicPem }),
-    JWTError,
+    JWTInvalidError,
   )
-  expect(err2.data.code).toBe('JWT_INVALID')
 })
 
 test('kid header option', async () => {
@@ -320,6 +334,6 @@ test('standalone jwtDecode', async () => {
   expect(decoded.payload).toStrictEqual(data1)
   expect(decoded.signature).toBeDefined()
 
-  const err = _expectedError(() => jwtDecode(token1.slice(1)), JWTError)
+  const err = _expectedError(() => jwtDecode(token1.slice(1)), JWTInvalidError)
   expect(err.data.code).toBe('JWT_INVALID')
 })
