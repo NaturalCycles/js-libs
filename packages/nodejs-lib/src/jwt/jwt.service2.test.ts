@@ -131,6 +131,40 @@ test('not-yet-valid token throws JWTNotYetValidError', async () => {
   expect(err.payload).toStrictEqual({ ...data1, nbf: expect.any(Number) })
 })
 
+test('tryToVerifyOrDecode', async () => {
+  // valid token: no error, trusted payload
+  const token1 = await jwtService2.sign(data1, { expiresAt: null })
+  expect(await jwtService2.tryToVerifyOrDecode(token1)).toEqual([null, data1])
+
+  // expired token: error + payload (signature was verified, so it's trustworthy, just expired)
+  const expiredToken = await noSchemaService.sign(data1, {
+    expiresAt: localTime.now().minus(2, 'minute').unix,
+  })
+  const [err2, payload2] = await noSchemaService.tryToVerifyOrDecode(expiredToken)
+  expect(err2).toBeInstanceOf(JWTExpiredError)
+  expect(payload2).toMatchObject(data1)
+
+  // not-yet-valid token: same as expired
+  const nbfToken = await noSchemaService.sign(data1, {
+    expiresAt: null,
+    notBefore: localTime.now().plus(1, 'hour').unix,
+  })
+  const [err3, payload3] = await noSchemaService.tryToVerifyOrDecode(nbfToken)
+  expect(err3).toBeInstanceOf(JWTNotYetValidError)
+  expect(payload3).toMatchObject(data1)
+
+  // tampered signature: error + UNVERIFIED payload (peek-only, never trust)
+  const tamperedToken = token1.slice(0, -3) + 'AAA'
+  const [err4, payload4] = await jwtService2.tryToVerifyOrDecode(tamperedToken)
+  expect(err4).toBeInstanceOf(JWTInvalidError)
+  expect(payload4).toStrictEqual(data1)
+
+  // undecodable garbage: error + null
+  const [err5, payload5] = await jwtService2.tryToVerifyOrDecode('yabadabadoo')
+  expect(err5).toBeInstanceOf(JWTInvalidError)
+  expect(payload5).toBeNull()
+})
+
 test('error subclasses are directly constructible, e.g for test mocks', () => {
   const err = new JWTExpiredError('jwt expired')
   expect(err.name).toBe('JWTExpiredError')

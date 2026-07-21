@@ -274,6 +274,45 @@ export class JWTService2<T extends AnyObject = AnyObject> {
     return data
   }
 
+  /**
+   * Tries to Verify the token, falling back to unverified Decode on failure,
+   * so the caller can "peek" into the token's content even when it doesn't verify.
+   *
+   * Returns an [error, payload] tuple - ALWAYS check the error first:
+   * - [null, payload] - the token verified, payload can be trusted
+   * - [error, payload] - verification failed, but the token could still be decoded.
+   *   When the error is JWTExpiredError/JWTNotYetValidError, the signature was already
+   *   verified and only the time-claim check failed, so the payload is trustworthy
+   *   (just expired/not yet valid). For any other error the payload is completely
+   *   UNVERIFIED - never trust it, only peek (e.g to log/report the claimed identity).
+   * - [error, null] - the token could not even be decoded
+   *
+   * The decode fallback is raw: opt.schema/cfg.schema are only applied on the Verify path.
+   */
+  async tryToVerifyOrDecode<TT extends T = T>(
+    token: JWTString,
+    opt: JWTVerifyOptions<TT> = {},
+  ): Promise<[err: null, payload: TT] | [err: Error, payload: TT | null]> {
+    let verifyError: Error
+
+    try {
+      return [null, await this.verify<TT>(token, opt)]
+    } catch (err) {
+      verifyError = err as Error
+    }
+
+    // Expired/not-yet-valid errors already carry the (signature-verified) payload
+    if (verifyError instanceof JWTExpiredError || verifyError instanceof JWTNotYetValidError) {
+      return [verifyError, verifyError.payload as TT]
+    }
+
+    try {
+      return [verifyError, jwtDecode<TT>(token).payload]
+    } catch {
+      return [verifyError, null]
+    }
+  }
+
   decode<TT extends T = T>(token: JWTString, opt: JWTDecodeOptions<TT> = {}): JWTDecoded<TT> {
     let decoded: JWTDecoded<TT>
 
