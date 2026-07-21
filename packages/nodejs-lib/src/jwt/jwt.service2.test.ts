@@ -131,6 +131,24 @@ test('not-yet-valid token throws JWTNotYetValidError', async () => {
   expect(err.payload).toStrictEqual({ ...data1, nbf: expect.any(Number) })
 })
 
+test('tryToVerify', async () => {
+  // valid token: no error, trusted payload
+  const token1 = await jwtService2.sign(data1, { expiresAt: null })
+  expect(await jwtService2.tryToVerify(token1)).toEqual([null, data1])
+
+  // expired token: error, no payload (unlike tryToVerifyOrDecode)
+  const expiredToken = await noSchemaService.sign(data1, {
+    expiresAt: localTime.now().minus(2, 'minute').unix,
+  })
+  expect(await noSchemaService.tryToVerify(expiredToken)).toEqual([
+    expect.any(JWTExpiredError),
+    null,
+  ])
+
+  // invalid token: error, no payload
+  expect(await jwtService2.tryToVerify('yabadabadoo')).toEqual([expect.any(JWTInvalidError), null])
+})
+
 test('tryToVerifyOrDecode', async () => {
   // valid token: no error, trusted payload
   const token1 = await jwtService2.sign(data1, { expiresAt: null })

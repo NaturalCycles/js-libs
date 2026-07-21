@@ -275,6 +275,25 @@ export class JWTService2<T extends AnyObject = AnyObject> {
   }
 
   /**
+   * Tries to Verify the token, returning an [error, payload] tuple instead of throwing:
+   * - [null, payload] - the token verified, payload can be trusted
+   * - [error, null] - verification failed
+   *
+   * Same contract as tryToVerifyOrDecode, but without the unverified-decode fallback:
+   * the payload is only returned when the token verified.
+   */
+  async tryToVerify<TT extends T = T>(
+    token: JWTString,
+    opt: JWTVerifyOptions<TT> = {},
+  ): Promise<[err: null, payload: TT] | [err: Error, payload: null]> {
+    try {
+      return [null, await this.verify<TT>(token, opt)]
+    } catch (err) {
+      return [err as Error, null]
+    }
+  }
+
+  /**
    * Tries to Verify the token, falling back to unverified Decode on failure,
    * so the caller can "peek" into the token's content even when it doesn't verify.
    *
@@ -293,13 +312,8 @@ export class JWTService2<T extends AnyObject = AnyObject> {
     token: JWTString,
     opt: JWTVerifyOptions<TT> = {},
   ): Promise<[err: null, payload: TT] | [err: Error, payload: TT | null]> {
-    let verifyError: Error
-
-    try {
-      return [null, await this.verify<TT>(token, opt)]
-    } catch (err) {
-      verifyError = err as Error
-    }
+    const [verifyError, payload] = await this.tryToVerify<TT>(token, opt)
+    if (!verifyError) return [null, payload]
 
     // Expired/not-yet-valid errors already carry the (signature-verified) payload
     if (verifyError instanceof JWTExpiredError || verifyError instanceof JWTNotYetValidError) {
