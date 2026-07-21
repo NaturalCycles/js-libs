@@ -4,7 +4,7 @@ catalog:
   '@types/node': ^26
   'typescript': ^7
   oxlint: ^1
-  'oxlint-tsgolint': 0.23.0
+  'oxlint-tsgolint': ^7
 minimumReleaseAgeExclude:
   - '@naturalcycles/*'
   - vitest
@@ -15,6 +15,7 @@ minimumReleaseAgeExclude:
   - oxlint
   - oxlint-tsgolint
   - '@oxlint/*'
+  - '@oxlint-tsgolint/*'
 trustLockfile: true
 trustPolicy: no-downgrade
 trustPolicyExclude:

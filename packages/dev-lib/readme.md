@@ -5,11 +5,7 @@
 
 [![npm](https://img.shields.io/npm/v/@naturalcycles/dev-lib/latest.svg)](https://www.npmjs.com/package/@naturalcycles/dev-lib)
 [![install size](https://packagephobia.now.sh/badge?p=@naturalcycles/dev-lib)](https://packagephobia.now.sh/result?p=@naturalcycles/dev-lib)
-[![Maintainability](https://api.codeclimate.com/v1/badges/7df5e4dc0514ff142b7b/maintainability)](https://codeclimate.com/github/NaturalCycles/dev-lib/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/7df5e4dc0514ff142b7b/test_coverage)](https://codeclimate.com/github/NaturalCycles/dev-lib/test_coverage)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
-[![Known Vulnerabilities](https://snyk.io/package/npm/snyk/badge.svg)](https://snyk.io/package/npm/@naturalcycles/dev-lib)
-[![Actions](https://github.com/NaturalCycles/dev-lib/workflows/default/badge.svg)](https://github.com/NaturalCycles/dev-lib/actions)
 
 ## Tools that dev-lib enables
 
