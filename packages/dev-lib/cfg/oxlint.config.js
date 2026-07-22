@@ -192,7 +192,7 @@ export const sharedConfig = {
     'typescript/no-unnecessary-type-constraint': 2,
     // "typescript/no-unsafe-argument": 2, // looks good, but too strict for now
     // "typescript/no-dynamic-delete": 2,
-    'typescript/prefer-optional-chain': 0, // buggy
+    'typescript/prefer-optional-chain': 2,
     'typescript/non-nullable-type-assertion-style': 2,
     'typescript/prefer-literal-enum-member': 2,
     'typescript/prefer-reduce-type-parameter': 2,

@@ -49,7 +49,7 @@ function describeStatement(node) {
 function isMethodOverload(node) {
   if (!node) return false
   if (node.type !== 'MethodDefinition' && node.type !== 'TSAbstractMethodDefinition') return false
-  return node.value && node.value.type === 'TSEmptyBodyFunctionExpression'
+  return node.value?.type === 'TSEmptyBodyFunctionExpression'
 }
 
 function getInsertionTarget(sourceCode, prevNode, nextNode) {
@@ -86,7 +86,7 @@ function findDecoratorTarget(sourceCode, prevNode, nextNode) {
   const segment = sourceCode.text.slice(prevNode.range[1], nextNode.range[0])
   const decoratorRegex = /(?:^|\n)([ \t]*@)/
   const match = decoratorRegex.exec(segment)
-  if (!match || match.index === undefined) return null
+  if (match?.index === undefined) return null
 
   const relative = match.index + match[0].length - match[1].length
   const absolute = prevNode.range[1] + relative
@@ -98,7 +98,7 @@ function findDocCommentBeforeIndex(sourceCode, prevNode, targetStart) {
 
   const slice = sourceCode.text.slice(prevNode.range[1], targetStart)
   const docMatch = slice.match(/(\/\*\*[\s\S]*?\*\/)([ \t]*\r?\n[ \t]*)?$/)
-  if (!docMatch || docMatch.index === undefined) return null
+  if (docMatch?.index === undefined) return null
 
   const commentStart = prevNode.range[1] + docMatch.index
   return { range: [commentStart, commentStart], loc: null }
@@ -180,7 +180,7 @@ const paddingLineBetweenStatementsRule = {
     }
 
     for (const option of options) {
-      if (!option || option.blankLine !== 'always') continue
+      if (option?.blankLine !== 'always') continue
 
       if (matchesSelector(option.prev, 'function') && matchesSelector(option.next, '*')) {
         requiresBlankLine.afterFunction = true
@@ -271,7 +271,7 @@ const paddingLineBetweenStatementsRule = {
 }
 
 function isSingleLine(node, sourceCode) {
-  if (!node || !node.range) return false
+  if (!node?.range) return false
   const start = sourceCode.getLocFromIndex(node.range[0])
   const endIndex = node.range[1] > node.range[0] ? node.range[1] - 1 : node.range[1]
   const end = sourceCode.getLocFromIndex(endIndex)

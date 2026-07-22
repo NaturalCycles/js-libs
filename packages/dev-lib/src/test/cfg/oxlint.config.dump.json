@@ -401,7 +401,7 @@
     "typescript/prefer-function-type": "deny",
     "typescript/prefer-literal-enum-member": "deny",
     "typescript/prefer-namespace-keyword": "deny",
-    "typescript/prefer-optional-chain": "allow",
+    "typescript/prefer-optional-chain": "deny",
     "typescript/prefer-promise-reject-errors": "deny",
     "typescript/prefer-reduce-type-parameter": "deny",
     "typescript/prefer-string-starts-ends-with": [
