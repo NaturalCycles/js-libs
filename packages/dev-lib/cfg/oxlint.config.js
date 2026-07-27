@@ -93,6 +93,18 @@ export const sharedConfig = {
     'valid-title': 0,
     'vitest/valid-title': 0,
     'valid-describe-callback': 0,
+    // 'id-denylist': [
+    //   0, // actually not useful
+    //   'any',
+    //   'Number',
+    //   'number',
+    //   'String',
+    //   'string',
+    //   'Boolean',
+    //   'boolean',
+    //   'Undefined',
+    //   'undefined',
+    // ],
     'id-match': [
       2,
       '^.+$',

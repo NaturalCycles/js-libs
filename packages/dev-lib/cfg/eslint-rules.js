@@ -156,7 +156,7 @@ export default {
     'for-direction': 2,
     'getter-return': 2,
     'id-denylist': [
-      2,
+      0, // ox
       'any',
       'Number',
       'number',
@@ -167,7 +167,7 @@ export default {
       'Undefined',
       'undefined',
     ],
-    'id-match': 2,
+    'id-match': 0, // ox
     // 'simple-import-sort/imports': [
     //   2,
     //   {

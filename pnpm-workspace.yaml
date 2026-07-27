@@ -37,3 +37,5 @@ allowBuilds:
   esbuild: true
   '@firebase/util': false
   protobufjs: false
+update:
+  githubActions: false
