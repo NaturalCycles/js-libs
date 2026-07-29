@@ -190,11 +190,12 @@
     "import/consistent-type-specifier-style": "deny",
     "import/default": "warn",
     "import/extensions": [
-      "allow",
+      "deny",
       [
         "always",
         {
-          "ignorePackages": true
+          "ignorePackages": true,
+          "checkTypeImports": true
         }
       ]
     ],

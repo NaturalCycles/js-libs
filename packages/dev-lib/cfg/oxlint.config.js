@@ -164,7 +164,7 @@ export const sharedConfig = {
     'guard-for-in': 2,
     'max-params': [2, { max: 5 }],
     'prefer-spread': 2,
-    'import/extensions': [0, 'always', { ignorePackages: true }], // disabled as it's buggy; would be nice to enable eventually
+    'import/extensions': [2, 'always', { ignorePackages: true, checkTypeImports: true }],
     'import/newline-after-import': 2,
     'import/no-amd': 2,
     'import/no-commonjs': 2,
