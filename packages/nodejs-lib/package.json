@@ -22,11 +22,9 @@
   "dependencies": {
     "@naturalcycles/js-lib": "workspace:^15",
     "@standard-schema/spec": "^1",
-    "@types/jsonwebtoken": "^9",
     "ajv": "^8",
     "ansis": "^4",
     "jose": "^6",
-    "jsonwebtoken": "^9",
     "lru-cache": "^11",
     "tinyglobby": "^0.2",
     "tslib": "^2",

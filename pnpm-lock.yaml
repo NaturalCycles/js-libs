@@ -539,9 +539,6 @@ importers:
       '@standard-schema/spec':
         specifier: ^1
         version: 1.1.0
-      '@types/jsonwebtoken':
-        specifier: ^9
-        version: 9.0.10
       ajv:
         specifier: ^8
         version: 8.20.0
@@ -551,9 +548,6 @@ importers:
       jose:
         specifier: ^6
         version: 6.2.4
-      jsonwebtoken:
-        specifier: ^9
-        version: 9.0.3
       lru-cache:
         specifier: ^11
         version: 11.5.2
