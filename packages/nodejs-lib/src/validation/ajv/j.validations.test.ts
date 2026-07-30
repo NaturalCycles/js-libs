@@ -1255,6 +1255,41 @@ describe('string', () => {
     })
   })
 
+  describe('semVer4', () => {
+    test('should accept string with valid 4-part semver', () => {
+      const testCases = ['0.0.0.0', '1.2.3.4', '10.20.30.40']
+      const schema = j.string().semVer4()
+
+      testCases.forEach(semver => {
+        const [err] = schema.getValidationResult(semver)
+        expect(err, semver).toBeNull()
+      })
+    })
+
+    test('should reject string with invalid 4-part semver', () => {
+      const invalidCases: any[] = [
+        '', // empty
+        '1.2.3', // missing part
+        '1.2', // missing part
+        '1', // missing part
+        '1.2.3.4.5', // extra part
+        '1.2.3.', // trailing dot
+        '^1.2.3.4', // still not
+        'abcd', // text
+        0,
+        true,
+        [],
+        {},
+      ]
+      const schema = j.string().semVer4()
+
+      invalidCases.forEach(semver => {
+        const [err] = schema.getValidationResult(semver)
+        expect(err, String(semver)).not.toBeNull()
+      })
+    })
+  })
+
   describe('languageTag', () => {
     test('should accept string with valid languageTag', () => {
       const testCases = ['hu-HU', 'en-US', 'se-SE', 'se']

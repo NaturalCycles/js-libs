@@ -23,6 +23,8 @@ export const IPV6_REGEX =
 export const LANGUAGE_TAG_REGEX = /^[a-z]{2}(-[A-Z]{2})?$/
 export const MAC_ADDRESS_REGEX = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/
 export const SEMVER_REGEX = /^[0-9]+\.[0-9]+\.[0-9]+$/
+// 4-part version (major.minor.patch.build)
+export const SEMVER4_REGEX = /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/
 export const SLUG_REGEX = /^[a-z0-9-]+$/
 // URL regex based on `ajv-formats`, but without flags for JSON Schema compatibility.
 // Uses [a-zA-Z] instead of [a-z] with i flag. Simplified to not require unicode flag.

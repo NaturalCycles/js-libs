@@ -36,6 +36,7 @@ import {
   IPV4_REGEX,
   IPV6_REGEX,
   LANGUAGE_TAG_REGEX,
+  SEMVER4_REGEX,
   SEMVER_REGEX,
   SLUG_REGEX,
   URL_REGEX,
@@ -831,8 +832,20 @@ export class JString<
     return this.regex(SLUG_REGEX, { msg: 'is not a valid slug format' })
   }
 
+  /**
+   * Validates the 3-part semver format: `major.minor.patch`, e.g `1.2.3`.
+   */
   semVer(): this {
     return this.regex(SEMVER_REGEX, { msg: 'is not a valid semver format' })
+  }
+
+  /**
+   * Validates the 4-part version format: `major.minor.patch.build`, e.g `1.2.3.4`.
+   *
+   * Not a semver by the spec, but is used by e.g .NET and some mobile app versions.
+   */
+  semVer4(): this {
+    return this.regex(SEMVER4_REGEX, { msg: 'is not a valid 4-part semver format' })
   }
 
   languageTag(): this {
