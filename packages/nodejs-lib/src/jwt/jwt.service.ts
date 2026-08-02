@@ -379,9 +379,11 @@ export class JWTService<T extends AnyObject = AnyObject> {
     if (err instanceof errors.JOSEError) {
       return new JWTInvalidError(err.message, errorData)
     }
-    if (this.cfg.verifyAlgorithms && err instanceof TypeError) {
+    if (this.cfg.verifyAlgorithms && (err instanceof TypeError || err instanceof DOMException)) {
       // With multiple verifyAlgorithms, a token/key algorithm mismatch is reachable
-      // by untrusted input, and jose reports it as TypeError - treat it as an invalid token
+      // by untrusted input, and jose reports it as TypeError, or (since jose 6.2.6,
+      // which prepares keys via Node's KeyObject.toCryptoKey) as DOMException
+      // "DataError: Invalid key type" - treat it as an invalid token
       return new JWTInvalidError(err.message, errorData)
     }
     return err as Error
