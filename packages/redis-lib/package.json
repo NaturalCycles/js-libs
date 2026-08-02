@@ -14,7 +14,7 @@
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
-    "ioredis": "^5",
+    "ioredis": "^6",
     "tslib": "^2"
   },
   "devDependencies": {
