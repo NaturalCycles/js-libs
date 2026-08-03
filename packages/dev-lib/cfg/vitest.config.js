@@ -81,6 +81,7 @@ export function getSharedConfig(cwd) {
     setupFiles: getSetupFiles(testType, cwd),
     logHeapUsage: true,
     testTimeout: 60_000,
+    hookTimeout: 60_000,
     slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
     sequence: {
       sequencer: VitestAlphabeticSequencer,
