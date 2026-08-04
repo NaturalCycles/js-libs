@@ -15,7 +15,6 @@ test('should call onStats after measureInterval', async () => {
 
   monitor = new EventLoopMonitor({
     measureInterval: 100,
-    resolution: 10,
     onStats: s => stats.push(s),
   })
 
@@ -41,7 +40,6 @@ test('should reset gc counters between intervals', async () => {
 
   monitor = new EventLoopMonitor({
     measureInterval: 50,
-    resolution: 10,
     onStats: s => stats.push(s),
   })
 
@@ -78,7 +76,6 @@ test('stats values should be non-negative', async () => {
 
   monitor = new EventLoopMonitor({
     measureInterval: 50,
-    resolution: 10,
     onStats: s => stats.push(s),
   })
 

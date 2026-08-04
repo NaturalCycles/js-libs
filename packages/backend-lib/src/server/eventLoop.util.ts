@@ -1,4 +1,8 @@
-import type { EventLoopUtilization, IntervalHistogram } from 'node:perf_hooks'
+import type {
+  EventLoopMonitorOptions,
+  EventLoopUtilization,
+  IntervalHistogram,
+} from 'node:perf_hooks'
 import { monitorEventLoopDelay, performance, PerformanceObserver } from 'node:perf_hooks'
 import type {
   Integer,
@@ -30,13 +34,25 @@ import type {
  * Also, monitors GC performance.
  * Once per `measureInterval` sends a callback with stats.
  *
+ * On Node >=24.19 (or >=26.5) delays are sampled once per event loop iteration
+ * (`samplePerIteration`), so stats reflect true per-iteration delay:
+ * expect p50/mean near 0 on a healthy service, instead of the ~`resolution` baseline
+ * reported by older interval-based sampling.
+ *
  * @experimental
  */
 export class EventLoopMonitor {
   constructor(cfg: EventLoopMonitorCfg = {}) {
-    const { resolution = 20, measureInterval = 60_000 } = cfg
+    const { measureInterval = 60_000 } = cfg
 
-    this.eld = monitorEventLoopDelay({ resolution })
+    const eldOptions: EventLoopMonitorOptions2 = {
+      // Node >=24.19 / >=26.5: sample once per event loop iteration (uv_prepare/uv_check hooks),
+      // which measures actual per-iteration delay instead of timer jitter.
+      // More accurate (no `resolution` offset baked into every percentile) and cheaper.
+      // Older Node silently ignores this option and falls back to interval-based sampling.
+      samplePerIteration: true,
+    }
+    this.eld = monitorEventLoopDelay(eldOptions)
     this.eld.enable()
 
     this.lastElu = performance.eventLoopUtilization()
@@ -108,11 +124,6 @@ export class EventLoopMonitor {
 
 export interface EventLoopMonitorCfg {
   /**
-   * Defaults to 20.
-   */
-  resolution?: NumberOfMilliseconds
-
-  /**
    * Defaults to 60_000 ms
    */
   measureInterval?: NumberOfMilliseconds
@@ -155,4 +166,12 @@ export interface EventLoopStats {
    * too "lossy")
    */
   gcCPU: Integer
+}
+
+/**
+ * Extends the Node types with `samplePerIteration` (added in Node 24.19 / 26.5).
+ * Remove once @types/node declares it.
+ */
+interface EventLoopMonitorOptions2 extends EventLoopMonitorOptions {
+  samplePerIteration?: boolean
 }
