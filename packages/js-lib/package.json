@@ -27,11 +27,9 @@
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
-    "@types/crypto-js": "^4",
     "@types/node": "catalog:",
     "@types/semver": "^7",
     "typescript": "catalog:",
-    "crypto-js": "^4",
     "dayjs": "^1"
   },
   "exports": {
