@@ -1105,18 +1105,22 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
         OUT,
         {
           // required keys
-          [K in keyof P as P[K] extends JSchema<any, infer IsOpt>
-            ? IsOpt extends true
-              ? never
-              : K
-            : never]: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
+          [
+            K in keyof P as P[K] extends JSchema<any, infer IsOpt>
+              ? IsOpt extends true
+                ? never
+                : K
+              : never
+          ]: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
         } & {
           // optional keys
-          [K in keyof P as P[K] extends JSchema<any, infer IsOpt>
-            ? IsOpt extends true
-              ? K
+          [
+            K in keyof P as P[K] extends JSchema<any, infer IsOpt>
+              ? IsOpt extends true
+                ? K
+                : never
               : never
-            : never]?: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
+          ]?: P[K] extends JSchema<infer OUT2, any> ? OUT2 : never
         }
       >
     >,
@@ -1185,17 +1189,21 @@ export class JObjectInfer<
 > extends JBuilder<
   Expand<
     {
-      [K in keyof PROPS as PROPS[K] extends JSchema<any, infer IsOpt>
-        ? IsOpt extends true
-          ? never
-          : K
-        : never]: PROPS[K] extends JSchema<infer OUT, any> ? OUT : never
-    } & {
-      [K in keyof PROPS as PROPS[K] extends JSchema<any, infer IsOpt>
-        ? IsOpt extends true
-          ? K
+      [
+        K in keyof PROPS as PROPS[K] extends JSchema<any, infer IsOpt>
+          ? IsOpt extends true
+            ? never
+            : K
           : never
-        : never]?: PROPS[K] extends JSchema<infer OUT, any> ? OUT : never
+      ]: PROPS[K] extends JSchema<infer OUT, any> ? OUT : never
+    } & {
+      [
+        K in keyof PROPS as PROPS[K] extends JSchema<any, infer IsOpt>
+          ? IsOpt extends true
+            ? K
+            : never
+          : never
+      ]?: PROPS[K] extends JSchema<infer OUT, any> ? OUT : never
     }
   >,
   Opt
@@ -2146,13 +2154,15 @@ type StripIndexSignatureDeep<T> = T extends readonly unknown[]
   ? T
   : T extends Record<string, any>
     ? {
-        [K in keyof T as string extends K
-          ? never
-          : number extends K
+        [
+          K in keyof T as string extends K
             ? never
-            : symbol extends K
+            : number extends K
               ? never
-              : K]: StripIndexSignatureDeep<T[K]>
+              : symbol extends K
+                ? never
+                : K
+        ]: StripIndexSignatureDeep<T[K]>
       }
     : T
 

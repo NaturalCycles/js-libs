@@ -57,9 +57,9 @@ export type Except<ObjectType, KeysType extends keyof ObjectType> = {
  * When you use a type that will iterate through an object that has indexed keys and explicitly defined keys you end up with a type where only the indexed keys are kept. This is because `keyof` of an indexed type always returns `string | number | symbol`, because every key is possible in that object. With this type, you can save the indexed keys and reinject them later, like in the second example below.
  */
 export type PickIndexSignature<ObjectType> = {
-  [KeyType in keyof ObjectType as {} extends Record<KeyType, unknown>
-    ? KeyType
-    : never]: ObjectType[KeyType]
+  [
+    KeyType in keyof ObjectType as {} extends Record<KeyType, unknown> ? KeyType : never
+  ]: ObjectType[KeyType]
 }
 
 /**
@@ -73,9 +73,9 @@ export type PickIndexSignature<ObjectType> = {
  * (The actual value type, `unknown`, is irrelevant and could be any type. Only the key type matters.)
  */
 export type OmitIndexSignature<ObjectType> = {
-  [KeyType in keyof ObjectType as {} extends Record<KeyType, unknown>
-    ? never
-    : KeyType]: ObjectType[KeyType]
+  [
+    KeyType in keyof ObjectType as {} extends Record<KeyType, unknown> ? never : KeyType
+  ]: ObjectType[KeyType]
 }
 
 /**
