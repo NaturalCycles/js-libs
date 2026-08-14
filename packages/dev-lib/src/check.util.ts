@@ -34,6 +34,7 @@ const { CI } = process.env
 
 /**
  * Every boolean defaults to true, so, by default - everything is being run.
+ * Exception: typecheck is off, since it's covered by oxlint typechecking.
  * Pass false to skip it.
  */
 export interface CheckOptions {
@@ -58,7 +59,7 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
     stylelint = true,
     oxfmt = true,
     ktlint = true,
-    typecheck = true,
+    typecheck = false,
     test = true,
   } = opt
   const started = Date.now() as UnixTimestampMillis
