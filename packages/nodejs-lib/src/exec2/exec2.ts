@@ -332,7 +332,13 @@ class Exec2 {
     started: UnixTimestampMillis,
     isSuccessful: boolean,
   ): void {
-    if (isSuccessful && !opt.logFinish) return
+    if (!opt.logFinish) {
+      if (isSuccessful) return
+      // Failures are logged even with logFinish: false,
+      // unless explicitly silenced with `log: false`
+      // (e.g when the caller buffers the output to print it later, like runCheck does)
+      if (opt.log === false) return
+    }
 
     console.log(
       [
