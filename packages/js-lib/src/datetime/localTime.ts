@@ -1,5 +1,6 @@
 import { comparators } from '../array/sort.js'
 import { _assert } from '../error/assert.js'
+import { Intl2 } from '../intl/intl.js'
 import type {
   IANATimezone,
   Inclusiveness,
@@ -108,15 +109,7 @@ export class LocalTime {
    * @experimental
    */
   inTimezone(tz: IANATimezone): WallTime {
-    const d = new Date(this.$date.toLocaleString('en-US', { timeZone: tz }))
-    return new WallTime({
-      year: d.getFullYear(),
-      month: d.getMonth() + 1,
-      day: d.getDate(),
-      hour: d.getHours(),
-      minute: d.getMinutes(),
-      second: d.getSeconds(),
-    })
+    return new WallTime(getWallComponentsInTimezone(this.$date, tz))
   }
 
   /**
@@ -136,8 +129,13 @@ export class LocalTime {
   getUTCOffsetMinutes(tz?: IANATimezone): NumberOfMinutes {
     if (tz) {
       // based on: https://stackoverflow.com/a/53652131/4919972
+      // The wall clock in `tz` is interpreted as UTC (not as host-local time, like the
+      // stackoverflow answer does): `wall = utc + offset`, so `offset = Date.UTC(wall) - now`.
+      // This makes the result independent of the host timezone (the host-local interpretation
+      // returned offsets relative to the host, and was distorted by the host's DST gaps).
       const nowTime = this.$date.getTime()
-      const tzTime = new Date(this.$date.toLocaleString('en-US', { timeZone: tz })).getTime()
+      const { year, month, day, hour, minute, second } = getWallComponentsInTimezone(this.$date, tz)
+      const tzTime = Date.UTC(year, month - 1, day, hour, minute, second)
       return Math.round((tzTime - nowTime) / 60000) || 0
     }
 
@@ -163,10 +161,12 @@ export class LocalTime {
    */
   getUTCOffsetString(tz: IANATimezone): string {
     const minutes = this.getUTCOffsetMinutes(tz)
-    const hours = Math.trunc(minutes / 60)
-    const sign = hours < 0 ? '-' : '+'
-    const h = String(Math.abs(hours)).padStart(2, '0')
-    const m = String(minutes % 60).padStart(2, '0')
+    // Sign is taken from minutes (not truncated hours), and minutes are abs-ed,
+    // so negative fractional offsets like Newfoundland -03:30 don't render as `-03:-30`
+    const sign = minutes < 0 ? '-' : '+'
+    const absMinutes = Math.abs(minutes)
+    const h = String(Math.trunc(absMinutes / 60)).padStart(2, '0')
+    const m = String(absMinutes % 60).padStart(2, '0')
     return `${sign}${h}:${m}`
   }
 
@@ -1163,6 +1163,41 @@ function differenceInMonths(a: Date, b: Date): number {
   const sign = b.getTime() - anchor >= 0 ? 1 : -1
   const anchor2 = addMonths(a, wholeMonthDiff + sign).getTime()
   return -(wholeMonthDiff + ((b.getTime() - anchor) / (anchor2 - anchor)) * sign)
+}
+
+const dateTimeObjectKeys = new Set<keyof DateTimeObject>([
+  'year',
+  'month',
+  'day',
+  'hour',
+  'minute',
+  'second',
+])
+
+// Intl.DateTimeFormat construction is expensive (~30µs), while a cached formatter
+// (via Intl2) converts in ~3µs. Unlike `date.toLocaleString(...)` + `new Date(string)`
+// round-trip, formatToParts is also immune to the host timezone's DST gaps.
+function getWallComponentsInTimezone(date: Date, tz: IANATimezone): DateTimeObject {
+  const fmt = Intl2.DateTimeFormat('en-US', {
+    timeZone: tz,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hourCycle: 'h23',
+  })
+
+  const dto = {} as DateTimeObject
+
+  for (const { type, value } of fmt.formatToParts(date)) {
+    if (dateTimeObjectKeys.has(type as keyof DateTimeObject)) {
+      dto[type as keyof DateTimeObject] = Number(value)
+    }
+  }
+
+  return dto
 }
 
 interface LocalTimeFn extends LocalTimeFactory {

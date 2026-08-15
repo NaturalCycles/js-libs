@@ -670,6 +670,93 @@ test('inTimezone', () => {
   expect(lt2.inTimezone('Asia/Tokyo' as IANATimezone).toPretty()).toBe(`1984-02-15 06:00:00`)
 })
 
+test('inTimezone across DST transitions of the target timezone', () => {
+  // America/New_York springs forward 2025-03-09: 02:00 EST -> 03:00 EDT
+  expect(
+    localTime(1741503540 as UnixTimestamp) // 2025-03-09T06:59:00Z
+      .inTimezone('America/New_York' as IANATimezone)
+      .toPretty(),
+  ).toBe('2025-03-09 01:59:00')
+  expect(
+    localTime(1741503600 as UnixTimestamp) // 2025-03-09T07:00:00Z
+      .inTimezone('America/New_York' as IANATimezone)
+      .toPretty(),
+  ).toBe('2025-03-09 03:00:00')
+
+  // America/New_York falls back 2025-11-02: 02:00 EDT -> 01:00 EST (01:30 occurs twice)
+  expect(
+    localTime(1762061400 as UnixTimestamp) // 2025-11-02T05:30:00Z
+      .inTimezone('America/New_York' as IANATimezone)
+      .toPretty(),
+  ).toBe('2025-11-02 01:30:00')
+  expect(
+    localTime(1762065000 as UnixTimestamp) // 2025-11-02T06:30:00Z
+      .inTimezone('America/New_York' as IANATimezone)
+      .toPretty(),
+  ).toBe('2025-11-02 01:30:00')
+})
+
+test('inTimezone around midnight', () => {
+  // Midnight must render as hour 0 (not 24), and roll the date over
+  expect(
+    localTime(1750543200 as UnixTimestamp) // 2025-06-21T22:00:00Z
+      .inTimezone('Europe/Stockholm' as IANATimezone)
+      .toPretty(),
+  ).toBe('2025-06-22 00:00:00')
+})
+
+test('inTimezone with fractional-offset timezones', () => {
+  // Asia/Kolkata is UTC+5:30.
+  // This wall time also falls into Europe/Stockholm's 2025-03-30 02:00->03:00 DST gap:
+  // the previous implementation was corrupted by the *host* timezone's DST gap
+  // (returning 03:04:20 when run on a CET host), so this also acts as a regression test.
+  expect(
+    localTime(1743280460 as UnixTimestamp) // 2025-03-29T20:34:20Z
+      .inTimezone('Asia/Kolkata' as IANATimezone)
+      .toPretty(),
+  ).toBe('2025-03-30 02:04:20')
+
+  // Australia/Lord_Howe: UTC+11:00 in (southern) summer, UTC+10:30 in winter
+  expect(
+    localTime(1736942400 as UnixTimestamp) // 2025-01-15T12:00:00Z
+      .inTimezone('Australia/Lord_Howe' as IANATimezone)
+      .toPretty(),
+  ).toBe('2025-01-15 23:00:00')
+  expect(
+    localTime(1752580800 as UnixTimestamp) // 2025-07-15T12:00:00Z
+      .inTimezone('Australia/Lord_Howe' as IANATimezone)
+      .toPretty(),
+  ).toBe('2025-07-15 22:30:00')
+})
+
+test('getUTCOffsetMinutes across DST and fractional offsets', () => {
+  const jan = localTime(1736942400 as UnixTimestamp) // 2025-01-15T12:00:00Z
+  const jul = localTime(1752580800 as UnixTimestamp) // 2025-07-15T12:00:00Z
+
+  // Whole-hour DST pair
+  expect(jan.getUTCOffsetMinutes('America/New_York' as IANATimezone)).toBe(-5 * 60)
+  expect(jul.getUTCOffsetMinutes('America/New_York' as IANATimezone)).toBe(-4 * 60)
+
+  // Fractional offsets, including 30-minute DST shift of Lord Howe
+  expect(jan.getUTCOffsetMinutes('Asia/Kolkata' as IANATimezone)).toBe(330)
+  expect(jan.getUTCOffsetMinutes('Asia/Kathmandu' as IANATimezone)).toBe(345)
+  expect(jan.getUTCOffsetMinutes('Australia/Lord_Howe' as IANATimezone)).toBe(660)
+  expect(jul.getUTCOffsetMinutes('Australia/Lord_Howe' as IANATimezone)).toBe(630)
+  expect(jan.getUTCOffsetMinutes('Pacific/Chatham' as IANATimezone)).toBe(825)
+  expect(jul.getUTCOffsetMinutes('Pacific/Chatham' as IANATimezone)).toBe(765)
+  expect(jan.getUTCOffsetMinutes('America/St_Johns' as IANATimezone)).toBe(-210)
+  expect(jul.getUTCOffsetMinutes('America/St_Johns' as IANATimezone)).toBe(-150)
+})
+
+test('getUTCOffsetString with fractional offsets', () => {
+  const jan = localTime(1736942400 as UnixTimestamp) // 2025-01-15T12:00:00Z
+  expect(jan.getUTCOffsetString('Asia/Kolkata' as IANATimezone)).toBe('+05:30')
+  expect(jan.getUTCOffsetString('Asia/Kathmandu' as IANATimezone)).toBe('+05:45')
+  expect(jan.getUTCOffsetString('Pacific/Chatham' as IANATimezone)).toBe('+13:45')
+  // Negative fractional offset used to render as `-03:-30`
+  expect(jan.getUTCOffsetString('America/St_Johns' as IANATimezone)).toBe('-03:30')
+})
+
 // This test should work both in `yarn test` (UTC) and `yarn test-tz2` (JST-09)
 test('parsing date string in negative timezone bug', () => {
   const s = '2023-03-03' as IsoDate
