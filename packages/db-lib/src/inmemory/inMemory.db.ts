@@ -3,11 +3,15 @@ import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _deepCopy, _sortObjectDeep } from '@naturalcycles/js-lib/object'
 import { _stringMapEntries, _stringMapValues } from '@naturalcycles/js-lib/types'
-import type { AnyObjectWithId, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import type {
+  AnyObject,
+  AnyObjectWithId,
+  ObjectWithId,
+  StringMap,
+} from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { generateJsonSchemaFromData } from '@naturalcycles/nodejs-lib/ajv'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
-import { bufferReviver } from '@naturalcycles/nodejs-lib/stream/ndjson/transformJsonParse.js'
 import type { CommonDB, CommonDBSupport } from '../commondb/common.db.js'
 import { commonDBFullSupport, CommonDBType } from '../commondb/common.db.js'
 import type {
@@ -174,10 +178,7 @@ export class InMemoryDB implements CommonDB {
         throw new Error(`InMemoryDB: UPDATE failed, entity doesn't exist: ${table}.${r.id}`)
       }
 
-      // JSON parse/stringify (deep clone) is to:
-      // 1. Not store values "by reference" (avoid mutation bugs)
-      // 2. Simulate real DB that would do something like that in a transport layer anyway
-      this.data[table][r.id] = JSON.parse(JSON.stringify(r), bufferReviver)
+      this.data[table][r.id] = deepCloneRow(r)
     }
   }
 
@@ -198,10 +199,10 @@ export class InMemoryDB implements CommonDB {
   ): Promise<void> {
     const table = this.cfg.tablesPrefix + _table
     _assert(
-      !this.data[table]?.[id],
+      this.data[table]?.[id],
       `InMemoryDB: patchById failed, entity doesn't exist: ${table}.${id}`,
     )
-    Object.assign(this.data[table]![id]!, patch)
+    Object.assign(this.data[table][id], deepCloneRow(patch))
   }
 
   async deleteByQuery<ROW extends ObjectWithId>(
@@ -407,4 +408,34 @@ export class InMemoryDBTransaction implements DBTransaction {
   async rollback(): Promise<void> {
     this.ops = []
   }
+}
+
+/**
+ * JSON parse/stringify (deep clone) is to:
+ * 1. Not store values "by reference" (avoid mutation bugs)
+ * 2. Simulate real DB that would do something like that in a transport layer anyway
+ *
+ * Buffers (e.g CommonDao `__compressed`) need special treatment: passing them through JSON
+ * (Buffer.toJSON => `{type: 'Buffer', data: [...bytes]}` => reviver)
+ * turns every byte into a JSON number and a reviver call — ~90ms for a single 300KB buffer.
+ * Instead, top-level Buffer fields are excluded from the JSON round-trip and copied directly.
+ *
+ * Known accepted limitation: only top-level Buffer fields are preserved as Buffers.
+ * A Buffer nested deeper goes through the JSON round-trip and is stored in its
+ * (slow to serialize) json form `{type: 'Buffer', data: [...bytes]}` — same as a real
+ * JSON transport layer without a reviver would do.
+ */
+function deepCloneRow<T extends AnyObject>(row: T): T {
+  let bufferKeys: string[] | undefined
+  for (const key of Object.keys(row)) {
+    if (Buffer.isBuffer(row[key])) (bufferKeys ||= []).push(key)
+  }
+
+  if (!bufferKeys) return JSON.parse(JSON.stringify(row))
+
+  const src: AnyObject = { ...row }
+  for (const key of bufferKeys) src[key] = undefined // JSON.stringify omits undefined values
+  const clone = JSON.parse(JSON.stringify(src))
+  for (const key of bufferKeys) clone[key] = Buffer.from(row[key])
+  return clone
 }
