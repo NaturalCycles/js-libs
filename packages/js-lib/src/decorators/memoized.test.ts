@@ -1,5 +1,5 @@
 import { beforeEach, expect, test } from 'vitest'
-import { _memoFn } from './memoFn.js'
+import { _memoized } from './memoized.js'
 
 let calledTimes = 0
 
@@ -9,7 +9,7 @@ function fnOrig(n = 1): number {
   return n * 2
 }
 
-const fn = _memoFn(fnOrig)
+const fn = _memoized(fnOrig)
 
 beforeEach(() => {
   calledTimes = 0

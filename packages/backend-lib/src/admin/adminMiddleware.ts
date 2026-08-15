@@ -1,4 +1,4 @@
-import { _memoFn } from '@naturalcycles/js-lib/decorators/memoFn.js'
+import { _memoized } from '@naturalcycles/js-lib/decorators'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { srcDir } from '../paths.cnst.js'
@@ -114,7 +114,7 @@ export function loginHtml(firebaseServiceCfg: FirebaseSharedServiceCfg): Backend
   }
 }
 
-const getLoginHtml = _memoFn((cfg: LoginHtmlCfg) => {
+const getLoginHtml = _memoized((cfg: LoginHtmlCfg) => {
   console.log(`reading login.html`)
   return fs2
     .readText(`${srcDir}/admin/login.html`)

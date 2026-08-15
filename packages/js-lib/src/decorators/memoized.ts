@@ -11,10 +11,8 @@ export interface MemoizedFunction {
  * Only supports Sync functions.
  * To support Async functions - use _memoFnAsync.
  * Technically, you can use it with Async functions, but it'll return the Promise without awaiting it.
- *
- * @experimental
  */
-export function _memoFn<FN extends AnyFunction>(
+export function _memoized<FN extends AnyFunction>(
   fn: FN,
   opt: MemoOptions<FN> = {},
 ): FN & MemoizedFunction {

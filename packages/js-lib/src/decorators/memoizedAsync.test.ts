@@ -1,6 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 import { MapAsyncMemoCache } from './memo.util.js'
-import { _memoFnAsync } from './memoFnAsync.js'
+import { _memoizedAsync } from './memoizedAsync.js'
 
 let calledTimes = 0
 
@@ -10,7 +10,7 @@ async function fnOrig(n = 1): Promise<number> {
   return n * 2
 }
 
-const fn = _memoFnAsync(fnOrig, {
+const fn = _memoizedAsync(fnOrig, {
   cacheFactory: () => new MapAsyncMemoCache(),
 })
 

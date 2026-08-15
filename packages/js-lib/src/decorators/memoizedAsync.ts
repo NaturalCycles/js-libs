@@ -8,10 +8,7 @@ export interface MemoizedAsyncFunction {
   cache: AsyncMemoCache
 }
 
-/**
- * @experimental
- */
-export function _memoFnAsync<FN extends AnyAsyncFunction>(
+export function _memoizedAsync<FN extends AnyAsyncFunction>(
   fn: FN,
   opt: AsyncMemoOptions<FN>,
 ): FN & MemoizedAsyncFunction {
