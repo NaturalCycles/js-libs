@@ -16,9 +16,50 @@
 
 export type UADeviceType = 'console' | 'mobile' | 'tablet' | 'smarttv' | 'wearable' | 'embedded'
 
+/**
+ * Popular OS names as produced by the parser, for convenient comparisons
+ * (`os.name === UAOSName.iOS`) without magic strings.
+ *
+ * Not exhaustive - the parser emits many more names; compare against a string for the rest.
+ */
+export enum UAOSName {
+  iOS = 'iOS',
+  Android = 'Android',
+  MacOS = 'Mac OS',
+  Windows = 'Windows',
+  Linux = 'Linux',
+  ChromiumOS = 'Chromium OS',
+  WatchOS = 'watchOS',
+}
+
+/**
+ * Popular browser names as produced by the parser, for convenient comparisons
+ * (`browser.name === UABrowserName.Safari`) without magic strings.
+ *
+ * Not exhaustive - the parser emits many more names; compare against a string for the rest.
+ */
+export enum UABrowserName {
+  Chrome = 'Chrome',
+  ChromeWebView = 'Chrome WebView',
+  ChromeHeadless = 'Chrome Headless',
+  Safari = 'Safari',
+  MobileSafari = 'Mobile Safari',
+  Firefox = 'Firefox',
+  Edge = 'Edge',
+  Opera = 'Opera',
+  SamsungInternet = 'Samsung Internet',
+  Facebook = 'Facebook',
+  Instagram = 'Instagram',
+  /**
+   * Bare WebKit UA without a Safari token, typically an iOS in-app webview (e.g. WKWebView).
+   */
+  WebKit = 'WebKit',
+}
+
 export interface UABrowser {
   /**
    * E.g Chrome, Edge, Firefox, Safari, Mobile Safari, Opera, IE, UCBrowser, WeChat, ...
+   * Popular values are available as `UABrowserName`.
    */
   name: string | undefined
   version: string | undefined
@@ -59,6 +100,7 @@ export interface UAEngine {
 export interface UAOS {
   /**
    * E.g Windows, iOS, Mac OS, Android, Linux, Chromium OS, ...
+   * Popular values are available as `UAOSName`.
    */
   name: string | undefined
   version: string | undefined
@@ -125,6 +167,10 @@ export function parseUserAgent(userAgent?: string, extensions?: UAParserExtensio
   return new UAParser(userAgent, extensions).getResult()
 }
 
+export function uaParser(userAgent?: string, extensions?: UAParserExtensions): UAParser {
+  return new UAParser(userAgent, extensions)
+}
+
 /**
  * User-Agent parser.
  *
@@ -133,14 +179,7 @@ export function parseUserAgent(userAgent?: string, extensions?: UAParserExtensio
  * and reusing the compiled extensions across multiple `setUA()` calls.
  */
 export class UAParser {
-  constructor(ua?: string, extensions?: UAParserExtensions)
-  constructor(extensions: UAParserExtensions)
-  constructor(ua?: string | UAParserExtensions, extensions?: UAParserExtensions) {
-    if (typeof ua === 'object' && ua !== null) {
-      extensions = ua
-      ua = undefined
-    }
-
+  constructor(ua?: string, extensions?: UAParserExtensions) {
     this.nav = typeof globalThis.window !== 'undefined' ? globalThis.navigator : undefined
     this.rgxMap = extensions ? extend(regexes, extensions) : regexes
     const initialUa = ua || this.nav?.userAgent || ''
@@ -154,6 +193,11 @@ export class UAParser {
   private readonly nav: UaNavigator | undefined
   private readonly rgxMap: UARegexMaps
   private readonly isSelfNav: boolean
+  // Lazily cached results shared by the is* helpers (so multiple checks cost one parse),
+  // reset by setUA(). The get* methods deliberately stay uncached and return fresh objects.
+  private cachedBrowser?: UABrowser
+  private cachedOs?: UAOS
+  private cachedDevice?: UADevice
 
   getBrowser(): UABrowser {
     const browser: UABrowser = { name: undefined, version: undefined, major: undefined }
@@ -225,7 +269,75 @@ export class UAParser {
   setUA(ua: string | undefined): this {
     ua ||= ''
     this.ua = ua.length > UA_MAX_LENGTH ? ua.replace(/^\s\s*/, '').slice(0, UA_MAX_LENGTH) : ua
+    this.cachedBrowser = this.cachedOs = this.cachedDevice = undefined
     return this
+  }
+
+  /**
+   * True if the OS is iOS.
+   * Note: desktop-mode iPads send a Mac-like UA and are not detected as iOS
+   * (except when parsing the browser's own UA, where client-hints refinements apply).
+   */
+  isIos(): boolean {
+    return this.os().name === UAOSName.iOS
+  }
+
+  isAndroid(): boolean {
+    return this.os().name === UAOSName.Android
+  }
+
+  isMacOs(): boolean {
+    return this.os().name === UAOSName.MacOS
+  }
+
+  isWindows(): boolean {
+    return this.os().name === UAOSName.Windows
+  }
+
+  /**
+   * True for 'Chrome', 'Chrome WebView' and 'Chrome Headless' (not for Chromium).
+   */
+  isChrome(): boolean {
+    return !!this.browser().name?.startsWith(UABrowserName.Chrome)
+  }
+
+  /**
+   * True for 'Safari' and 'Mobile Safari' (not for bare-WebKit iOS in-app webviews).
+   */
+  isSafari(): boolean {
+    const { name } = this.browser()
+    return name === UABrowserName.Safari || name === UABrowserName.MobileSafari
+  }
+
+  isFirefox(): boolean {
+    return this.browser().name === UABrowserName.Firefox
+  }
+
+  isEdge(): boolean {
+    return this.browser().name === UABrowserName.Edge
+  }
+
+  /**
+   * True if the device type is 'mobile' (phones; tablets are 'tablet' - see isTablet).
+   */
+  isMobile(): boolean {
+    return this.device().type === MOBILE
+  }
+
+  isTablet(): boolean {
+    return this.device().type === TABLET
+  }
+
+  private browser(): UABrowser {
+    return (this.cachedBrowser ??= this.getBrowser())
+  }
+
+  private os(): UAOS {
+    return (this.cachedOs ??= this.getOS())
+  }
+
+  private device(): UADevice {
+    return (this.cachedDevice ??= this.getDevice())
   }
 }
 
@@ -384,9 +496,9 @@ const ASUS = 'ASUS'
 const BLACKBERRY = 'BlackBerry'
 const BROWSER = 'Browser'
 const SUFFIX_BROWSER = ' Browser'
-const CHROME = 'Chrome'
-const EDGE = 'Edge'
-const FIREFOX = 'Firefox'
+const CHROME = UABrowserName.Chrome
+const EDGE = UABrowserName.Edge
+const FIREFOX = UABrowserName.Firefox
 const GOOGLE = 'Google'
 const HONOR = 'Honor'
 const HUAWEI = 'Huawei'
@@ -396,16 +508,16 @@ const MICROSOFT = 'Microsoft'
 const MOTOROLA = 'Motorola'
 const NVIDIA = 'Nvidia'
 const ONEPLUS = 'OnePlus'
-const OPERA = 'Opera'
+const OPERA = UABrowserName.Opera
 const OPPO = 'OPPO'
 const SAMSUNG = 'Samsung'
 const SHARP = 'Sharp'
 const SONY = 'Sony'
 const XIAOMI = 'Xiaomi'
 const ZEBRA = 'Zebra'
-const FACEBOOK = 'Facebook'
-const CHROMIUM_OS = 'Chromium OS'
-const MAC_OS = 'Mac OS'
+const FACEBOOK = UABrowserName.Facebook
+const CHROMIUM_OS = UAOSName.ChromiumOS
+const MAC_OS = UAOSName.MacOS
 
 ///////////////
 // String maps
@@ -449,11 +561,11 @@ const regexes: UARegexMaps = {
     [
       /\b(?:crmo|crios)\/([\w\.]+)/i, // Chrome for Android/iOS
     ],
-    [VERSION, [NAME, 'Chrome']],
+    [VERSION, [NAME, CHROME]],
     [
       /edg(?:e|ios|a)?\/([\w\.]+)/i, // Microsoft Edge
     ],
-    [VERSION, [NAME, 'Edge']],
+    [VERSION, [NAME, EDGE]],
     [
       // Presto based
       /(opera mini)\/([-\w\.]+)/i, // Opera Mini
@@ -576,7 +688,7 @@ const regexes: UARegexMaps = {
     [
       /samsungbrowser\/([\w\.]+)/i, // Samsung Internet
     ],
-    [VERSION, [NAME, SAMSUNG + ' Internet']],
+    [VERSION, [NAME, UABrowserName.SamsungInternet]],
     [
       /metasr[\/ ]?([\d\.]+)/i, // Sogou Explorer
     ],
@@ -629,11 +741,11 @@ const regexes: UARegexMaps = {
     [
       /headlesschrome(?:\/([\w\.]+)| )/i, // Chrome Headless
     ],
-    [VERSION, [NAME, CHROME + ' Headless']],
+    [VERSION, [NAME, UABrowserName.ChromeHeadless]],
     [
       / wv\).+(chrome)\/([\w\.]+)/i, // Chrome WebView
     ],
-    [[NAME, CHROME + ' WebView'], VERSION],
+    [[NAME, UABrowserName.ChromeWebView], VERSION],
     [
       /droid.+ version\/([\w\.]+)\b.+(?:mobile safari|safari)/i, // Android Browser
     ],
@@ -645,7 +757,7 @@ const regexes: UARegexMaps = {
     [
       /version\/([\w\.\,]+) .*mobile\/\w+ (safari)/i, // Mobile Safari
     ],
-    [VERSION, [NAME, 'Mobile Safari']],
+    [VERSION, [NAME, UABrowserName.MobileSafari]],
     [
       /version\/([\w(\.|\,)]+) .*(mobile ?safari|safari)/i, // Safari & Safari Mobile
     ],
@@ -1372,7 +1484,7 @@ const regexes: UARegexMaps = {
     ],
     [
       [VERSION, strMapper, windowsVersionMap],
-      [NAME, 'Windows'],
+      [NAME, UAOSName.Windows],
     ],
     [
       // iOS/macOS
@@ -1382,7 +1494,7 @@ const regexes: UARegexMaps = {
     ],
     [
       [VERSION, /_/g, '.'],
-      [NAME, 'iOS'],
+      [NAME, UAOSName.iOS],
     ],
     [
       /(mac os x) ?([\w\. ]*)/i,
@@ -1426,7 +1538,7 @@ const regexes: UARegexMaps = {
     [
       /watch(?: ?os[,\/]|\d,\d\/)([\d\.]+)/i, // watchOS
     ],
-    [VERSION, [NAME, 'watchOS']],
+    [VERSION, [NAME, UAOSName.WatchOS]],
     [
       // Google Chromecast
       /crkey\/([\d\.]+)/i, // Google Chromecast
