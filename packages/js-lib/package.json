@@ -59,7 +59,8 @@
     "./semver": "./dist/semver.js",
     "./string": "./dist/string/index.js",
     "./string/*.js": "./dist/string/*.js",
-    "./types": "./dist/types.js"
+    "./types": "./dist/types.js",
+    "./ua": "./dist/ua/ua.js"
   },
   "files": [
     "dist",
