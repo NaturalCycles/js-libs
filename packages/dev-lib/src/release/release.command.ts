@@ -49,8 +49,7 @@ export async function releaseCommand(): Promise<void> {
 
   const { release: cfg = {} } = await readDevLibConfigIfPresent()
   const stableBranches = cfg.branches || ['main', 'master']
-  const prereleaseBranches = cfg.prereleaseBranches || ['beta-*']
-  const successComments = cfg.successComments !== false
+  const { prereleaseBranches = ['beta-*'], successComments = false } = cfg
 
   const repo = getRepoInfo()
   const branch = getCurrentBranch()

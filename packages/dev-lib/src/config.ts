@@ -62,7 +62,7 @@ export interface DevLibReleaseConfig {
   prereleaseBranches?: string[]
   /**
    * Post a ":tada: This PR is included in <release>" comment on each released PR.
-   * Defaults to true.
+   * Defaults to false.
    */
   successComments?: boolean
 }
