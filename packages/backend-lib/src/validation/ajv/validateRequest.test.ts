@@ -53,14 +53,16 @@ describe('ajvValidateRequest', () => {
             "fingerprint": "request.body.pw minLength:8",
             "inputName": "request.body",
           },
-          "message": "request.body.pw must NOT have fewer than 8 characters, got: REDACTED
+          "message": "request.body.pw must NOT have fewer than 8 characters
+        Got: REDACTED
         Input: { pw: 'REDACTED' }",
           "name": "AppError",
         }
       `)
 
       expect(_inspect(err.cause)).toMatchInlineSnapshot(`
-        "AppError: request.body.pw must NOT have fewer than 8 characters, got: REDACTED
+        "AppError: request.body.pw must NOT have fewer than 8 characters
+        Got: REDACTED
         Input: { pw: 'REDACTED' }"
       `)
     })
@@ -260,7 +262,8 @@ describe('ajvValidateRequest', () => {
 
       expect(response.message).toMatchInlineSnapshot(`"400 GET /?algoVariant=3"`)
       expect(response.cause.message).toMatchInlineSnapshot(`
-        "request.query.algoVariant must be equal to one of the allowed values, got: 3
+        "request.query.algoVariant must be equal to one of the allowed values
+        Got: 3
         Input: { algoVariant: '3' }"
       `)
     })
@@ -309,7 +312,8 @@ describe('ajvValidateRequest', () => {
 
       expect(response.message).toMatchInlineSnapshot(`"400 GET /3"`)
       expect(response.cause.message).toMatchInlineSnapshot(`
-        "request.params.algoVariant must be equal to one of the allowed values, got: 3
+        "request.params.algoVariant must be equal to one of the allowed values
+        Got: 3
         Input: { algoVariant: '3' }"
       `)
     })

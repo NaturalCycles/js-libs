@@ -649,7 +649,8 @@ test('ajvSchema', async () => {
   )
   expect(err).toBeInstanceOf(AjvValidationError)
   expect(err).toMatchInlineSnapshot(`
-    [AjvValidationError: TEST_TABLE.id123.k1 must be string, got: 5
+    [AjvValidationError: TEST_TABLE.id123.k1 must be string
+    Got: 5
     Input: { id: 'id123', k1: 5, created: 1529539200, updated: 1529539200 }]
   `)
 
