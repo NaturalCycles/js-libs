@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest'
 import { _omit } from '../object/index.js'
+import { _stringify } from '../string/stringify.js'
 import { expectResults } from '../test/test.util.js'
 import {
   _anyToError,
@@ -146,6 +147,25 @@ test('isHttpRequestErrorObject', () => {
 
 test('isHttpErrorResponse', () => {
   expectResults(v => _isBackendErrorResponseObject(v), anyItems).toMatchSnapshot()
+})
+
+test('duck-typing checks should not throw on objects with throwing property getters', () => {
+  for (const prop of ['name', 'message', 'error', 'data']) {
+    const o = {}
+    Object.defineProperty(o, prop, {
+      get() {
+        throw new Error(`${prop} getter throws`)
+      },
+      enumerable: true,
+    })
+
+    expect(_isErrorLike(o)).toBe(false)
+    expect(_isErrorObject(o)).toBe(false)
+    expect(_isBackendErrorResponseObject(o)).toBe(false)
+    expect(_isHttpRequestErrorObject(o)).toBe(false)
+    // _stringify should live up to its "Safe (no error throwing)" contract
+    expect(_stringify(o)).toBe('[object Object]')
+  }
 })
 
 test('_errorObjectToError should not repack if already same error', () => {

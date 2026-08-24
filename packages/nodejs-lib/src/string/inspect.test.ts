@@ -8,6 +8,19 @@ test('_inspect', () => {
   expectResults(v => _inspect(v), mockAllKindsOfThings()).toMatchSnapshot()
 })
 
+test('_inspect should not throw on an object with a throwing getter named like an Error field', () => {
+  const obj = {}
+  Object.defineProperty(obj, 'name', {
+    get() {
+      throw new Error('name getter throws')
+    },
+    enumerable: true,
+  })
+
+  // util.inspect never invokes getters - it renders them as [Getter]
+  expect(_inspect(obj)).toBe('{ name: [Getter] }')
+})
+
 test('_inspect maxLen', () => {
   const obj = _range(1, 1000).join(',')
   expect(_inspect(obj, { maxLen: 100 })).toMatchInlineSnapshot(`

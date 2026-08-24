@@ -226,12 +226,26 @@ export function _errorSnippet(err: any, opt: ErrorSnippetOptions = {}): string {
   }
 }
 
+// These duck-typing checks read properties of an arbitrary object, which may invoke its
+// property getters, which may throw (e.g a stateful getter, a Proxy trap).
+// A type guard should never throw - an object whose properties cannot even be read safely
+// is, by definition, not a well-behaved Error-like - hence try/catch returning false.
+// try/catch is free in V8 unless it actually catches, so there's no performance penalty.
+
 export function _isBackendErrorResponseObject(o: any): o is BackendErrorResponseObject {
-  return _isErrorObject(o?.error)
+  try {
+    return _isErrorObject(o?.error)
+  } catch {
+    return false
+  }
 }
 
 export function _isHttpRequestErrorObject(o: any): o is ErrorObject<HttpRequestErrorData> {
-  return !!o && o.name === 'HttpRequestError' && typeof o.data?.requestUrl === 'string'
+  try {
+    return !!o && o.name === 'HttpRequestError' && typeof o.data?.requestUrl === 'string'
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -240,17 +254,27 @@ export function _isHttpRequestErrorObject(o: any): o is ErrorObject<HttpRequestE
 export function _isErrorObject<DATA_TYPE extends ErrorData = ErrorData>(
   o: any,
 ): o is ErrorObject<DATA_TYPE> {
-  return (
-    !!o &&
-    typeof o === 'object' &&
-    typeof o.name === 'string' &&
-    typeof o.message === 'string' &&
-    typeof o.data === 'object'
-  )
+  try {
+    return (
+      !!o &&
+      typeof o === 'object' &&
+      typeof o.name === 'string' &&
+      typeof o.message === 'string' &&
+      typeof o.data === 'object'
+    )
+  } catch {
+    return false
+  }
 }
 
 export function _isErrorLike(o: any): o is ErrorLike {
-  return !!o && typeof o === 'object' && typeof o.name === 'string' && typeof o.message === 'string'
+  try {
+    return (
+      !!o && typeof o === 'object' && typeof o.name === 'string' && typeof o.message === 'string'
+    )
+  } catch {
+    return false
+  }
 }
 
 /**
