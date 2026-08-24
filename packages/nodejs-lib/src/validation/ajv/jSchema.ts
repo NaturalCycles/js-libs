@@ -1732,26 +1732,32 @@ function executeValidation<OUT>(
   // rewritten into below (a property name may itself contain a dot).
   // Root errors (empty instancePath) resolve to undefined - there the value is the whole Input,
   // which is printed anyway.
+  // `required` errors also resolve to undefined - their instancePath points at the parent object
+  // that lacks the property, so `got:` would print that whole object - noise next to the Input print.
   const failingValueByError = new Map<ErrorObject, unknown>(
     errors.map(e => [
       e,
-      e.instancePath ? getValueAtJsonPointer(inputForPrint, e.instancePath) : undefined,
+      e.instancePath && e.keyword !== 'required'
+        ? getValueAtJsonPointer(inputForPrint, e.instancePath)
+        : undefined,
     ]),
   )
 
   applyImprovementsOnErrorMessages(errors, builtSchema)
 
   // Same line format as Ajv's errorsText().
-  // Each nested error line additionally ends with the narrow failing value itself (`, got: ...`),
+  // Each error line is followed by a `Got: ...` line printing the narrow failing value itself,
   // so it stays visible even when the Input print below gets truncated for large inputs.
+  // `Got` is a separate line (and is allowed to print multi-line) on purpose: consumers that
+  // only take the first line of the message keep getting the unchanged (pre-Got) error line.
   let message = errors
-    .map(e => {
-      let line = `${dataVar}${e.instancePath} ${e.message}`
+    .flatMap(e => {
+      const lines = [`${dataVar}${e.instancePath} ${e.message}`]
       const value = failingValueByError.get(e)
       if (value !== undefined) {
-        line += `, got: ${_inspect(value, { maxLen: 500 })}`
+        lines.push(`Got: ${_inspect(value, { maxLen: 500 })}`)
       }
-      return line
+      return lines
     })
     .join(separator)
 

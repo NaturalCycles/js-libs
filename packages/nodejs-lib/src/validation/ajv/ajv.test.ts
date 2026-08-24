@@ -528,7 +528,8 @@ describe('error params with custom msg', () => {
     const [err] = schema.getValidationResult({ foo: 'def' })
 
     expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object.foo must equal "abc", got: def
+      [AjvValidationError: Object.foo must equal "abc"
+      Got: def
       Input: { foo: 'def' }]
     `)
     expect(err!.data).toMatchInlineSnapshot(`
@@ -598,9 +599,9 @@ test('should print the narrow failing value even when the Input print is truncat
 
   const [err] = schema.getValidationResult({ events })
 
-  // The offending value is fully visible on the error line, while the Input print is truncated
+  // The offending value is fully visible on the Got line, while the Input print is truncated
   expect(err!.message).toContain(
-    `Object.events[2].name must NOT have more than 255 characters, got: ${longName}`,
+    `Object.events[2].name must NOT have more than 255 characters\nGot: ${longName}`,
   )
   expect(err!.message).toContain('Kb message truncated')
 })
@@ -612,5 +613,5 @@ test('should resolve the failing value for a property name containing a dot', ()
 
   const [err] = schema.getValidationResult({ 'utm.source': 'abcdef' })
 
-  expect(err!.message).toContain(`must NOT have more than 3 characters, got: abcdef`)
+  expect(err!.message).toContain(`must NOT have more than 3 characters\nGot: abcdef`)
 })
