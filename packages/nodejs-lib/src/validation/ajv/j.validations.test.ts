@@ -182,8 +182,8 @@ describe('string', () => {
       const [err] = schema.getValidationResult(['foo', 'bar', 'baz'])
 
       expect(err).toMatchInlineSnapshot(`
-        [AjvValidationError: Object[1] must be "foo"
-        Object[2] must be "foo"
+        [AjvValidationError: Object[1] must be "foo", got: bar
+        Object[2] must be "foo", got: baz
         Input: [ 'foo', 'bar', 'baz' ]]
       `)
     })
@@ -201,7 +201,7 @@ describe('string', () => {
       const [err] = schema.getValidationResult([{ name: 'foo' }, { name: 'bar' }])
 
       expect(err).toMatchInlineSnapshot(`
-        [AjvValidationError: Object[1].name must be "foo"
+        [AjvValidationError: Object[1].name must be "foo", got: bar
         Input: [ { name: 'foo' }, { name: 'bar' } ]]
       `)
     })
@@ -234,7 +234,7 @@ describe('string', () => {
       const [err] = schema.getValidationResult({ foo: 'def' })
 
       expect(err).toMatchInlineSnapshot(`
-        [AjvValidationError: Object.foo must equal "abc"
+        [AjvValidationError: Object.foo must equal "abc", got: def
         Input: { foo: 'def' }]
       `)
     })
@@ -255,7 +255,7 @@ describe('string', () => {
       const [err] = schema.getValidationResult({ foo: { bar: 'def' } })
 
       expect(err).toMatchInlineSnapshot(`
-        [AjvValidationError: Object.foo.bar must equal "abc"
+        [AjvValidationError: Object.foo.bar must equal "abc", got: def
         Input: { foo: { bar: 'def' } }]
       `)
     })
@@ -272,7 +272,7 @@ describe('string', () => {
       const [err] = schema.getValidationResult({ 1: 'def' })
 
       expect(err).toMatchInlineSnapshot(`
-        [AjvValidationError: Object[1] must equal "abc"
+        [AjvValidationError: Object[1] must equal "abc", got: def
         Input: { '1': 'def' }]
       `)
     })
@@ -4118,8 +4118,8 @@ describe('nullable anyOf error messages', () => {
       .nullable()
     const [err] = schema.getValidationResult({ name: 123, age: 'x' })
     expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object.name must be string
-      Object.age must be number
+      [AjvValidationError: Object.name must be string, got: 123
+      Object.age must be number, got: x
       Input: { name: 123, age: 'x' }]
     `)
   })
@@ -4151,7 +4151,7 @@ describe('nullable anyOf error messages', () => {
     const schema = j.object<NullableFoo>({ foo: j.string().nullable() })
     const [err] = schema.getValidationResult({ foo: 123 })
     expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object.foo must be string
+      [AjvValidationError: Object.foo must be string, got: 123
       Input: { foo: 123 }]
     `)
   })
@@ -4171,7 +4171,7 @@ describe('nullable anyOf error messages', () => {
     const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
     const [err] = schema.getValidationResult({ date: 123 })
     expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object.date must be string
+      [AjvValidationError: Object.date must be string, got: 123
       Input: { date: 123 }]
     `)
   })
@@ -4180,7 +4180,7 @@ describe('nullable anyOf error messages', () => {
     const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
     const [err] = schema.getValidationResult({ date: '2025-02-30' })
     expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object.date is an invalid IsoDate
+      [AjvValidationError: Object.date is an invalid IsoDate, got: 2025-02-30
       Input: { date: '2025-02-30' }]
     `)
   })
@@ -4341,7 +4341,7 @@ describe('errors', () => {
     })
 
     expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object.foo[3] must be string
+      [AjvValidationError: Object.foo[3] must be string, got: 1
       Input: { foo: [ 'a', 'b', 'c', 1, 'e' ] }]
     `)
   })

@@ -27,7 +27,7 @@ import type {
 } from '@naturalcycles/js-lib/types'
 import { _objectAssign, _typeCast, JWT_REGEX } from '@naturalcycles/js-lib/types'
 import type { StandardJSONSchemaV1, StandardSchemaV1 } from '@standard-schema/spec'
-import type { Ajv, ErrorObject } from 'ajv'
+import type { Ajv, ErrorObject, ValidateFunction } from 'ajv'
 import { _inspect } from '../../string/inspect.js'
 import {
   BASE64URL_REGEX,
@@ -367,7 +367,7 @@ export class JSchema<OUT, Opt>
   }
 
   private _builtSchema?: JsonSchema
-  private _compiledFns?: WeakMap<Ajv, any>
+  private _compiledFns?: WeakMap<Ajv, ValidateFunction>
 
   private _getBuiltSchema(): JsonSchema {
     if (!this._builtSchema) {
@@ -387,7 +387,7 @@ export class JSchema<OUT, Opt>
     return this._builtSchema
   }
 
-  private _getCompiled(overrideAjv?: Ajv): { fn: any; builtSchema: JsonSchema } {
+  private _getCompiled(overrideAjv?: Ajv): { fn: ValidateFunction; builtSchema: JsonSchema } {
     const builtSchema = this._getBuiltSchema()
     const ajv = overrideAjv ?? this._cfg?.ajv ?? getAjv()
 
@@ -1524,7 +1524,7 @@ export class AjvSchema<OUT> {
   private constructor(
     public schema: JsonSchema<OUT>,
     cfg: Partial<AjvSchemaCfg> = {},
-    preCompiledFn?: any,
+    preCompiledFn?: ValidateFunction,
   ) {
     this.cfg = {
       lazy: false,
@@ -1593,7 +1593,7 @@ export class AjvSchema<OUT> {
    * Creates a minimal AjvSchema wrapper from a pre-compiled validate function.
    * Used internally by JSchema to cache a compatible AjvSchema instance.
    */
-  static _wrap<OUT>(schema: JsonSchema<OUT>, compiledFn: any): AjvSchema<OUT> {
+  static _wrap<OUT>(schema: JsonSchema<OUT>, compiledFn: ValidateFunction): AjvSchema<OUT> {
     return new AjvSchema<OUT>(schema, {}, compiledFn)
   }
 
@@ -1616,9 +1616,9 @@ export class AjvSchema<OUT> {
 
   readonly cfg: AjvSchemaCfg
 
-  private _compiledFn: any
+  private _compiledFn?: ValidateFunction
 
-  private _getValidateFn(): any {
+  private _getValidateFn(): ValidateFunction {
     this._compiledFn ||= this.cfg.ajv.compile(this.schema as any)
     return this._compiledFn
   }
@@ -1671,7 +1671,7 @@ export class AjvSchema<OUT> {
 const separator = '\n'
 
 function executeValidation<OUT>(
-  fn: any,
+  fn: ValidateFunction,
   builtSchema: JsonSchema,
   input: unknown,
   opt: AjvValidationOptions = {},
@@ -1693,6 +1693,9 @@ function executeValidation<OUT>(
       fn.errors = [
         {
           instancePath: '',
+          schemaPath: '',
+          keyword: 'postValidation',
+          params: {},
           message: err.message,
         },
       ]
@@ -1714,22 +1717,45 @@ function executeValidation<OUT>(
   // Build fingerprint before applyImprovementsOnErrorMessages: after it, /items/0/name becomes
   // .items[0].name, embedding the index into the segment and making it harder to strip without regex
   const fingerprint = buildAjvErrorFingerprint(
-    errors[0],
+    errors[0]!,
     inputName,
-    resolveCustomErrorMessage(builtSchema, errors[0]),
+    resolveCustomErrorMessage(builtSchema, errors[0]!),
   )
-
-  applyImprovementsOnErrorMessages(errors, builtSchema)
-
-  let message = getAjv().errorsText(errors, {
-    dataVar,
-    separator,
-  })
 
   // Note: if we mutated the input already, e.g stripped unknown properties,
   // the error message Input would contain already mutated object print, such as Input: {}
   // Unless `getOriginalInput` function is provided - then it will be used to preserve the Input pureness.
-  const inputStringified = _inspect(opt.getOriginalInput?.() || input, { maxLen: 4000 })
+  const inputForPrint = opt.getOriginalInput?.() || input
+
+  // Resolve each error's failing value while its instancePath is still a raw JSON pointer
+  // (e.g `/events/2/name`), which is unambiguous to walk - unlike the dot notation it gets
+  // rewritten into below (a property name may itself contain a dot).
+  // Root errors (empty instancePath) resolve to undefined - there the value is the whole Input,
+  // which is printed anyway.
+  const failingValueByError = new Map<ErrorObject, unknown>(
+    errors.map(e => [
+      e,
+      e.instancePath ? getValueAtJsonPointer(inputForPrint, e.instancePath) : undefined,
+    ]),
+  )
+
+  applyImprovementsOnErrorMessages(errors, builtSchema)
+
+  // Same line format as Ajv's errorsText().
+  // Each nested error line additionally ends with the narrow failing value itself (`, got: ...`),
+  // so it stays visible even when the Input print below gets truncated for large inputs.
+  let message = errors
+    .map(e => {
+      let line = `${dataVar}${e.instancePath} ${e.message}`
+      const value = failingValueByError.get(e)
+      if (value !== undefined) {
+        line += `, got: ${_inspect(value, { maxLen: 500 })}`
+      }
+      return line
+    })
+    .join(separator)
+
+  const inputStringified = _inspect(inputForPrint, { maxLen: 4000 })
   message = [message, 'Input: ' + inputStringified].join(separator)
 
   const err = new AjvValidationError(
@@ -1745,6 +1771,19 @@ function executeValidation<OUT>(
 }
 
 // ==== Error formatting helpers ====
+
+/**
+ * Resolves the value at an Ajv error's raw instancePath, which is a JSON pointer, e.g `/events/2/name`.
+ * Returns undefined if the path cannot be resolved (e.g the input was mutated).
+ */
+function getValueAtJsonPointer(input: unknown, pointer: string): unknown {
+  let value: any = input
+  for (const segment of pointer.split('/').slice(1)) {
+    if (value === null || typeof value !== 'object') return undefined
+    value = value[segment.replaceAll('~1', '/').replaceAll('~0', '~')]
+  }
+  return value
+}
 
 function applyImprovementsOnErrorMessages(
   errors: ErrorObject[] | null | undefined,
