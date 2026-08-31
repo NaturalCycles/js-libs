@@ -1,3 +1,4 @@
+import { _assert } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type {
   AnyObject,
@@ -221,11 +222,35 @@ export class RedisClient implements CommonClient {
     await redis.mset(obj)
   }
 
+  /**
+   * For counters that are supposed to expire, use {@link incrWithTTL} instead.
+   */
   async incr(key: string, by = 1): Promise<number> {
     const redis = await this.redis()
     return await redis.incrby(key, by)
   }
 
+  /**
+   * Increments the key and guarantees it has an expiry, in a single transaction.
+   *
+   * Returns the new value.
+   *
+   * Requires Redis 7.0+
+   */
+  async incrWithTTL(key: string, expireAt: UnixTimestamp, by = 1): Promise<number> {
+    const redis = await this.redis()
+    const results = await redis.multi().incrby(key, by).expireat(key, expireAt, 'NX').exec()
+    const result = results?.[0]
+    _assert(result, `redis: incrWithTTL transaction returned no result, key: ${key}`)
+
+    const [err, value] = result
+    if (err) throw err
+    return value as number
+  }
+
+  /**
+   * For counters that are supposed to expire, use {@link incrBatchWithTTL} instead.
+   */
   async incrBatch(incrementTuples: [string, number][]): Promise<[string, number][]> {
     const results: StringMap<number | undefined> = {}
 
@@ -243,6 +268,38 @@ export class RedisClient implements CommonClient {
     ][]
 
     return validResults
+  }
+
+  /**
+   * Batch version of {@link incrWithTTL}, all increments and expiries in a single transaction.
+   *
+   * Requires Redis 7.0+
+   */
+  async incrBatchWithTTL(
+    incrementTuples: [string, number][],
+    expireAt: UnixTimestamp,
+  ): Promise<[string, number][]> {
+    const redis = await this.redis()
+    const multi = redis.multi()
+
+    for (const [key, increment] of incrementTuples) {
+      multi.incrby(key, increment)
+      multi.expireat(key, expireAt, 'NX')
+    }
+
+    // 2 commands are queued per key, so the increments sit at the even indexes
+    const results = await multi.exec()
+    const expectedLength = incrementTuples.length * 2
+    _assert(
+      results?.length === expectedLength,
+      `redis: incrBatchWithTTL expected ${expectedLength} results, got ${results?.length}`,
+    )
+
+    return incrementTuples.map(([key], i) => {
+      const [err, newValue] = results[i * 2]!
+      if (err) throw err
+      return [key, newValue as number]
+    })
   }
 
   async ttl(key: string): Promise<number> {
