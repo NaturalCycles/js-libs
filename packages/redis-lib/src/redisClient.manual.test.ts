@@ -18,6 +18,24 @@ afterAll(async () => {
   await client.disconnect()
 })
 
+describe('incr', () => {
+  test('should create a non-existing key without expiry', async () => {
+    const result = await client.incr('test:one')
+
+    expect(result).toBe(1)
+    expect(await client.ttl('test:one')).toBe(-1)
+  })
+
+  test('should preserve the expiry of an existing key', async () => {
+    await client.setWithTTL('test:one', 1, localTime.now().plusSeconds(100).unix)
+
+    const result = await client.incr('test:one')
+
+    expect(result).toBe(2)
+    expect(await client.ttl('test:one')).toBeGreaterThan(0)
+  })
+})
+
 test('incrBatch should increase multiple keys', async () => {
   await client.set('test:one', 1)
   await client.set('test:two', 2)
@@ -31,6 +49,88 @@ test('incrBatch should increase multiple keys', async () => {
     ['test:one', 2],
     ['test:two', 4],
   ])
+})
+
+describe('incrBatchWithTTL', () => {
+  test('should increase multiple keys and give them an expiry', async () => {
+    await client.set('test:one', 1)
+    await client.set('test:two', 2)
+
+    const result = await client.incrBatchWithTTL(
+      [
+        ['test:one', 1],
+        ['test:two', 2],
+      ],
+      localTime.now().plusSeconds(100).unix,
+    )
+
+    expect(result).toEqual([
+      ['test:one', 2],
+      ['test:two', 4],
+    ])
+    expect(await client.ttl('test:one')).toBeGreaterThan(0)
+    expect(await client.ttl('test:two')).toBeGreaterThan(0)
+  })
+
+  test('should NOT extend the expiry of an ongoing window', async () => {
+    const tuples: [string, number][] = [
+      ['test:one', 1],
+      ['test:two', 2],
+    ]
+    await client.incrBatchWithTTL(tuples, localTime.now().plusSeconds(100).unix)
+
+    const result = await client.incrBatchWithTTL(tuples, localTime.now().plusSeconds(10_000).unix)
+
+    expect(result).toEqual([
+      ['test:one', 2],
+      ['test:two', 4],
+    ])
+    expect(await client.ttl('test:one')).toBeLessThanOrEqual(100)
+    expect(await client.ttl('test:two')).toBeLessThanOrEqual(100)
+  })
+})
+
+describe('incrWithTTL', () => {
+  test('should create a non-existing key with an expiry', async () => {
+    const result = await client.incrWithTTL('test:one', localTime.now().plusSeconds(100).unix)
+
+    expect(result).toBe(1)
+    expect(await client.ttl('test:one')).toBeGreaterThan(0)
+  })
+
+  test('should NOT extend the expiry of an ongoing window', async () => {
+    await client.incrWithTTL('test:one', localTime.now().plusSeconds(100).unix)
+
+    const result = await client.incrWithTTL('test:one', localTime.now().plusSeconds(10_000).unix)
+
+    expect(result).toBe(2)
+    expect(await client.ttl('test:one')).toBeLessThanOrEqual(100)
+  })
+
+  test('should restore a missing expiry', async () => {
+    // How a bare INCR on a missing key leaves it: a counter that never resets
+    await client.set('test:one', 5)
+    expect(await client.ttl('test:one')).toBe(-1)
+
+    const result = await client.incrWithTTL('test:one', localTime.now().plusSeconds(100).unix)
+
+    expect(result).toBe(6)
+    expect(await client.ttl('test:one')).toBeGreaterThan(0)
+  })
+
+  test('should throw on an invalid expireAt, leaving a key that self-heals', async () => {
+    await expect(client.incrWithTTL('test:one', 1.5 as UnixTimestamp)).rejects.toThrow(
+      'value is not an integer or out of range',
+    )
+
+    // Redis does not roll back, so the increment stands and the key is left without an expiry
+    expect(await client.get('test:one')).toBe('1')
+    expect(await client.ttl('test:one')).toBe(-1)
+
+    // ...until the next successful call, which gives it one back
+    await client.incrWithTTL('test:one', localTime.now().plusSeconds(100).unix)
+    expect(await client.ttl('test:one')).toBeGreaterThan(0)
+  })
 })
 
 describe('hashmap functions', () => {
