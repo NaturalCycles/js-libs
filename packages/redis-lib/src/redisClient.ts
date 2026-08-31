@@ -243,8 +243,13 @@ export class RedisClient implements CommonClient {
     const result = results?.[0]
     _assert(result, `redis: incrWithTTL transaction returned no result, key: ${key}`)
 
-    const [err, value] = result
-    if (err) throw err
+    // Redis does not roll back, so a failed EXPIREAT leaves the key incremented and without an
+    // expiry. It self-heals on the next successful call, as EXPIREAT NX applies to a TTL-less key.
+    for (const [err] of results) {
+      if (err) throw err
+    }
+
+    const [, value] = result
     return value as number
   }
 
@@ -295,9 +300,12 @@ export class RedisClient implements CommonClient {
       `redis: incrBatchWithTTL expected ${expectedLength} results, got ${results?.length}`,
     )
 
-    return incrementTuples.map(([key], i) => {
-      const [err, newValue] = results[i * 2]!
+    for (const [err] of results) {
       if (err) throw err
+    }
+
+    return incrementTuples.map(([key], i) => {
+      const [, newValue] = results[i * 2]!
       return [key, newValue as number]
     })
   }

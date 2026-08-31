@@ -100,6 +100,20 @@ describe('incrWithTTL', () => {
     expect(result).toBe(6)
     expect(await client.ttl('test:one')).toBeGreaterThan(0)
   })
+
+  test('should throw on an invalid expireAt, leaving a key that self-heals', async () => {
+    await expect(client.incrWithTTL('test:one', 1.5 as UnixTimestamp)).rejects.toThrow(
+      'value is not an integer or out of range',
+    )
+
+    // Redis does not roll back, so the increment stands and the key is left without an expiry
+    expect(await client.get('test:one')).toBe('1')
+    expect(await client.ttl('test:one')).toBe(-1)
+
+    // ...until the next successful call, which gives it one back
+    await client.incrWithTTL('test:one', localTime.now().plusSeconds(100).unix)
+    expect(await client.ttl('test:one')).toBeGreaterThan(0)
+  })
 })
 
 describe('hashmap functions', () => {
