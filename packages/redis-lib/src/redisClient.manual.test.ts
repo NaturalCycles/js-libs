@@ -71,6 +71,23 @@ describe('incrBatchWithTTL', () => {
     expect(await client.ttl('test:one')).toBeGreaterThan(0)
     expect(await client.ttl('test:two')).toBeGreaterThan(0)
   })
+
+  test('should NOT extend the expiry of an ongoing window', async () => {
+    const tuples: [string, number][] = [
+      ['test:one', 1],
+      ['test:two', 2],
+    ]
+    await client.incrBatchWithTTL(tuples, localTime.now().plusSeconds(100).unix)
+
+    const result = await client.incrBatchWithTTL(tuples, localTime.now().plusSeconds(10_000).unix)
+
+    expect(result).toEqual([
+      ['test:one', 2],
+      ['test:two', 4],
+    ])
+    expect(await client.ttl('test:one')).toBeLessThanOrEqual(100)
+    expect(await client.ttl('test:two')).toBeLessThanOrEqual(100)
+  })
 })
 
 describe('incrWithTTL', () => {
