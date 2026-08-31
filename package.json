@@ -72,9 +72,9 @@
     "release:dry": "dev-lib release --dry-run",
     "release:dev-lib": "dev-lib release --filter dev-lib",
     "release:dev-lib:dry": "dev-lib release --filter dev-lib --dry-run",
-    "docs:dev": "pnpx vitepress@^1 dev docs --open",
-    "docs:build": "pnpx vitepress@^1 build docs",
-    "docs:preview": "pnpx vitepress@^1 preview docs"
+    "docs:dev": "pnpx --allow-build=esbuild vitepress@^1 dev docs --open",
+    "docs:build": "pnpx --allow-build=esbuild vitepress@^1 build docs",
+    "docs:preview": "pnpx --allow-build=esbuild vitepress@^1 preview docs"
   },
   "devDependencies": {
     "@naturalcycles/bench-lib": "workspace:*",

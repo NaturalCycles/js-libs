@@ -4,27 +4,14 @@ on: [push, workflow_dispatch]
 
 env:
   NODE_OPTIONS: --max-old-space-size=5000 --max-semi-space-size=64
-  CC_TEST_REPORTER_ID: 7997607c5b558cb4d41dc064f3df1a81c07f2de9861ed73c738c23ed8dbab69e
 
 jobs:
   check:
     runs-on: ubuntu-26.04-arm
-    if: "!contains(github.event.head_commit.message , 'skip ci')"
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
-      - uses: pnpm/action-setup@v6
-      - { uses: actions/setup-node@v7, with: { node-version: '24', cache: 'pnpm' } }
-      - run: pnpm ci:setup
-      #      - run: echo "CACHE_DATE=$(date +%F)" >> "$GITHUB_ENV"
-      #      - name: node_modules/.cache
-      #        uses: actions/cache@v5
-      #        with:
-      #          path: packages/*/node_modules/.cache
-      #          key: ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-${{ env.CACHE_DATE }}
-      #          restore-keys: |
-      #            ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-${{ env.CACHE_DATE }}
-      #            ${{ runner.os }}-nmcache-${{ hashFiles('pnpm-lock.yaml') }}-
-      #            ${{ runner.os }}-nmcache-
+      - { uses: pnpm/setup@v2, with: { runtime: node@24, cache: true } }
+      - run: pnpm build
       - run: pnpm lint:ci
       # - run: pnpm typecheck # covered by oxlint typechecking
       - run: pnpm test
@@ -39,9 +26,8 @@ jobs:
       pull-requests: write
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
-      - uses: pnpm/action-setup@v6
-      - { uses: actions/setup-node@v7, with: { node-version: '24', cache: 'pnpm' } }
-      - run: pnpm ci:setup
+      - { uses: pnpm/setup@v2, with: { runtime: node@24, cache: true } }
+      - run: pnpm build
       - run: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,9 +37,7 @@ jobs:
     if: github.ref_name == 'main'
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
-      - uses: pnpm/action-setup@v6
-      - { uses: actions/setup-node@v7, with: { node-version: '24', cache: 'pnpm' } }
-      - run: pnpm ci:setup
+      - { uses: pnpm/setup@v2, with: { runtime: node@24, cache: true } }
       - run: pnpm docs:build
       - name: publish docs to github pages
         uses: peaceiris/actions-gh-pages@v4
