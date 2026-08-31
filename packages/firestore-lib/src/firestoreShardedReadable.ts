@@ -4,6 +4,7 @@ import type { Query, QuerySnapshot } from '@google-cloud/firestore'
 import type { DBQuery } from '@naturalcycles/db-lib'
 import { localTime } from '@naturalcycles/js-lib/datetime'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pRetry } from '@naturalcycles/js-lib/promise/pRetry.js'
@@ -57,6 +58,10 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
       batchSize: 3000,
       ...opt,
     }
+
+    // Offset cannot be supported here: the query is split into concurrent per-shard queries,
+    // and a global offset would be (wrongly) re-applied to each of them.
+    _assert(!dbQuery._offsetValue, 'offset is not supported by experimentalShardedStream')
 
     this.originalLimit = dbQuery._limitValue
     this.table = dbQuery.table

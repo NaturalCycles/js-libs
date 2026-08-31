@@ -41,6 +41,11 @@ export function dbQueryToDatastoreQuery<ROW extends ObjectWithId>(
   // limit
   q = q.limit(dbQuery._limitValue || 0)
 
+  // offset
+  if (dbQuery._offsetValue) {
+    q = q.offset(dbQuery._offsetValue)
+  }
+
   // order
   for (const ord of dbQuery._orders) {
     q = q.order(ord.name as string, { descending: ord.descending })

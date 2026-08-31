@@ -146,7 +146,9 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
 
     let q = this.q.limit(limit)
     if (this.endCursor) {
-      q = q.start(this.endCursor)
+      // Offset (if any) is already "consumed" by the first query,
+      // subsequent queries continue from the cursor and must not skip rows again.
+      q = q.start(this.endCursor).offset(0)
     }
 
     const started = localTime.nowUnixMillis()

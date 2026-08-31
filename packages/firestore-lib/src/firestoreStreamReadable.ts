@@ -114,7 +114,9 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     // We have to orderBy documentId, to be able to use id as a cursor
     let q = this.q.orderBy(FieldPath.documentId()).limit(limit)
     if (this.endCursor) {
-      q = q.startAfter(this.endCursor)
+      // Offset (if any) is already "consumed" by the first query,
+      // subsequent queries continue from the cursor and must not skip rows again.
+      q = q.startAfter(this.endCursor).offset(0)
     }
 
     // logger.log(`runNextQuery`, {

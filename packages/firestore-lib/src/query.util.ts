@@ -46,6 +46,11 @@ export function dbQueryToFirestoreQuery<ROW extends ObjectWithId>(
     q = q.limit(dbQuery._limitValue)
   }
 
+  // offset
+  if (dbQuery._offsetValue) {
+    q = q.offset(dbQuery._offsetValue)
+  }
+
   // selectedFields
   if (dbQuery._selectedFieldNames) {
     // id is filtered out, because in Firestore it's not a "property",
