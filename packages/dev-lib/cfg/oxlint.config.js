@@ -88,6 +88,7 @@ export const sharedConfig = {
     'no-disabled-tests': 0,
     'vitest/no-disabled-tests': 0,
     'no-useless-assignment': 0, // buggy, gives false positives
+    'no-nested-ternary': 2,
     'object-shorthand': 2,
     'valid-expect': 0,
     'valid-title': 0,
