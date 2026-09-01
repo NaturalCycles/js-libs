@@ -1343,4 +1343,196 @@ describe('auto compression', () => {
       expect(onOversizeWarning).not.toHaveBeenCalled()
     })
   })
+
+  describe('assertNotCompressed', () => {
+    function createDao(): CommonDao<Item> {
+      return new CommonDao<Item>({
+        table: TEST_TABLE,
+        db,
+        compress: {
+          keys: ['obj', 'shu'],
+        },
+      })
+    }
+
+    // Write APIs
+    test('patchByIds should throw on a compressed key', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.patchByIds(['id1'], { shu: 'shu1-patched' }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: patchByIds on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('patchByQuery should throw on a compressed key', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.query().patchByQuery({ obj: { objId: 'objId1' } }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: patchByQuery on TEST_TABLE cannot touch compressed property: obj]`,
+      )
+    })
+
+    test('increment should throw on a compressed key', async () => {
+      const dao = createDao()
+
+      await expect(dao.increment('shu', 'id1')).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: increment on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('incrementBatch should throw on a compressed key', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.incrementBatch('shu', { id1: 1 }),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: incrementBatch on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    // Query APIs
+    test('filter on a compressed key should throw', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.query().filterEq('shu', 'shu1').runQuery(),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: filter on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('order by a compressed key should throw', async () => {
+      const dao = createDao()
+
+      await expect(dao.query().order('shu').runQuery()).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: order on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('select of a compressed key should throw', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.query().select(['shu']).runQuery(),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: select on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('select of __compressed should throw', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao
+          .query()
+          .select(['__compressed' as any])
+          .runQuery(),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: select on TEST_TABLE cannot touch compressed property: __compressed]`,
+      )
+    })
+
+    test('runQuerySingleColumn should throw on a compressed column', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.runQuerySingleColumn(dao.query().select(['shu'])),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: runQuerySingleColumn on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('runQueryCount should throw on a compressed filter', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.query().filterEq('shu', 'shu1').runQueryCount(),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: filter on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('queryIds should throw on a compressed filter', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.queryIds(dao.query().filterEq('shu', 'shu1')),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: filter on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('deleteByQuery should throw on a compressed filter', async () => {
+      const dao = createDao()
+
+      await expect(
+        dao.query().filterEq('shu', 'shu1').deleteByQuery(),
+      ).rejects.toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: filter on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    // Stream APIs throw synchronously, before the Pipeline is created
+    test('streamQuery should throw on a compressed select', async () => {
+      const dao = createDao()
+
+      expect(() => dao.streamQuery(dao.query().select(['shu']))).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: select on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('streamQueryAsDBM should throw on a compressed select', async () => {
+      const dao = createDao()
+
+      expect(() =>
+        dao.streamQueryAsDBM(dao.query().select(['shu'])),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: select on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    test('streamQueryIds should throw on a compressed filter', async () => {
+      const dao = createDao()
+
+      expect(() =>
+        dao.streamQueryIds(dao.query().filterEq('shu', 'shu1')),
+      ).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: filter on TEST_TABLE cannot touch compressed property: shu]`,
+      )
+    })
+
+    // Non-compressed properties are unaffected
+    test('should allow non-compressed properties', async () => {
+      const dao = createDao()
+      await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+      expect(await dao.query().filterEq('id', 'id1').runQueryCount()).toBe(1)
+      expect(await dao.query().order('created').runQueryCount()).toBe(1)
+      expect(await dao.query().select(['id']).runQuery()).toEqual([{ id: 'id1' }])
+      expect(await dao.patchByIds(['id1'], { updated: 12345 as UnixTimestamp })).toBe(1)
+      expect(await dao.increment('created', 'id1')).toBe(MOCK_TS_2018_06_21 + 1)
+
+      // The compressed payload is left intact
+      const { data } = dao.cfg.db as InMemoryDB
+      expect(data[TEST_TABLE]!['id1']).toMatchObject({
+        __compressed: expect.any(Buffer),
+        updated: 12345,
+      })
+    })
+
+    test('should not throw when compression is not enabled', async () => {
+      const daoWithoutCompression = new CommonDao<Item>({
+        table: TEST_TABLE,
+        db,
+      })
+      await daoWithoutCompression.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
+
+      expect(await daoWithoutCompression.query().filterEq('shu', 'shu1').runQueryCount()).toBe(1)
+      expect(await daoWithoutCompression.patchByIds(['id1'], { shu: 'shu1-patched' })).toBe(1)
+    })
+  })
 })
