@@ -684,8 +684,9 @@ function getLengthInBits(mode: number, type: number): number {
   if (type < 1 || type > 40) throw new Error(`qr: bad type number: ${type}`)
   const bits = LENGTH_BITS[mode]
   if (!bits) throw new Error(`qr: bad mode: ${mode}`)
-  const range = type < 10 ? 0 : type < 27 ? 1 : 2
-  return bits[range]
+  if (type < 10) return bits[0]
+  if (type < 27) return bits[1]
+  return bits[2]
 }
 
 // --- Reed-Solomon polynomials over GF(256) ---------------------------------

@@ -40,7 +40,9 @@ export class LocalDate {
   ) {}
 
   get(unit: LocalDateUnitStrict): number {
-    return unit === 'year' ? this.year : unit === 'month' ? this.month : this.day
+    if (unit === 'year') return this.year
+    if (unit === 'month') return this.month
+    return this.day
   }
 
   set(unit: LocalDateUnitStrict, v: number, opt: MutateOptions = {}): LocalDate {

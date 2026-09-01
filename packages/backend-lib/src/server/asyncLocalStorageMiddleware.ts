@@ -37,10 +37,11 @@ export function getRequest(): BackendRequest | undefined {
  * @experimental
  */
 export function getRequestLogger(): CommonLogger {
-  return (
-    storage().getStore()?.req ||
-    (isGAE || isCloudRun ? gcpStructuredLogger : isCI ? ciLogger : devLogger)
-  )
+  const req = storage().getStore()?.req
+  if (req) return req
+  if (isGAE || isCloudRun) return gcpStructuredLogger
+  if (isCI) return ciLogger
+  return devLogger
 }
 
 /**

@@ -50,7 +50,9 @@ export function _isBetween<T extends number | string>(
 }
 
 export function _clamp(x: number, minIncl: number, maxIncl: number): number {
-  return x <= minIncl ? minIncl : x >= maxIncl ? maxIncl : x
+  if (x <= minIncl) return minIncl
+  if (x >= maxIncl) return maxIncl
+  return x
 }
 
 /**
