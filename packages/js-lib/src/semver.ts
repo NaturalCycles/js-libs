@@ -171,5 +171,7 @@ export function _quickSemverCompare(a: string, b: string): -1 | 0 | 1 {
   const s2 = _range(3)
     .map(i => (t2[i] || '').padStart(5))
     .join('')
-  return s1 < s2 ? -1 : s1 > s2 ? 1 : 0
+  if (s1 < s2) return -1
+  if (s1 > s2) return 1
+  return 0
 }

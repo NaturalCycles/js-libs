@@ -76,8 +76,12 @@ const MAX_DOS_DATE = new Date(2107, 11, 31, 23, 59, 58)
  * timestamp is rendered in the local timezone. Out-of-range dates are clamped to 1980-2107.
  */
 export function unixToDosDateTime(ts: UnixTimestamp): { date: number; time: number } {
-  const jsDate = new Date(ts * 1000)
-  const d = jsDate < MIN_DOS_DATE ? MIN_DOS_DATE : jsDate > MAX_DOS_DATE ? MAX_DOS_DATE : jsDate
+  let d = new Date(ts * 1000)
+  if (d < MIN_DOS_DATE) {
+    d = MIN_DOS_DATE
+  } else if (d > MAX_DOS_DATE) {
+    d = MAX_DOS_DATE
+  }
 
   const date =
     (d.getDate() & 0x1f) | // 1-31

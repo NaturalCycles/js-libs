@@ -721,5 +721,7 @@ export class DatastoreDBTransaction implements DBTransaction {
 }
 
 function idComparator<T extends ObjectWithId>(a: T, b: T): number {
-  return a.id > b.id ? 1 : a.id < b.id ? -1 : 0
+  if (a.id > b.id) return 1
+  if (a.id < b.id) return -1
+  return 0
 }
