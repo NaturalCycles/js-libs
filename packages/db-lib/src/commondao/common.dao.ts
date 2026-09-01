@@ -10,19 +10,19 @@ import {
   _pick,
 } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
-import type {
-  BaseDBEntity,
-  NonNegativeInteger,
-  ObjectWithId,
-  StringMap,
-  Unsaved,
-} from '@naturalcycles/js-lib/types'
 import {
   _objectKeys,
   _passthroughPredicate,
   _stringMapEntries,
   _stringMapValues,
   _typeCast,
+} from '@naturalcycles/js-lib/types'
+import type {
+  BaseDBEntity,
+  NonNegativeInteger,
+  ObjectWithId,
+  StringMap,
+  Unsaved,
 } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
@@ -189,7 +189,6 @@ export class CommonDao<
       q._selectedFieldNames?.length === 1,
       `runQuerySingleColumn requires exactly 1 column to be selected: ${q.pretty()}`,
     )
-    this.assertNotCompressed(q._selectedFieldNames, 'runQuerySingleColumn')
 
     const col = q._selectedFieldNames[0]!
 
@@ -213,7 +212,7 @@ export class CommonDao<
     q: DBQuery<DBM>,
     opt: CommonDaoReadOptions = {},
   ): Promise<RunQueryResult<BM>> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
@@ -234,7 +233,7 @@ export class CommonDao<
     q: DBQuery<DBM>,
     opt: CommonDaoReadOptions = {},
   ): Promise<RunQueryResult<DBM>> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
@@ -244,13 +243,13 @@ export class CommonDao<
   }
 
   async runQueryCount(q: DBQuery<DBM>, opt: CommonDaoReadOptions = {}): Promise<number> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     return await this.cfg.db.runQueryCount(q, opt)
   }
 
   streamQueryAsDBM(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<DBM> = {}): Pipeline<DBM> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
@@ -268,7 +267,7 @@ export class CommonDao<
   }
 
   streamQuery(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<BM> = {}): Pipeline<BM> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
@@ -286,14 +285,14 @@ export class CommonDao<
   }
 
   async queryIds(q: DBQuery<DBM>, opt: CommonDaoReadOptions = {}): Promise<ID[]> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     const { rows } = await this.cfg.db.runQuery(q.select(['id']), opt)
     return rows.map(r => r.id as ID)
   }
 
   streamQueryIds(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<ID> = {}): Pipeline<ID> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     q.table = opt.table || q.table
     opt.errorMode ||= ErrorMode.SUPPRESS
 
@@ -651,7 +650,7 @@ export class CommonDao<
     q: DBQuery<DBM>,
     opt: CommonDaoStreamDeleteOptions<DBM> = {},
   ): Promise<number> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
     q.table = opt.table || q.table
@@ -692,7 +691,6 @@ export class CommonDao<
 
   async patchByIds(ids: ID[], patch: Partial<DBM>, opt: CommonDaoOptions = {}): Promise<number> {
     if (!ids.length) return 0
-    this.assertNotCompressed(Object.keys(patch), 'patchByIds')
     return await this.patchByQuery(this.query().filterIn('id', ids), patch, opt)
   }
 
@@ -701,8 +699,7 @@ export class CommonDao<
     patch: Partial<DBM>,
     opt: CommonDaoOptions = {},
   ): Promise<number> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
-    this.assertNotCompressed(Object.keys(patch), 'patchByQuery')
+    this.validateQueryIndexes(q) // throws if query uses `excludeFromIndexes` property
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
     q.table = opt.table || q.table
@@ -715,7 +712,6 @@ export class CommonDao<
    * @experimental
    */
   async increment(prop: keyof DBM, id: ID, by = 1, opt: CommonDaoOptions = {}): Promise<number> {
-    this.assertNotCompressed([prop], 'increment')
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
     const { table } = this.cfg
@@ -735,7 +731,6 @@ export class CommonDao<
     incrementMap: StringMap<number>,
     opt: CommonDaoOptions = {},
   ): Promise<StringMap<number>> {
-    this.assertNotCompressed([prop], 'incrementBatch')
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
     const { table } = this.cfg
@@ -880,19 +875,6 @@ export class CommonDao<
     const properties = JSON.parse(bufferString)
     dbm.__compressed = undefined
     Object.assign(dbm, properties)
-  }
-
-  private assertNotCompressed(keys: (keyof DBM | string)[] | undefined, op: string): void {
-    if (!keys) return
-
-    const compressKeys = this.cfg.compress?.keys
-    if (!compressKeys?.length) return
-    for (const k of keys) {
-      _assert(
-        k !== '__compressed' && !compressKeys.includes(k as keyof DBM),
-        `${op} on ${this.cfg.table} cannot touch compressed property: ${k as string}`,
-      )
-    }
   }
 
   anyToDBM(dbm: undefined, opt?: CommonDaoOptions): null
@@ -1228,29 +1210,6 @@ export class CommonDao<
     _assert(!this.cfg.immutable || opt.allowMutability, DBLibError.OBJECT_IS_IMMUTABLE, {
       table: this.cfg.table,
     })
-  }
-
-  private validateQuery(q: DBQuery<DBM>): void {
-    this.validateQueryIndexes(q)
-    this.validateQueryCompression(q)
-  }
-
-  private validateQueryCompression(q: DBQuery<DBM>): void {
-    const { _filters, _orders, _selectedFieldNames } = q
-
-    if (_filters) {
-      const columnNames = _filters.map(cfg => cfg.name)
-      this.assertNotCompressed(columnNames, 'filter')
-    }
-
-    if (_orders) {
-      const columnNames = _orders.map(cfg => cfg.name)
-      this.assertNotCompressed(columnNames, 'order')
-    }
-
-    if (_selectedFieldNames) {
-      this.assertNotCompressed(_selectedFieldNames, 'select')
-    }
   }
 
   /**
