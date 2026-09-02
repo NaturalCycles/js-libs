@@ -734,8 +734,14 @@ export class JString<
 
   pattern(pattern: string, opt?: JsonBuilderRuleOpt): this {
     const clone = this.cloneAndUpdateSchema({ pattern })
-    if (opt?.name) clone.setErrorMessage('pattern', `is not a valid ${opt.name}`)
-    if (opt?.msg) clone.setErrorMessage('pattern', opt.msg)
+    if (opt?.msg) {
+      clone.setErrorMessage('pattern', opt.msg)
+    } else if (opt?.name) {
+      clone.setErrorMessage('pattern', `is not a valid ${opt.name}`)
+    } else {
+      clone.setErrorMessage('pattern', 'is not matching the expected pattern')
+    }
+
     return clone
   }
 

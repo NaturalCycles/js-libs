@@ -208,6 +208,16 @@ describe('string', () => {
         Input: [ { name: 'foo' }, { name: 'bar' } ]]
       `)
     })
+
+    test('regex schema should not print the regex rule', () => {
+      const schema = j.string().regex(/\D+/)
+
+      const [err] = schema.getValidationResult('42')
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object is not matching the expected pattern
+        Input: 42]
+      `)
+    })
   })
 
   describe('pattern', () => {
@@ -280,6 +290,16 @@ describe('string', () => {
         [AjvValidationError: Object[1] must equal "abc"
         Got: def
         Input: { '1': 'def' }]
+      `)
+    })
+
+    test('pattern schema should not print the regex rule', () => {
+      const schema = j.string().pattern(String.raw`\D+`)
+
+      const [err] = schema.getValidationResult('42')
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object is not matching the expected pattern
+        Input: 42]
       `)
     })
   })

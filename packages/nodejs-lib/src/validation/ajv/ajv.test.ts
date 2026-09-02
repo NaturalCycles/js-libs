@@ -498,7 +498,7 @@ describe('error params with custom msg', () => {
     const [err] = plainSchema.getValidationResult('abc')
 
     expect(err).toMatchInlineSnapshot(`
-      [AjvValidationError: Object must match pattern "^[0-9]{2}$"
+      [AjvValidationError: Object is not matching the expected pattern
       Input: abc]
     `)
     expect(err!.data).toMatchInlineSnapshot(`
@@ -507,14 +507,12 @@ describe('error params with custom msg', () => {
           {
             "instancePath": "",
             "keyword": "pattern",
-            "message": "must match pattern "^[0-9]{2}$"",
-            "params": {
-              "pattern": "^[0-9]{2}$",
-            },
+            "message": "is not matching the expected pattern",
+            "params": {},
             "schemaPath": "#/pattern",
           },
         ],
-        "fingerprint": "Object pattern:^[0-9]{2}$",
+        "fingerprint": "Object pattern:is not matching the expected pattern",
         "inputName": "Object",
       }
     `)
