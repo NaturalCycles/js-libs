@@ -112,6 +112,7 @@
     "no-iterator": "warn",
     "no-loss-of-precision": "warn",
     "no-misleading-character-class": "warn",
+    "no-nested-ternary": "deny",
     "no-new": "deny",
     "no-new-native-nonconstructor": "warn",
     "no-new-wrappers": "deny",

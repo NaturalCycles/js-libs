@@ -10,7 +10,7 @@ export interface GenericErrorMiddlewareCfg {
    * Generic hook that can be used to **mutate** errors before they are returned to client.
    * This function does not affect data sent to sentry.
    */
-  formatError?: (err: ErrorObject) => void
+  formatError?: (err: ErrorObject, req: BackendRequest) => void
 }
 
 export interface ErrorReportingService {
@@ -95,7 +95,7 @@ export function respondWithError(req: BackendRequest, res: BackendResponse, err:
     headersSent: headersSent || undefined,
   })
 
-  formatError?.(httpError) // Mutates
+  formatError?.(httpError, req) // Mutates the error
 
   res.status(httpError.data.backendResponseStatusCode).json({
     error: httpError,
