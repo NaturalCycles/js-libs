@@ -1822,16 +1822,13 @@ function applyImprovementsOnErrorMessages(
 
 /**
  * Looks up the user-provided custom error message (set via `{ msg }` / `{ name }`)
- * for a given AJV error, walking the schema along the error's instancePath and
- * falling back to top-level `errorMessages` (including through nullable wrappers).
+ * for a given AJV error, resolving the error's schemaPath to the exact subschema that
+ * failed - which, unlike the instancePath, also addresses anyOf/oneOf branches.
  * Returns undefined if no custom message was registered for the failing keyword.
  */
 function resolveCustomErrorMessage(schema: JsonSchema, error: ErrorObject): string | undefined {
-  const byPath = getErrorMessageForInstancePath(schema, error.instancePath, error.keyword)
-  if (byPath) return byPath
-  if (schema.errorMessages?.[error.keyword]) return schema.errorMessages[error.keyword]
-  const unwrapped = unwrapNullableAnyOf(schema)
-  return unwrapped?.errorMessages?.[error.keyword]
+  if (!error.schemaPath) return undefined
+  return resolveSchemaPath(schema, error.schemaPath)?.errorMessages?.[error.keyword]
 }
 
 /**
@@ -1910,79 +1907,6 @@ function resolveSchemaPath(schema: JsonSchema, schemaPath: string): JsonSchema |
     current = current[segment]
   }
   return current as JsonSchema | undefined
-}
-
-function getErrorMessageForInstancePath(
-  schema: JsonSchema | undefined,
-  instancePath: string,
-  keyword: string,
-): string | undefined {
-  if (!schema || !instancePath) return undefined
-
-  const segments = instancePath.split('/').filter(Boolean)
-  return traverseSchemaPath(schema, segments, keyword)
-}
-
-function traverseSchemaPath(
-  schema: JsonSchema,
-  segments: string[],
-  keyword: string,
-): string | undefined {
-  if (!segments.length) return undefined
-
-  const [currentSegment, ...remainingSegments] = segments
-
-  const nextSchema = getChildSchema(schema, currentSegment)
-  if (!nextSchema) return undefined
-
-  if (nextSchema.errorMessages?.[keyword]) {
-    return nextSchema.errorMessages[keyword]
-  }
-
-  // Check through nullable wrapper
-  const unwrapped = unwrapNullableAnyOf(nextSchema)
-  if (unwrapped?.errorMessages?.[keyword]) {
-    return unwrapped.errorMessages[keyword]
-  }
-
-  if (remainingSegments.length) {
-    return traverseSchemaPath(nextSchema, remainingSegments, keyword)
-  }
-
-  return undefined
-}
-
-function getChildSchema(schema: JsonSchema, segment: string | undefined): JsonSchema | undefined {
-  if (!segment) return undefined
-
-  // Unwrap nullable anyOf to find properties/items through nullable wrappers
-  const effectiveSchema = unwrapNullableAnyOf(schema) ?? schema
-
-  if (/^\d+$/.test(segment) && effectiveSchema.items) {
-    return getArrayItemSchema(effectiveSchema, segment)
-  }
-
-  return getObjectPropertySchema(effectiveSchema, segment)
-}
-
-function getArrayItemSchema(schema: JsonSchema, indexSegment: string): JsonSchema | undefined {
-  if (!schema.items) return undefined
-
-  if (Array.isArray(schema.items)) {
-    return schema.items[Number(indexSegment)]
-  }
-
-  return schema.items
-}
-
-function getObjectPropertySchema(schema: JsonSchema, segment: string): JsonSchema | undefined {
-  return schema.properties?.[segment as keyof typeof schema.properties]
-}
-
-function unwrapNullableAnyOf(schema: JsonSchema): JsonSchema | undefined {
-  const nullIndex = unwrapNullableAnyOfIndex(schema)
-  if (nullIndex === -1) return undefined
-  return schema.anyOf![1 - nullIndex]!
 }
 
 function unwrapNullableAnyOfIndex(schema: JsonSchema): number {

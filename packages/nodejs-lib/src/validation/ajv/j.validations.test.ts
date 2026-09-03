@@ -4051,6 +4051,17 @@ describe('oneOf', () => {
     j.oneOf([j.array(j.enum(['foo', 'bar']))])
     j.oneOf([j.array(j.enum(['valid', 'invalid'])), j.enum(['valid', 'invalid'])]).optional()
   })
+
+  test('should propagate custom errorMessages from a branch', () => {
+    const schema = j.oneOf([j.string().regex(/^[a-z]+$/, { msg: 'must be lowercase' }), j.number()])
+    const [err] = schema.getValidationResult('ABC')
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be lowercase
+      Object must be number
+      Object must match exactly one schema in oneOf
+      Input: ABC]
+    `)
+  })
 })
 
 describe('anyOf', () => {
@@ -4113,6 +4124,49 @@ describe('anyOf', () => {
     j.anyOf([j.array(j.string())])
     j.anyOf([j.array(j.enum(['foo', 'bar']))])
     j.anyOf([j.array(j.enum(['valid', 'invalid'])), j.enum(['valid', 'invalid'])]).optional()
+  })
+
+  test('should propagate custom errorMessages from a branch', () => {
+    const schema = j.anyOf([j.string().regex(/^[a-z]+$/, { msg: 'must be lowercase' }), j.number()])
+    const [err] = schema.getValidationResult('ABC')
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object must be lowercase
+      Object must be number
+      Object must match a schema in anyOf
+      Input: ABC]
+    `)
+    expect(err!.data.errors.map(e => e.params)).toMatchInlineSnapshot(`
+      [
+        {},
+        {
+          "type": "number",
+        },
+        {},
+      ]
+    `)
+  })
+
+  test('should propagate custom errorMessages from a branch of a nested property', () => {
+    const schema = j.object<{ token: string }>({
+      token: j.anyOf([j.string().uuid(), j.string().email()]),
+    })
+    const [err] = schema.getValidationResult({ token: 'nope' })
+    expect(err).toMatchInlineSnapshot(`
+      [AjvValidationError: Object.token is an invalid UUID
+      Got: nope
+      Object.token is not a valid email address
+      Got: nope
+      Object.token must match a schema in anyOf
+      Got: nope
+      Input: { token: 'nope' }]
+    `)
+    expect(err!.data.errors.map(e => e.params)).toMatchInlineSnapshot(`
+      [
+        {},
+        undefined,
+        {},
+      ]
+    `)
   })
 })
 
