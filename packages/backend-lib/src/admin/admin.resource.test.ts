@@ -6,6 +6,7 @@ import { expressTestService } from '../testing/index.js'
 import { createAdminMiddleware } from './adminMiddleware.js'
 import { BaseAdminService } from './base.admin.service.js'
 import { FirebaseSharedService } from './firebase.shared.service.js'
+import { createSecureHeaderMiddleware } from './secureHeaderMiddleware.js'
 
 const firebaseService = new FirebaseSharedService({
   authDomain: 'FIREBASE_AUTH_DOMAIN',
@@ -67,6 +68,19 @@ adminResource.get(
   async (req: BackendRequest, res) => {
     const success = req.isAuthenticatedAdminRequest === true
     res.json({ success })
+  },
+)
+
+const secureHeaderGuard = createSecureHeaderMiddleware({
+  adminService,
+  secureHeaderKey: 'x-secure-header',
+  secureHeaderValue: 'secret1',
+})(['p1', 'p2'])
+adminResource.get(
+  '/admin/secure-header-flag',
+  (req, res, next) => secureHeaderGuard(req, res, () => next()),
+  async (req: BackendRequest, res) => {
+    res.json({ success: req.isAuthenticatedAdminRequest === true })
   },
 )
 
@@ -257,5 +271,26 @@ describe('createAdminMiddleware', () => {
     )
 
     expect(success).toBe(false)
+  })
+
+  test('sets the flag when the secure header matches', async () => {
+    const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
+      headers: { 'x-secure-header': 'secret1' },
+    })
+    expect(success).toBe(true)
+  })
+
+  test('does not set the flag when the secure header is wrong', async () => {
+    const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
+      headers: { 'x-secure-header': 'wrong' },
+    })
+    expect(success).toBe(false)
+  })
+
+  test('sets the flag when there is no secure header but a valid admin token', async () => {
+    const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
+      headers: { 'x-admin-token': 'p1p2' },
+    })
+    expect(success).toBe(true)
   })
 })

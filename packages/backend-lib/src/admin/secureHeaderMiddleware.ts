@@ -44,6 +44,7 @@ function requireSecureHeaderOrAdmin(
     // Header provided - don't check for Admin
     if (providedHeader) {
       if (!secureHeaderValue || timingSafeStringEqual(providedHeader, secureHeaderValue)) {
+        req.isAuthenticatedAdminRequest = true
         return next()
       }
 
