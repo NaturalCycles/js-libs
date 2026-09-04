@@ -1,6 +1,7 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
+import type { BackendRequest } from '../server/server.model.js'
 import { expressTestService } from '../testing/index.js'
 import { createAdminMiddleware } from './adminMiddleware.js'
 import { BaseAdminService } from './base.admin.service.js'
@@ -58,11 +59,13 @@ adminResource.get(
     res.json({ success: true })
   },
 )
+
+const flagProbeGuard = requireAdmin(['p1', 'p2'])
 adminResource.get(
   '/admin/set-isAuthenticatedAdminRequest-flag',
-  requireAdmin(['p1', 'p2']),
-  async (req, res) => {
-    const success = (req as any).isAuthenticatedAdminRequest === true
+  (req, res, next) => flagProbeGuard(req, res, () => next()),
+  async (req: BackendRequest, res) => {
+    const success = req.isAuthenticatedAdminRequest === true
     res.json({ success })
   },
 )
@@ -241,5 +244,18 @@ describe('createAdminMiddleware', () => {
     )
 
     expect(success).toBe(true)
+  })
+
+  test('does not set the isAuthenticatedAdminRequest when the admin user is not successfully authenicated', async () => {
+    const { success } = await app.get<{ success: boolean }>(
+      'admin/set-isAuthenticatedAdminRequest-flag',
+      {
+        headers: {
+          'x-admin-token': 'p1',
+        },
+      },
+    )
+
+    expect(success).toBe(false)
   })
 })
