@@ -10,7 +10,9 @@ jobs:
     runs-on: ubuntu-26.04-arm
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
-      - { uses: pnpm/setup@v2, with: { runtime: node@24, cache: true } }
+      # Node comes from the runner's toolcache (no download); pnpm/setup installs only pnpm
+      - { uses: actions/setup-node@v7, with: { node-version: '24' } }
+      - { uses: pnpm/setup@v2, with: { cache: true } }
       - run: pnpm build
       - run: pnpm lint:ci
       # - run: pnpm typecheck # covered by oxlint typechecking
@@ -26,7 +28,8 @@ jobs:
       pull-requests: write
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
-      - { uses: pnpm/setup@v2, with: { runtime: node@24, cache: true } }
+      - { uses: actions/setup-node@v7, with: { node-version: '24' } }
+      - { uses: pnpm/setup@v2, with: { cache: true } }
       - run: pnpm build
       - run: pnpm release
         env:
@@ -37,7 +40,8 @@ jobs:
     if: github.ref_name == 'main'
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
-      - { uses: pnpm/setup@v2, with: { runtime: node@24, cache: true } }
+      - { uses: actions/setup-node@v7, with: { node-version: '24' } }
+      - { uses: pnpm/setup@v2, with: { cache: true } }
       - run: pnpm docs:build
       - name: publish docs to github pages
         uses: peaceiris/actions-gh-pages@v4
