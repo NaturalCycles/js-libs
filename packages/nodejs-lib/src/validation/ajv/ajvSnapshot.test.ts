@@ -1,10 +1,10 @@
 import type { JSONSchemaType } from 'ajv'
+// CJS module: under nodenext the default import is `module.exports`, the function lives on `.default`
+import standaloneCode from 'ajv/dist/standalone/index.js'
 import { format } from 'oxfmt'
 import { expect, test } from 'vitest'
 import { createAjv } from './getAjv.js'
 import { j } from './jSchema.js'
-// oxlint-disable no-var-requires, no-require-imports, no-commonjs
-const standaloneCode = require('ajv/dist/standalone')
 
 const ajv = createAjv({
   code: {
@@ -20,7 +20,7 @@ test('snapshot ajv schema', async () => {
     })
     .build()
   const fn = ajv.compile(jsonSchema as JSONSchemaType<any>)
-  const rawCode = standaloneCode(ajv, fn)
+  const rawCode = standaloneCode.default(ajv, fn)
   const code = await prettify(rawCode)
   expect(code).toMatchInlineSnapshot(`
     "'use strict'
