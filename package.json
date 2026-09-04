@@ -82,17 +82,17 @@
     "@naturalcycles/nodejs-lib": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
-    "@vitest/coverage-v8": "^4",
+    "@vitest/coverage-v8": "^5",
     "husky": "^9",
     "oxfmt": "^0",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
     "tsx": "^4",
     "vite": "^8",
-    "vitest": "^4"
+    "vitest": "^5"
   },
   "engines": {
     "node": ">=24.15.0"
   },
-  "packageManager": "pnpm@12.2.1"
+  "packageManager": "pnpm@12.3.2"
 }

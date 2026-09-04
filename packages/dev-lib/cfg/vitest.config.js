@@ -83,6 +83,7 @@ export function getSharedConfig(cwd) {
     testTimeout: 60_000,
     hookTimeout: 60_000,
     slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
+    injectCjsGlobals: false,
     sequence: {
       sequencer: VitestAlphabeticSequencer,
       // shuffle: {
