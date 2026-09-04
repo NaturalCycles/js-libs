@@ -58,6 +58,14 @@ adminResource.get(
     res.json({ success: true })
   },
 )
+adminResource.get(
+  '/admin/set-isAuthenticatedAdminRequest-flag',
+  requireAdmin(['p1', 'p2']),
+  async (req, res) => {
+    const success = (req as any).isAuthenticatedAdminRequest === true
+    res.json({ success })
+  },
+)
 
 beforeEach(() => {
   vi.setSystemTime(MOCK_TS_2018_06_21 * 1000)
@@ -220,5 +228,18 @@ describe('createAdminMiddleware', () => {
         'x-admin-token': 'p2',
       },
     })
+  })
+
+  test('sets the isAuthenticatedAdminRequest when the admin user is successfully authenicated', async () => {
+    const { success } = await app.get<{ success: boolean }>(
+      'admin/set-isAuthenticatedAdminRequest-flag',
+      {
+        headers: {
+          'x-admin-token': 'p1p2',
+        },
+      },
+    )
+
+    expect(success).toBe(true)
   })
 })

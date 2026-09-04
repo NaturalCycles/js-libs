@@ -75,6 +75,7 @@ export function requireAdminPermissions(
 
     try {
       await adminService.requirePermissions(req, reqPermissions, {}, andComparison)
+      req.isAuthenticatedAdminRequest = true
       return next()
     } catch (err) {
       if (err instanceof AppError && err.data.adminAuthRequired) {

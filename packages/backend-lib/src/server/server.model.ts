@@ -44,6 +44,12 @@ export interface BackendRequest<BODY = unknown> extends Request {
   requestTimeout?: NodeJS.Timeout
 
   bodyParserTimeout?: NodeJS.Timeout
+
+  /**
+   * When `true`, the request originated from an authenticated admin account.
+   * When not `true`, then we can make no claim either way.
+   */
+  isAuthenticatedAdminRequest?: true
 }
 
 export type BackendResponse = Response
