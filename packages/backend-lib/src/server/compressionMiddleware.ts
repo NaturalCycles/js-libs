@@ -113,6 +113,7 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
     let length: number | undefined
     let listeners: [string, (...args: any[]) => void][] | null = []
     let stream: zlib.Gzip | zlib.Deflate | zlib.BrotliCompress | zlib.ZstdCompress | undefined
+    let closed = false
 
     const _end = res.end
     const _on = res.on
@@ -199,6 +200,18 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
       listeners = null
     }
 
+    // Release the compression stream when the response closes, freeing native
+    // zlib memory even if the client disconnected before the response finished.
+    // Registered before onHeaders so a close that happens before the stream
+    // exists is not missed (the `closed` flag below handles a stream created
+    // afterwards). Fixes CVE-2026-87776 / GHSA-vc2v-76pw-4v95.
+    // We use `stream.destroy()` (not the `destroy` npm package upstream added)
+    // because our Node target frees the zlib handle on destroy().
+    _on.call(res, 'close', function onResponseClose() {
+      closed = true
+      stream?.destroy()
+    })
+
     onHeaders(res, function onResponseHeaders() {
       // determine if request is filtered
       if (!filter(req, res)) {
@@ -266,6 +279,15 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
         stream = zlib.createGzip(zlibOpts)
       } else {
         stream = zlib.createDeflate(zlibOpts)
+      }
+
+      // The response already closed before the stream was created, so the close
+      // listener above has already run. Release the stream now and drop the
+      // reference so later writes fall back to the raw response.
+      if (closed) {
+        stream.destroy()
+        stream = undefined
+        return
       }
 
       // add buffered listeners to stream
