@@ -1,0 +1,1 @@
+const e=t=>!!t;function i(t){return typeof t=="object"&&t!==null&&!Array.isArray(t)||!1}function n(t){return t==null||typeof t=="number"||typeof t=="boolean"||typeof t=="string"||typeof t=="bigint"||typeof t=="symbol"}export{n as _,e as a,i as b};
