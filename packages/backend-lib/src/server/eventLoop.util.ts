@@ -1,8 +1,4 @@
-import type {
-  EventLoopMonitorOptions,
-  EventLoopUtilization,
-  IntervalHistogram,
-} from 'node:perf_hooks'
+import type { ELDHistogram, EventLoopMonitorOptions, EventLoopUtilization } from 'node:perf_hooks'
 import { monitorEventLoopDelay, performance, PerformanceObserver } from 'node:perf_hooks'
 import type {
   Integer,
@@ -45,7 +41,7 @@ export class EventLoopMonitor {
   constructor(cfg: EventLoopMonitorCfg = {}) {
     const { measureInterval = 60_000 } = cfg
 
-    const eldOptions: EventLoopMonitorOptions2 = {
+    const eldOptions: EventLoopMonitorOptions = {
       // Node >=24.19 / >=26.5: sample once per event loop iteration (uv_prepare/uv_check hooks),
       // which measures actual per-iteration delay instead of timer jitter.
       // More accurate (no `resolution` offset baked into every percentile) and cheaper.
@@ -103,7 +99,7 @@ export class EventLoopMonitor {
   }
 
   private interval: NodeJS.Timeout
-  private eld: IntervalHistogram
+  private eld: ELDHistogram
   private lastElu: EventLoopUtilization
   /**
    * Undefined until the first interval has completed.
@@ -166,12 +162,4 @@ export interface EventLoopStats {
    * too "lossy")
    */
   gcCPU: Integer
-}
-
-/**
- * Extends the Node types with `samplePerIteration` (added in Node 24.19 / 26.5).
- * Remove once @types/node declares it.
- */
-interface EventLoopMonitorOptions2 extends EventLoopMonitorOptions {
-  samplePerIteration?: boolean
 }
