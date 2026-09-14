@@ -1986,10 +1986,14 @@ describe('number', () => {
       expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
-    test('should accept a number with a valid value', () => {
+    test('should accept any integer, including negative and post-2500 values', () => {
       const testCases: UnixTimestamp[] = [
+        localTime('1900-01-01T00:00:00Z' as IsoDateTime).unix,
+        -1 as UnixTimestamp,
         0 as UnixTimestamp,
+        localTime('2000-01-01T00:00:00Z' as IsoDateTime).unix,
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unix,
       ]
       const schema = j.number().unixTimestamp()
 
@@ -1999,12 +2003,8 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
-      const invalidCases = [
-        -1,
-        0.1,
-        localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unix,
-      ]
+    test('should reject a non-integer value', () => {
+      const invalidCases = [-0.5, 0.1, 1.5]
       const schema = j.number().unixTimestamp()
 
       invalidCases.forEach(value => {
@@ -2060,10 +2060,14 @@ describe('number', () => {
       expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
-    test('should accept a number with a valid value', () => {
+    test('should accept any integer, including negative and post-2500 values', () => {
       const testCases: UnixTimestampMillis[] = [
+        localTime('1900-01-01T00:00:00Z' as IsoDateTime).unixMillis,
+        -1 as UnixTimestampMillis,
         0 as UnixTimestampMillis,
+        localTime('2000-01-01T00:00:00Z' as IsoDateTime).unixMillis,
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis,
+        localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unixMillis,
       ]
       const schema = j.number().unixTimestampMillis()
 
@@ -2073,12 +2077,8 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
-      const invalidCases = [
-        -1,
-        0.1,
-        localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unixMillis,
-      ]
+    test('should reject a non-integer value', () => {
+      const invalidCases = [-0.5, 0.1, 1.5]
       const schema = j.number().unixTimestampMillis()
 
       invalidCases.forEach(value => {

@@ -1030,7 +1030,7 @@ export class JNumber<
   }
 
   unixTimestamp(): JNumber<UnixTimestamp, Opt> {
-    return this.integer().min(0).max(TS_2500).branded<UnixTimestamp>()
+    return this.integer().branded<UnixTimestamp>()
   }
 
   unixTimestamp2000(): JNumber<UnixTimestamp, Opt> {
@@ -1038,7 +1038,7 @@ export class JNumber<
   }
 
   unixTimestampMillis(): JNumber<UnixTimestampMillis, Opt> {
-    return this.integer().min(0).max(TS_2500_MILLIS).branded<UnixTimestampMillis>()
+    return this.integer().branded<UnixTimestampMillis>()
   }
 
   unixTimestamp2000Millis(): JNumber<UnixTimestampMillis, Opt> {
