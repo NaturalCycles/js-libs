@@ -266,8 +266,7 @@ export class UAParser {
     return this.ua
   }
 
-  setUA(ua: string | undefined): this {
-    ua ||= ''
+  setUA(ua: string | undefined = ''): this {
     this.ua = ua.length > UA_MAX_LENGTH ? ua.replace(/^\s\s*/, '').slice(0, UA_MAX_LENGTH) : ua
     this.cachedBrowser = this.cachedOs = this.cachedDevice = undefined
     return this
