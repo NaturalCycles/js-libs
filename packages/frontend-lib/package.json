@@ -42,7 +42,7 @@
     "directory": "packages/frontend-lib"
   },
   "engines": {
-    "node": ">=24.10.0"
+    "node": ">=24.15.0"
   },
   "version": "0.0.0",
   "description": "Bundled frontend libraries",
