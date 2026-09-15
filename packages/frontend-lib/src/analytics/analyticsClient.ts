@@ -62,7 +62,7 @@ const generateEventId = nanoidBrowserCustomAlphabet(
  * Captures client-side analytics events, adds browser page properties, batches them, retries
  * transient failures and delivers them to our own Backend via a single REST endpoint.
  */
-export class AnalyticsClient {
+export class AnalyticsClient implements AnalyticsClientApi {
   constructor(cfg: AnalyticsClientCfg) {
     const localStorageKeyPrefix = cfg.localStorageKeyPrefix || 'nca'
     this.cfg = {
@@ -908,8 +908,19 @@ declare global {
 }
 
 /** The stub a page assigns to `globalThis.analyticsClient` before the client loads. */
-export interface AnalyticsClientStub {
-  q?: StubbedCall[]
+export interface AnalyticsClientStub extends AnalyticsClientApi {
+  q: StubbedCall[]
+}
+
+/** What a page can call, on the loaded client or on a stub standing in for it. */
+export interface AnalyticsClientApi {
+  init: () => void
+  track: (name: string, props?: AnyObject) => void
+  identify: (userId: string) => void
+  onEvent: (listener: AnalyticsEventListener) => () => void
+  reset: () => void
+  flushNow: () => void
+  destroy: () => void
 }
 
 export type StubbedCall =
