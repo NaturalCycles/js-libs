@@ -596,6 +596,63 @@ test('should post the first touch to its own endpoint, once per pageload', async
   })
 })
 
+test('should replay the calls a stub recorded, under their original timestamps', async () => {
+  const trackedAt = (Date.now() - 60_000) as UnixTimestampMillis
+  vi.stubGlobal('analyticsClient', {
+    q: [{ method: 'track', args: ['Click', { element: 'cta' }], ts: trackedAt }],
+  })
+  const client = createClient()
+
+  client.init()
+  await vi.advanceTimersByTimeAsync(5000)
+
+  const [event] = requestBody(0).events
+  expect(event!.name).toBe('Click')
+  expect(event!.ts).toBe(trackedAt)
+  expect(event!.props).toMatchObject({ element: 'cta' })
+})
+
+test('should keep the anonymous identity for calls the stub recorded before its identify', async () => {
+  vi.stubGlobal('analyticsClient', {
+    q: [
+      { method: 'track', args: ['Click'], ts: Date.now() as UnixTimestampMillis },
+      { method: 'identify', args: ['user-123'], ts: Date.now() as UnixTimestampMillis },
+      { method: 'track', args: ['Click'], ts: Date.now() as UnixTimestampMillis },
+    ],
+  })
+  const client = createClient()
+
+  client.init()
+  await vi.advanceTimersByTimeAsync(5000)
+
+  // identify() flushes, and its own event already belongs to the new identity
+  expect(requestBody(0).events.map(e => e.userId)).toEqual([DISTINCT_ID, 'user-123'])
+  expect(requestBody(1).events.map(e => e.userId)).toEqual(['user-123'])
+})
+
+test('should drain the stub, so a second init() cannot deliver its calls twice', async () => {
+  const stub = { q: [{ method: 'track', args: ['Click'], ts: Date.now() as UnixTimestampMillis }] }
+  vi.stubGlobal('analyticsClient', stub)
+  const client = createClient()
+
+  client.init()
+  client.init()
+  await vi.advanceTimersByTimeAsync(5000)
+
+  expect(stub.q).toHaveLength(0)
+  expect(requestBody(0).events).toHaveLength(1)
+})
+
+test('should track normally when the page has no stub', async () => {
+  const client = createClient()
+
+  client.init()
+  client.track('Click')
+  await vi.advanceTimersByTimeAsync(5000)
+
+  expect(requestBody(0).events.map(e => e.name)).toEqual(['Click'])
+})
+
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests
 const CORS_SAFELISTED_METHODS = ['GET', 'HEAD', 'POST']
 const CORS_SAFELISTED_HEADERS = ['accept', 'accept-language', 'content-language', 'content-type']
