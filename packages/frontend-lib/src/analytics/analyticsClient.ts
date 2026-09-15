@@ -62,7 +62,7 @@ const generateEventId = nanoidBrowserCustomAlphabet(
  * Captures client-side analytics events, adds browser page properties, batches them, retries
  * transient failures and delivers them to our own Backend via a single REST endpoint.
  */
-export class AnalyticsClient {
+export class AnalyticsClient implements AnalyticsClientApi {
   constructor(cfg: AnalyticsClientCfg) {
     const localStorageKeyPrefix = cfg.localStorageKeyPrefix || 'nca'
     this.cfg = {
@@ -140,11 +140,37 @@ export class AnalyticsClient {
     if (isServerSide()) return
     if (!this.cfg.isEnabled()) return
     this.ensureAcquisitionProps()
+    this.replayFromStub()
   }
 
   track(name: string, props?: AnyObject): void {
     const event = this.enqueue(name, props)
     if (event) this.notifyEventListeners(event)
+  }
+
+  /**
+   * Replays the calls a stub recorded on the page before this client loaded, under the timestamps
+   * they were made at. Tracked in order, so calls made before the stub's `identify()` keep the
+   * anonymous identity.
+   */
+  private replayFromStub(): void {
+    const stub = globalThis.analyticsClient
+    if (!stub || !('q' in stub)) return
+
+    for (const call of stub.q) {
+      try {
+        if (call.method === 'identify') {
+          this.identify(call.args[0])
+        } else {
+          // Not track(), so the call keeps the timestamp it was originally made at
+          const event = this.enqueue(call.args[0], call.args[1], call.ts)
+          if (event) this.notifyEventListeners(event)
+        }
+      } catch (err) {
+        this.cfg.logger.warn('[analytics] could not replay a stubbed call', err)
+      }
+    }
+    stub.q.length = 0
   }
 
   /**
@@ -187,7 +213,11 @@ export class AnalyticsClient {
     void this.sendFirstTouch()
   }
 
-  private enqueue(name: string, props?: AnyObject): AnalyticsClientEvent | undefined {
+  private enqueue(
+    name: string,
+    props?: AnyObject,
+    ts?: UnixTimestampMillis,
+  ): AnalyticsClientEvent | undefined {
     if (isServerSide()) return
     if (!this.cfg.isEnabled()) return
     this.ensureAcquisitionProps()
@@ -197,7 +227,7 @@ export class AnalyticsClient {
     const event: AnalyticsClientEvent = {
       id: generateEventId(),
       name,
-      ts: Date.now() as UnixTimestampMillis,
+      ts: ts || (Date.now() as UnixTimestampMillis),
       props: {
         ...this.getDefaultProps(),
         ...this.cfg.getCommonProps(),
@@ -869,6 +899,34 @@ export class AnalyticsClientError extends AppError {
 }
 
 /** Listener called for every delivered event. */
+/**
+ * A call recorded by an inline stub before the client loaded, e.g
+ * `{ method: 'track', args: ['Click', { element: 'cta' }], ts: Date.now() }`.
+ */
+declare global {
+  var analyticsClient: AnalyticsClient | AnalyticsClientStub | undefined
+}
+
+/** The stub a page assigns to `globalThis.analyticsClient` before the client loads. */
+export interface AnalyticsClientStub extends AnalyticsClientApi {
+  q: StubbedCall[]
+}
+
+/** What a page can call, on the loaded client or on a stub standing in for it. */
+export interface AnalyticsClientApi {
+  init: () => void
+  track: (name: string, props?: AnyObject) => void
+  identify: (userId: string) => void
+  onEvent: (listener: AnalyticsEventListener) => () => void
+  reset: () => void
+  flushNow: () => void
+  destroy: () => void
+}
+
+export type StubbedCall =
+  | { method: 'track'; args: [name: string, props?: AnyObject]; ts: UnixTimestampMillis }
+  | { method: 'identify'; args: [userId: string]; ts: UnixTimestampMillis }
+
 export type AnalyticsEventListener = (
   event: AnalyticsClientEvent,
   distinctId: AnalyticsDistinctId,
