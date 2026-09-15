@@ -1,8 +1,8 @@
-## @naturalcycles/frontend-lib
+## @naturalcycles/cdn-lib
 
 > Bundled frontend libraries
 
-[![npm](https://img.shields.io/npm/v/@naturalcycles/frontend-lib/latest.svg)](https://www.npmjs.com/package/@naturalcycles/frontend-lib)
+[![npm](https://img.shields.io/npm/v/@naturalcycles/cdn-lib/latest.svg)](https://www.npmjs.com/package/@naturalcycles/cdn-lib)
 
 One self-contained bundle per feature, in `bundle/`, to be loaded from a CDN as
 `<script type="module">`. Consumers with their own bundler use the package exports instead.
