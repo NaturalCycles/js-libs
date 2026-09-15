@@ -34,6 +34,8 @@
   },
   "exports": {
     ".": "./dist/index.js",
+    "./analytics": "./dist/analytics/index.js",
+    "./analytics/*.js": "./dist/analytics/*.js",
     "./array": "./dist/array/index.js",
     "./array/*.js": "./dist/array/*.js",
     "./browser": "./dist/browser/index.js",
