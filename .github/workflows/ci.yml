@@ -37,7 +37,8 @@ jobs:
 
   docs:
     runs-on: ubuntu-26.04-arm
-    if: github.ref_name == 'main'
+    # docs generation is disabled for now, because it's not being up-to-date and not useful. To be revisited later.
+    if: github.ref_name == 'main' && false
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
       - { uses: actions/setup-node@v7, with: { node-version: '24' } }
