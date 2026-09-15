@@ -155,7 +155,7 @@ export class AnalyticsClient implements AnalyticsClientApi {
    */
   private replayFromStub(): void {
     const stub = globalThis.analyticsClient
-    if (!stub || !('q' in stub) || !Array.isArray(stub.q)) return
+    if (!stub || !('q' in stub)) return
 
     for (const call of stub.q) {
       try {
