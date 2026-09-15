@@ -3,11 +3,6 @@ import type { AnyObject, Branded, StringMap, UnixTimestampMillis } from '../type
 /** Identity an event is attributed to: a generated device id, or an app-provided user id. */
 export type AnalyticsDistinctId = Branded<string, 'AnalyticsDistinctId'>
 
-/** Convenience function that returns the same value typed as AnalyticsDistinctId. */
-export function asAnalyticsDistinctId(value: string): AnalyticsDistinctId {
-  return value as AnalyticsDistinctId
-}
-
 /** Emitted when the identity changes, naming the anonymous id the events so far belong to. */
 export const ANALYTICS_IDENTIFY_EVENT_NAME = 'identify'
 

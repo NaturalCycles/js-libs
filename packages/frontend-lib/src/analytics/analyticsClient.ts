@@ -8,7 +8,6 @@ import type {
   SetOnceUserProperties,
 } from '@naturalcycles/js-lib/analytics'
 import {
-  asAnalyticsDistinctId,
   CANONICAL_UTM_PARAMS,
   ANALYTICS_IDENTIFY_EVENT_NAME,
   truncateAnalyticsProperty,
@@ -180,7 +179,7 @@ export class AnalyticsClient {
   identify(userId: string): void {
     const previousDistinctId = this.identity.getDistinctId()
     this.identity.identify(userId)
-    const distinctId = asAnalyticsDistinctId(userId)
+    const distinctId = userId as AnalyticsDistinctId
     if (previousDistinctId === distinctId) return
     this.enqueue(ANALYTICS_IDENTIFY_EVENT_NAME, { anon_distinct_id: previousDistinctId })
     void this.flush()
@@ -651,7 +650,7 @@ export class AnalyticsIdentity {
     // Identities persisted before a device id was stored adopt the previous
     // distinct_id as their device id
     entry.$device_id ||= entry.distinct_id
-    entry.user_id = asAnalyticsDistinctId(userId)
+    entry.user_id = userId as AnalyticsDistinctId
     entry.distinct_id = entry.user_id
     this.saveEntry(entry)
   }
@@ -664,7 +663,7 @@ export class AnalyticsIdentity {
   reset(): void {
     const deviceId = crypto.randomUUID()
     this.saveEntry({
-      distinct_id: asAnalyticsDistinctId(this.cfg.generateDistinctId(deviceId)),
+      distinct_id: this.cfg.generateDistinctId(deviceId) as AnalyticsDistinctId,
       $device_id: deviceId,
     })
   }
@@ -686,7 +685,7 @@ export class AnalyticsIdentity {
       this.refreshExpiry(entry)
     } else {
       const deviceId = crypto.randomUUID()
-      entry.distinct_id = asAnalyticsDistinctId(this.cfg.generateDistinctId(deviceId))
+      entry.distinct_id = this.cfg.generateDistinctId(deviceId) as AnalyticsDistinctId
       entry.$device_id = deviceId
       this.saveEntry(entry)
     }
