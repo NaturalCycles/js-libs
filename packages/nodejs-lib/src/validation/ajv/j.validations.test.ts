@@ -1,6 +1,7 @@
 /* oxlint-disable @typescript-eslint/explicit-function-return-type */
 
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
+import { _enum } from '@naturalcycles/js-lib'
 import { localDate, localTime } from '@naturalcycles/js-lib/datetime'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _stringify } from '@naturalcycles/js-lib/string'
@@ -3905,6 +3906,32 @@ describe('enum', () => {
     expect(err).toBeNull()
     expect(result).toBe(OompaLoompa.Bar)
     expectTypeOf(result).toEqualTypeOf<OompaLoompa>()
+  })
+
+  test('should support _enum() objects', () => {
+    const OompaLoompa = _enum({ Foo: 'foo', Bar: 'bar' })
+    const schema = j.enum(OompaLoompa)
+    const [err, result] = schema.getValidationResult(OompaLoompa.Bar)
+
+    expect(err).toBeNull()
+    expect(result).toBe('bar')
+    expectTypeOf(result).toEqualTypeOf<'foo' | 'bar'>()
+
+    // .values keeps working too, and yields the same type
+    const [err2, result2] = j.enum(OompaLoompa.values).getValidationResult('foo')
+    expect(err2).toBeNull()
+    expect(result2).toBe('foo')
+    expectTypeOf(result2).toEqualTypeOf<'foo' | 'bar'>()
+  })
+
+  test('should support numeric _enum() objects', () => {
+    const OompaLoompa = _enum({ Foo: 0, Bar: 1 })
+    const schema = j.enum(OompaLoompa)
+    const [err, result] = schema.getValidationResult(OompaLoompa.Bar)
+
+    expect(err).toBeNull()
+    expect(result).toBe(1)
+    expectTypeOf(result).toEqualTypeOf<0 | 1>()
   })
 
   test('should produce custom error message when msg option is provided', () => {

@@ -15,27 +15,29 @@ import type { AnyObject, Enum, NumberEnum, StringEnum } from './types.js'
  * Color.values // ['red', 'green']
  * Color.entries // [['RED', 'red'], ['GREEN', 'green']]
  * Color.is(x) // type-guard for 'red' | 'green'
+ * Color.keyOf('red') // 'RED'
  * JSON.stringify(Color) // '{"RED":"red","GREEN":"green"}', no reverse-mapping, no helper leakage
  *
  * The result doesn't satisfy `StringEnum`/`NumberEnum`, so the `_stringEnum*`/`_numberEnum*`
- * functions don't accept it. Use `Color.keys`/`Color.values`/`Color.entries` instead.
+ * functions don't accept it. Use the helpers on the returned object instead.
  *
- * Throws if the input contains a `keys`, `values`, `entries` or `is` key.
+ * Throws if the input contains a key that collides with one of the helper names.
  */
-export function _enum<const T extends Record<string, string | number>>(obj: T): EnumObject<T> {
-  if (RESERVED_KEYS.some(k => k in obj)) {
+export function _enum<const T extends Record<string, string> | Record<string, number>>(
+  obj: T,
+): EnumObject<T> {
+  if (RESERVED_KEYS.some(k => Object.hasOwn(obj, k))) {
     throw new Error(
       `_enum keys must not be named ${RESERVED_KEYS.join(', ')}, as they collide with the helpers`,
     )
   }
 
+  const rawEntries = Object.entries(obj)
   const keys = Object.freeze(Object.keys(obj)) as readonly (keyof T)[]
   const values = Object.freeze(Object.values(obj)) as readonly Enum<T>[]
-  const entries = Object.freeze(Object.entries(obj)) as unknown as readonly (readonly [
-    keyof T,
-    Enum<T>,
-  ])[]
-  const valueSet = new Set<unknown>(values)
+  const entries = Object.freeze(rawEntries) as unknown as EnumEntries<T>
+  // Backs both `is` and `keyOf`. On duplicate values the last key wins, like a native number enum.
+  const keyByValue = new Map<unknown, keyof T>(rawEntries.map(([k, v]) => [v, k]))
 
   return Object.freeze(
     Object.defineProperties(
@@ -44,7 +46,15 @@ export function _enum<const T extends Record<string, string | number>>(obj: T): 
         keys: { value: keys },
         values: { value: values },
         entries: { value: entries },
-        is: { value: (v: unknown): v is Enum<T> => valueSet.has(v) },
+        is: { value: (v: unknown): v is Enum<T> => keyByValue.has(v) },
+        keyOf: {
+          value: (v: Enum<T>): keyof T => {
+            const key = keyByValue.get(v)
+            if (key === undefined) throw new Error(`_enum keyOf not found for: ${String(v)}`)
+            return key
+          },
+        },
+        keyOfOrUndefined: { value: (v: unknown): keyof T | undefined => keyByValue.get(v) },
       },
     ),
   ) as EnumObject<T>
@@ -53,7 +63,7 @@ export function _enum<const T extends Record<string, string | number>>(obj: T): 
 /**
  * Keys that `_enum()` reserves for its helpers, and therefore rejects as Enum member names.
  */
-const RESERVED_KEYS = ['keys', 'values', 'entries', 'is'] as const
+const RESERVED_KEYS = ['keys', 'values', 'entries', 'is', 'keyOf', 'keyOfOrUndefined'] as const
 
 export function getEnumType(en: AnyObject): 'StringEnum' | 'NumberEnum' | undefined {
   /*
@@ -295,9 +305,23 @@ export type EnumObject<T> = Readonly<T> & EnumHelpers<T>
 interface EnumHelpers<T> {
   readonly keys: readonly (keyof T)[]
   readonly values: readonly Enum<T>[]
-  readonly entries: readonly (readonly [k: keyof T, v: Enum<T>])[]
+  readonly entries: EnumEntries<T>
   /**
-   * Type-guard. O(1), backed by a Set.
+   * Type-guard. O(1), backed by a Map.
    */
-  is: (v: unknown) => v is Enum<T>
+  readonly is: (v: unknown) => v is Enum<T>
+  /**
+   * Reverse lookup, the counterpart of `Color.RED`. O(1). Throws if the value is not a member.
+   */
+  readonly keyOf: (v: Enum<T>) => keyof T
+  /**
+   * Like `keyOf`, but takes untrusted input and returns undefined instead of throwing.
+   */
+  readonly keyOfOrUndefined: (v: unknown) => keyof T | undefined
 }
+
+/**
+ * The mapped type (rather than `readonly [keyof T, Enum<T>][]`) keeps each key paired
+ * with its own value, instead of allowing any key/value combination.
+ */
+type EnumEntries<T> = readonly { [K in keyof T]: readonly [k: K, v: T[K]] }[keyof T][]

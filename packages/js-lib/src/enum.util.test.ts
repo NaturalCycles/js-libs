@@ -285,7 +285,10 @@ describe('_enum', () => {
   test('should keep literal types on keys, values and entries', () => {
     expectTypeOf(Color.keys).toEqualTypeOf<readonly ('RED' | 'GREEN')[]>()
     expectTypeOf(Color.values).toEqualTypeOf<readonly Color[]>()
-    expectTypeOf(Color.entries).toEqualTypeOf<readonly (readonly ['RED' | 'GREEN', Color])[]>()
+    // the entries tuples stay correlated: 'RED' pairs only with 'red', never with 'green'
+    expectTypeOf(Color.entries).toEqualTypeOf<
+      readonly (readonly ['RED', 'red'] | readonly ['GREEN', 'green'])[]
+    >()
 
     // in contrast to the built-ins, which widen to string
     expectTypeOf(Object.keys(Color)).toEqualTypeOf<string[]>()
@@ -305,6 +308,28 @@ describe('_enum', () => {
     if (Color.is(v)) {
       expectTypeOf(v).toEqualTypeOf<Color>()
     }
+  })
+
+  test('should look the key up by value', () => {
+    expect(Color.keyOf('red')).toBe('RED')
+    expect(Level.keyOf(2)).toBe('HIGH')
+    expectTypeOf(Color.keyOf('red')).toEqualTypeOf<'RED' | 'GREEN'>()
+
+    expect(() => Color.keyOf('blue' as Color)).toThrowErrorMatchingInlineSnapshot(
+      `[Error: _enum keyOf not found for: blue]`,
+    )
+
+    expect(Color.keyOfOrUndefined('green')).toBe('GREEN')
+    expect(Color.keyOfOrUndefined('blue')).toBeUndefined()
+    expect(Color.keyOfOrUndefined('RED')).toBeUndefined()
+    expect(Color.keyOfOrUndefined(undefined)).toBeUndefined()
+    expectTypeOf(Color.keyOfOrUndefined('x')).toEqualTypeOf<'RED' | 'GREEN' | undefined>()
+  })
+
+  test('should let the last key win on duplicate values, like a native number enum', () => {
+    const Dup = _enum({ A: 'x', B: 'x' })
+    expect(Dup.keyOf('x')).toBe('B')
+    expect(Dup.values).toEqual(['x', 'x'])
   })
 
   test('should keep helpers non-enumerable, so iteration/serialization only sees members', () => {
@@ -328,6 +353,9 @@ describe('_enum', () => {
     expect(Object.isFrozen(Color.values)).toBe(true)
     expect(Object.isFrozen(Color.entries)).toBe(true)
     expect(() => {
+      ;(Color as any).is = () => true
+    }).toThrow(TypeError)
+    expect(() => {
       ;(Color as any).RED = 'nope'
     }).toThrow(TypeError)
     expect(() => {
@@ -344,7 +372,7 @@ describe('_enum', () => {
   })
 
   test('should throw on keys colliding with the helpers', () => {
-    const msg = `[Error: _enum keys must not be named keys, values, entries, is, as they collide with the helpers]`
+    const msg = `[Error: _enum keys must not be named keys, values, entries, is, keyOf, keyOfOrUndefined, as they collide with the helpers]`
     expect(() => _enum({ values: 'a' })).toThrowErrorMatchingInlineSnapshot(msg)
     expect(() => _enum({ keys: 'a', is: 'b' })).toThrowErrorMatchingInlineSnapshot(msg)
     expect(() => _enum({ entries: 'a' })).toThrowErrorMatchingInlineSnapshot(msg)
