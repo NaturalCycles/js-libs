@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { red } from '@naturalcycles/nodejs-lib/colors'
-import type { RunnerTask, WorkerGlobalState } from 'vitest'
+import type { RunnerTask, RunnerTestCase, WorkerGlobalState } from 'vitest'
 import { createMitm } from '../vendor/mitm.js'
 import type { Mitm } from '../vendor/mitm.js'
 
@@ -12,6 +12,11 @@ const detectLeaks = process.argv.some(a => a.includes('detectLeaks'))
 let mitm: Mitm | undefined
 
 /**
+ * Forbids network requests to anything but local hosts for the rest of the test run.
+ *
+ * A forbidden request throws into the code under test and also fails the test that made it,
+ * so the failure survives the code under test catching the error.
+ *
  * Based on: https://github.com/palmerj3/jest-offline/blob/master/index.js
  */
 export function testOffline(opt?: TestOfflineOptions): void {
@@ -32,9 +37,11 @@ export function testOffline(opt?: TestOfflineOptions): void {
 
       process.stderr.write(red(`Network request forbidden by testOffline: ${testInfo}\n`))
       opt?.onForbiddenRequest?.(host!)
-      throw new AppError(`Network request forbidden by testOffline: ${host}`, {
+      const error = new AppError(`Network request forbidden by testOffline: ${host}`, {
         backendResponseStatusCode: 410,
       })
+      failCurrentTest(error)
+      throw error
     }
 
     socket.bypass()
@@ -63,7 +70,7 @@ export function testOnline(): void {
 function getCurrentTestInfo(host: string | undefined): string {
   const tokens = [host]
 
-  const state = (globalThis as any)['__vitest_worker__'] as WorkerGlobalState | undefined
+  const state = getWorkerState()
 
   if (state) {
     if (state.filepath) {
@@ -74,6 +81,30 @@ function getCurrentTestInfo(host: string | undefined): string {
     }
   }
   return tokens.filter(Boolean).join('\n')
+}
+
+/**
+ * Records the error on the running test the way `expect.soft` does: vitest only marks a test
+ * passed if nothing set its state to `fail` first. This is what makes the test fail even when the
+ * code under test catches the error thrown from the `connect` listener (a `pTry`, a fetcher that
+ * swallows failures) — otherwise such a test passes with nothing but the alert on stderr.
+ */
+function failCurrentTest(error: Error): void {
+  const result = getCurrentTest()?.result
+  if (!result) return
+
+  result.state = 'fail'
+  result.errors ||= []
+  result.errors.push({ name: error.name, message: error.message, stack: error.stack })
+}
+
+function getCurrentTest(): RunnerTestCase | undefined {
+  const current = getWorkerState()?.current
+  return current?.type === 'test' ? current : undefined
+}
+
+function getWorkerState(): WorkerGlobalState | undefined {
+  return (globalThis as any)['__vitest_worker__'] as WorkerGlobalState | undefined
 }
 
 /**
