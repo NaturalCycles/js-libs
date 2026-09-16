@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import {
+  _enum,
   _numberEnumAsMap,
   _numberEnumAsMapReversed,
   _numberEnumEntries,
@@ -22,6 +23,7 @@ import {
   _stringEnumValues,
   getEnumType,
 } from './enum.util.js'
+import type { Enum } from './types.js'
 
 enum MyNumberEnum {
   K1 = 1,
@@ -251,5 +253,113 @@ describe('getEnumType', () => {
   const testCases = [{}, { a: [1] }, { a: 1, b: 'b' }]
   test.each(testCases)('should return "undefined" for other objects: %s', value => {
     expect(getEnumType(value)).toBeUndefined()
+  })
+})
+
+describe('_enum', () => {
+  const Color = _enum({ RED: 'red', GREEN: 'green' })
+  type Color = Enum<typeof Color>
+
+  const Level = _enum({ LOW: 1, HIGH: 2 })
+  type Level = Enum<typeof Level>
+
+  test('should expose members with their literal types', () => {
+    expect(Color.RED).toBe('red')
+    expect(Level.HIGH).toBe(2)
+    expectTypeOf(Color.RED).toEqualTypeOf<'red'>()
+    expectTypeOf(Level.HIGH).toEqualTypeOf<2>()
+    expectTypeOf<Color>().toEqualTypeOf<'red' | 'green'>()
+    expectTypeOf<Level>().toEqualTypeOf<1 | 2>()
+  })
+
+  test('should expose keys, values and entries in declaration order', () => {
+    expect(Color.keys).toEqual(['RED', 'GREEN'])
+    expect(Color.values).toEqual(['red', 'green'])
+    expect(Color.entries).toEqual([
+      ['RED', 'red'],
+      ['GREEN', 'green'],
+    ])
+    expect(Level.values).toEqual([1, 2])
+  })
+
+  test('should keep literal types on keys, values and entries', () => {
+    expectTypeOf(Color.keys).toEqualTypeOf<readonly ('RED' | 'GREEN')[]>()
+    expectTypeOf(Color.values).toEqualTypeOf<readonly Color[]>()
+    expectTypeOf(Color.entries).toEqualTypeOf<readonly (readonly ['RED' | 'GREEN', Color])[]>()
+
+    // in contrast to the built-ins, which widen to string
+    expectTypeOf(Object.keys(Color)).toEqualTypeOf<string[]>()
+  })
+
+  test('should provide `is` as a type-guard', () => {
+    expect(Color.is('red')).toBe(true)
+    expect(Color.is('green')).toBe(true)
+    expect(Color.is('RED')).toBe(false)
+    expect(Color.is('blue')).toBe(false)
+    expect(Color.is(undefined)).toBe(false)
+    expect(Level.is(1)).toBe(true)
+    expect(Level.is('1')).toBe(false)
+    expect(Level.is(3)).toBe(false)
+
+    const v: unknown = 'red'
+    if (Color.is(v)) {
+      expectTypeOf(v).toEqualTypeOf<Color>()
+    }
+  })
+
+  test('should keep helpers non-enumerable, so iteration/serialization only sees members', () => {
+    expect(Object.keys(Color)).toEqual(['RED', 'GREEN'])
+    expect(Object.values(Color)).toEqual(['red', 'green'])
+    expect(Object.entries(Color)).toEqual([
+      ['RED', 'red'],
+      ['GREEN', 'green'],
+    ])
+    expect(JSON.stringify(Color)).toBe('{"RED":"red","GREEN":"green"}')
+
+    const keys: string[] = []
+    // oxlint-disable-next-line guard-for-in -- the point of the test is that nothing else is enumerable
+    for (const k in Color) keys.push(k)
+    expect(keys).toEqual(['RED', 'GREEN'])
+  })
+
+  test('should freeze the enum object and its helper arrays', () => {
+    expect(Object.isFrozen(Color)).toBe(true)
+    expect(Object.isFrozen(Color.keys)).toBe(true)
+    expect(Object.isFrozen(Color.values)).toBe(true)
+    expect(Object.isFrozen(Color.entries)).toBe(true)
+    expect(() => {
+      ;(Color as any).RED = 'nope'
+    }).toThrow(TypeError)
+    expect(() => {
+      ;(Color.values as any).push('blue')
+    }).toThrow(TypeError)
+  })
+
+  test('should not mutate the input object', () => {
+    const input = { RED: 'red' }
+    const en = _enum(input)
+    expect(en).not.toBe(input)
+    expect(Object.isFrozen(input)).toBe(false)
+    expect('values' in input).toBe(false)
+  })
+
+  test('should throw on keys colliding with the helpers', () => {
+    const msg = `[Error: _enum keys must not be named keys, values, entries, is, as they collide with the helpers]`
+    expect(() => _enum({ values: 'a' })).toThrowErrorMatchingInlineSnapshot(msg)
+    expect(() => _enum({ keys: 'a', is: 'b' })).toThrowErrorMatchingInlineSnapshot(msg)
+    expect(() => _enum({ entries: 'a' })).toThrowErrorMatchingInlineSnapshot(msg)
+  })
+
+  test('should be detected by getEnumType', () => {
+    // getEnumType takes AnyObject, so it accepts an _enum() object as-is.
+    // The _stringEnum*/_numberEnum* helpers do not: the helpers make the object
+    // not satisfy StringEnum/NumberEnum. They're not needed, use Color.keys/values/entries.
+    expect(getEnumType(Color)).toBe('StringEnum')
+    expect(getEnumType(Level)).toBe('NumberEnum')
+  })
+
+  test('should support Enum<T> on native TS enums too', () => {
+    expectTypeOf<Enum<typeof MyStringEnum>>().toEqualTypeOf<MyStringEnum>()
+    expectTypeOf<Enum<typeof MyNumberEnum>>().toEqualTypeOf<MyNumberEnum>()
   })
 })

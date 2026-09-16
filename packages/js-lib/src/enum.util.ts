@@ -1,4 +1,59 @@
-import type { AnyObject, NumberEnum, StringEnum } from './types.js'
+import type { AnyObject, Enum, NumberEnum, StringEnum } from './types.js'
+
+/**
+ * Creates a frozen, runtime Enum object. A replacement for a native TypeScript enum,
+ * which is not supported by type-stripping runtimes (e.g `node --experimental-strip-types`).
+ *
+ * Declare the type with the same name as the const, to mimic how native enums merge value and type.
+ *
+ * @example
+ * export const Color = _enum({ RED: 'red', GREEN: 'green' })
+ * export type Color = Enum<typeof Color> // 'red' | 'green'
+ *
+ * Color.RED // 'red'
+ * Color.keys // ['RED', 'GREEN']
+ * Color.values // ['red', 'green']
+ * Color.entries // [['RED', 'red'], ['GREEN', 'green']]
+ * Color.is(x) // type-guard for 'red' | 'green'
+ * JSON.stringify(Color) // '{"RED":"red","GREEN":"green"}', no reverse-mapping, no helper leakage
+ *
+ * The result doesn't satisfy `StringEnum`/`NumberEnum`, so the `_stringEnum*`/`_numberEnum*`
+ * functions don't accept it. Use `Color.keys`/`Color.values`/`Color.entries` instead.
+ *
+ * Throws if the input contains a `keys`, `values`, `entries` or `is` key.
+ */
+export function _enum<const T extends Record<string, string | number>>(obj: T): EnumObject<T> {
+  if (RESERVED_KEYS.some(k => k in obj)) {
+    throw new Error(
+      `_enum keys must not be named ${RESERVED_KEYS.join(', ')}, as they collide with the helpers`,
+    )
+  }
+
+  const keys = Object.freeze(Object.keys(obj)) as readonly (keyof T)[]
+  const values = Object.freeze(Object.values(obj)) as readonly Enum<T>[]
+  const entries = Object.freeze(Object.entries(obj)) as unknown as readonly (readonly [
+    keyof T,
+    Enum<T>,
+  ])[]
+  const valueSet = new Set<unknown>(values)
+
+  return Object.freeze(
+    Object.defineProperties(
+      { ...obj },
+      {
+        keys: { value: keys },
+        values: { value: values },
+        entries: { value: entries },
+        is: { value: (v: unknown): v is Enum<T> => valueSet.has(v) },
+      },
+    ),
+  ) as EnumObject<T>
+}
+
+/**
+ * Keys that `_enum()` reserves for its helpers, and therefore rejects as Enum member names.
+ */
+const RESERVED_KEYS = ['keys', 'values', 'entries', 'is'] as const
 
 export function getEnumType(en: AnyObject): 'StringEnum' | 'NumberEnum' | undefined {
   /*
@@ -225,4 +280,24 @@ export function _stringEnumKey<T extends StringEnum>(en: T, v: string | undefine
   const r = _stringEnumKeyOrUndefined(en, v)
   if (!r) throw new Error(`_stringEnumKey not found for: ${v}`)
   return r
+}
+
+export type EnumObject<T> = Readonly<T> & EnumHelpers<T>
+
+/**
+ * Helpers that `_enum()` hangs off the returned object.
+ * Defined as non-enumerable, so that `Object.keys/values/entries`, `JSON.stringify`
+ * and `for..in` still only see the actual Enum members.
+ *
+ * `keys`/`values`/`entries` are precomputed and frozen, and keep the literal types
+ * that the `Object.*` equivalents would widen to `string`.
+ */
+interface EnumHelpers<T> {
+  readonly keys: readonly (keyof T)[]
+  readonly values: readonly Enum<T>[]
+  readonly entries: readonly (readonly [k: keyof T, v: Enum<T>])[]
+  /**
+   * Type-guard. O(1), backed by a Set.
+   */
+  is: (v: unknown) => v is Enum<T>
 }
