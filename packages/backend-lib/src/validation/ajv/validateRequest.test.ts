@@ -261,7 +261,7 @@ describe('ajvValidateRequest', () => {
       }
     }
 
-    test('1. secret that itself fails validation, longer than the Got print cap', () => {
+    test('should redact a secret that itself fails validation and is longer than the Got print cap', () => {
       const pw = 'LongSecretAa'.repeat(100)
       const err = validateBodyExpectError({ email: 'a@b.se', pw }, loginSchema, ['pw'])
 
@@ -269,7 +269,7 @@ describe('ajvValidateRequest', () => {
       expectNoLeak(err, pw)
     })
 
-    test('2. secret with escapable characters, when another field fails', () => {
+    test('should redact a secret with escapable characters when another field fails', () => {
       for (const pw of [String.raw`Back\slashSecret`, 'Newline\nSecretValue', 'Tab\tSecretValue']) {
         const err = validateBodyExpectError({ email: 'nope', pw }, loginSchema, ['pw'])
 
@@ -278,7 +278,7 @@ describe('ajvValidateRequest', () => {
       }
     })
 
-    test('3. secret longer than the Input print cap', () => {
+    test('should redact a secret longer than the Input print cap', () => {
       const uncappedSchema = j.object<LoginInput>({
         email: j.string().email(),
         pw: j.string(),
@@ -289,7 +289,7 @@ describe('ajvValidateRequest', () => {
       expectNoLeak(err, pw)
     })
 
-    test('4. non-string secret', () => {
+    test('should redact a non-string secret', () => {
       const schema = j.object<{ email: string; credentials: AnyObject }>({
         email: j.string().email(),
         credentials: j.object.any(),
@@ -304,7 +304,7 @@ describe('ajvValidateRequest', () => {
       expectNoLeak(err, 'ObjSecretKey123')
     })
 
-    test('5. secret that the schema transforms or strips, when rawBody is present', () => {
+    test('should redact a secret that the schema transforms or strips, when rawBody is present', () => {
       const transformingSchema = j.object<{ email: string; token: string }>({
         email: j.string().email(),
         token: j.string().toLowerCase(),
@@ -332,11 +332,64 @@ describe('ajvValidateRequest', () => {
       expectNoLeak(err, 'UndeclaredSecret42')
     })
 
-    test('6. very short secret must not mangle the message or reveal itself', () => {
+    test('should not mangle the message or reveal a very short secret', () => {
       const err = validateBodyExpectError({ email: 'a@b.se', pw: 'e' }, loginSchema, ['pw'])
 
       expect(err.message).toContain('request.body.pw must NOT have fewer than 8 characters')
       expect(err.message).toContain(`pw: 'REDACTED'`)
+    })
+
+    test('should return the real value and not mutate the request on valid input', () => {
+      const req = { body: { email: 'a@b.se', pw: 'RealPassword1' } } as any
+      const output = validateRequest.body(req, loginSchema, { redactPaths: ['pw'] })
+
+      expect(output).toEqual({ email: 'a@b.se', pw: 'RealPassword1' })
+      expect(req.body.pw).toBe('RealPassword1')
+    })
+
+    test('should redact nested and array paths', () => {
+      interface NestedInput {
+        email: string
+        input: { pw: string }
+        items: { secret: string }[]
+      }
+      const schema = j.object<NestedInput>({
+        email: j.string().email(),
+        input: j.object<{ pw: string }>({ pw: j.string() }),
+        items: j.array(j.object<{ secret: string }>({ secret: j.string() })),
+      })
+      const err = validateBodyExpectError(
+        {
+          email: 'nope',
+          input: { pw: 'NestedSecret11' },
+          items: [{ secret: 'ArraySecret00' }, { secret: 'visibleValue22' }],
+        },
+        schema,
+        ['input.pw', 'items.0.secret'],
+      )
+
+      expect(err.message).toContain(`pw: 'REDACTED'`)
+      expect(err.message).toContain(`secret: 'REDACTED'`)
+      expect(err.message).toContain('visibleValue22')
+      expectNoLeak(err, 'NestedSecret11')
+      expectNoLeak(err, 'ArraySecret00')
+    })
+
+    test('should redact query secrets with coercion enabled', () => {
+      const schema = j.object<{ limit: number; apiKey: string }>({
+        limit: j.number(),
+        apiKey: j.string(),
+      })
+      const req = { query: { limit: 'abc', apiKey: 'QuerySecretKey12' } } as any
+      const [err] = _try(
+        () => validateRequest.query(req, schema, { redactPaths: ['apiKey'] }),
+        AppError,
+      )
+
+      expect(err).toBeInstanceOf(AppError)
+      expect(err!.message).toContain(`apiKey: 'REDACTED'`)
+      expectNoLeak(err!, 'QuerySecretKey12')
+      expect(req.query.apiKey).toBe('QuerySecretKey12')
     })
   })
 
