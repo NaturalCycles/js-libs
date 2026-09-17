@@ -106,7 +106,7 @@ class AjvValidateRequest {
     })
 
     if (error) {
-      handleValidationError(error, input, opt)
+      handleValidationError(error, opt)
     }
 
     return output

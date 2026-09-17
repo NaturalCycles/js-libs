@@ -177,6 +177,7 @@ describe('ajvValidateRequest', () => {
     })
 
     test('should redact sensitive data', async () => {
+      const sessionid = 'abc123secretSession'
       const err = await app.expectError({
         url: '',
         method: 'GET',
@@ -184,13 +185,13 @@ describe('ajvValidateRequest', () => {
           shortstring: 'short',
           numeric: '127',
           bool: '1',
-          sessionid: 'sessionid',
+          sessionid,
         },
       })
 
       expect(err.data.responseStatusCode).toBe(400)
-      expect(err.cause.message).toContain("REDACTED: 'REDACTED'")
-      expect(err.cause.message).not.toContain('sessionid')
+      expect(err.cause.message).toContain(`sessionid: 'REDACTED'`)
+      expect(err.cause.message).not.toContain(sessionid)
     })
 
     test('should replace the headers with the validated value by default', async () => {
