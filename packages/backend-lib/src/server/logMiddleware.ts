@@ -1,4 +1,5 @@
 import { inspect } from 'node:util'
+import { splitLogContext } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
@@ -50,20 +51,25 @@ export const ciLogger: CommonLogger = {
 // Documented here: https://cloud.google.com/logging/docs/structured-logging
 // Cloud Run logging: https://cloud.google.com/run/docs/logging
 function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
+  const { context, args: rest } = splitLogContext(args)
   console.log(
     JSON.stringify({
-      message: args.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
+      ...context,
+      message: rest.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
+      // meta is spread last, so that the context can never clobber severity/labels/trace keys
       ...meta,
     }),
   )
 }
 
 function logToDev(requestId: string | null, args: any[]): void {
+  const { context, args: rest } = splitLogContext(args)
   // Run on local machine
   console.log(
     [
       requestId ? [dimGrey(`[${requestId}]`)] : [],
-      ...args.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
+      ...rest.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
+      ...(context ? [dimGrey(_inspect(context, { colors: false }))] : []),
     ].join(' '),
   )
 }
