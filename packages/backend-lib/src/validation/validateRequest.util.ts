@@ -1,5 +1,6 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
-import { _get } from '@naturalcycles/js-lib/object/object.util.js'
+import { _get, _has, _set } from '@naturalcycles/js-lib/object/object.util.js'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 
 export function handleValidationError<T, ERR extends AppError>(
   error: ERR,
@@ -38,6 +39,19 @@ function redact(redactPaths: string[], obj: any, error: Error): void {
     .forEach(secret => {
       error.message = error.message.replaceAll(secret, REDACTED)
     })
+}
+
+/**
+ * Mutates `input`: replaces the value at each existing `redactPaths` dot-path with 'REDACTED',
+ * whatever its type. Paths that don't exist are skipped - no keys are created.
+ */
+export function redactInputByPaths<T extends AnyObject>(input: T, redactPaths: string[]): T {
+  for (const path of redactPaths) {
+    if (_has(input, path)) {
+      _set(input, path, REDACTED)
+    }
+  }
+  return input
 }
 
 /**

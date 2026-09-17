@@ -1,6 +1,10 @@
-import type { StringMap } from '@naturalcycles/js-lib/types'
+import { _try } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
+import { _deepCopy } from '@naturalcycles/js-lib/object'
+import type { AnyObject, StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
+import type { SchemaHandledByAjv } from '@naturalcycles/nodejs-lib/ajv'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { getDefaultRouter } from '../../express/getDefaultRouter.js'
 import { debugResource } from '../../test/debug.resource.js'
@@ -221,6 +225,117 @@ describe('ajvValidateRequest', () => {
         foo: 'bar',
         'user-agent': expect.any(String),
       })
+    })
+  })
+
+  describe('redactPaths', () => {
+    interface LoginInput {
+      email: string
+      pw: string
+    }
+
+    const loginSchema = j.object<LoginInput>({
+      email: j.string().email(),
+      pw: j.string().minLength(8).maxLength(100),
+    })
+
+    function validateBodyExpectError(
+      body: AnyObject,
+      schema: SchemaHandledByAjv<any>,
+      redactPaths: string[],
+      opt: { rawBody?: boolean } = {},
+    ): AppError {
+      const req = { body: _deepCopy(body) } as any
+      if (opt.rawBody) req.rawBody = Buffer.from(JSON.stringify(body))
+      const [err] = _try(() => validateRequest.body(req, schema, { redactPaths }), AppError)
+      expect(err).toBeInstanceOf(AppError)
+      return err!
+    }
+
+    function expectNoLeak(err: AppError, secret: string): void {
+      for (const text of [err.message, err.stack || '']) {
+        for (let i = 0; i + 6 <= secret.length; i++) {
+          expect(text).not.toContain(secret.slice(i, i + 6))
+        }
+      }
+    }
+
+    test('1. secret that itself fails validation, longer than the Got print cap', () => {
+      const pw = 'LongSecretAa'.repeat(100)
+      const err = validateBodyExpectError({ email: 'a@b.se', pw }, loginSchema, ['pw'])
+
+      expect(err.message).toContain('request.body.pw must NOT have more than 100 characters')
+      expectNoLeak(err, pw)
+    })
+
+    test('2. secret with escapable characters, when another field fails', () => {
+      for (const pw of [String.raw`Back\slashSecret`, 'Newline\nSecretValue', 'Tab\tSecretValue']) {
+        const err = validateBodyExpectError({ email: 'nope', pw }, loginSchema, ['pw'])
+
+        expect(err.message).toContain(`pw: 'REDACTED'`)
+        expectNoLeak(err, pw)
+      }
+    })
+
+    test('3. secret longer than the Input print cap', () => {
+      const uncappedSchema = j.object<LoginInput>({
+        email: j.string().email(),
+        pw: j.string(),
+      })
+      const pw = 'S3cretPassw0rd'.repeat(360)
+      const err = validateBodyExpectError({ email: 'nope', pw }, uncappedSchema, ['pw'])
+
+      expectNoLeak(err, pw)
+    })
+
+    test('4. non-string secret', () => {
+      const schema = j.object<{ email: string; credentials: AnyObject }>({
+        email: j.string().email(),
+        credentials: j.object.any(),
+      })
+      const err = validateBodyExpectError(
+        { email: 'nope', credentials: { apiKey: 'ObjSecretKey123' } },
+        schema,
+        ['credentials'],
+      )
+
+      expect(err.message).toContain(`credentials: 'REDACTED'`)
+      expectNoLeak(err, 'ObjSecretKey123')
+    })
+
+    test('5. secret that the schema transforms or strips, when rawBody is present', () => {
+      const transformingSchema = j.object<{ email: string; token: string }>({
+        email: j.string().email(),
+        token: j.string().toLowerCase(),
+      })
+      let err = validateBodyExpectError(
+        { email: 'nope', token: 'MixedCaseToken99' },
+        transformingSchema,
+        ['token'],
+        { rawBody: true },
+      )
+      expectNoLeak(err, 'MixedCaseToken99')
+      expectNoLeak(err, 'mixedcasetoken99')
+
+      const schemaWithoutPw = j.object<{ email: string }>({
+        email: j.string().email(),
+      })
+      err = validateBodyExpectError(
+        { email: 'nope', pw: 'UndeclaredSecret42' },
+        schemaWithoutPw,
+        ['pw'],
+        {
+          rawBody: true,
+        },
+      )
+      expectNoLeak(err, 'UndeclaredSecret42')
+    })
+
+    test('6. very short secret must not mangle the message or reveal itself', () => {
+      const err = validateBodyExpectError({ email: 'a@b.se', pw: 'e' }, loginSchema, ['pw'])
+
+      expect(err.message).toContain('request.body.pw must NOT have fewer than 8 characters')
+      expect(err.message).toContain(`pw: 'REDACTED'`)
     })
   })
 
