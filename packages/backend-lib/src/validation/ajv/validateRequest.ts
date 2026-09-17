@@ -88,9 +88,11 @@ class AjvValidateRequest {
     const ajv = coerceTypes ? getCoercingAjv() : undefined
 
     if (redactPaths?.length) {
-      const originalInput = getOriginalInput?.() || _deepCopy(input) // copy, so redaction doesn't mutate the input
-      const inputForPrint = redactInputByPaths(originalInput, redactPaths)
-      getOriginalInput = () => inputForPrint
+      const getOriginal = getOriginalInput
+      const validationWillMutateInput = !getOriginal && mutateInput !== false
+      const inputCopy = validationWillMutateInput ? _deepCopy(input) : undefined
+      getOriginalInput = () =>
+        redactInputByPaths(inputCopy || getOriginal?.() || _deepCopy(input), redactPaths) // copy, so redaction doesn't mutate the input
     }
 
     const validatable =

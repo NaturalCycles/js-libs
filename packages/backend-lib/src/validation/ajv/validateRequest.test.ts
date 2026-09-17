@@ -254,7 +254,7 @@ describe('ajvValidateRequest', () => {
     }
 
     function expectNoLeak(err: AppError, secret: string): void {
-      for (const text of [err.message, err.stack || '']) {
+      for (const text of [err.message, err.stack || '', JSON.stringify(err.data)]) {
         for (let i = 0; i + 6 <= secret.length; i++) {
           expect(text).not.toContain(secret.slice(i, i + 6))
         }
@@ -373,6 +373,36 @@ describe('ajvValidateRequest', () => {
       expect(err.message).toContain('visibleValue22')
       expectNoLeak(err, 'NestedSecret11')
       expectNoLeak(err, 'ArraySecret00')
+    })
+
+    test('should not mutate req.headers when redacting on failure', () => {
+      const sessionid = 'HeaderSecretVal99'
+      const req = { headers: { shortstring: 'short', sessionid } } as any
+      const schema = j.object<{ shortstring: string; sessionid: string }>({
+        shortstring: j.string().minLength(8),
+        sessionid: j.string(),
+      })
+      const [err] = _try(
+        () => validateRequest.headers(req, schema, { redactPaths: ['sessionid'] }),
+        AppError,
+      )
+
+      expect(err).toBeInstanceOf(AppError)
+      expect(err!.message).toContain(`sessionid: 'REDACTED'`)
+      expectNoLeak(err!, sessionid)
+      expect(req.headers.sessionid).toBe(sessionid)
+    })
+
+    test('should redact an undeclared secret without rawBody, copied before validation strips it', () => {
+      const schema = j.object<{ email: string }>({
+        email: j.string().email(),
+      })
+      const err = validateBodyExpectError({ email: 'nope', pw: 'UndeclaredSecret42' }, schema, [
+        'pw',
+      ])
+
+      expect(err.message).toContain(`pw: 'REDACTED'`)
+      expectNoLeak(err, 'UndeclaredSecret42')
     })
 
     test('should redact query secrets with coercion enabled', () => {
