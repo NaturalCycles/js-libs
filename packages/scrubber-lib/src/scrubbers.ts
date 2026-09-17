@@ -43,6 +43,24 @@ export const preserveOriginalScrubber: PreserveOriginalScrubberFn = value => val
 export const preserveOriginalScrubberSQL: PreserveOriginalScrubberSQLFn = () => sqlValueToReplace
 
 /*
+ Exclude scrubber
+
+ Marker that excludes a field from a less specific (catch-all) rule, e.g. `name` scrubs every
+ `name` while `HardwareDevice.name` set to this leaves that one alone. The field is then treated
+ as if no rule matched it at all: the value is untouched, nested values below it are still
+ traversed, and no SQL masking policy is generated for it.
+ */
+export const EXCLUDE_SCRUBBER = 'excludeScrubber'
+
+export type ExcludeScrubberFn = ScrubberFn<any, undefined>
+
+export type ExcludeScrubberSQLFn = ScrubberSQLFn<undefined>
+
+export const excludeScrubber: ExcludeScrubberFn = value => value
+
+export const excludeScrubberSQL: ExcludeScrubberSQLFn = () => sqlValueToReplace
+
+/*
  Static scrubber
 
  Replace value with `params.replacement`
@@ -620,6 +638,7 @@ function nthChar(str: string, character: string, n: number): number | undefined 
 export const defaultScrubbers: ScrubbersMap = {
   staticScrubber,
   preserveOriginalScrubber,
+  excludeScrubber,
   isoDateStringScrubber,
   unixTimestampScrubber,
   undefinedScrubber,
@@ -638,6 +657,7 @@ export const defaultScrubbers: ScrubbersMap = {
 export const defaultScrubbersSQL: ScrubbersSQLMap = {
   staticScrubber: staticScrubberSQL,
   preserveOriginalScrubber: preserveOriginalScrubberSQL,
+  excludeScrubber: excludeScrubberSQL,
   isoDateStringScrubber: isoDateStringScrubberSQL,
   unixTimestampScrubber: unixTimestampScrubberSQL,
   undefinedScrubber: undefinedScrubberSQL,

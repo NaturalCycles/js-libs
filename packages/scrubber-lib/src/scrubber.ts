@@ -2,8 +2,13 @@ import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _deepEquals } from '@naturalcycles/js-lib/object'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { nanoid } from '@naturalcycles/nodejs-lib'
-import type { ScrubberConfig, ScrubbersMap, ScrubbersSQLMap } from './scrubber.model.js'
-import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers.js'
+import type {
+  ScrubberConfig,
+  ScrubberFieldConfig,
+  ScrubbersMap,
+  ScrubbersSQLMap,
+} from './scrubber.model.js'
+import { defaultScrubbers, defaultScrubbersSQL, EXCLUDE_SCRUBBER } from './scrubbers.js'
 
 const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
 
@@ -55,10 +60,18 @@ export class Scrubber {
   }
 
   /**
-   * Returns undefined if there's no scrubber defined for the field.
+   * Returns undefined if there's no scrubber defined for the field, or if the field is excluded.
+   *
+   * `fieldName` may be qualified with its parents (`HardwareDevice.name`), and is then resolved
+   * most-specific-first, same as `scrub` does: `HardwareDevice.name` if configured, otherwise the
+   * catch-all `name`. Do NOT fall back to a second call with the bare field name - that would
+   * re-apply the catch-all to a field the qualified key deliberately excluded.
    */
   getScrubberSql(fieldName: string): string | undefined {
-    const scrubberCurrentField = this.cfg.fields[fieldName]
+    const parents = fieldName.split('.')
+    const key = parents.pop()!
+
+    const scrubberCurrentField = this.resolveFieldCfg(key, parents)
     if (!scrubberCurrentField) return undefined
 
     const scrubber = this.scrubbersSQLMap[scrubberCurrentField.scrubber]
@@ -79,16 +92,7 @@ export class Scrubber {
     const dataCopy: any = Array.isArray(data) ? data.slice() : { ...data }
 
     for (const key of Object.keys(dataCopy)) {
-      let scrubberCurrentField = this.cfg.fields[key]
-
-      if (!scrubberCurrentField && this.cfg.splitFields?.[key] && parents) {
-        for (const splitFieldParentCfg of this.cfg.splitFields[key]) {
-          if (this.arrayContainsInOrder(parents, splitFieldParentCfg)) {
-            const recomposedKey = [...splitFieldParentCfg, key].join('.')
-            scrubberCurrentField = this.cfg.fields[recomposedKey]
-          }
-        }
-      }
+      const scrubberCurrentField = this.resolveFieldCfg(key, parents)
 
       if (!scrubberCurrentField) {
         // Ignore unsupported object types
@@ -132,6 +136,39 @@ export class Scrubber {
     }
 
     return dataCopy
+  }
+
+  /**
+   * Resolves the config for a field, most specific match first: a key qualified with parent
+   * key names (`HardwareDevice.name`) beats the catch-all bare key (`name`), and a longer
+   * parent path beats a shorter one. This is what lets a catch-all be narrowed - point the
+   * qualified key at `excludeScrubber` to carve that field out of it.
+   */
+  private resolveFieldCfg(key: string, parents: string[]): ScrubberFieldConfig | undefined {
+    const fieldCfg = this.resolveMostSpecificFieldCfg(key, parents)
+    // An excluded field behaves as if no rule matched it, so nested values below it are still traversed
+    if (fieldCfg?.scrubber === EXCLUDE_SCRUBBER) return undefined
+    return fieldCfg
+  }
+
+  private resolveMostSpecificFieldCfg(
+    key: string,
+    parents: string[],
+  ): ScrubberFieldConfig | undefined {
+    const parentCfgs = this.cfg.splitFields?.[key]
+    if (!parentCfgs) return this.cfg.fields[key]
+
+    let bestParentCfg: string[] | undefined
+    for (const parentCfg of parentCfgs) {
+      if (parentCfg.length <= (bestParentCfg?.length || 0)) continue
+      if (this.arrayContainsInOrder(parents, parentCfg)) {
+        bestParentCfg = parentCfg
+      }
+    }
+
+    if (!bestParentCfg) return this.cfg.fields[key]
+
+    return this.cfg.fields[[...bestParentCfg, key].join('.')]
   }
 
   /*
