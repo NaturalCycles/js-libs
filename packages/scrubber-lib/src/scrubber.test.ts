@@ -5,6 +5,7 @@ import { Scrubber } from './scrubber.js'
 import type { ScrubberConfig, ScrubberFn, ScrubbersMap } from './scrubber.model.js'
 import { saltedHashEmailScrubber, saltedHashScrubber } from './scrubbers.js'
 import {
+  configCatchAllScrubbersMock,
   configEmailScrubberMock,
   configInvalidScrubberMock,
   configMultiFieldMock,
@@ -423,6 +424,52 @@ test('Parent via passed root type', () => {
   const result = scrubber.scrub(data)
 
   expect(result).toEqual({ key: 'replaced' })
+})
+
+test('A qualified key wins over the catch-all bare key', () => {
+  const data = { Account: { name: 'Real Name' }, HardwareDevice: { name: 'NC Thermometer1' } }
+  const scrubber = new Scrubber(configCatchAllScrubbersMock())
+
+  expect(scrubber.scrub(data)).toEqual({
+    Account: { name: 'Jane Doe' },
+    HardwareDevice: { name: 'NC Thermometer1' },
+  })
+})
+
+test('Exclusion applies to arrays and via root type', () => {
+  const data = [{ name: 'NC Thermometer1' }, { name: 'NC Thermometer2' }]
+  const scrubber = Scrubber.getScrubberForType('HardwareDevice', configCatchAllScrubbersMock())
+
+  expect(scrubber.scrub(data)).toEqual(data)
+})
+
+test('An excluded field does not stop traversal of nested values', () => {
+  const data = { HardwareDevice: { name: 'NC Thermometer1', pairedTo: { name: 'Real Name' } } }
+  const scrubber = new Scrubber(configCatchAllScrubbersMock())
+
+  expect(scrubber.scrub(data)).toEqual({
+    HardwareDevice: { name: 'NC Thermometer1', pairedTo: { name: 'Jane Doe' } },
+  })
+})
+
+test('The longest matching parent path wins', () => {
+  const data = { Account: { profile: { name: 'Real Name' } }, PAccount: { profile: { name: 'x' } } }
+  const scrubber = new Scrubber(configCatchAllScrubbersMock())
+
+  expect(scrubber.scrub(data)).toEqual({
+    Account: { profile: { name: 'more specific' } },
+    PAccount: { profile: { name: 'less specific' } },
+  })
+})
+
+test('getScrubberSql resolves a qualified field name most-specific-first', () => {
+  const scrubber = new Scrubber(configCatchAllScrubbersMock())
+
+  expect(scrubber.getScrubberSql('HardwareDevice.name')).toBeUndefined()
+  expect(scrubber.getScrubberSql('name')).toMatchInlineSnapshot(`"'Jane Doe'"`)
+  expect(scrubber.getScrubberSql('Account.name')).toMatchInlineSnapshot(`"'Jane Doe'"`)
+  expect(scrubber.getScrubberSql('Account.profile.name')).toMatchInlineSnapshot(`"'more specific'"`)
+  expect(scrubber.getScrubberSql('Account.non-existing')).toBeUndefined()
 })
 
 test('getScrubberSql', () => {

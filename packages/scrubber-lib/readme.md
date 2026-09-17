@@ -81,9 +81,32 @@ scrub<T> (data: T): T
   fields
 - [since 2.9] - support matching key only if parent key name(s) also match. Supported using dots `.`
   in key name. Config with key `a.b` will match object key literally AND it will match object key
-  `b` if parent object key was `a`. Works at arbitrary depth. LIMITATION: parent matching currently
-  assumes final key (`b`) is unique. If multiple parent references end with the same key (e.g. `a.b`
-  & `c.b`), only last one will work.
+  `b` if parent object key was `a`. Works at arbitrary depth. Multiple parent references ending with
+  the same key (e.g. `a.b` & `c.b`) are all matched.
+- The most specific matching key wins: a key qualified with parents (`a.b`) beats the catch-all bare
+  key (`b`), and a longer parent path (`a.b.c`) beats a shorter one (`b.c`). This lets a catch-all
+  rule be narrowed for individual fields:
+
+```yaml
+# scrub every `name`...
+name:
+  scrubber: staticScrubber
+  params:
+    replacement: Jane Doe
+
+# ...except this one, which is a device name rather than a person's name
+HardwareDevice.name:
+  scrubber: excludeScrubber
+```
+
+An `excludeScrubber` field behaves as if no rule matched it at all: the value is left untouched,
+nested values below it are still traversed, and `getScrubberSql` returns `undefined` for it so no
+SQL masking policy is generated.
+
+`getScrubberSql` accepts the same qualified field names and applies the same resolution, so call it
+once with the qualified name (`getScrubberSql('HardwareDevice.name')`) rather than falling back to a
+second call with the bare name - that fallback would re-apply the catch-all to a field the qualified
+key deliberately excluded.
 
 ## Limitations
 

@@ -68,6 +68,35 @@ export function configParentScrubbersMock(): ScrubberConfig {
   }
 }
 
+export function configCatchAllScrubbersMock(): ScrubberConfig {
+  return {
+    fields: {
+      name: {
+        scrubber: 'staticScrubber',
+        params: {
+          replacement: 'Jane Doe',
+        },
+      },
+      'HardwareDevice.name': {
+        scrubber: 'excludeScrubber',
+      },
+      'Account.profile.name': {
+        scrubber: 'staticScrubber',
+        params: {
+          replacement: 'more specific',
+        },
+      },
+      'profile.name': {
+        scrubber: 'staticScrubber',
+        params: {
+          replacement: 'less specific',
+        },
+      },
+    },
+    preserveFalsy: false,
+  }
+}
+
 export function configInvalidScrubberMock(): ScrubberConfig {
   return {
     fields: {
