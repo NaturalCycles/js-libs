@@ -1,5 +1,4 @@
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { _parseArgs } from '@naturalcycles/nodejs-lib/args'
 import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
 import { appendToGithubOutput } from '@naturalcycles/nodejs-lib/env'
@@ -21,7 +20,13 @@ import { GithubApi } from './github.util.js'
 import { generateReleaseNotes } from './notes.util.js'
 import type { ReleaseChannel, ReleasePackage, ReleasePlan, RepoInfo } from './release.model.js'
 import { getLastRelease, getNextVersion, getVersionsFromTags } from './version.util.js'
-import { discoverReleasePackages, resolveReleaseMode } from './workspace.util.js'
+import {
+  discoverReleasePackages,
+  filterReleasePackages,
+  resolveReleaseMode,
+  setPackageJsonVersion,
+  syncWorkspaceVersionsFromTags,
+} from './workspace.util.js'
 
 /**
  * Release workspace packages (or the root package in single-repo mode):
@@ -70,8 +75,14 @@ export async function releaseCommand(): Promise<void> {
   }
 
   const mode = resolveReleaseMode(cfg.mode)
-  const packages = discoverReleasePackages(mode, argv.filter)
+  const allPackages = discoverReleasePackages(mode)
   const tags = getReachableTags()
+
+  if (!dryRun) {
+    syncWorkspaceVersionsFromTags(allPackages, tags)
+  }
+
+  const packages = argv.filter ? filterReleasePackages(allPackages, argv.filter) : allPackages
 
   console.log(
     `Releasing from branch ${white(branch)} (dist-tag ${white(channel.distTag)}), ${mode} mode, ${packages.length} package(s)${dryRun ? dimGrey(' [dry-run]') : ''}`,
@@ -160,7 +171,7 @@ async function executeRelease(
 ): Promise<void> {
   const { pkg, nextVersion, nextTag, channel, notes, commits } = plan
 
-  bumpPackageJsonVersion(pkg.dir, nextVersion)
+  setPackageJsonVersion(pkg.dir, nextVersion)
 
   // Publish before tagging: a failed publish must not leave a tag behind,
   // as the tag would make the next run consider this version already released.
@@ -190,13 +201,6 @@ async function executeRelease(
   }
 
   writeGithubOutputs(pkg.name, nextVersion)
-}
-
-function bumpPackageJsonVersion(dir: string, version: string): void {
-  const packageJsonPath = `${dir}/package.json`
-  const pkgJson = fs2.readJson<AnyObject>(packageJsonPath)
-  pkgJson['version'] = version
-  fs2.writeJson(packageJsonPath, pkgJson, { spaces: 2 })
 }
 
 /**
