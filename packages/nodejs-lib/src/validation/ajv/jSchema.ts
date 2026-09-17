@@ -19,6 +19,7 @@ import type {
   IsoDate,
   IsoDateTime,
   IsoMonth,
+  Enum,
   NumberEnum,
   StringEnum,
   StringMap,
@@ -172,18 +173,14 @@ export const j = {
     })
   },
 
-  enum<const T extends readonly (string | number | boolean | null)[] | StringEnum | NumberEnum>(
-    input: T,
-    opt?: JsonBuilderRuleOpt,
-  ): JEnum<
-    T extends readonly (infer U)[]
-      ? U
-      : T extends StringEnum
-        ? T[keyof T]
-        : T extends NumberEnum
-          ? T[keyof T]
-          : never
-  > {
+  enum<
+    const T extends
+      | readonly (string | number | boolean | null)[]
+      | StringEnum
+      | NumberEnum
+      // an `_enum()` object, which carries helpers and so satisfies neither of the two above
+      | { readonly values: readonly (string | number | boolean | null)[] },
+  >(input: T, opt?: JsonBuilderRuleOpt): JEnum<T extends readonly (infer U)[] ? U : Enum<T>> {
     let enumValues: readonly (string | number | boolean | null)[] | undefined
     let baseType: EnumBaseType = 'other'
 
