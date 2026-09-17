@@ -1,14 +1,14 @@
 import type { AnyObject, Enum, NumberEnum, StringEnum } from './types.js'
 
 /**
- * Creates a frozen, runtime Enum object. A replacement for a native TypeScript enum,
+ * Creates a runtime Enum object. A replacement for a native TypeScript enum,
  * which is not supported by type-stripping runtimes (e.g `node --experimental-strip-types`).
  *
  * Declare the type with the same name as the const, to mimic how native enums merge value and type.
  *
  * @example
  * export const Color = _enum({ RED: 'red', GREEN: 'green' })
- * export type Color = Enum<typeof Color> // 'red' | 'green'
+ * export type Color = typeof Color.type // 'red' | 'green'
  *
  * Color.RED // 'red'
  * Color.keys // ['RED', 'GREEN']
@@ -21,7 +21,11 @@ import type { AnyObject, Enum, NumberEnum, StringEnum } from './types.js'
  * The result doesn't satisfy `StringEnum`/`NumberEnum`, so the `_stringEnum*`/`_numberEnum*`
  * functions don't accept it. Use the helpers on the returned object instead.
  *
+ * Nothing is frozen, immutability is expressed through `readonly` types only.
+ *
  * Throws if the input contains a key that collides with one of the helper names.
+ *
+ * @experimental
  */
 export function _enum<const T extends Record<string, string> | Record<string, number>>(
   obj: T,
@@ -33,37 +37,43 @@ export function _enum<const T extends Record<string, string> | Record<string, nu
   }
 
   const rawEntries = Object.entries(obj)
-  const keys = Object.freeze(Object.keys(obj)) as readonly (keyof T)[]
-  const values = Object.freeze(Object.values(obj)) as readonly Enum<T>[]
-  const entries = Object.freeze(rawEntries) as unknown as EnumEntries<T>
+  const keys = Object.keys(obj) as (keyof T)[]
+  const values = Object.values(obj) as Enum<T>[]
+  const entries = rawEntries as unknown as EnumEntries<T>
   // Backs both `is` and `keyOf`. On duplicate values the last key wins, like a native number enum.
   const keyByValue = new Map<unknown, keyof T>(rawEntries.map(([k, v]) => [v, k]))
 
-  return Object.freeze(
-    Object.defineProperties(
-      { ...obj },
-      {
-        keys: { value: keys },
-        values: { value: values },
-        entries: { value: entries },
-        is: { value: (v: unknown): v is Enum<T> => keyByValue.has(v) },
-        keyOf: {
-          value: (v: Enum<T>): keyof T => {
-            const key = keyByValue.get(v)
-            if (key === undefined) throw new Error(`_enum keyOf not found for: ${String(v)}`)
-            return key
-          },
+  return Object.defineProperties(
+    { ...obj },
+    {
+      keys: { value: keys },
+      values: { value: values },
+      entries: { value: entries },
+      is: { value: (v: unknown): v is Enum<T> => keyByValue.has(v) },
+      keyOf: {
+        value: (v: Enum<T>): keyof T => {
+          const key = keyByValue.get(v)
+          if (key === undefined) throw new Error(`_enum keyOf not found for: ${String(v)}`)
+          return key
         },
-        keyOfOrUndefined: { value: (v: unknown): keyof T | undefined => keyByValue.get(v) },
       },
-    ),
+      keyOfOrUndefined: { value: (v: unknown): keyof T | undefined => keyByValue.get(v) },
+    },
   ) as EnumObject<T>
 }
 
 /**
  * Keys that `_enum()` reserves for its helpers, and therefore rejects as Enum member names.
  */
-const RESERVED_KEYS = ['keys', 'values', 'entries', 'is', 'keyOf', 'keyOfOrUndefined'] as const
+const RESERVED_KEYS = [
+  'type',
+  'keys',
+  'values',
+  'entries',
+  'is',
+  'keyOf',
+  'keyOfOrUndefined',
+] as const
 
 export function getEnumType(en: AnyObject): 'StringEnum' | 'NumberEnum' | undefined {
   /*
@@ -292,6 +302,9 @@ export function _stringEnumKey<T extends StringEnum>(en: T, v: string | undefine
   return r
 }
 
+/**
+ * @experimental
+ */
 export type EnumObject<T> = Readonly<T> & EnumHelpers<T>
 
 /**
@@ -299,10 +312,19 @@ export type EnumObject<T> = Readonly<T> & EnumHelpers<T>
  * Defined as non-enumerable, so that `Object.keys/values/entries`, `JSON.stringify`
  * and `for..in` still only see the actual Enum members.
  *
- * `keys`/`values`/`entries` are precomputed and frozen, and keep the literal types
+ * `keys`/`values`/`entries` are precomputed, and keep the literal types
  * that the `Object.*` equivalents would widen to `string`.
+ *
+ * @experimental
  */
 interface EnumHelpers<T> {
+  /**
+   * Type-only carrier for the union of all values, so that the Enum's type can be declared
+   * without a second import: `export type Color = typeof Color.type`.
+   *
+   * It has no runtime counterpart, reading it as a value returns undefined.
+   */
+  readonly type: Enum<T>
   readonly keys: readonly (keyof T)[]
   readonly values: readonly Enum<T>[]
   readonly entries: EnumEntries<T>
@@ -323,5 +345,7 @@ interface EnumHelpers<T> {
 /**
  * The mapped type (rather than `readonly [keyof T, Enum<T>][]`) keeps each key paired
  * with its own value, instead of allowing any key/value combination.
+ *
+ * @experimental
  */
 type EnumEntries<T> = readonly { [K in keyof T]: readonly [k: K, v: T[K]] }[keyof T][]

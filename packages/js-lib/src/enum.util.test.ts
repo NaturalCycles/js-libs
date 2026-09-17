@@ -258,10 +258,18 @@ describe('getEnumType', () => {
 
 describe('_enum', () => {
   const Color = _enum({ RED: 'red', GREEN: 'green' })
-  type Color = Enum<typeof Color>
+  type Color = typeof Color.type
 
   const Level = _enum({ LOW: 1, HIGH: 2 })
-  type Level = Enum<typeof Level>
+  type Level = typeof Level.type
+
+  test('should carry the value union on `type`, for declaring the Enum type', () => {
+    expectTypeOf<typeof Color.type>().toEqualTypeOf<'red' | 'green'>()
+    expectTypeOf<typeof Level.type>().toEqualTypeOf<1 | 2>()
+    // it is type-only, so it neither exists at runtime nor shows up in iteration
+    expect((Color as any).type).toBeUndefined()
+    expect(Object.keys(Color)).not.toContain('type')
+  })
 
   test('should expose members with their literal types', () => {
     expect(Color.RED).toBe('red')
@@ -347,22 +355,6 @@ describe('_enum', () => {
     expect(keys).toEqual(['RED', 'GREEN'])
   })
 
-  test('should freeze the enum object and its helper arrays', () => {
-    expect(Object.isFrozen(Color)).toBe(true)
-    expect(Object.isFrozen(Color.keys)).toBe(true)
-    expect(Object.isFrozen(Color.values)).toBe(true)
-    expect(Object.isFrozen(Color.entries)).toBe(true)
-    expect(() => {
-      ;(Color as any).is = () => true
-    }).toThrow(TypeError)
-    expect(() => {
-      ;(Color as any).RED = 'nope'
-    }).toThrow(TypeError)
-    expect(() => {
-      ;(Color.values as any).push('blue')
-    }).toThrow(TypeError)
-  })
-
   test('should not mutate the input object', () => {
     const input = { RED: 'red' }
     const en = _enum(input)
@@ -372,7 +364,7 @@ describe('_enum', () => {
   })
 
   test('should throw on keys colliding with the helpers', () => {
-    const msg = `[Error: _enum keys must not be named keys, values, entries, is, keyOf, keyOfOrUndefined, as they collide with the helpers]`
+    const msg = `[Error: _enum keys must not be named type, keys, values, entries, is, keyOf, keyOfOrUndefined, as they collide with the helpers]`
     expect(() => _enum({ values: 'a' })).toThrowErrorMatchingInlineSnapshot(msg)
     expect(() => _enum({ keys: 'a', is: 'b' })).toThrowErrorMatchingInlineSnapshot(msg)
     expect(() => _enum({ entries: 'a' })).toThrowErrorMatchingInlineSnapshot(msg)

@@ -37,9 +37,13 @@ export type StringEnum = Record<string, string>
 /**
  * Union of all values of an Enum-like object: both native TypeScript enums and `_enum()` objects.
  *
+ * For an `_enum()` object prefer `typeof Color.type`, which needs no import.
+ *
  * @example
- * const Color = _enum({ RED: 'red', GREEN: 'green' })
- * type Color = Enum<typeof Color> // 'red' | 'green'
+ * enum Color { RED = 'red', GREEN = 'green' }
+ * type ColorValue = Enum<typeof Color> // 'red' | 'green'
+ *
+ * @experimental
  */
 // The first branch is for `_enum()` objects, whose helpers `T[keyof T]` would otherwise pull into
 // the union. Native enums never match it, since their values are `string | number`, never an array.
