@@ -1,4 +1,4 @@
-import type { MutateOptions } from '../types.js'
+import type { AnyObject, MutateOptions } from '../types.js'
 
 // copy-pasted to avoid weird circular dependency
 const _noop = (..._args: any[]): undefined => undefined
@@ -135,4 +135,93 @@ export function commonLoggerCreate(fn: CommonLogWithLevelFunction): CommonLogger
     warn: (...args) => fn('warn', args),
     error: (...args) => fn('error', args),
   }
+}
+
+// tagged as a non-enumerable own property, so the tag never shows up
+// in Object.keys / JSON.stringify / inspect output.
+// Symbol.for, so it survives duplicate copies of js-lib in node_modules.
+const LOG_CONTEXT: unique symbol = Symbol.for('@naturalcycles/js-lib/logContext')
+const LOGGER_BASE: unique symbol = Symbol.for('@naturalcycles/js-lib/logContextBase')
+
+/**
+ * Object of structured log fields, tagged so that log sinks can recognize it.
+ *
+ * @experimental
+ */
+export type LogContext = AnyObject & { readonly [LOG_CONTEXT]: true }
+
+/**
+ * CommonLogger that carries a context object.
+ *
+ * @experimental
+ */
+export interface CommonLoggerWithContext extends CommonLogger {
+  readonly context: AnyObject
+  child: (context: AnyObject) => CommonLoggerWithContext
+}
+
+/**
+ * Creates a "child" CommonLogger that appends the given context as the LAST argument
+ * of every log call, tagged as a LogContext.
+ *
+ * Sinks that know the tag (via splitLogContext) can lift its fields into a structured
+ * log entry, `console` simply prints the object after the message.
+ *
+ * Contexts merge instead of nesting: wrapping a context logger (or calling `child`)
+ * produces a logger that still appends exactly one context object, where the new keys win.
+ *
+ * @experimental
+ */
+export function commonLoggerContext(
+  logger: CommonLogger,
+  context: AnyObject,
+): CommonLoggerWithContext {
+  const parent = (logger as any)[LOGGER_BASE] as CommonLogger | undefined
+  const base = parent ?? logger
+  const ctx: AnyObject = parent
+    ? { ...(logger as CommonLoggerWithContext).context, ...context }
+    : { ...context }
+  Object.defineProperty(ctx, LOG_CONTEXT, { value: true })
+  Object.freeze(ctx)
+
+  const empty = !Object.keys(ctx).length
+
+  const contextLogger: CommonLoggerWithContext = {
+    context: ctx,
+    child: c => commonLoggerContext(base, { ...ctx, ...c }),
+    debug: empty ? base.debug.bind(base) : (...args) => base.debug(...args, ctx),
+    log: empty ? base.log.bind(base) : (...args) => base.log(...args, ctx),
+    warn: empty ? base.warn.bind(base) : (...args) => base.warn(...args, ctx),
+    error: empty ? base.error.bind(base) : (...args) => base.error(...args, ctx),
+  }
+  Object.defineProperty(contextLogger, LOGGER_BASE, { value: base })
+  return contextLogger
+}
+
+/**
+ * Separates the LogContext arguments (as appended by commonLoggerContext) from the rest.
+ * Multiple contexts are merged, later ones win. Input args are not mutated.
+ *
+ * @experimental
+ */
+export function splitLogContext(args: any[]): { context: AnyObject | undefined; args: any[] } {
+  let context: AnyObject | undefined
+  const rest: any[] = []
+  for (const arg of args) {
+    if (isLogContext(arg)) {
+      context = context ? { ...context, ...arg } : arg
+    } else {
+      rest.push(arg)
+    }
+  }
+  return { context, args: rest }
+}
+
+/**
+ * Returns true if the value is a LogContext, as created by commonLoggerContext.
+ *
+ * @experimental
+ */
+export function isLogContext(value: unknown): value is LogContext {
+  return typeof value === 'object' && value !== null && (value as any)[LOG_CONTEXT] === true
 }
