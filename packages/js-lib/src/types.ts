@@ -30,6 +30,11 @@ export interface StringMap<T = string> {
  */
 export type AnyObject = Record<string, any>
 
+/**
+ * Object literal, with a prototype of `Object.prototype` or `null`. What `_isPlainObject` narrows to.
+ */
+export type PlainObject = Branded<AnyObject, 'PlainObject'>
+
 export type AnyEnum = NumberEnum
 export type NumberEnum = Record<string, number | string>
 export type StringEnum = Record<string, string>
