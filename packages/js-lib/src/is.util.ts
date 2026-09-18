@@ -33,7 +33,7 @@ export function _isObject(obj: any): obj is AnyObject {
 }
 
 /**
- * Returns true if item is an object literal, e.g not an Array, Error, RegExp or class instance.
+ * Returns true if item is an object literal: not an Array, Error, RegExp or class instance.
  */
 export function _isPlainObject(v: any): v is PlainObject {
   if (typeof v !== 'object' || v === null) return false

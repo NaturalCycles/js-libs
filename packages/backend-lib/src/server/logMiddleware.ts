@@ -2,6 +2,7 @@ import { inspect } from 'node:util'
 import { _isPlainObject } from '@naturalcycles/js-lib'
 import { _anyToErrorObject } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { _safeJsonStringify } from '@naturalcycles/js-lib/string/safeJsonStringify.js'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
@@ -53,15 +54,15 @@ export const ciLogger: CommonLogger = {
 // Cloud Run logging: https://cloud.google.com/run/docs/logging
 function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
   if (args.length === 1 && _isPlainObject(args[0])) {
-    const { msg, err, ...rest } = args[0]
-    let message = msg
-    let errObject = err
+    const { msg, err, ...entry } = args[0]
     if (err instanceof Error) {
-      errObject = _anyToErrorObject(err)
-      const errStack = inspect(err)
-      message = msg ? `${msg}\n${errStack}` : errStack
+      entry['err'] = _anyToErrorObject(err)
+      entry['message'] = msg ? `${msg}\n${inspect(err)}` : inspect(err)
+    } else {
+      if (err !== undefined) entry['err'] = err
+      if (msg !== undefined) entry['message'] = msg
     }
-    console.log(JSON.stringify({ ...rest, message, err: errObject, ...meta }))
+    console.log(_safeJsonStringify({ ...entry, ...meta }))
     return
   }
 
