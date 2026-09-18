@@ -125,103 +125,68 @@ export function commonLoggerPrefix(logger: CommonLogger, ...prefixes: any[]): Co
   }
 }
 
-/**
- * Creates a CommonLogger from a single function that takes `level` and `args`.
- */
-export function commonLoggerCreate(fn: CommonLogWithLevelFunction): CommonLogger {
-  return {
-    debug: (...args) => fn('debug', args),
-    log: (...args) => fn('log', args),
-    warn: (...args) => fn('warn', args),
-    error: (...args) => fn('error', args),
-  }
-}
+export type CommonLogSink = CommonLogger | CommonLogWithLevelFunction
 
-// tagged as a non-enumerable own property, so the tag never shows up
-// in Object.keys / JSON.stringify / inspect output.
-// Symbol.for, so it survives duplicate copies of js-lib in node_modules.
-const LOG_CONTEXT: unique symbol = Symbol.for('@naturalcycles/js-lib/logContext')
-const LOGGER_BASE: unique symbol = Symbol.for('@naturalcycles/js-lib/logContextBase')
-
-/**
- * Object of structured log fields, tagged so that log sinks can recognize it.
- *
- * @experimental
- */
-export type LogContext = AnyObject & { readonly [LOG_CONTEXT]: true }
-
-/**
- * CommonLogger that carries a context object.
- *
- * @experimental
- */
 export interface CommonLoggerWithContext extends CommonLogger {
-  readonly context: AnyObject
   child: (context: AnyObject) => CommonLoggerWithContext
 }
 
 /**
- * Creates a "child" CommonLogger that appends the given context as the LAST argument
- * of every log call, tagged as a LogContext.
+ * Creates a CommonLogger from a single function that takes `level` and `args`.
  *
- * Sinks that know the tag (via splitLogContext) can lift its fields into a structured
- * log entry, `console` simply prints the object after the message.
- *
- * Contexts merge instead of nesting: wrapping a context logger (or calling `child`)
- * produces a logger that still appends exactly one context object, where the new keys win.
- *
- * @experimental
+ * With a context, every call emits one object: plain-object args merged in, first Error as `err`,
+ * the rest joined into `msg`.
  */
-export function commonLoggerContext(
-  logger: CommonLogger,
-  context: AnyObject,
-): CommonLoggerWithContext {
-  const parent = (logger as any)[LOGGER_BASE] as CommonLogger | undefined
-  const base = parent ?? logger
-  const ctx: AnyObject = parent
-    ? { ...(logger as CommonLoggerWithContext).context, ...context }
-    : { ...context }
-  Object.defineProperty(ctx, LOG_CONTEXT, { value: true })
-  Object.freeze(ctx)
+export function commonLoggerCreate(sink: CommonLogSink): CommonLogger
+export function commonLoggerCreate(sink: CommonLogSink, context: AnyObject): CommonLoggerWithContext
+export function commonLoggerCreate(sink: CommonLogSink, context?: AnyObject): CommonLogger {
+  const fn: CommonLogWithLevelFunction =
+    typeof sink === 'function' ? sink : (level, args) => sink[level](...args)
 
-  const empty = !Object.keys(ctx).length
-
-  const contextLogger: CommonLoggerWithContext = {
-    context: ctx,
-    child: c => commonLoggerContext(base, { ...ctx, ...c }),
-    debug: empty ? base.debug.bind(base) : (...args) => base.debug(...args, ctx),
-    log: empty ? base.log.bind(base) : (...args) => base.log(...args, ctx),
-    warn: empty ? base.warn.bind(base) : (...args) => base.warn(...args, ctx),
-    error: empty ? base.error.bind(base) : (...args) => base.error(...args, ctx),
-  }
-  Object.defineProperty(contextLogger, LOGGER_BASE, { value: base })
-  return contextLogger
-}
-
-/**
- * Separates the LogContext arguments (as appended by commonLoggerContext) from the rest.
- * Multiple contexts are merged, later ones win. Input args are not mutated.
- *
- * @experimental
- */
-export function splitLogContext(args: any[]): { context: AnyObject | undefined; args: any[] } {
-  let context: AnyObject | undefined
-  const rest: any[] = []
-  for (const arg of args) {
-    if (isLogContext(arg)) {
-      context = context ? { ...context, ...arg } : arg
-    } else {
-      rest.push(arg)
+  if (!context) {
+    return {
+      debug: (...args) => fn('debug', args),
+      log: (...args) => fn('log', args),
+      warn: (...args) => fn('warn', args),
+      error: (...args) => fn('error', args),
     }
   }
-  return { context, args: rest }
+
+  const ctx: AnyObject = { ...context }
+
+  const logger: CommonLoggerWithContext = {
+    debug: (...args) => fn('debug', [toLogEntry(ctx, args)]),
+    log: (...args) => fn('log', [toLogEntry(ctx, args)]),
+    warn: (...args) => fn('warn', [toLogEntry(ctx, args)]),
+    error: (...args) => fn('error', [toLogEntry(ctx, args)]),
+    child: c => commonLoggerCreate(fn, { ...ctx, ...c }),
+  }
+  return logger
 }
 
-/**
- * Returns true if the value is a LogContext, as created by commonLoggerContext.
- *
- * @experimental
- */
-export function isLogContext(value: unknown): value is LogContext {
-  return typeof value === 'object' && value !== null && (value as any)[LOG_CONTEXT] === true
+function toLogEntry(context: AnyObject, args: any[]): AnyObject {
+  const entry: AnyObject = { ...context }
+  let err: Error | undefined
+  let msg: string | undefined
+
+  for (const arg of args) {
+    if (isPlainObject(arg)) {
+      Object.assign(entry, arg)
+    } else if (!err && arg instanceof Error) {
+      err = arg
+    } else {
+      const s = String(arg)
+      msg = msg === undefined ? s : `${msg} ${s}`
+    }
+  }
+
+  if (err) entry['err'] = err
+  if (msg !== undefined) entry['msg'] = msg
+  return entry
+}
+
+function isPlainObject(v: any): boolean {
+  if (typeof v !== 'object' || v === null) return false
+  const proto = Object.getPrototypeOf(v)
+  return proto === Object.prototype || proto === null
 }

@@ -1,14 +1,12 @@
 import { expect, test } from 'vitest'
+import type { AnyObject } from '../types.js'
 import type { CommonLogger, CommonLogLevel, CommonLogWithLevelFunction } from './commonLogger.js'
 import {
-  commonLoggerContext,
   commonLoggerCreate,
   commonLoggerNoop,
   commonLoggerPipe,
   commonLoggerPrefix,
   createCommonLoggerAtLevel,
-  isLogContext,
-  splitLogContext,
 } from './commonLogger.js'
 
 // This "tests" that `console` is a valid CommonLogger by itself
@@ -53,135 +51,114 @@ test('commonLoggerCreate', () => {
   logger.error('hey')
 })
 
-test('commonLoggerContext appends the context as the last argument on every level', () => {
+test('commonLoggerCreate accepts a CommonLogger as a sink', () => {
   const { logger, calls } = createTestSink()
-  const contextLogger = commonLoggerContext(logger, { a: 1 })
 
-  contextLogger.log('m', 2)
+  commonLoggerCreate(logger).log('a', 1)
 
-  expect(calls).toHaveLength(1)
-  const [level, args] = calls[0]!
-  expect(level).toBe('log')
-  expect(args).toHaveLength(3)
-  expect(args.slice(0, 2)).toEqual(['m', 2])
-  expect(isLogContext(args[2])).toBe(true)
-  expect(args[2].a).toBe(1)
-
-  calls.length = 0
-  contextLogger.debug('m')
-  contextLogger.warn('m')
-  contextLogger.error('m')
-  expect(calls.map(([level]) => level)).toEqual(['debug', 'warn', 'error'])
-  for (const [, args] of calls) {
-    expect(args).toHaveLength(2)
-    expect(isLogContext(args[1])).toBe(true)
-  }
+  expect(calls).toStrictEqual([['log', ['a', 1]]])
 })
 
-test('log context tag is hidden', () => {
-  const { logger } = createTestSink()
-  const { context } = commonLoggerContext(logger, { a: 1 })
+test('a context makes every call emit a single object', () => {
+  const { logger, calls } = createTestSink()
+  const contextLogger = commonLoggerCreate(logger, { a: 1 })
 
-  expect(Object.keys(context)).toEqual(['a'])
-  expect(JSON.stringify(context)).toBe('{"a":1}')
-  expect(isLogContext({ a: 1 })).toBe(false)
-  expect(isLogContext(null)).toBe(false)
-  expect(isLogContext(undefined)).toBe(false)
-  expect(isLogContext('a')).toBe(false)
+  contextLogger.debug('hey')
+  contextLogger.log('hey')
+  contextLogger.warn('hey')
+  contextLogger.error('hey')
+
+  expect(calls).toStrictEqual([
+    ['debug', [{ a: 1, msg: 'hey' }]],
+    ['log', [{ a: 1, msg: 'hey' }]],
+    ['warn', [{ a: 1, msg: 'hey' }]],
+    ['error', [{ a: 1, msg: 'hey' }]],
+  ])
 })
 
 test('child merges the context, child keys win', () => {
   const { logger, calls } = createTestSink()
-  const parent = commonLoggerContext(logger, { a: 1 })
+  const parent = commonLoggerCreate(logger, { a: 1 })
   const child = parent.child({ b: 2, a: 9 })
 
-  expect({ ...child.context }).toEqual({ a: 9, b: 2 })
-  expect({ ...child.child({ c: 3 }).context }).toEqual({ a: 9, b: 2, c: 3 })
+  child.debug('foo')
+  parent.debug('foo')
+  child.child({ c: 3 }).debug('foo')
 
-  parent.log('m')
-  expect({ ...calls[0]![1][1] }).toEqual({ a: 1 })
+  expect(calls).toStrictEqual([
+    ['debug', [{ a: 9, b: 2, msg: 'foo' }]],
+    ['debug', [{ a: 1, msg: 'foo' }]],
+    ['debug', [{ a: 9, b: 2, c: 3, msg: 'foo' }]],
+  ])
 })
 
-test('wrapping a context logger merges instead of nesting', () => {
+test('a plain object argument is merged in, without a msg', () => {
   const { logger, calls } = createTestSink()
-  const contextLogger = commonLoggerContext(commonLoggerContext(logger, { a: 1 }), { c: 3 })
 
+  commonLoggerCreate(logger, { a: 1 }).debug({ structured: 'data' })
+
+  expect(calls[0]![1]).toStrictEqual([{ a: 1, structured: 'data' }])
+})
+
+test('non-object arguments are joined into msg', () => {
+  const { logger, calls } = createTestSink()
+  const contextLogger = commonLoggerCreate(logger, { a: 1 })
+
+  contextLogger.warn('hello', { n: 1 }, 2)
+  contextLogger.log([1, 2])
+
+  expect(calls[0]![1]).toStrictEqual([{ a: 1, n: 1, msg: 'hello 2' }])
+  expect(calls[1]![1]).toStrictEqual([{ a: 1, msg: '1,2' }])
+})
+
+test('an argument wins over the context', () => {
+  const { logger, calls } = createTestSink()
+
+  commonLoggerCreate(logger, { a: 1 }).log({ a: 9 })
+
+  expect(calls[0]![1]).toStrictEqual([{ a: 9 }])
+})
+
+test('the first Error argument becomes err', () => {
+  const { logger, calls } = createTestSink()
+  const contextLogger = commonLoggerCreate(logger, { a: 1 })
+  const err = new Error('boom')
+
+  contextLogger.error(err)
+  contextLogger.error('failed', err)
+  contextLogger.error(err, new Error('second'))
+
+  expect(calls[0]![1]).toStrictEqual([{ a: 1, err }])
+  expect(calls[0]![1][0].err).toBe(err)
+  expect(calls[1]![1]).toStrictEqual([{ a: 1, err, msg: 'failed' }])
+  expect(calls[2]![1]).toStrictEqual([{ a: 1, err, msg: 'Error: second' }])
+  expect(calls[2]![1][0].err).toBe(err)
+})
+
+test('the context is copied on creation', () => {
+  const { logger, calls } = createTestSink()
+  const context: AnyObject = { a: 1 }
+  const contextLogger = commonLoggerCreate(logger, context)
+
+  context['b'] = 2
   contextLogger.log('m')
 
-  const [, args] = calls[0]!
-  expect(args).toHaveLength(2)
-  expect(isLogContext(args[1])).toBe(true)
-  expect({ ...args[1] }).toEqual({ a: 1, c: 3 })
+  expect(calls[0]![1]).toStrictEqual([{ a: 1, msg: 'm' }])
 })
 
-test('empty context appends nothing', () => {
-  const { logger, calls } = createTestSink()
-
-  commonLoggerContext(logger, {}).log('m')
-
-  expect(calls[0]![1]).toEqual(['m'])
-})
-
-test('context is frozen', () => {
-  const { logger } = createTestSink()
-  const { context } = commonLoggerContext(logger, { a: 1 })
-
-  expect(() => {
-    context['a'] = 2
-  }).toThrow('Cannot assign to read only property')
-  expect(context['a']).toBe(1)
-})
-
-test('commonLoggerContext composes with commonLoggerPrefix', () => {
-  const { logger, calls } = createTestSink()
-
-  commonLoggerContext(commonLoggerPrefix(logger, '[p]'), { a: 1 }).log('m')
-
-  const [, args] = calls[0]!
-  expect(args.slice(0, 2)).toEqual(['[p]', 'm'])
-  expect(isLogContext(args[2])).toBe(true)
-})
-
-test('commonLoggerContext on console', () => {
-  const logger = commonLoggerContext(console, { a: 1 })
+test('commonLoggerCreate with a context on console', () => {
+  const logger = commonLoggerCreate(console, { a: 1 })
   logger.debug('hey')
   logger.log('hey')
   logger.error('hey')
 })
 
-test('splitLogContext without a context', () => {
-  const args = ['m', { a: 1 }]
-
-  const r = splitLogContext(args)
-
-  expect(r.context).toBeUndefined()
-  expect(r.args).toEqual(['m', { a: 1 }])
-  expect(r.args).not.toBe(args)
-  expect(args).toEqual(['m', { a: 1 }])
-})
-
-test('splitLogContext separates the context', () => {
+test('an empty context still wraps the arguments', () => {
   const { logger, calls } = createTestSink()
-  commonLoggerContext(logger, { a: 1 }).log('m', 2)
-  const args = calls[0]![1]
 
-  const r = splitLogContext(args)
+  commonLoggerCreate(logger, {}).log('x')
 
-  expect(r.args).toEqual(['m', 2])
-  expect({ ...r.context }).toEqual({ a: 1 })
-  expect(args).toHaveLength(3)
-})
-
-test('splitLogContext merges multiple contexts, later wins', () => {
-  const { logger, calls } = createTestSink()
-  const ctx1 = commonLoggerContext(logger, { a: 1, b: 1 }).context
-  const ctx2 = commonLoggerContext(logger, { b: 2 }).context
-
-  const r = splitLogContext([ctx1, 'm', ctx2])
-
-  expect(r.args).toEqual(['m'])
-  expect({ ...r.context }).toEqual({ a: 1, b: 2 })
-  expect(calls).toHaveLength(0)
+  expect(calls[0]![1]).toStrictEqual([{ msg: 'x' }])
 })
 
 function createTestSink(): { logger: CommonLogger; calls: [CommonLogLevel, any[]][] } {
