@@ -1,4 +1,5 @@
 import { inspect } from 'node:util'
+import { _isPlainObject } from '@naturalcycles/js-lib'
 import { _anyToErrorObject } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
@@ -51,7 +52,7 @@ export const ciLogger: CommonLogger = {
 // Documented here: https://cloud.google.com/logging/docs/structured-logging
 // Cloud Run logging: https://cloud.google.com/run/docs/logging
 function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
-  if (args.length === 1 && isPlainObject(args[0])) {
+  if (args.length === 1 && _isPlainObject(args[0])) {
     const { msg, err, ...rest } = args[0]
     let message = msg
     let errObject = err
@@ -74,7 +75,7 @@ function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
 
 function logToDev(requestId: string | null, args: any[]): void {
   // Run on local machine
-  if (args.length === 1 && isPlainObject(args[0])) {
+  if (args.length === 1 && _isPlainObject(args[0])) {
     const { msg, err, ...rest } = args[0]
     const parts: string[] = []
     if (requestId) parts.push(dimGrey(`[${requestId}]`))
@@ -159,10 +160,4 @@ export function logMiddleware(): BackendRequestHandler {
     req.debug = req.log = req.warn = req.error = (...args: any[]) => logToCI(args)
     next()
   }
-}
-
-function isPlainObject(v: any): boolean {
-  if (typeof v !== 'object' || v === null) return false
-  const proto = Object.getPrototypeOf(v)
-  return proto === Object.prototype || proto === null
 }

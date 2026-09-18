@@ -1,3 +1,4 @@
+import { _isPlainObject } from '../is.util.js'
 import type { AnyObject, MutateOptions } from '../types.js'
 
 // copy-pasted to avoid weird circular dependency
@@ -170,7 +171,7 @@ function toLogEntry(context: AnyObject, args: any[]): AnyObject {
   let msg: string | undefined
 
   for (const arg of args) {
-    if (isPlainObject(arg)) {
+    if (_isPlainObject(arg)) {
       Object.assign(entry, arg)
     } else if (!err && arg instanceof Error) {
       err = arg
@@ -183,10 +184,4 @@ function toLogEntry(context: AnyObject, args: any[]): AnyObject {
   if (err) entry['err'] = err
   if (msg !== undefined) entry['msg'] = msg
   return entry
-}
-
-function isPlainObject(v: any): boolean {
-  if (typeof v !== 'object' || v === null) return false
-  const proto = Object.getPrototypeOf(v)
-  return proto === Object.prototype || proto === null
 }
