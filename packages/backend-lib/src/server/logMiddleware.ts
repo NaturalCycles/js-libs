@@ -1,5 +1,5 @@
 import { inspect } from 'node:util'
-import { splitLogContext } from '@naturalcycles/js-lib/log'
+import { _anyToErrorObject } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
@@ -51,25 +51,44 @@ export const ciLogger: CommonLogger = {
 // Documented here: https://cloud.google.com/logging/docs/structured-logging
 // Cloud Run logging: https://cloud.google.com/run/docs/logging
 function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
-  const { context, args: rest } = splitLogContext(args)
+  if (args.length === 1 && isPlainObject(args[0])) {
+    const { msg, err, ...rest } = args[0]
+    let message = msg
+    let errObject = err
+    if (err instanceof Error) {
+      errObject = _anyToErrorObject(err)
+      const errStack = inspect(err)
+      message = msg ? `${msg}\n${errStack}` : errStack
+    }
+    console.log(JSON.stringify({ ...rest, message, err: errObject, ...meta }))
+    return
+  }
+
   console.log(
     JSON.stringify({
-      ...context,
-      message: rest.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
-      // meta is spread last, so that the context can never clobber severity/labels/trace keys
+      message: args.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
       ...meta,
     }),
   )
 }
 
 function logToDev(requestId: string | null, args: any[]): void {
-  const { context, args: rest } = splitLogContext(args)
   // Run on local machine
+  if (args.length === 1 && isPlainObject(args[0])) {
+    const { msg, err, ...rest } = args[0]
+    const parts: string[] = []
+    if (requestId) parts.push(dimGrey(`[${requestId}]`))
+    if (msg !== undefined) parts.push(String(msg))
+    if (err !== undefined) parts.push(_inspect(err, { includeErrorStack: true, colors: true }))
+    if (Object.keys(rest).length) parts.push(dimGrey(_inspect(rest, { colors: false })))
+    console.log(parts.join(' '))
+    return
+  }
+
   console.log(
     [
       requestId ? [dimGrey(`[${requestId}]`)] : [],
-      ...rest.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
-      ...(context ? [dimGrey(_inspect(context, { colors: false }))] : []),
+      ...args.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
     ].join(' '),
   )
 }
@@ -140,4 +159,10 @@ export function logMiddleware(): BackendRequestHandler {
     req.debug = req.log = req.warn = req.error = (...args: any[]) => logToCI(args)
     next()
   }
+}
+
+function isPlainObject(v: any): boolean {
+  if (typeof v !== 'object' || v === null) return false
+  const proto = Object.getPrototypeOf(v)
+  return proto === Object.prototype || proto === null
 }

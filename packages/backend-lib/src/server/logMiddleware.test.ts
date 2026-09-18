@@ -1,4 +1,4 @@
-import { commonLoggerContext } from '@naturalcycles/js-lib/log'
+import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { devLogger, gcpStructuredLogger } from './logMiddleware.js'
 
@@ -15,40 +15,62 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-test('gcpStructuredLogger lifts the log context into the structured entry', () => {
-  commonLoggerContext(gcpStructuredLogger, { accountId: 'a1' }).warn('hello', { n: 1 })
+test('gcpStructuredLogger writes the log entry as structured fields', () => {
+  commonLoggerCreate(gcpStructuredLogger, { accountId: 'a1' }).warn('hello', { n: 1 })
 
   expect(calls).toHaveLength(1)
   expect(calls[0]).toHaveLength(1)
-  expect(JSON.parse(calls[0]![0])).toEqual({
+  expect(JSON.parse(calls[0]![0])).toStrictEqual({
     accountId: 'a1',
-    message: 'hello { n: 1 }',
+    n: 1,
+    message: 'hello',
     severity: 'WARNING',
   })
 })
 
-test('log context cannot override meta', () => {
-  commonLoggerContext(gcpStructuredLogger, { severity: 'nope' }).error('hello')
+test('the log entry cannot override meta', () => {
+  commonLoggerCreate(gcpStructuredLogger, { severity: 'nope' }).error('x')
 
-  expect(JSON.parse(calls[0]![0])).toEqual({
-    message: 'hello',
+  expect(JSON.parse(calls[0]![0])).toStrictEqual({
+    message: 'x',
     severity: 'ERROR',
   })
 })
 
-test('gcpStructuredLogger without a log context', () => {
+test('gcpStructuredLogger with a single string argument', () => {
   gcpStructuredLogger.log('plain')
 
-  expect(JSON.parse(calls[0]![0])).toEqual({
+  expect(JSON.parse(calls[0]![0])).toStrictEqual({
     message: 'plain',
   })
 })
 
-test('devLogger prints the log context', () => {
-  commonLoggerContext(devLogger, { accountId: 'a1' }).log('hello')
+test('gcpStructuredLogger with multiple arguments', () => {
+  gcpStructuredLogger.log('a', { b: 1 })
+
+  expect(JSON.parse(calls[0]![0])).toStrictEqual({
+    message: 'a { b: 1 }',
+  })
+})
+
+test('gcpStructuredLogger keeps the error stack in message', () => {
+  commonLoggerCreate(gcpStructuredLogger, {}).error('failed', new Error('kaboom'))
+
+  const entry = JSON.parse(calls[0]![0])
+  expect(entry.message).toMatch(/^failed\n/)
+  expect(entry.message).toContain('kaboom')
+  expect(entry.message).toContain('    at ')
+  expect(entry.err).toEqual(
+    expect.objectContaining({ name: 'Error', message: 'kaboom', stack: expect.any(String) }),
+  )
+})
+
+test('devLogger prints the log entry', () => {
+  commonLoggerCreate(devLogger, { accountId: 'a1' }).log('hello', { n: 1 })
 
   expect(calls).toHaveLength(1)
   const output = calls[0]![0] as string
   expect(output).toContain('hello')
   expect(output).toContain('accountId')
+  expect(output).toContain('n')
 })
