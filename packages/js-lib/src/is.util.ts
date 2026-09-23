@@ -1,4 +1,4 @@
-import type { AnyObject, FalsyValue, NullishValue, Primitive } from './types.js'
+import type { AnyObject, FalsyValue, NullishValue, PlainObject, Primitive } from './types.js'
 
 type Nullish<T> = T extends NullishValue ? T : never
 type Truthy<T> = T extends FalsyValue ? never : T
@@ -30,6 +30,15 @@ export const _isFalsy = <T>(v: T): v is Falsy<T> => !v
  */
 export function _isObject(obj: any): obj is AnyObject {
   return (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) || false
+}
+
+/**
+ * Returns true if item is an object literal: not an Array, Error, RegExp or class instance.
+ */
+export function _isPlainObject(v: any): v is PlainObject {
+  if (typeof v !== 'object' || v === null) return false
+  const proto = Object.getPrototypeOf(v)
+  return proto === Object.prototype || proto === null
 }
 
 export function _isPrimitive(v: any): v is Primitive {

@@ -1,4 +1,5 @@
-import type { MutateOptions } from '../types.js'
+import { _isPlainObject } from '../is.util.js'
+import type { AnyObject, MutateOptions } from '../types.js'
 
 // copy-pasted to avoid weird circular dependency
 const _noop = (..._args: any[]): undefined => undefined
@@ -125,14 +126,62 @@ export function commonLoggerPrefix(logger: CommonLogger, ...prefixes: any[]): Co
   }
 }
 
+export type CommonLogSink = CommonLogger | CommonLogWithLevelFunction
+
+export interface CommonLoggerWithContext extends CommonLogger {
+  child: (context: AnyObject) => CommonLoggerWithContext
+}
+
 /**
  * Creates a CommonLogger from a single function that takes `level` and `args`.
+ *
+ * With a context, every call emits one object: plain-object args merged in, first Error as `err`,
+ * the rest joined into `msg`.
  */
-export function commonLoggerCreate(fn: CommonLogWithLevelFunction): CommonLogger {
-  return {
-    debug: (...args) => fn('debug', args),
-    log: (...args) => fn('log', args),
-    warn: (...args) => fn('warn', args),
-    error: (...args) => fn('error', args),
+export function commonLoggerCreate(sink: CommonLogSink): CommonLogger
+export function commonLoggerCreate(sink: CommonLogSink, context: AnyObject): CommonLoggerWithContext
+export function commonLoggerCreate(sink: CommonLogSink, context?: AnyObject): CommonLogger {
+  const fn: CommonLogWithLevelFunction =
+    typeof sink === 'function' ? sink : (level, args) => sink[level](...args)
+
+  if (!context) {
+    return {
+      debug: (...args) => fn('debug', args),
+      log: (...args) => fn('log', args),
+      warn: (...args) => fn('warn', args),
+      error: (...args) => fn('error', args),
+    }
   }
+
+  const ctx: AnyObject = { ...context }
+
+  const logger: CommonLoggerWithContext = {
+    debug: (...args) => fn('debug', [toLogEntry(ctx, args)]),
+    log: (...args) => fn('log', [toLogEntry(ctx, args)]),
+    warn: (...args) => fn('warn', [toLogEntry(ctx, args)]),
+    error: (...args) => fn('error', [toLogEntry(ctx, args)]),
+    child: c => commonLoggerCreate(fn, { ...ctx, ...c }),
+  }
+  return logger
+}
+
+function toLogEntry(context: AnyObject, args: any[]): AnyObject {
+  const entry: AnyObject = { ...context }
+  let err: Error | undefined
+  let msg: string | undefined
+
+  for (const arg of args) {
+    if (_isPlainObject(arg)) {
+      Object.assign(entry, arg)
+    } else if (!err && arg instanceof Error) {
+      err = arg
+    } else {
+      const s = String(arg)
+      msg = msg === undefined ? s : `${msg} ${s}`
+    }
+  }
+
+  if (err) entry['err'] = err
+  if (msg !== undefined) entry['msg'] = msg
+  return entry
 }

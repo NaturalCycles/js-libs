@@ -1,5 +1,8 @@
 import { inspect } from 'node:util'
+import { _isPlainObject } from '@naturalcycles/js-lib'
+import { _anyToErrorObject } from '@naturalcycles/js-lib/error'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { _safeJsonStringify } from '@naturalcycles/js-lib/string/safeJsonStringify.js'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
@@ -50,22 +53,46 @@ export const ciLogger: CommonLogger = {
 // Documented here: https://cloud.google.com/logging/docs/structured-logging
 // Cloud Run logging: https://cloud.google.com/run/docs/logging
 function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
-  console.log(
-    JSON.stringify({
-      message: args.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
-      ...meta,
-    }),
-  )
+  if (args.length !== 1 || !_isPlainObject(args[0])) {
+    console.log(
+      JSON.stringify({
+        message: args.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
+        ...meta,
+      }),
+    )
+    return
+  }
+
+  const { msg, err, ...entry } = args[0]
+  if (err instanceof Error) {
+    entry['err'] = _anyToErrorObject(err)
+    entry['message'] = msg ? `${msg}\n${inspect(err)}` : inspect(err)
+  } else {
+    if (err !== undefined) entry['err'] = err
+    if (msg !== undefined) entry['message'] = msg
+  }
+  console.log(_safeJsonStringify({ ...entry, ...meta }))
 }
 
 function logToDev(requestId: string | null, args: any[]): void {
   // Run on local machine
-  console.log(
-    [
-      requestId ? [dimGrey(`[${requestId}]`)] : [],
-      ...args.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
-    ].join(' '),
-  )
+  if (args.length !== 1 || !_isPlainObject(args[0])) {
+    console.log(
+      [
+        requestId ? [dimGrey(`[${requestId}]`)] : [],
+        ...args.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
+      ].join(' '),
+    )
+    return
+  }
+
+  const { msg, err, ...rest } = args[0]
+  const parts: string[] = []
+  if (requestId) parts.push(dimGrey(`[${requestId}]`))
+  if (msg !== undefined) parts.push(String(msg))
+  if (err !== undefined) parts.push(_inspect(err, { includeErrorStack: true, colors: true }))
+  if (Object.keys(rest).length) parts.push(dimGrey(_inspect(rest, { colors: false })))
+  console.log(parts.join(' '))
 }
 
 /**

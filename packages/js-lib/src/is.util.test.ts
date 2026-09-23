@@ -8,6 +8,7 @@ import {
   _isNotEmptyObject,
   _isNull,
   _isObject,
+  _isPlainObject,
   _isPrimitive,
   _isTruthy,
 } from './is.util.js'
@@ -71,6 +72,30 @@ test('_isObject', () => {
   class Obj {}
 
   expect(_isObject(new Obj())).toBe(true)
+})
+
+test('_isPlainObject', () => {
+  expect(_isPlainObject({})).toBe(true)
+  expect(_isPlainObject({ a: 1 })).toBe(true)
+  expect(_isPlainObject(Object.create(null))).toBe(true)
+
+  class Obj {}
+
+  const a: any[] = [
+    [],
+    null,
+    undefined,
+    's',
+    1,
+    new Error('e'),
+    new Date(),
+    new Obj(),
+    /re/,
+    () => {},
+  ]
+  for (const v of a) {
+    expect(_isPlainObject(v)).toBe(false)
+  }
 })
 
 test('_isEmptyObject', () => {
