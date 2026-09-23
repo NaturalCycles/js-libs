@@ -53,46 +53,46 @@ export const ciLogger: CommonLogger = {
 // Documented here: https://cloud.google.com/logging/docs/structured-logging
 // Cloud Run logging: https://cloud.google.com/run/docs/logging
 function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
-  if (args.length === 1 && _isPlainObject(args[0])) {
-    const { msg, err, ...entry } = args[0]
-    if (err instanceof Error) {
-      entry['err'] = _anyToErrorObject(err)
-      entry['message'] = msg ? `${msg}\n${inspect(err)}` : inspect(err)
-    } else {
-      if (err !== undefined) entry['err'] = err
-      if (msg !== undefined) entry['message'] = msg
-    }
-    console.log(_safeJsonStringify({ ...entry, ...meta }))
+  if (args.length !== 1 || !_isPlainObject(args[0])) {
+    console.log(
+      JSON.stringify({
+        message: args.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
+        ...meta,
+      }),
+    )
     return
   }
 
-  console.log(
-    JSON.stringify({
-      message: args.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
-      ...meta,
-    }),
-  )
+  const { msg, err, ...entry } = args[0]
+  if (err instanceof Error) {
+    entry['err'] = _anyToErrorObject(err)
+    entry['message'] = msg ? `${msg}\n${inspect(err)}` : inspect(err)
+  } else {
+    if (err !== undefined) entry['err'] = err
+    if (msg !== undefined) entry['message'] = msg
+  }
+  console.log(_safeJsonStringify({ ...entry, ...meta }))
 }
 
 function logToDev(requestId: string | null, args: any[]): void {
   // Run on local machine
-  if (args.length === 1 && _isPlainObject(args[0])) {
-    const { msg, err, ...rest } = args[0]
-    const parts: string[] = []
-    if (requestId) parts.push(dimGrey(`[${requestId}]`))
-    if (msg !== undefined) parts.push(String(msg))
-    if (err !== undefined) parts.push(_inspect(err, { includeErrorStack: true, colors: true }))
-    if (Object.keys(rest).length) parts.push(dimGrey(_inspect(rest, { colors: false })))
-    console.log(parts.join(' '))
+  if (args.length !== 1 || !_isPlainObject(args[0])) {
+    console.log(
+      [
+        requestId ? [dimGrey(`[${requestId}]`)] : [],
+        ...args.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
+      ].join(' '),
+    )
     return
   }
 
-  console.log(
-    [
-      requestId ? [dimGrey(`[${requestId}]`)] : [],
-      ...args.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
-    ].join(' '),
-  )
+  const { msg, err, ...rest } = args[0]
+  const parts: string[] = []
+  if (requestId) parts.push(dimGrey(`[${requestId}]`))
+  if (msg !== undefined) parts.push(String(msg))
+  if (err !== undefined) parts.push(_inspect(err, { includeErrorStack: true, colors: true }))
+  if (Object.keys(rest).length) parts.push(dimGrey(_inspect(rest, { colors: false })))
+  console.log(parts.join(' '))
 }
 
 /**
