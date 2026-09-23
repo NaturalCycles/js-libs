@@ -1,20 +1,16 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
-import { _get } from '@naturalcycles/js-lib/object/object.util.js'
+import { _has, _set } from '@naturalcycles/js-lib/object/object.util.js'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 
-export function handleValidationError<T, ERR extends AppError>(
+export function handleValidationError<ERR extends AppError>(
   error: ERR,
-  originalProperty: T,
-  opt: ReqValidationOptions<ERR> = {},
+  opt: Pick<ReqValidationOptions<ERR>, 'report'> = {},
 ): never {
   let report: boolean | undefined
   if (typeof opt.report === 'boolean') {
     report = opt.report
   } else if (typeof opt.report === 'function') {
     report = opt.report(error)
-  }
-
-  if (opt.redactPaths) {
-    redact(opt.redactPaths, originalProperty, error)
   }
 
   makeErrorUserReadable(error)
@@ -29,15 +25,16 @@ export function handleValidationError<T, ERR extends AppError>(
 const REDACTED = 'REDACTED'
 
 /**
- * Mutates error
+ * Mutates `input`: replaces the value at each existing `redactPaths` dot-path with 'REDACTED',
+ * whatever its type. Paths that don't exist are skipped - no keys are created.
  */
-function redact(redactPaths: string[], obj: any, error: Error): void {
-  redactPaths
-    .map(path => _get(obj, path) as string)
-    .filter(Boolean)
-    .forEach(secret => {
-      error.message = error.message.replaceAll(secret, REDACTED)
-    })
+export function redactInputByPaths<T extends AnyObject>(input: T, redactPaths: string[]): T {
+  for (const path of redactPaths) {
+    if (_has(input, path)) {
+      _set(input, path, REDACTED)
+    }
+  }
+  return input
 }
 
 /**
@@ -49,7 +46,9 @@ function makeErrorUserReadable<ERR extends AppError>(error: ERR): void {
 
 export interface ReqValidationOptions<ERR extends AppError> {
   /**
-   * Pass a 'dot-paths' (e.g `pw`, or `input.pw`) that needs to be redacted from the output, in case of error.
+   * Pass 'dot-paths' (e.g `pw`, or `input.pw`, or `items.0.secret`) that need to be redacted
+   * from the error message, in case of error. The whole value at each path is replaced with
+   * 'REDACTED', whatever its type.
    * Useful e.g to redact (prevent leaking) plaintext passwords in error messages.
    */
   redactPaths?: string[]
