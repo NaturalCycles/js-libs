@@ -146,6 +146,45 @@ test('the context is copied on creation', () => {
   expect(calls[0]![1]).toStrictEqual([{ a: 1, msg: 'm' }])
 })
 
+test('a context function is called on every log call', () => {
+  const { logger, calls } = createTestSink()
+  const state: AnyObject = { a: 1 }
+  const contextLogger = commonLoggerCreate(logger, () => ({ ...state }))
+
+  contextLogger.log('m')
+  state['a'] = 2
+  state['b'] = 3
+  contextLogger.log('m')
+
+  expect(calls).toStrictEqual([
+    ['log', [{ a: 1, msg: 'm' }]],
+    ['log', [{ a: 2, b: 3, msg: 'm' }]],
+  ])
+})
+
+test('child merges function and object contexts, child keys win', () => {
+  const { logger, calls } = createTestSink()
+  const state: AnyObject = { a: 1, b: 1 }
+  const parent = commonLoggerCreate(logger, () => state)
+  const child = parent.child({ b: 2 })
+  const grandChild = child.child(() => ({ c: state['a'] }))
+
+  child.log('m')
+  state['a'] = 9
+  grandChild.log('m')
+  parent.child(() => ({ b: 3 })).log('m')
+  commonLoggerCreate(logger, { a: 1 })
+    .child(() => ({ b: 2 }))
+    .log('m')
+
+  expect(calls).toStrictEqual([
+    ['log', [{ a: 1, b: 2, msg: 'm' }]],
+    ['log', [{ a: 9, b: 2, c: 9, msg: 'm' }]],
+    ['log', [{ a: 9, b: 3, msg: 'm' }]],
+    ['log', [{ a: 1, b: 2, msg: 'm' }]],
+  ])
+})
+
 test('commonLoggerCreate with a context on console', () => {
   const logger = commonLoggerCreate(console, { a: 1 })
   logger.debug('hey')
