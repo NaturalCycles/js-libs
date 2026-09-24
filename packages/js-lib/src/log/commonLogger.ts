@@ -128,8 +128,15 @@ export function commonLoggerPrefix(logger: CommonLogger, ...prefixes: any[]): Co
 
 export type CommonLogSink = CommonLogger | CommonLogWithLevelFunction
 
+/**
+ * A plain object is copied once, at creation.
+ * A function is called on every log call, for context that changes after the logger is created
+ * (e.g a request context whose user is resolved later).
+ */
+export type CommonLogContext = AnyObject | (() => AnyObject)
+
 export interface CommonLoggerWithContext extends CommonLogger {
-  child: (context: AnyObject) => CommonLoggerWithContext
+  child: (context: CommonLogContext) => CommonLoggerWithContext
 }
 
 /**
@@ -139,8 +146,11 @@ export interface CommonLoggerWithContext extends CommonLogger {
  * the rest joined into `msg`.
  */
 export function commonLoggerCreate(sink: CommonLogSink): CommonLogger
-export function commonLoggerCreate(sink: CommonLogSink, context: AnyObject): CommonLoggerWithContext
-export function commonLoggerCreate(sink: CommonLogSink, context?: AnyObject): CommonLogger {
+export function commonLoggerCreate(
+  sink: CommonLogSink,
+  context: CommonLogContext,
+): CommonLoggerWithContext
+export function commonLoggerCreate(sink: CommonLogSink, context?: CommonLogContext): CommonLogger {
   const fn: CommonLogWithLevelFunction =
     typeof sink === 'function' ? sink : (level, args) => sink[level](...args)
 
@@ -153,16 +163,29 @@ export function commonLoggerCreate(sink: CommonLogSink, context?: AnyObject): Co
     }
   }
 
-  const ctx: AnyObject = { ...context }
+  const getContext = typeof context === 'function' ? context : constant({ ...context })
 
   const logger: CommonLoggerWithContext = {
-    debug: (...args) => fn('debug', [toLogEntry(ctx, args)]),
-    log: (...args) => fn('log', [toLogEntry(ctx, args)]),
-    warn: (...args) => fn('warn', [toLogEntry(ctx, args)]),
-    error: (...args) => fn('error', [toLogEntry(ctx, args)]),
-    child: c => commonLoggerCreate(fn, { ...ctx, ...c }),
+    debug: (...args) => fn('debug', [toLogEntry(getContext(), args)]),
+    log: (...args) => fn('log', [toLogEntry(getContext(), args)]),
+    warn: (...args) => fn('warn', [toLogEntry(getContext(), args)]),
+    error: (...args) => fn('error', [toLogEntry(getContext(), args)]),
+    child: c => commonLoggerCreate(fn, mergeContexts(context, c)),
   }
   return logger
+}
+
+function mergeContexts(parent: CommonLogContext, child: CommonLogContext): CommonLogContext {
+  if (typeof parent !== 'function' && typeof child !== 'function') {
+    return { ...parent, ...child }
+  }
+  const getParent = typeof parent === 'function' ? parent : constant(parent)
+  const getChild = typeof child === 'function' ? child : constant(child)
+  return () => ({ ...getParent(), ...getChild() })
+}
+
+function constant(obj: AnyObject): () => AnyObject {
+  return () => obj
 }
 
 function toLogEntry(context: AnyObject, args: any[]): AnyObject {
