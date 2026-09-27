@@ -44,7 +44,7 @@
   "peerDependencies": {
     "@sentry/node-core": "^10",
     "firebase-admin": "^14",
-    "simple-git": "^3"
+    "simple-git": "^4"
   },
   "peerDependenciesMeta": {
     "@sentry/node-core": {
