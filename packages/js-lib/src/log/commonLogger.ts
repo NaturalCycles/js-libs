@@ -163,29 +163,26 @@ export function commonLoggerCreate(sink: CommonLogSink, context?: CommonLogConte
     }
   }
 
-  const getContext = typeof context === 'function' ? context : constant({ ...context })
+  const getContext = contextGetter(context)
 
   const logger: CommonLoggerWithContext = {
     debug: (...args) => fn('debug', [toLogEntry(getContext(), args)]),
     log: (...args) => fn('log', [toLogEntry(getContext(), args)]),
     warn: (...args) => fn('warn', [toLogEntry(getContext(), args)]),
     error: (...args) => fn('error', [toLogEntry(getContext(), args)]),
-    child: c => commonLoggerCreate(fn, mergeContexts(context, c)),
+    child: c => {
+      const getChild = contextGetter(c)
+      return commonLoggerCreate(fn, () => ({ ...getContext(), ...getChild() }))
+    },
   }
   return logger
 }
 
-function mergeContexts(parent: CommonLogContext, child: CommonLogContext): CommonLogContext {
-  if (typeof parent !== 'function' && typeof child !== 'function') {
-    return { ...parent, ...child }
-  }
-  const getParent = typeof parent === 'function' ? parent : constant(parent)
-  const getChild = typeof child === 'function' ? child : constant(child)
-  return () => ({ ...getParent(), ...getChild() })
-}
-
-function constant(obj: AnyObject): () => AnyObject {
-  return () => obj
+function contextGetter(context: CommonLogContext): () => AnyObject {
+  // AnyObject also admits functions, so typeof does not narrow the union
+  if (typeof context === 'function') return context as () => AnyObject
+  const copy = { ...context }
+  return () => copy
 }
 
 function toLogEntry(context: AnyObject, args: any[]): AnyObject {

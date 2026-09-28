@@ -146,6 +146,25 @@ test('the context is copied on creation', () => {
   expect(calls[0]![1]).toStrictEqual([{ a: 1, msg: 'm' }])
 })
 
+test('a child of an object context logs from the same copy as its parent', () => {
+  const { logger, calls } = createTestSink()
+  const context: AnyObject = { a: 1 }
+  const parent = commonLoggerCreate(logger, context)
+  const child = parent.child({ b: 2 })
+  const fnChild = parent.child(() => ({ c: 3 }))
+
+  context['a'] = 5
+  parent.log('m')
+  child.log('m')
+  fnChild.log('m')
+
+  expect(calls).toStrictEqual([
+    ['log', [{ a: 1, msg: 'm' }]],
+    ['log', [{ a: 1, b: 2, msg: 'm' }]],
+    ['log', [{ a: 1, c: 3, msg: 'm' }]],
+  ])
+})
+
 test('a context function is called on every log call', () => {
   const { logger, calls } = createTestSink()
   const state: AnyObject = { a: 1 }
