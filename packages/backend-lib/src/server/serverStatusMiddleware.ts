@@ -1,3 +1,4 @@
+import os from 'node:os'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _filterNullishValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { memoryUsageFull, processSharedUtil } from '@naturalcycles/nodejs-lib'
@@ -5,6 +6,7 @@ import { getDeployInfo } from '../deploy/deployInfo.util.js'
 import type { BackendRequestHandler } from './server.model.js'
 
 const { versions, arch, platform } = process
+const availableParallelismAtStart = os.availableParallelism()
 const {
   GAE_APPLICATION,
   GAE_SERVICE,
@@ -16,6 +18,7 @@ const {
   NODE_ENV,
   NODE_OPTIONS,
   UV_THREADPOOL_SIZE,
+  MALLOC_ARENA_MAX,
   DEPLOY_BUILD_TIME,
   BUILD_VERSION,
 } = process.env
@@ -36,6 +39,8 @@ export function getServerStatusData(
     deployBuildTime = localTime(ts).toPretty()
   }
 
+  const availableParallelism = os.availableParallelism()
+
   return _filterNullishValues({
     nodeProcessStarted: getStartedStr(),
     deployBuildTime,
@@ -54,10 +59,13 @@ export function getServerStatusData(
     mem: memoryUsageFull(),
     cpuAvg: processSharedUtil.cpuAvg(),
     cpuInfo: processSharedUtil.cpuInfo(),
+    availableParallelismAtStart,
+    availableParallelism,
     versions,
     NODE_OPTIONS,
     NODE_ENV,
     UV_THREADPOOL_SIZE,
+    MALLOC_ARENA_MAX,
     ...extra,
   })
 }

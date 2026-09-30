@@ -73,7 +73,7 @@ export class BackendServer {
     }
 
     const cpus = os.cpus().length
-    const availableParallelism = os.availableParallelism?.()
+    const availableParallelism = os.availableParallelism()
     const { version, platform, arch } = process
     console.log(
       dimGrey(
