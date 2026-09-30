@@ -105,7 +105,7 @@ function checkAndlogEnvironment(): void {
   } = process
 
   const cpuLimit = Number(CPU_LIMIT) || undefined
-  const availableParallelism = os.availableParallelism?.()
+  const availableParallelism = os.availableParallelism()
   const cpus = os.cpus().length
   console.log(
     dimGrey(
