@@ -4,30 +4,6 @@ import { dimGrey, green, red } from '@naturalcycles/nodejs-lib/colors'
 import type { Auth } from 'firebase-admin/auth'
 import type { BackendRequest, BackendRequestHandler } from '../server/server.model.js'
 
-export interface AdminServiceCfg {
-  /**
-   * @default 'admin_token'
-   */
-  adminTokenKey?: string
-
-  /**
-   * If false - disables auth completely (useful for debugging locally, but never in production).
-   *
-   * @default true
-   */
-  authEnabled?: boolean
-}
-
-export interface AdminInfo {
-  email: string
-  permissions: string[]
-}
-
-const adminInfoDisabled = (): AdminInfo => ({
-  email: 'authDisabled',
-  permissions: [],
-})
-
 /**
  * Base implementation based on Firebase Auth tokens passed as 'admin_token' cookie.
  */
@@ -52,82 +28,6 @@ export class BaseAdminService {
     }
   }
 
-  /**
-   * To be extended.
-   *
-   * Returns undefined if it's not an Admin.
-   * Otherwise returns Set of permissions.
-   * Empty array means it IS and Admin, but has no permissions (except being an Admin).
-   */
-  async getEmailPermissions(email?: string): Promise<Set<string> | undefined> {
-    if (!email) return
-    console.log(
-      `getEmailPermissions (${dimGrey(
-        email,
-      )}) returning undefined (please override the implementation)`,
-    )
-  }
-
-  /**
-   * To be extended.
-   */
-  // oxlint-disable-next-line max-params
-  protected async onPermissionCheck(
-    req: BackendRequest,
-    email: string,
-    reqPermissions: string[],
-    required: boolean,
-    granted: boolean,
-    meta: Record<string, any> = {},
-  ): Promise<void> {
-    req.log(
-      `${dimGrey(email)} ${required ? 'required' : 'optional'} permissions check [${dimGrey(
-        reqPermissions.join(', '),
-      )}]: ${granted ? green('GRANTED') : red('DENIED')}`,
-      meta,
-    )
-  }
-
-  async getEmailByToken(req: BackendRequest, adminToken?: string): Promise<string | undefined> {
-    if (!adminToken) return
-
-    try {
-      const auth = await this.getFirebaseAuth()
-      const decodedToken = await auth.verifyIdToken(adminToken)
-      const email = decodedToken?.email
-      req.log(`admin email: ${dimGrey(email)}`)
-      return email
-    } catch (err) {
-      // example:
-      // FirebaseAuthError: Firebase ID token has expired. Get a fresh ID token from your client app and try again (auth/id-token-expired).
-      if (
-        // err instanceof FirebaseAuthError && err.hasCode('id-token-expired')
-        (err as any)?.code?.includes('id-token-expired')
-      ) {
-        return // skip logging, expected error
-      }
-
-      req.error(`getEmailByToken error:`, err)
-    }
-  }
-
-  @_Memo()
-  private async getFirebaseAuth(): Promise<Auth> {
-    return await this.loadFirebaseAuth()
-  }
-
-  /**
-   * Current implementation is based on req=Request (from Express).
-   * Override if needed.
-   */
-  getAdminToken(req: BackendRequest): string | undefined {
-    return (
-      req.cookies?.[this.cfg.adminTokenKey] ||
-      req.header(this.cfg.adminTokenKey) ||
-      req.header('x-admin-token')
-    )
-  }
-
   async isAdmin(req: BackendRequest | undefined): Promise<boolean> {
     if (!req) return false
     const adminToken = this.getAdminToken(req)
@@ -143,6 +43,23 @@ export class BaseAdminService {
   // async reqAdmin (req: Request): Promise<void> {
   //   await this.reqPermissions(req)
   // }
+
+  // convenience method
+  async hasPermission(
+    req: BackendRequest,
+    reqPermission: string,
+    meta?: Record<string, any>,
+  ): Promise<boolean> {
+    return !!(await this.hasPermissions(req, [reqPermission], meta))
+  }
+
+  async requirePermission(
+    req: BackendRequest,
+    reqPermission: string,
+    meta?: Record<string, any>,
+  ): Promise<AdminInfo> {
+    return await this.requirePermissions(req, [reqPermission], meta)
+  }
 
   /**
    * Returns AdminInfo if it has all required permissions.
@@ -225,21 +142,80 @@ export class BaseAdminService {
     }
   }
 
-  // convenience method
-  async hasPermission(
-    req: BackendRequest,
-    reqPermission: string,
-    meta?: Record<string, any>,
-  ): Promise<boolean> {
-    return !!(await this.hasPermissions(req, [reqPermission], meta))
+  /**
+   * Current implementation is based on req=Request (from Express).
+   * Override if needed.
+   */
+  getAdminToken(req: BackendRequest): string | undefined {
+    return (
+      req.cookies?.[this.cfg.adminTokenKey] ||
+      req.header(this.cfg.adminTokenKey) ||
+      req.header('x-admin-token')
+    )
   }
 
-  async requirePermission(
+  async getEmailByToken(req: BackendRequest, adminToken?: string): Promise<string | undefined> {
+    if (!adminToken) return
+
+    try {
+      const auth = await this.getFirebaseAuth()
+      const decodedToken = await auth.verifyIdToken(adminToken)
+      const email = decodedToken?.email
+      req.log(`admin email: ${dimGrey(email)}`)
+      return email
+    } catch (err) {
+      // example:
+      // FirebaseAuthError: Firebase ID token has expired. Get a fresh ID token from your client app and try again (auth/id-token-expired).
+      if (
+        // err instanceof FirebaseAuthError && err.hasCode('id-token-expired')
+        (err as any)?.code?.includes('id-token-expired')
+      ) {
+        return // skip logging, expected error
+      }
+
+      req.error(`getEmailByToken error:`, err)
+    }
+  }
+
+  @_Memo()
+  private async getFirebaseAuth(): Promise<Auth> {
+    return await this.loadFirebaseAuth()
+  }
+
+  /**
+   * To be extended.
+   *
+   * Returns undefined if it's not an Admin.
+   * Otherwise returns Set of permissions.
+   * Empty array means it IS and Admin, but has no permissions (except being an Admin).
+   */
+  async getEmailPermissions(email?: string): Promise<Set<string> | undefined> {
+    if (!email) return
+    console.log(
+      `getEmailPermissions (${dimGrey(
+        email,
+      )}) returning undefined (please override the implementation)`,
+    )
+  }
+
+  /**
+   * To be extended.
+   */
+  // oxlint-disable-next-line max-params
+  protected async onPermissionCheck(
     req: BackendRequest,
-    reqPermission: string,
-    meta?: Record<string, any>,
-  ): Promise<AdminInfo> {
-    return await this.requirePermissions(req, [reqPermission], meta)
+    email: string,
+    reqPermissions: string[],
+    required: boolean,
+    granted: boolean,
+    meta: Record<string, any> = {},
+  ): Promise<void> {
+    req.log(
+      `${dimGrey(email)} ${required ? 'required' : 'optional'} permissions check [${dimGrey(
+        reqPermissions.join(', '),
+      )}]: ${granted ? green('GRANTED') : red('DENIED')}`,
+      meta,
+    )
   }
 
   /**
@@ -279,4 +255,28 @@ export class BaseAdminService {
         .end()
     }
   }
+}
+
+const adminInfoDisabled = (): AdminInfo => ({
+  email: 'authDisabled',
+  permissions: [],
+})
+
+export interface AdminServiceCfg {
+  /**
+   * @default 'admin_token'
+   */
+  adminTokenKey?: string
+
+  /**
+   * If false - disables auth completely (useful for debugging locally, but never in production).
+   *
+   * @default true
+   */
+  authEnabled?: boolean
+}
+
+export interface AdminInfo {
+  email: string
+  permissions: string[]
 }
