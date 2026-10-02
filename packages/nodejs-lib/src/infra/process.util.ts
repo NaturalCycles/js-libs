@@ -6,13 +6,15 @@ export function memoryUsage(): {
   heapTotal: number
   heapUsed: number
   external: number
+  arrayBuffers: number
 } {
-  const { rss, external, heapUsed, heapTotal } = process.memoryUsage()
+  const { rss, external, arrayBuffers, heapUsed, heapTotal } = process.memoryUsage()
   return {
     rss: _mb(rss),
     heapTotal: _mb(heapTotal),
     heapUsed: _mb(heapUsed),
     external: _mb(external),
+    arrayBuffers: _mb(arrayBuffers),
   }
 }
 
@@ -21,11 +23,11 @@ export function memoryUsageFull(): {
   heapTotal: number
   heapUsed: number
   external: number
+  arrayBuffers: number
   totalMem: number
   freeMem: number
-  usedMem: number
 } {
-  const { rss, external, heapUsed, heapTotal } = process.memoryUsage()
+  const { rss, external, arrayBuffers, heapUsed, heapTotal } = process.memoryUsage()
   const totalMem = os.totalmem()
   const freeMem = os.freemem()
   return {
@@ -33,9 +35,9 @@ export function memoryUsageFull(): {
     heapTotal: _mb(heapTotal),
     heapUsed: _mb(heapUsed),
     external: _mb(external),
+    arrayBuffers: _mb(arrayBuffers),
     totalMem: _mb(totalMem),
     freeMem: _mb(freeMem),
-    usedMem: _mb(totalMem - freeMem),
   }
 }
 
