@@ -1,5 +1,6 @@
 import { _Memo } from '@naturalcycles/js-lib/decorators'
-import { _assert, AppError } from '@naturalcycles/js-lib/error'
+import { _assert } from '@naturalcycles/js-lib/error'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { dimGrey, green, red } from '@naturalcycles/nodejs-lib/colors'
 import type { Auth } from 'firebase-admin/auth'
 import type { BackendRequest, BackendRequestHandler } from '../server/server.model.js'
@@ -30,9 +31,8 @@ export class BaseAdminService {
 
   async isAdmin(req: BackendRequest | undefined): Promise<boolean> {
     if (!req) return false
-    const adminToken = this.getAdminToken(req)
-    const email = await this.getEmailByToken(req, adminToken)
-    return !!(await this.getEmailPermissions(email))
+    const { permissions } = await this.resolveAdmin(req)
+    return !!permissions
   }
 
   async getAdminInfo(req: BackendRequest): Promise<AdminInfo | undefined> {
@@ -48,15 +48,16 @@ export class BaseAdminService {
   async hasPermission(
     req: BackendRequest,
     reqPermission: string,
-    meta?: Record<string, any>,
+    meta?: AnyObject,
   ): Promise<boolean> {
-    return !!(await this.hasPermissions(req, [reqPermission], meta))
+    const adminInfo = await this.hasPermissions(req, [reqPermission], meta)
+    return !!adminInfo
   }
 
   async requirePermission(
     req: BackendRequest,
     reqPermission: string,
-    meta?: Record<string, any>,
+    meta?: AnyObject,
   ): Promise<AdminInfo> {
     return await this.requirePermissions(req, [reqPermission], meta)
   }
@@ -68,73 +69,119 @@ export class BaseAdminService {
   async hasPermissions(
     req: BackendRequest,
     reqPermissions: string[] = [],
-    meta: Record<string, any> = {},
+    meta: AnyObject = {},
   ): Promise<AdminInfo | undefined> {
     if (!this.cfg.authEnabled) return adminInfoDisabled()
 
-    const adminToken = this.getAdminToken(req)
-    const email = await this.getEmailByToken(req, adminToken)
-    const hasPermissions = await this.getEmailPermissions(email)
-    if (!hasPermissions) return
+    const admin = await this.resolveAdmin(req)
+    const { email, permissions } = admin
+    if (!email || !permissions) return
 
-    const granted = reqPermissions.every(p => hasPermissions.has(p))
+    const result = this.checkPermissions(admin, reqPermissions)
 
-    void this.onPermissionCheck(req, email!, reqPermissions, false, granted, meta)
+    void this.onPermissionCheck(req, email, reqPermissions, false, result.granted, meta)
 
-    if (!granted) return
+    if (!result.granted) return
 
     return {
-      email: email!,
-      permissions: Array.from(hasPermissions),
+      email,
+      permissions: Array.from(permissions),
     }
   }
 
   async requirePermissions(
     req: BackendRequest,
     reqPermissions: string[] = [],
-    meta: Record<string, any> = {},
+    meta: AnyObject = {},
     andComparison = true,
   ): Promise<AdminInfo> {
     if (!this.cfg.authEnabled) return adminInfoDisabled()
 
-    const adminToken = this.getAdminToken(req)
-    const email = await this.getEmailByToken(req, adminToken)
+    const admin = await this.resolveAdmin(req)
+    const result = this.checkPermissions(admin, reqPermissions, { andComparison })
 
-    if (!email) {
-      throw new AppError('adminToken required', {
-        adminAuthRequired: true,
-        backendResponseStatusCode: 401,
-        userFriendly: true,
-      })
+    if (result.email) {
+      // Log only the granted permissions (differs from reqPermissions only on OR-comparison)
+      const checkedPermissions = result.granted ? result.grantedPermissions : reqPermissions
+      void this.onPermissionCheck(req, result.email, checkedPermissions, true, result.granted, meta)
     }
 
-    const hasPermissions = await this.getEmailPermissions(email)
+    return this.requireGranted(result)
+  }
+
+  /**
+   * Doesn't check permissions, nor `authEnabled`. See `checkPermissions`.
+   */
+  async resolveAdmin(req: BackendRequest): Promise<ResolvedAdmin> {
+    const adminToken = this.getAdminToken(req)
+    const email = await this.getEmailByToken(req, adminToken)
+    if (!email) return {}
+
+    const permissions = await this.getEmailPermissions(email)
+    return { email, permissions }
+  }
+
+  /**
+   * Doesn't log or throw. See `requireGranted`.
+   */
+  checkPermissions(
+    admin: ResolvedAdmin,
+    reqPermissions: string[] = [],
+    opt: CheckPermissionsOptions = {},
+  ): CheckPermissionsResult {
+    const { andComparison = true } = opt
+    const { email, permissions: hasPermissions } = admin
+    const isAdmin = !!hasPermissions
+
+    if (!this.cfg.authEnabled) {
+      return {
+        email,
+        isAdmin,
+        granted: true,
+        reqPermissions,
+        grantedPermissions: [],
+        authDisabled: true,
+      }
+    }
+
     const grantedPermissions = hasPermissions
       ? reqPermissions.filter(p => hasPermissions.has(p))
       : []
 
-    let granted: boolean
-    if (andComparison) {
-      granted = !!hasPermissions && grantedPermissions.length === reqPermissions.length // All permissions granted
-      void this.onPermissionCheck(req, email, reqPermissions, true, granted, meta)
-    } else {
-      granted = !!hasPermissions && grantedPermissions.length > 0
-      if (granted) {
-        // Require the permission(s), but only the ones the user was actually granted. 1+ is required
-        void this.onPermissionCheck(req, email, grantedPermissions, true, granted, meta)
-      } else {
-        void this.onPermissionCheck(req, email, reqPermissions, true, granted, meta)
-      }
-    }
+    const granted = andComparison
+      ? isAdmin && grantedPermissions.length === reqPermissions.length // All permissions granted
+      : isAdmin && grantedPermissions.length > 0 // 1+ is required
 
-    if (!granted) {
-      throw new AppError(`Admin permissions required: [${reqPermissions.join(', ')}]`, {
-        adminPermissionsRequired: reqPermissions,
-        email,
-        backendResponseStatusCode: 403,
-        userFriendly: true,
-      })
+    return {
+      email,
+      isAdmin,
+      granted,
+      reqPermissions,
+      grantedPermissions,
+      authDisabled: false,
     }
+  }
+
+  /**
+   * Throws 401 if there's no email, 403 if not granted.
+   */
+  requireGranted(result: CheckPermissionsResult): AdminInfo {
+    if (result.authDisabled) return adminInfoDisabled()
+
+    const { email, granted, reqPermissions, grantedPermissions } = result
+
+    _assert(email, 'adminToken required', {
+      adminAuthRequired: true,
+      backendResponseStatusCode: 401,
+      userFriendly: true,
+    })
+
+    _assert(granted, `Admin permissions required: [${reqPermissions.join(', ')}]`, {
+      adminPermissionsRequired: reqPermissions,
+      email,
+      backendResponseStatusCode: 403,
+      userFriendly: true,
+    })
 
     return {
       email,
@@ -208,7 +255,7 @@ export class BaseAdminService {
     reqPermissions: string[],
     required: boolean,
     granted: boolean,
-    meta: Record<string, any> = {},
+    meta: AnyObject = {},
   ): Promise<void> {
     req.log(
       `${dimGrey(email)} ${required ? 'required' : 'optional'} permissions check [${dimGrey(
@@ -279,4 +326,30 @@ export interface AdminServiceCfg {
 export interface AdminInfo {
   email: string
   permissions: string[]
+}
+
+export interface ResolvedAdmin {
+  /** undefined - no valid admin token */
+  email?: string
+  /** undefined - not an Admin */
+  permissions?: Set<string>
+}
+
+export interface CheckPermissionsOptions {
+  /**
+   * false - one granted permission is enough.
+   *
+   * @default true
+   */
+  andComparison?: boolean
+}
+
+export interface CheckPermissionsResult {
+  /** undefined - no valid admin token */
+  email?: string
+  isAdmin: boolean
+  granted: boolean
+  reqPermissions: string[]
+  grantedPermissions: string[]
+  authDisabled: boolean
 }
