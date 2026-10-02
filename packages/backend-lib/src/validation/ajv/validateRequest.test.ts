@@ -1,6 +1,10 @@
-import type { StringMap } from '@naturalcycles/js-lib/types'
+import { _try } from '@naturalcycles/js-lib/error'
+import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
+import { _deepCopy } from '@naturalcycles/js-lib/object'
+import type { AnyObject, StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
+import type { SchemaHandledByAjv } from '@naturalcycles/nodejs-lib/ajv'
 import { afterAll, beforeAll, describe, expect, test } from 'vitest'
 import { getDefaultRouter } from '../../express/getDefaultRouter.js'
 import { debugResource } from '../../test/debug.resource.js'
@@ -173,6 +177,7 @@ describe('ajvValidateRequest', () => {
     })
 
     test('should redact sensitive data', async () => {
+      const sessionid = 'abc123secretSession'
       const err = await app.expectError({
         url: '',
         method: 'GET',
@@ -180,13 +185,13 @@ describe('ajvValidateRequest', () => {
           shortstring: 'short',
           numeric: '127',
           bool: '1',
-          sessionid: 'sessionid',
+          sessionid,
         },
       })
 
       expect(err.data.responseStatusCode).toBe(400)
-      expect(err.cause.message).toContain("REDACTED: 'REDACTED'")
-      expect(err.cause.message).not.toContain('sessionid')
+      expect(err.cause.message).toContain(`sessionid: 'REDACTED'`)
+      expect(err.cause.message).not.toContain(sessionid)
     })
 
     test('should replace the headers with the validated value by default', async () => {
@@ -221,6 +226,200 @@ describe('ajvValidateRequest', () => {
         foo: 'bar',
         'user-agent': expect.any(String),
       })
+    })
+  })
+
+  describe('redactPaths', () => {
+    interface LoginInput {
+      email: string
+      pw: string
+    }
+
+    const loginSchema = j.object<LoginInput>({
+      email: j.string().email(),
+      pw: j.string().minLength(8).maxLength(100),
+    })
+
+    function validateBodyExpectError(
+      body: AnyObject,
+      schema: SchemaHandledByAjv<any>,
+      redactPaths: string[],
+      opt: { rawBody?: boolean } = {},
+    ): AppError {
+      const req = { body: _deepCopy(body) } as any
+      if (opt.rawBody) req.rawBody = Buffer.from(JSON.stringify(body))
+      const [err] = _try(() => validateRequest.body(req, schema, { redactPaths }), AppError)
+      expect(err).toBeInstanceOf(AppError)
+      return err!
+    }
+
+    function expectNoLeak(err: AppError, secret: string): void {
+      for (const text of [err.message, err.stack || '', JSON.stringify(err.data)]) {
+        for (let i = 0; i + 6 <= secret.length; i++) {
+          expect(text).not.toContain(secret.slice(i, i + 6))
+        }
+      }
+    }
+
+    test('should redact a secret that itself fails validation and is longer than the Got print cap', () => {
+      const pw = 'LongSecretAa'.repeat(100)
+      const err = validateBodyExpectError({ email: 'a@b.se', pw }, loginSchema, ['pw'])
+
+      expect(err.message).toContain('request.body.pw must NOT have more than 100 characters')
+      expectNoLeak(err, pw)
+    })
+
+    test('should redact a secret with escapable characters when another field fails', () => {
+      for (const pw of [String.raw`Back\slashSecret`, 'Newline\nSecretValue', 'Tab\tSecretValue']) {
+        const err = validateBodyExpectError({ email: 'nope', pw }, loginSchema, ['pw'])
+
+        expect(err.message).toContain(`pw: 'REDACTED'`)
+        expectNoLeak(err, pw)
+      }
+    })
+
+    test('should redact a secret longer than the Input print cap', () => {
+      const uncappedSchema = j.object<LoginInput>({
+        email: j.string().email(),
+        pw: j.string(),
+      })
+      const pw = 'S3cretPassw0rd'.repeat(360)
+      const err = validateBodyExpectError({ email: 'nope', pw }, uncappedSchema, ['pw'])
+
+      expectNoLeak(err, pw)
+    })
+
+    test('should redact a non-string secret', () => {
+      const schema = j.object<{ email: string; credentials: AnyObject }>({
+        email: j.string().email(),
+        credentials: j.object.any(),
+      })
+      const err = validateBodyExpectError(
+        { email: 'nope', credentials: { apiKey: 'ObjSecretKey123' } },
+        schema,
+        ['credentials'],
+      )
+
+      expect(err.message).toContain(`credentials: 'REDACTED'`)
+      expectNoLeak(err, 'ObjSecretKey123')
+    })
+
+    test('should redact a secret that the schema transforms or strips, when rawBody is present', () => {
+      const transformingSchema = j.object<{ email: string; token: string }>({
+        email: j.string().email(),
+        token: j.string().toLowerCase(),
+      })
+      let err = validateBodyExpectError(
+        { email: 'nope', token: 'MixedCaseToken99' },
+        transformingSchema,
+        ['token'],
+        { rawBody: true },
+      )
+      expectNoLeak(err, 'MixedCaseToken99')
+      expectNoLeak(err, 'mixedcasetoken99')
+
+      const schemaWithoutPw = j.object<{ email: string }>({
+        email: j.string().email(),
+      })
+      err = validateBodyExpectError(
+        { email: 'nope', pw: 'UndeclaredSecret42' },
+        schemaWithoutPw,
+        ['pw'],
+        {
+          rawBody: true,
+        },
+      )
+      expectNoLeak(err, 'UndeclaredSecret42')
+    })
+
+    test('should not mangle the message or reveal a very short secret', () => {
+      const err = validateBodyExpectError({ email: 'a@b.se', pw: 'e' }, loginSchema, ['pw'])
+
+      expect(err.message).toContain('request.body.pw must NOT have fewer than 8 characters')
+      expect(err.message).toContain(`pw: 'REDACTED'`)
+    })
+
+    test('should return the real value and not mutate the request on valid input', () => {
+      const req = { body: { email: 'a@b.se', pw: 'RealPassword1' } } as any
+      const output = validateRequest.body(req, loginSchema, { redactPaths: ['pw'] })
+
+      expect(output).toEqual({ email: 'a@b.se', pw: 'RealPassword1' })
+      expect(req.body.pw).toBe('RealPassword1')
+    })
+
+    test('should redact nested and array paths', () => {
+      interface NestedInput {
+        email: string
+        input: { pw: string }
+        items: { secret: string }[]
+      }
+      const schema = j.object<NestedInput>({
+        email: j.string().email(),
+        input: j.object<{ pw: string }>({ pw: j.string() }),
+        items: j.array(j.object<{ secret: string }>({ secret: j.string() })),
+      })
+      const err = validateBodyExpectError(
+        {
+          email: 'nope',
+          input: { pw: 'NestedSecret11' },
+          items: [{ secret: 'ArraySecret00' }, { secret: 'visibleValue22' }],
+        },
+        schema,
+        ['input.pw', 'items.0.secret'],
+      )
+
+      expect(err.message).toContain(`pw: 'REDACTED'`)
+      expect(err.message).toContain(`secret: 'REDACTED'`)
+      expect(err.message).toContain('visibleValue22')
+      expectNoLeak(err, 'NestedSecret11')
+      expectNoLeak(err, 'ArraySecret00')
+    })
+
+    test('should not mutate req.headers when redacting on failure', () => {
+      const sessionid = 'HeaderSecretVal99'
+      const req = { headers: { shortstring: 'short', sessionid } } as any
+      const schema = j.object<{ shortstring: string; sessionid: string }>({
+        shortstring: j.string().minLength(8),
+        sessionid: j.string(),
+      })
+      const [err] = _try(
+        () => validateRequest.headers(req, schema, { redactPaths: ['sessionid'] }),
+        AppError,
+      )
+
+      expect(err).toBeInstanceOf(AppError)
+      expect(err!.message).toContain(`sessionid: 'REDACTED'`)
+      expectNoLeak(err!, sessionid)
+      expect(req.headers.sessionid).toBe(sessionid)
+    })
+
+    test('should redact an undeclared secret without rawBody, copied before validation strips it', () => {
+      const schema = j.object<{ email: string }>({
+        email: j.string().email(),
+      })
+      const err = validateBodyExpectError({ email: 'nope', pw: 'UndeclaredSecret42' }, schema, [
+        'pw',
+      ])
+
+      expect(err.message).toContain(`pw: 'REDACTED'`)
+      expectNoLeak(err, 'UndeclaredSecret42')
+    })
+
+    test('should redact query secrets with coercion enabled', () => {
+      const schema = j.object<{ limit: number; apiKey: string }>({
+        limit: j.number(),
+        apiKey: j.string(),
+      })
+      const req = { query: { limit: 'abc', apiKey: 'QuerySecretKey12' } } as any
+      const [err] = _try(
+        () => validateRequest.query(req, schema, { redactPaths: ['apiKey'] }),
+        AppError,
+      )
+
+      expect(err).toBeInstanceOf(AppError)
+      expect(err!.message).toContain(`apiKey: 'REDACTED'`)
+      expectNoLeak(err!, 'QuerySecretKey12')
+      expect(req.query.apiKey).toBe('QuerySecretKey12')
     })
   })
 
