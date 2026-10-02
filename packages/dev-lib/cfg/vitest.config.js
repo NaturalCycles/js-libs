@@ -77,6 +77,9 @@ export function getSharedConfig(cwd) {
     watch: false,
     // dir: 'src',
     restoreMocks: true,
+    // restoreMocks does not cover vi.stubEnv/vi.stubGlobal
+    unstubEnvs: true,
+    unstubGlobals: true,
     silent,
     setupFiles: getSetupFiles(testType, cwd),
     logHeapUsage: true,

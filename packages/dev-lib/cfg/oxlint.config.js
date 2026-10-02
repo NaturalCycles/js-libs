@@ -467,6 +467,18 @@ export const sharedConfig = {
     ],
     'vitest/max-nested-describe': [0, { max: 4 }], // not good
     'vitest/no-alias-methods': 2,
+    'vitest/no-restricted-vi-methods': [
+      2,
+      {
+        mock: 'vi.mock() is never cleared (isolate: false) and leaks into other test files on the same worker. Spy on the module namespace instead: vi.spyOn(ns, "fn") or vi.spyOn(ns, "constName", "get").',
+        doMock:
+          'vi.doMock() is never cleared (isolate: false) and leaks into other test files on the same worker. Use vi.spyOn() on the module namespace instead.',
+        hoisted:
+          'vi.hoisted() only exists to feed vi.mock() factories, which are banned. Use vi.spyOn() instead.',
+        resetModules:
+          'vi.resetModules() clears the shared module cache for every later test file on this worker (isolate: false).',
+      },
+    ],
     'vue/no-multiple-slot-args': 2,
     'vue/no-deprecated-destroyed-lifecycle': 2,
     'vue/define-emits-declaration': [2, 'type-based'],

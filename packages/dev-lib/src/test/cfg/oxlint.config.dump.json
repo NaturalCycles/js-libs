@@ -599,6 +599,17 @@
     "vitest/no-identical-title": "deny",
     "vitest/no-import-node-test": "deny",
     "vitest/no-mocks-import": "deny",
+    "vitest/no-restricted-vi-methods": [
+      "deny",
+      [
+        {
+          "mock": "vi.mock() is never cleared (isolate: false) and leaks into other test files on the same worker. Spy on the module namespace instead: vi.spyOn(ns, \"fn\") or vi.spyOn(ns, \"constName\", \"get\").",
+          "doMock": "vi.doMock() is never cleared (isolate: false) and leaks into other test files on the same worker. Use vi.spyOn() on the module namespace instead.",
+          "hoisted": "vi.hoisted() only exists to feed vi.mock() factories, which are banned. Use vi.spyOn() instead.",
+          "resetModules": "vi.resetModules() clears the shared module cache for every later test file on this worker (isolate: false)."
+        }
+      ]
+    ],
     "vitest/no-standalone-expect": "warn",
     "vitest/no-test-return-statement": "deny",
     "vitest/padding-around-after-all-blocks": "deny",
