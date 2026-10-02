@@ -3,9 +3,6 @@ import { afterAll, vi } from 'vitest'
 
 testOffline()
 
-// vi.unstubAllEnvs()
-vi.unstubAllGlobals()
-
 afterAll(() => {
   vi.useRealTimers()
 })

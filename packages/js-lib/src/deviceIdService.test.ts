@@ -1,11 +1,7 @@
-import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { _range } from './array/range.js'
 import { DeviceIdService } from './deviceIdService.js'
 import { InMemoryWebStorage } from './web.js'
-
-afterAll(() => {
-  vi.unstubAllGlobals()
-})
 
 describe('when run in Node', () => {
   test('deviceId should be null', () => {
