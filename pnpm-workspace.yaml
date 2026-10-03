@@ -18,8 +18,6 @@ minimumReleaseAgeExclude:
   - '@oxlint-tsgolint/*'
 autoDedupe: true
 trustLockfile: true
-trustPolicyExclude:
-  - why-is-node-running@3.2.2
 trustPolicyExcludePrune: true
 trustPolicy: no-downgrade
 blockExoticSubdeps: true

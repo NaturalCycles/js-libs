@@ -1,7 +1,9 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
+import { _expectedError, AssertionError } from '@naturalcycles/js-lib/error'
 import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import type { BackendRequest } from '../server/server.model.js'
+import { mockBackendRequest } from '../test/mocks.js'
 import { expressTestService } from '../testing/index.js'
 import { createAdminMiddleware } from './adminMiddleware.js'
 import { BaseAdminService } from './base.admin.service.js'
@@ -39,11 +41,16 @@ const adminService = new AdminService(() => firebaseService.auth(), {
   // authEnabled: false,
 })
 
+const adminServiceAuthDisabled = new AdminService(() => firebaseService.auth(), {
+  authEnabled: false,
+})
+
 const adminResource = getDefaultRouter()
 const requireAdmin = createAdminMiddleware(adminService)
 
 adminResource.get('/admin/info', async (req, res) => {
-  res.json((await adminService.getAdminInfo(req)) || null)
+  const adminInfo = await adminService.getAdminInfo(req)
+  res.json(adminInfo || null)
 })
 adminResource.post('/admin/login', adminService.getFirebaseAuthLoginHandler())
 adminResource.get(
@@ -98,7 +105,8 @@ afterAll(async () => {
   await app.close()
   // Clean up Firebase app to avoid polluting other tests
   const { deleteApp } = await import('firebase-admin/app')
-  await deleteApp(await firebaseService.admin())
+  const firebaseApp = await firebaseService.admin()
+  await deleteApp(firebaseApp)
 })
 
 describe('login', () => {
@@ -292,5 +300,171 @@ describe('createAdminMiddleware', () => {
       headers: { 'x-admin-token': 'p1p2' },
     })
     expect(success).toBe(true)
+  })
+})
+
+describe('isAdmin', () => {
+  test('should resolve the admin even if auth is disabled', async () => {
+    vi.spyOn(adminServiceAuthDisabled, 'getEmailByToken').mockResolvedValue('p1@mail.com')
+    const req = mockBackendRequest({ headers: { 'x-admin-token': 'p1' } })
+
+    const isAdmin = await adminServiceAuthDisabled.isAdmin(req)
+    expect(isAdmin).toBe(true)
+  })
+})
+
+describe('resolveAdmin', () => {
+  test('should resolve email and permissions of an admin', async () => {
+    vi.spyOn(adminService, 'getEmailByToken').mockResolvedValue('p1@mail.com')
+    const req = mockBackendRequest({ headers: { 'x-admin-token': 'p1' } })
+
+    const admin = await adminService.resolveAdmin(req)
+    expect(admin).toEqual({
+      email: 'p1@mail.com',
+      permissions: new Set(['p1']),
+    })
+    expect(adminService.getEmailByToken).toHaveBeenCalledWith(req, 'p1')
+  })
+
+  test('should resolve email without permissions if not an admin', async () => {
+    vi.spyOn(adminService, 'getEmailByToken').mockResolvedValue('notAdmin@mail.com')
+    const req = mockBackendRequest({ headers: { 'x-admin-token': 'notAdmin' } })
+
+    const admin = await adminService.resolveAdmin(req)
+    expect(admin).toEqual({
+      email: 'notAdmin@mail.com',
+      permissions: undefined,
+    })
+  })
+
+  test('should resolve to empty object if token is invalid', async () => {
+    vi.spyOn(adminService, 'getEmailByToken').mockResolvedValue(undefined)
+    const req = mockBackendRequest({ headers: { 'x-admin-token': 'invalid' } })
+
+    const admin = await adminService.resolveAdmin(req)
+    expect(admin).toEqual({})
+  })
+})
+
+describe('hasPermissions', () => {
+  test('should return undefined if some required permission is missing', async () => {
+    vi.spyOn(adminService, 'getEmailByToken').mockResolvedValue('p1@mail.com')
+    const req = mockBackendRequest({ headers: { 'x-admin-token': 'p1' } })
+
+    const adminInfo = await adminService.hasPermissions(req, ['p1', 'p2'])
+    expect(adminInfo).toBeUndefined()
+  })
+})
+
+describe('checkPermissions', () => {
+  test('should grant if all required permissions are present on AND-comparison', () => {
+    const admin = { email: 'p1p2@mail.com', permissions: new Set(['p1', 'p2']) }
+
+    expect(adminService.checkPermissions(admin, ['p1', 'p2'])).toEqual({
+      email: 'p1p2@mail.com',
+      isAdmin: true,
+      granted: true,
+      reqPermissions: ['p1', 'p2'],
+      grantedPermissions: ['p1', 'p2'],
+      authDisabled: false,
+    })
+  })
+
+  test('should deny if some required permission is missing on AND-comparison', () => {
+    const admin = { email: 'p1@mail.com', permissions: new Set(['p1']) }
+
+    expect(adminService.checkPermissions(admin, ['p1', 'p2'])).toEqual({
+      email: 'p1@mail.com',
+      isAdmin: true,
+      granted: false,
+      reqPermissions: ['p1', 'p2'],
+      grantedPermissions: ['p1'],
+      authDisabled: false,
+    })
+  })
+
+  test('should grant if one required permission is present on OR-comparison', () => {
+    const admin = { email: 'p1@mail.com', permissions: new Set(['p1']) }
+
+    expect(adminService.checkPermissions(admin, ['p1', 'p2'], { andComparison: false })).toEqual({
+      email: 'p1@mail.com',
+      isAdmin: true,
+      granted: true,
+      reqPermissions: ['p1', 'p2'],
+      grantedPermissions: ['p1'],
+      authDisabled: false,
+    })
+  })
+
+  test('should deny if the email is not an admin', () => {
+    const admin = { email: 'notAdmin@mail.com' }
+
+    expect(adminService.checkPermissions(admin, ['p1'])).toEqual({
+      email: 'notAdmin@mail.com',
+      isAdmin: false,
+      granted: false,
+      reqPermissions: ['p1'],
+      grantedPermissions: [],
+      authDisabled: false,
+    })
+  })
+
+  test('should grant if auth is disabled', () => {
+    expect(adminServiceAuthDisabled.checkPermissions({}, ['p1'])).toEqual({
+      email: undefined,
+      isAdmin: false,
+      granted: true,
+      reqPermissions: ['p1'],
+      grantedPermissions: [],
+      authDisabled: true,
+    })
+  })
+})
+
+describe('requireGranted', () => {
+  test('should return AdminInfo with the granted permissions', () => {
+    const result = {
+      email: 'p1@mail.com',
+      isAdmin: true,
+      granted: true,
+      reqPermissions: ['p1', 'p2'],
+      grantedPermissions: ['p1'],
+      authDisabled: false,
+    }
+
+    expect(adminService.requireGranted(result)).toEqual({
+      email: 'p1@mail.com',
+      permissions: ['p1'],
+    })
+  })
+
+  test('should throw 401 if there is no email', () => {
+    const result = {
+      isAdmin: false,
+      granted: false,
+      reqPermissions: ['p1'],
+      grantedPermissions: [],
+      authDisabled: false,
+    }
+
+    const err = _expectedError(() => adminService.requireGranted(result), AssertionError)
+
+    expect(err.data.backendResponseStatusCode).toBe(401)
+  })
+
+  test('should throw 403 if not granted', () => {
+    const result = {
+      email: 'p1@mail.com',
+      isAdmin: true,
+      granted: false,
+      reqPermissions: ['p1', 'p2'],
+      grantedPermissions: ['p1'],
+      authDisabled: false,
+    }
+
+    const err = _expectedError(() => adminService.requireGranted(result), AssertionError)
+
+    expect(err.data.backendResponseStatusCode).toBe(403)
+    expect(err.data['adminPermissionsRequired']).toEqual(['p1', 'p2'])
   })
 })
