@@ -5,6 +5,9 @@ import type { AdminMiddleware, RequireAdminCfg } from './adminMiddleware.js'
 import { requireAdminPermissions } from './adminMiddleware.js'
 import type { BaseAdminService } from './base.admin.service.js'
 
+/**
+ * @deprecated Use `AuthLoginRedirectMiddlewareCfg` with `secureHeader`.
+ */
 export interface SecureHeaderMiddlewareCfg extends RequireAdminCfg {
   adminService: BaseAdminService
 
@@ -22,6 +25,8 @@ export interface SecureHeaderMiddlewareCfg extends RequireAdminCfg {
 /**
  * Secures the endpoint by requiring a secret header to be present.
  * Throws Error401Admin otherwise.
+ *
+ * @deprecated Use `AuthService.getLoginRedirectMiddleware` with `secureHeader`.
  */
 export function createSecureHeaderMiddleware(cfg: SecureHeaderMiddlewareCfg): AdminMiddleware {
   return reqPermissions => requireSecureHeaderOrAdmin(cfg, reqPermissions)

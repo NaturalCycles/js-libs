@@ -68,6 +68,8 @@
     ".": "./dist/index.js",
     "./admin": "./dist/admin/index.js",
     "./admin/*.js": "./dist/admin/*.js",
+    "./auth": "./dist/auth/index.js",
+    "./auth/*.js": "./dist/auth/*.js",
     "./db": "./dist/db/index.js",
     "./deploy": "./dist/deploy/index.js",
     "./deploy/*.js": "./dist/deploy/*.js",
