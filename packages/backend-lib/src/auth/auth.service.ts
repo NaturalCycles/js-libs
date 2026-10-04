@@ -7,7 +7,7 @@ import type { BackendRequest, BackendRequestHandler } from '../server/server.mod
 /**
  * Authenticates requests and checks permissions.
  */
-export class AuthService<CTX = undefined> {
+export class AuthService<CTX = AnyObject> {
   constructor(cfg: AuthServiceCfg<CTX>) {
     this.cfg = {
       authEnabled: true,
@@ -124,7 +124,7 @@ export class AuthService<CTX = undefined> {
     opt: AuthCheckOptions<CTX>,
   ): string[] | undefined {
     const { subject, permissions, alwaysAuthorized = false } = resolved
-    const { andComparison = true, ctx, meta = {} } = opt
+    const { andComparison = true, ctx } = opt
 
     const grantedPermissions = alwaysAuthorized
       ? reqPermissions
@@ -137,7 +137,6 @@ export class AuthService<CTX = undefined> {
         alwaysAuthorized,
         reqPermissions,
         checkedPermissions: grantedPermissions || reqPermissions,
-        meta,
       },
       ctx,
     )
@@ -229,7 +228,7 @@ export interface AuthServiceCfg<CTX> {
   /**
    * Called on every `require` check that has a subject, while auth is enabled. Must not throw.
    */
-  onCheck?: (check: AuthCheck, ctx: CTX | undefined) => void
+  onCheck?: (check: AuthCheck, ctx: (CTX & AnyObject) | undefined) => void
 
   /**
    * false - every check is granted. For tests / local debugging. Read on every check.
@@ -246,7 +245,6 @@ export interface AuthCheck {
   reqPermissions: string[]
   /** The granted permissions, or reqPermissions if denied */
   checkedPermissions: string[]
-  meta: AnyObject
 }
 
 export interface AuthLoginRedirectMiddlewareCfg<CTX> extends AuthMiddlewareCfg<CTX> {
@@ -258,7 +256,7 @@ export interface AuthMiddlewareCfg<CTX> {
    * Defaults to `resolve(req)`.
    */
   getResolved?: (req: BackendRequest) => Promisable<ResolvedAuth | undefined>
-  getCtx?: (req: BackendRequest) => CTX | undefined
+  getCtx?: (req: BackendRequest) => (CTX & AnyObject) | undefined
   /**
    * @default true
    */
@@ -284,10 +282,8 @@ export interface AuthCheckOptions<CTX> {
    * @default true
    */
   andComparison?: boolean
-  /** Passed to onCheck */
-  ctx?: CTX
-  /** Passed to onCheck */
-  meta?: AnyObject
+  /** Passed to onCheck: the app's CTX, plus any extra keys */
+  ctx?: CTX & AnyObject
 }
 
 export interface PermissionInfo {

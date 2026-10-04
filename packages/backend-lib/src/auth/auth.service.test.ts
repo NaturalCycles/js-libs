@@ -1,4 +1,5 @@
 import { _expectedError, AssertionError } from '@naturalcycles/js-lib/error'
+import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { afterAll, describe, expect, test, vi } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { mockBackendRequest } from '../test/mocks.js'
@@ -11,10 +12,10 @@ const middlewareAuthService = new AuthService({
   getPermissions: async subject => (subject === 'p1@mail.com' ? ['p1'] : undefined),
 })
 
-const storedAuthService = new AuthService<string>({
+const storedAuthService = new AuthService<{ requestId: string }>({
   authenticate: async () => undefined,
   getPermissions: async () => undefined,
-  onCheck: vi.fn<(check: AuthCheck, ctx: string | undefined) => void>(),
+  onCheck: vi.fn<(check: AuthCheck, ctx: { requestId: string } | undefined) => void>(),
 })
 const storedResolved: ResolvedAuth = { subject: 'stored@mail.com', permissions: ['p1'] }
 
@@ -42,7 +43,7 @@ resource.get(
   '/stored',
   storedAuthService.getMiddleware({
     getResolved: () => storedResolved,
-    getCtx: () => 'ctx1',
+    getCtx: () => ({ requestId: 'r1' }),
   })(['p1']),
   (_req, res) => {
     res.json({ ok: true })
@@ -181,18 +182,17 @@ describe('require', () => {
 })
 
 describe('onCheck', () => {
-  test('should be called with ctx and meta', () => {
-    const authService = new AuthService<string>({
+  test('should be called with ctx', () => {
+    const authService = new AuthService<{ requestId: string }>({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
-      onCheck: vi.fn<(check: AuthCheck, ctx: string | undefined) => void>(),
+      onCheck: vi.fn<(check: AuthCheck, ctx: { requestId: string } | undefined) => void>(),
     })
     const resolved = { subject: 'p1@mail.com', permissions: ['p1'] }
 
     authService.require(resolved, ['p1', 'p2'], {
       andComparison: false,
-      ctx: 'ctx1',
-      meta: { recordId: 'r1' },
+      ctx: { requestId: 'r1', recordId: 'rec1' },
     })
 
     expect(authService.cfg.onCheck).toHaveBeenCalledExactlyOnceWith(
@@ -202,9 +202,8 @@ describe('onCheck', () => {
         alwaysAuthorized: false,
         reqPermissions: ['p1', 'p2'],
         checkedPermissions: ['p1'],
-        meta: { recordId: 'r1' },
       },
-      'ctx1',
+      { requestId: 'r1', recordId: 'rec1' },
     )
   })
 
@@ -212,7 +211,7 @@ describe('onCheck', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
-      onCheck: vi.fn<(check: AuthCheck, ctx: undefined) => void>(),
+      onCheck: vi.fn<(check: AuthCheck, ctx: AnyObject | undefined) => void>(),
     })
     const resolved = {
       subject: 'p1@mail.com',
@@ -229,7 +228,6 @@ describe('onCheck', () => {
         alwaysAuthorized: false,
         reqPermissions: ['p1', 'p2'],
         checkedPermissions: ['p1', 'p2'],
-        meta: {},
       },
       undefined,
     )
@@ -239,7 +237,7 @@ describe('onCheck', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
-      onCheck: vi.fn<(check: AuthCheck, ctx: undefined) => void>(),
+      onCheck: vi.fn<(check: AuthCheck, ctx: AnyObject | undefined) => void>(),
     })
     const resolved = { subject: 'p1@mail.com', permissions: ['p1'] }
 
@@ -312,7 +310,7 @@ describe('middlewares', () => {
     expect(body).toEqual({ ok: true })
     expect(storedAuthService.cfg.onCheck).toHaveBeenCalledWith(
       expect.objectContaining({ subject: 'stored@mail.com', granted: true }),
-      'ctx1',
+      { requestId: 'r1' },
     )
   })
 
