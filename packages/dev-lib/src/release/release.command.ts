@@ -9,7 +9,7 @@ import picomatch from 'picomatch'
 import { readDevLibConfigIfPresent } from '../config.js'
 import { analyzeCommits, parseCommit } from './commit.util.js'
 import {
-  checkHeadIsUpToDateWithRemote,
+  checkHeadIsOnRemoteBranch,
   createAndPushTag,
   ensureFullGitHistory,
   getCommitsSince,
@@ -66,7 +66,7 @@ export async function releaseCommand(): Promise<void> {
 
   ensureFullGitHistory(repo)
   if (!dryRun) {
-    checkHeadIsUpToDateWithRemote(branch, repo)
+    checkHeadIsOnRemoteBranch(branch, repo)
   }
 
   const mode = resolveReleaseMode(cfg.mode)

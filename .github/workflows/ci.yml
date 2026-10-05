@@ -21,6 +21,11 @@ jobs:
   release:
     runs-on: ubuntu-26.04-arm
     if: github.ref_name == 'main'
+    # Serialize release runs: `dev-lib release` tags HEAD and the next run plans from that tag, so
+    # two runs in parallel would plan from the same base and race on `pnpm publish`.
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       id-token: write # Required for OIDC
       contents: write

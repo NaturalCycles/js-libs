@@ -60,10 +60,18 @@ export function ensureFullGitHistory(repo: RepoInfo): void {
 }
 
 /**
- * Abort if someone pushed to the branch since this checkout - releasing from a stale HEAD
- * would compute wrong versions/notes. No-op if the branch has no remote counterpart.
+ * Abort if the branch was rewritten since this checkout (e.g. force-pushed) and no longer
+ * contains HEAD: the release tag would land on an orphaned commit, invisible to the next release,
+ * which would then try to publish the same version again.
+ *
+ * A remote that merely moved forward is fine: the plan (version, notes) comes from `lastTag..HEAD`
+ * and the tag goes on HEAD, so commits ahead of HEAD can't affect it - they are released by their
+ * own run. Aborting on them would silently skip releases in repos whose CI runs the release only
+ * when package files change (the newer commits may not trigger a run at all).
+ *
+ * No-op if the branch has no remote counterpart.
  */
-export function checkHeadIsUpToDateWithRemote(branch: string, repo: RepoInfo): void {
+export function checkHeadIsOnRemoteBranch(branch: string, repo: RepoInfo): void {
   const remote = getAuthenticatedRemote(repo)
   let remoteSha: string | undefined
   try {
@@ -72,14 +80,32 @@ export function checkHeadIsUpToDateWithRemote(branch: string, repo: RepoInfo): v
       .split('\t')[0]
       ?.trim()
   } catch {
-    console.log(dimGrey('git ls-remote failed, skipping up-to-date check'))
+    console.log(dimGrey('git ls-remote failed, skipping remote branch check'))
     return
   }
   if (!remoteSha) return
   const headSha = exec2.exec('git rev-parse HEAD').trim()
+  if (remoteSha === headSha) return
+
+  // The branch moved since checkout: fetch its tip to tell a fast-forward from a rewrite
+  try {
+    exec2.exec(`git fetch --quiet "${remote}" "refs/heads/${branch}"`)
+  } catch {
+    // Sanitized: the original error contains the failed command incl. the token
+    throw new Error(
+      `git fetch of remote ${branch} failed - cannot verify that it still contains HEAD, aborting release`,
+    )
+  }
+  const localOnlyCommits = Number(exec2.exec('git rev-list --count FETCH_HEAD..HEAD').trim())
   _assert(
-    remoteSha === headSha,
-    `Local HEAD (${headSha.slice(0, 7)}) is not up to date with remote ${branch} (${remoteSha.slice(0, 7)}) - aborting release`,
+    localOnlyCommits === 0,
+    `Remote ${branch} (${remoteSha.slice(0, 7)}) was rewritten and no longer contains HEAD (${headSha.slice(0, 7)}) - aborting release`,
+  )
+  const ahead = exec2.exec('git rev-list --count HEAD..FETCH_HEAD').trim()
+  console.log(
+    dimGrey(
+      `Remote ${branch} is ${ahead} commit(s) ahead of HEAD (${headSha.slice(0, 7)}) - releasing from HEAD, the newer commits get their own run`,
+    ),
   )
 }
 
