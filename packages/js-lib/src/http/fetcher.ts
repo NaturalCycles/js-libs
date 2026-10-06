@@ -31,7 +31,6 @@ import { pDelaySignal } from '../promise/pDelay.js'
 import { pTimeout } from '../promise/pTimeout.js'
 import { _toUrlOrNull } from '../string/index.js'
 import { _jsonParse, _jsonParseIfPossible } from '../string/json.util.js'
-import { _stringify } from '../string/stringify.js'
 import type {
   AnyObject,
   ErrorDataTuple,
@@ -690,20 +689,18 @@ export class Fetcher {
     // We need to log the response "anyway" if logResponse is true
     if (res.err && (!retryStatus.retryStopped || res.req.logResponse)) {
       this.cfg.logger.error({
-        msg:
-          [
-            ' <<',
-            res.fetchResponse?.status || 0,
-            res.signature,
-            count &&
-              (retryStatus.retryAttempt || !retryStatus.retryStopped) &&
-              `try#${retryStatus.retryAttempt + 1}/${count + 1}`,
-            _since(res.req.started),
-          ]
-            .filter(Boolean)
-            .join(' ') + '\n',
-        // We're stringifying the error here, otherwise Sentry shows it as [object Object]
-        err: _stringify(res.err.cause || res.err),
+        msg: [
+          ' <<',
+          res.fetchResponse?.status || 0,
+          res.signature,
+          count &&
+            (retryStatus.retryAttempt || !retryStatus.retryStopped) &&
+            `try#${retryStatus.retryAttempt + 1}/${count + 1}`,
+          _since(res.req.started),
+        ]
+          .filter(Boolean)
+          .join(' '),
+        err: res.err.cause || res.err,
       })
     }
 

@@ -162,6 +162,9 @@ function logFinished(
     t.push(...logResultFn(res))
   }
 
-  const msg = t.filter(Boolean).join(' ')
+  const msg = t
+    .filter(Boolean)
+    .map(part => _stringify(part))
+    .join(' ')
   logger.log(err === undefined ? msg : { msg, err })
 }

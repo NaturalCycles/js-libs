@@ -80,7 +80,7 @@ export class SentrySharedService {
 
     // Using request-aware logger here
     // Log both the error and attached ErrorData (if any)
-    getRequestLogger().error(data ? { err: err_, data } : { err: err_ })
+    getRequestLogger().error({ err: err_, ...data })
 
     if (data?.report === false) {
       // Skip reporting the error

@@ -87,7 +87,9 @@ export class SlackService<CTX = any> {
     }
 
     const { items, kv, attachments, mentions } = msg
-    this.cfg.logger.log(_filterFalsyValues({ items, kv, attachments, mentions }))
+    this.cfg.logger.log(
+      _filterFalsyValues({ msg: _inspect(items, inspectOptions), kv, attachments, mentions }),
+    )
 
     if (!webhookUrl) return
 

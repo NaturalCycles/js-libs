@@ -95,6 +95,21 @@ test('should limit the logger to the minimum level', () => {
   ])
 })
 
+test.each([
+  ['warn', ['warn', 'error']],
+  ['error', ['error']],
+] as const)('should drop the levels below %s', (minLevel, kept) => {
+  const { logger, entries } = createTestLogger()
+  const atLevel = createCommonLoggerAtLevel(logger, minLevel)
+
+  atLevel.debug('hey')
+  atLevel.log('hey')
+  atLevel.warn('hey')
+  atLevel.error('hey')
+
+  expect(entries.map(entry => entry.level)).toStrictEqual(kept)
+})
+
 test('should pipe to all loggers', () => {
   const first = createTestLogger()
   const second = createTestLogger()

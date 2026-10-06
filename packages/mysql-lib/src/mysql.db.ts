@@ -233,7 +233,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
 
   async runSQL<RESULT>(q: QueryOptions): Promise<RESULT> {
     if (this.cfg.logSQL) {
-      this.cfg.logger.log({ msg: q.sql, ...(q.values && { values: q.values }) })
+      this.cfg.logger.log(_filterUndefinedValues({ msg: q.sql, values: q.values }))
     }
 
     return await new Promise<RESULT>((resolve, reject) => {

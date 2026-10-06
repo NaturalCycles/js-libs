@@ -20,8 +20,8 @@ export type CommonLogLevel = 'debug' | 'log' | 'warn' | 'error'
 export const commonLogLevelNumber: Record<CommonLogLevel, number> = {
   debug: 10,
   log: 20,
-  warn: 20,
-  error: 30,
+  warn: 30,
+  error: 40,
 }
 
 /**
@@ -35,6 +35,7 @@ export interface LogData {
 
 /**
  * What a log call accepts: a string is `{ msg }`, an Error is `{ err }`.
+ * A non-Error error value (e.g an `unknown` from a catch) is passed as `{ err }`.
  */
 export type LogInput = string | Error | LogData
 
@@ -123,16 +124,11 @@ export function createCommonLoggerAtLevel(
     return logger
   }
 
-  if (level > commonLogLevelNumber['error']) {
-    // "Log nothing" logger
-    return commonLoggerNoop
-  }
-
   return {
     debug: _noop, // otherwise it is "log everything" logger (same logger as input)
     log: level <= commonLogLevelNumber['log'] ? logger.log : _noop,
     warn: level <= commonLogLevelNumber['warn'] ? logger.warn : _noop,
-    error: logger.error, // otherwise it's "log nothing" logger (same as noopLogger)
+    error: logger.error,
     child: context => createCommonLoggerAtLevel(logger.child(context), minLevel),
   }
 }
