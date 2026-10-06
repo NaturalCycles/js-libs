@@ -126,9 +126,9 @@ export function createCommonLoggerAtLevel(
 
   return {
     debug: _noop, // otherwise it is "log everything" logger (same logger as input)
-    log: level <= commonLogLevelNumber['log'] ? logger.log : _noop,
-    warn: level <= commonLogLevelNumber['warn'] ? logger.warn : _noop,
-    error: logger.error,
+    log: level <= commonLogLevelNumber['log'] ? input => logger.log(input) : _noop,
+    warn: level <= commonLogLevelNumber['warn'] ? input => logger.warn(input) : _noop,
+    error: input => logger.error(input),
     child: context => createCommonLoggerAtLevel(logger.child(context), minLevel),
   }
 }
