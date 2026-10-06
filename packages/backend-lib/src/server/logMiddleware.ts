@@ -5,7 +5,7 @@ import type { CommonLogger, CommonLogLevel, LogEntry } from '@naturalcycles/js-l
 import { _safeJsonStringify } from '@naturalcycles/js-lib/string/safeJsonStringify.js'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import { _inspect } from '@naturalcycles/nodejs-lib'
+import { logEntryToString } from '@naturalcycles/nodejs-lib'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import type { BackendRequestHandler } from './server.model.js'
 
@@ -58,29 +58,18 @@ function writeGCPStructuredLog(meta: AnyObject, entry: LogEntry): void {
   console.log(_safeJsonStringify({ ...fields, ...meta, severity: gcpSeverityByLevel[level] }))
 }
 
-function logToDev(
-  requestId: string | null,
-  { level: _level, msg, err, ...fields }: LogEntry,
-): void {
+function logToDev(requestId: string | null, entry: LogEntry): void {
   // Run on local machine
-  const parts: string[] = []
-  if (requestId) parts.push(dimGrey(`[${requestId}]`))
-  if (msg !== undefined) parts.push(msg)
-  if (err !== undefined) parts.push(_inspect(err, { includeErrorStack: true, colors: true }))
-  if (Object.keys(fields).length) parts.push(dimGrey(_inspect(fields, { colors: false })))
-  console.log(parts.join(' '))
+  const line = logEntryToString(entry, { colors: true })
+  console.log(requestId ? `${dimGrey(`[${requestId}]`)} ${line}` : line)
 }
 
 /**
  * Same as logToDev, but without request and without colors.
  * This is to not confuse e.g Sentry when it picks up messages with colors
  */
-function logToCI({ level: _level, msg, err, ...fields }: LogEntry): void {
-  const parts: string[] = []
-  if (msg !== undefined) parts.push(msg)
-  if (err !== undefined) parts.push(_inspect(err, { includeErrorStack: true, colors: false }))
-  if (Object.keys(fields).length) parts.push(_inspect(fields, { colors: false }))
-  console.log(parts.join(' '))
+function logToCI(entry: LogEntry): void {
+  console.log(logEntryToString(entry, { colors: false }))
 }
 
 export function logMiddleware(): BackendRequestHandler {

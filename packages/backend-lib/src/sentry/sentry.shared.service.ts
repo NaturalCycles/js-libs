@@ -1,9 +1,10 @@
 import { _anyToError, _isErrorObject } from '@naturalcycles/js-lib/error'
 import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
 import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
+import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import type { Primitive, StringMap } from '@naturalcycles/js-lib/types'
 import type { InspectAnyOptions } from '@naturalcycles/nodejs-lib'
-import { _inspect } from '@naturalcycles/nodejs-lib'
+import { _inspect, logEntryToString } from '@naturalcycles/nodejs-lib'
 import type { Breadcrumb, SeverityLevel } from '@sentry/node-core/light'
 import type * as SentryLib from '@sentry/node-core/light'
 import { getRequestLogger } from '../server/asyncLocalStorageMiddleware.js'
@@ -123,19 +124,15 @@ export class SentrySharedService {
    * @experimental
    */
   getCommonLogger(): CommonLogger {
-    return commonLoggerCreate(({ level, msg, err, ...fields }) => {
-      if (level !== 'error') return // noop
-
-      const parts: string[] = []
-      if (msg !== undefined) parts.push(msg)
-      if (err !== undefined) parts.push(_inspect(err, INSPECT_OPT))
-      if (Object.keys(fields).length) parts.push(_inspect(fields, INSPECT_OPT))
+    return commonLoggerCreate(entry => {
+      if (entry.level !== 'error') return // noop
+      const { msg, err } = entry
 
       this.sentry.addBreadcrumb({
-        message: parts.join(' '),
+        message: logEntryToString(entry, INSPECT_OPT),
       })
 
-      this.sentry.captureException(_anyToError(err ?? msg ?? fields))
+      this.sentry.captureException(_anyToError(err ?? msg ?? _omit(entry, ['level'])))
     })
   }
 }
