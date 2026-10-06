@@ -1,5 +1,6 @@
 import { _assert } from '@naturalcycles/js-lib/error'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
+import type { CommonLogger, LogInput } from '@naturalcycles/js-lib/log'
 import type {
   AnyObject,
   NullableBuffer,
@@ -25,7 +26,7 @@ export interface RedisClientCfg {
   redisOptions?: RedisOptions
 
   /**
-   * Defaults to console.
+   * Defaults to consoleLogger.
    */
   logger?: CommonLogger
 }
@@ -41,7 +42,7 @@ export interface RedisClientCfg {
 export class RedisClient implements CommonClient {
   constructor(cfg: RedisClientCfg = {}) {
     this.cfg = {
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
       redisOptions: {
         showFriendlyErrorStack: true,
@@ -91,7 +92,7 @@ export class RedisClient implements CommonClient {
   async disconnect(): Promise<void> {
     const redis = await this.redis()
     this.log('redis: quit...')
-    this.log(`redis: quit`, await redis.quit())
+    this.log({ msg: `redis: quit`, result: await redis.quit() })
     this.connected = false
   }
 
@@ -403,7 +404,7 @@ export class RedisClient implements CommonClient {
     await pipeline.exec()
   }
 
-  private log(...args: any[]): void {
-    this.cfg.logger.log(...args)
+  private log(input: LogInput): void {
+    this.cfg.logger.log(input)
   }
 }

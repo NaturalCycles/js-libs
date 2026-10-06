@@ -1,4 +1,5 @@
 import { _isTruthy } from '@naturalcycles/js-lib'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
@@ -31,7 +32,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
   constructor(cfg: CacheDBCfg) {
     super()
     this.cfg = {
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
     }
   }

@@ -1,4 +1,5 @@
 import { ErrorMode } from '../error/errorMode.js'
+import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import { END, SKIP } from '../types.js'
 import type { AbortableAsyncMapper } from '../types.js'
@@ -17,12 +18,12 @@ export interface PMapOptions {
    * When set to THROW_AGGREGATED, instead of stopping when a promise rejects, it will wait for all the promises to settle and then reject with an Aggregated error.
    *
    * When set to SUPPRESS - will ignore errors and return results from successful operations.
-   * When in SUPPRESS - errors are still logged via the `logger` (which defaults to console).
+   * When in SUPPRESS - errors are still logged via the `logger` (which defaults to consoleLogger).
    */
   errorMode?: ErrorMode
 
   /**
-   * Default to `console`.
+   * Default to `consoleLogger`.
    * Pass `null` to skip logging completely.
    */
   logger?: CommonLogger | null
@@ -71,7 +72,11 @@ export async function pMap<IN, OUT>(
   const itemsLength = items.length
   if (itemsLength === 0) return [] // short circuit
 
-  const { concurrency = Infinity, errorMode = ErrorMode.THROW_IMMEDIATELY, logger = console } = opt
+  const {
+    concurrency = Infinity,
+    errorMode = ErrorMode.THROW_IMMEDIATELY,
+    logger = consoleLogger,
+  } = opt
 
   // Special cases that are able to preserve async stack traces
   // Special case: serial execution
@@ -181,7 +186,7 @@ async function pMap1<IN, OUT>(
         errors.push(err as Error)
       } else {
         // otherwise, suppress (but still log via logger)
-        logger?.error(err)
+        logger?.error({ err })
       }
     }
   }
@@ -219,7 +224,7 @@ async function pMapAll<IN, OUT>(
       errors.push(r.reason)
     } else {
       // otherwise, suppress (but still log via logger)
-      logger?.error(r.reason)
+      logger?.error({ err: r.reason })
     }
   }
 

@@ -75,9 +75,9 @@ export function respondWithError(req: BackendRequest, res: BackendResponse, err:
     // because errorService was not provided - we are going to log the error here
 
     if (headersSent) {
-      req.error(`error after headersSent:`, err)
+      req.error({ msg: `error after headersSent:`, err })
     } else {
-      req.error(err)
+      req.error({ err })
     }
 
     // todo: add endpoint to the log

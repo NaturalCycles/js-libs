@@ -1,4 +1,5 @@
 import { _assert, _assertTypeOf } from '../error/assert.js'
+import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import type { AnyFunction, AnyObject, MaybeParameters } from '../types.js'
 import { _objectAssign } from '../types.js'
@@ -21,7 +22,7 @@ export interface MemoOptions<FN> {
   cacheKeyFn?: (args: MaybeParameters<FN>) => any
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 }
@@ -78,7 +79,7 @@ export const _Memo =
     const instanceCache = new Map<AnyObject, MemoCache>()
 
     const {
-      logger = console,
+      logger = consoleLogger,
       cacheFactory = () => new MapMemoCache(),
       cacheKeyFn = jsonMemoSerializer,
     } = opt
@@ -107,7 +108,7 @@ export const _Memo =
       try {
         cache.set(cacheKey, value)
       } catch (err) {
-        logger.error(err)
+        logger.error({ err })
       }
 
       return value

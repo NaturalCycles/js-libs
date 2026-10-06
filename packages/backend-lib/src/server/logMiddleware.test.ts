@@ -1,4 +1,3 @@
-import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { devLogger, gcpStructuredLogger } from './logMiddleware.js'
@@ -17,7 +16,7 @@ afterEach(() => {
 })
 
 test('gcpStructuredLogger writes the log entry as structured fields', () => {
-  commonLoggerCreate(gcpStructuredLogger, { accountId: 'a1' }).warn('hello', { n: 1 })
+  gcpStructuredLogger.child({ accountId: 'a1' }).warn({ msg: 'hello', n: 1 })
 
   expect(calls).toHaveLength(1)
   expect(calls[0]).toHaveLength(1)
@@ -30,7 +29,7 @@ test('gcpStructuredLogger writes the log entry as structured fields', () => {
 })
 
 test('the log entry cannot override meta', () => {
-  commonLoggerCreate(gcpStructuredLogger, { severity: 'nope' }).error('x')
+  gcpStructuredLogger.child({ severity: 'nope' }).error('x')
 
   expect(JSON.parse(calls[0]![0])).toStrictEqual({
     message: 'x',
@@ -41,21 +40,20 @@ test('the log entry cannot override meta', () => {
 test('gcpStructuredLogger with a single string argument', () => {
   gcpStructuredLogger.log('plain')
 
-  expect(JSON.parse(calls[0]![0])).toStrictEqual({
-    message: 'plain',
-  })
+  expect(JSON.parse(calls[0]![0])).toStrictEqual({ message: 'plain', severity: 'INFO' })
 })
 
-test('gcpStructuredLogger with multiple arguments', () => {
-  gcpStructuredLogger.log('a', { b: 1 })
+test('should log an Error input as err, with the inspected error as message', () => {
+  gcpStructuredLogger.error(new Error('kaboom'))
 
-  expect(JSON.parse(calls[0]![0])).toStrictEqual({
-    message: 'a { b: 1 }',
-  })
+  const entry = JSON.parse(calls[0]![0])
+  expect(entry.message).toMatch(/^Error: kaboom\n/)
+  expect(entry.err).toEqual(expect.objectContaining({ name: 'Error', message: 'kaboom' }))
+  expect(entry.severity).toBe('ERROR')
 })
 
 test('gcpStructuredLogger keeps the error stack in message', () => {
-  commonLoggerCreate(gcpStructuredLogger, {}).error('failed', new Error('kaboom'))
+  gcpStructuredLogger.error({ msg: 'failed', err: new Error('kaboom') })
 
   const entry = JSON.parse(calls[0]![0])
   expect(entry.message).toMatch(/^failed\n/)
@@ -67,20 +65,18 @@ test('gcpStructuredLogger keeps the error stack in message', () => {
 })
 
 test('gcpStructuredLogger keeps a message field, msg wins over it', () => {
-  const logger = commonLoggerCreate(gcpStructuredLogger, {})
+  gcpStructuredLogger.log({ message: 'x' })
+  gcpStructuredLogger.log({ message: 'x', msg: 'y' })
 
-  logger.log({ message: 'x' })
-  logger.log({ message: 'x' }, 'y')
-
-  expect(JSON.parse(calls[0]![0])).toStrictEqual({ message: 'x' })
-  expect(JSON.parse(calls[1]![0])).toStrictEqual({ message: 'y' })
+  expect(JSON.parse(calls[0]![0])).toStrictEqual({ message: 'x', severity: 'INFO' })
+  expect(JSON.parse(calls[1]![0])).toStrictEqual({ message: 'y', severity: 'INFO' })
 })
 
 test('gcpStructuredLogger survives a circular value', () => {
   const circular: AnyObject = { n: 1 }
   circular['self'] = circular
 
-  commonLoggerCreate(gcpStructuredLogger, {}).log('hello', { circular })
+  gcpStructuredLogger.log({ msg: 'hello', circular })
 
   const entry = JSON.parse(calls[0]![0])
   expect(entry.message).toBe('hello')
@@ -89,7 +85,7 @@ test('gcpStructuredLogger survives a circular value', () => {
 })
 
 test('devLogger prints the log entry', () => {
-  commonLoggerCreate(devLogger, { accountId: 'a1' }).log('hello', { n: 1 })
+  devLogger.child({ accountId: 'a1' }).log({ msg: 'hello', n: 1 })
 
   expect(calls).toHaveLength(1)
   const output = calls[0]![0] as string

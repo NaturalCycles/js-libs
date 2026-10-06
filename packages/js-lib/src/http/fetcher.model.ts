@@ -162,7 +162,7 @@ export interface FetcherCfg {
   logWithSearchParams?: boolean
 
   /**
-   * Defaults to `console`.
+   * Defaults to `consoleLogger`.
    */
   logger?: CommonLogger
 

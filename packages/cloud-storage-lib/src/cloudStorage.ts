@@ -3,6 +3,7 @@ import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
@@ -33,7 +34,7 @@ const BATCH_SIZE = 32
  */
 export interface CloudStorageCfg {
   /**
-   * Default is console
+   * Default is consoleLogger
    */
   logger?: CommonLogger
 
@@ -55,7 +56,7 @@ export class CloudStorage implements CommonStorage {
     cfg: CloudStorageCfg = {},
   ) {
     this.cfg = {
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
     }
   }

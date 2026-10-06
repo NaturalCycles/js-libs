@@ -1,4 +1,5 @@
 import { _anyToError, _isErrorObject } from '@naturalcycles/js-lib/error'
+import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
 import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
 import type { Primitive, StringMap } from '@naturalcycles/js-lib/types'
 import type { InspectAnyOptions } from '@naturalcycles/nodejs-lib'
@@ -78,7 +79,7 @@ export class SentrySharedService {
 
     // Using request-aware logger here
     // Log both the error and attached ErrorData (if any)
-    getRequestLogger().error(...[err_, data].filter(Boolean))
+    getRequestLogger().error(data ? { err: err_, data } : { err: err_ })
 
     if (data?.report === false) {
       // Skip reporting the error
@@ -106,7 +107,7 @@ export class SentrySharedService {
    * Returns "eventId"
    */
   captureMessage(msg: string, level?: SeverityLevel): string {
-    getRequestLogger()[sentrySeverityMap[level!] || 'log']('captureMessage:', msg)
+    getRequestLogger()[sentrySeverityMap[level!] || 'log'](`captureMessage: ${msg}`)
     return this.sentry.captureMessage(msg, level)
   }
 
@@ -122,19 +123,19 @@ export class SentrySharedService {
    * @experimental
    */
   getCommonLogger(): CommonLogger {
-    return {
-      debug: () => {}, // noop
-      log: () => {}, // noop
-      warn: () => {}, // noop
-      error: (...args) => {
-        const message = args.map(arg => _inspect(arg, INSPECT_OPT)).join(' ')
+    return commonLoggerCreate(({ level, msg, err, ...fields }) => {
+      if (level !== 'error') return // noop
 
-        this.sentry.addBreadcrumb({
-          message,
-        })
+      const parts: string[] = []
+      if (msg !== undefined) parts.push(msg)
+      if (err !== undefined) parts.push(_inspect(err, INSPECT_OPT))
+      if (Object.keys(fields).length) parts.push(_inspect(fields, INSPECT_OPT))
 
-        this.sentry.captureException(_anyToError(args.length === 1 ? args[0] : args))
-      },
-    }
+      this.sentry.addBreadcrumb({
+        message: parts.join(' '),
+      })
+
+      this.sentry.captureException(_anyToError(err ?? msg ?? fields))
+    })
   }
 }

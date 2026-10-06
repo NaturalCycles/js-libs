@@ -220,7 +220,7 @@ export class BaseAdminService {
         return // skip logging, expected error
       }
 
-      req.error(`getEmailByToken error:`, err)
+      req.error({ msg: `getEmailByToken error:`, err })
     }
   }
 
@@ -257,12 +257,12 @@ export class BaseAdminService {
     granted: boolean,
     meta: AnyObject = {},
   ): Promise<void> {
-    req.log(
-      `${dimGrey(email)} ${required ? 'required' : 'optional'} permissions check [${dimGrey(
+    req.log({
+      ...meta,
+      msg: `${dimGrey(email)} ${required ? 'required' : 'optional'} permissions check [${dimGrey(
         reqPermissions.join(', '),
       )}]: ${granted ? green('GRANTED') : red('DENIED')}`,
-      meta,
-    )
+    })
   }
 
   /**

@@ -63,7 +63,8 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     const logger = createCommonLoggerAtLevel(opt.logger, opt.logLevel)
     this.logger = logger
 
-    logger.log(`!!! using experimentalCursorStream`, {
+    logger.log({
+      msg: `!!! using experimentalCursorStream`,
       table: this.table,
       batchSize,
       highWaterMark,
@@ -94,7 +95,7 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     }
 
     void this.runNextQuery().catch(err => {
-      this.logger.error('error in runNextQuery', err)
+      this.logger.error({ msg: 'error in runNextQuery', err })
       this.destroy(err)
     })
   }
@@ -207,14 +208,12 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
       )
     } catch (err) {
       // console.log((q as any)._queryOptions)
-      logger.error(
-        `FirestoreStreamReadable error!\n`,
-        {
-          table,
-          rowsRetrieved: this.rowsRetrieved,
-        },
+      logger.error({
+        msg: `FirestoreStreamReadable error!`,
+        table,
+        rowsRetrieved: this.rowsRetrieved,
         err,
-      )
+      })
       this.destroy(err as Error)
     }
   }

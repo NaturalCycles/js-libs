@@ -106,7 +106,7 @@ export function mysqlTableStatsToJsonSchemaField<T extends AnyObject = any>(
     } else if (t.startsWith('float')) {
       s.properties![name] = { type: 'number' }
     } else {
-      logger.log(s)
+      logger.log({ schema: s })
       throw new Error(`Unknown mysql field type ${name as string} ${stat.Type}`)
     }
   })

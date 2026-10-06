@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { _lazyValue } from '@naturalcycles/js-lib'
+import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { ciLogger, devLogger, gcpStructuredLogger } from './logMiddleware.js'
 import type { BackendRequest, BackendRequestHandler } from './server.model.js'
@@ -53,9 +54,6 @@ export function getRequestLogger(): CommonLogger {
  *
  * @experimental
  */
-export const requestLogger: CommonLogger = {
-  debug: (...args) => getRequestLogger().debug(...args),
-  log: (...args) => getRequestLogger().log(...args),
-  warn: (...args) => getRequestLogger().warn(...args),
-  error: (...args) => getRequestLogger().error(...args),
-}
+export const requestLogger: CommonLogger = commonLoggerCreate(({ level, ...data }) =>
+  getRequestLogger()[level](data),
+)

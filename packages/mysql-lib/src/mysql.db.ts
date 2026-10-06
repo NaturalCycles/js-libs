@@ -11,7 +11,7 @@ import { BaseCommonDB, commonDBFullSupport, CommonDBType, DBQuery } from '@natur
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { commonLoggerPrefix } from '@naturalcycles/js-lib/log'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _mapKeys, _mapValues, _omit } from '@naturalcycles/js-lib/object'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
@@ -58,7 +58,7 @@ export interface MysqlDBCfg extends PoolConfig {
   debugConnections?: boolean
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 }
@@ -106,7 +106,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
       // password: MYSQL_PW,
       // database: MYSQL_DB,
       ...cfg,
-      logger: commonLoggerPrefix(cfg.logger || console, '[mysql]'),
+      logger: (cfg.logger || consoleLogger).child({ module: 'mysql' }),
     }
   }
 
@@ -182,7 +182,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
     }
 
     con.on('error', err => {
-      this.cfg.logger.error(`createSingleConnection(${threadId}).error`, err)
+      this.cfg.logger.error({ msg: `createSingleConnection(${threadId}).error`, err })
     })
 
     return con
@@ -232,7 +232,9 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
   }
 
   async runSQL<RESULT>(q: QueryOptions): Promise<RESULT> {
-    if (this.cfg.logSQL) this.cfg.logger.log(...[q.sql, q.values].filter(Boolean))
+    if (this.cfg.logSQL) {
+      this.cfg.logger.log({ msg: q.sql, ...(q.values && { values: q.values }) })
+    }
 
     return await new Promise<RESULT>((resolve, reject) => {
       this.pool().query(q, (err, res) => {

@@ -25,6 +25,7 @@ import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
@@ -41,7 +42,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   constructor(cfg: FirestoreDBCfg) {
     super()
     this.cfg = {
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
     }
   }
@@ -559,7 +560,7 @@ export interface FirestoreDBCfg {
   streamOptions?: FirestoreDBStreamOptions
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 

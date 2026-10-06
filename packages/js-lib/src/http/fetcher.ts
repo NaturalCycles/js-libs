@@ -16,6 +16,7 @@ import {
   HttpRequestError,
   UnexpectedPassError,
 } from '../error/error.util.js'
+import { consoleLogger } from '../log/commonLogger.js'
 import { _clamp } from '../number/number.util.js'
 import {
   _filterFalsyValues,
@@ -416,7 +417,7 @@ export class Fetcher {
             .join(' '),
         )
         if (req.logRequestBody && req.init.body) {
-          logger.log(req.init.body) // todo: check if we can _inspect it
+          logger.log({ body: req.init.body }) // todo: check if we can _inspect it
         }
       }
 
@@ -584,7 +585,7 @@ export class Fetcher {
       )
 
       if (req.logResponseBody && res.body !== undefined) {
-        logger.log(res.body)
+        logger.log({ body: res.body })
       }
     }
   }
@@ -688,21 +689,22 @@ export class Fetcher {
     // lastError = retryStatus.retryStopped
     // We need to log the response "anyway" if logResponse is true
     if (res.err && (!retryStatus.retryStopped || res.req.logResponse)) {
-      this.cfg.logger.error(
-        [
-          ' <<',
-          res.fetchResponse?.status || 0,
-          res.signature,
-          count &&
-            (retryStatus.retryAttempt || !retryStatus.retryStopped) &&
-            `try#${retryStatus.retryAttempt + 1}/${count + 1}`,
-          _since(res.req.started),
-        ]
-          .filter(Boolean)
-          .join(' ') + '\n',
+      this.cfg.logger.error({
+        msg:
+          [
+            ' <<',
+            res.fetchResponse?.status || 0,
+            res.signature,
+            count &&
+              (retryStatus.retryAttempt || !retryStatus.retryStopped) &&
+              `try#${retryStatus.retryAttempt + 1}/${count + 1}`,
+            _since(res.req.started),
+          ]
+            .filter(Boolean)
+            .join(' ') + '\n',
         // We're stringifying the error here, otherwise Sentry shows it as [object Object]
-        _stringify(res.err.cause || res.err),
-      )
+        err: _stringify(res.err.cause || res.err),
+      })
     }
 
     if (retryStatus.retryStopped) return
@@ -847,7 +849,7 @@ export class Fetcher {
   }
 
   private normalizeCfg(cfg: FetcherCfg & FetcherOptions): FetcherNormalizedCfg {
-    const { debug = false, logger = console } = cfg
+    const { debug = false, logger = consoleLogger } = cfg
 
     if (cfg.baseUrl?.endsWith('/')) {
       logger.warn(`Fetcher: baseUrl should not end with slash: ${cfg.baseUrl}`)

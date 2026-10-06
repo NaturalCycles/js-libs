@@ -11,17 +11,13 @@ export function silentConsole(): void {
   console.table = () => {}
 }
 
-export const testLogger = commonLoggerCreate((_level, args) => {
+export const testLogger = commonLoggerCreate(({ level: _level, msg, err, ...fields }) => {
   if (process.env['TEST_SILENT']) return // no-op
-  process.stdout.write(
-    args
-      .map(a =>
-        _inspect(a, {
-          includeErrorStack: true,
-        }),
-      )
-      .join(' ') + '\n',
-  )
+  const parts: string[] = []
+  if (msg !== undefined) parts.push(msg)
+  if (err !== undefined) parts.push(_inspect(err, { includeErrorStack: true }))
+  if (Object.keys(fields).length) parts.push(_inspect(fields))
+  process.stdout.write(parts.join(' ') + '\n')
 })
 
 export const testLog = testLogger.log.bind(testLogger)

@@ -1,4 +1,5 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { SKIP } from '@naturalcycles/js-lib/types'
 import type { Integer, KeyValueTuple } from '@naturalcycles/js-lib/types'
@@ -25,7 +26,7 @@ export interface CommonKeyValueDaoCfg<V> {
   readOnly?: boolean
 
   /**
-   * Default to console
+   * Default to consoleLogger
    */
   logger?: CommonLogger
 
@@ -87,7 +88,7 @@ export function commonKeyValueDaoCompressedTransformer<T = any>(): CommonKeyValu
 export class CommonKeyValueDao<K extends string = string, V = Buffer> {
   constructor(cfg: CommonKeyValueDaoCfg<V>) {
     this.cfg = {
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
     }
   }
@@ -198,7 +199,7 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
       try {
         return transformer.bufferToValue(buf)
       } catch (err) {
-        this.cfg.logger.error(err)
+        this.cfg.logger.error({ err })
         return SKIP
       }
     })
@@ -215,7 +216,7 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
       try {
         return [id as K, transformer.bufferToValue(buf)]
       } catch (err) {
-        this.cfg.logger.error(err)
+        this.cfg.logger.error({ err })
         return SKIP
       }
     })

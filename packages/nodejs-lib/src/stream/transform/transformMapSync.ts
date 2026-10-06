@@ -120,7 +120,7 @@ export function transformMapSync<IN = any, OUT = IN>(
 
         cb() // done processing
       } catch (err) {
-        logger.error(err)
+        logger.error({ err })
         errors++
 
         logErrorStats()
@@ -144,7 +144,7 @@ export function transformMapSync<IN = any, OUT = IN>(
               started,
             })
           } catch (err) {
-            logger.error(err)
+            logger.error({ err })
           }
 
           // Emit error immediately
@@ -174,7 +174,7 @@ export function transformMapSync<IN = any, OUT = IN>(
             started,
           })
         } catch (err) {
-          logger.error(err)
+          logger.error({ err })
         }
 
         // emit Aggregated error
@@ -197,7 +197,7 @@ export function transformMapSync<IN = any, OUT = IN>(
             started,
           })
         } catch (err) {
-          logger.error(err)
+          logger.error({ err })
         }
 
         cb()

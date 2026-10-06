@@ -10,7 +10,7 @@ import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { commonLoggerPrefix } from '@naturalcycles/js-lib/log'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import { _filterUndefinedValues, _omit } from '@naturalcycles/js-lib/object'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
@@ -25,7 +25,7 @@ export interface MongoDBCfg {
   options?: MongoClientOptions
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 }
@@ -52,7 +52,7 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
 
     this.cfg = {
       ...cfg,
-      logger: commonLoggerPrefix(cfg.logger || console, '[mongo]'),
+      logger: (cfg.logger || consoleLogger).child({ module: 'mongo' }),
     }
   }
 

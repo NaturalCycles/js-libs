@@ -18,7 +18,7 @@ export interface PQueueCfg {
   errorMode?: ErrorMode
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 

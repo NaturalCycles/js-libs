@@ -2,6 +2,7 @@ import type { InspectOptions } from 'node:util'
 import { inspect } from 'node:util'
 import { _hc, _mb } from '@naturalcycles/js-lib'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { SimpleMovingAverage } from '@naturalcycles/js-lib/math'
 import type { AnyObject, PositiveInteger, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
@@ -140,7 +141,7 @@ export class ProgressLogger<T> implements Disposable {
       logEvery: 1000,
       logSizesBuffer: 100_000,
       chunkSize: 1,
-      logger: console,
+      logger: consoleLogger,
       logProgress: cfg.logProgress !== false && cfg.logEvery !== 0,
       ...cfg,
     }
@@ -258,7 +259,7 @@ export class ProgressLogger<T> implements Disposable {
       try {
         this.cfg.onProgressDone?.(o)
       } catch (err) {
-        logger.error(err)
+        logger.error({ err })
       }
     }
   }

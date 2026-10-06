@@ -37,7 +37,7 @@ export class CommonDaoTransaction {
       await this.tx.rollback()
     } catch (err) {
       // graceful rollback without re-throw
-      this.logger.error(err)
+      this.logger.error({ err })
     }
   }
 

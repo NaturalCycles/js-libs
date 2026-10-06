@@ -1,4 +1,4 @@
-import type { CommonLogFunction } from '@naturalcycles/js-lib/log'
+import type { CommonLogFunction, CommonLogger } from '@naturalcycles/js-lib/log'
 import type { Promisable } from '@naturalcycles/js-lib/types'
 import type { Application, IRouter, NextFunction, Request, Response } from 'express'
 
@@ -14,6 +14,7 @@ export interface BackendRequest<BODY = unknown> extends Request {
   log: CommonLogFunction
   warn: CommonLogFunction
   error: CommonLogFunction
+  child: CommonLogger['child']
 
   requestId?: string
   /**
@@ -76,6 +77,7 @@ declare module 'http' {
     log: CommonLogFunction
     warn: CommonLogFunction
     error: CommonLogFunction
+    child: CommonLogger['child']
 
     requestId?: string
 

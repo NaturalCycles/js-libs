@@ -46,7 +46,7 @@ export interface CacheDBCfg {
   logDownstream?: boolean
 
   /**
-   * Defaults to `console`.
+   * Defaults to `consoleLogger`.
    */
   logger?: CommonLogger
 }

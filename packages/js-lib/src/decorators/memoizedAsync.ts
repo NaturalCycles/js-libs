@@ -1,3 +1,4 @@
+import { consoleLogger } from '../log/commonLogger.js'
 import type { AnyAsyncFunction, MaybeParameters } from '../types.js'
 import { MISS } from '../types.js'
 import type { AsyncMemoOptions } from './asyncMemo.decorator.js'
@@ -12,7 +13,7 @@ export function _memoizedAsync<FN extends AnyAsyncFunction>(
   fn: FN,
   opt: AsyncMemoOptions<FN>,
 ): FN & MemoizedAsyncFunction {
-  const { logger = console, cacheFactory, cacheKeyFn = jsonMemoSerializer } = opt
+  const { logger = consoleLogger, cacheFactory, cacheKeyFn = jsonMemoSerializer } = opt
 
   const cache = cacheFactory()
 
@@ -24,7 +25,7 @@ export function _memoizedAsync<FN extends AnyAsyncFunction>(
     try {
       value = await cache.get(cacheKey)
     } catch (err) {
-      logger.error(err)
+      logger.error({ err })
     }
 
     if (value !== MISS) {
@@ -37,7 +38,7 @@ export function _memoizedAsync<FN extends AnyAsyncFunction>(
       try {
         await cache.set(cacheKey, value)
       } catch (err) {
-        logger.error(err)
+        logger.error({ err })
       }
     })()
 
