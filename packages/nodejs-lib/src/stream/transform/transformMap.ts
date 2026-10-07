@@ -186,7 +186,7 @@ export function transformMap<IN = any, OUT = IN>(
           this.push(res)
         }
       } catch (err) {
-        logger.error(err)
+        logger.error({ err })
         errors++
         logErrorStats()
 
@@ -278,7 +278,7 @@ export function transformMap<IN = any, OUT = IN>(
         started,
       })
     } catch (err) {
-      logger.error(err)
+      logger.error({ err })
     }
   }
 }

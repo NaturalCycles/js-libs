@@ -1,6 +1,7 @@
 import { _since } from '../datetime/time.util.js'
 import type { ErrorData } from '../error/error.model.js'
 import { _errorDataAppend } from '../error/error.util.js'
+import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import type { AnyAsyncFunction, UnixTimestampMillis } from '../types.js'
 import { pDelay } from './pDelay.js'
@@ -84,7 +85,7 @@ export interface PRetryOptions {
   logNone?: boolean
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 
@@ -113,7 +114,7 @@ export async function pRetry<T>(
     delay: initialDelay = 1000,
     delayMultiplier = 2,
     predicate,
-    logger = console,
+    logger = consoleLogger,
     name,
     timeout,
   } = opt
@@ -164,7 +165,7 @@ export async function pRetry<T>(
       if (logFailures) {
         // Logger at warn (not error) level, because it's not a fatal error, but a retriable one
         // Fatal one is not logged either, because it's been thrown instead
-        logger.warn(`${fname} attempt #${attempt} error in ${_since(started)}:`, err)
+        logger.warn({ msg: `${fname} attempt #${attempt} error in ${_since(started)}`, err })
       }
 
       if (attempt >= maxAttempts || (predicate && !predicate(err as Error, attempt, maxAttempts))) {

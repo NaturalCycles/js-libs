@@ -1,8 +1,9 @@
+import { consoleLogger } from './log/commonLogger.js'
 import type { CommonLogger } from './log/commonLogger.js'
 import type { NumberOfMilliseconds } from './types.js'
 
 class AsyncManagerImpl {
-  logger: CommonLogger = console
+  logger: CommonLogger = consoleLogger
 
   pendingOps = new Set<Promise<unknown>>()
 
@@ -58,7 +59,7 @@ class AsyncManagerImpl {
     if (this.onErrorHooks.length) {
       this.onErrorHooks.forEach(hook => hook(err))
     } else {
-      this.logger.error('AsyncManager unhandled rejection:', err)
+      this.logger.error({ msg: 'AsyncManager unhandled rejection', err })
     }
   }
 }

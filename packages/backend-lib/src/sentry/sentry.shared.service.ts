@@ -1,8 +1,10 @@
 import { _anyToError, _isErrorObject } from '@naturalcycles/js-lib/error'
+import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
 import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
+import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import type { Primitive, StringMap } from '@naturalcycles/js-lib/types'
 import type { InspectAnyOptions } from '@naturalcycles/nodejs-lib'
-import { _inspect } from '@naturalcycles/nodejs-lib'
+import { _inspect, logEntryToString } from '@naturalcycles/nodejs-lib'
 import type { Breadcrumb, SeverityLevel } from '@sentry/node-core/light'
 import type * as SentryLib from '@sentry/node-core/light'
 import { getRequestLogger } from '../server/asyncLocalStorageMiddleware.js'
@@ -78,7 +80,7 @@ export class SentrySharedService {
 
     // Using request-aware logger here
     // Log both the error and attached ErrorData (if any)
-    getRequestLogger().error(...[err_, data].filter(Boolean))
+    getRequestLogger().error({ err: err_, ...data })
 
     if (data?.report === false) {
       // Skip reporting the error
@@ -106,7 +108,7 @@ export class SentrySharedService {
    * Returns "eventId"
    */
   captureMessage(msg: string, level?: SeverityLevel): string {
-    getRequestLogger()[sentrySeverityMap[level!] || 'log']('captureMessage:', msg)
+    getRequestLogger()[sentrySeverityMap[level!] || 'log'](`captureMessage: ${msg}`)
     return this.sentry.captureMessage(msg, level)
   }
 
@@ -122,19 +124,15 @@ export class SentrySharedService {
    * @experimental
    */
   getCommonLogger(): CommonLogger {
-    return {
-      debug: () => {}, // noop
-      log: () => {}, // noop
-      warn: () => {}, // noop
-      error: (...args) => {
-        const message = args.map(arg => _inspect(arg, INSPECT_OPT)).join(' ')
+    return commonLoggerCreate(entry => {
+      if (entry.level !== 'error') return // noop
+      const { msg, err } = entry
 
-        this.sentry.addBreadcrumb({
-          message,
-        })
+      this.sentry.addBreadcrumb({
+        message: logEntryToString(entry, INSPECT_OPT),
+      })
 
-        this.sentry.captureException(_anyToError(args.length === 1 ? args[0] : args))
-      },
-    }
+      this.sentry.captureException(_anyToError(err ?? msg ?? _omit(entry, ['level'])))
+    })
   }
 }

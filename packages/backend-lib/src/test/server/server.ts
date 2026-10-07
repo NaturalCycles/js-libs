@@ -162,7 +162,7 @@ void startServer({
 
 async function someAsyncFunction(): Promise<void> {
   let logger = getRequestLogger()
-  logger.log('logging from asyncFunction', { a: 'a' }, 42)
+  logger.log({ msg: 'logging from asyncFunction', a: 'a', n: 42 })
 
   // just to test different way of obtaining the log
   logger = getRequest()!

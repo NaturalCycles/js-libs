@@ -19,6 +19,7 @@ import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _errorDataAppend, TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import type { PRetryOptions } from '@naturalcycles/js-lib/promise'
@@ -86,7 +87,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
   constructor(cfg: DatastoreDBCfg = {}) {
     super()
     this.cfg = {
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
     }
   }
@@ -355,10 +356,10 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       }
 
       // console.log(`datastore.save ${kind}`, { obj, entity })
-      this.cfg.logger.error(
-        `error in DatastoreLib.saveBatch for ${table} (${rows.length} rows)`,
+      this.cfg.logger.error({
+        msg: `error in DatastoreLib.saveBatch for ${table} (${rows.length} rows)`,
         err,
-      )
+      })
 
       throw err
     }
@@ -672,7 +673,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       await datastoreTx.rollback()
     } catch (err) {
       // log the error, but don't re-throw, as this should be a graceful rollback
-      this.cfg.logger.error(err)
+      this.cfg.logger.error({ err })
     }
   }
 }
@@ -695,7 +696,7 @@ export class DatastoreDBTransaction implements DBTransaction {
       await this.tx.rollback()
     } catch (err) {
       // log the error, but don't re-throw, as this should be a graceful rollback
-      this.db.cfg.logger.error(err)
+      this.db.cfg.logger.error({ err })
     }
   }
 

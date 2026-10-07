@@ -62,7 +62,8 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     this.originalLimit = q.limitVal
     this.table = q.kinds[0]!
 
-    logger.log(`!! using experimentalCursorStream`, {
+    logger.log({
+      msg: `!! using experimentalCursorStream`,
       table: this.table,
       batchSize,
       highWaterMark,
@@ -84,7 +85,8 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
           }
 
           const { queryIsRunning, rowsRetrieved } = this
-          logger.log(`maxWait of ${maxWait} seconds reached, force-triggering _read`, {
+          logger.log({
+            msg: `maxWait of ${maxWait} seconds reached, force-triggering _read`,
             running: queryIsRunning,
             rowsRetrieved,
           })
@@ -122,7 +124,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     }
 
     void this.runNextQuery().catch(err => {
-      this.logger.error('error in runNextQuery', err)
+      this.logger.error({ msg: 'error in runNextQuery', err })
       this.destroy(err)
     })
   }
@@ -228,14 +230,12 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
         },
       )
     } catch (err) {
-      logger.error(
-        `DatastoreStreamReadable error!\n`,
-        {
-          table,
-          rowsRetrieved: this.rowsRetrieved,
-        },
+      logger.error({
+        msg: `DatastoreStreamReadable error!`,
+        table,
+        rowsRetrieved: this.rowsRetrieved,
         err,
-      )
+      })
       clearInterval(this.maxWaitInterval)
       this.destroy(err as Error)
     }

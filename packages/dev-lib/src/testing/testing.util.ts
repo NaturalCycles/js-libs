@@ -1,5 +1,5 @@
 import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
-import { _inspect } from '@naturalcycles/nodejs-lib'
+import { logEntryToString } from '@naturalcycles/nodejs-lib'
 
 export function silentConsole(): void {
   console.log = () => {}
@@ -11,17 +11,9 @@ export function silentConsole(): void {
   console.table = () => {}
 }
 
-export const testLogger = commonLoggerCreate((_level, args) => {
+export const testLogger = commonLoggerCreate(entry => {
   if (process.env['TEST_SILENT']) return // no-op
-  process.stdout.write(
-    args
-      .map(a =>
-        _inspect(a, {
-          includeErrorStack: true,
-        }),
-      )
-      .join(' ') + '\n',
-  )
+  process.stdout.write(logEntryToString(entry) + '\n')
 })
 
 export const testLog = testLogger.log.bind(testLogger)

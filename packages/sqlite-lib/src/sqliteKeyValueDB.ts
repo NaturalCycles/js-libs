@@ -7,6 +7,7 @@ import type {
   KeyValueDBTuple,
 } from '@naturalcycles/db-lib/kv'
 import { commonKeyValueDBFullSupport } from '@naturalcycles/db-lib/kv'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { boldWhite } from '@naturalcycles/nodejs-lib/colors'
@@ -20,7 +21,7 @@ import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 export class SqliteKeyValueDB implements CommonKeyValueDB, CommonSyncKeyValueDB, Disposable {
   constructor(cfg: NodeSQLiteKeyValueDBCfg) {
     this.cfg = {
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
     }
   }
@@ -221,7 +222,7 @@ export interface NodeSQLiteKeyValueDBCfg {
   debug?: boolean
 
   /**
-   * Defaults to `console`
+   * Defaults to `consoleLogger`
    */
   logger?: CommonLogger
 }

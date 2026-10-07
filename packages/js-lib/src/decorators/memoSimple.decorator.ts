@@ -11,6 +11,7 @@ Otherwise resorts to JSON.stringify.
 Benchmark shows similar perf for ObjectCache and MapCache.
  */
 
+import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import { _getTargetMethodSignature } from './decorator.util.js'
 import type { MemoCache } from './memo.util.js'
@@ -55,7 +56,7 @@ export const memoSimple =
    */
     const cache: MemoCache = new MapMemoCache()
 
-    const { logger = console } = opt
+    const { logger = consoleLogger } = opt
     const keyStr = String(key)
     const methodSignature = _getTargetMethodSignature(target, keyStr)
 

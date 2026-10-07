@@ -28,7 +28,7 @@ test('allDone does not throw on rejected ops', async () => {
   AsyncManager.runInBackground(Promise.reject(new Error('boom')))
   const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   await AsyncManager.allDone()
-  expect(errorSpy).toHaveBeenCalledWith('AsyncManager unhandled rejection:', expect.any(Error))
+  expect(errorSpy).toHaveBeenCalledWith('AsyncManager unhandled rejection', expect.any(Error))
   errorSpy.mockRestore()
 })
 

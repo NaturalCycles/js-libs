@@ -1,5 +1,6 @@
 import os from 'node:os'
 import { AsyncManager } from '@naturalcycles/js-lib'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { setGlobalStringifyFunction } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
@@ -18,7 +19,7 @@ export interface RunScriptOptions {
   noExit?: boolean
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 
@@ -53,14 +54,14 @@ export function runScript(fn: (...args: any[]) => any, opt: RunScriptOptions = {
   checkAndlogEnvironment()
   setGlobalStringifyFunction(inspectStringifyFn)
 
-  const { logger = console, noExit, registerUncaughtExceptionHandlers = true } = opt
+  const { logger = consoleLogger, noExit, registerUncaughtExceptionHandlers = true } = opt
 
   if (registerUncaughtExceptionHandlers || DEBUG_RUN_SCRIPT) {
     process.on('uncaughtException', err => {
-      logger.error('runScript uncaughtException:', err)
+      logger.error({ msg: 'runScript uncaughtException:', err })
     })
     process.on('unhandledRejection', err => {
-      logger.error('runScript unhandledRejection:', err)
+      logger.error({ msg: 'runScript unhandledRejection:', err })
     })
   }
 
@@ -85,7 +86,7 @@ export function runScript(fn: (...args: any[]) => any, opt: RunScriptOptions = {
         setImmediate(() => process.exit(0))
       }
     } catch (err) {
-      logger.error('runScript error:', err)
+      logger.error({ msg: 'runScript error:', err })
       process.exitCode = 1
       if (!noExit) {
         setImmediate(() => process.exit(1))

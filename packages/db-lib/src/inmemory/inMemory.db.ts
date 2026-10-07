@@ -1,5 +1,6 @@
 import { _isEmptyObject } from '@naturalcycles/js-lib'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _deepCopy, _sortObjectDeep } from '@naturalcycles/js-lib/object'
 import { _stringMapEntries, _stringMapValues } from '@naturalcycles/js-lib/types'
@@ -49,7 +50,7 @@ export interface InMemoryDBCfg {
   forbidTransactionReadAfterWrite?: boolean
 
   /**
-   * Defaults to `console`.
+   * Defaults to `consoleLogger`.
    */
   logger?: CommonLogger
 }
@@ -67,7 +68,7 @@ export class InMemoryDB implements CommonDB {
       // defaults
       tablesPrefix: '',
       forbidTransactionReadAfterWrite: true,
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
     }
   }

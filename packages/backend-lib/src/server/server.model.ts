@@ -1,4 +1,4 @@
-import type { CommonLogFunction } from '@naturalcycles/js-lib/log'
+import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { Promisable } from '@naturalcycles/js-lib/types'
 import type { Application, IRouter, NextFunction, Request, Response } from 'express'
 
@@ -9,12 +9,7 @@ import type { Application, IRouter, NextFunction, Request, Response } from 'expr
  * `BackendRequest` seems to not conflict with anything right now.
  * Previous name `ExpressRequest` was clashing with Sentry.
  */
-export interface BackendRequest<BODY = unknown> extends Request {
-  debug: CommonLogFunction
-  log: CommonLogFunction
-  warn: CommonLogFunction
-  error: CommonLogFunction
-
+export interface BackendRequest<BODY = unknown> extends Request, CommonLogger {
   requestId?: string
   /**
    * Only used for request logging purposes.
@@ -71,12 +66,7 @@ export type BackendRouter = IRouter
 export type BackendApplication = Application
 
 declare module 'http' {
-  interface IncomingMessage {
-    debug: CommonLogFunction
-    log: CommonLogFunction
-    warn: CommonLogFunction
-    error: CommonLogFunction
-
+  interface IncomingMessage extends CommonLogger {
     requestId?: string
 
     requestTimeout?: NodeJS.Timeout

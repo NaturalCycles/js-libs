@@ -1,4 +1,5 @@
 import { _since } from '../datetime/time.util.js'
+import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import type { AnyFunction, UnixTimestampMillis } from '../types.js'
 import { _anyToError } from './error.util.js'
@@ -21,7 +22,7 @@ export interface TryCatchOptions {
   logError?: boolean
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 }
@@ -35,7 +36,7 @@ export interface TryCatchOptions {
  * @experimental
  */
 export function _tryCatch<T extends AnyFunction>(fn: T, opt: TryCatchOptions = {}): T {
-  const { onError, logError = true, logSuccess = false, logger = console } = opt
+  const { onError, logError = true, logSuccess = false, logger = consoleLogger } = opt
 
   const fname = fn.name || 'anonymous'
 
@@ -52,7 +53,7 @@ export function _tryCatch<T extends AnyFunction>(fn: T, opt: TryCatchOptions = {
       return r
     } catch (err) {
       if (logError) {
-        logger.warn(`tryCatch.${fname} error in ${_since(started)}:`, err)
+        logger.warn({ msg: `tryCatch.${fname} error in ${_since(started)}`, err })
       }
 
       if (onError) {

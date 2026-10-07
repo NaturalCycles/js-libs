@@ -1,5 +1,6 @@
 import { _ms } from '../datetime/time.util.js'
 import { _assert } from '../error/assert.js'
+import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import { SimpleMovingAverage } from '../math/sma.js'
 import { _stringify } from '../string/stringify.js'
@@ -53,7 +54,7 @@ export interface LogMethodOptions {
   logResultFn?: LogResultFn
 
   /**
-   * Defaults to `console`
+   * Defaults to `consoleLogger`
    */
   logger?: CommonLogger
 }
@@ -84,7 +85,7 @@ export function _LogMethod(opt: LogMethodOptions = {}): MethodDecorator {
       logStart,
       logResult,
       logResultLength = true,
-      logger = console,
+      logger = consoleLogger,
     } = opt
     let { logResultFn } = opt
     if (!logResultFn) {
@@ -156,10 +157,14 @@ function logFinished(
   }
 
   if (err !== undefined) {
-    t.push('ERROR:', err)
+    t.push('ERROR:')
   } else if (logResultFn) {
     t.push(...logResultFn(res))
   }
 
-  logger.log(...t.filter(Boolean))
+  const msg = t
+    .filter(Boolean)
+    .map(part => _stringify(part))
+    .join(' ')
+  logger.log(err === undefined ? msg : { msg, err })
 }

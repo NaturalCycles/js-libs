@@ -97,7 +97,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
       return
     }
     void this.runNextQuery(shard).catch(err => {
-      this.logger.error('error in runNextQuery', err)
+      this.logger.error({ msg: 'error in runNextQuery', err })
       this.destroy(err)
     })
   }
@@ -121,7 +121,8 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
       q = q.startAfter(this.cursorByShard[shard])
     }
 
-    logger.debug(`runNextQuery[${shard}]`, {
+    logger.debug({
+      msg: `runNextQuery[${shard}]`,
       retrieved: this.rowsRetrieved,
     })
     const qs = await this.runQuery(q)
@@ -212,14 +213,12 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
         },
       )
     } catch (err) {
-      logger.error(
-        `FirestoreStreamReadable error!\n`,
-        {
-          table,
-          rowsRetrieved: this.rowsRetrieved,
-        },
+      logger.error({
+        msg: `FirestoreStreamReadable error!`,
+        table,
+        rowsRetrieved: this.rowsRetrieved,
         err,
-      )
+      })
       this.destroy(err as Error)
     }
   }

@@ -1,4 +1,5 @@
 import { _assert, _assertTypeOf } from '../error/assert.js'
+import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import type { AnyAsyncFunction, AnyFunction, AnyObject, MaybeParameters } from '../types.js'
 import { _objectAssign, MISS } from '../types.js'
@@ -20,7 +21,7 @@ export interface AsyncMemoOptions<FN> {
   cacheKeyFn?: (args: MaybeParameters<FN>) => any
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 }
@@ -64,7 +65,7 @@ export const _AsyncMemo =
     // After it's resolved - it's evicted from the cache and moved to the "proper" `instanceCache`
     const instancePromiseCache = new Map<AnyObject, Map<any, Promise<any>>>()
 
-    const { logger = console, cacheFactory, cacheKeyFn = jsonMemoSerializer } = opt
+    const { logger = consoleLogger, cacheFactory, cacheKeyFn = jsonMemoSerializer } = opt
 
     const keyStr = String(key)
     const methodSignature = _getTargetMethodSignature(target, keyStr)
@@ -109,7 +110,7 @@ export const _AsyncMemo =
         },
         async err => {
           // Log the cache error and proceed "as cache Miss"
-          logger.error(err)
+          logger.error({ err })
           return await onMiss()
         },
       )
@@ -130,7 +131,7 @@ export const _AsyncMemo =
             try {
               await cache!.set(cacheKey, value)
             } catch (err) {
-              logger.error(err) // log and ignore the error
+              logger.error({ err }) // log and ignore the error
             } finally {
               // Clear the "in-flight" promise cache entry, as we now have a "permanent" cache entry
               promiseCache!.delete(cacheKey)

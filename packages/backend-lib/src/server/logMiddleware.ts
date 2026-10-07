@@ -1,11 +1,11 @@
 import { inspect } from 'node:util'
-import { _isPlainObject } from '@naturalcycles/js-lib'
 import { _anyToErrorObject } from '@naturalcycles/js-lib/error'
-import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
+import type { CommonLogger, CommonLogLevel, LogEntry } from '@naturalcycles/js-lib/log'
 import { _safeJsonStringify } from '@naturalcycles/js-lib/string/safeJsonStringify.js'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import { _inspect } from '@naturalcycles/nodejs-lib'
+import { logEntryToString } from '@naturalcycles/nodejs-lib'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import type { BackendRequestHandler } from './server.model.js'
 
@@ -22,85 +22,54 @@ let reqCounter = 0
  * Logger that logs in "GCP structured log" format.
  * To be used in outside-of-request situations (otherwise req.log should be used).
  */
-export const gcpStructuredLogger: CommonLogger = {
-  debug: (...args) => writeGCPStructuredLog({ severity: 'DEBUG' }, args),
-  log: (...args) => writeGCPStructuredLog({}, args),
-  warn: (...args) => writeGCPStructuredLog({ severity: 'WARNING' }, args),
-  error: (...args) => writeGCPStructuredLog({ severity: 'ERROR' }, args),
-}
+export const gcpStructuredLogger: CommonLogger = commonLoggerCreate(entry =>
+  writeGCPStructuredLog({}, entry),
+)
 
 /**
  * Fancy development logger, to be used in outside-of-request situations
  * (otherwise req.log should be used).
  */
-export const devLogger: CommonLogger = {
-  debug: (...args) => logToDev(null, args),
-  log: (...args) => logToDev(null, args),
-  warn: (...args) => logToDev(null, args),
-  error: (...args) => logToDev(null, args),
-}
+export const devLogger: CommonLogger = commonLoggerCreate(entry => logToDev(null, entry))
 
 /**
  * Same as devLogger, but without colors (e.g to not confuse Sentry).
  */
-export const ciLogger: CommonLogger = {
-  debug: (...args) => logToCI(args),
-  log: (...args) => logToCI(args),
-  warn: (...args) => logToCI(args),
-  error: (...args) => logToCI(args),
+export const ciLogger: CommonLogger = commonLoggerCreate(logToCI)
+
+const gcpSeverityByLevel: Record<CommonLogLevel, string> = {
+  debug: 'DEBUG',
+  log: 'INFO',
+  warn: 'WARNING',
+  error: 'ERROR',
 }
 
 // Documented here: https://cloud.google.com/logging/docs/structured-logging
 // Cloud Run logging: https://cloud.google.com/run/docs/logging
-function writeGCPStructuredLog(meta: AnyObject, args: any[]): void {
-  if (args.length !== 1 || !_isPlainObject(args[0])) {
-    console.log(
-      JSON.stringify({
-        message: args.map(a => (typeof a === 'string' ? a : inspect(a))).join(' '),
-        ...meta,
-      }),
-    )
-    return
-  }
-
-  const { msg, err, ...entry } = args[0]
+function writeGCPStructuredLog(meta: AnyObject, entry: LogEntry): void {
+  const { level, msg, err, ...fields } = entry
   if (err instanceof Error) {
-    entry['err'] = _anyToErrorObject(err)
-    entry['message'] = msg ? `${msg}\n${inspect(err)}` : inspect(err)
+    fields['err'] = _anyToErrorObject(err)
+    fields['message'] = msg ? `${msg}\n${inspect(err)}` : inspect(err)
   } else {
-    if (err !== undefined) entry['err'] = err
-    if (msg !== undefined) entry['message'] = msg
+    if (err !== undefined) fields['err'] = err
+    if (msg !== undefined) fields['message'] = msg
   }
-  console.log(_safeJsonStringify({ ...entry, ...meta }))
+  console.log(_safeJsonStringify({ ...fields, ...meta, severity: gcpSeverityByLevel[level] }))
 }
 
-function logToDev(requestId: string | null, args: any[]): void {
+function logToDev(requestId: string | null, entry: LogEntry): void {
   // Run on local machine
-  if (args.length !== 1 || !_isPlainObject(args[0])) {
-    console.log(
-      [
-        requestId ? [dimGrey(`[${requestId}]`)] : [],
-        ...args.map(a => _inspect(a, { includeErrorStack: true, colors: true })),
-      ].join(' '),
-    )
-    return
-  }
-
-  const { msg, err, ...rest } = args[0]
-  const parts: string[] = []
-  if (requestId) parts.push(dimGrey(`[${requestId}]`))
-  if (msg !== undefined) parts.push(String(msg))
-  if (err !== undefined) parts.push(_inspect(err, { includeErrorStack: true, colors: true }))
-  if (Object.keys(rest).length) parts.push(dimGrey(_inspect(rest, { colors: false })))
-  console.log(parts.join(' '))
+  const line = logEntryToString(entry, { colors: true })
+  console.log(requestId ? `${dimGrey(`[${requestId}]`)} ${line}` : line)
 }
 
 /**
  * Same as logToDev, but without request and without colors.
  * This is to not confuse e.g Sentry when it picks up messages with colors
  */
-function logToCI(args: any[]): void {
-  console.log(args.map(a => _inspect(a, { includeErrorStack: true, colors: false })).join(' '))
+function logToCI(entry: LogEntry): void {
+  console.log(logEntryToString(entry, { colors: false }))
 }
 
 export function logMiddleware(): BackendRequestHandler {
@@ -130,12 +99,10 @@ export function logMiddleware(): BackendRequestHandler {
         meta['appengine.googleapis.com/request_id'] = req.header('x-appengine-request-log-id')
       }
 
-      _objectAssign(req, {
-        debug: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'DEBUG' }, args),
-        log: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'INFO' }, args),
-        warn: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'WARNING' }, args),
-        error: (...args: any[]) => writeGCPStructuredLog({ ...meta, severity: 'ERROR' }, args),
-      } satisfies CommonLogger)
+      _objectAssign(
+        req,
+        commonLoggerCreate(entry => writeGCPStructuredLog(meta, entry)),
+      )
 
       next()
     }
@@ -146,11 +113,10 @@ export function logMiddleware(): BackendRequestHandler {
     return function devLogHandler(req, _res, next) {
       // Local machine
       req.requestId = String(++reqCounter)
-      req.debug =
-        req.log =
-        req.warn =
-        req.error =
-          (...args: any[]) => logToDev(req.requestId!, args)
+      _objectAssign(
+        req,
+        commonLoggerCreate(entry => logToDev(req.requestId!, entry)),
+      )
       next()
     }
   }
@@ -158,7 +124,7 @@ export function logMiddleware(): BackendRequestHandler {
   // Otherwise, return "simple" logger
   // This includes: unit tests, CI environments
   return function simpleLogHandler(req, _res, next) {
-    req.debug = req.log = req.warn = req.error = (...args: any[]) => logToCI(args)
+    _objectAssign(req, ciLogger)
     next()
   }
 }

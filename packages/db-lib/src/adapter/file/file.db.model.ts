@@ -25,7 +25,7 @@ export interface FileDBCfg {
   sortObjects?: boolean
 
   /**
-   * Defaults to `console`.
+   * Defaults to `consoleLogger`.
    */
   logger?: CommonLogger
 

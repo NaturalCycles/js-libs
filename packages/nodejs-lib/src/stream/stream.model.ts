@@ -66,7 +66,7 @@ export interface TransformOptions {
   highWaterMark?: number
 
   /**
-   * Defaults to `console`.
+   * Defaults to `consoleLogger`.
    */
   logger?: CommonLogger
 

@@ -15,7 +15,7 @@ import {
   UnexpectedPassError,
 } from '../error/error.util.js'
 import { pExpectedErrorString } from '../error/index.js'
-import { commonLoggerNoop } from '../log/commonLogger.js'
+import { commonLoggerNoop, consoleLogger } from '../log/commonLogger.js'
 import { _omit } from '../object/object.util.js'
 import { _stringify } from '../string/stringify.js'
 import type { UnixTimestampMillis } from '../types.js'
@@ -70,7 +70,7 @@ test('defaults', () => {
     }
   `)
 
-  expect(fetcher.cfg.logger).toBe(console)
+  expect(fetcher.cfg.logger).toBe(consoleLogger)
 
   const req: FetcherRequest = (fetcher as any).normalizeOptions({ url: 'some', logResponse: true })
   expect(req.logResponse).toBe(true)

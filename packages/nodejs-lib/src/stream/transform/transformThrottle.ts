@@ -56,7 +56,8 @@ export function transformThrottle<T>(opt: TransformThrottleOptions): TransformTy
       if (!start) {
         start = localTime.nowUnixMillis()
         timeout = setTimeout(() => onInterval(), interval * 1000)
-        logger.log(`${localTime.now().toPretty()} transformThrottle started with`, {
+        logger.log({
+          msg: `${localTime.now().toPretty()} transformThrottle started with`,
           throughput,
           interval,
           rps: Math.round(throughput / interval),

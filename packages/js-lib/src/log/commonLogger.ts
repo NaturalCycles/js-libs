@@ -1,6 +1,3 @@
-import { _isPlainObject } from '../is.util.js'
-import type { AnyObject, MutateOptions } from '../types.js'
-
 // copy-pasted to avoid weird circular dependency
 const _noop = (..._args: any[]): undefined => undefined
 
@@ -23,23 +20,37 @@ export type CommonLogLevel = 'debug' | 'log' | 'warn' | 'error'
 export const commonLogLevelNumber: Record<CommonLogLevel, number> = {
   debug: 10,
   log: 20,
-  warn: 20,
-  error: 30,
+  warn: 30,
+  error: 40,
 }
 
 /**
- * Function that takes any number of arguments and logs them all.
- * It is expected that logged arguments are separated by "space", like console.log does.
- *
- * @experimental
+ * Structured log data: a message, an error, and any other fields.
  */
-export type CommonLogFunction = (...args: any[]) => void
-export type CommonLogWithLevelFunction = (level: CommonLogLevel, args: any[]) => void
+export interface LogData {
+  msg?: string
+  err?: unknown
+  [field: string]: unknown
+}
 
 /**
- * Interface is inspired/compatible with `console.*`
- * So, `console` is a valid CommonLogger implementation as-is.
- *
+ * What a log call accepts: a string is `{ msg }`, an Error is `{ err }`.
+ * A non-Error error value (e.g an `unknown` from a catch) is passed as `{ err }`.
+ */
+export type LogInput = string | Error | LogData
+
+/**
+ * What a sink receives: the logger's context, the log data and the level.
+ */
+export interface LogEntry extends LogData {
+  level: CommonLogLevel
+}
+
+export type LogSink = (entry: LogEntry) => void
+
+export type CommonLogFunction = (input: LogInput) => void
+
+/**
  * @experimental
  */
 export interface CommonLogger {
@@ -47,161 +58,90 @@ export interface CommonLogger {
   log: CommonLogFunction
   warn: CommonLogFunction
   error: CommonLogFunction
+  /**
+   * Creates a logger that adds `context` to every entry.
+   */
+  child: (context: LogData) => CommonLogger
 }
 
 /**
- * SimpleLogger that does nothing (noop).
+ * Creates a CommonLogger that writes every entry to `sink`.
+ * `context` is called on every log call, so it can return values that change
+ * after the logger is created (e.g a request context whose user is resolved later).
+ */
+export function commonLoggerCreate(sink: LogSink, context?: () => LogData): CommonLogger {
+  const emit = (level: CommonLogLevel, input: LogInput): void =>
+    sink({ ...context?.(), ...toLogData(input), level })
+
+  return {
+    debug: input => emit('debug', input),
+    log: input => emit('log', input),
+    warn: input => emit('warn', input),
+    error: input => emit('error', input),
+    child: childContext => commonLoggerCreate(sink, () => ({ ...context?.(), ...childContext })),
+  }
+}
+
+function toLogData(input: LogInput): LogData {
+  if (typeof input === 'string') return { msg: input }
+  if (input instanceof Error) return { err: input }
+  return input
+}
+
+/**
+ * CommonLogger that logs to `console`.
+ */
+export const consoleLogger: CommonLogger = commonLoggerCreate(({ level, msg, err, ...fields }) => {
+  const args: unknown[] = []
+  if (msg !== undefined) args.push(msg)
+  if (err !== undefined) args.push(err)
+  if (Object.keys(fields).length) args.push(fields)
+  console[level](...args)
+})
+
+/**
+ * CommonLogger that does nothing (noop).
  */
 export const commonLoggerNoop: CommonLogger = {
   debug: _noop,
   log: _noop,
   warn: _noop,
   error: _noop,
+  child: () => commonLoggerNoop,
 }
 
 /**
- * Creates a "child" logger that is "limited" to the specified CommonLogLevel.
+ * Creates a CommonLogger that is "limited" to the specified CommonLogLevel.
  */
 export function createCommonLoggerAtLevel(
-  logger: CommonLogger = console,
+  logger: CommonLogger = consoleLogger,
   minLevel: CommonLogLevel = 'log',
-  opt: MutateOptions = {},
 ): CommonLogger {
   const level = commonLogLevelNumber[minLevel]
-  if (opt.mutate) {
-    if (level > commonLogLevelNumber['debug']) {
-      logger.debug = _noop
-      if (level > commonLogLevelNumber['log']) {
-        logger.log = _noop
-        if (level > commonLogLevelNumber['warn']) {
-          logger.warn = _noop
-          if (level > commonLogLevelNumber['error']) {
-            logger.error = _noop
-          }
-        }
-      }
-    }
-    return logger
-  }
 
   if (level <= commonLogLevelNumber['debug']) {
     // All levels are kept
     return logger
   }
 
-  if (level > commonLogLevelNumber['error']) {
-    // "Log nothing" logger
-    return commonLoggerNoop
-  }
-
   return {
     debug: _noop, // otherwise it is "log everything" logger (same logger as input)
-    log: level <= commonLogLevelNumber['log'] ? logger.log.bind(logger) : _noop,
-    warn: level <= commonLogLevelNumber['warn'] ? logger.warn.bind(logger) : _noop,
-    error: logger.error.bind(logger), // otherwise it's "log nothing" logger (same as noopLogger)
+    log: level <= commonLogLevelNumber['log'] ? input => logger.log(input) : _noop,
+    warn: level <= commonLogLevelNumber['warn'] ? input => logger.warn(input) : _noop,
+    error: input => logger.error(input),
+    child: context => createCommonLoggerAtLevel(logger.child(context), minLevel),
   }
 }
 
 /**
- * Creates a "proxy" CommonLogger that pipes log messages to all provided sub-loggers.
+ * Creates a "proxy" CommonLogger that pipes log entries to all provided sub-loggers.
  */
 export function commonLoggerPipe(loggers: CommonLogger[]): CommonLogger {
   return {
-    debug: (...args) => loggers.forEach(logger => logger.debug(...args)),
-    log: (...args) => loggers.forEach(logger => logger.log(...args)),
-    warn: (...args) => loggers.forEach(logger => logger.warn(...args)),
-    error: (...args) => loggers.forEach(logger => logger.error(...args)),
+    debug: input => loggers.forEach(logger => logger.debug(input)),
+    log: input => loggers.forEach(logger => logger.log(input)),
+    warn: input => loggers.forEach(logger => logger.warn(input)),
+    error: input => loggers.forEach(logger => logger.error(input)),
+    child: context => commonLoggerPipe(loggers.map(logger => logger.child(context))),
   }
-}
-
-/**
- * Creates a "child" CommonLogger with prefix (one or multiple).
- */
-export function commonLoggerPrefix(logger: CommonLogger, ...prefixes: any[]): CommonLogger {
-  return {
-    debug: (...args) => logger.debug(...prefixes, ...args),
-    log: (...args) => logger.log(...prefixes, ...args),
-    warn: (...args) => logger.warn(...prefixes, ...args),
-    error: (...args) => logger.error(...prefixes, ...args),
-  }
-}
-
-export type CommonLogSink = CommonLogger | CommonLogWithLevelFunction
-
-/**
- * A plain object is copied once, at creation.
- * A function is called on every log call, for context that changes after the logger is created
- * (e.g a request context whose user is resolved later).
- */
-export type CommonLogContext = AnyObject | (() => AnyObject)
-
-export interface CommonLoggerWithContext extends CommonLogger {
-  child: (context: CommonLogContext) => CommonLoggerWithContext
-}
-
-/**
- * Creates a CommonLogger from a single function that takes `level` and `args`.
- *
- * With a context, every call emits one object: plain-object args merged in, first Error as `err`,
- * the rest joined into `msg`.
- */
-export function commonLoggerCreate(sink: CommonLogSink): CommonLogger
-export function commonLoggerCreate(
-  sink: CommonLogSink,
-  context: CommonLogContext,
-): CommonLoggerWithContext
-export function commonLoggerCreate(sink: CommonLogSink, context?: CommonLogContext): CommonLogger {
-  const fn: CommonLogWithLevelFunction =
-    typeof sink === 'function' ? sink : (level, args) => sink[level](...args)
-
-  if (!context) {
-    return {
-      debug: (...args) => fn('debug', args),
-      log: (...args) => fn('log', args),
-      warn: (...args) => fn('warn', args),
-      error: (...args) => fn('error', args),
-    }
-  }
-
-  const getContext = contextGetter(context)
-
-  const logger: CommonLoggerWithContext = {
-    debug: (...args) => fn('debug', [toLogEntry(getContext(), args)]),
-    log: (...args) => fn('log', [toLogEntry(getContext(), args)]),
-    warn: (...args) => fn('warn', [toLogEntry(getContext(), args)]),
-    error: (...args) => fn('error', [toLogEntry(getContext(), args)]),
-    child: c => {
-      const getChild = contextGetter(c)
-      return commonLoggerCreate(fn, () => ({ ...getContext(), ...getChild() }))
-    },
-  }
-  return logger
-}
-
-function contextGetter(context: CommonLogContext): () => AnyObject {
-  // AnyObject also admits functions, so typeof does not narrow the union
-  if (typeof context === 'function') return context as () => AnyObject
-  const copy = { ...context }
-  return () => copy
-}
-
-function toLogEntry(context: AnyObject, args: any[]): AnyObject {
-  const entry: AnyObject = { ...context }
-  let err: Error | undefined
-  let msg: string | undefined
-
-  for (const arg of args) {
-    if (_isPlainObject(arg)) {
-      Object.assign(entry, arg)
-    } else if (!err && arg instanceof Error) {
-      err = arg
-    } else {
-      const s = String(arg)
-      msg = msg === undefined ? s : `${msg} ${s}`
-    }
-  }
-
-  if (err) entry['err'] = err
-  if (msg !== undefined) entry['msg'] = msg
-  return entry
 }

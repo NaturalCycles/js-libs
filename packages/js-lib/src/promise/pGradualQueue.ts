@@ -26,7 +26,7 @@ export interface PGradualQueueCfg {
   errorMode?: ErrorMode
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 

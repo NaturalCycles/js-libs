@@ -1,228 +1,129 @@
 import { expect, test } from 'vitest'
-import type { AnyObject } from '../types.js'
-import type { CommonLogger, CommonLogLevel, CommonLogWithLevelFunction } from './commonLogger.js'
+import type { CommonLogger, LogEntry } from './commonLogger.js'
 import {
   commonLoggerCreate,
   commonLoggerNoop,
   commonLoggerPipe,
-  commonLoggerPrefix,
+  consoleLogger,
   createCommonLoggerAtLevel,
 } from './commonLogger.js'
 
-// This "tests" that `console` is a valid CommonLogger by itself
-const consoleLogger: CommonLogger = console
+test('should accept a string, an Error or structured data', () => {
+  const { logger, entries } = createTestLogger()
+  const err = new Error('kaboom')
 
-test('commonLogger', () => {
-  consoleLogger.debug('hello')
-  consoleLogger.log('hello')
-  consoleLogger.error('hello')
+  logger.log('hey')
+  logger.error(err)
+  logger.debug({ structured: 'data' })
+  logger.warn({ msg: 'hey', err, n: 1 })
+
+  expect(entries).toStrictEqual([
+    { msg: 'hey', level: 'log' },
+    { err, level: 'error' },
+    { structured: 'data', level: 'debug' },
+    { msg: 'hey', err, n: 1, level: 'warn' },
+  ])
 })
 
-test('noopLogger', () => {
-  const logger = commonLoggerNoop
+test('should add the context to every entry', () => {
+  const { logger, entries } = createTestLogger(() => ({ a: 1 }))
+
   logger.debug('hey')
-  logger.log('hey')
-  logger.error('hey')
-})
+  logger.log({ structured: 'data' })
 
-test('limitCommonLoggerToMinimumLevel', () => {
-  const logger = createCommonLoggerAtLevel(console, 'log')
-  logger.debug('hey') // should be silent
-  logger.log('hey') // verbose
-  logger.error('hey') // verbose
-})
-
-test('commonLoggerPipe', () => {
-  const logger = commonLoggerPipe([console, console])
-  logger.log('hey') // should be said twice
-})
-
-test('commonLoggerPrefix', () => {
-  const logger = commonLoggerPrefix(console, '[mongo]')
-  logger.log('hey')
-})
-
-test('commonLoggerCreate', () => {
-  const fn: CommonLogWithLevelFunction = (level, args) => console[level](...args)
-
-  const logger = commonLoggerCreate(fn)
-  logger.debug('hey')
-  logger.log('hey')
-  logger.error('hey')
-})
-
-test('commonLoggerCreate accepts a CommonLogger as a sink', () => {
-  const { logger, calls } = createTestSink()
-
-  commonLoggerCreate(logger).log('a', 1)
-
-  expect(calls).toStrictEqual([['log', ['a', 1]]])
-})
-
-test('a context makes every call emit a single object', () => {
-  const { logger, calls } = createTestSink()
-  const contextLogger = commonLoggerCreate(logger, { a: 1 })
-
-  contextLogger.debug('hey')
-  contextLogger.log('hey')
-  contextLogger.warn('hey')
-  contextLogger.error('hey')
-
-  expect(calls).toStrictEqual([
-    ['debug', [{ a: 1, msg: 'hey' }]],
-    ['log', [{ a: 1, msg: 'hey' }]],
-    ['warn', [{ a: 1, msg: 'hey' }]],
-    ['error', [{ a: 1, msg: 'hey' }]],
+  expect(entries).toStrictEqual([
+    { a: 1, msg: 'hey', level: 'debug' },
+    { a: 1, structured: 'data', level: 'log' },
   ])
 })
 
-test('child merges the context, child keys win', () => {
-  const { logger, calls } = createTestSink()
-  const parent = commonLoggerCreate(logger, { a: 1 })
-  const child = parent.child({ b: 2, a: 9 })
+test('should call the context function on every log call', () => {
+  const context: { accountId?: string } = {}
+  const { logger, entries } = createTestLogger(() => context)
 
-  child.debug('foo')
-  parent.debug('foo')
-  child.child({ c: 3 }).debug('foo')
+  logger.log('before')
+  context.accountId = 'a1'
+  logger.log('after')
 
-  expect(calls).toStrictEqual([
-    ['debug', [{ a: 9, b: 2, msg: 'foo' }]],
-    ['debug', [{ a: 1, msg: 'foo' }]],
-    ['debug', [{ a: 9, b: 2, c: 3, msg: 'foo' }]],
+  expect(entries).toStrictEqual([
+    { msg: 'before', level: 'log' },
+    { accountId: 'a1', msg: 'after', level: 'log' },
   ])
 })
 
-test('a plain object argument is merged in, without a msg', () => {
-  const { logger, calls } = createTestSink()
+test('should merge the child context, child and log data keys win', () => {
+  const { logger, entries } = createTestLogger(() => ({ a: 1, b: 1, c: 1 }))
 
-  commonLoggerCreate(logger, { a: 1 }).debug({ structured: 'data' })
+  logger.child({ b: 2, c: 2 }).child({ c: 3 }).log({ msg: 'foo', c: 4 })
 
-  expect(calls[0]![1]).toStrictEqual([{ a: 1, structured: 'data' }])
+  expect(entries).toStrictEqual([{ a: 1, b: 2, c: 4, msg: 'foo', level: 'log' }])
 })
 
-test('non-object arguments are joined into msg', () => {
-  const { logger, calls } = createTestSink()
-  const contextLogger = commonLoggerCreate(logger, { a: 1 })
+test('should let the methods be passed around unbound', () => {
+  const { logger, entries } = createTestLogger()
+  const { error } = logger
 
-  contextLogger.warn('hello', { n: 1 }, 2)
-  contextLogger.log([1, 2])
+  error('hey')
 
-  expect(calls[0]![1]).toStrictEqual([{ a: 1, n: 1, msg: 'hello 2' }])
-  expect(calls[1]![1]).toStrictEqual([{ a: 1, msg: '1,2' }])
+  expect(entries).toStrictEqual([{ msg: 'hey', level: 'error' }])
 })
 
-test('an argument wins over the context', () => {
-  const { logger, calls } = createTestSink()
-
-  commonLoggerCreate(logger, { a: 1 }).log({ a: 9 })
-
-  expect(calls[0]![1]).toStrictEqual([{ a: 9 }])
+test('should log to console', () => {
+  consoleLogger.log('hey')
+  consoleLogger.warn({ msg: 'hey', n: 1 })
+  consoleLogger.error(new Error('kaboom'))
+  consoleLogger.child({ module: 'test' }).log('hey')
 })
 
-test('the first Error argument becomes err', () => {
-  const { logger, calls } = createTestSink()
-  const contextLogger = commonLoggerCreate(logger, { a: 1 })
-  const err = new Error('boom')
-
-  contextLogger.error(err)
-  contextLogger.error('failed', err)
-  contextLogger.error(err, new Error('second'))
-
-  expect(calls[0]![1]).toStrictEqual([{ a: 1, err }])
-  expect(calls[0]![1][0].err).toBe(err)
-  expect(calls[1]![1]).toStrictEqual([{ a: 1, err, msg: 'failed' }])
-  expect(calls[2]![1]).toStrictEqual([{ a: 1, err, msg: 'Error: second' }])
-  expect(calls[2]![1][0].err).toBe(err)
+test('should do nothing in the noop logger', () => {
+  commonLoggerNoop.log('hey')
+  commonLoggerNoop.child({ a: 1 }).error('hey')
 })
 
-test('the context is copied on creation', () => {
-  const { logger, calls } = createTestSink()
-  const context: AnyObject = { a: 1 }
-  const contextLogger = commonLoggerCreate(logger, context)
+test('should limit the logger to the minimum level', () => {
+  const { logger, entries } = createTestLogger()
+  const atLevel = createCommonLoggerAtLevel(logger, 'log')
 
-  context['b'] = 2
-  contextLogger.log('m')
+  atLevel.debug('hey')
+  atLevel.log('hey')
+  atLevel.child({ a: 1 }).debug('hey')
+  atLevel.child({ a: 1 }).error('hey')
 
-  expect(calls[0]![1]).toStrictEqual([{ a: 1, msg: 'm' }])
-})
-
-test('a child of an object context logs from the same copy as its parent', () => {
-  const { logger, calls } = createTestSink()
-  const context: AnyObject = { a: 1 }
-  const parent = commonLoggerCreate(logger, context)
-  const child = parent.child({ b: 2 })
-  const fnChild = parent.child(() => ({ c: 3 }))
-
-  context['a'] = 5
-  parent.log('m')
-  child.log('m')
-  fnChild.log('m')
-
-  expect(calls).toStrictEqual([
-    ['log', [{ a: 1, msg: 'm' }]],
-    ['log', [{ a: 1, b: 2, msg: 'm' }]],
-    ['log', [{ a: 1, c: 3, msg: 'm' }]],
+  expect(entries).toStrictEqual([
+    { msg: 'hey', level: 'log' },
+    { a: 1, msg: 'hey', level: 'error' },
   ])
 })
 
-test('a context function is called on every log call', () => {
-  const { logger, calls } = createTestSink()
-  const state: AnyObject = { a: 1 }
-  const contextLogger = commonLoggerCreate(logger, () => ({ ...state }))
+test.each([
+  ['warn', ['warn', 'error']],
+  ['error', ['error']],
+] as const)('should drop the levels below %s', (minLevel, kept) => {
+  const { logger, entries } = createTestLogger()
+  const atLevel = createCommonLoggerAtLevel(logger, minLevel)
 
-  contextLogger.log('m')
-  state['a'] = 2
-  state['b'] = 3
-  contextLogger.log('m')
+  atLevel.debug('hey')
+  atLevel.log('hey')
+  atLevel.warn('hey')
+  atLevel.error('hey')
 
-  expect(calls).toStrictEqual([
-    ['log', [{ a: 1, msg: 'm' }]],
-    ['log', [{ a: 2, b: 3, msg: 'm' }]],
-  ])
+  expect(entries.map(entry => entry.level)).toStrictEqual(kept)
 })
 
-test('child merges function and object contexts, child keys win', () => {
-  const { logger, calls } = createTestSink()
-  const state: AnyObject = { a: 1, b: 1 }
-  const parent = commonLoggerCreate(logger, () => state)
-  const child = parent.child({ b: 2 })
-  const grandChild = child.child(() => ({ c: state['a'] }))
+test('should pipe to all loggers', () => {
+  const first = createTestLogger()
+  const second = createTestLogger()
 
-  child.log('m')
-  state['a'] = 9
-  grandChild.log('m')
-  parent.child(() => ({ b: 3 })).log('m')
-  commonLoggerCreate(logger, { a: 1 })
-    .child(() => ({ b: 2 }))
-    .log('m')
+  commonLoggerPipe([first.logger, second.logger]).child({ a: 1 }).log('hey')
 
-  expect(calls).toStrictEqual([
-    ['log', [{ a: 1, b: 2, msg: 'm' }]],
-    ['log', [{ a: 9, b: 2, c: 9, msg: 'm' }]],
-    ['log', [{ a: 9, b: 3, msg: 'm' }]],
-    ['log', [{ a: 1, b: 2, msg: 'm' }]],
-  ])
+  expect(first.entries).toStrictEqual([{ a: 1, msg: 'hey', level: 'log' }])
+  expect(second.entries).toStrictEqual(first.entries)
 })
 
-test('commonLoggerCreate with a context on console', () => {
-  const logger = commonLoggerCreate(console, { a: 1 })
-  logger.debug('hey')
-  logger.log('hey')
-  logger.error('hey')
-})
-
-test('an empty context still wraps the arguments', () => {
-  const { logger, calls } = createTestSink()
-
-  commonLoggerCreate(logger, {}).log('x')
-
-  expect(calls[0]![1]).toStrictEqual([{ msg: 'x' }])
-})
-
-function createTestSink(): { logger: CommonLogger; calls: [CommonLogLevel, any[]][] } {
-  const calls: [CommonLogLevel, any[]][] = []
-  return {
-    logger: commonLoggerCreate((level, args) => calls.push([level, args])),
-    calls,
-  }
+function createTestLogger(context?: () => Record<string, unknown>): {
+  logger: CommonLogger
+  entries: LogEntry[]
+} {
+  const entries: LogEntry[] = []
+  return { logger: commonLoggerCreate(entry => entries.push(entry), context), entries }
 }

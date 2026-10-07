@@ -1,5 +1,6 @@
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import { _hb } from '@naturalcycles/js-lib'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { AnyObjectWithId } from '@naturalcycles/js-lib/types'
 import { white, yellow } from '@naturalcycles/nodejs-lib/colors'
@@ -55,7 +56,7 @@ export function insertSQL(
   table: string,
   rows: Record<any, any>[],
   verb: 'INSERT' | 'REPLACE' = 'INSERT',
-  logger: CommonLogger = console,
+  logger: CommonLogger = consoleLogger,
 ): string[] {
   // INSERT INTO table_name (column1, column2, column3, ...)
   // VALUES (value1, value2, value3, ...);

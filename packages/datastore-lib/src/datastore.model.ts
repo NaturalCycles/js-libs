@@ -37,7 +37,7 @@ export interface DatastoreDBCfg extends DatastoreOptions {
   streamOptions?: DatastoreDBStreamOptions
 
   /**
-   * Default to `console`
+   * Default to `consoleLogger`
    */
   logger?: CommonLogger
 

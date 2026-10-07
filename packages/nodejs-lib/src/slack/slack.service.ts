@@ -1,9 +1,13 @@
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { getFetcher } from '@naturalcycles/js-lib/http'
 import type { Fetcher } from '@naturalcycles/js-lib/http'
-import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
+import {
+  commonLoggerCreate,
+  consoleLogger,
+  createCommonLoggerAtLevel,
+} from '@naturalcycles/js-lib/log'
 import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
-import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
+import { _filterFalsyValues, _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import { PQueue } from '@naturalcycles/js-lib/promise/pQueue.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { _inspect } from '../index.js'
@@ -45,7 +49,7 @@ export class SlackService<CTX = any> {
   constructor(cfg: Partial<SlackServiceCfg<CTX>>) {
     this.cfg = {
       messagePrefixHook: slackDefaultMessagePrefixHook,
-      logger: console,
+      logger: consoleLogger,
       ...cfg,
       inspectOptions: {
         ...INSPECT_OPT,
@@ -82,7 +86,10 @@ export class SlackService<CTX = any> {
       Object.assign(msg, { ctx })
     }
 
-    this.cfg.logger.log(...[msg.items, msg.kv, msg.attachments, msg.mentions].filter(Boolean))
+    const { items, kv, attachments, mentions } = msg
+    this.cfg.logger.log(
+      _filterFalsyValues({ msg: _inspect(items, inspectOptions), kv, attachments, mentions }),
+    )
 
     if (!webhookUrl) return
 
@@ -163,17 +170,21 @@ export class SlackService<CTX = any> {
       concurrency: 1,
     })
 
+    const channelByLevel: Record<CommonLogLevel, string> = {
+      debug: debugChannel || defaultChannel,
+      log: logChannel || defaultChannel,
+      warn: warnChannel || defaultChannel,
+      error: errorChannel || defaultChannel,
+    }
+
     return createCommonLoggerAtLevel(
-      {
-        debug: (...args) =>
-          q.push(() => this.send({ items: args, channel: debugChannel || defaultChannel })),
-        log: (...args) =>
-          q.push(() => this.send({ items: args, channel: logChannel || defaultChannel })),
-        warn: (...args) =>
-          q.push(() => this.send({ items: args, channel: warnChannel || defaultChannel })),
-        error: (...args) =>
-          q.push(() => this.send({ items: args, channel: errorChannel || defaultChannel })),
-      },
+      commonLoggerCreate(({ level, msg, err, ...fields }) => {
+        const items: unknown[] = []
+        if (msg !== undefined) items.push(msg)
+        if (err !== undefined) items.push(err)
+        if (Object.keys(fields).length) items.push(fields)
+        void q.push(() => this.send({ items, channel: channelByLevel[level] }))
+      }),
       minLogLevel,
     )
   }

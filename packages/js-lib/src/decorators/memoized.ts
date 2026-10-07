@@ -1,3 +1,4 @@
+import { consoleLogger } from '../log/commonLogger.js'
 import type { AnyFunction, MaybeParameters } from '../types.js'
 import type { MemoOptions } from './memo.decorator.js'
 import type { MemoCache } from './memo.util.js'
@@ -17,7 +18,7 @@ export function _memoized<FN extends AnyFunction>(
   opt: MemoOptions<FN> = {},
 ): FN & MemoizedFunction {
   const {
-    logger = console,
+    logger = consoleLogger,
     cacheFactory = () => new MapMemoCache(),
     cacheKeyFn = jsonMemoSerializer,
   } = opt
@@ -37,7 +38,7 @@ export function _memoized<FN extends AnyFunction>(
     try {
       cache.set(cacheKey, value)
     } catch (err) {
-      logger.error(err)
+      logger.error({ err })
     }
 
     return value

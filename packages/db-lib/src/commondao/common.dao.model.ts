@@ -156,7 +156,7 @@ export interface CommonDaoCfg<
   readOnly?: boolean
 
   /**
-   * Defaults to `console`
+   * Defaults to `consoleLogger`
    */
   logger?: CommonLogger
 

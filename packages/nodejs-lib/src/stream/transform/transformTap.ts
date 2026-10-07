@@ -1,4 +1,5 @@
 import { Transform } from 'node:stream'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { AsyncIndexedMapper, IndexedMapper } from '@naturalcycles/js-lib/types'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
@@ -12,7 +13,7 @@ export function transformTap<IN>(
   fn: AsyncIndexedMapper<IN, any>,
   opt: TransformOptions = {},
 ): TransformTyped<IN, IN> {
-  const { logger = console, highWaterMark = 1 } = opt
+  const { logger = consoleLogger, highWaterMark = 1 } = opt
   let index = -1
 
   return new Transform({
@@ -22,7 +23,7 @@ export function transformTap<IN>(
       try {
         await fn(chunk, ++index)
       } catch (err) {
-        logger.error(err)
+        logger.error({ err })
         // suppressed error
       }
 
@@ -38,7 +39,7 @@ export function transformTapSync<IN>(
   fn: IndexedMapper<IN, any>,
   opt: TransformOptions = {},
 ): TransformTyped<IN, IN> {
-  const { logger = console, highWaterMark = 1 } = opt
+  const { logger = consoleLogger, highWaterMark = 1 } = opt
   let index = -1
 
   return new Transform({
@@ -48,7 +49,7 @@ export function transformTapSync<IN>(
       try {
         fn(chunk, ++index)
       } catch (err) {
-        logger.error(err)
+        logger.error({ err })
         // suppressed error
       }
 

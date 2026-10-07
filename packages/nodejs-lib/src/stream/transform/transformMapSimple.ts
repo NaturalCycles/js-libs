@@ -1,5 +1,6 @@
 import { Transform } from 'node:stream'
 import { ErrorMode } from '@naturalcycles/js-lib/error/errorMode.js'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { IndexedMapper } from '@naturalcycles/js-lib/types'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
@@ -28,7 +29,7 @@ export function transformMapSimple<IN = any, OUT = IN>(
   let index = -1
   const {
     errorMode = ErrorMode.THROW_IMMEDIATELY,
-    logger = console,
+    logger = consoleLogger,
     objectMode = true,
     highWaterMark = 1,
   } = opt
@@ -40,7 +41,7 @@ export function transformMapSimple<IN = any, OUT = IN>(
       try {
         cb(null, mapper(chunk, ++index))
       } catch (err) {
-        logger.error(err)
+        logger.error({ err })
 
         if (errorMode === ErrorMode.SUPPRESS) {
           cb() // suppress the error

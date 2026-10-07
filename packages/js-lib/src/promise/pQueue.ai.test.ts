@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ErrorMode } from '../error/errorMode.js'
+import { commonLoggerCreate } from '../log/commonLogger.js'
 import { pDelay } from './pDelay.js'
 import { PQueue } from './pQueue.js'
 
@@ -801,12 +802,9 @@ test('default errorMode is THROW_IMMEDIATELY', async () => {
 
 test('logger receives debug calls when logLevel is debug', async () => {
   const debugMessages: string[] = []
-  const mockLogger = {
-    log: () => {},
-    warn: () => {},
-    error: () => {},
-    debug: (...args: unknown[]) => debugMessages.push(String(args[0])),
-  }
+  const mockLogger = commonLoggerCreate(entry => {
+    if (entry.level === 'debug') debugMessages.push(String(entry.msg))
+  })
 
   // With logLevel: 'debug', createCommonLoggerAtLevel returns the original logger unchanged
   const queue = new PQueue({ concurrency: 1, logger: mockLogger, logLevel: 'debug' })
@@ -818,13 +816,10 @@ test('logger receives debug calls when logLevel is debug', async () => {
 })
 
 test('error logging - only logs when not re-throwing', async () => {
-  const errors: Error[] = []
-  const mockLogger = {
-    log: () => {},
-    warn: () => {},
-    error: (err: Error) => errors.push(err),
-    debug: () => {},
-  }
+  const errors: unknown[] = []
+  const mockLogger = commonLoggerCreate(entry => {
+    if (entry.level === 'error') errors.push(entry.err)
+  })
 
   // THROW_IMMEDIATELY: error is re-thrown, NOT logged
   const queue1 = new PQueue({
