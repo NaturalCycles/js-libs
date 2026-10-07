@@ -6,7 +6,6 @@ import { compressionMiddleware } from '../server/compressionMiddleware.js'
 import { genericErrorMiddleware } from '../server/genericErrorMiddleware.js'
 import type { GenericErrorMiddlewareCfg } from '../server/genericErrorMiddleware.js'
 import { logMiddleware } from '../server/logMiddleware.js'
-import { methodOverrideMiddleware } from '../server/methodOverrideMiddleware.js'
 import { notFoundMiddleware } from '../server/notFoundMiddleware.js'
 import { requestTimeoutMiddleware } from '../server/requestTimeoutMiddleware.js'
 import type {
@@ -42,7 +41,6 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
     app.use(asyncLocalStorageMiddleware())
   }
 
-  app.use(methodOverrideMiddleware())
   app.use(requestTimeoutMiddleware())
   // app.use(serverStatsMiddleware()) // disabled by default
   // app.use(bodyParserTimeout()) // removed by default
