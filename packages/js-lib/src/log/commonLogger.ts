@@ -48,7 +48,13 @@ export interface LogEntry extends LogData {
 
 export type LogSink = (entry: LogEntry) => void
 
-export type CommonLogFunction = (input: LogInput) => void
+/**
+ * A log call is either one `LogInput`, or a message with the other fields:
+ * `logger.log('hey')`, `logger.error(err)`, `logger.warn({ msg, err })`, `logger.warn('failed', { err })`.
+ */
+export type CommonLogArgs = [input: LogInput] | [msg: string, data: LogData]
+
+export type CommonLogFunction = (...args: CommonLogArgs) => void
 
 /**
  * @experimental
@@ -70,20 +76,20 @@ export interface CommonLogger {
  * after the logger is created (e.g a request context whose user is resolved later).
  */
 export function commonLoggerCreate(sink: LogSink, context?: () => LogData): CommonLogger {
-  const emit = (level: CommonLogLevel, input: LogInput): void =>
-    sink({ ...context?.(), ...toLogData(input), level })
+  const emit = (level: CommonLogLevel, [input, data]: CommonLogArgs): void =>
+    sink({ ...context?.(), ...toLogData(input, data), level })
 
   return {
-    debug: input => emit('debug', input),
-    log: input => emit('log', input),
-    warn: input => emit('warn', input),
-    error: input => emit('error', input),
+    debug: (...args) => emit('debug', args),
+    log: (...args) => emit('log', args),
+    warn: (...args) => emit('warn', args),
+    error: (...args) => emit('error', args),
     child: childContext => commonLoggerCreate(sink, () => ({ ...context?.(), ...childContext })),
   }
 }
 
-function toLogData(input: LogInput): LogData {
-  if (typeof input === 'string') return { msg: input }
+function toLogData(input: LogInput, data?: LogData): LogData {
+  if (typeof input === 'string') return { ...data, msg: input }
   if (input instanceof Error) return { err: input }
   return input
 }
@@ -126,9 +132,9 @@ export function createCommonLoggerAtLevel(
 
   return {
     debug: _noop, // otherwise it is "log everything" logger (same logger as input)
-    log: level <= commonLogLevelNumber['log'] ? input => logger.log(input) : _noop,
-    warn: level <= commonLogLevelNumber['warn'] ? input => logger.warn(input) : _noop,
-    error: input => logger.error(input),
+    log: level <= commonLogLevelNumber['log'] ? (...args) => logger.log(...args) : _noop,
+    warn: level <= commonLogLevelNumber['warn'] ? (...args) => logger.warn(...args) : _noop,
+    error: (...args) => logger.error(...args),
     child: context => createCommonLoggerAtLevel(logger.child(context), minLevel),
   }
 }
@@ -138,10 +144,10 @@ export function createCommonLoggerAtLevel(
  */
 export function commonLoggerPipe(loggers: CommonLogger[]): CommonLogger {
   return {
-    debug: input => loggers.forEach(logger => logger.debug(input)),
-    log: input => loggers.forEach(logger => logger.log(input)),
-    warn: input => loggers.forEach(logger => logger.warn(input)),
-    error: input => loggers.forEach(logger => logger.error(input)),
+    debug: (...args) => loggers.forEach(logger => logger.debug(...args)),
+    log: (...args) => loggers.forEach(logger => logger.log(...args)),
+    warn: (...args) => loggers.forEach(logger => logger.warn(...args)),
+    error: (...args) => loggers.forEach(logger => logger.error(...args)),
     child: context => commonLoggerPipe(loggers.map(logger => logger.child(context))),
   }
 }

@@ -25,6 +25,19 @@ test('should accept a string, an Error or structured data', () => {
   ])
 })
 
+test('should merge the data into a message, the message wins', () => {
+  const { logger, entries } = createTestLogger()
+  const err = new Error('kaboom')
+
+  logger.warn('failed', { err, attempt: 2 })
+  logger.log('hey', { msg: 'ignored' })
+
+  expect(entries).toStrictEqual([
+    { err, attempt: 2, msg: 'failed', level: 'warn' },
+    { msg: 'hey', level: 'log' },
+  ])
+})
+
 test('should add the context to every entry', () => {
   const { logger, entries } = createTestLogger(() => ({ a: 1 }))
 
@@ -87,11 +100,11 @@ test('should limit the logger to the minimum level', () => {
   atLevel.debug('hey')
   atLevel.log('hey')
   atLevel.child({ a: 1 }).debug('hey')
-  atLevel.child({ a: 1 }).error('hey')
+  atLevel.child({ a: 1 }).error('hey', { b: 2 })
 
   expect(entries).toStrictEqual([
     { msg: 'hey', level: 'log' },
-    { a: 1, msg: 'hey', level: 'error' },
+    { a: 1, b: 2, msg: 'hey', level: 'error' },
   ])
 })
 
@@ -114,9 +127,9 @@ test('should pipe to all loggers', () => {
   const first = createTestLogger()
   const second = createTestLogger()
 
-  commonLoggerPipe([first.logger, second.logger]).child({ a: 1 }).log('hey')
+  commonLoggerPipe([first.logger, second.logger]).child({ a: 1 }).log('hey', { b: 2 })
 
-  expect(first.entries).toStrictEqual([{ a: 1, msg: 'hey', level: 'log' }])
+  expect(first.entries).toStrictEqual([{ a: 1, b: 2, msg: 'hey', level: 'log' }])
   expect(second.entries).toStrictEqual(first.entries)
 })
 
