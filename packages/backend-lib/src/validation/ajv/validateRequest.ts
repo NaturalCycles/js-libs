@@ -1,7 +1,8 @@
+import { _deepCopy } from '@naturalcycles/js-lib/object'
 import { AjvSchema, getCoercingAjv, JSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { AjvValidationError, SchemaHandledByAjv } from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../../server/server.model.js'
-import { handleValidationError } from '../validateRequest.util.js'
+import { handleValidationError, redactInputByPaths } from '../validateRequest.util.js'
 import type { ReqValidationOptions } from '../validateRequest.util.js'
 
 class AjvValidateRequest {
@@ -83,8 +84,16 @@ class AjvValidateRequest {
   ): OUT {
     const input = req[reqProperty] || {}
 
-    const { coerceTypes, mutateInput } = opt
+    const { coerceTypes, mutateInput, redactPaths } = opt
     const ajv = coerceTypes ? getCoercingAjv() : undefined
+
+    if (redactPaths?.length) {
+      const getOriginal = getOriginalInput
+      const validationWillMutateInput = !getOriginal && mutateInput !== false
+      const inputCopy = validationWillMutateInput ? _deepCopy(input) : undefined
+      getOriginalInput = () =>
+        redactInputByPaths(inputCopy || getOriginal?.() || _deepCopy(input), redactPaths) // copy, so redaction doesn't mutate the input
+    }
 
     const validatable =
       schema instanceof JSchema || schema instanceof AjvSchema
@@ -99,7 +108,7 @@ class AjvValidateRequest {
     })
 
     if (error) {
-      handleValidationError(error, input, opt)
+      handleValidationError(error, opt)
     }
 
     return output
