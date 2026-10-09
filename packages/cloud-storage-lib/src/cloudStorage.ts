@@ -3,15 +3,22 @@ import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
 import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
 import { _since, localTime } from '@naturalcycles/js-lib/datetime'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
+import { consoleLogger } from '@naturalcycles/js-lib/log'
+import { _mapValues } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
-import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
+import type { StringMap, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { SKIP } from '@naturalcycles/js-lib/types'
-import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type { WritableTyped } from '@naturalcycles/nodejs-lib/stream'
-import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
+import type {
+  CommonStorage,
+  CommonStorageGetOptions,
+  CommonStorageSaveOptions,
+  FileEntry,
+  FileMetadata,
+} from './commonStorage.js'
 import type { GCPServiceAccount } from './model.js'
 
 export type {
@@ -193,8 +200,38 @@ export class CloudStorage implements CommonStorage {
     return Pipeline.from(this.storage.bucket(bucketName).file(filePath).createReadStream())
   }
 
-  async saveFile(bucketName: string, filePath: string, content: Buffer): Promise<void> {
-    await this.storage.bucket(bucketName).file(filePath).save(content)
+  async saveFile(
+    bucketName: string,
+    filePath: string,
+    content: Buffer,
+    opt: CommonStorageSaveOptions = {},
+  ): Promise<void> {
+    await this.storage
+      .bucket(bucketName)
+      .file(filePath)
+      .save(content, {
+        metadata: opt.metadata && { metadata: opt.metadata },
+      })
+  }
+
+  async getFileMetadata(bucketName: string, filePath: string): Promise<FileMetadata | null> {
+    const [m] = await this.storage
+      .bucket(bucketName)
+      .file(filePath)
+      .getMetadata()
+      .catch(err => {
+        if (err?.code === 404) return [null]
+        throw err
+      })
+
+    if (!m) return null
+
+    const metadata = _mapValues<StringMap<string>>(m.metadata || {}, (_k, v) => String(v))
+
+    return {
+      metadata,
+      size: Number(m.size),
+    }
   }
 
   getFileWriteStream(bucketName: string, filePath: string): WritableTyped<Uint8Array> {

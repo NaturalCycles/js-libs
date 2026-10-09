@@ -126,6 +126,25 @@ export async function runCommonStorageTest(
     })
   })
 
+  test('saveFile with metadata, then getFileMetadata should return it', async () => {
+    const f = TEST_FILES[0]!
+    const metadata = { hash: 'hash_1' }
+
+    await storage.saveFile(bucketName, f.filePath, f.content, { metadata })
+    expect(await storage.getFileMetadata(bucketName, f.filePath)).toEqual({
+      metadata,
+      size: f.content.length,
+    })
+
+    await storage.saveFile(bucketName, f.filePath, f.content)
+    expect(await storage.getFileMetadata(bucketName, f.filePath)).toEqual({
+      metadata: {},
+      size: f.content.length,
+    })
+
+    expect(await storage.getFileMetadata(bucketName, `${TEST_FOLDER}/non_existing.json`)).toBeNull()
+  })
+
   test('cleanup', async () => {
     await storage.deletePath(bucketName, TEST_FOLDER)
   })

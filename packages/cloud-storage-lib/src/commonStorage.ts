@@ -1,9 +1,15 @@
 import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import type { Pipeline, WritableTyped } from '@naturalcycles/nodejs-lib/stream'
 
 export interface FileEntry {
   filePath: string
   content: Buffer
+}
+
+export interface FileMetadata {
+  metadata: StringMap<string>
+  size: number
 }
 
 // TODO: move it away to a separate repo
@@ -28,6 +34,10 @@ export interface CommonStorageGetOptions {
    * 0 is treated as `undefined`.
    */
   limit?: number
+}
+
+export interface CommonStorageSaveOptions {
+  metadata?: StringMap<string>
 }
 
 /**
@@ -59,7 +69,14 @@ export interface CommonStorage {
 
   getFile: (bucketName: string, filePath: string) => Promise<Buffer | null>
 
-  saveFile: (bucketName: string, filePath: string, content: Buffer) => Promise<void>
+  saveFile: (
+    bucketName: string,
+    filePath: string,
+    content: Buffer,
+    opt?: CommonStorageSaveOptions,
+  ) => Promise<void>
+
+  getFileMetadata: (bucketName: string, filePath: string) => Promise<FileMetadata | null>
 
   /**
    * Should recursively delete all files in a folder, if path is a folder.

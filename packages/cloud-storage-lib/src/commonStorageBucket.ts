@@ -2,7 +2,13 @@ import type { Writable } from 'node:stream'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
-import type { CommonStorage, CommonStorageGetOptions, FileEntry } from './commonStorage.js'
+import type {
+  CommonStorage,
+  CommonStorageGetOptions,
+  CommonStorageSaveOptions,
+  FileEntry,
+  FileMetadata,
+} from './commonStorage.js'
 
 export interface CommonStorageBucketCfg {
   storage: CommonStorage
@@ -100,8 +106,12 @@ export class CommonStorageBucket {
     ).filter(Boolean)
   }
 
-  async saveFile(filePath: string, content: Buffer): Promise<void> {
-    await this.cfg.storage.saveFile(this.cfg.bucketName, filePath, content)
+  async saveFile(filePath: string, content: Buffer, opt?: CommonStorageSaveOptions): Promise<void> {
+    await this.cfg.storage.saveFile(this.cfg.bucketName, filePath, content, opt)
+  }
+
+  async getFileMetadata(filePath: string): Promise<FileMetadata | null> {
+    return await this.cfg.storage.getFileMetadata(this.cfg.bucketName, filePath)
   }
 
   /**
