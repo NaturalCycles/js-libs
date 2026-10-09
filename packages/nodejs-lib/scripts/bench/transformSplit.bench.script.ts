@@ -9,18 +9,20 @@ The current implementation adopts the ideas of binary-split v2.0.0:
 https://github.com/max-mapper/binary-split/releases/tag/v2.0.0
 - native Buffer#indexOf (with a byte value for 1-byte separators)
 - unterminated data is kept as a list of chunks and concatenated once, so a line spanning many chunks is linear
+and goes one step further than upstream: only the line that straddles the chunk boundary is copied,
+the rest of the chunk is scanned in place (upstream re-concatenates the whole chunk, which costs up to 2x on 10KB lines).
 
 Results (Apple Silicon, Node 24.21, 64KB chunks, median of 5 runs, legacy transformSplitOnNewline = 1.00x):
 
   | Scenario                    | legacy    | current    | Speedup |
   |-----------------------------|-----------|------------|---------|
-  | tiny lines (10B), \n        | 158 MB/s  | 115 MB/s   | 0.73x   |
-  | short lines (22B), \n       | 291 MB/s  | 257 MB/s   | 0.88x   |
-  | ndjson lines (~150B), \n    | 858 MB/s  | 1531 MB/s  | 1.78x   |
-  | long lines (10KB), \n       | 923 MB/s  | 8329 MB/s  | 9.0x    |
-  | single 50MB line, \n        | 2036 ms   | 3.4 ms     | ~600x   |
-  | short lines (23B), \r\n     | 158 MB/s  | 178 MB/s   | 1.12x   |
-  | ndjson lines (~150B), \r\n  | 310 MB/s  | 1323 MB/s  | 4.3x    |
+  | tiny lines (10B), \n        | 154 MB/s  | 113 MB/s   | 0.73x   |
+  | short lines (22B), \n       | 286 MB/s  | 257 MB/s   | 0.90x   |
+  | ndjson lines (~150B), \n    | 893 MB/s  | 1719 MB/s  | 1.92x   |
+  | long lines (10KB), \n       | 963 MB/s  | 18734 MB/s | 19x     |
+  | single 50MB line, \n        | 1752 ms   | 3.0 ms     | ~580x   |
+  | short lines (23B), \r\n     | 157 MB/s  | 176 MB/s   | 1.12x   |
+  | ndjson lines (~150B), \r\n  | 308 MB/s  | 1383 MB/s  | 4.5x    |
 
 Native indexOf has a fixed per-call overhead that only pays off from ~64-byte lines, hence the known
 regression on very short lines (a js-loop fast path for them was measured to fix it, but not kept for simplicity).

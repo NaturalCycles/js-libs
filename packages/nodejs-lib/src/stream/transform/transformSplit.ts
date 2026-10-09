@@ -35,8 +35,9 @@ export function transformSplit(separator = '\n'): TransformTyped<Buffer, Buffer>
   // a multi-byte separator may straddle a chunk boundary, so we keep that many trailing bytes around
   const overlap = matcherLength - 1
 
-  // Unterminated data is collected as a list of chunks and concatenated only once a separator arrives,
-  // so a long line spanning many chunks is copied once rather than on every chunk (linear, not quadratic)
+  // Unterminated data is collected as a list of chunks and concatenated only once its separator arrives,
+  // so a line spanning many chunks is copied once rather than on every chunk (linear, not quadratic).
+  // Only that one line is copied: the rest of the chunk is scanned in place and emitted as views into it.
   let pending: Buffer[] = []
   let pendingLength = 0
   let edge: Buffer | undefined // last `overlap` bytes of pending data, only tracked when overlap > 0
@@ -47,43 +48,54 @@ export function transformSplit(separator = '\n'): TransformTyped<Buffer, Buffer>
     readableObjectMode: true,
 
     transform(chunk: Buffer, _enc, cb) {
-      let buf = chunk
-      let offset = 0
+      let start = 0
 
       if (pendingLength > 0) {
-        const straddles =
-          overlap > 0 && Buffer.concat([edge!, chunk.subarray(0, overlap)]).includes(matcher)
-        const idxInChunk = straddles ? -1 : chunk.indexOf(needle)
-        if (!straddles && idxInChunk === -1) {
-          // No separator yet: keep accumulating without copying
-          pending.push(chunk)
-          pendingLength += chunk.length
-          if (overlap > 0) {
-            edge = Buffer.concat([edge!, chunk.subarray(-overlap)]).subarray(-overlap)
+        // A multi-byte separator may straddle the chunk boundary: look for it in the last `overlap` bytes
+        // of pending data followed by the first `overlap` bytes of this chunk
+        const straddleIdx =
+          overlap > 0 ? Buffer.concat([edge!, chunk.subarray(0, overlap)]).indexOf(matcher) : -1
+
+        // Position of the first separator in chunk coordinates, negative when it started inside the pending data
+        let idx: number
+        if (straddleIdx === -1) {
+          idx = chunk.indexOf(needle)
+          if (idx === -1) {
+            // No separator yet: keep accumulating without copying
+            pending.push(chunk)
+            pendingLength += chunk.length
+            if (overlap > 0) {
+              edge = Buffer.concat([edge!, chunk.subarray(-overlap)]).subarray(-overlap)
+            }
+            cb()
+            return
           }
-          cb()
-          return
+        } else {
+          idx = straddleIdx - edge!.length
         }
-        pending.push(chunk)
-        buf = Buffer.concat(pending, pendingLength + chunk.length)
-        // Start scanning where the first separator can possibly be
-        offset = straddles ? Math.max(0, pendingLength - overlap) : pendingLength + idxInChunk
+
+        // Complete the pending line with the head of this chunk
+        if (idx > 0) pending.push(chunk.subarray(0, idx))
+        const lineLength = pendingLength + idx
+        if (lineLength > 0) {
+          this.push(Buffer.concat(pending, lineLength))
+        }
         pending = []
         pendingLength = 0
+        start = idx + matcherLength
       }
 
-      let start = 0
-      let idx = buf.indexOf(needle, offset)
+      let idx = chunk.indexOf(needle, start)
       while (idx !== -1) {
         if (idx > start) {
-          this.push(buf.subarray(start, idx))
+          this.push(chunk.subarray(start, idx))
         }
         start = idx + matcherLength
-        idx = buf.indexOf(needle, start)
+        idx = chunk.indexOf(needle, start)
       }
 
-      if (start < buf.length) {
-        const rest = buf.subarray(start)
+      if (start < chunk.length) {
+        const rest = chunk.subarray(start)
         pending.push(rest)
         pendingLength = rest.length
         if (overlap > 0) edge = rest.subarray(-overlap)
