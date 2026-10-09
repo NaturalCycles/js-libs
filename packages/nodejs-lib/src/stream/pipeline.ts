@@ -114,7 +114,7 @@ export class Pipeline<T = unknown> {
   static fromFile(sourceFilePath: string): Pipeline<Uint8Array> {
     return new Pipeline(
       fs2.createReadStream(sourceFilePath, {
-        highWaterMark: 64 * 1024, // no observed speedup
+        highWaterMark: 256 * 1024, // 64KB had no observed speedup over the default; 256KB is +6-12% end-to-end on ~9KB rows, neutral on ~180B rows, 1MB brings nothing more
       }),
       false,
     )
@@ -347,7 +347,7 @@ export class Pipeline<T = unknown> {
   gunzip(this: Pipeline<Uint8Array>, opt?: ZlibOptions): Pipeline<Uint8Array> {
     this.transforms.push(
       createUnzip({
-        chunkSize: 64 * 1024, // speedup from ~3200 to 3800 rps!
+        chunkSize: 256 * 1024, // 64KB: speedup from ~3200 to 3800 rps! 256KB: +6-8% more on ~9KB rows, neutral on ~180B rows
         ...opt,
       }),
     )
@@ -368,7 +368,7 @@ export class Pipeline<T = unknown> {
   zstdDecompress(this: Pipeline<Uint8Array>, opt?: ZstdOptions): Pipeline<Uint8Array> {
     this.transforms.push(
       createZstdDecompress({
-        chunkSize: 64 * 1024, // todo: test it
+        chunkSize: 256 * 1024, // tested: 256KB is +10-12% over 64KB on ~9KB rows, neutral on ~180B rows
         ...opt,
       }),
     )

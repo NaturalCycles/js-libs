@@ -42,7 +42,7 @@ import {
   transformSplitOnNewline,
 } from '../../src/stream/transform/transformSplit.js'
 
-const CHUNK_SIZE = 64 * 1024 // same as fs.createReadStream default and createReadStreamAsNDJson
+const CHUNK_SIZE = 64 * 1024 // fs.createReadStream default (createReadStreamAsNDJson and Pipeline use 256KB, which only matters end-to-end, not for the transform itself)
 const RUNS = 5
 
 interface Scenario {
