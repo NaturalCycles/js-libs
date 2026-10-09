@@ -5,11 +5,12 @@ import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _percentile } from '@naturalcycles/js-lib/math/math.util.js'
 import { NumberStack } from '@naturalcycles/js-lib/math/stack.util.js'
 import { _get, _mapValues } from '@naturalcycles/js-lib/object/object.util.js'
+import { htmlEscape } from '@naturalcycles/js-lib/string/escape.js'
 import { _stringMapEntries, _stringMapValues } from '@naturalcycles/js-lib/types'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { onFinished } from '../onFinished.js'
 import { getRequestEndpoint } from './request.util.js'
-import type { BackendRequestHandler } from './server.model.js'
+import type { BackendRequest, BackendRequestHandler } from './server.model.js'
 
 const { GAE_INSTANCE } = process.env
 
@@ -86,7 +87,7 @@ export const serverStatsHTMLHandler: BackendRequestHandler = (req, res) => {
     }).map(([endpoint, stat]) => {
       return [
         '<tr>',
-        `<td><pre>${endpoint}</pre></td>`,
+        `<td><pre>${htmlEscape(endpoint)}</pre></td>`,
         `<td align="right"><pre>${stat.total}</pre></td>`,
         // oxlint-disable-next-line @typescript-eslint/no-base-to-string
         ...families.map(f => `<td align="right"><pre>${stat[f]}</pre></td>`),
@@ -97,7 +98,7 @@ export const serverStatsHTMLHandler: BackendRequestHandler = (req, res) => {
     '</table>',
   ].join('\n')
 
-  res.send(html)
+  res.type('html').send(html)
 }
 
 /**
@@ -113,7 +114,12 @@ export function serverStatsMiddleware(): BackendRequestHandler {
       const now = Date.now()
       const latency = now - started
 
-      const endpoint = getRequestEndpoint(req)
+      // Only requests that matched a route are recorded by their route pattern.
+      // Unmatched requests (404s, requests rejected by router-level middleware) carry an
+      // arbitrary client-controlled path: recording them per-path would let any client
+      // grow the map unboundedly and plant arbitrary strings into it.
+      // So they're bucketed per mount point instead.
+      const endpoint = req.route ? getRequestEndpoint(req) : getUnmatchedEndpoint(req)
 
       serverStatsMap[endpoint] ||= {
         stack: new NumberStack(SIZE),
@@ -135,6 +141,14 @@ export function serverStatsMiddleware(): BackendRequestHandler {
 
     next()
   }
+}
+
+/**
+ * Returns e.g `GET /*` or `GET /api/v3/admin/*`.
+ * `req.baseUrl` is the mount point that matched, so it's bounded by the app's routing config.
+ */
+function getUnmatchedEndpoint(req: BackendRequest): string {
+  return `${req.method} ${req.baseUrl.toLowerCase()}/*`
 }
 
 function cleanupServerStats(): void {

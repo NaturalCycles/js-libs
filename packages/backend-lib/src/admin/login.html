@@ -63,7 +63,8 @@
       })
 
       const qs = Object.fromEntries(new URLSearchParams(location.search))
-      const { autoLogin, logout, returnUrl, adminTokenKey = 'admin_token' } = qs
+      const { autoLogin, logout, adminTokenKey = 'admin_token' } = qs
+      const returnUrl = toSafeReturnUrl(qs.returnUrl)
       // console.log(qs)
 
       const app = createApp({
@@ -135,6 +136,20 @@
       function logError(err) {
         console.error(err)
         alert('Error\n ' + JSON.stringify(err, null, 2))
+      }
+
+      /**
+       * `returnUrl` is client-controlled. Only http(s) urls are allowed:
+       * anything else (e.g `javascript:`) would otherwise be executed by `location.href = returnUrl`
+       * in the context of this page, where the token is exposed.
+       */
+      function toSafeReturnUrl(url) {
+        if (!url) return
+        try {
+          const { protocol } = new URL(url, location.href)
+          if (protocol === 'http:' || protocol === 'https:') return url
+        } catch {}
+        console.warn('ignoring invalid returnUrl', url)
       }
 
       async function postToken(token) {

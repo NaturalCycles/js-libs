@@ -21,6 +21,14 @@ export interface RequestTimeoutMiddlewareCfg {
    * @default 'Request timed out'
    */
   httpErrorMessage?: string
+
+  /**
+   * Upper bound for the `?requestTimeout=N` query override.
+   * Higher values are clamped to it, so a client cannot hold a request open for arbitrarily long.
+   *
+   * @default 600
+   */
+  maxTimeoutSeconds?: NumberOfSeconds
 }
 
 const code = 'REQUEST_TIMEOUT'
@@ -33,6 +41,7 @@ export function requestTimeoutMiddleware(
     timeoutSeconds: defTimeoutSeconds,
     backendResponseStatusCode,
     httpErrorMessage,
+    maxTimeoutSeconds,
   } = {
     // Considerations about the default value of the timeout.
     // Ideally the default value here would be HIGHER than the default timeout for getGot (in nodejs-lib),
@@ -41,13 +50,12 @@ export function requestTimeoutMiddleware(
     timeoutSeconds: 120,
     backendResponseStatusCode: 503,
     httpErrorMessage: 'Request timed out',
+    maxTimeoutSeconds: 600,
     ...cfg,
   }
 
   return function requestTimeoutHandler(req, res, next) {
-    const timeoutSeconds = req.query[REQUEST_TIMEOUT_QUERY_KEY]
-      ? Number.parseInt(req.query[REQUEST_TIMEOUT_QUERY_KEY] as string)
-      : defTimeoutSeconds
+    const timeoutSeconds = getTimeoutSeconds(req, defTimeoutSeconds, maxTimeoutSeconds)
 
     // If requestTimeout was previously set - cancel it first
     // Then set the new requestTimeout and handler
@@ -76,6 +84,26 @@ export function requestTimeoutMiddleware(
   }
 }
 
+/**
+ * `?requestTimeout=N` query param lets the client override the timeout of its request
+ * (used e.g by Cloud Tasks for long-running tasks).
+ * Being client-controlled, it is validated: non-numeric or non-positive values are ignored
+ * (fall back to the default), values above `maxTimeoutSeconds` are clamped.
+ */
+function getTimeoutSeconds(
+  req: BackendRequest,
+  defTimeoutSeconds: NumberOfSeconds,
+  maxTimeoutSeconds: NumberOfSeconds,
+): NumberOfSeconds {
+  const raw = req.query[REQUEST_TIMEOUT_QUERY_KEY]
+  if (typeof raw !== 'string') return defTimeoutSeconds
+
+  const requested = Number.parseInt(raw, 10)
+  if (Number.isNaN(requested) || requested <= 0) return defTimeoutSeconds
+
+  return Math.min(requested, maxTimeoutSeconds)
+}
+
 export interface CustomRequestTimeoutMiddlewareCfg {
   /**
    * @default 120
@@ -87,7 +115,7 @@ export interface CustomRequestTimeoutMiddlewareCfg {
  * Example:
  *
  * router.get('/', customRequestTimeoutMiddleware(
- *   (req, res) => res.status(409).send('my custom message!'),
+ *   (req, res) => res.status(409).type('text/plain').send('my custom message!'),
  *   { timeoutSeconds: 30 },
  * )
  */

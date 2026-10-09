@@ -31,6 +31,7 @@ export function basicAuthMiddleware(cfg: BasicAuthMiddlewareCfg): BackendRequest
     res
       .set('WWW-Authenticate', `Basic${realm ? ` realm="${realm}"` : ''}`)
       .status(401)
+      .type('text/plain')
       .send('Unauthorized')
   }
 }
