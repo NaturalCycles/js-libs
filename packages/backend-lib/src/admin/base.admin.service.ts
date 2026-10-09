@@ -7,6 +7,8 @@ import type { BackendRequest, BackendRequestHandler } from '../server/server.mod
 
 /**
  * Base implementation based on Firebase Auth tokens passed as 'admin_token' cookie.
+ *
+ * @deprecated Use `AuthService`, with `FirebaseAuthService` for `authenticate`.
  */
 export class BaseAdminService {
   constructor(
@@ -309,6 +311,9 @@ const adminInfoDisabled = (): AdminInfo => ({
   permissions: [],
 })
 
+/**
+ * @deprecated Use `AuthServiceCfg` and `FirebaseAuthServiceCfg`.
+ */
 export interface AdminServiceCfg {
   /**
    * @default 'admin_token'
@@ -323,11 +328,17 @@ export interface AdminServiceCfg {
   authEnabled?: boolean
 }
 
+/**
+ * @deprecated Use `PermissionInfo`.
+ */
 export interface AdminInfo {
   email: string
   permissions: string[]
 }
 
+/**
+ * @deprecated Use `ResolvedAuth`.
+ */
 export interface ResolvedAdmin {
   /** undefined - no valid admin token */
   email?: string
@@ -335,6 +346,9 @@ export interface ResolvedAdmin {
   permissions?: Set<string>
 }
 
+/**
+ * @deprecated Use `AuthCheckOptions`.
+ */
 export interface CheckPermissionsOptions {
   /**
    * false - one granted permission is enough.
@@ -344,6 +358,9 @@ export interface CheckPermissionsOptions {
   andComparison?: boolean
 }
 
+/**
+ * @deprecated Use `AuthService.has` / `AuthService.require`.
+ */
 export interface CheckPermissionsResult {
   /** undefined - no valid admin token */
   email?: string

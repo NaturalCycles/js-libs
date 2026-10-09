@@ -6,6 +6,9 @@ import type { BackendRequestHandler } from '../server/server.model.js'
 import type { BaseAdminService } from './base.admin.service.js'
 import type { FirebaseSharedServiceCfg } from './firebase.shared.service.js'
 
+/**
+ * @deprecated Use `AuthLoginRedirectMiddlewareCfg`.
+ */
 export interface RequireAdminCfg {
   /**
    * @default '/login.html'
@@ -35,11 +38,17 @@ export interface RequireAdminCfg {
   andComparison?: boolean
 }
 
+/**
+ * @deprecated Use `AuthMiddleware`.
+ */
 export type AdminMiddleware = (
   reqPermissions?: string[],
   cfg?: RequireAdminCfg,
 ) => BackendRequestHandler
 
+/**
+ * @deprecated Use `AuthService.getLoginRedirectMiddleware`.
+ */
 export function createAdminMiddleware(
   adminService: BaseAdminService,
   cfgDefaults: RequireAdminCfg = {},
@@ -56,6 +65,8 @@ export function createAdminMiddleware(
  * If not authenticated - will redirect to `loginHtmlPath` (default to /login.html).
  * If authenticated, but not authorized - will throw 403.
  * Otherwise will just pass.
+ *
+ * @deprecated Use `AuthService.getLoginRedirectMiddleware`.
  */
 export function requireAdminPermissions(
   adminService: BaseAdminService,
@@ -97,6 +108,9 @@ interface LoginHtmlCfg {
   firebaseAuthProvider: string
 }
 
+/**
+ * @deprecated Use `loginHtmlHandler`.
+ */
 export function loginHtml(firebaseServiceCfg: FirebaseSharedServiceCfg): BackendRequestHandler {
   const {
     apiKey: firebaseApiKey,
@@ -124,6 +138,9 @@ const getLoginHtml = _memoized((cfg: LoginHtmlCfg) => {
     .replaceAll('<%= firebaseAuthProvider %>', cfg.firebaseAuthProvider)
 })
 
+/**
+ * @deprecated Use `AuthService.getLoginRedirectMiddleware`.
+ */
 export function getLoginHtmlRedirect(href: string): string {
   return `
 <html>
