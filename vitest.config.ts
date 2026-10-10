@@ -7,10 +7,10 @@ export default defineVitestMonorepoConfig({
     // mode, so this one override disables it for the whole monorepo (dev-lib enables it in CI).
     coverage: { enabled: false },
     // fileParallelism: false, // uncomment to debug
+    // detectAsyncLeaks: true, // uncomment to debug
     experimental: {
-      // fsModuleCache: true,
-      // printImportBreakdown: true,
+      // uncomment to debug import times:
+      // importDurations: { print: true, limit: 100 },
     },
-    // detectAsyncLeaks: true, // todo: test it out!
   },
 })

@@ -9,7 +9,7 @@ export { CollectReporter } from './collectReporter.js'
 
 const runsInIDE = doesItRunInIDE()
 const testType = getTestType(runsInIDE)
-const silent = shouldBeSilent(runsInIDE)
+const silent = getSilent(runsInIDE)
 const { include, exclude } = getIncludeAndExclude(testType)
 const isCI = !!process.env.CI
 const coverageEnabled = isCI && testType === 'unit'
@@ -27,6 +27,9 @@ if (testType === 'unit') {
 }
 
 if (silent) {
+  // Tells the tests that vitest is suppressing console output, so they keep the output vitest
+  // can't intercept quiet too: child process stdio (see exec2.test.ts) and dev-lib's testLogger,
+  // which writes to process.stdout directly.
   process.env.TEST_SILENT = 'true'
 }
 
@@ -96,9 +99,6 @@ export function defineVitestMonorepoConfig(config) {
     ...config,
     test: {
       ...getRootConfig(),
-      // Console output of failed tests only. Not the all-or-nothing boolean `silent` of
-      // getSharedConfig, which is kept there for backwards compatibility.
-      silent: 'passed-only',
       ...config?.test,
     },
   })
@@ -114,7 +114,6 @@ export function getSharedConfig(cwd) {
     // In a monorepo they are IGNORED here (Vitest reads them from the root config only), so
     // defineVitestMonorepoConfig sets them on the root config instead.
     ...getRootConfig(),
-    silent,
     // Per-project options
     pool,
     maxWorkers,
@@ -146,12 +145,11 @@ export function getSharedConfig(cwd) {
  * only (`NonProjectOptions` in Vitest's types, plus `sequence.sequencer`), hence the ones that
  * must be set on the root config of a monorepo to take effect there. Shared by getSharedConfig
  * (where they apply in a single-package repo) and defineVitestMonorepoConfig.
- *
- * `silent` is root-only too, but is set by the callers, as they differ in it.
  */
 function getRootConfig() {
   return {
     watch: false,
+    silent,
     slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
     sequence: {
       sequencer: VitestAlphabeticSequencer,
@@ -335,32 +333,20 @@ function getTestType(runsInIDE) {
   return process.env.TEST_TYPE || 'unit'
 }
 
-function shouldBeSilent(runsInIDE) {
-  if (runsInIDE) {
-    return false
-  }
-  return isRunningAllTests()
-}
-
 /**
- * Detects if vitest is run with all tests, or with selected individual tests.
+ * Console output of failed tests only, in every CLI run - whether it runs all tests or a single
+ * file. Pass `--silent=false` to see the output of passing tests too.
+ * In the IDE everything is printed, as IDE runs are interactive debugging.
  */
-function isRunningAllTests() {
-  let vitestArg = false
-  let hasPositionalArgs = false
-  process.argv.forEach(a => {
-    if (a.includes('.bin/vitest')) {
-      vitestArg = true
-      return
-    }
-    if (!vitestArg) return
-    if (!a.startsWith('-')) {
-      hasPositionalArgs = true
-    }
-  })
-  // console.log({vitestArg, hasPositionalArgs}, process.argv)
-
-  return !hasPositionalArgs
+function getSilent(runsInIDE) {
+  if (runsInIDE) return false
+  // Vitest applies `--silent=false` to `silent` by itself; mirroring it here keeps TEST_SILENT
+  // (see above) in sync, so the output vitest can't intercept is shown as well.
+  const silentFalse = process.argv.some(
+    (a, i) => a === '--silent=false' || (a === '--silent' && process.argv[i + 1] === 'false'),
+  )
+  if (silentFalse) return false
+  return 'passed-only'
 }
 
 function getSetupFiles(testType, cwd = process.cwd()) {
