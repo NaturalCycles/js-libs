@@ -37,6 +37,9 @@ if (silent) {
  *   // overrides here, e.g:
  *   // bail: 1,
  * })
+ *
+ * In a monorepo: use it in the vitest.config.ts of each package (passing `import.meta.dirname`
+ * as cwd), and defineVitestMonorepoConfig in the root vitest.config.ts.
  */
 export function defineVitestConfig(config, cwd) {
   const mergedConfig = defineConfig({
@@ -67,26 +70,89 @@ export function defineVitestConfig(config, cwd) {
 }
 
 /**
- * Shared config for Vitest.
+ * Use it in the ROOT vitest.config.ts of a monorepo (Vitest `projects` mode):
+ *
+ * export default defineVitestMonorepoConfig({
+ *   test: {
+ *     projects: ['./packages/*'],
+ *     // overrides here, e.g:
+ *     // coverage: { enabled: false },
+ *   },
+ * })
+ *
+ * In `projects` mode Vitest has two kinds of config: the root config (this one) and the
+ * per-project configs (defineVitestConfig in each package). A set of options is root-only:
+ * Vitest reads them from the root config only and silently IGNORES the per-project values
+ * (see `NonProjectOptions` in Vitest's types): `reporters`, `outputFile`, `coverage`, `silent`,
+ * `watch`, `slowTestThreshold`, `sequence.sequencer`, etc.
+ *
+ * This helper sets the root-only part of the shared config (see getRootConfig) on the root
+ * config, where it takes effect. So the junit/json/coverage reports are written, the
+ * SummaryReporter reports the slowest tests across ALL projects, and the
+ * VitestAlphabeticSequencer is actually used, monorepo-wide.
+ */
+export function defineVitestMonorepoConfig(config) {
+  return defineConfig({
+    ...config,
+    test: {
+      ...getRootConfig(),
+      // Console output of failed tests only. Not the all-or-nothing boolean `silent` of
+      // getSharedConfig, which is kept there for backwards compatibility.
+      silent: 'passed-only',
+      ...config?.test,
+    },
+  })
+}
+
+/**
+ * Shared config for Vitest: for a single-package repo, or for one project (package) of a
+ * monorepo (pass `import.meta.dirname` as cwd).
  */
 export function getSharedConfig(cwd) {
   return {
+    // Root-only options. In a single-package repo this config IS the root, so they apply.
+    // In a monorepo they are IGNORED here (Vitest reads them from the root config only), so
+    // defineVitestMonorepoConfig sets them on the root config instead.
+    ...getRootConfig(),
+    silent,
+    // Per-project options
     pool,
     maxWorkers,
     isolate: false,
-    watch: false,
     // dir: 'src',
     restoreMocks: true,
     // restoreMocks does not cover vi.stubEnv/vi.stubGlobal
     unstubEnvs: true,
     unstubGlobals: true,
-    silent,
     setupFiles: getSetupFiles(testType, cwd),
     logHeapUsage: true,
     testTimeout: 60_000,
     hookTimeout: 60_000,
-    slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
     injectCjsGlobals: false,
+    deps: {
+      // Disable CJS/ESM interop to match production Node.js behavior.
+      // Without this, vitest auto-promotes default exports to named exports,
+      // which can mask import bugs (e.g., ejs v4 renderFile issue).
+      // Vitest's own default is `true`.
+      interopDefault: false,
+    },
+    include,
+    exclude,
+  }
+}
+
+/**
+ * The root-only subset of the shared config: the options Vitest reads from the root config
+ * only (`NonProjectOptions` in Vitest's types, plus `sequence.sequencer`), hence the ones that
+ * must be set on the root config of a monorepo to take effect there. Shared by getSharedConfig
+ * (where they apply in a single-package repo) and defineVitestMonorepoConfig.
+ *
+ * `silent` is root-only too, but is set by the callers, as they differ in it.
+ */
+function getRootConfig() {
+  return {
+    watch: false,
+    slowTestThreshold: isCI ? 500 : 300, // higher threshold in CI
     sequence: {
       sequencer: VitestAlphabeticSequencer,
       // shuffle: {
@@ -95,14 +161,45 @@ export function getSharedConfig(cwd) {
       // },
       // seed: 1, // this makes the order of tests deterministic (but still not alphabetic)
     },
-    include,
-    exclude,
     reporters: getReporters(junitReporterEnabled, testType),
     outputFile: getOutputFile(),
     coverage: getCoverageConfig(),
   }
 }
 
+/**
+ * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
+ * `reporters` together with all the other root-only options (see getRootConfig).
+ */
+export function getRootReporters() {
+  return getReporters(junitReporterEnabled, testType)
+}
+
+/**
+ * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
+ * `outputFile` together with all the other root-only options (see getRootConfig).
+ */
+export function getRootOutputFile() {
+  return getOutputFile()
+}
+
+/**
+ * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
+ * `coverage` together with all the other root-only options (see getRootConfig).
+ */
+export function getRootCoverage() {
+  return getCoverageConfig()
+}
+
+/**
+ * The reporters, shared by the per-package (getSharedConfig) and the monorepo root
+ * (defineVitestMonorepoConfig) configs.
+ *
+ * In a monorepo (`projects` mode) `reporters` is root-only: per-project reporters are ignored.
+ * So the per-package SummaryReporter never runs in the aggregate root run, and - crucially -
+ * a root-level SummaryReporter sees the test modules of ALL projects at once, letting it report
+ * the slowest tests across the entire monorepo.
+ */
 function getReporters(junitReporterEnabled, testType) {
   const override = getReporterOverride()
   if (override) return override
@@ -117,91 +214,19 @@ function getReporters(junitReporterEnabled, testType) {
 }
 
 /**
- * Reporters for the monorepo root config (Vitest `projects` mode).
+ * The coverage config, shared by the per-package (getSharedConfig) and the monorepo root
+ * (defineVitestMonorepoConfig) configs. Only enabled for CI unit-test runs.
  *
- * `reporters` is a root-only Vitest option: per-project reporters are ignored
- * when running via `projects`. So the per-package SummaryReporter never runs in
- * the aggregate root run, and - crucially - a root-level SummaryReporter sees
- * the test modules of ALL projects at once, letting it report the slowest tests
- * across the entire monorepo.
- *
- * Use it in the root vitest.config.ts:
- *
- * export default defineConfig({
- *   test: {
- *     projects: ['./packages/*'],
- *     reporters: getRootReporters(),
- *   },
- * })
- */
-export function getRootReporters() {
-  const override = getReporterOverride()
-  if (override) return override
-
-  const { GITHUB_ACTIONS } = process.env
-  return [
-    'default',
-    GITHUB_ACTIONS && 'github-actions',
-    new SummaryReporter(),
-    ...getJunitReporters(junitReporterEnabled, testType),
-  ].filter(Boolean)
-}
-
-/**
- * `outputFile` for the junit/json reporters at the monorepo root config.
- *
- * Like `reporters`, `outputFile` is a root-only Vitest option: per-project
- * `outputFile` is ignored when running via `projects`. So the root config must
- * set it (alongside getRootReporters) for the junit/json report to be written
- * in the aggregate root run.
- *
- * Use it in the root vitest.config.ts:
- *
- * export default defineConfig({
- *   test: {
- *     projects: ['./packages/*'],
- *     reporters: getRootReporters(),
- *     outputFile: getRootOutputFile(),
- *   },
- * })
- */
-export function getRootOutputFile() {
-  return getOutputFile()
-}
-
-/**
- * `coverage` config for the monorepo root config (Vitest `projects` mode).
- *
- * Like `reporters` and `outputFile`, `coverage` is a root-only Vitest option:
- * it is read from the root project only (see Vitest's `getRootProject().
- * serializedConfig.coverage`), so the per-package `coverage` set in
- * getSharedConfig is IGNORED when running via `projects`. Without this on the
+ * In a monorepo (`projects` mode) `coverage` is root-only: it is read from the root project
+ * only (see Vitest's `getRootProject().serializedConfig.coverage`), so the per-package
+ * `coverage` set in getSharedConfig is IGNORED when running via `projects`. Without it on the
  * root config no coverage report is produced at all (e.g. the CI upload of
  * ./coverage/coverage-summary.json finds nothing).
  *
- * The report is a single, unified one spanning all projects: Vitest tracks
- * coverage per-project internally but emits one report under `./coverage`.
- * Per-project coverage `include` globs are matched unanchored against absolute
- * paths, so executed files under `packages/<pkg>/src/**` are still included.
- *
- * Use it in the root vitest.config.ts:
- *
- * export default defineConfig({
- *   test: {
- *     projects: ['./packages/*'],
- *     reporters: getRootReporters(),
- *     outputFile: getRootOutputFile(),
- *     coverage: getRootCoverage(),
- *   },
- * })
- */
-export function getRootCoverage() {
-  return getCoverageConfig()
-}
-
-/**
- * The coverage config, shared by the per-package (getSharedConfig) and root
- * (getRootCoverage) configs. Only enabled for CI unit-test runs.
+ * The report is a single, unified one spanning all projects: Vitest tracks coverage per-project
+ * internally but emits one report under `./coverage`. Per-project coverage `include` globs are
+ * matched unanchored against absolute paths, so executed files under `packages/<pkg>/src/**`
+ * are still included.
  */
 function getCoverageConfig() {
   return {
@@ -240,7 +265,7 @@ function getCoverageConfig() {
 
 /**
  * The junit + json reporters, enabled in CI (except for manual tests).
- * Shared by the per-package (getReporters) and root (getRootReporters) configs.
+ * Used (via getReporters) by both the per-package and the monorepo root configs.
  */
 function getJunitReporters(junitReporterEnabled, testType) {
   if (!junitReporterEnabled) return []

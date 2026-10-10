@@ -1,31 +1,12 @@
-import {
-  getRootCoverage,
-  getRootOutputFile,
-  getRootReporters,
-} from '@naturalcycles/dev-lib/cfg/vitest.config.js'
-import { defineConfig } from 'vitest/config'
+import { defineVitestMonorepoConfig } from '@naturalcycles/dev-lib/cfg/vitest.config.js'
 
-export default defineConfig({
+export default defineVitestMonorepoConfig({
   test: {
     projects: ['./packages/*'],
-    // Root-only reporters: agents get the compact 'agent' reporter,
-    // everyone else gets the default reporters + a monorepo-wide SummaryReporter
-    // (slowest tests across ALL projects), plus the junit/json reporters in CI.
-    reporters: getRootReporters(),
-    // Root-only outputFile: pairs with the junit/json reporters above so the
-    // aggregate report is actually written in projects mode (see getRootOutputFile).
-    outputFile: getRootOutputFile(),
-    // Root-only coverage: per-project coverage config is ignored in projects
-    // mode, so the coverage report must be configured here (see getRootCoverage).
-    coverage: getRootCoverage(),
-    silent: 'passed-only',
+    // This repo doesn't use coverage reports. `coverage` is a root-only option in `projects`
+    // mode, so this one override disables it for the whole monorepo (dev-lib enables it in CI).
+    coverage: { enabled: false },
     // fileParallelism: false, // uncomment to debug
-    deps: {
-      // Disable CJS/ESM interop to match production Node.js behavior.
-      // Without this, vitest auto-promotes default exports to named exports,
-      // which can mask import bugs (e.g., ejs v4 renderFile issue).
-      interopDefault: false,
-    },
     experimental: {
       // fsModuleCache: true,
       // printImportBreakdown: true,
