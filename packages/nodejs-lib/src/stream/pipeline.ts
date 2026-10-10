@@ -309,7 +309,7 @@ export class Pipeline<T = unknown> {
 
   parseNDJson<TO = unknown>(this: Pipeline<Uint8Array>): Pipeline<TO> {
     // It was said that transformJsonParse() separately is 10% or more slower than .map(line => JSON.parse(line))
-    // So, we can investigate a speedup
+    // Measured again on Node 24: the opposite, transformJsonParse() is 1.5x faster (Readable.map costs ~1µs per row), see createReadStreamAsNDJson
     this.transforms.push(transformSplitOnNewline(), transformJsonParse())
     this.objectMode = true
     return this as any

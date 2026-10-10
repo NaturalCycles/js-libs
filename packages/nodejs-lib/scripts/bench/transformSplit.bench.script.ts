@@ -16,18 +16,20 @@ Results (Apple Silicon, Node 24.21, 64KB chunks, median of 5 runs, legacy transf
 
   | Scenario                    | legacy    | current    | Speedup |
   |-----------------------------|-----------|------------|---------|
-  | tiny lines (10B), \n        | 154 MB/s  | 113 MB/s   | 0.73x   |
-  | short lines (22B), \n       | 286 MB/s  | 257 MB/s   | 0.90x   |
-  | ndjson lines (~150B), \n    | 893 MB/s  | 1719 MB/s  | 1.92x   |
-  | long lines (10KB), \n       | 963 MB/s  | 18734 MB/s | 19x     |
-  | single 50MB line, \n        | 1752 ms   | 3.0 ms     | ~580x   |
-  | short lines (23B), \r\n     | 157 MB/s  | 176 MB/s   | 1.12x   |
-  | ndjson lines (~150B), \r\n  | 308 MB/s  | 1383 MB/s  | 4.5x    |
+  | tiny lines (10B), \n        | 155 MB/s  | 112 MB/s   | 0.72x   |
+  | short lines (22B), \n       | 286 MB/s  | 246 MB/s   | 0.86x   |
+  | ndjson lines (~150B), \n    | 904 MB/s  | 1636 MB/s  | 1.81x   |
+  | long lines (10KB), \n       | 937 MB/s  | 14169 MB/s | 15x     |
+  | single 50MB line, \n        | 2135 ms   | 4.0 ms     | ~530x   |
+  | short lines (23B), \r\n     | 157 MB/s  | 173 MB/s   | 1.10x   |
+  | ndjson lines (~150B), \r\n  | 305 MB/s  | 1316 MB/s  | 4.3x    |
 
 Native indexOf has a fixed per-call overhead that only pays off from ~64-byte lines, hence the known
 regression on very short lines (a js-loop fast path for them was measured to fix it, but not kept for simplicity).
 The 50MB line case is the quadratic Buffer.concat-on-every-chunk of the legacy implementation.
 Upstream binary-split v2.0.0 itself measures the same as the current implementation.
+The current implementation defers each chunk by a microtask (to overlap with async producers like zlib/fs, see transformSplit.ts),
+which on these in-memory chunks costs a few % on short lines and ~15% on 10KB lines at 64KB chunks.
 
 */
 

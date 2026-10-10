@@ -1,5 +1,6 @@
 import type { Transform } from 'node:stream'
-import { Readable } from 'node:stream'
+import { Readable, Writable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, test } from 'vitest'
 import { Pipeline } from '../pipeline.js'
@@ -133,6 +134,21 @@ test('deterministic fuzz: random line lengths, random chunk sizes', async () => 
 
 test('transformSplit throws on empty separator', () => {
   expect(() => transformSplit('')).toThrow('separator')
+})
+
+test('a synchronous throw while a line is consumed becomes a stream error', async () => {
+  // chunk processing is deferred to a microtask, where an unhandled throw would crash the process
+  const t = transformSplitOnNewline()
+  t.on('data', (line: Buffer) => {
+    if (line.toString() === 'b') throw new Error('boom')
+  })
+  await expect(
+    pipeline(
+      Readable.from([Buffer.from('a\nb\nc\n')], { objectMode: false }),
+      t,
+      new Writable({ objectMode: true, write: (_chunk, _enc, cb) => cb() }),
+    ),
+  ).rejects.toThrow('boom')
 })
 
 test('works inside Pipeline.splitOnNewline', async () => {
