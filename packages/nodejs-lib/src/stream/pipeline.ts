@@ -466,11 +466,19 @@ export class Pipeline<T = unknown> {
         signal: this.abortableSignal,
       })
     } catch (err) {
-      if (err instanceof Error && (err.cause as any)?.message === PIPELINE_GRACEFUL_ABORT) {
+      // The abort reason is checked on the signal rather than on `err.cause`: when the source has
+      // already emitted `end` by the time the abort lands (small `Readable.from` sources), node's
+      // pipeline reports ERR_STREAM_PREMATURE_CLOSE without a cause instead of the AbortError.
+      if (this.isGracefullyAborted()) {
         console.log('pipeline gracefully aborted') // todo: this message may be removed later
         return
       }
       throw err
     }
+  }
+
+  private isGracefullyAborted(): boolean {
+    const { aborted, reason } = this.abortableSignal
+    return aborted && reason instanceof Error && reason.message === PIPELINE_GRACEFUL_ABORT
   }
 }

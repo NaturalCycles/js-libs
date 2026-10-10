@@ -127,6 +127,7 @@ export function transformMap<IN = any, OUT = IN>(
   let inFlight = 0
   let blockedCallback: (() => void) | null = null
   let flushBlocked: DeferredPromise | null = null
+  let destroyBlocked: DeferredPromise | null = null
 
   // Warmup - cached concurrency to reduce Date.now() syscalls
   let warmupComplete = warmupSeconds <= 0 || maxConcurrency <= 1
@@ -220,7 +221,22 @@ export function transformMap<IN = any, OUT = IN>(
         if (inFlight === 0 && flushBlocked) {
           flushBlocked.resolve()
         }
+
+        // Let a pending destroy complete once nothing is in flight any more
+        if (inFlight === 0 && destroyBlocked) {
+          destroyBlocked.resolve()
+        }
       }
+    },
+    async destroy(err, cb) {
+      // An upstream abort (e.g. `limit` or END) destroys this stream while mappers are still running.
+      // The close is held until they settle, so that the pipeline resolves only once their side effects are done.
+      if (inFlight > 0) {
+        destroyBlocked = pDefer()
+        await destroyBlocked
+      }
+
+      cb(err)
     },
     async flush(cb) {
       // Wait for all in-flight operations to complete
