@@ -51,6 +51,16 @@ export interface CommonKeyValueDaoTransformer<V> {
 }
 
 /**
+ * Plain JSON, no compression. For small values, where compressing would cost more than it saves.
+ */
+export function commonKeyValueDaoJsonTransformer<T = any>(): CommonKeyValueDaoTransformer<T> {
+  return {
+    valueToBuffer: v => Buffer.from(JSON.stringify(v)),
+    bufferToValue: buf => JSON.parse(buf.toString()),
+  }
+}
+
+/**
  * @deprecated use zstd instead, gzip is obsolete
  */
 export function commonKeyValueDaoDeflatedJsonTransformer<
