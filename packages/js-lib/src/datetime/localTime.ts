@@ -69,10 +69,11 @@ const DATE_TIME_REGEX_LOOSE = /^(\d{4})-(\d{2})-(\d{2})([Tt\s](\d{2}):?(\d{2})?:
  * Supports 2 forms:
  * 1. 2023-03-03
  * 2. 2023-03-03T05:10:02
- * Ok, now it allows arbitrary stuff after `:ss`, to allow millis/timezone info,
- * but it will not take it into account.
+ * Ok, now it allows arbitrary stuff after `:ss`, to allow millis/timezone info.
+ * Millis (up to 3 digits after `.`) are taken into account, timezone info is not.
  */
-const DATE_TIME_REGEX_STRICT = /^(\d{4})-(\d{2})-(\d{2})[Tt\s](\d{2}):(\d{2}):(\d{2})/
+const DATE_TIME_REGEX_STRICT =
+  /^(\d{4})-(\d{2})-(\d{2})[Tt\s](\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?/
 const DATE_REGEX_STRICT = /^(\d\d\d\d)-(\d\d)-(\d\d)$/
 
 export class LocalTime {
@@ -924,7 +925,9 @@ class LocalTimeFactory {
       second: Number(m[6]) || 0,
     }
     if (!this.isDateTimeObjectValid(o)) return
-    return this.createDateFromDateTimeObject(o)
+    const d = this.createDateFromDateTimeObject(o)
+    if (m[7]) d.setMilliseconds(Number(m[7].padEnd(3, '0')))
+    return d
   }
 
   private parseLooselyOrUndefined(s: string | undefined | null): Date | undefined {

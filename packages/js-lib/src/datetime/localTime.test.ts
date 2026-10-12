@@ -234,6 +234,21 @@ test.each(validDates)('%s parses to %s and is strictly valid', (s, expected) => 
   expect(localTime.try(s)?.toString()).toBe(expected)
 })
 
+test.each([
+  ['2022-01-31', 0],
+  ['2022-01-31T05:05:05', 0],
+  ['2022-01-31T05:05:05Z', 0],
+  ['2022-01-31T05:05:05.Z', 0],
+  ['2022-01-31T05:05:05.5', 500],
+  ['2022-01-31T05:05:05.05', 50],
+  ['2022-01-31T05:05:05.123', 123],
+  ['2022-01-31T05:05:05.123Z', 123],
+  ['2022-01-31T05:05:05.123456+02:00', 123],
+] as [IsoDateTime, number][])('%s parses milliseconds as %s', (s, expected) => {
+  expect(localTime.fromIsoDateTimeString(s).$date.getMilliseconds()).toBe(expected)
+  expect(localTime(s).$date.getMilliseconds()).toBe(expected)
+})
+
 test.each(looselyValidDates)('%s parses to %s and is loosely valid', (s, expected) => {
   expect(localTime.isValid(s)).toBe(false)
   expect(localTime.isValidString(s)).toBe(false)
