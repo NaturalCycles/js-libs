@@ -102,7 +102,9 @@ async function parseMultipart(
       stream.on('close', () => {
         const data = Buffer.concat(chunks)
         files[name] = {
-          name: info.filename,
+          // busboy reports `filename` as undefined for a bare `application/octet-stream` part with
+          // no filename; normalize to `""`, same as a blank file input (`filename=""`) yields.
+          name: info.filename ?? '',
           mimeType: info.mimeType,
           encoding: info.encoding,
           data,
