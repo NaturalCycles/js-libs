@@ -166,30 +166,6 @@ function getRootConfig() {
 }
 
 /**
- * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
- * `reporters` together with all the other root-only options (see getRootConfig).
- */
-export function getRootReporters() {
-  return getReporters(junitReporterEnabled, testType)
-}
-
-/**
- * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
- * `outputFile` together with all the other root-only options (see getRootConfig).
- */
-export function getRootOutputFile() {
-  return getOutputFile()
-}
-
-/**
- * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
- * `coverage` together with all the other root-only options (see getRootConfig).
- */
-export function getRootCoverage() {
-  return getCoverageConfig()
-}
-
-/**
  * The reporters, shared by the per-package (getSharedConfig) and the monorepo root
  * (defineVitestMonorepoConfig) configs.
  *

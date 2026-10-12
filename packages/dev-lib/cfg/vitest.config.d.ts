@@ -37,24 +37,6 @@ export function defineVitestMonorepoConfig(config: Partial<ViteUserConfig>): Vit
  */
 export function getSharedConfig(cwd?: string): InlineConfig
 
-/**
- * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
- * `reporters` together with all the other root-only options.
- */
-export function getRootReporters(): InlineConfig['reporters']
-
-/**
- * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
- * `outputFile` together with all the other root-only options.
- */
-export function getRootOutputFile(): InlineConfig['outputFile']
-
-/**
- * @deprecated Use defineVitestMonorepoConfig for the monorepo root config instead. It sets
- * `coverage` together with all the other root-only options.
- */
-export function getRootCoverage(): InlineConfig['coverage']
-
 export const CollectReporter: any
 
 export class SummaryReporter {}
