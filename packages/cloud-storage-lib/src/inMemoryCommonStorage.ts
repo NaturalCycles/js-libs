@@ -29,6 +29,12 @@ export class InMemoryCommonStorage implements CommonStorage {
 
   async ping(): Promise<void> {}
 
+  clear(): void {
+    this.data = {}
+    this.metadata = {}
+    this.publicMap = {}
+  }
+
   async getBucketNames(): Promise<string[]> {
     return Object.keys(this.data)
   }

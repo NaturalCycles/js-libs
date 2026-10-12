@@ -87,3 +87,16 @@ test('combineFiles does not keep metadata', async () => {
     size: content.length * 2,
   })
 })
+
+test('clear removes files, metadata and visibility', async () => {
+  const s = new InMemoryCommonStorage()
+  await s.saveFile(bucket, 'a/1', content, { metadata })
+  await s.setFileVisibility(bucket, 'a/1', true)
+
+  s.clear()
+
+  expect(s.data).toEqual({})
+  expect(s.metadata).toEqual({})
+  expect(s.publicMap).toEqual({})
+  expect(await s.getFileVisibility(bucket, 'a/1')).toBe(false)
+})

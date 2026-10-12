@@ -11,6 +11,10 @@ export class InMemoryPersistencePlugin implements FileDBPersistencePlugin {
 
   async ping(): Promise<void> {}
 
+  clear(): void {
+    this.data = {}
+  }
+
   async getTables(): Promise<string[]> {
     return Object.keys(this.data)
   }

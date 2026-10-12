@@ -90,3 +90,13 @@ test('patchById patches existing row and throws on missing row', async () => {
 //   await db.resetCache()
 //   await db.flushToDisk()
 // })
+
+test('clear removes all tables, including tables outside of tablesPrefix', async () => {
+  const prefixedDB = new InMemoryDB({ tablesPrefix: 'ns1_' })
+  await prefixedDB.saveBatch(TEST_TABLE, [{ id: 'id1' }])
+  prefixedDB.data['ns2_table'] = { id2: { id: 'id2' } }
+
+  prefixedDB.clear()
+
+  expect(prefixedDB.data).toEqual({})
+})

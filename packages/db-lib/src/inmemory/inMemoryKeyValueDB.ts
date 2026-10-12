@@ -18,6 +18,10 @@ export class InMemoryKeyValueDB implements CommonKeyValueDB {
 
   async ping(): Promise<void> {}
 
+  clear(): void {
+    this.data = {}
+  }
+
   async createTable(_table: string, _opt?: CommonDBCreateOptions): Promise<void> {}
 
   async deleteByIds(table: string, ids: string[]): Promise<void> {

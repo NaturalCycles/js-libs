@@ -88,6 +88,10 @@ export class InMemoryDB implements CommonDB {
 
   async ping(): Promise<void> {}
 
+  clear(): void {
+    this.data = {}
+  }
+
   /**
    * Resets InMemory DB data
    */
