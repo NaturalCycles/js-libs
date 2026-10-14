@@ -7,6 +7,7 @@ import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { logEntryToString } from '@naturalcycles/nodejs-lib'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
+import { getRequestTraceId } from './request.util.js'
 import type { BackendRequestHandler } from './server.model.js'
 
 const { GOOGLE_CLOUD_PROJECT, GAE_INSTANCE, K_SERVICE, APP_ENV } = process.env
@@ -88,11 +89,11 @@ export function logMiddleware(): BackendRequestHandler {
       // gcloud run deploy my-service \
       //   --update-env-vars=GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project)
       if (GOOGLE_CLOUD_PROJECT) {
-        const traceHeader = req.header('x-cloud-trace-context')
-        if (traceHeader) {
-          const [trace] = traceHeader.split('/')
-          meta['logging.googleapis.com/trace'] = `projects/${GOOGLE_CLOUD_PROJECT}/traces/${trace}`
-          req.requestId = trace
+        const traceId = getRequestTraceId(req)
+        if (traceId) {
+          meta['logging.googleapis.com/trace'] =
+            `projects/${GOOGLE_CLOUD_PROJECT}/traces/${traceId}`
+          req.requestId = traceId
         }
       }
       if (isGAE) {
