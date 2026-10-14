@@ -31,11 +31,17 @@ export interface PRetryOptions {
   maxAttempts?: number
 
   /**
+   * Delay before the first retry, in milliseconds.
+   * Each subsequent retry waits `delayMultiplier` times longer than the previous one.
+   * E.g with defaults (delay=1000, delayMultiplier=2) retries wait 1000, 2000, 4000 ms.
+   *
    * @default 1000 ms
    */
   delay?: number
 
   /**
+   * Multiplier applied to the delay after each retry ("Exponential back-off").
+   *
    * @default 2
    */
   delayMultiplier?: number
@@ -174,8 +180,9 @@ export async function pRetry<T>(
       }
 
       // Retry after delay
-      delay *= delayMultiplier
       await pDelay(delay)
+      // Increase the delay for the next possible retry (exponential back-off)
+      delay *= delayMultiplier
       // back to while(true) loop
     }
   }
