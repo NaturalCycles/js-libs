@@ -1,19 +1,5 @@
 import type { BackendRequest } from './server.model.js'
 
-// https://www.w3.org/TR/trace-context/#traceparent-header
-const TRACEPARENT_REGEX = /^[\da-f]{2}-([\da-f]{32})-[\da-f]{16}-[\da-f]{2}$/
-
-/**
- * The trace id of the request, from the W3C `traceparent` header, with GCP's legacy
- * `x-cloud-trace-context` header as fallback. GCP adds both to every request, with the same id.
- */
-export function getRequestTraceId(req: BackendRequest): string | undefined {
-  const traceparent = req.header('traceparent')
-  const traceId = traceparent && TRACEPARENT_REGEX.exec(traceparent)?.[1]
-  if (traceId) return traceId
-  return req.header('x-cloud-trace-context')?.split('/')[0] || undefined
-}
-
 /**
  * Returns e.g:
  *

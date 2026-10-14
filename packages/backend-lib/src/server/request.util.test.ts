@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { getRequestEndpoint, getRequestEndpointUnsafe, getRequestTraceId } from './request.util.js'
+import { getRequestEndpoint, getRequestEndpointUnsafe } from './request.util.js'
 import type { BackendRequest } from './server.model.js'
 
 function mockReq(req: {
@@ -59,39 +59,3 @@ test('matched route: baseUrl (mount path params) is sanitized, route pattern is 
   expect(getRequestEndpoint(req)).toBe('GET /t/_b_/x/:id{/:tab}')
   expect(getRequestEndpointUnsafe(req)).toBe('GET /t/<b>/x/:id{/:tab}')
 })
-
-const traceId = '4bf92f3577b34da6a3ce929d0e0e4736'
-const traceparent = `00-${traceId}-00f067aa0ba902b7-01`
-const cloudTraceContext = `${traceId}/1;o=1`
-
-test('getRequestTraceId: prefers traceparent over x-cloud-trace-context', () => {
-  expect(getRequestTraceId(mockReqWithHeaders({ traceparent }))).toBe(traceId)
-  expect(
-    getRequestTraceId(
-      mockReqWithHeaders({ traceparent, 'x-cloud-trace-context': `${'a'.repeat(32)}/1` }),
-    ),
-  ).toBe(traceId)
-})
-
-test('getRequestTraceId: falls back to x-cloud-trace-context', () => {
-  expect(
-    getRequestTraceId(mockReqWithHeaders({ 'x-cloud-trace-context': cloudTraceContext })),
-  ).toBe(traceId)
-  expect(
-    getRequestTraceId(
-      mockReqWithHeaders({
-        traceparent: 'not-a-trace',
-        'x-cloud-trace-context': cloudTraceContext,
-      }),
-    ),
-  ).toBe(traceId)
-})
-
-test('getRequestTraceId: undefined without a trace header', () => {
-  expect(getRequestTraceId(mockReqWithHeaders({}))).toBeUndefined()
-  expect(getRequestTraceId(mockReqWithHeaders({ traceparent: 'not-a-trace' }))).toBeUndefined()
-})
-
-function mockReqWithHeaders(headers: Record<string, string>): BackendRequest {
-  return { header: (name: string) => headers[name.toLowerCase()] } as any
-}

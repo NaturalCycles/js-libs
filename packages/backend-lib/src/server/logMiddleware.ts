@@ -7,8 +7,8 @@ import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { logEntryToString } from '@naturalcycles/nodejs-lib'
 import { dimGrey } from '@naturalcycles/nodejs-lib/colors'
-import { getRequestTraceId } from './request.util.js'
 import type { BackendRequestHandler } from './server.model.js'
+import { getRequestTraceId } from './trace.util.js'
 
 const { GOOGLE_CLOUD_PROJECT, GAE_INSTANCE, K_SERVICE, APP_ENV } = process.env
 const isGAE = !!GAE_INSTANCE
