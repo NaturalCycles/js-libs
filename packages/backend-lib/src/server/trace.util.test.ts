@@ -29,37 +29,20 @@ test.each([
   expect(parseTraceparent(header)).toBeUndefined()
 })
 
-test('getRequestTraceContext: reads traceparent only', () => {
+test('getRequestTraceContext: reads traceparent', () => {
   expect(getRequestTraceContext(mockReq({ traceparent }))).toEqual({
     traceId,
     spanId,
     sampled: true,
   })
-  expect(
-    getRequestTraceContext(mockReq({ 'x-cloud-trace-context': `${traceId}/1;o=1` })),
-  ).toBeUndefined()
+  expect(getRequestTraceContext(mockReq({}))).toBeUndefined()
 })
 
-test('getRequestTraceId: prefers traceparent over x-cloud-trace-context', () => {
-  expect(
-    getRequestTraceId(mockReq({ traceparent, 'x-cloud-trace-context': `${'a'.repeat(32)}/1` })),
-  ).toBe(traceId)
-})
-
-test.each([`${traceId}/1;o=1`, `${traceId};o=0`, traceId])(
-  'getRequestTraceId: falls back to x-cloud-trace-context %s',
-  header => {
-    expect(
-      getRequestTraceId(mockReq({ traceparent: 'not-a-trace', 'x-cloud-trace-context': header })),
-    ).toBe(traceId)
-  },
-)
-
-test('getRequestTraceId: undefined without a valid trace header', () => {
+test('getRequestTraceId: undefined without a valid traceparent', () => {
   expect(getRequestTraceId(mockReq({}))).toBeUndefined()
-  expect(getRequestTraceId(mockReq({ 'x-cloud-trace-context': 'nope' }))).toBeUndefined()
+  expect(getRequestTraceId(mockReq({ traceparent: 'not-a-trace' }))).toBeUndefined()
   expect(
-    getRequestTraceId(mockReq({ 'x-cloud-trace-context': `${'0'.repeat(32)}/1` })),
+    getRequestTraceId(mockReq({ 'x-cloud-trace-context': `${traceId}/1;o=1` })),
   ).toBeUndefined()
 })
 
