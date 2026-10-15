@@ -350,12 +350,14 @@ export class RedisClient implements CommonClient {
   /**
    Convenient type-safe wrapper.
    Returns BATCHES of keys in each iteration (as-is).
+   Empty batches are skipped: SCAN applies MATCH after picking a batch, so most batches are empty
+   when the matched keys are a small share of the keyspace, and MGET/DEL reject an empty key list.
    */
   scanStream(opt?: ScanStreamOptions): Pipeline<string[]> {
-    return Pipeline.fromAsyncReadable(async () => {
+    return Pipeline.fromAsyncReadable<string[]>(async () => {
       const redis = await this.redis()
       return redis.scanStream(opt)
-    })
+    }).filterSync(keys => keys.length > 0)
   }
 
   /**
