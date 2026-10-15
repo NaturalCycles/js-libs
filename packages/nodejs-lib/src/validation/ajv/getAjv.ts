@@ -757,16 +757,12 @@ function isIsoDateValid(s: string): boolean {
   if (s.charCodeAt(4) !== DASH_CODE || s.charCodeAt(7) !== DASH_CODE) return false
 
   // fast parse numbers without substrings/Number()
-  const year =
-    (s.charCodeAt(0) - ZERO_CODE) * 1000 +
-    (s.charCodeAt(1) - ZERO_CODE) * 100 +
-    (s.charCodeAt(2) - ZERO_CODE) * 10 +
-    (s.charCodeAt(3) - ZERO_CODE)
+  const year = parseDigits(s, 0, 4)
 
-  const month = (s.charCodeAt(5) - ZERO_CODE) * 10 + (s.charCodeAt(6) - ZERO_CODE)
-  const day = (s.charCodeAt(8) - ZERO_CODE) * 10 + (s.charCodeAt(9) - ZERO_CODE)
+  const month = parseDigits(s, 5, 2)
+  const day = parseDigits(s, 8, 2)
 
-  if (month < 1 || month > 12 || day < 1) return false
+  if (year < 0 || month < 1 || month > 12 || day < 1) return false
 
   if (month !== 2) {
     return day <= monthLengths[month]!
@@ -822,13 +818,13 @@ function isIsoTimeValid(s: string): boolean {
   if (s.length !== 8) return false
   if (s.charCodeAt(2) !== COLON_CODE || s.charCodeAt(5) !== COLON_CODE) return false
 
-  const hour = (s.charCodeAt(0) - ZERO_CODE) * 10 + (s.charCodeAt(1) - ZERO_CODE)
+  const hour = parseDigits(s, 0, 2)
   if (hour < 0 || hour > 23) return false
 
-  const minute = (s.charCodeAt(3) - ZERO_CODE) * 10 + (s.charCodeAt(4) - ZERO_CODE)
+  const minute = parseDigits(s, 3, 2)
   if (minute < 0 || minute > 59) return false
 
-  const second = (s.charCodeAt(6) - ZERO_CODE) * 10 + (s.charCodeAt(7) - ZERO_CODE)
+  const second = parseDigits(s, 6, 2)
   if (second < 0 || second > 59) return false
 
   return true
@@ -851,22 +847,18 @@ function isIsoTimezoneValid(s: string): boolean {
   const isWestern = s[0] === '-'
   const isEastern = s[0] === '+'
 
-  const hour = (s.charCodeAt(1) - ZERO_CODE) * 10 + (s.charCodeAt(2) - ZERO_CODE)
+  const hour = parseDigits(s, 1, 2)
   if (hour < 0) return false
   if (isWestern && hour > 12) return false
   if (isEastern && hour > 14) return false
 
-  const minute = (s.charCodeAt(4) - ZERO_CODE) * 10 + (s.charCodeAt(5) - ZERO_CODE)
+  const minute = parseDigits(s, 4, 2)
   if (minute < 0 || minute > 59) return false
 
   if (isEastern && hour === 14 && minute > 0) return false // max is +14:00
   if (isWestern && hour === 12 && minute > 0) return false // min is -12:00
 
   return true
-}
-
-function isDigitCode(code: number): boolean {
-  return code >= ZERO_CODE && code <= NINE_CODE
 }
 
 /**
@@ -879,15 +871,25 @@ function isIsoMonthValid(s: string): boolean {
   if (s.charCodeAt(4) !== DASH_CODE) return false
 
   // fast parse numbers without substrings/Number()
-  const year =
-    (s.charCodeAt(0) - ZERO_CODE) * 1000 +
-    (s.charCodeAt(1) - ZERO_CODE) * 100 +
-    (s.charCodeAt(2) - ZERO_CODE) * 10 +
-    (s.charCodeAt(3) - ZERO_CODE)
+  const year = parseDigits(s, 0, 4)
 
-  const month = (s.charCodeAt(5) - ZERO_CODE) * 10 + (s.charCodeAt(6) - ZERO_CODE)
+  const month = parseDigits(s, 5, 2)
 
   return _isBetween(year, 1900, 2500, '[]') && _isBetween(month, 1, 12, '[]')
+}
+
+function parseDigits(s: string, start: number, count: number): number {
+  let value = 0
+  for (let i = start; i < start + count; i++) {
+    const code = s.charCodeAt(i)
+    if (!isDigitCode(code)) return -1
+    value = value * 10 + code - ZERO_CODE
+  }
+  return value
+}
+
+function isDigitCode(code: number): boolean {
+  return code >= ZERO_CODE && code <= NINE_CODE
 }
 
 function isPrimitive(data: any): boolean {
