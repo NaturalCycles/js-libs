@@ -738,8 +738,10 @@ const monthLengths = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 const DASH_CODE = '-'.charCodeAt(0)
 const ZERO_CODE = '0'.charCodeAt(0)
+const NINE_CODE = '9'.charCodeAt(0)
 const PLUS_CODE = '+'.charCodeAt(0)
 const COLON_CODE = ':'.charCodeAt(0)
+const DOT_CODE = '.'.charCodeAt(0)
 
 /**
  * This is a performance optimized correct validation
@@ -776,15 +778,16 @@ function isIsoDateValid(s: string): boolean {
 
 /**
  * This is a performance optimized correct validation
- * for ISO datetimes formatted as "YYYY-MM-DDTHH:MM:SS" followed by
- * nothing, "Z" or "+hh:mm" or "-hh:mm".
+ * for ISO datetimes formatted as "YYYY-MM-DDTHH:MM:SS",
+ * optionally followed by fractional seconds of 1 to 9 digits (e.g. ".231" or ".231263"),
+ * followed by nothing, "Z" or "+hh:mm" or "-hh:mm".
  *
  * - Slightly more performant than using `localTime`.
  * - More performant than string splitting and `Number()` conversions
  * - Less performant than regex, but it does not allow invalid dates.
  */
 function isIsoDateTimeValid(s: string): boolean {
-  if (s.length < 19 || s.length > 25) return false
+  if (s.length < 19 || s.length > 35) return false
   if (s.charCodeAt(10) !== 84) return false // 'T'
 
   const datePart = s.slice(0, 10) // YYYY-MM-DD
@@ -793,7 +796,15 @@ function isIsoDateTimeValid(s: string): boolean {
   const timePart = s.slice(11, 19) // HH:MM:SS
   if (!isIsoTimeValid(timePart)) return false
 
-  const zonePart = s.slice(19) // nothing or Z or +/-hh:mm
+  let zoneStart = 19
+  if (s.charCodeAt(19) === DOT_CODE) {
+    zoneStart = 20
+    while (isDigitCode(s.charCodeAt(zoneStart))) zoneStart++
+    const fractionDigits = zoneStart - 20
+    if (fractionDigits < 1 || fractionDigits > 9) return false
+  }
+
+  const zonePart = s.slice(zoneStart) // nothing or Z or +/-hh:mm
   if (!isIsoTimezoneValid(zonePart)) return false
 
   return true
@@ -852,6 +863,10 @@ function isIsoTimezoneValid(s: string): boolean {
   if (isWestern && hour === 12 && minute > 0) return false // min is -12:00
 
   return true
+}
+
+function isDigitCode(code: number): boolean {
+  return code >= ZERO_CODE && code <= NINE_CODE
 }
 
 /**
