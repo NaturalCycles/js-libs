@@ -10,8 +10,9 @@ export interface TraceContext {
 }
 
 // https://www.w3.org/TR/trace-context/#traceparent-header
-// version `ff` is invalid by the spec, any other version is parsed like version 00
-const TRACEPARENT_REGEX = /^(?!ff)[\da-f]{2}-([\da-f]{32})-([\da-f]{16})-([\da-f]{2})$/
+// Version `ff` is invalid. Higher versions may append `-` fields, which are ignored (forward
+// compatibility), while version `00` must not have any.
+const TRACEPARENT_REGEX = /^(?!ff)([\da-f]{2})-([\da-f]{32})-([\da-f]{16})-([\da-f]{2})(-.*)?$/
 const INVALID_TRACE_ID = '0'.repeat(32)
 const INVALID_SPAN_ID = '0'.repeat(16)
 
@@ -39,7 +40,15 @@ export function getRequestTraceContext(req: BackendRequest): TraceContext | unde
 export function parseTraceparent(header: string | undefined): TraceContext | undefined {
   const match = header ? TRACEPARENT_REGEX.exec(header) : null
   if (!match) return
-  const [, traceId, spanId, flags] = match as unknown as [string, string, string, string]
+  const [, version, traceId, spanId, flags, extension] = match as unknown as [
+    string,
+    string,
+    string,
+    string,
+    string,
+    string?,
+  ]
+  if (version === '00' && extension !== undefined) return
   if (traceId === INVALID_TRACE_ID || spanId === INVALID_SPAN_ID) return
   return { traceId, spanId, sampled: Number.parseInt(flags, 16) % 2 === 1 }
 }

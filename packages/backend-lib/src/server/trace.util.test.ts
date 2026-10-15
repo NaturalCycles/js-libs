@@ -16,6 +16,14 @@ test('parseTraceparent: parses the trace id, span id and sampled flag', () => {
   expect(parseTraceparent(`01-${traceId}-${spanId}-03`)).toEqual({ traceId, spanId, sampled: true })
 })
 
+test('parseTraceparent: ignores the extra fields of a higher version', () => {
+  expect(parseTraceparent(`01-${traceId}-${spanId}-01-extra`)).toEqual({
+    traceId,
+    spanId,
+    sampled: true,
+  })
+})
+
 test.each([
   undefined,
   '',
@@ -25,6 +33,8 @@ test.each([
   `00-${traceId}-${'0'.repeat(16)}-01`,
   `00-${traceId.toUpperCase()}-${spanId}-01`,
   `ff-${traceId}-${spanId}-01`,
+  `00-${traceId}-${spanId}-01-extra`,
+  `01-${traceId}-${spanId}-01extra`,
 ])('parseTraceparent: rejects %s', header => {
   expect(parseTraceparent(header)).toBeUndefined()
 })
