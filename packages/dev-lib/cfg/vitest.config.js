@@ -12,7 +12,7 @@ const testType = getTestType(runsInIDE)
 const silent = getSilent(runsInIDE)
 const { include, exclude } = getIncludeAndExclude(testType)
 const isCI = !!process.env.CI
-const coverageEnabled = isCI && testType === 'unit'
+const coverageEnabled = false // disabled by default
 const junitReporterEnabled = isCI && testType !== 'manual'
 const maxWorkers = getMaxWorkers()
 // threads are tested to be ~10% faster than forks in CI (and no change locally)

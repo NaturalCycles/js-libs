@@ -83,7 +83,6 @@
     "@naturalcycles/nodejs-lib": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
-    "@vitest/coverage-v8": "^5",
     "husky": "^9",
     "oxfmt": "^0",
     "oxlint": "catalog:",
