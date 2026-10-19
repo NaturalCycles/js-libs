@@ -44,6 +44,8 @@ import {
   transformSplitOnNewline,
 } from '../../src/stream/transform/transformSplit.js'
 
+// oxlint-disable unicorn/prefer-string-raw
+
 const CHUNK_SIZE = 64 * 1024 // fs.createReadStream default (createReadStreamAsNDJson and Pipeline use 256KB, which only matters end-to-end, not for the transform itself)
 const RUNS = 5
 

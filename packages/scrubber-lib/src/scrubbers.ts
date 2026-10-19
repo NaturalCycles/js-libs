@@ -557,7 +557,7 @@ export const saltedHashSubstringScrubber: SaltedHashSubstringScrubberFn = (value
 
   const regex = new RegExp(params.regex, 'g')
 
-  return value.replace(regex, substring =>
+  return value.replaceAll(regex, substring =>
     crypto.createHash('sha256').update(substring).update(params.initializationVector).digest('hex'),
   )
 }

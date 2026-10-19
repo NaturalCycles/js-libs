@@ -55,7 +55,7 @@ function buildRequestEndpoint(
 const UNSAFE_PATH_CHAR = /[^\w\-./:@%!$*+,;=~]/gu
 
 function sanitizePath(path: string): string {
-  return path.replace(UNSAFE_PATH_CHAR, '_')
+  return path.replaceAll(UNSAFE_PATH_CHAR, '_')
 }
 
 const identity = (path: string): string => path
