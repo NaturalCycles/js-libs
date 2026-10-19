@@ -14,7 +14,7 @@ Credit to: fs-extra (https://github.com/jprichardson/node-fs-extra)
 
  */
 
-import type { RmOptions, Stats } from 'node:fs'
+import type { RmOptions, Stats, WriteFileOptions } from 'node:fs'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
@@ -65,12 +65,16 @@ class FS2 {
     return _jsonParse(str)
   }
 
-  writeFile(filePath: string, data: string | Buffer): void {
-    fs.writeFileSync(filePath, data)
+  writeFile(filePath: string, data: string | Buffer, opt?: WriteFileOptions): void {
+    fs.writeFileSync(filePath, data, opt)
   }
 
-  async writeFileAsync(filePath: string, data: string | Buffer): Promise<void> {
-    await fsp.writeFile(filePath, data)
+  async writeFileAsync(
+    filePath: string,
+    data: string | Buffer,
+    opt?: WriteFileOptions,
+  ): Promise<void> {
+    await fsp.writeFile(filePath, data, opt)
   }
 
   writeJson(filePath: string, data: any, opt?: JsonOptions): void {
