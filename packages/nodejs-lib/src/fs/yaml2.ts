@@ -27,24 +27,36 @@ class Yaml2 {
     return parse(await fsp.readFile(filePath, 'utf8'), opt) as T
   }
 
-  writeYaml(filePath: string, data: any, opt?: YamlStringifyOptions): void {
+  writeYaml(filePath: string, data: unknown, opt?: YamlStringifyOptions): void {
     const str = stringify(data, opt)
     fs.writeFileSync(filePath, str)
   }
 
-  async writeYamlAsync(filePath: string, data: any, opt?: YamlStringifyOptions): Promise<void> {
+  async writeYamlAsync(filePath: string, data: unknown, opt?: YamlStringifyOptions): Promise<void> {
     const str = stringify(data, opt)
     await fsp.writeFile(filePath, str)
   }
 
-  outputYaml(filePath: string, data: any, opt?: YamlStringifyOptions): void {
+  outputYaml(filePath: string, data: unknown, opt?: YamlStringifyOptions): void {
     const str = stringify(data, opt)
     fs2.outputFile(filePath, str)
   }
 
-  async outputYamlAsync(filePath: string, data: any, opt?: YamlStringifyOptions): Promise<void> {
+  async outputYamlAsync(
+    filePath: string,
+    data: unknown,
+    opt?: YamlStringifyOptions,
+  ): Promise<void> {
     const str = stringify(data, opt)
     await fs2.outputFileAsync(filePath, str)
+  }
+
+  parse<T = unknown>(src: string, opt?: YamlParseOptions): T {
+    return parse(src, opt)
+  }
+
+  stringify(data: unknown, opt?: YamlStringifyOptions): string {
+    return stringify(data, opt)
   }
 }
 
