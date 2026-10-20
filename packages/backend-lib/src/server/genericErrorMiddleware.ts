@@ -1,5 +1,6 @@
 import type { BackendErrorResponseObject, ErrorObject } from '@naturalcycles/js-lib/error'
 import { _anyToError, _errorLikeToErrorObject } from '@naturalcycles/js-lib/error'
+import type { HttpStatusCode } from '@naturalcycles/js-lib/http'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { BackendErrorRequestHandler, BackendRequest, BackendResponse } from './server.model.js'
 
@@ -89,7 +90,8 @@ export function respondWithError(req: BackendRequest, res: BackendResponse, err:
   const httpError = _errorLikeToErrorObject(originalError)
   if (!includeErrorStack) delete httpError.stack
 
-  httpError.data.backendResponseStatusCode ||= 500 // default to 500
+  // http-errors (express itself, its body parsers) carry the status they should be answered with
+  httpError.data.backendResponseStatusCode ||= getHttpErrorStatusCode(originalError) || 500 // default to 500
   _objectAssign(httpError.data, {
     errorId,
     headersSent: headersSent || undefined,
@@ -100,4 +102,24 @@ export function respondWithError(req: BackendRequest, res: BackendResponse, err:
   res.status(httpError.data.backendResponseStatusCode).json({
     error: httpError,
   } satisfies BackendErrorResponseObject)
+}
+
+interface HttpErrorLike {
+  status: number
+  statusCode: number
+  expose: boolean
+}
+
+/**
+ * Errors created by the `http-errors` package (express itself, body-parser, raw-body, send)
+ * carry the HTTP status they are meant to be answered with: `status` and `statusCode` (always equal),
+ * plus `expose` (whether the message is safe to show to the client).
+ * All three together are the marker: other libraries also put a `statusCode` on their errors
+ * (e.g a gateway's response status), which says nothing about how we should respond.
+ */
+function getHttpErrorStatusCode(err: Error): HttpStatusCode | undefined {
+  const { status, statusCode, expose } = err as Partial<HttpErrorLike>
+  if (typeof expose !== 'boolean' || typeof statusCode !== 'number' || status !== statusCode) return
+  if (!Number.isInteger(statusCode) || statusCode < 400 || statusCode > 599) return
+  return statusCode
 }
