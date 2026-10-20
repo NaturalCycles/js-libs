@@ -1,6 +1,6 @@
 import type { BackendErrorResponseObject, ErrorObject } from '@naturalcycles/js-lib/error'
 import { _anyToError, _errorLikeToErrorObject } from '@naturalcycles/js-lib/error'
-import type { HttpStatusCode } from '@naturalcycles/js-lib/http'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _objectAssign } from '@naturalcycles/js-lib/types'
 import type { BackendErrorRequestHandler, BackendRequest, BackendResponse } from './server.model.js'
 
@@ -30,6 +30,18 @@ export interface ErrorReportingService {
 const { APP_ENV } = process.env
 const includeErrorStack = APP_ENV === 'dev'
 
+// Headers a handler may have set for the response it never got to send;
+// they would wrongly describe the error response (e.g `res.json` keeps a pre-set Content-Type)
+const staleResponseHeaders = [
+  'Content-Type',
+  'Content-Disposition',
+  'Content-Encoding',
+  'Content-Language',
+  'Content-Range',
+  'ETag',
+  'Last-Modified',
+]
+
 // Hacky way to store the errorService, so it's available to `respondWithError` function
 let errorService: ErrorReportingService | undefined
 let formatError: GenericErrorMiddlewareCfg['formatError']
@@ -46,18 +58,6 @@ export function genericErrorMiddleware(
   formatError = cfg.formatError
 
   return (err, req, res, _next) => {
-    // if (res.headersSent) {
-    // Here we don't even log this error
-    // It's known that it comes from sentry.requestHandler()
-    // requestHandler waits for all promises/timeouts to finish in the request, and then emits this error here,
-    // while `res` is the same as was returned to the User (so, both headers and the data was already returned by that time)
-    // req.log.warn(`genericErrorHandler, but headersSent=true`, err)
-    // Here we don't propagate the error further, cause there's only "default express error logger" behind it
-    // and nothing else. Previously it was logging the same error once again because of this. Avoid.
-    // return next(err)
-    // return next()
-    // }
-
     respondWithError(req, res, err)
   }
 }
@@ -85,13 +85,20 @@ export function respondWithError(req: BackendRequest, res: BackendResponse, err:
     // todo: add userId from the "Context" (or, just req.userId?) to the log
   }
 
-  if (headersSent) return
+  if (headersSent) {
+    // Too late for an error response. A finished response needs nothing beyond the reporting above.
+    // An unfinished one (error mid-stream) is cut off, so the client sees a failed transfer right away
+    // instead of waiting for a body that never completes. Same as Express' default error handler.
+    if (!res.writableEnded) res.destroy()
+    return
+  }
 
   const httpError = _errorLikeToErrorObject(originalError)
   if (!includeErrorStack) delete httpError.stack
 
   // http-errors (express itself, its body parsers) carry the status they should be answered with
-  httpError.data.backendResponseStatusCode ||= getHttpErrorStatusCode(originalError) || 500 // default to 500
+  const httpErrorLike = isHttpError(originalError) ? originalError : undefined
+  httpError.data.backendResponseStatusCode ||= httpErrorLike?.statusCode || 500 // default to 500
   _objectAssign(httpError.data, {
     errorId,
     headersSent: headersSent || undefined,
@@ -99,27 +106,33 @@ export function respondWithError(req: BackendRequest, res: BackendResponse, err:
 
   formatError?.(httpError, req) // Mutates the error
 
+  for (const header of staleResponseHeaders) res.removeHeader(header)
+  res.setHeader('Cache-Control', 'no-store')
+  if (httpErrorLike?.headers) res.set(httpErrorLike.headers)
+
   res.status(httpError.data.backendResponseStatusCode).json({
     error: httpError,
   } satisfies BackendErrorResponseObject)
 }
 
-interface HttpErrorLike {
+interface HttpErrorLike extends Error {
   status: number
   statusCode: number
   expose: boolean
+  headers?: StringMap<string>
 }
 
 /**
  * Errors created by the `http-errors` package (express itself, body-parser, raw-body, send)
- * carry the HTTP status they are meant to be answered with: `status` and `statusCode` (always equal),
- * plus `expose` (whether the message is safe to show to the client).
- * All three together are the marker: other libraries also put a `statusCode` on their errors
- * (e.g a gateway's response status), which says nothing about how we should respond.
+ * describe the response they expect: `status` and `statusCode` (always equal),
+ * `expose` (whether the message is safe to show to the client) and optional response `headers`.
+ * The first three together are the marker: other libraries also put `statusCode` or `headers`
+ * on their errors (e.g a gateway's response), which say nothing about how we should respond.
  */
-function getHttpErrorStatusCode(err: Error): HttpStatusCode | undefined {
+function isHttpError(err: Error): err is HttpErrorLike {
   const { status, statusCode, expose } = err as Partial<HttpErrorLike>
-  if (typeof expose !== 'boolean' || typeof statusCode !== 'number' || status !== statusCode) return
-  if (!Number.isInteger(statusCode) || statusCode < 400 || statusCode > 599) return
-  return statusCode
+  if (typeof expose !== 'boolean' || typeof statusCode !== 'number' || status !== statusCode) {
+    return false
+  }
+  return Number.isInteger(statusCode) && statusCode >= 400 && statusCode <= 599
 }
