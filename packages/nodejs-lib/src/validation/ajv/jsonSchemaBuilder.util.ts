@@ -101,3 +101,19 @@ export function isEveryItemPrimitive(arr: any[]): boolean {
   }
   return true
 }
+
+/**
+ * Values of the `format` keyword that `j` builders emit, named after the js-lib types they produce.
+ * PascalCase on purpose, to never collide with standard, ajv-formats or OpenAPI formats (all lowercase),
+ * whose semantics differ: e.g `date-time` requires an offset, while `IsoDateTime` doesn't.
+ *
+ * Annotation only: validation is done by the custom keywords (e.g `IsoDate`), not by the format.
+ */
+export const jFormats = [
+  'IsoDate',
+  'IsoDateTime',
+  'IsoMonth',
+  'UnixTimestamp',
+  'UnixTimestampMillis',
+] as const
+export type JFormat = (typeof jFormats)[number]

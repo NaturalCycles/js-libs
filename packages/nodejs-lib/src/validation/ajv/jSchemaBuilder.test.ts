@@ -1,3 +1,4 @@
+import { _enum } from '@naturalcycles/js-lib'
 import type { Set2 } from '@naturalcycles/js-lib/object'
 import type {
   AnyObject,
@@ -77,6 +78,10 @@ describe('string', () => {
       const schema1 = j.string().isoDateTime()
       expectTypeOf(schema1.out).toEqualTypeOf<IsoDateTime>()
     })
+
+    test('should emit the IsoDateTime format', () => {
+      expect(j.string().isoDateTime().build().format).toBe('IsoDateTime')
+    })
   })
 
   describe('isoMonth', () => {
@@ -84,12 +89,21 @@ describe('string', () => {
       const schema1 = j.string().isoMonth()
       expectTypeOf(schema1.out).toEqualTypeOf<IsoMonth>()
     })
+
+    test('should emit the IsoMonth format', () => {
+      expect(j.string().isoMonth().build().format).toBe('IsoMonth')
+    })
   })
 
   describe('isoDate', () => {
     test('should correctly infer the type', () => {
       const schema1 = j.string().isoDate()
       expectTypeOf(schema1.out).toEqualTypeOf<IsoDate>()
+    })
+
+    test('should emit the IsoDate format, also after a date range rule', () => {
+      expect(j.string().isoDate().build().format).toBe('IsoDate')
+      expect(j.string().isoDate().after('2020-01-01').build().format).toBe('IsoDate')
     })
 
     describe('optional(null)', () => {
@@ -144,6 +158,19 @@ describe('number', () => {
       const schema1 = j.number().optional([0])
       expectTypeOf(schema1.out).toEqualTypeOf<number | undefined>()
     })
+  })
+
+  test.each([
+    ['unixTimestamp', j.number().unixTimestamp(), 'UnixTimestamp'],
+    ['unixTimestamp2000', j.number().unixTimestamp2000(), 'UnixTimestamp'],
+    ['unixTimestampMillis', j.number().unixTimestampMillis(), 'UnixTimestampMillis'],
+    ['unixTimestamp2000Millis', j.number().unixTimestamp2000Millis(), 'UnixTimestampMillis'],
+  ])('should emit the format for %s', (_name, schema, format) => {
+    expect(schema.build()).toMatchObject({ type: 'integer', format })
+  })
+
+  test('should not emit a format for a plain number', () => {
+    expect(j.number().integer().build().format).toBeUndefined()
   })
 })
 
@@ -753,6 +780,46 @@ describe('enum', () => {
     const schema1 = j.enum([1, 2, 'foo', 'bar'])
     expectTypeOf(schema1).not.toBeNever()
     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
+  })
+
+  test('should emit enumNames aligned with the values for NumberEnums', () => {
+    // declared out of ascending order, to catch a misalignment with the reverse-mapped keys
+    enum Foo {
+      SHU = 2,
+      BAR = 1,
+    }
+    expect(j.enum(Foo).build()).toEqual({ type: 'number', enum: [2, 1], enumNames: ['SHU', 'BAR'] })
+  })
+
+  test('should emit enumNames for number _enum() objects', () => {
+    const Foo = _enum({ BAR: 1, SHU: 2 })
+    expect(j.enum(Foo).build()).toEqual({ type: 'number', enum: [1, 2], enumNames: ['BAR', 'SHU'] })
+  })
+
+  test('should not emit enumNames for StringEnums and listed values', () => {
+    enum Foo {
+      BAR = 'bar',
+    }
+    expect(j.enum(Foo).build().enumNames).toBeUndefined()
+    expect(j.enum([1, 2]).build().enumNames).toBeUndefined()
+  })
+
+  test('should validate a schema carrying enumNames and formats', () => {
+    enum Foo {
+      BAR = 1,
+    }
+    interface Item {
+      foo: Foo
+      date: IsoDate
+      ts: UnixTimestamp
+    }
+    const schema = j.object<Item>({
+      foo: j.enum(Foo),
+      date: j.string().isoDate(),
+      ts: j.number().unixTimestamp2000(),
+    })
+    expect(schema.isValid({ foo: 1, date: '2026-10-22', ts: 1_790_000_000 })).toBe(true)
+    expect(schema.isValid({ foo: 2, date: '2026-10-22', ts: 1_790_000_000 })).toBe(false)
   })
 })
 

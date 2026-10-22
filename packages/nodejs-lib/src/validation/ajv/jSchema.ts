@@ -182,6 +182,7 @@ export const j = {
       | { readonly values: readonly (string | number | boolean | null)[] },
   >(input: T, opt?: JsonBuilderRuleOpt): JEnum<T extends readonly (infer U)[] ? U : Enum<T>> {
     let enumValues: readonly (string | number | boolean | null)[] | undefined
+    let enumNames: string[] | undefined
     let baseType: EnumBaseType = 'other'
 
     if (Array.isArray(input)) {
@@ -194,7 +195,11 @@ export const j = {
     } else if (typeof input === 'object') {
       const enumType = getEnumType(input)
       if (enumType === 'NumberEnum') {
-        enumValues = _numberEnumValues(input as NumberEnum)
+        // Not via _numberEnumKeys: it misses `_enum()` objects (no reverse mapping)
+        // and misaligns with the values when members aren't declared in ascending order
+        const numberEntries = Object.entries(input).filter(([, value]) => typeof value === 'number')
+        enumValues = numberEntries.map(([, value]) => value)
+        enumNames = numberEntries.map(([name]) => name)
         baseType = 'number'
       } else if (enumType === 'StringEnum') {
         enumValues = _stringEnumValues(input as StringEnum)
@@ -203,7 +208,7 @@ export const j = {
     }
 
     _assert(enumValues, 'Unsupported enum input')
-    return new JEnum(enumValues as any, baseType, opt)
+    return new JEnum(enumValues as any, baseType, opt, enumNames)
   },
 
   /**
@@ -801,12 +806,16 @@ export class JString<
   }
 
   isoDateTime(): JString<IsoDateTime, Opt> {
-    return this.cloneAndUpdateSchema({ IsoDateTime: true }).branded<IsoDateTime>()
+    return this.cloneAndUpdateSchema({
+      format: 'IsoDateTime',
+      IsoDateTime: true,
+    }).branded<IsoDateTime>()
   }
 
   isoMonth(): JBuilder<IsoMonth, false> {
     return new JBuilder<IsoMonth, false>({
       type: 'string',
+      format: 'IsoMonth',
       IsoMonth: {},
     })
   }
@@ -893,6 +902,7 @@ export class JIsoDate<Opt extends boolean = false> extends JBuilder<IsoDate, Opt
   constructor() {
     super({
       type: 'string',
+      format: 'IsoDate',
       IsoDate: {},
     })
   }
@@ -1027,19 +1037,21 @@ export class JNumber<
   }
 
   unixTimestamp(): JNumber<UnixTimestamp, Opt> {
-    return this.integer().branded<UnixTimestamp>()
+    return this.integer().cloneAndUpdateSchema({ format: 'UnixTimestamp' }).branded<UnixTimestamp>()
   }
 
   unixTimestamp2000(): JNumber<UnixTimestamp, Opt> {
-    return this.integer().min(TS_2000).max(TS_2500).branded<UnixTimestamp>()
+    return this.unixTimestamp().min(TS_2000).max(TS_2500)
   }
 
   unixTimestampMillis(): JNumber<UnixTimestampMillis, Opt> {
-    return this.integer().branded<UnixTimestampMillis>()
+    return this.integer()
+      .cloneAndUpdateSchema({ format: 'UnixTimestampMillis' })
+      .branded<UnixTimestampMillis>()
   }
 
   unixTimestamp2000Millis(): JNumber<UnixTimestampMillis, Opt> {
-    return this.integer().min(TS_2000_MILLIS).max(TS_2500_MILLIS).branded<UnixTimestampMillis>()
+    return this.unixTimestampMillis().min(TS_2000_MILLIS).max(TS_2500_MILLIS)
   }
 
   utcOffset(): this {
@@ -1331,8 +1343,14 @@ export class JEnum<
   OUT extends string | number | boolean | null,
   Opt extends boolean = false,
 > extends JBuilder<OUT, Opt> {
-  constructor(enumValues: readonly OUT[], baseType: EnumBaseType, opt?: JsonBuilderRuleOpt) {
+  constructor(
+    enumValues: readonly OUT[],
+    baseType: EnumBaseType,
+    opt?: JsonBuilderRuleOpt,
+    enumNames?: readonly string[],
+  ) {
     const jsonSchema: JsonSchema = { enum: enumValues }
+    if (enumNames) jsonSchema.enumNames = enumNames
     // Specifying the base type helps in cases when we ask Ajv to coerce the types.
     // Having only the `enum` in the schema does not trigger a coercion in Ajv.
     if (baseType === 'string') jsonSchema.type = 'string'
@@ -2086,6 +2104,11 @@ export interface JsonSchema<OUT = unknown> {
   uniqueItems?: boolean
 
   enum?: any
+  /**
+   * Member names of a NumberEnum, aligned by index with `enum`.
+   * Annotation only (not validated), lets consumers render `1` as e.g `PREVENT`.
+   */
+  enumNames?: readonly string[]
 
   hasIsOfTypeCheck?: boolean
 

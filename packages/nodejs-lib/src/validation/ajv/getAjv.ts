@@ -14,6 +14,7 @@ import type {
   JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
 } from './jSchema.js'
+import { jFormats } from './jsonSchemaBuilder.util.js'
 
 // oxlint-disable unicorn/prefer-code-point
 
@@ -425,6 +426,18 @@ export function createAjv(opt?: Options): Ajv2020 {
       return false
     },
   })
+
+  // Annotation only (the values are validated by `enum`), registered so strict mode doesn't reject it
+  ajv.addKeyword({
+    keyword: 'enumNames',
+    schemaType: 'array',
+  })
+
+  // Annotation only (validated by the custom keywords, e.g `IsoDate`).
+  // `true` makes Ajv skip the format check, while unknown formats would throw in strict mode.
+  for (const format of jFormats) {
+    ajv.addFormat(format, true)
+  }
 
   ajv.addKeyword({
     keyword: 'errorMessages',
