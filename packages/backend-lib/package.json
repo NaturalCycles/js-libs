@@ -25,19 +25,13 @@
     "@types/cookie-parser": "^1",
     "@types/cors": "^2",
     "@types/express": "^5",
-    "@types/compressible": "^2",
-    "@types/on-headers": "^1",
-    "@types/vary": "^1",
     "busboy": "^1",
-    "compressible": "^2",
     "cookie-parser": "^1",
     "cors": "^2",
     "express": "^5",
     "helmet": "^8",
     "negotiator": "^1",
-    "on-headers": "^1",
-    "tslib": "^2",
-    "vary": "^1"
+    "tslib": "^2"
   },
   "peerDependencies": {
     "@sentry/node-core": "^10",

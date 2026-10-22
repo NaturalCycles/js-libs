@@ -11,11 +11,11 @@
  */
 
 import zlib from 'node:zlib'
-import compressible from 'compressible'
 // @ts-expect-error no types
 import Negotiator from 'negotiator'
-import onHeaders from 'on-headers'
-import vary from 'vary'
+import { compressible } from '../compressible.js'
+import { onHeaders } from '../onHeaders.js'
+import { vary } from '../vary.js'
 import type { BackendRequest, BackendRequestHandler, BackendResponse } from './server.model.js'
 
 export interface CompressionOptions {

@@ -288,9 +288,6 @@ importers:
       '@types/body-parser':
         specifier: ^1
         version: 1.19.6
-      '@types/compressible':
-        specifier: ^2
-        version: 2.0.3
       '@types/cookie-parser':
         specifier: ^1
         version: 1.4.10(@types/express@5.0.6)
@@ -300,18 +297,9 @@ importers:
       '@types/express':
         specifier: ^5
         version: 5.0.6
-      '@types/on-headers':
-        specifier: ^1
-        version: 1.0.4
-      '@types/vary':
-        specifier: ^1
-        version: 1.1.3
       busboy:
         specifier: ^1
         version: 1.6.0
-      compressible:
-        specifier: ^2
-        version: 2.0.18
       cookie-parser:
         specifier: ^1
         version: 1.4.7
@@ -330,18 +318,12 @@ importers:
       negotiator:
         specifier: ^1
         version: 1.1.0
-      on-headers:
-        specifier: ^1
-        version: 1.1.0
       simple-git:
         specifier: ^4
         version: 4.0.2(supports-color@10.2.2)
       tslib:
         specifier: ^2
         version: 2.8.1
-      vary:
-        specifier: ^1
-        version: 1.1.2
     devDependencies:
       '@naturalcycles/dev-lib':
         specifier: workspace:*
@@ -1734,9 +1716,6 @@ packages:
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
 
-  '@types/compressible@2.0.3':
-    resolution: {integrity: sha512-ywiUZGaJqaYMIzAFslaNq3GzaAKT+Hwq0Yh1wULe3HLCdr1+cfd5RQTLQUR7MMbIedlGrotRVcfqiY4R7K9QAQ==}
-
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
 
@@ -1784,9 +1763,6 @@ packages:
   '@types/node@26.6.5':
     resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
 
-  '@types/on-headers@1.0.4':
-    resolution: {integrity: sha512-D8Dy7oiM4fFQPA1TtHVTGPFNgCCYY132dTFLezhvlPiiiyKkuW6tVipPXpUOiuTUu8Kzd+ASKjULvZld197Dhw==}
-
   '@types/picomatch@4.0.3':
     resolution: {integrity: sha512-iG0T6+nYJ9FAPmx9SsUlnwcq1ZVRuCXcVEvWnntoPlrOpwtSTKNDC9uVAxTsC3PUvJ+99n4RpAcNgBbHX3JSnQ==}
 
@@ -1807,9 +1783,6 @@ packages:
 
   '@types/serve-static@2.2.0':
     resolution: {integrity: sha512-8mam4H1NHLtu7nmtalF7eyBH14QyOASmcxHhSfEoRyr0nP/YdoesEtU+uSRvMe96TW/HPTtkoKqQLl53N7UXMQ==}
-
-  '@types/vary@1.1.3':
-    resolution: {integrity: sha512-XJT8/ZQCL7NUut9QDLf6l24JfAEl7bnNdgxfj50cHIpEPRJLHHDDFOAq6i+GsEmeFfH7NamhBE4c4Thtb2egWg==}
 
   '@types/webidl-conversions@7.0.3':
     resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
@@ -2227,10 +2200,6 @@ packages:
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
-
-  compressible@2.0.18:
-    resolution: {integrity: sha512-AF3r7P5dWxL8MxyITRMlORQNaOA2IkAFaTr4k7BUumjPtRpGDTZpl0Pb1XCO6JeDCBdp126Cgs9sMxqSjgYyRg==}
-    engines: {node: '>= 0.6'}
 
   concat-stream@2.0.0:
     resolution: {integrity: sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==}
@@ -3257,10 +3226,6 @@ packages:
 
   on-finished@2.4.1:
     resolution: {integrity: sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==}
-    engines: {node: '>= 0.8'}
-
-  on-headers@1.1.0:
-    resolution: {integrity: sha512-737ZY3yNnXy37FHkQxPzt4UZ2UWPWiCZWLvFZ4fu5cueciegX0zGPnrlY6bwRg4FdQOe9YU8MkmJwGhoMybl8A==}
     engines: {node: '>= 0.8'}
 
   on-net-listen@1.1.2:
@@ -4733,8 +4698,6 @@ snapshots:
       '@types/deep-eql': 4.0.2
       assertion-error: 2.0.1
 
-  '@types/compressible@2.0.3': {}
-
   '@types/connect@3.4.38':
     dependencies:
       '@types/node': 26.6.5
@@ -4787,10 +4750,6 @@ snapshots:
     dependencies:
       undici-types: 8.9.0
 
-  '@types/on-headers@1.0.4':
-    dependencies:
-      '@types/node': 26.6.5
-
   '@types/picomatch@4.0.3': {}
 
   '@types/prompts@2.4.9':
@@ -4811,10 +4770,6 @@ snapshots:
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 26.6.5
-
-  '@types/vary@1.1.3':
-    dependencies:
       '@types/node': 26.6.5
 
   '@types/webidl-conversions@7.0.3': {}
@@ -5215,10 +5170,6 @@ snapshots:
   combined-stream@1.0.8:
     dependencies:
       delayed-stream: 1.0.0
-
-  compressible@2.0.18:
-    dependencies:
-      mime-db: 1.54.0
 
   concat-stream@2.0.0:
     dependencies:
@@ -6288,8 +6239,6 @@ snapshots:
   on-finished@2.4.1:
     dependencies:
       ee-first: 1.1.1
-
-  on-headers@1.1.0: {}
 
   on-net-listen@1.1.2: {}
 
