@@ -1,0 +1,20 @@
+# Shared pnpm settings, consumed by other repos as a config dependency (https://pnpm.io/config-includes)
+# and by this monorepo via `include` in the root pnpm-workspace.yaml.
+
+# minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - '@naturalcycles/*'
+  - vitest
+  - '@vitest/*'
+  - oxfmt
+  - '@oxfmt/*'
+  - eslint-plugin-oxlint
+  - oxlint
+  - oxlint-tsgolint
+  - '@oxlint/*'
+  - '@oxlint-tsgolint/*'
+trustLockfile: true
+trustPolicyExcludePrune: true
+trustPolicy: no-downgrade
+# blockExoticSubdeps: true
+# strictDepBuilds: true
