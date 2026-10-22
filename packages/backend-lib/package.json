@@ -26,7 +26,6 @@
     "@types/cors": "^2",
     "@types/express": "^5",
     "@types/compressible": "^2",
-    "@types/on-finished": "^2",
     "@types/on-headers": "^1",
     "@types/vary": "^1",
     "busboy": "^1",
@@ -37,7 +36,6 @@
     "helmet": "^8",
     "negotiator": "^1",
     "on-headers": "^1",
-    "on-finished": "^2",
     "tslib": "^2",
     "vary": "^1"
   },
