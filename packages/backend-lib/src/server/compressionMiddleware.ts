@@ -88,10 +88,14 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
   }
 
   // Zstd options
+  // Level 1 instead of zstd's own default of 3: for typical JSON responses the CPU cost and
+  // compression ratio are the same (measured 2026-10 on 22 KB and 115 KB payloads), but a level 3
+  // stream holds ~850 KB of native memory per in-flight response vs ~150 KB at level 1.
+  // That per-response allocation churn is what MALLOC_ARENA_MAX=2 works around on Cloud Run.
   const optsZstd: zlib.ZstdOptions = {
     ...opts.zstd,
     params: {
-      [zlib.constants.ZSTD_c_compressionLevel]: 3,
+      [zlib.constants.ZSTD_c_compressionLevel]: 1,
       ...opts.zstd?.params,
     },
   }
