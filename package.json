@@ -5,6 +5,7 @@
   "scripts": {
     "prepare": "husky",
     "upd": "pnpm -r up --no-save",
+    "upd2": "pnpm clean && rm pnpm-lock.yaml && pnpm up --no-save",
     "out": "pnpm -r outdated",
     "ci:setup": "pnpm install && pnpm build",
     "build": "pnpm --filter '@naturalcycles/*' --parallel exec tsc -P tsconfig.prod.json --noCheck --incremental false",

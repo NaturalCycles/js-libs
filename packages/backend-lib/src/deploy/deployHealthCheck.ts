@@ -10,7 +10,6 @@ import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import type { CliOptions } from '@naturalcycles/nodejs-lib/args'
 import { dimGrey, red } from '@naturalcycles/nodejs-lib/colors'
-import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { coloredHttpCode } from '../server/request.log.util.js'
 
 export interface DeployHealthCheckOptions {
@@ -19,11 +18,6 @@ export interface DeployHealthCheckOptions {
   maxTries?: number
   timeoutSec?: number
   intervalSec?: number
-  logOnFailure?: boolean
-  logOnSuccess?: boolean
-  gaeProject?: string
-  gaeService?: string
-  gaeVersion?: string
   authHeader?: string
 }
 
@@ -48,25 +42,6 @@ export const deployHealthCheckCliOptions = {
     type: 'number',
     default: 1,
   },
-  logOnFailure: {
-    type: 'boolean',
-    default: true,
-    desc: 'Show server logs on health check failure (requires gaeProject, gaeService, gaeVersion)',
-  },
-  logOnSuccess: {
-    type: 'boolean',
-    default: false,
-    desc: 'Show server logs on health check success (requires gaeProject, gaeService, gaeVersion)',
-  },
-  gaeProject: {
-    type: 'string',
-  },
-  gaeService: {
-    type: 'string',
-  },
-  gaeVersion: {
-    type: 'string',
-  },
   authHeader: {
     type: 'string',
   },
@@ -81,6 +56,7 @@ const inspectOpt: InspectOptions = {
  * Requires up to `healthyThreshold` consecutive OK responses to succeed.
  * Fails on up to `unhealthyThreshold` consecutive FAIL responses.
  * Fails after maxTries.
+ * Throws on failure.
  */
 export async function deployHealthCheck(
   url: string,
@@ -92,11 +68,6 @@ export async function deployHealthCheck(
     maxTries = 30,
     timeoutSec = 30,
     intervalSec = 1,
-    logOnFailure,
-    logOnSuccess,
-    gaeProject,
-    gaeService,
-    gaeVersion,
     authHeader,
   } = opt
 
@@ -116,24 +87,7 @@ export async function deployHealthCheck(
 
   if (failed) {
     console.log(red(`Health check failed!`))
-
-    if (logOnFailure) {
-      try {
-        exec2.spawn(
-          `gcloud app logs read --project ${gaeProject} --service ${gaeService} --version ${gaeVersion}`,
-        )
-      } catch {}
-    }
-
-    process.exit(1)
-  }
-
-  if (logOnSuccess) {
-    try {
-      exec2.spawn(
-        `gcloud app logs read --project ${gaeProject} --service ${gaeService} --version ${gaeVersion}`,
-      )
-    } catch {}
+    throw new Error(`Health check failed: ${doneReason}`)
   }
 
   async function makeAttempt(): Promise<void> {

@@ -11,9 +11,6 @@
     "check": "dev-lib check",
     "typecheck": "dev-lib typecheck",
     "dev": "APP_ENV=dev tsx watch src/test/server/server.ts",
-    "deploy-gae": "tsx src/bin/deploy-gae.ts",
-    "deploy-prepare": "tsx src/bin/deploy-prepare.ts",
-    "deploy-prepare-debug": "AA=AA1 BB=BB1 tsx src/bin/deploy-prepare.ts --projectDir ./src/test/project",
     "deploy-health-check-debug1": "tsx src/bin/deploy-health-check.ts --url https://api-master.naturalcycles.com",
     "deploy-health-check-debug2": "tsx src/bin/deploy-health-check.ts --url https://api-master2.naturalcycles.com --thresholdUnhealthy 5"
   },
@@ -35,17 +32,13 @@
   },
   "peerDependencies": {
     "@sentry/node-core": "^10",
-    "firebase-admin": "^14",
-    "simple-git": "^4"
+    "firebase-admin": "^14"
   },
   "peerDependenciesMeta": {
     "@sentry/node-core": {
       "optional": true
     },
     "firebase-admin": {
-      "optional": true
-    },
-    "simple-git": {
       "optional": true
     }
   },
@@ -83,9 +76,6 @@
     "!src/**/__exclude"
   ],
   "bin": {
-    "deploy-gae": "bin/deploy-gae.js",
-    "undeploy-gae": "bin/undeploy-gae.js",
-    "deploy-prepare": "bin/deploy-prepare.js",
     "deploy-health-check": "bin/deploy-health-check.js"
   },
   "types": "dist/index.d.ts",
@@ -100,7 +90,7 @@
   "engines": {
     "node": ">=24.10.0"
   },
-  "description": "Standard library for making Express.js / AppEngine based backend services",
+  "description": "Standard library for making Express.js based backend services",
   "author": "Natural Cycles Team",
   "license": "MIT"
 }

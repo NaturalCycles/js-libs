@@ -14,10 +14,10 @@ import type {
   BackendRequestHandler,
 } from '../server/server.model.js'
 import { simpleRequestLoggerMiddleware } from '../server/simpleRequestLoggerMiddleware.js'
-import { isGAE } from '../util.js'
 
 const isTest = process.env['APP_ENV'] === 'test'
 const isDev = process.env['APP_ENV'] === 'dev'
+const isGAE = !!process.env['GAE_INSTANCE']
 
 export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendApplication> {
   const { sentryService } = cfg
@@ -69,7 +69,7 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
     }),
   )
 
-  if (!isGAE() && isTest) {
+  if (!isGAE && isTest) {
     // compression is not used in AppEngine, because AppEngine provides it by default
     app.use(compressionMiddleware())
   }
