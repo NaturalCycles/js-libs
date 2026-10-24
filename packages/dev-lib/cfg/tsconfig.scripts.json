@@ -5,12 +5,7 @@
   "extends": "./tsconfig.src.json",
   "compilerOptions": {
     "rootDir": "${configDir}/..",
-    // "baseUrl": "${configDir}/..",
     "outDir": "${configDir}/../dist/scripts",
-    // copy-paste the paths if needed
-    // "paths": {
-    //   "@src/*": ["../src/*"]
-    // },
     "tsBuildInfoFile": "${configDir}/../node_modules/.cache/scripts.tsbuildinfo"
   },
   "include": ["${configDir}"]

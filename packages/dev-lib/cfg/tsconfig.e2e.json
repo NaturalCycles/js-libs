@@ -5,22 +5,11 @@
   "extends": "./tsconfig.src.json",
   "compilerOptions": {
     "rootDir": "${configDir}/..",
-    // "baseUrl": "${configDir}/..",
     "outDir": "${configDir}/../dist/e2e",
-    // copy-paste the paths if needed
-    // "paths": {
-    //   "@src/*": ["../src/*"]
-    // },
     "tsBuildInfoFile": "${configDir}/../node_modules/.cache/e2e.tsbuildinfo",
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["esnext", "dom", "dom.iterable"]
-    // copy-paste the paths below,
-    // it's needed, because playwright doesn't support ${configDir} properly
-    //    "baseUrl": ".",
-    //    "paths": {
-    //      "@src/*": ["./src/*"],
-    //    },
   },
   "include": ["${configDir}"]
 }
