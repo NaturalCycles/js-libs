@@ -14,6 +14,7 @@ import type {
   BackendRequestHandler,
 } from '../server/server.model.js'
 import { simpleRequestLoggerMiddleware } from '../server/simpleRequestLoggerMiddleware.js'
+import { isCloudRun } from '../util.js'
 
 const isTest = process.env['APP_ENV'] === 'test'
 const isDev = process.env['APP_ENV'] === 'dev'
@@ -30,7 +31,7 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
 
   app.disable('etag')
   app.disable('x-powered-by')
-  app.set('trust proxy', true)
+  app.set('trust proxy', cfg.trustProxy ?? 2)
 
   // preHandlers
   useHandlers(app, cfg.preHandlers)
@@ -69,8 +70,9 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
     }),
   )
 
-  if (!isGAE && isTest) {
+  if (!isGAE && (isTest || isCloudRun())) {
     // compression is not used in AppEngine, because AppEngine provides it by default
+    // Cloud Run doesn't compress responses, so we do it ourselves
     app.use(compressionMiddleware())
   }
 
@@ -195,4 +197,34 @@ export interface DefaultAppCfg {
   corsOptions?: CorsOptions
 
   genericErrorMwCfg?: GenericErrorMiddlewareCfg
+
+  /**
+   * Value for Express `trust proxy` setting, which defines how `req.ip`, `req.ips`,
+   * `req.protocol` and `req.hostname` are resolved from `X-Forwarded-*` headers.
+   *
+   * Defaults to `2` - trust exactly 2 hops: the socket peer (Google Front End) and the
+   * rightmost `X-Forwarded-For` entry (appended by the Google Cloud Load Balancer).
+   * This is the setup of Cloud Run behind a Load Balancer.
+   * Any further entries to the left could be injected by the client, so they are not trusted,
+   * which prevents IP address spoofing via `X-Forwarded-For` header.
+   *
+   * Do NOT set it to `true` in production - it trusts the leftmost `X-Forwarded-For` entry,
+   * which is fully client-controlled.
+   *
+   * Adjust it to match the hosting environment (number of proxies in front of the app).
+   *
+   * @default 2
+   */
+  trustProxy?: TrustProxy
 }
+
+/**
+ * Accepted values of Express `trust proxy` setting.
+ * See https://expressjs.com/en/guide/behind-proxies.html
+ */
+export type TrustProxy =
+  | boolean
+  | number
+  | string
+  | string[]
+  | ((ip: string | undefined, hopIndex: number) => boolean)
