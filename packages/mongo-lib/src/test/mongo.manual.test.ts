@@ -7,7 +7,7 @@ import {
   testItemBMSchema,
 } from '@naturalcycles/db-lib/testing'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
-import { afterAll, describe, test } from 'vitest'
+import { afterAll, describe, it } from 'vitest'
 import { MongoDB } from '../mongo.db.js'
 
 loadEnvFileIfExists()
@@ -30,7 +30,7 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(mongoDB)
 })
 
-test.skip('some', async () => {
+it.skip('some', async () => {
   const dao = new CommonDao({
     table: TEST_TABLE,
     db: mongoDB,

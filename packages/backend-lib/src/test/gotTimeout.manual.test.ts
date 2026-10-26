@@ -1,5 +1,5 @@
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { afterAll, test } from 'vitest'
+import { afterAll, it } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { expressTestService } from '../testing/index.js'
 
@@ -17,7 +17,7 @@ afterAll(async () => {
   await app.close()
 })
 
-test('got timeout', async () => {
+it('got timeout', async () => {
   // 10 retries by 2 seconds
   // So, we'll see how Got works, between 2 options:
   // A. It does 10 * 1 second (20 seconds)

@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, test } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   _enum,
   _numberEnumAsMap,
@@ -46,14 +46,14 @@ enum MyStringEnum {
 // Object.values(MyStringEnum)
 // [ 'K1_VALUE', 'K2_VALUE', 'K3_VALUE' ]
 
-test('_numberEnumKeys', () => {
+it('_numberEnumKeys', () => {
   expect(_numberEnumKeys(MyNumberEnum)).toEqual(['K1', 'K2', 'K3'])
   expectTypeOf(_numberEnumKeys(MyNumberEnum)).toEqualTypeOf<(keyof typeof MyNumberEnum)[]>()
   const keys = _numberEnumKeys(MyNumberEnum)
   expect(keys).not.toContain('some')
 })
 
-test('_numberEnumValues', () => {
+it('_numberEnumValues', () => {
   expect(_numberEnumValues(MyNumberEnum)).toEqual([1, 2, 3])
   expectTypeOf(_numberEnumValues(MyNumberEnum)).toMatchTypeOf<MyNumberEnum[]>()
   expectTypeOf(_numberEnumValues(MyNumberEnum)).toMatchTypeOf<number[]>()
@@ -61,7 +61,7 @@ test('_numberEnumValues', () => {
   expect(values).toContain(MyNumberEnum.K1)
 })
 
-test('_stringEnumKeys', () => {
+it('_stringEnumKeys', () => {
   expect(_stringEnumKeys(MyStringEnum)).toMatchInlineSnapshot(`
     [
       "K1_KEY",
@@ -72,7 +72,7 @@ test('_stringEnumKeys', () => {
   expectTypeOf(_stringEnumKeys(MyStringEnum)).toEqualTypeOf<(keyof typeof MyStringEnum)[]>()
 })
 
-test('_stringEnumValues', () => {
+it('_stringEnumValues', () => {
   expect(_stringEnumValues(MyStringEnum)).toMatchInlineSnapshot(`
     [
       "K1_VALUE",
@@ -84,7 +84,7 @@ test('_stringEnumValues', () => {
   expectTypeOf(_stringEnumValues(MyStringEnum)).toMatchTypeOf<MyStringEnum[]>()
 })
 
-test('_numberEnumEntries', () => {
+it('_numberEnumEntries', () => {
   expect(Object.fromEntries(_numberEnumEntries(MyNumberEnum))).toMatchInlineSnapshot(`
     {
       "K1": 1,
@@ -121,7 +121,7 @@ test('_numberEnumEntries', () => {
   `)
 })
 
-test('_stringEnumEntries', () => {
+it('_stringEnumEntries', () => {
   expect(Object.fromEntries(_stringEnumEntries(MyStringEnum))).toMatchInlineSnapshot(`
     {
       "K1_KEY": "K1_VALUE",
@@ -154,7 +154,7 @@ test('_stringEnumEntries', () => {
   `)
 })
 
-test('_numberEnumValue', () => {
+it('_numberEnumValue', () => {
   expect(_numberEnumValue(MyNumberEnum, 'K2')).toBe(2)
   expect(() => _numberEnumValue(MyNumberEnum, 'K4' as any)).toThrowErrorMatchingInlineSnapshot(
     `[Error: _numberEnumValue not found for: K4]`,
@@ -168,7 +168,7 @@ test('_numberEnumValue', () => {
   expect(_numberEnumValueOrUndefined(MyNumberEnum, 0 as any)).toBeUndefined()
 })
 
-test('_numberEnumNormalize', () => {
+it('_numberEnumNormalize', () => {
   expect(_numberEnumNormalize(MyNumberEnum, 'K2')).toBe(2)
   expect(_numberEnumNormalize(MyNumberEnum, MyNumberEnum.K2)).toBe(2)
 
@@ -189,7 +189,7 @@ test('_numberEnumNormalize', () => {
   expect(_numberEnumNormalizeOrUndefined(MyNumberEnum, 'K4')).toBeUndefined()
 })
 
-test('_numberEnumKey, _numberEnumKeyOrUndefined', () => {
+it('_numberEnumKey, _numberEnumKeyOrUndefined', () => {
   expect(_numberEnumKeyOrUndefined(MyNumberEnum, 'non-existing' as any)).toBeUndefined()
   expect(_numberEnumKeyOrUndefined(MyNumberEnum, MyNumberEnum.K1)).toBe('K1')
   expect(_numberEnumKeyOrUndefined(MyNumberEnum, 1)).toBe('K1')
@@ -206,7 +206,7 @@ test('_numberEnumKey, _numberEnumKeyOrUndefined', () => {
   expect(_numberEnumKey(MyNumberEnum, 1)).toBe('K1')
 })
 
-test('_stringEnumKey', () => {
+it('_stringEnumKey', () => {
   expect(_stringEnumKeyOrUndefined(MyStringEnum, 'non-existing' as any)).toBeUndefined()
   expect(() =>
     _stringEnumKey(MyStringEnum, 'non-existing' as any),
@@ -216,7 +216,7 @@ test('_stringEnumKey', () => {
 })
 
 describe('getEnumType', () => {
-  test('should return "NumberEnum" for NumberEnum objects', () => {
+  it('should return "NumberEnum" for NumberEnum objects', () => {
     enum Foo {
       A = 1,
       B = 2,
@@ -226,11 +226,11 @@ describe('getEnumType', () => {
     expect(getEnumType(Foo)).toBe('NumberEnum')
   })
 
-  test('should return "NumberEnum" for objects with only numeric values', () => {
+  it('should return "NumberEnum" for objects with only numeric values', () => {
     expect(getEnumType({ a: 1, b: 2 })).toBe('NumberEnum')
   })
 
-  test('should return "StringEnum" for StringEnum objects', () => {
+  it('should return "StringEnum" for StringEnum objects', () => {
     enum Foo {
       A = 'a',
       B = 'b',
@@ -240,18 +240,18 @@ describe('getEnumType', () => {
     expect(getEnumType(Foo)).toBe('StringEnum')
   })
 
-  test('should return "StringEnum" for objects with only string values', () => {
+  it('should return "StringEnum" for objects with only string values', () => {
     expect(getEnumType({ a: 'a', b: 'b' })).toBe('StringEnum')
   })
 
-  test('should return "undefined" for empty enums', () => {
+  it('should return "undefined" for empty enums', () => {
     enum Foo {}
 
     expect(getEnumType(Foo)).toBeUndefined()
   })
 
   const testCases = [{}, { a: [1] }, { a: 1, b: 'b' }]
-  test.each(testCases)('should return "undefined" for other objects: %s', value => {
+  it.each(testCases)('should return "undefined" for other objects: %s', value => {
     expect(getEnumType(value)).toBeUndefined()
   })
 })
@@ -263,7 +263,7 @@ describe('_enum', () => {
   const Level = _enum({ LOW: 1, HIGH: 2 })
   type Level = typeof Level.type
 
-  test('should carry the value union on `type`, for declaring the Enum type', () => {
+  it('should carry the value union on `type`, for declaring the Enum type', () => {
     expectTypeOf<typeof Color.type>().toEqualTypeOf<'red' | 'green'>()
     expectTypeOf<typeof Level.type>().toEqualTypeOf<1 | 2>()
     // it is type-only, so it neither exists at runtime nor shows up in iteration
@@ -271,7 +271,7 @@ describe('_enum', () => {
     expect(Object.keys(Color)).not.toContain('type')
   })
 
-  test('should expose members with their literal types', () => {
+  it('should expose members with their literal types', () => {
     expect(Color.RED).toBe('red')
     expect(Level.HIGH).toBe(2)
     expectTypeOf(Color.RED).toEqualTypeOf<'red'>()
@@ -280,7 +280,7 @@ describe('_enum', () => {
     expectTypeOf<Level>().toEqualTypeOf<1 | 2>()
   })
 
-  test('should expose keys, values and entries in declaration order', () => {
+  it('should expose keys, values and entries in declaration order', () => {
     expect(Color.keys).toEqual(['RED', 'GREEN'])
     expect(Color.values).toEqual(['red', 'green'])
     expect(Color.entries).toEqual([
@@ -290,7 +290,7 @@ describe('_enum', () => {
     expect(Level.values).toEqual([1, 2])
   })
 
-  test('should keep literal types on keys, values and entries', () => {
+  it('should keep literal types on keys, values and entries', () => {
     expectTypeOf(Color.keys).toEqualTypeOf<readonly ('RED' | 'GREEN')[]>()
     expectTypeOf(Color.values).toEqualTypeOf<readonly Color[]>()
     // the entries tuples stay correlated: 'RED' pairs only with 'red', never with 'green'
@@ -302,7 +302,7 @@ describe('_enum', () => {
     expectTypeOf(Object.keys(Color)).toEqualTypeOf<string[]>()
   })
 
-  test('should provide `is` as a type-guard', () => {
+  it('should provide `is` as a type-guard', () => {
     expect(Color.is('red')).toBe(true)
     expect(Color.is('green')).toBe(true)
     expect(Color.is('RED')).toBe(false)
@@ -318,7 +318,7 @@ describe('_enum', () => {
     }
   })
 
-  test('should look the key up by value', () => {
+  it('should look the key up by value', () => {
     expect(Color.keyOf('red')).toBe('RED')
     expect(Level.keyOf(2)).toBe('HIGH')
     expectTypeOf(Color.keyOf('red')).toEqualTypeOf<'RED' | 'GREEN'>()
@@ -334,13 +334,13 @@ describe('_enum', () => {
     expectTypeOf(Color.keyOfOrUndefined('x')).toEqualTypeOf<'RED' | 'GREEN' | undefined>()
   })
 
-  test('should let the last key win on duplicate values, like a native number enum', () => {
+  it('should let the last key win on duplicate values, like a native number enum', () => {
     const Dup = _enum({ A: 'x', B: 'x' })
     expect(Dup.keyOf('x')).toBe('B')
     expect(Dup.values).toEqual(['x', 'x'])
   })
 
-  test('should keep helpers non-enumerable, so iteration/serialization only sees members', () => {
+  it('should keep helpers non-enumerable, so iteration/serialization only sees members', () => {
     expect(Object.keys(Color)).toEqual(['RED', 'GREEN'])
     expect(Object.values(Color)).toEqual(['red', 'green'])
     expect(Object.entries(Color)).toEqual([
@@ -355,7 +355,7 @@ describe('_enum', () => {
     expect(keys).toEqual(['RED', 'GREEN'])
   })
 
-  test('should not mutate the input object', () => {
+  it('should not mutate the input object', () => {
     const input = { RED: 'red' }
     const en = _enum(input)
     expect(en).not.toBe(input)
@@ -363,14 +363,14 @@ describe('_enum', () => {
     expect('values' in input).toBe(false)
   })
 
-  test('should throw on keys colliding with the helpers', () => {
+  it('should throw on keys colliding with the helpers', () => {
     const msg = `[Error: _enum keys must not be named type, keys, values, entries, is, keyOf, keyOfOrUndefined, as they collide with the helpers]`
     expect(() => _enum({ values: 'a' })).toThrowErrorMatchingInlineSnapshot(msg)
     expect(() => _enum({ keys: 'a', is: 'b' })).toThrowErrorMatchingInlineSnapshot(msg)
     expect(() => _enum({ entries: 'a' })).toThrowErrorMatchingInlineSnapshot(msg)
   })
 
-  test('should be detected by getEnumType', () => {
+  it('should be detected by getEnumType', () => {
     // getEnumType takes AnyObject, so it accepts an _enum() object as-is.
     // The _stringEnum*/_numberEnum* helpers do not: the helpers make the object
     // not satisfy StringEnum/NumberEnum. They're not needed, use Color.keys/values/entries.
@@ -378,7 +378,7 @@ describe('_enum', () => {
     expect(getEnumType(Level)).toBe('NumberEnum')
   })
 
-  test('should support Enum<T> on native TS enums too', () => {
+  it('should support Enum<T> on native TS enums too', () => {
     expectTypeOf<Enum<typeof MyStringEnum>>().toEqualTypeOf<MyStringEnum>()
     expectTypeOf<Enum<typeof MyNumberEnum>>().toEqualTypeOf<MyNumberEnum>()
   })

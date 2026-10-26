@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { _createDeterministicRandom } from '../number/createDeterministicRandom.js'
 import type { AbortablePredicate, Mapper } from '../types.js'
 import { END } from '../types.js'
@@ -54,7 +54,7 @@ import {
 } from './array.util.js'
 import { _range } from './range.js'
 
-test('_chunk', () => {
+it('_chunk', () => {
   const a = [1, 2, 3, 4, 5, 6]
 
   expect(_chunk(a)).toEqual([[1], [2], [3], [4], [5], [6]])
@@ -71,12 +71,12 @@ test('_chunk', () => {
   expect(_chunk([])).toEqual([])
 })
 
-test('_uniq', () => {
+it('_uniq', () => {
   const a = [1, 2, 2, 1, 3, 5, 3, 4]
   expect(_uniq(a)).toEqual([1, 2, 3, 5, 4])
 })
 
-test('_pushUniq', () => {
+it('_pushUniq', () => {
   const a = [1, 2]
   expect(_pushUniq(a)).toEqual([1, 2])
   expect(_pushUniq(a)).toBe(a) // same reference
@@ -88,7 +88,7 @@ test('_pushUniq', () => {
   expect(_pushUniq(a, 3, 2, 1, 5)).toEqual([1, 2, 3, 5])
 })
 
-test('_uniqBy', () => {
+it('_uniqBy', () => {
   const a = [1, 2, 2, 1, 3, 5, 3, 4]
   expect(_uniqBy(a, a => a)).toEqual([1, 2, 3, 5, 4])
 
@@ -97,7 +97,7 @@ test('_uniqBy', () => {
   expect(_uniqBy([{ x: 1 }, { x: 2 }, { x: 1 }], r => r.x)).toEqual([{ x: 1 }, { x: 2 }])
 })
 
-test('_pushUniqBy', () => {
+it('_pushUniqBy', () => {
   const a = [1, 2]
   const floorMapper: Mapper<number, number> = n => Math.floor(n)
   expect(_pushUniqBy(a, floorMapper)).toEqual([1, 2])
@@ -105,7 +105,7 @@ test('_pushUniqBy', () => {
   expect(_pushUniqBy(a, floorMapper, 1.1, 1.2, 1.5, 1.9, 2, 2.3, 3.1, 3.2)).toEqual([1, 2, 3.1])
 })
 
-test('_by', () => {
+it('_by', () => {
   // expect(_by(undefined, (r: any) => r.a)).toEqual({})
 
   const a = [{ a: 'aa' }, { a: 'ab' }, { b: 'bb' }]
@@ -122,7 +122,7 @@ test('_by', () => {
   })
 })
 
-test('_mapBy', () => {
+it('_mapBy', () => {
   const a = [{ a: 'aa' }, { a: 'ab' }, { b: 'bb' }]
   expect(_mapBy(a, r => r.a)).toMatchInlineSnapshot(`
     Map {
@@ -147,46 +147,46 @@ test('_mapBy', () => {
   `)
 })
 
-test('_groupBy', () => {
+it('_groupBy', () => {
   expect(_groupBy(_range(5), n => (n % 2 ? 'odd' : 'even'))).toEqual({
     even: [0, 2, 4],
     odd: [1, 3],
   })
 })
 
-test('_find', () => {
+it('_find', () => {
   expect(_find([1, 2, 3, 4], n => n % 2 === 0)).toBe(2)
   expect(_find([1, 2, 3, 4], n => (n === 2 ? END : false))).toBeUndefined()
 })
 
-test('_findLast', () => {
+it('_findLast', () => {
   expect(_findLast([1, 2, 3, 4], n => n % 2 === 1)).toBe(3)
   expect(_findLast([1, 2, 3, 4], n => (n === 2 ? END : false))).toBeUndefined()
 })
 
-test('_takeWhile', () => {
+it('_takeWhile', () => {
   expect(_takeWhile([1, 2, 3, 4, 5, 2, 1], v => v <= 3)).toEqual([1, 2, 3])
   expect(_takeWhile([1, 2, 3, 4, 5, 2, 1], v => v > 5)).toEqual([])
 })
 
-test('_takeRightWhile', () => {
+it('_takeRightWhile', () => {
   expect(_takeRightWhile([1, 2, 3, 4, 5, 2, 1], v => v <= 3)).toEqual([1, 2])
   expect(_takeRightWhile([1, 2, 3, 4, 5, 2, 1], v => v > 5)).toEqual([])
 })
 
-test('_dropWhile', () => {
+it('_dropWhile', () => {
   expect(_dropWhile([1, 2, 3, 4, 5, 2, 1], v => v <= 3)).toEqual([4, 5, 2, 1])
   expect(_dropWhile([1, 2, 3, 4, 5, 2, 1], v => v > 5)).toEqual([1, 2, 3, 4, 5, 2, 1])
   expect(_dropWhile([1, 2, 3, 4, 5, 2, 1], v => v < 10)).toEqual([])
 })
 
-test('_dropRightWhile', () => {
+it('_dropRightWhile', () => {
   expect(_dropRightWhile([1, 2, 3, 4, 5, 2, 1], v => v <= 3)).toEqual([1, 2, 3, 4, 5])
   expect(_dropRightWhile([1, 2, 3, 4, 5, 2, 1], v => v > 5)).toEqual([1, 2, 3, 4, 5, 2, 1])
   expect(_dropRightWhile([1, 2, 3, 4, 5, 2, 1], v => v < 10)).toEqual([])
 })
 
-test('_count', () => {
+it('_count', () => {
   const a = [1, 2, 3, 4, 5]
   const isEven: AbortablePredicate<number> = n => n % 2 === 0
 
@@ -218,7 +218,7 @@ test('_count', () => {
   expect(_count(c, isEven)).toBe(1)
 })
 
-test('_countBy', () => {
+it('_countBy', () => {
   expect(_countBy(['a', 'aa', 'aaa', 'aaa', 'aaaa'], r => r.length)).toEqual({
     1: 1,
     2: 1,
@@ -232,7 +232,7 @@ test('_countBy', () => {
   })
 })
 
-test('_intersection', () => {
+it('_intersection', () => {
   const f = _intersection
   // expect(f()).toEqual([])
   // expect(f([1])).toEqual([1])
@@ -256,7 +256,7 @@ test('_intersection', () => {
   expect(f([2, 1], new Set([2, 3]))).toEqual([2])
 })
 
-test('_intersectsWith', () => {
+it('_intersectsWith', () => {
   const f = _intersectsWith
 
   expect(f([], [1])).toBe(false)
@@ -270,7 +270,7 @@ test('_intersectsWith', () => {
   expect(f([2, 1], new Set([2, 3]))).toBe(true)
 })
 
-test('_difference', () => {
+it('_difference', () => {
   const f = _difference
   expect(f([1], [1])).toEqual([])
   expect(f([1], [1, 2])).toEqual([])
@@ -280,7 +280,7 @@ test('_difference', () => {
   expect(f([2, 4, 1], [2, 3])).toEqual([4, 1])
 })
 
-test('_arrayRemove', () => {
+it('_arrayRemove', () => {
   // Basic removal
   expect(_arrayRemove([1, 2, 3], 2)).toEqual([1, 3])
   expect(_arrayRemove([1, 2, 3], 1)).toEqual([2, 3])
@@ -309,7 +309,7 @@ test('_arrayRemove', () => {
   expect(_arrayRemove([obj, { id: 2 }], obj)).toEqual([{ id: 2 }])
 })
 
-test('_arrayPushOrRemove', () => {
+it('_arrayPushOrRemove', () => {
   // predicate=true: pushes item if not present
   const a = [1, 2, 3]
   const result = _arrayPushOrRemove(a, 4, true)
@@ -344,7 +344,7 @@ test('_arrayPushOrRemove', () => {
   expect(_arrayPushOrRemove([], 1, false)).toEqual([])
 })
 
-test('_mapToObject', () => {
+it('_mapToObject', () => {
   expect(_mapToObject(_range(3), i => [i, i * 2])).toEqual({
     0: 0,
     1: 2,
@@ -364,7 +364,7 @@ test('_mapToObject', () => {
   })
 })
 
-test('_shuffle', () => {
+it('_shuffle', () => {
   const a = [1, 2, 3, 4, 5]
   Object.freeze(a) // should not be mutated
 
@@ -396,7 +396,7 @@ test('_shuffle', () => {
   `)
 })
 
-test.each([
+it.each([
   [[], 0],
   [[2], 2],
   [[-1, 4], 3],
@@ -404,7 +404,7 @@ test.each([
   expect(_sum(items)).toBe(result)
 })
 
-test('_sumBy', () => {
+it('_sumBy', () => {
   const items = [
     { a: 1 },
     { a: 2 },
@@ -414,7 +414,7 @@ test('_sumBy', () => {
   expect(_sumBy(items, i => i.a)).toBe(3)
 })
 
-test('_last', () => {
+it('_last', () => {
   expect(_lastOrUndefined([])).toBeUndefined()
   expect(_lastOrUndefined([undefined])).toBeUndefined()
   expect(_lastOrUndefined([1, undefined])).toBeUndefined()
@@ -432,7 +432,7 @@ test('_last', () => {
   expect(_last(ro)).toBe(3)
 })
 
-test('_firstLast', () => {
+it('_firstLast', () => {
   expect(() => _firstLast([])).toThrowErrorMatchingInlineSnapshot(
     `[Error: _firstLast called on empty array]`,
   )
@@ -446,7 +446,7 @@ test('_firstLast', () => {
   expect(_firstLastOrUndefined([1, 2, 3])).toEqual([1, 3])
 })
 
-test('_first', () => {
+it('_first', () => {
   expect(_firstOrUndefined([])).toBeUndefined()
   expect(_firstOrUndefined([undefined])).toBeUndefined()
   expect(_firstOrUndefined([undefined, 1])).toBeUndefined()
@@ -462,7 +462,7 @@ test('_first', () => {
   expect(_first([1])).toBe(1)
 })
 
-test('_firstFromIterable', () => {
+it('_firstFromIterable', () => {
   expect(_firstOrUndefinedFromIterable([])).toBeUndefined()
   expect(_firstOrUndefinedFromIterable([1, 2, 3])).toBe(1)
   expect(_firstOrUndefinedFromIterable(new Set([1, 2, 3]))).toBe(1)
@@ -499,7 +499,7 @@ test('_firstFromIterable', () => {
   expect(_firstFromIterable(new Set(['a']))).toBe('a')
 })
 
-test('_min', () => {
+it('_min', () => {
   expect(_minOrUndefined([])).toBeUndefined()
   expect(_minOrUndefined([3])).toBe(3)
   expect(_minOrUndefined([3, 2])).toBe(2)
@@ -524,7 +524,7 @@ test('_min', () => {
   expect(_min([undefined, 1, 2])).toBe(1)
 })
 
-test('_max', () => {
+it('_max', () => {
   expect(_maxOrUndefined([])).toBeUndefined()
   expect(_maxOrUndefined([3])).toBe(3)
   expect(_maxOrUndefined([3, 2])).toBe(3)
@@ -543,7 +543,7 @@ test('_max', () => {
   expect(_max(['1', '3', '2', '4'])).toBe('4')
 })
 
-test('_minMax', () => {
+it('_minMax', () => {
   expect(_minMaxOrUndefined([])).toBeUndefined()
   expect(_minMaxOrUndefined([3])).toEqual([3, 3])
   expect(_minMaxOrUndefined([3, 2])).toEqual([2, 3])
@@ -568,7 +568,7 @@ test('_minMax', () => {
   expect(_minMax([undefined, 1, 2])).toEqual([1, 2])
 })
 
-test('_maxBy, _minBy', () => {
+it('_maxBy, _minBy', () => {
   expect(_maxByOrUndefined([], () => 0)).toBeUndefined()
   expect(() => _maxBy([], () => 0)).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: _maxBy returned undefined]`,
@@ -588,7 +588,7 @@ test('_maxBy, _minBy', () => {
   })
 })
 
-test('_minMaxBy', () => {
+it('_minMaxBy', () => {
   expect(_maxByOrUndefined([], () => 0)).toBeUndefined()
   expect(() => _minMaxBy([], () => 0)).toThrowErrorMatchingInlineSnapshot(
     `[Error: _minMaxBy called on empty array]`,
@@ -603,7 +603,7 @@ test('_minMaxBy', () => {
   ])
 })
 
-test('_zip', () => {
+it('_zip', () => {
   const a1 = [1, 2, 3]
   const a2 = [2, 3, 4]
   expect(_zip(a1, a2)).toEqual([

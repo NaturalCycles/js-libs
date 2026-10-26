@@ -1,6 +1,6 @@
 import { _expectedErrorString, pExpectedError } from '@naturalcycles/js-lib/error'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { exec2, SpawnError } from './exec2.js'
 
 const silent = !!process.env['TEST_SILENT']
@@ -27,12 +27,12 @@ const cmdOk = `node -e "console.log('hello')"`
 const cmdError = `node -e "console.error('err'); process.exit(1)"`
 const cmdSignal = `node -e "process.kill(process.pid, 'SIGTERM')"`
 
-test('spawn ok', () => {
+it('spawn ok', () => {
   exec2.spawn(cmdOk, { stdio: silent ? 'pipe' : 'inherit' })
   // no error
 })
 
-test('spawn error', () => {
+it('spawn error', () => {
   const err = _expectedErrorString(() =>
     exec2.spawn(cmdError, { stdio: silent ? 'pipe' : 'inherit' }),
   )
@@ -41,12 +41,12 @@ test('spawn error', () => {
   )
 })
 
-test('exec ok', () => {
+it('exec ok', () => {
   const s = exec2.exec(cmdOk)
   expect(s).toBe('hello')
 })
 
-test('exec error', () => {
+it('exec error', () => {
   const err = _expectedErrorString(() =>
     exec2.exec(cmdError, { stdio: silent ? 'pipe' : undefined }),
   )
@@ -55,12 +55,12 @@ test('exec error', () => {
   )
 })
 
-test('spawnAsync ok', async () => {
+it('spawnAsync ok', async () => {
   await exec2.spawnAsync(cmdOk, { stdio: silent ? 'pipe' : 'inherit' })
   // no error
 })
 
-test('spawnAsync error', async () => {
+it('spawnAsync error', async () => {
   const err = await pExpectedError(
     exec2.spawnAsync(cmdError, { stdio: silent ? 'pipe' : 'inherit' }),
     Error,
@@ -70,7 +70,7 @@ test('spawnAsync error', async () => {
   )
 })
 
-test('spawnAsync signal', async () => {
+it('spawnAsync signal', async () => {
   const err = await pExpectedError(
     exec2.spawnAsync(cmdSignal, { stdio: silent ? 'pipe' : 'inherit' }),
     Error,
@@ -78,14 +78,14 @@ test('spawnAsync signal', async () => {
   expect(isSignalTermination(_stringify(err))).toBe(true)
 })
 
-test('spawnAsyncAndReturn ok', async () => {
+it('spawnAsyncAndReturn ok', async () => {
   const s = await exec2.spawnAsyncAndReturn(cmdOk, { printWhileRunning: !silent })
   expect(s.exitCode).toBe(0)
   expect(s.stderr).toBe('')
   expect(s.stdout).toBe('hello')
 })
 
-test('spawnAsyncAndReturn error with throw', async () => {
+it('spawnAsyncAndReturn error with throw', async () => {
   const err = await pExpectedError(
     exec2.spawnAsyncAndReturn(cmdError, { printWhileRunning: !silent }),
     SpawnError,
@@ -98,7 +98,7 @@ test('spawnAsyncAndReturn error with throw', async () => {
   expect(err.data.stderr).toBe('err')
 })
 
-test('spawnAsyncAndReturn error without throw', async () => {
+it('spawnAsyncAndReturn error without throw', async () => {
   const { exitCode, stdout, stderr } = await exec2.spawnAsyncAndReturn(cmdError, {
     throwOnNonZeroCode: false,
     printWhileRunning: !silent,
@@ -108,7 +108,7 @@ test('spawnAsyncAndReturn error without throw', async () => {
   expect(stderr).toBe('err')
 })
 
-test('spawnAsyncAndReturn signal', async () => {
+it('spawnAsyncAndReturn signal', async () => {
   const err = await pExpectedError(
     exec2.spawnAsyncAndReturn(cmdSignal, { printWhileRunning: !silent }),
     SpawnError,

@@ -1,16 +1,16 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { pDefer } from './pDefer.js'
 import { pDelay } from './pDelay.js'
 import { pState } from './pState.js'
 
-test('pending', async () => {
+it('pending', async () => {
   const p = new Promise(() => {}) // hanging promise
   expect(await pState(p)).toBe('pending')
   await pDelay(100)
   expect(await pState(p)).toBe('pending')
 })
 
-test('resolved', async () => {
+it('resolved', async () => {
   const p = pDefer<string>()
   expect(await pState(p)).toBe('pending')
   await pDelay(100)
@@ -19,7 +19,7 @@ test('resolved', async () => {
   expect(await p).toBe('hello')
 })
 
-test('rejected', async () => {
+it('rejected', async () => {
   const p = pDefer<string>()
   expect(await pState(p)).toBe('pending')
   await pDelay(100)

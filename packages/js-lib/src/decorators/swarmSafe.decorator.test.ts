@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _range } from '../array/range.js'
 import { pDelay } from '../promise/pDelay.js'
 import { _SwarmSafe } from './swarmSafe.decorator.js'
@@ -14,7 +14,7 @@ class C {
   }
 }
 
-test('swarmSafe sequential', async () => {
+it('swarmSafe sequential', async () => {
   const c = new C()
 
   for (const _ of _range(10)) {
@@ -25,7 +25,7 @@ test('swarmSafe sequential', async () => {
   expect(c.ranTimes).toBe(10)
 })
 
-test('swarmSafe parallel', async () => {
+it('swarmSafe parallel', async () => {
   const c = new C()
 
   const [r1, r2, r3] = await Promise.all([

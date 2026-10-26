@@ -1,12 +1,12 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { grey, hasColors } from './colors.js'
 
-test('colors', () => {
+it('colors', () => {
   console.log(grey('sdf'))
   console.log(grey('15 16'))
   // console.log(grey({hello: 'world', num: 5}))
 })
 
-test('hasColors', () => {
+it('hasColors', () => {
   console.log(hasColors)
 })

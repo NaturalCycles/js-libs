@@ -1,7 +1,7 @@
 import { requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { cert, initializeApp } from 'firebase-admin/app'
 import { getStorage } from 'firebase-admin/storage'
-import { describe, test } from 'vitest'
+import { describe, it } from 'vitest'
 import { CloudStorage } from '../cloudStorage.js'
 import { runCommonStorageTest } from '../testing/commonStorageTest.js'
 
@@ -23,7 +23,7 @@ describe(`runCommonStorageTest`, async () => {
   await runCommonStorageTest(storage, FIREBASE_BUCKET)
 })
 
-test('listFiles', async () => {
+it('listFiles', async () => {
   const files = await storage.getFileNames(FIREBASE_BUCKET)
   console.log(files)
 })

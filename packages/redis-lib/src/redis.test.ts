@@ -1,10 +1,10 @@
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { RedisClient } from './redisClient.js'
 import { RedisKeyValueDB } from './redisKeyValueDB.js'
 
-test('redis lazy initialization should not throw', async () => {
+it('redis lazy initialization should not throw', async () => {
   await using _ = new RedisClient({
     redisOptions: {
       maxRetriesPerRequest: 1,
@@ -13,7 +13,7 @@ test('redis lazy initialization should not throw', async () => {
   await pDelay(1000)
 })
 
-test('redis connection failure should throw', async () => {
+it('redis connection failure should throw', async () => {
   await using client = new RedisClient({
     redisOptions: {
       port: 15464, // non-existing

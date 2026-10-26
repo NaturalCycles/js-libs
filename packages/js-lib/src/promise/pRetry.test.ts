@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { TimeoutError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
 import { normalizeStack } from '../test/test.util.js'
@@ -19,7 +19,7 @@ function createFn(succeedOnAttempt: number): AnyFunction {
   }
 }
 
-test('pRetryFn', async () => {
+it('pRetryFn', async () => {
   const fn = pRetryFn(createFn(3), {
     maxAttempts: 3,
     delay: 10,
@@ -33,7 +33,7 @@ test('pRetryFn', async () => {
   expect(r).toEqual([1, 2, 3])
 })
 
-test('pRetryFn should throw on fail', async () => {
+it('pRetryFn should throw on fail', async () => {
   const fn = pRetryFn(createFn(3), {
     maxAttempts: 2, // so, it'll never succeed
     delay: 10,
@@ -43,7 +43,7 @@ test('pRetryFn should throw on fail', async () => {
   await expect(fn(1, 2, 3)).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: fail]`)
 })
 
-test('pRetry', async () => {
+it('pRetry', async () => {
   const r = await pRetry(
     async attempt => {
       if (attempt >= 3) return attempt
@@ -59,7 +59,7 @@ test('pRetry', async () => {
   expect(r).toBe(3)
 })
 
-test('pRetry with timeout', async () => {
+it('pRetry with timeout', async () => {
   const r = await pRetry(
     async attempt => {
       if (attempt >= 3) return attempt
@@ -75,7 +75,7 @@ test('pRetry with timeout', async () => {
   expect(r).toBe(3)
 })
 
-test('pRetry should throw on fail and keep stack', async () => {
+it('pRetry should throw on fail and keep stack', async () => {
   async function myFunction(): Promise<void> {
     await pRetry(
       async attempt => {
@@ -99,7 +99,7 @@ test('pRetry should throw on fail and keep stack', async () => {
   expect(err.stack).toContain('at myFunction')
 })
 
-test('pRetry timeout should not happen', async () => {
+it('pRetry timeout should not happen', async () => {
   await pRetry(async () => await pDelay(1), {
     timeout: 1000,
     logAll: true,
@@ -115,7 +115,7 @@ async function myFunction(): Promise<void> {
   })
 }
 
-test('pRetry should time out and keep stack', async () => {
+it('pRetry should time out and keep stack', async () => {
   const err = await pExpectedError(myFunction())
   // console.log(err.stack)
 
@@ -142,7 +142,7 @@ test('pRetry should time out and keep stack', async () => {
   `)
 })
 
-test('should preserve this', async () => {
+it('should preserve this', async () => {
   class C {
     async helloWithRetry(): Promise<number> {
       return await pRetry(async () => {

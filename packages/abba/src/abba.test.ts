@@ -1,6 +1,6 @@
 import { InMemoryDB } from '@naturalcycles/db-lib/inmemory'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Abba } from './abba.js'
 import { bucketDao } from './dao/bucket.dao.js'
 import { experimentDao } from './dao/experiment.dao.js'
@@ -20,7 +20,7 @@ beforeEach(() => {
 })
 
 describe('mergeAssignmentsForUserIds', async () => {
-  test('should update userId for all assignments if no existing assignments for experiments for new userId', async () => {
+  it('should update userId for all assignments if no existing assignments for experiments for new userId', async () => {
     const intoUserId = 'newUserId'
     const assignment1 = await userAssignmentsDAO.save(
       mockUserAssignment('mockExperimentId1', 'mockBucketId1'),
@@ -38,7 +38,7 @@ describe('mergeAssignmentsForUserIds', async () => {
     expect(updatedAssignment2.userId).toEqual(intoUserId)
   })
 
-  test('should not update userId if assignments for the same experimentId already exist for the new userId', async () => {
+  it('should not update userId if assignments for the same experimentId already exist for the new userId', async () => {
     const fromUserId = 'fromUserId'
     const intoUserId = 'intoUserId'
     const assignment1 = await userAssignmentsDAO.save(
@@ -62,7 +62,7 @@ describe('mergeAssignmentsForUserIds', async () => {
 })
 
 describe('createExperiment', () => {
-  test('adding exclusion updates other mutually exclusive experiments', async () => {
+  it('adding exclusion updates other mutually exclusive experiments', async () => {
     const experiment1 = mockExperiment()
     const experiment2 = mockExperiment({ id: 'mockExperiment2' })
 
@@ -80,7 +80,7 @@ describe('createExperiment', () => {
 })
 
 describe('deleteExperiment', () => {
-  test('will throw if the experiment is not inactive', async () => {
+  it('will throw if the experiment is not inactive', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({ status: AssignmentStatus.Active }),
     )
@@ -90,7 +90,7 @@ describe('deleteExperiment', () => {
     )
   })
 
-  test('will throw if the experiment is inactive but was last updated within 15 minutes', async () => {
+  it('will throw if the experiment is inactive but was last updated within 15 minutes', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({
         status: AssignmentStatus.Inactive,
@@ -104,7 +104,7 @@ describe('deleteExperiment', () => {
     )
   })
 
-  test('removes id from all experiment exclusions', async () => {
+  it('removes id from all experiment exclusions', async () => {
     const experiment1 = await experimentsDAO.save(
       mockExperiment({
         status: AssignmentStatus.Inactive,
@@ -126,7 +126,7 @@ describe('deleteExperiment', () => {
 })
 
 describe('saveExperiment', () => {
-  test('adding exclusion updates other mutually exclusive experiments', async () => {
+  it('adding exclusion updates other mutually exclusive experiments', async () => {
     const experiment1 = mockExperiment()
     const experiment2 = mockExperiment({ id: 'mockExperiment2' })
     const experiment3 = mockExperiment({ id: 'mockExperiment3' })
@@ -149,7 +149,7 @@ describe('saveExperiment', () => {
     expect(updatedExperiment3.exclusions).toEqual([experiment2.id])
   })
 
-  test('removing exclusion updates other mutually exclusive experiments', async () => {
+  it('removing exclusion updates other mutually exclusive experiments', async () => {
     const experiment1 = mockExperiment()
     const experiment2 = mockExperiment({ id: 'mockExperiment2' })
     const experiment3 = mockExperiment({ id: 'mockExperiment3' })
@@ -176,7 +176,7 @@ describe('saveExperiment', () => {
 })
 
 describe('getUserAssignment', () => {
-  test('returns null if experiment is inactive, even with existing assignment', async () => {
+  it('returns null if experiment is inactive, even with existing assignment', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({ status: AssignmentStatus.Inactive }),
     )
@@ -192,7 +192,7 @@ describe('getUserAssignment', () => {
     expect(assignment).toBeNull()
   })
 
-  test('returns null if experiment is paused, even if existingOnly is false', async () => {
+  it('returns null if experiment is paused, even if existingOnly is false', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({ status: AssignmentStatus.Paused }),
     )
@@ -202,7 +202,7 @@ describe('getUserAssignment', () => {
     expect(assignment).toBeNull()
   })
 
-  test('returns existing assignment', async () => {
+  it('returns existing assignment', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
     const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
     const existingAssignment = await userAssignmentsDAO.save({
@@ -227,7 +227,7 @@ describe('getUserAssignment', () => {
     })
   })
 
-  test('does not generate new if existingOnly is true and user has no existing assignment', async () => {
+  it('does not generate new if existingOnly is true and user has no existing assignment', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
 
     const assignment = await abba.getUserAssignment(experiment.key, 'userId', true, undefined)
@@ -235,7 +235,7 @@ describe('getUserAssignment', () => {
     expect(assignment).toBeNull()
   })
 
-  test('Generates new assignment if experiment is active and user is eligible', async () => {
+  it('Generates new assignment if experiment is active and user is eligible', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
     const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
 
@@ -261,7 +261,7 @@ describe('getUserAssignment', () => {
 })
 
 describe('getExperimentWithBuckets', () => {
-  test('returns the experiment by id, and its buckets', async () => {
+  it('returns the experiment by id, and its buckets', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
     const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
 
@@ -273,7 +273,7 @@ describe('getExperimentWithBuckets', () => {
     })
   })
 
-  test('returns undefined if experiment not found', async () => {
+  it('returns undefined if experiment not found', async () => {
     const result = await abba.getExperimentWithBuckets('nonExistentId')
 
     expect(result).toBeUndefined()
@@ -282,7 +282,7 @@ describe('getExperimentWithBuckets', () => {
 
 describe('generateUserAssignments', () => {
   // We spy on getAllExperiments to avoid the cache
-  test('Does not return existing assignment for experiments that are inactive', async () => {
+  it('Does not return existing assignment for experiments that are inactive', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({ status: AssignmentStatus.Inactive }),
     )
@@ -298,7 +298,7 @@ describe('generateUserAssignments', () => {
     expect(assignments).toEqual([])
   })
 
-  test('returns existing assignment for experiments that are not inactive', async () => {
+  it('returns existing assignment for experiments that are not inactive', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({ id: 'mockExperimentId2', status: AssignmentStatus.Paused }),
     )
@@ -324,7 +324,7 @@ describe('generateUserAssignments', () => {
     ])
   })
 
-  test('Generates new assignment for experiments that are active and user is eligible', async () => {
+  it('Generates new assignment for experiments that are active and user is eligible', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({ status: AssignmentStatus.Active }),
     )
@@ -348,7 +348,7 @@ describe('generateUserAssignments', () => {
 })
 
 describe('getExperimentAssignmentStatistics', () => {
-  test('returns correct totals', async () => {
+  it('returns correct totals', async () => {
     const experiment = await experimentsDAO.save(mockExperiment({ sampling: 50 }))
     const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
     await userAssignmentsDAO.saveBatch([
@@ -366,7 +366,7 @@ describe('getExperimentAssignmentStatistics', () => {
 })
 
 describe('getAllExistingUserAssignments', () => {
-  test('getAllExistingUserAssignments', async () => {
+  it('getAllExistingUserAssignments', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
     const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
     const assignment = await userAssignmentsDAO.save(mockUserAssignment(experiment.id, bucket.id))
@@ -384,7 +384,7 @@ describe('getAllExistingUserAssignments', () => {
     ])
   })
 
-  test('generated user assignments include data if provided', async () => {
+  it('generated user assignments include data if provided', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
     const bucket = await bucketsDAO.save(
       mockBucket(experiment.id, 'test', 100, { data: { edits: ['hello'] } }),
@@ -406,7 +406,7 @@ describe('getAllExistingUserAssignments', () => {
 })
 
 describe('getAllExperimentsWithBucketsNoCache', () => {
-  test('should query all experiments attached with their respective buckets', async () => {
+  it('should query all experiments attached with their respective buckets', async () => {
     const experiment1 = await experimentsDAO.save(mockExperiment({ key: 'exp1' }))
     const experiment1Buckets = await bucketsDAO.saveBatch([
       mockBucket(experiment1.id, 'bucket1', 50),
@@ -428,7 +428,7 @@ describe('getAllExperimentsWithBucketsNoCache', () => {
 })
 
 describe('getAllExperimentsWithUserAssignments', () => {
-  test('should not include user assignments for deleted experiments', async () => {
+  it('should not include user assignments for deleted experiments', async () => {
     vi.spyOn(abba, 'getAllExperimentsWithBuckets')
 
     await abba.getUserExperiments(mockUserId1)
@@ -436,7 +436,7 @@ describe('getAllExperimentsWithUserAssignments', () => {
     expect(abba.getAllExperimentsWithBuckets).toHaveBeenCalledWith({ includeDeleted: false })
   })
 
-  test('should attach user assignments to experiments', async () => {
+  it('should attach user assignments to experiments', async () => {
     const experiment = mockExperiment()
     const bucket = mockBucket(experiment.id, 'test', 100)
     const userAssignment = await userAssignmentsDAO.save(
@@ -461,12 +461,12 @@ describe('getAllExperimentsWithUserAssignments', () => {
 })
 
 describe('getUserIdsInBuckets', () => {
-  test('returns empty Set when experiment key does not exist', async () => {
+  it('returns empty Set when experiment key does not exist', async () => {
     const result = await abba.getUserIdsInBuckets('nonexistent_key', ['control'])
     expect(result).toEqual(new Set())
   })
 
-  test('returns empty Set when none of the bucket keys match', async () => {
+  it('returns empty Set when none of the bucket keys match', async () => {
     const experiment = await experimentsDAO.save(mockExperiment({ key: 'exp_bucket_test' }))
     await bucketsDAO.save(mockBucket(experiment.id, 'control', 100))
 
@@ -474,7 +474,7 @@ describe('getUserIdsInBuckets', () => {
     expect(result).toEqual(new Set())
   })
 
-  test('returns correct user IDs when matching assignments exist', async () => {
+  it('returns correct user IDs when matching assignments exist', async () => {
     const experiment = await experimentsDAO.save(mockExperiment({ key: 'exp_user_ids' }))
     const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'treatment', 100))
     await userAssignmentsDAO.save(mockUserAssignment(experiment.id, bucket.id, { userId: 'user1' }))
@@ -484,7 +484,7 @@ describe('getUserIdsInBuckets', () => {
     expect(result).toEqual(new Set(['user1', 'user2']))
   })
 
-  test('deduplicates user IDs when a user is assigned to multiple matching buckets', async () => {
+  it('deduplicates user IDs when a user is assigned to multiple matching buckets', async () => {
     const experiment = await experimentsDAO.save(mockExperiment({ key: 'exp_dedup' }))
     const bucket1 = await bucketsDAO.save(mockBucket(experiment.id, 'bucketA', 50))
     const bucket2 = await bucketsDAO.save(mockBucket(experiment.id, 'bucketB', 50))
@@ -501,7 +501,7 @@ describe('getUserIdsInBuckets', () => {
 })
 
 describe('softDeleteExperiment', () => {
-  test('should soft delete an experiment', async () => {
+  it('should soft delete an experiment', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({ status: AssignmentStatus.Paused, deleted: false }),
     )
@@ -513,7 +513,7 @@ describe('softDeleteExperiment', () => {
     expect(updatedExperiment.status).toBe(AssignmentStatus.Inactive)
   })
 
-  test('should remove the experiment from any mutual exclusion lists', async () => {
+  it('should remove the experiment from any mutual exclusion lists', async () => {
     const experiment1Id = 'experiment1'
     const experiment2Id = 'experiment2'
     const experiment1 = mockExperiment({ id: experiment1Id, exclusions: [experiment2Id] })
@@ -532,7 +532,7 @@ describe('softDeleteExperiment', () => {
 })
 
 describe('saveManualUserAssignments', () => {
-  test('should create new assignments and overwrite existing ones in a single batch', async () => {
+  it('should create new assignments and overwrite existing ones in a single batch', async () => {
     const experiment1 = await experimentsDAO.save(mockExperiment({ key: 'EXP_1' }))
     const control1 = await bucketsDAO.save(mockBucket(experiment1.id, 'control', 50))
     const test1 = await bucketsDAO.save(mockBucket(experiment1.id, 'test', 50))
@@ -558,12 +558,12 @@ describe('saveManualUserAssignments', () => {
     expect(all).toHaveLength(2)
   })
 
-  test('should return an empty array for an empty input', async () => {
+  it('should return an empty array for an empty input', async () => {
     const result = await abba.saveManualUserAssignments([])
     expect(result).toEqual([])
   })
 
-  test('should apply last-wins dedupe for duplicate (userId, experimentKey) pairs', async () => {
+  it('should apply last-wins dedupe for duplicate (userId, experimentKey) pairs', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
     await bucketsDAO.save(mockBucket(experiment.id, 'control', 50))
     const testBucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 50))
@@ -580,7 +580,7 @@ describe('saveManualUserAssignments', () => {
     expect(persisted[0]!.bucketId).toBe(testBucket.id)
   })
 
-  test('should throw when any row references an unknown experiment', async () => {
+  it('should throw when any row references an unknown experiment', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
     await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
 
@@ -594,7 +594,7 @@ describe('saveManualUserAssignments', () => {
     expect(written).toEqual([])
   })
 
-  test('should throw when the experiment is soft-deleted', async () => {
+  it('should throw when the experiment is soft-deleted', async () => {
     const experiment = await experimentsDAO.save(mockExperiment({ deleted: true }))
     await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
 
@@ -605,7 +605,7 @@ describe('saveManualUserAssignments', () => {
     ).rejects.toThrow(`Experiment does not exist: ${experiment.key}`)
   })
 
-  test('should throw when a bucket key does not belong to its experiment', async () => {
+  it('should throw when a bucket key does not belong to its experiment', async () => {
     const experiment = await experimentsDAO.save(mockExperiment())
     await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
 
@@ -616,7 +616,7 @@ describe('saveManualUserAssignments', () => {
     ).rejects.toThrow(`Bucket does not exist on experiment ${experiment.key}: control`)
   })
 
-  test.each([
+  it.each([
     ['Active', AssignmentStatus.Active],
     ['Paused', AssignmentStatus.Paused],
     ['Inactive', AssignmentStatus.Inactive],
@@ -631,7 +631,7 @@ describe('saveManualUserAssignments', () => {
     expect(result!.bucketId).toBe(bucket.id)
   })
 
-  test('should ignore segmentation rules and sampling', async () => {
+  it('should ignore segmentation rules and sampling', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({
         sampling: 0,

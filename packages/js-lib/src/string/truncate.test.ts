@@ -1,9 +1,9 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _truncate, _truncateMiddle } from './string.util.js'
 
 const s = '1234567890abcd'
 
-test('_truncate', () => {
+it('_truncate', () => {
   expect(_truncate(s, 1)).toBe('...')
   expect(_truncate(s, 2)).toBe('...')
   expect(_truncate(s, 3)).toBe('...')
@@ -20,7 +20,7 @@ test('_truncate', () => {
   expect(_truncate(s, 3, 'zz')).toBe('1zz')
 })
 
-test('_truncateMiddle', () => {
+it('_truncateMiddle', () => {
   expect(_truncateMiddle(s, 1)).toBe('...')
   expect(_truncateMiddle(s, 2)).toBe('...')
   expect(_truncateMiddle(s, 3)).toBe('...')

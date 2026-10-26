@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { pDelay } from '../promise/index.js'
 import type { InstanceId } from '../types.js'
 import { _LogMethod } from './logMethod.decorator.js'
@@ -50,12 +50,12 @@ class C {
 
 const c = new C()
 
-test('syncMethodSuccess', () => {
+it('syncMethodSuccess', () => {
   const r = c.syncMethodSuccess()
   expect(r).toBe('a')
 })
 
-test('asyncMethodSuccessAvg', async () => {
+it('asyncMethodSuccessAvg', async () => {
   // Repeating to test count, avg, logResult, noLogStart, noLogArgs
   await c.asyncMethodSuccessAvg(1)
   await c.asyncMethodSuccessAvg(10)
@@ -63,40 +63,40 @@ test('asyncMethodSuccessAvg', async () => {
   await c.asyncMethodSuccessAvg(30)
 })
 
-test('syncMethodThrow', () => {
+it('syncMethodThrow', () => {
   expect(() => c.syncMethodThrow()).toThrow('MyError')
 })
 
-test('asyncMethodSuccess', async () => {
+it('asyncMethodSuccess', async () => {
   const r = await c.asyncMethodSuccess()
   expect(r).toBe('a')
 })
 
-test('asyncMethodThrow', async () => {
+it('asyncMethodThrow', async () => {
   await expect(c.asyncMethodThrow()).rejects.toThrow('MyError')
 })
 
-test('methodResultFn', () => {
+it('methodResultFn', () => {
   // Manual test to inspect console.log results
   c.methodResultFn(1)
   c.methodResultFn(2)
   c.methodResultFn(3)
 })
 
-test('methodLongArg', () => {
+it('methodLongArg', () => {
   c.methodLongArg(5, 3, { a: 'a' }, { long: 'short' })
   c.methodLongArg(5, 3, { a: 'a' }, { long: 'longer longer value here' })
   c.methodLongArg([1, 2, 3])
   c.methodLongArg([1, 2, 3, 'long long looooooooooooooong'])
 })
 
-test('methodReturnsArray', () => {
+it('methodReturnsArray', () => {
   c.methodReturnsArray()
   c.methodReturnsArray()
   c.methodReturnsArray()
 })
 
-test('instanceId', () => {
+it('instanceId', () => {
   const c = new C() as C & InstanceId
   c.instanceId = 'instance_1'
   c.syncMethodSuccess()

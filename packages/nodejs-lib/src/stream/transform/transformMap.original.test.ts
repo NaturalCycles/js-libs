@@ -3,7 +3,7 @@ import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
-import { afterAll, beforeAll, expect, test, vi } from 'vitest'
+import { afterAll, beforeAll, expect, it, vi } from 'vitest'
 import { Pipeline, transformMapStatsSummary } from '../index.js'
 import type { TransformMapStats } from '../index.js'
 
@@ -25,7 +25,7 @@ const mapperError3: AsyncIndexedMapper<Item, Item> = async item => {
   return item
 }
 
-test('transformMap simple', async () => {
+it('transformMap simple', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2: Item[] = []
 
@@ -37,7 +37,7 @@ test('transformMap simple', async () => {
   // expect(readable.destroyed).toBe(true)
 })
 
-test('transformMap with mapping', async () => {
+it('transformMap with mapping', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2 = await Pipeline.fromArray(data)
     .map(async r => ({
@@ -48,7 +48,7 @@ test('transformMap with mapping', async () => {
   expect(data2).toEqual(data.map(r => ({ id: r.id + '!' })))
 })
 
-test('transformMap emit array as multiple items', async () => {
+it('transformMap emit array as multiple items', async () => {
   let stats: TransformMapStats
   const data = _range(1, 4)
   const data2 = await Pipeline.fromArray(data)
@@ -95,7 +95,7 @@ test('transformMap emit array as multiple items', async () => {
 //   expect(data2).toEqual(data)
 // })
 
-test('transformMap errorMode=THROW_IMMEDIATELY', async () => {
+it('transformMap errorMode=THROW_IMMEDIATELY', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -123,7 +123,7 @@ test('transformMap errorMode=THROW_IMMEDIATELY', async () => {
 `)
 })
 
-test('transformMap errorMode=THROW_AGGREGATED', async () => {
+it('transformMap errorMode=THROW_AGGREGATED', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -189,7 +189,7 @@ n1: 145"
 `)
 })
 
-test('transformMap errorMode=SUPPRESS', async () => {
+it('transformMap errorMode=SUPPRESS', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []

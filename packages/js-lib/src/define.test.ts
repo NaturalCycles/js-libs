@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test, vi } from 'vitest'
+import { expect, expectTypeOf, it, vi } from 'vitest'
 import {
   _defineLazyProperty,
   _defineLazyProps,
@@ -8,7 +8,7 @@ import {
 } from './define.js'
 import type { AnyObject, Lazy } from './types.js'
 
-test('_lazyValue', () => {
+it('_lazyValue', () => {
   const fn = vi.fn<() => number>(() => 42)
 
   const value = _lazyValue(fn)
@@ -24,7 +24,7 @@ interface Obj {
   v: number
 }
 
-test('_defineLazyProperty', () => {
+it('_defineLazyProperty', () => {
   const fn = vi.fn<() => number>(() => 42)
 
   const obj = {} as Obj
@@ -43,7 +43,7 @@ test('_defineLazyProperty', () => {
   expect(obj2.v).toBe(42)
 })
 
-test('_defineLazyProps', () => {
+it('_defineLazyProps', () => {
   const fn1 = vi.fn<() => number>(() => 42)
   const fn2 = vi.fn<() => number>(() => 48)
 
@@ -70,7 +70,7 @@ test('_defineLazyProps', () => {
   expect(fn2).toHaveBeenCalledTimes(1)
 })
 
-test('_defineProperty', () => {
+it('_defineProperty', () => {
   const obj: AnyObject = { v: 42 }
   expect(Object.getOwnPropertyDescriptor(obj, 'v')).toMatchInlineSnapshot(`
     {
@@ -130,7 +130,7 @@ test('_defineProperty', () => {
   `)
 })
 
-test('_defineProps', () => {
+it('_defineProps', () => {
   const obj: AnyObject = {}
 
   _defineProps(obj, {

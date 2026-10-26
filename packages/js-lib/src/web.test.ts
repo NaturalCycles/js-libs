@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { InMemoryWebStorage } from './web.js'
 
-test('InMemoryWebStorage', () => {
+it('InMemoryWebStorage', () => {
   expect(() => localStorage.getItem('a')).toThrowErrorMatchingInlineSnapshot(
     `[ReferenceError: localStorage is not defined]`,
   )

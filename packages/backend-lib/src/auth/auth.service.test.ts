@@ -1,6 +1,6 @@
 import { _expectedError, AssertionError } from '@naturalcycles/js-lib/error'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import { afterAll, describe, expect, test, vi } from 'vitest'
+import { afterAll, describe, expect, it, vi } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { mockBackendRequest } from '../test/mocks.js'
 import { expressTestService } from '../testing/index.js'
@@ -57,7 +57,7 @@ afterAll(async () => {
 })
 
 describe('resolve', () => {
-  test('should resolve to empty object if there is no subject', async () => {
+  it('should resolve to empty object if there is no subject', async () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: vi.fn<() => Promise<undefined>>(),
@@ -69,7 +69,7 @@ describe('resolve', () => {
     expect(authService.cfg.getPermissions).not.toHaveBeenCalled()
   })
 
-  test('should resolve the subject and its permissions', async () => {
+  it('should resolve the subject and its permissions', async () => {
     const authService = new AuthService({
       authenticate: async () => 'p1@mail.com',
       getPermissions: async () => ['p1'],
@@ -84,7 +84,7 @@ describe('resolve', () => {
     })
   })
 
-  test('should store the result of isAlwaysAuthorized', async () => {
+  it('should store the result of isAlwaysAuthorized', async () => {
     const authService = new AuthService({
       authenticate: async () => 'p1@mail.com',
       getPermissions: async () => ['p1'],
@@ -98,7 +98,7 @@ describe('resolve', () => {
 })
 
 describe('require', () => {
-  test('should return the granted permissions on AND-comparison', () => {
+  it('should return the granted permissions on AND-comparison', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -110,7 +110,7 @@ describe('require', () => {
     expect(permissionInfo).toEqual({ subject: 'p1p2@mail.com', permissions: ['p1'] })
   })
 
-  test('should return only the granted permissions on OR-comparison', () => {
+  it('should return only the granted permissions on OR-comparison', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -122,7 +122,7 @@ describe('require', () => {
     expect(permissionInfo).toEqual({ subject: 'p1@mail.com', permissions: ['p1'] })
   })
 
-  test('should throw 401 if there is no subject', () => {
+  it('should throw 401 if there is no subject', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -133,7 +133,7 @@ describe('require', () => {
     expect(err.data).toMatchObject({ authRequired: true, backendResponseStatusCode: 401 })
   })
 
-  test('should throw 403 with the subject if not granted', () => {
+  it('should throw 403 with the subject if not granted', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -149,7 +149,7 @@ describe('require', () => {
     })
   })
 
-  test('should grant and return all real permissions if alwaysAuthorized', () => {
+  it('should grant and return all real permissions if alwaysAuthorized', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -165,7 +165,7 @@ describe('require', () => {
     expect(permissionInfo).toEqual({ subject: 'p1@mail.com', permissions: ['p1'] })
   })
 
-  test('should grant if auth is disabled at runtime', () => {
+  it('should grant if auth is disabled at runtime', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -182,7 +182,7 @@ describe('require', () => {
 })
 
 describe('onCheck', () => {
-  test('should be called with ctx', () => {
+  it('should be called with ctx', () => {
     const authService = new AuthService<{ requestId: string }>({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -207,7 +207,7 @@ describe('onCheck', () => {
     )
   })
 
-  test('should be called with reqPermissions as checked if denied', () => {
+  it('should be called with reqPermissions as checked if denied', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -233,7 +233,7 @@ describe('onCheck', () => {
     )
   })
 
-  test('should not be called without a subject or when auth is disabled', () => {
+  it('should not be called without a subject or when auth is disabled', () => {
     const authService = new AuthService({
       authenticate: async () => undefined,
       getPermissions: async () => undefined,
@@ -250,21 +250,21 @@ describe('onCheck', () => {
 })
 
 describe('middlewares', () => {
-  test('should respond JSON 401 if not authenticated', async () => {
+  it('should respond JSON 401 if not authenticated', async () => {
     const err = await app.expectError({ url: 'json' })
 
     expect(err.data.responseStatusCode).toBe(401)
     expect(err.cause.data).toMatchObject({ authRequired: true })
   })
 
-  test('should respond 401 with the login redirect if not authenticated', async () => {
+  it('should respond 401 with the login redirect if not authenticated', async () => {
     const { statusCode, body } = await app.doFetch<string>({ url: 'login', responseType: 'text' })
 
     expect(statusCode).toBe(401)
     expect(body).toContain('/login.html?autoLogin=1&returnUrl=')
   })
 
-  test('should respond 403 with the subject if not granted', async () => {
+  it('should respond 403 with the subject if not granted', async () => {
     const err = await app.expectError({
       url: 'json',
       headers: { 'x-subject': 'nobody@mail.com' },
@@ -274,19 +274,19 @@ describe('middlewares', () => {
     expect(err.cause.data).toMatchObject({ subject: 'nobody@mail.com' })
   })
 
-  test('should pass if granted', async () => {
+  it('should pass if granted', async () => {
     const body = await app.get('json', { headers: { 'x-subject': 'p1@mail.com' } })
 
     expect(body).toEqual({ ok: true })
   })
 
-  test('should pass if the secure header matches', async () => {
+  it('should pass if the secure header matches', async () => {
     const body = await app.get('secure', { headers: { 'x-secure-header': 'secret1' } })
 
     expect(body).toEqual({ ok: true })
   })
 
-  test('should respond 401 if the secure header is wrong', async () => {
+  it('should respond 401 if the secure header is wrong', async () => {
     const err = await app.expectError({
       url: 'secure',
       headers: { 'x-secure-header': 'wrong', 'x-subject': 'p1@mail.com' },
@@ -296,7 +296,7 @@ describe('middlewares', () => {
     expect(err.cause.data).toMatchObject({ authRequired: true })
   })
 
-  test('should fall back to the auth check if the secure header is missing', async () => {
+  it('should fall back to the auth check if the secure header is missing', async () => {
     const body = await app.get('secure', { headers: { 'x-subject': 'p1@mail.com' } })
     const err = await app.expectError({ url: 'secure' })
 
@@ -304,7 +304,7 @@ describe('middlewares', () => {
     expect(err.data.responseStatusCode).toBe(401)
   })
 
-  test('should use getResolved and getCtx', async () => {
+  it('should use getResolved and getCtx', async () => {
     const body = await app.get('stored')
 
     expect(body).toEqual({ ok: true })
@@ -314,7 +314,7 @@ describe('middlewares', () => {
     )
   })
 
-  test('should pass if auth is disabled, before looking at the secure header', async () => {
+  it('should pass if auth is disabled, before looking at the secure header', async () => {
     middlewareAuthService.cfg.authEnabled = false
     try {
       const body = await app.get('json')

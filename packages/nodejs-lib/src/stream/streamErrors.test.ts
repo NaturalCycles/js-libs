@@ -2,7 +2,7 @@ import { Readable, Transform } from 'node:stream'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { pExpectedErrorString } from '@naturalcycles/js-lib/error'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline, writablePushToArray } from './index.js'
 
 function errorTransformUnhandled(): Transform {
@@ -31,7 +31,7 @@ const errorMapper = (chunk: ObjectWithId): ObjectWithId => {
 }
 
 // still don't know how to handle such errors. Domains?
-test.skip('unhandled transform error', async () => {
+it.skip('unhandled transform error', async () => {
   const data = _range(1, 6).map(n => ({ id: String(n) }))
 
   await expect(
@@ -39,7 +39,7 @@ test.skip('unhandled transform error', async () => {
   ).rejects.toThrow('error_in_transform')
 })
 
-test('handled transform error', async () => {
+it('handled transform error', async () => {
   const data = _range(1, 6).map(n => ({ id: String(n) }))
 
   const results: any[] = []
@@ -50,7 +50,7 @@ test('handled transform error', async () => {
   expect(results).toEqual(data.filter(r => r.id < '4'))
 })
 
-test('does map handle errors?', async () => {
+it('does map handle errors?', async () => {
   const data = _range(1, 6).map(n => ({ id: String(n) }))
   const readable = Readable.from(data)
 

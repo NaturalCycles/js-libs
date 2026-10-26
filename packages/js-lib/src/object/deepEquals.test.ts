@@ -1,8 +1,8 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { deepEqualsMocks } from '../test/deepEqualsMocks.js'
 import { _deepEquals, _deepJsonEquals, _jsonEquals } from './deepEquals.js'
 
-test('_deepEquals Issue!', () => {
+it('_deepEquals Issue!', () => {
   expect(
     _deepEquals(
       {
@@ -17,7 +17,7 @@ test('_deepEquals Issue!', () => {
   ).toBe(true)
 })
 
-test('_deepEquals', () => {
+it('_deepEquals', () => {
   expect(
     _deepEquals(
       {
@@ -46,7 +46,7 @@ test('_deepEquals', () => {
   ).toBe(false)
 })
 
-test('_deepJsonEquals', () => {
+it('_deepJsonEquals', () => {
   const a = {
     a: 'a',
     b: 'b',
@@ -60,7 +60,7 @@ test('_deepJsonEquals', () => {
   expect(_deepJsonEquals(a, b)).toBe(true)
 })
 
-test.each(deepEqualsMocks)(
+it.each(deepEqualsMocks)(
   '_deepEquals2 %s %s jsonEq=%s deepJsonEq=%s deepEq=%s',
   (v1, v2, jsonEq, deepJsonEq, deepEq) => {
     if (jsonEq !== 'error') {
@@ -78,7 +78,7 @@ class A {
   }
 }
 
-test('debug', () => {
+it('debug', () => {
   const r = _deepEquals(new A('a'), 'a' as any)
   console.log(r)
 })

@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { memoSimple } from './memoSimple.decorator.js'
 
 class A {
@@ -14,7 +14,7 @@ class A {
   }
 }
 
-test('memo a', () => {
+it('memo a', () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -37,7 +37,7 @@ test('memo a', () => {
   ;(a.a as any).dropCache()
 })
 
-test('MEMO_DROP_CACHE', () => {
+it('MEMO_DROP_CACHE', () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -53,7 +53,7 @@ test('MEMO_DROP_CACHE', () => {
   expect(a.func).toHaveBeenCalledTimes(2)
 })
 
-test('memo unsupported', () => {
+it('memo unsupported', () => {
   const pd = { value: 'property' } as PropertyDescriptor
   expect(() => memoSimple()(null as any, 'a', pd)).toThrowErrorMatchingInlineSnapshot(
     `[TypeError: Memoization can be applied only to methods]`,
@@ -70,7 +70,7 @@ class B {
   }
 }
 
-test('should work with default arg values', () => {
+it('should work with default arg values', () => {
   const b = new B()
 
   // Call 1 with default (cache miss). arg1=undefined

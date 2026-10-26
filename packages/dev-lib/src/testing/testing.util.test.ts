@@ -1,8 +1,8 @@
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import { expectTypeOf, test } from 'vitest'
+import { expectTypeOf, it } from 'vitest'
 import { silentConsole, testLog, testLogger } from './testing.util.js'
 
-test('testLogger', () => {
+it('testLogger', () => {
   testLog('hello')
   testLog({ a: 'a' })
   testLogger.log('hej')
@@ -12,7 +12,7 @@ test('testLogger', () => {
   expectTypeOf(testLogger).toEqualTypeOf<CommonLogger>()
 })
 
-test('silentConsole', () => {
+it('silentConsole', () => {
   silentConsole()
   console.log()
   console.debug()

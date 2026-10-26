@@ -1,12 +1,12 @@
 import { createServer } from 'node:http'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { onHeaders } from './onHeaders.js'
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => void
 
-test('fires once before implicit writeHead, can modify headers', async () => {
+it('fires once before implicit writeHead, can modify headers', async () => {
   let calls = 0
   const res = await request((_req, res) => {
     onHeaders(res, function () {
@@ -23,7 +23,7 @@ test('fires once before implicit writeHead, can modify headers', async () => {
   expect(await res.text()).toBe('ab')
 })
 
-test('headers passed to writeHead are visible to (and modifiable by) the listener', async () => {
+it('headers passed to writeHead are visible to (and modifiable by) the listener', async () => {
   const res = await request((_req, res) => {
     onHeaders(res, () => {
       expect(res.statusCode).toBe(201)
@@ -37,7 +37,7 @@ test('headers passed to writeHead are visible to (and modifiable by) the listene
   expect(res.headers.has('x-remove')).toBe(false)
 })
 
-test('keeps the reason phrase, unless the listener changes statusCode', async () => {
+it('keeps the reason phrase, unless the listener changes statusCode', async () => {
   const kept = await request((_req, res) => {
     onHeaders(res, () => {})
     res.writeHead(200, 'Custom OK', { 'X-A': '1' }).end()
@@ -53,7 +53,7 @@ test('keeps the reason phrase, unless the listener changes statusCode', async ()
   expect(changed.statusText).toBe('Accepted')
 })
 
-test('supports 2D and raw (1D, repeated keys) header arrays', async () => {
+it('supports 2D and raw (1D, repeated keys) header arrays', async () => {
   const res2d = await request((_req, res) => {
     onHeaders(res, () => expect(res.getHeader('X-A')).toBe('1'))
     res.writeHead(200, [['X-A', '1']] as any).end()

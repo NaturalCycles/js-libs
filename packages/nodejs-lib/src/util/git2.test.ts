@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { git2 } from './git2.js'
 
-test('getLastGitCommitMsg', async () => {
+it('getLastGitCommitMsg', async () => {
   const msg = git2.getLastGitCommitMsg()
   console.log({ msg })
   expect(msg).toBeDefined()
@@ -11,12 +11,12 @@ test('getLastGitCommitMsg', async () => {
   expect(title).toBeDefined()
 })
 
-test('hasUncommittedChanges', async () => {
+it('hasUncommittedChanges', async () => {
   const changes = git2.hasUncommittedChanges()
   console.log({ changes })
 })
 
-test('getCurrentBranchName', async () => {
+it('getCurrentBranchName', async () => {
   const branchName = git2.getCurrentBranchName()
   console.log(branchName)
 
@@ -24,7 +24,7 @@ test('getCurrentBranchName', async () => {
   expect(branchName).not.toHaveLength(0)
 })
 
-test('getCurrentRepoName', async () => {
+it('getCurrentRepoName', async () => {
   const repoName = git2.getCurrentRepoName()
   console.log(repoName)
 
@@ -32,19 +32,19 @@ test('getCurrentRepoName', async () => {
   expect(repoName).not.toHaveLength(0)
 })
 
-test('getCurrentCommitTimestamp', async () => {
+it('getCurrentCommitTimestamp', async () => {
   const ts = git2.getCurrentCommitTimestamp()
   console.log(ts, new Date(ts * 1000))
 })
 
-test('isAhead', async () => {
+it('isAhead', async () => {
   const isAhead = git2.isAhead()
   console.log(isAhead)
 
   expect(isAhead).toBeDefined()
 })
 
-test('getAllBranchesNames', async () => {
+it('getAllBranchesNames', async () => {
   const branches = git2.getAllBranchesNames()
   console.log(branches)
 
@@ -52,7 +52,7 @@ test('getAllBranchesNames', async () => {
   expect(branches).not.toHaveLength(0)
 })
 
-test('getCurrentCommitSha', async () => {
+it('getCurrentCommitSha', async () => {
   const sha = git2.getCurrentCommitSha()
   console.log(sha)
 
@@ -60,7 +60,7 @@ test('getCurrentCommitSha', async () => {
   expect(sha).not.toHaveLength(0)
 })
 
-test('gitRefExists', async () => {
+it('gitRefExists', async () => {
   const sha = git2.getCurrentCommitSha()
   const exists = git2.gitRefExists(sha)
   console.log(exists)
@@ -71,21 +71,21 @@ test('gitRefExists', async () => {
   expect(headExists).toBe(true)
 })
 
-test('getTrackedFiles', async () => {
+it('getTrackedFiles', async () => {
   const trackedFiles = git2.getTrackedFiles()
   console.log(trackedFiles)
 
   expect(trackedFiles).toBeDefined()
 })
 
-test('getUntrackedFiles', async () => {
+it('getUntrackedFiles', async () => {
   const untrackedFiles = git2.getUntrackedFiles()
   console.log(untrackedFiles)
 
   expect(untrackedFiles).toBeDefined()
 })
 
-test('getTrackedChangedFiles', async () => {
+it('getTrackedChangedFiles', async () => {
   const sha = git2.getCurrentCommitSha()
   const trackedChangedFiles = git2.getTrackedChangedFiles(sha)
   console.log(trackedChangedFiles)
@@ -93,7 +93,7 @@ test('getTrackedChangedFiles', async () => {
   expect(trackedChangedFiles).toBeDefined()
 })
 
-test('getAllChangedFiles', async () => {
+it('getAllChangedFiles', async () => {
   const sha = git2.getCurrentCommitSha()
   const allChangedFiles = git2.getAllChangedFiles(sha)
   console.log(allChangedFiles)

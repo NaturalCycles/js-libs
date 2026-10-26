@@ -1,10 +1,10 @@
 import { Datastore } from '@google-cloud/datastore'
 import { DBQuery } from '@naturalcycles/db-lib'
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { dbQueryToDatastoreQuery } from './query.util.js'
 
-test('dbQueryToDatastoreQuery passes limit and offset', () => {
+it('dbQueryToDatastoreQuery passes limit and offset', () => {
   const ds = new Datastore()
 
   // no limit/offset by default

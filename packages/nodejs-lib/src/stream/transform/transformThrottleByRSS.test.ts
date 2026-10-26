@@ -1,8 +1,8 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
-test('transformThrottleByRSS passthrough when below threshold', async () => {
+it('transformThrottleByRSS passthrough when below threshold', async () => {
   const items = _range(1, 11).map(id => ({ id: String(id) }))
   const result = await Pipeline.fromArray(items)
     .throttleByRSS({
@@ -14,7 +14,7 @@ test('transformThrottleByRSS passthrough when below threshold', async () => {
   expect(result).toEqual(items)
 })
 
-test('transformThrottleByRSS pauses and resumes', async () => {
+it('transformThrottleByRSS pauses and resumes', async () => {
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // 500 MB
   const lowRSS = 50 * 1024 * 1024 // 50 MB
@@ -36,7 +36,7 @@ test('transformThrottleByRSS pauses and resumes', async () => {
   expect(result).toEqual(items)
 }, 10_000)
 
-test('transformThrottleByRSS pollTimeout open-the-floodgates', async () => {
+it('transformThrottleByRSS pollTimeout open-the-floodgates', async () => {
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // always high
 
@@ -55,7 +55,7 @@ test('transformThrottleByRSS pollTimeout open-the-floodgates', async () => {
   expect(result).toEqual(items)
 }, 10_000)
 
-test('transformThrottleByRSS pollTimeout throw', async () => {
+it('transformThrottleByRSS pollTimeout throw', async () => {
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // always high
 

@@ -1,9 +1,9 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _range } from '../array/range.js'
 import { pDelay, pMap } from './index.js'
 import { PQueue } from './pQueue.js'
 
-test('PQueue', async () => {
+it('PQueue', async () => {
   const q = new PQueue({
     concurrency: 1,
     logLevel: 'debug',

@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { _assert } from './assert.js'
 import { AppError, HttpRequestError, UnexpectedPassError } from './error.util.js'
 import { _expectedError, _try, pExpectedError, pExpectedErrorString, pTry } from './try.js'
@@ -8,7 +8,7 @@ const errFunction = (): never => {
   throw new AppError('oj')
 }
 
-test('_try', () => {
+it('_try', () => {
   const [err, res] = _try(() => okFunction())
   expectTypeOf(err).toEqualTypeOf<Error | null>()
   expectTypeOf(res).toEqualTypeOf<{ result: number } | null>()
@@ -35,7 +35,7 @@ const createErrorPromise = async (): Promise<never> => {
   throw new AppError('oj')
 }
 
-test('pTry', async () => {
+it('pTry', async () => {
   const [err, res] = await pTry(createOkPromise())
   expectTypeOf(err).toEqualTypeOf<Error | null>()
   expectTypeOf(res).toEqualTypeOf<{ result: number } | null>()
@@ -73,7 +73,7 @@ test('pTry', async () => {
   expect(err4).toMatchInlineSnapshot(`"AppError: oj"`)
 })
 
-test('_expectedError', () => {
+it('_expectedError', () => {
   const err = _expectedError(errFunction, AppError)
   expectTypeOf(err).toEqualTypeOf<AppError<any>>()
   expect(err).toMatchInlineSnapshot(`[AppError: oj]`)
@@ -84,7 +84,7 @@ test('_expectedError', () => {
   expect(err2!.message).toMatchInlineSnapshot(`"expected error was not thrown"`)
 })
 
-test('pExpectedError', async () => {
+it('pExpectedError', async () => {
   const err = await pExpectedError<AppError>(createErrorPromise())
   expect(err).toMatchInlineSnapshot(`[AppError: oj]`)
   expect(err).toBeInstanceOf(AppError)

@@ -1,8 +1,8 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _chunkBuffer } from './buffer.util.js'
 
-test('_chunkBuffer', () => {
+it('_chunkBuffer', () => {
   const buf = Buffer.from(_range(1, 11))
 
   // <Buffer 01 02 03 04 05 06 07 08 09 0a>

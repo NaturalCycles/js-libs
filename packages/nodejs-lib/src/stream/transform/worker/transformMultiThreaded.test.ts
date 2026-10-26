@@ -1,11 +1,11 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { testDir } from '../../../test/paths.cnst.js'
 import { Pipeline } from '../../index.js'
 import { transformMultiThreaded } from './transformMultiThreaded.js'
 
-test('transformMultiThreaded', async () => {
+it('transformMultiThreaded', async () => {
   const items = _range(1, 12).map(i => ({ id: i }))
 
   const silent = !!process.env['TEST_SILENT'] || true

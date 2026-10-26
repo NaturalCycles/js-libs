@@ -1,9 +1,9 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
-test('transformMapSimple', async () => {
+it('transformMapSimple', async () => {
   const data = _range(1, 4).map(String)
   const data2: string[] = []
 
@@ -14,7 +14,7 @@ test('transformMapSimple', async () => {
   expect(data2).toEqual(data)
 })
 
-test('transformMapSimple error', async () => {
+it('transformMapSimple error', async () => {
   const data = _range(100).map(String)
 
   const data2: string[] = []
@@ -36,7 +36,7 @@ test('transformMapSimple error', async () => {
   expect(data2).toEqual(data.slice(0, 50))
 })
 
-test('transformMapSimple suppressed error', async () => {
+it('transformMapSimple suppressed error', async () => {
   const data = _range(100).map(String)
   const data2: string[] = []
   await Pipeline.fromArray(data)

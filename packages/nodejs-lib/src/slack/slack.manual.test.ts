@@ -1,4 +1,4 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { loadEnvFileIfExists, requireEnvKeys } from '../index.js'
 import { SlackService } from './slack.service.js'
 
@@ -15,7 +15,7 @@ const slackService = new SlackService({
   },
 })
 
-test('hello world', async () => {
+it('hello world', async () => {
   await slackService.log(`Hello Slack`)
   await slackService.send({
     items: 'hello string',
@@ -24,12 +24,12 @@ test('hello world', async () => {
   await slackService.send('hello 3')
 })
 
-test('hello error', async () => {
+it('hello error', async () => {
   await slackService.log(new Error('hello error'))
   await slackService.log('hello error string')
 })
 
-test('attachments', async () => {
+it('attachments', async () => {
   await slackService.send({
     items: 'hello',
     attachments: [
@@ -69,7 +69,7 @@ test('attachments', async () => {
   })
 })
 
-test('kv', async () => {
+it('kv', async () => {
   await slackService.send({
     items: 'hello kv',
     mentions: ['kirill'],
@@ -81,6 +81,6 @@ test('kv', async () => {
   })
 })
 
-test('array', async () => {
+it('array', async () => {
   await slackService.log('a', 'b', { c: 'c' }, null)
 })

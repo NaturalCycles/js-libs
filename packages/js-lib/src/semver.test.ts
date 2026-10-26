@@ -1,8 +1,8 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _expectedErrorString } from './error/try.js'
 import { _quickSemverCompare, semver2 } from './semver.js'
 
-test('basic', () => {
+it('basic', () => {
   const s = semver2('1.2.3')
   expect(s.toString()).toBe('1.2.3')
   expect(`${s}`).toBe('1.2.3')
@@ -28,7 +28,7 @@ test('basic', () => {
   )
 })
 
-test('min, max, sort', () => {
+it('min, max, sort', () => {
   expect(semver2.min(['1.2.3', '1.2.4']).toString()).toBe('1.2.3')
   expect(semver2.min(['1.2.3', undefined]).toString()).toBe('1.2.3')
   expect(semver2.minOrUndefined(['1.2.3', '1.2.4'])?.toString()).toBe('1.2.3')
@@ -51,7 +51,7 @@ test('min, max, sort', () => {
 `)
 })
 
-test.each([
+it.each([
   [undefined, undefined],
   [null, undefined],
   ['', undefined],
@@ -67,7 +67,7 @@ test.each([
   expect(semver2.fromInputOrUndefined(str)?.toString()).toBe(expected)
 })
 
-test.each([
+it.each([
   ['', '', 0],
   ['a', '', 1],
   ['1', '', 1],

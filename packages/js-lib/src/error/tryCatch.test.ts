@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _TryCatch, _tryCatch } from './tryCatch.js'
 
 // oxlint-disable @typescript-eslint/await-thenable
@@ -9,7 +9,7 @@ const _fnError = (): never => {
   throw new Error('fail')
 }
 
-test('_tryCatch', async () => {
+it('_tryCatch', async () => {
   const fnSuccess = _tryCatch(_fnSuccess)
   let r = await fnSuccess(1, 2, 3)
   expect(r).toEqual([1, 2, 3])
@@ -46,7 +46,7 @@ class C {
 
 const c = new C()
 
-test('@_TryCatch', async () => {
+it('@_TryCatch', async () => {
   const r = await c.fnSuccess(1, 2, 3)
   expect(r).toEqual([1, 2, 3])
 

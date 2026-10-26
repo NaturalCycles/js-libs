@@ -1,10 +1,10 @@
 import { Readable } from 'node:stream'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import type { ReadableTyped } from '../stream.model.js'
 
-test('transformFork', async () => {
+it('transformFork', async () => {
   const secondArray: string[] = []
 
   const firstArray = await Pipeline.from(new HonestReadable(3))
@@ -37,7 +37,7 @@ test('transformFork', async () => {
 })
 
 // unskip to test manually
-test.skip('source stream gets stuck', async () => {
+it.skip('source stream gets stuck', async () => {
   await Pipeline.from(new HonestReadable(200, 500, 30))
     .mapSimple(n => n * 2)
     .fork(p => {
@@ -57,7 +57,7 @@ test.skip('source stream gets stuck', async () => {
 }, 120_000)
 
 // unskip to test manually
-test.skip('main stream consumer gets stuck', async () => {
+it.skip('main stream consumer gets stuck', async () => {
   await Pipeline.from(new HonestReadable(200, 100))
     .mapSimple(n => n * 2, { highWaterMark: 1 })
     .fork(
@@ -95,7 +95,7 @@ test.skip('main stream consumer gets stuck', async () => {
 }, 120_000)
 
 // unskip to test manually
-test.skip('fork stream consumer gets stuck', async () => {
+it.skip('fork stream consumer gets stuck', async () => {
   await Pipeline.from(new HonestReadable(200, 100))
     .mapSimple(n => n * 2, { highWaterMark: 1 })
     .fork(

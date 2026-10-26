@@ -1,7 +1,7 @@
 import { pExpectedError } from '@naturalcycles/js-lib/error'
 import { getFetcher } from '@naturalcycles/js-lib/http'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 
 const fetcher = getFetcher({
   retry: { count: 0 },
@@ -9,7 +9,7 @@ const fetcher = getFetcher({
 
 const detectLeaks = process.argv.some(a => a.includes('detectLeaks'))
 
-test('should throw on network connections', async ({ task }) => {
+it('should throw on network connections', async ({ task }) => {
   if (detectLeaks) return // skip test on detectLeaks where testOffline is disabled
 
   const stderrWrite = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
@@ -39,6 +39,6 @@ test('should throw on network connections', async ({ task }) => {
   task.result!.errors = undefined
 })
 
-test('should allow connection to local hosts', async () => {
+it('should allow connection to local hosts', async () => {
   await fetcher.get('http://localhost').catch(_ => {})
 })

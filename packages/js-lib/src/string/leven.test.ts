@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _leven } from './leven.js'
 
-test('leven', () => {
+it('leven', () => {
   expect(_leven('cat', 'cat')).toBe(0)
   expect(_leven('cat', 'bat')).toBe(1)
   expect(_leven('cat', 'octocat')).toBe(4)

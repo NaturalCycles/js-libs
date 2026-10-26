@@ -1,8 +1,8 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
-test('transformThrottle', async () => {
+it('transformThrottle', async () => {
   // super-fast producer
   await Pipeline.fromArray(_range(1, 11).map(id => ({ id: String(id) })))
     // transformTap(obj => {

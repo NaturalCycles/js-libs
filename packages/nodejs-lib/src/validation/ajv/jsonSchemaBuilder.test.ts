@@ -10,25 +10,25 @@ import type {
   StringMap,
   UnixTimestamp,
 } from '@naturalcycles/js-lib/types'
-import { describe, expect, expectTypeOf, test } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { AjvSchema, j } from './jSchema.js'
 
 describe('any', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.any()
     expectTypeOf(schema1).not.toBeNever()
 
     expectTypeOf(schema1.out).toEqualTypeOf<any>()
   })
 
-  test('should produce an empty schema', () => {
+  it('should produce an empty schema', () => {
     const schema = j.any().build()
     expect(schema).toEqual({})
   })
 })
 
 describe('string', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.string()
     expectTypeOf(schema1.out).toEqualTypeOf<string>()
 
@@ -39,7 +39,7 @@ describe('string', () => {
     expectTypeOf(schema3.out).toEqualTypeOf<string | null | undefined>()
   })
 
-  test('should check the passed in type', () => {
+  it('should check the passed in type', () => {
     // Ok
     const schema = j.string().isOfType<string>()
     expectTypeOf(schema).not.toBeNever()
@@ -54,14 +54,14 @@ describe('string', () => {
   })
 
   describe('ianaTimezone', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.string().ianaTimezone()
       expectTypeOf(schema1.out).toEqualTypeOf<IANATimezone>()
     })
   })
 
   describe('optional(values)', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.string().optional([''])
       expectTypeOf(schema1.out).toEqualTypeOf<string | undefined>()
 
@@ -71,27 +71,27 @@ describe('string', () => {
   })
 
   describe('isoDateTime', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.string().isoDateTime()
       expectTypeOf(schema1.out).toEqualTypeOf<IsoDateTime>()
     })
   })
 
   describe('isoMonth', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.string().isoMonth()
       expectTypeOf(schema1.out).toEqualTypeOf<IsoMonth>()
     })
   })
 
   describe('isoDate', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.string().isoDate()
       expectTypeOf(schema1.out).toEqualTypeOf<IsoDate>()
     })
 
     describe('optional(null)', () => {
-      test('should correctly infer the type', () => {
+      it('should correctly infer the type', () => {
         const schema1 = j.string().isoDate().optional([null])
         expectTypeOf(schema1.out).toEqualTypeOf<IsoDate | undefined>()
 
@@ -105,7 +105,7 @@ describe('string', () => {
 })
 
 describe('number', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.number()
     expectTypeOf(schema1.out).toEqualTypeOf<number>()
 
@@ -116,7 +116,7 @@ describe('number', () => {
     expectTypeOf(schema3.out).toEqualTypeOf<number | null | undefined>()
   })
 
-  test('should check the passed in type', () => {
+  it('should check the passed in type', () => {
     // Ok
     const schema = j.number().isOfType<number>()
     expectTypeOf(schema).not.toBeNever()
@@ -131,14 +131,14 @@ describe('number', () => {
   })
 
   describe('integer', () => {
-    test('should still infer number', () => {
+    it('should still infer number', () => {
       const schema1 = j.number().integer()
       expectTypeOf(schema1.out).toEqualTypeOf<number>()
     })
   })
 
   describe('optional(values)', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.number().optional([0])
       expectTypeOf(schema1.out).toEqualTypeOf<number | undefined>()
     })
@@ -146,7 +146,7 @@ describe('number', () => {
 })
 
 describe('boolean', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.boolean()
     expectTypeOf(schema1.out).toEqualTypeOf<boolean>()
 
@@ -158,7 +158,7 @@ describe('boolean', () => {
   })
 
   describe('optional(values)', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.boolean().optional([false])
       expectTypeOf(schema1.out).toEqualTypeOf<boolean | undefined>()
     })
@@ -166,7 +166,7 @@ describe('boolean', () => {
 })
 
 describe('object', () => {
-  test('should correctly use the passed-in type', () => {
+  it('should correctly use the passed-in type', () => {
     interface Schema1 {
       string: string
       array: string[]
@@ -200,7 +200,7 @@ describe('object', () => {
     expectTypeOf(schema1.out).toEqualTypeOf<Schema1>()
   })
 
-  test('should produce a type error when the generic mismatches the schema', () => {
+  it('should produce a type error when the generic mismatches the schema', () => {
     interface Schema1 {
       foo: string
     }
@@ -214,7 +214,7 @@ describe('object', () => {
     expectTypeOf(schema1).toBeNever()
   })
 
-  test('the schema should be never when the caller does not pass in the generic', () => {
+  it('the schema should be never when the caller does not pass in the generic', () => {
     // That's only how I could make the generic required - open to better suggestions
     const schema1 = j.object({
       foo: j.number(),
@@ -223,7 +223,7 @@ describe('object', () => {
     expectTypeOf(schema1).toBeNever()
   })
 
-  test('should produce a type error when an optional property is missing from the schema', () => {
+  it('should produce a type error when an optional property is missing from the schema', () => {
     interface Schema1 {
       foo: string
       bar?: number
@@ -237,7 +237,7 @@ describe('object', () => {
     expectTypeOf(schema1).toBeNever()
   })
 
-  test('should produce a type error when a there is an additional property in the schema', () => {
+  it('should produce a type error when a there is an additional property in the schema', () => {
     interface Schema1 {
       foo: string
     }
@@ -251,7 +251,7 @@ describe('object', () => {
     expectTypeOf(schema1).toBeNever()
   })
 
-  test('should work with enums', () => {
+  it('should work with enums', () => {
     // Special test case due to how j.object.infer().isOfType<>() lead to errors
     // when the schema contained an enum property
     enum Bar {
@@ -268,7 +268,7 @@ describe('object', () => {
   })
 
   describe('extend', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       interface Foo {
         a: string | null
       }
@@ -297,7 +297,7 @@ describe('object', () => {
   })
 
   describe('concat', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       interface Foo {
         foo: string
       }
@@ -321,7 +321,7 @@ describe('object', () => {
       expectTypeOf(ensuredShuSchema).not.toBeNever()
     })
 
-    test('should notice via isOfType when the type mismatches', () => {
+    it('should notice via isOfType when the type mismatches', () => {
       interface Foo {
         foo: string
       }
@@ -343,7 +343,7 @@ describe('object', () => {
   })
 
   describe('.dbEntity', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       type Id = Branded<string, 'Id'>
       interface DB extends BaseDBEntity {
         id: Id
@@ -361,13 +361,13 @@ describe('object', () => {
       expectTypeOf(schema1.out).toEqualTypeOf<DB>()
     })
 
-    test('should collapse to never when no type is passed in', () => {
+    it('should collapse to never when no type is passed in', () => {
       const schema1 = j.object.dbEntity({ foo: j.string() })
 
       expectTypeOf(schema1).toBeNever()
     })
 
-    test('should collapse to never when the passed in type does not match the schema', () => {
+    it('should collapse to never when the passed in type does not match the schema', () => {
       interface DB {
         id: string
         created: UnixTimestamp
@@ -381,7 +381,7 @@ describe('object', () => {
       expectTypeOf(schema1).toBeNever()
     })
 
-    test('should collapse when a non-baseentity property does not get its schema definition', () => {
+    it('should collapse when a non-baseentity property does not get its schema definition', () => {
       type Id = Branded<string, 'Id'>
       interface DB extends BaseDBEntity {
         id: Id
@@ -398,7 +398,7 @@ describe('object', () => {
       expectTypeOf(schema1).toBeNever()
     })
 
-    test('should collapse when an overriden baseentity property does not get its schema definition', () => {
+    it('should collapse when an overriden baseentity property does not get its schema definition', () => {
       type Id = Branded<string, 'Id'>
       interface DB extends BaseDBEntity {
         id: Id
@@ -415,7 +415,7 @@ describe('object', () => {
   })
 
   describe('.infer', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       interface Schema1 {
         string: string
         array: string[]
@@ -449,7 +449,7 @@ describe('object', () => {
       expectTypeOf(schema1.out).toEqualTypeOf<Schema1>()
     })
 
-    test('should check the passed-in type', () => {
+    it('should check the passed-in type', () => {
       const schema = j.object
         .infer({
           foo: j.string().optional(),
@@ -482,7 +482,7 @@ describe('object', () => {
       expectTypeOf(schema3).toBeNever()
     })
 
-    test('should produce a type error when an optional property is missing', () => {
+    it('should produce a type error when an optional property is missing', () => {
       interface Foo {
         foo: string
         bar?: number
@@ -497,7 +497,7 @@ describe('object', () => {
       expectTypeOf(schema).toBeNever()
     })
 
-    test('should produce a type error when an additional property is defined in the schema', () => {
+    it('should produce a type error when an additional property is defined in the schema', () => {
       interface Foo {
         foo: string
       }
@@ -513,7 +513,7 @@ describe('object', () => {
     })
 
     describe('extend', () => {
-      test('should correctly infer the type', () => {
+      it('should correctly infer the type', () => {
         const schema1 = j.object.infer({ a: j.string().nullable() })
 
         const schema2 = schema1.extend({ b: j.number().optional() })
@@ -523,7 +523,7 @@ describe('object', () => {
     })
 
     describe('.dbEntity instance method', () => {
-      test('should correctly infer the type', () => {
+      it('should correctly infer the type', () => {
         interface FooDB extends BaseDBEntity {
           foo: string
         }
@@ -537,7 +537,7 @@ describe('object', () => {
   })
 
   describe('.any', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.object.any()
 
       expectTypeOf(schema1).not.toBeNever()
@@ -546,7 +546,7 @@ describe('object', () => {
   })
 
   describe('.withEnumKeys', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.object.withEnumKeys(['a', 'b', 1], j.string())
 
       expectTypeOf(schema1).not.toBeNever()
@@ -584,7 +584,7 @@ describe('object', () => {
   })
 
   describe('.record', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       type B = Branded<string, 'B'>
       const schema1 = j.object.record(
         j
@@ -613,7 +613,7 @@ describe('object', () => {
   })
 
   describe('.withRegexKeys', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.object.withRegexKeys(/^\d{3,4}$/, j.number().nullable())
 
       expectTypeOf(schema1).not.toBeNever()
@@ -623,7 +623,7 @@ describe('object', () => {
   })
 
   describe('.stringMap', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       const schema1 = j.object.stringMap(j.number().nullable())
 
       expectTypeOf(schema1).not.toBeNever()
@@ -634,7 +634,7 @@ describe('object', () => {
 })
 
 describe('array', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.array(j.string())
     expectTypeOf(schema1.out).toEqualTypeOf<string[]>()
 
@@ -644,7 +644,7 @@ describe('array', () => {
 })
 
 describe('tuple', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.tuple([j.string(), j.number(), j.boolean()])
     expectTypeOf(schema1.out).toEqualTypeOf<[string, number, boolean]>()
 
@@ -654,7 +654,7 @@ describe('tuple', () => {
 })
 
 describe('enum', () => {
-  test('should correctly infer the type - for NumberEnums', () => {
+  it('should correctly infer the type - for NumberEnums', () => {
     enum Foo {
       BAR = 1,
       SHU = 2,
@@ -664,7 +664,7 @@ describe('enum', () => {
     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
   })
 
-  test('should correctly infer the type - for StringEnums', () => {
+  it('should correctly infer the type - for StringEnums', () => {
     enum Foo {
       BAR = 'bar',
       SHU = 'shu',
@@ -674,7 +674,7 @@ describe('enum', () => {
     expectTypeOf(schema1.out).toEqualTypeOf<Foo>()
   })
 
-  test('should correctly infer the type - for listed values', () => {
+  it('should correctly infer the type - for listed values', () => {
     type Foo = 1 | 2 | 'foo' | 'bar'
     const schema1 = j.enum([1, 2, 'foo', 'bar'])
     expectTypeOf(schema1).not.toBeNever()
@@ -683,35 +683,35 @@ describe('enum', () => {
 })
 
 describe('set', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.set(j.string())
     expectTypeOf(schema1.out).toEqualTypeOf<Set2<string>>()
   })
 })
 
 describe('buffer', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.buffer()
     expectTypeOf(schema1.out).toEqualTypeOf<Buffer>()
   })
 })
 
 describe('oneOf', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.oneOf([j.string().nullable(), j.number()])
     expectTypeOf(schema1.out).toEqualTypeOf<string | number | null>()
   })
 })
 
 describe('anyOf', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.anyOf([j.string().nullable(), j.number()])
     expectTypeOf(schema1.out).toEqualTypeOf<string | number | null>()
   })
 })
 
 describe('anyOfBy', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     enum Foo {
       A = 1,
       B = 2,
@@ -744,7 +744,7 @@ describe('anyOfBy', () => {
 })
 
 describe('castAs', () => {
-  test('should correctly infer the new type', () => {
+  it('should correctly infer the new type', () => {
     const schema1 = j.string().castAs<number>()
     expectTypeOf(schema1.out).toEqualTypeOf<number>()
 
@@ -754,13 +754,13 @@ describe('castAs', () => {
 })
 
 describe('final', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     type B = Branded<string, 'B'>
     const schema = j.string().branded<B>().final()
     expectTypeOf(schema.out).toEqualTypeOf<B>()
   })
 
-  test('should not allow to call other chain functions', () => {
+  it('should not allow to call other chain functions', () => {
     const schema = j.string().final()
 
     // @ts-expect-error .optional() is not available on final schema
@@ -771,7 +771,7 @@ describe('final', () => {
 })
 
 describe('literal', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.literal('magic')
     expectTypeOf(schema1.out).toEqualTypeOf<'magic'>()
 
@@ -785,7 +785,7 @@ describe('literal', () => {
 })
 
 describe('custom', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.number().custom(v => (Number.isInteger(v) ? undefined : 'Not an integer!'))
     expectTypeOf(schema1.out).toEqualTypeOf<number>()
 
@@ -798,7 +798,7 @@ describe('custom', () => {
 })
 
 describe('convert', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema1 = j.number().convert(v => Math.round(v))
     expectTypeOf(schema1.out).toEqualTypeOf<number>()
 
@@ -809,7 +809,7 @@ describe('convert', () => {
 })
 
 describe('schema cloning with custom/convert', () => {
-  test('nested custom and convert should work after schema cloning', () => {
+  it('nested custom and convert should work after schema cloning', () => {
     const schema = AjvSchema.create(
       j
         .object<{ name: string; count: number }>({
@@ -824,7 +824,7 @@ describe('schema cloning with custom/convert', () => {
     expect(schema.validate({ name: 'test', count: 1.5 })).toEqual({ name: 'test', count: 2 })
   })
 
-  test('deeply nested custom and convert should work', () => {
+  it('deeply nested custom and convert should work', () => {
     const schema = AjvSchema.create(
       j
         .object<{ inner: { value: number } }>({
@@ -839,7 +839,7 @@ describe('schema cloning with custom/convert', () => {
     expect(schema.validate({ inner: { value: 60 } })).toEqual({ inner: { value: 120 } })
   })
 
-  test('chaining custom after custom should clone correctly', () => {
+  it('chaining custom after custom should clone correctly', () => {
     const base = j.string().custom(v => (v.length > 0 ? undefined : 'Must not be empty'))
     const withExtra = base.custom(v => (v.length <= 5 ? undefined : 'Too long'))
 
@@ -854,7 +854,7 @@ describe('schema cloning with custom/convert', () => {
     expect(withExtraSchema.validate({ value: 'hi' })).toEqual({ value: 'hi' })
   })
 
-  test('chaining convert after convert should clone correctly', () => {
+  it('chaining convert after convert should clone correctly', () => {
     const base = j.number().convert(v => Math.round(v))
     const withExtra = base.convert(v => v * 2)
 
@@ -870,27 +870,27 @@ describe('schema cloning with custom/convert', () => {
 })
 
 describe('schema metadata methods', () => {
-  test('$id should appear in build output', () => {
+  it('$id should appear in build output', () => {
     const schema = j.string().$id('MyId').build()
     expect(schema.$id).toBe('MyId')
   })
 
-  test('$schema should appear in build output', () => {
+  it('$schema should appear in build output', () => {
     const schema = j.string().$schema('http://json-schema.org/draft-07/schema#').build()
     expect(schema.$schema).toBe('http://json-schema.org/draft-07/schema#')
   })
 
-  test('title should appear in build output', () => {
+  it('title should appear in build output', () => {
     const schema = j.string().title('My Title').build()
     expect(schema.title).toBe('My Title')
   })
 
-  test('description should appear in build output', () => {
+  it('description should appear in build output', () => {
     const schema = j.string().description('My Description').build()
     expect(schema.description).toBe('My Description')
   })
 
-  test('deprecated should appear in build output', () => {
+  it('deprecated should appear in build output', () => {
     const schema = j.string().deprecated().build()
     expect(schema.deprecated).toBe(true)
   })

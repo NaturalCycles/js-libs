@@ -1,11 +1,11 @@
 import { inspect } from 'node:util'
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { _stringify } from '../string/index.js'
 import { Set2 } from './set2.js'
 
 /* oxlint-disable @typescript-eslint/no-base-to-string */
 
-test('set2', () => {
+it('set2', () => {
   const s = new Set([1, 2, 3])
   expect(JSON.stringify(s)).toBe('{}') // boring
   expect(s.toString()).toMatchInlineSnapshot(`"[object Set]"`) // sooo boring
@@ -34,7 +34,7 @@ test('set2', () => {
   expect(s2.toArray()).toEqual([1, 2, 3, 4, 5])
 })
 
-test('inspect', () => {
+it('inspect', () => {
   const s2 = new Set2([1, 2, 3])
   // This specific output (Set2(3) [Set] ...) is built into Node's inspect
   // [Set] means we are a subclass of Set

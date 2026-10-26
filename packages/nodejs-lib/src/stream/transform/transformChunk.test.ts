@@ -1,8 +1,8 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../index.js'
 
-test('transformChunk', async () => {
+it('transformChunk', async () => {
   const data = _range(1, 6).map(n => ({ id: String(n) }))
 
   const data2 = await Pipeline.fromArray(data).chunk(2).toArray()

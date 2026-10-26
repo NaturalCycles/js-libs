@@ -3,12 +3,12 @@ import os from 'node:os'
 import path from 'node:path'
 import type { Readable } from 'node:stream'
 import zlib from 'node:zlib'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { zip2 } from './zip2.js'
 import { openZip, openZipBuffer } from './zipReader.js'
 import type { ZipReader } from './zipReader.js'
 
-test('reads entries from a buffer', async () => {
+it('reads entries from a buffer', async () => {
   const zip = await openZipBuffer(
     makeZip([
       { name: 'hello.txt', content: Buffer.from('Hello, world!') },
@@ -30,7 +30,7 @@ test('reads entries from a buffer', async () => {
   await zip.close()
 })
 
-test('readEntry returns decompressed content and validates crc', async () => {
+it('readEntry returns decompressed content and validates crc', async () => {
   const text = 'The quick brown fox '.repeat(100)
   const zip = await openZipBuffer(
     makeZip([
@@ -47,7 +47,7 @@ test('readEntry returns decompressed content and validates crc', async () => {
   await zip.close()
 })
 
-test('openReadStream streams decompressed content', async () => {
+it('openReadStream streams decompressed content', async () => {
   const text = 'streaming '.repeat(1000)
   const zip = await openZipBuffer(
     makeZip([{ name: 'big.txt', content: Buffer.from(text), deflate: true }]),
@@ -59,7 +59,7 @@ test('openReadStream streams decompressed content', async () => {
   await zip.close()
 })
 
-test('handles empty file entries', async () => {
+it('handles empty file entries', async () => {
   const zip = await openZipBuffer(makeZip([{ name: 'empty.txt', content: Buffer.alloc(0) }]))
 
   expect(await zip.readEntry(zip.entries[0]!)).toHaveLength(0)
@@ -68,7 +68,7 @@ test('handles empty file entries', async () => {
   await zip.close()
 })
 
-test('opens from a file path and extracts to disk', async () => {
+it('opens from a file path and extracts to disk', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipReader-'))
   try {
     const zipPath = path.join(dir, 'test.zip')
@@ -98,7 +98,7 @@ test('opens from a file path and extracts to disk', async () => {
   }
 })
 
-test('decodes utf-8 file names', async () => {
+it('decodes utf-8 file names', async () => {
   const zip = await openZipBuffer(
     makeZip([{ name: 'café/résumé.txt', content: Buffer.from('x'), gpFlag: 0x800 }]),
   )
@@ -108,7 +108,7 @@ test('decodes utf-8 file names', async () => {
   await zip.close()
 })
 
-test('decodes utf-8 file names even without the utf-8 flag set', async () => {
+it('decodes utf-8 file names even without the utf-8 flag set', async () => {
   // Info-ZIP and Linux `zip` often store UTF-8 names without setting bit 0x800.
   const zip = await openZipBuffer(makeZip([{ name: 'náïve.txt', content: Buffer.from('x') }]))
 
@@ -117,7 +117,7 @@ test('decodes utf-8 file names even without the utf-8 flag set', async () => {
   await zip.close()
 })
 
-test('extracts multiple entries from a file, reusing the handle after a deflated entry', async () => {
+it('extracts multiple entries from a file, reusing the handle after a deflated entry', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipReader-'))
   try {
     const zipPath = path.join(dir, 'multi.zip')
@@ -141,19 +141,19 @@ test('extracts multiple entries from a file, reusing the handle after a deflated
   }
 })
 
-test('rejects path traversal via .. segments', async () => {
+it('rejects path traversal via .. segments', async () => {
   await expect(
     openZipBuffer(makeZip([{ name: '../evil.txt', content: Buffer.from('x') }])),
   ).rejects.toThrow(/invalid relative path/)
 })
 
-test('rejects absolute paths', async () => {
+it('rejects absolute paths', async () => {
   await expect(
     openZipBuffer(makeZip([{ name: '/etc/passwd', content: Buffer.from('x') }])),
   ).rejects.toThrow(/absolute path/)
 })
 
-test('rejects reading encrypted entries', async () => {
+it('rejects reading encrypted entries', async () => {
   const zip = await openZipBuffer(
     makeZip([{ name: 'secret.txt', content: Buffer.from('x'), gpFlag: 0x1 }]),
   )
@@ -164,13 +164,13 @@ test('rejects reading encrypted entries', async () => {
   await zip.close()
 })
 
-test('rejects non-zip input', async () => {
+it('rejects non-zip input', async () => {
   await expect(
     openZipBuffer(Buffer.from('this is definitely not a zip file at all')),
   ).rejects.toThrow(/end of central directory/)
 })
 
-test('detects crc mismatch in corrupted data', async () => {
+it('detects crc mismatch in corrupted data', async () => {
   const buf = makeZip([{ name: 'x.txt', content: Buffer.from('hello') }])
   // Stored data starts after the 30-byte local header + 5-byte name "x.txt".
   buf[35] = 255 - buf[35]!
@@ -181,7 +181,7 @@ test('detects crc mismatch in corrupted data', async () => {
   await zip.close()
 })
 
-test('closes automatically with `await using` (AsyncDisposable)', async () => {
+it('closes automatically with `await using` (AsyncDisposable)', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipReader-'))
   try {
     const zipPath = path.join(dir, 'using.zip')

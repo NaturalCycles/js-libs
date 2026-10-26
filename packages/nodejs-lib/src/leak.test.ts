@@ -1,6 +1,6 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 
-test('should not leak', async () => {
+it('should not leak', async () => {
   await import('./index.js')
   await import('./script/runScript.js')
   await import('./colors/colors.js')

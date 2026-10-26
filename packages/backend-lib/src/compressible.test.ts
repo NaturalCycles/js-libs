@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { compressible } from './compressible.js'
 
-test.each([
+it.each([
   'text/html',
   'text/plain; charset=utf-8',
   'TEXT/CSS',
@@ -19,7 +19,7 @@ test.each([
   expect(compressible(type)).toBe(true)
 })
 
-test.each([
+it.each([
   '',
   'foo',
   'image/png',

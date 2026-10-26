@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import {
   base64,
   base64ToBuffer,
@@ -11,7 +11,7 @@ import {
   stringToBase64,
 } from './hash.util.js'
 
-test('md5', () => {
+it('md5', () => {
   const plain = 'hello!@#123'
   expect(md5(plain)).toMatchInlineSnapshot(`"41f871086829ceb41c02d2f99e11ddd0"`)
   expect(md5(plain, 'base64')).toMatchInlineSnapshot(`"QfhxCGgpzrQcAtL5nhHd0A=="`)
@@ -41,7 +41,7 @@ test('md5', () => {
   `)
 })
 
-test('sha256', () => {
+it('sha256', () => {
   const plain = 'hello!@#123'
   expect(sha256(plain)).toMatchInlineSnapshot(
     `"4e6af34bdf31ddf67ffa21c7e0fa53a1a0ddf2b2a10918c2a5f5c773deb4407d"`,
@@ -93,7 +93,7 @@ test('sha256', () => {
   `)
 })
 
-test('base64', () => {
+it('base64', () => {
   const plain = 'hello!@#123'
   const buf = Buffer.from(plain, 'utf8')
   const hash = 'aGVsbG8hQCMxMjM='

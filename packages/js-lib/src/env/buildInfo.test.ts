@@ -1,5 +1,5 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
-import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { generateBuildInfoDev } from './buildInfo.js'
 
 beforeEach(() => {
@@ -10,7 +10,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-test('buildInfo', () => {
+it('buildInfo', () => {
   expect(generateBuildInfoDev()).toMatchInlineSnapshot(`
     {
       "branchName": "devBranch",

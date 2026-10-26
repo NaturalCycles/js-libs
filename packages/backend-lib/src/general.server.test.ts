@@ -8,7 +8,7 @@ import {
 } from '@naturalcycles/js-lib/error'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
 import { zip2 } from '@naturalcycles/nodejs-lib/zip'
-import { afterAll, expect, test } from 'vitest'
+import { afterAll, expect, it } from 'vitest'
 import { getDefaultRouter } from './express/getDefaultRouter.js'
 import { safeJsonMiddleware } from './server/safeJsonMiddleware.js'
 import type { BackendRequest } from './server/server.model.js'
@@ -46,7 +46,7 @@ afterAll(async () => {
   await app.close()
 })
 
-test('should not crash on circular objects in errors', async () => {
+it('should not crash on circular objects in errors', async () => {
   const err = await pExpectedError(app.get('circular'), HttpRequestError)
   // console.log(err)
   // console.log(err.response.body)
@@ -55,7 +55,7 @@ test('should not crash on circular objects in errors', async () => {
   // console.log((cause.data as any).req)
 })
 
-test('should support compressed body', async () => {
+it('should support compressed body', async () => {
   // "large" input with 10k objects
   const input = {
     items: _range(1, 10_001).map(id => ({ id })),
@@ -76,7 +76,7 @@ test('should support compressed body', async () => {
   expect(output).toEqual(input)
 })
 
-test('should return parsed rawBody', async () => {
+it('should return parsed rawBody', async () => {
   const body = {
     a: 'aa',
   }

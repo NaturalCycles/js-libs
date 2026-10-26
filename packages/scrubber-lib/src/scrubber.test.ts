@@ -1,6 +1,6 @@
 import { _deepFreeze } from '@naturalcycles/js-lib/object'
 import { nanoid } from '@naturalcycles/nodejs-lib'
-import { describe, expect, test, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Scrubber } from './scrubber.js'
 import type { ScrubberConfig, ScrubberFn, ScrubbersMap } from './scrubber.model.js'
 import { saltedHashEmailScrubber, saltedHashScrubber } from './scrubbers.js'
@@ -23,27 +23,27 @@ function scrub<T>(
   return scrubber.scrub(data)
 }
 
-test('returns a single object when input is a single object', () => {
+it('returns a single object when input is a single object', () => {
   const data = { pw: 'secret', name: 'Real Name' }
   const result = scrub(data)
   expect(result).toEqual({ pw: 'notsecret', name: 'Jane Doe' })
 })
 
-test('returns an array with one object when input is an array with one object', () => {
+it('returns an array with one object when input is an array with one object', () => {
   const data = { pw: 'secret', name: 'Real Name' }
   const result = scrub([data])
 
   expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
 })
 
-test('applies to more than a field', () => {
+it('applies to more than a field', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
   _deepFreeze(data) // Ensure data doesnt mutate
   const result = scrub(data)
   expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
 })
 
-test('applies to nested fields (deep transverse, 2 levels)', () => {
+it('applies to nested fields (deep transverse, 2 levels)', () => {
   const data = [{ account: { pw: 'secret', name: 'Real Name' } }]
   _deepFreeze(data) // Ensure data doesnt mutate
 
@@ -51,7 +51,7 @@ test('applies to nested fields (deep transverse, 2 levels)', () => {
   expect(result).toEqual([{ account: { pw: 'notsecret', name: 'Jane Doe' } }])
 })
 
-test('applies to nested fields (deep transverse, 3 levels)', () => {
+it('applies to nested fields (deep transverse, 3 levels)', () => {
   const data = [{ object: { account: { pw: 'secret', name: 'Real Name' } } }]
   _deepFreeze(data) // Ensure data doesnt mutate
 
@@ -59,7 +59,7 @@ test('applies to nested fields (deep transverse, 3 levels)', () => {
   expect(result).toEqual([{ object: { account: { pw: 'notsecret', name: 'Jane Doe' } } }])
 })
 
-test('applies to nested arrays', () => {
+it('applies to nested arrays', () => {
   const obj1 = { pw: 'shouldChange', safe: 'shouldStay' }
   const obj2 = { name: 'personalInformation', safe2: 'isSafe' }
   const users = [{ users: [obj1, obj2] }]
@@ -71,7 +71,7 @@ test('applies to nested arrays', () => {
   expect(Array.isArray(result[0]!.users)).toBe(true) // makes sure we don't convert array to objects
 })
 
-test('keeps not modified fields', () => {
+it('keeps not modified fields', () => {
   const data = [{ safeField: 'keep', email: 'real@email.com' }]
   _deepFreeze(data) // Ensure data doesnt mutate
 
@@ -79,7 +79,7 @@ test('keeps not modified fields', () => {
   expect(result).toEqual([{ safeField: 'keep', email: 'anonymized@email.com' }])
 })
 
-test('supports additional scrubbers', () => {
+it('supports additional scrubbers', () => {
   const mockScrubber: ScrubberFn = () => 'modified'
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
@@ -98,7 +98,7 @@ test('supports additional scrubbers', () => {
   expect(result).toEqual([{ target: 'modified' }])
 })
 
-test('supports comma-separated fields in field name', () => {
+it('supports comma-separated fields in field name', () => {
   const data = [{ field1: 'orig1', field2: 'orig2' }]
   _deepFreeze(data) // Ensure data doesnt mutate
 
@@ -106,12 +106,12 @@ test('supports comma-separated fields in field name', () => {
   expect(result).toEqual([{ field1: 'modified', field2: 'modified' }])
 })
 
-test('returns empty array for empty arrays', () => {
+it('returns empty array for empty arrays', () => {
   const result = scrub([])
   expect(result).toEqual([])
 })
 
-test('fails when scrubber from config is not found (even if not used)', () => {
+it('fails when scrubber from config is not found (even if not used)', () => {
   expect(() => {
     scrub([], configInvalidScrubberMock())
   }).toThrowErrorMatchingInlineSnapshot(`[AssertionError: nonExistingScrubber not found]`)
@@ -126,7 +126,7 @@ describe('falsy values handling', () => {
     },
   }
 
-  test.each([-1, true, false, undefined, '', 0, null, NaN])(
+  it.each([-1, true, false, undefined, '', 0, null, NaN])(
     'does not preserve "%s" if configuration is false',
     input => {
       const cfgWithPreserveDisabled: ScrubberConfig = { ...cfg, preserveFalsy: false }
@@ -138,7 +138,7 @@ describe('falsy values handling', () => {
     },
   )
 
-  test.each([false, undefined, '', 0, null, NaN])(
+  it.each([false, undefined, '', 0, null, NaN])(
     'preserves "%s" if configuration is true',
     input => {
       const cfgWithPreserveEnabled: ScrubberConfig = { ...cfg, preserveFalsy: true }
@@ -166,7 +166,7 @@ describe('error handling', () => {
 
   const object = { target: 'foo' }
 
-  test('logs errors by default', () => {
+  it('logs errors by default', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -176,7 +176,7 @@ describe('error handling', () => {
     expect(console.log).toMatchSnapshot()
   })
 
-  test('re-throw error if enabled on config', () => {
+  it('re-throw error if enabled on config', () => {
     const cfgWithErrorsEnabled: ScrubberConfig = { ...cfg, throwOnError: true }
 
     const scrubber = new Scrubber(cfgWithErrorsEnabled, { faultyScrubber })
@@ -187,7 +187,7 @@ describe('error handling', () => {
   })
 })
 
-test('scrubs different types of data', () => {
+it('scrubs different types of data', () => {
   const result = scrub([
     {
       null: null,
@@ -205,7 +205,7 @@ test('scrubs different types of data', () => {
   expect(result).toMatchSnapshot()
 })
 
-test('initializationVector is passed as param to scrubbers', () => {
+it('initializationVector is passed as param to scrubbers', () => {
   const mockScrubber = vi.fn<ScrubberFn>(() => 'modified')
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
@@ -234,7 +234,7 @@ test('initializationVector is passed as param to scrubbers', () => {
   expect(vector1).toEqual(vector2)
 })
 
-test('Ensure initializationVector is random and affects saltedHashScrubber', () => {
+it('Ensure initializationVector is random and affects saltedHashScrubber', () => {
   const mockScrubber = vi.fn<typeof saltedHashScrubber>(saltedHashScrubber)
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
@@ -266,7 +266,7 @@ test('Ensure initializationVector is random and affects saltedHashScrubber', () 
   expect(result1).not.toEqual(result2)
 })
 
-test('initializationVector passed to scrubber constructor is passed to scrubbers', () => {
+it('initializationVector passed to scrubber constructor is passed to scrubbers', () => {
   const mockScrubber = vi.fn<typeof saltedHashScrubber>(saltedHashScrubber)
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
@@ -299,7 +299,7 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
   expect(result1).toEqual(result2)
 })
 
-test('supplying an initializationVector in config should take precedence', () => {
+it('supplying an initializationVector in config should take precedence', () => {
   const configVector = '123'
   const mockScrubber = vi.fn<typeof saltedHashScrubber>(saltedHashScrubber)
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
@@ -325,7 +325,7 @@ test('supplying an initializationVector in config should take precedence', () =>
   expect(result.pop()).toMatchSnapshot()
 })
 
-test('supplying an initializationVector in config of saltedHashEmailScrubber should produce consistent results', () => {
+it('supplying an initializationVector in config of saltedHashEmailScrubber should produce consistent results', () => {
   const configVector = '123'
   const domain = '@example.com.br'
   const mockScrubber = vi.fn<typeof saltedHashEmailScrubber>(saltedHashEmailScrubber)
@@ -356,7 +356,7 @@ test('supplying an initializationVector in config of saltedHashEmailScrubber sho
   expect(emailRes).not.toContain(toBeSalted)
 })
 
-test('example (readme)', () => {
+it('example (readme)', () => {
   const cfg: ScrubberConfig = {
     fields: {
       name: {
@@ -378,7 +378,7 @@ test('example (readme)', () => {
   const _ = scrubber.scrub(object)
 })
 
-test('Support scrubbing based on parent', () => {
+it('Support scrubbing based on parent', () => {
   const data = { nested: { api: { key: 'notsosecret' }, encryption: { key: '123456' } } }
   const scrubber = new Scrubber(configParentScrubbersMock())
   const result = scrubber.scrub(data)
@@ -388,7 +388,7 @@ test('Support scrubbing based on parent', () => {
   })
 })
 
-test('Support scrubbing array based on parent', () => {
+it('Support scrubbing array based on parent', () => {
   const data = { nested: { encryption: [{ key: 'secret' }], second: [{ key: 'secret2' }] } }
   const scrubber = new Scrubber(configParentScrubbersMock())
   const result = scrubber.scrub(data)
@@ -398,7 +398,7 @@ test('Support scrubbing array based on parent', () => {
   })
 })
 
-test('Support scrubbing based on multi-level parent', () => {
+it('Support scrubbing based on multi-level parent', () => {
   const data = { multi: { api: { secret: 'notsosecret' }, interim: { secret: '123456' } } }
   const scrubber = new Scrubber(configParentScrubbersMock())
   const result = scrubber.scrub(data)
@@ -408,7 +408,7 @@ test('Support scrubbing based on multi-level parent', () => {
   })
 })
 
-test('Parent reference inside of array', () => {
+it('Parent reference inside of array', () => {
   const data = { multi: { interim: [{ secret: '123456' }] } }
   const scrubber = new Scrubber(configParentScrubbersMock())
   const result = scrubber.scrub(data)
@@ -418,7 +418,7 @@ test('Parent reference inside of array', () => {
   })
 })
 
-test('Parent via passed root type', () => {
+it('Parent via passed root type', () => {
   const data = { key: '123456' }
   const scrubber = Scrubber.getScrubberForType('encryption', configParentScrubbersMock())
   const result = scrubber.scrub(data)
@@ -426,7 +426,7 @@ test('Parent via passed root type', () => {
   expect(result).toEqual({ key: 'replaced' })
 })
 
-test('A qualified key wins over the catch-all bare key', () => {
+it('A qualified key wins over the catch-all bare key', () => {
   const data = { Account: { name: 'Real Name' }, HardwareDevice: { name: 'NC Thermometer1' } }
   const scrubber = new Scrubber(configCatchAllScrubbersMock())
 
@@ -436,14 +436,14 @@ test('A qualified key wins over the catch-all bare key', () => {
   })
 })
 
-test('Exclusion applies to arrays and via root type', () => {
+it('Exclusion applies to arrays and via root type', () => {
   const data = [{ name: 'NC Thermometer1' }, { name: 'NC Thermometer2' }]
   const scrubber = Scrubber.getScrubberForType('HardwareDevice', configCatchAllScrubbersMock())
 
   expect(scrubber.scrub(data)).toEqual(data)
 })
 
-test('An excluded field does not stop traversal of nested values', () => {
+it('An excluded field does not stop traversal of nested values', () => {
   const data = { HardwareDevice: { name: 'NC Thermometer1', pairedTo: { name: 'Real Name' } } }
   const scrubber = new Scrubber(configCatchAllScrubbersMock())
 
@@ -452,7 +452,7 @@ test('An excluded field does not stop traversal of nested values', () => {
   })
 })
 
-test('The longest matching parent path wins', () => {
+it('The longest matching parent path wins', () => {
   const data = { Account: { profile: { name: 'Real Name' } }, PAccount: { profile: { name: 'x' } } }
   const scrubber = new Scrubber(configCatchAllScrubbersMock())
 
@@ -462,7 +462,7 @@ test('The longest matching parent path wins', () => {
   })
 })
 
-test('getScrubberSql resolves a qualified field name most-specific-first', () => {
+it('getScrubberSql resolves a qualified field name most-specific-first', () => {
   const scrubber = new Scrubber(configCatchAllScrubbersMock())
 
   expect(scrubber.getScrubberSql('HardwareDevice.name')).toBeUndefined()
@@ -472,14 +472,14 @@ test('getScrubberSql resolves a qualified field name most-specific-first', () =>
   expect(scrubber.getScrubberSql('Account.non-existing')).toBeUndefined()
 })
 
-test('getScrubberSql', () => {
+it('getScrubberSql', () => {
   const scrubber = new Scrubber(configStaticScrubbersMock())
   expect(scrubber.getScrubberSql('non-existing')).toBeUndefined()
   expect(scrubber.getScrubberSql('pw')).toMatchInlineSnapshot(`"'notsecret'"`)
   expect(scrubber.getScrubberSql('name')).toMatchInlineSnapshot(`"'Jane Doe'"`)
 })
 
-test('saltedHashSubstringScrubber should scrub substring values', () => {
+it('saltedHashSubstringScrubber should scrub substring values', () => {
   const data = {
     Data: [
       { id: '01' },

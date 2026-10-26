@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from 'vitest'
+import { beforeEach, expect, it } from 'vitest'
 import { MapAsyncMemoCache } from './memo.util.js'
 import { _memoizedAsync } from './memoizedAsync.js'
 
@@ -18,7 +18,7 @@ beforeEach(() => {
   calledTimes = 0
 })
 
-test('memoFn', async () => {
+it('memoFn', async () => {
   let expectedCallTimes = 0
   expect(calledTimes).toBe(expectedCallTimes)
 

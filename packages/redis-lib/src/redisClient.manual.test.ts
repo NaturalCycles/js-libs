@@ -1,6 +1,6 @@
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { RedisClient } from './redisClient.js'
 
 let client: RedisClient
@@ -19,14 +19,14 @@ afterAll(async () => {
 })
 
 describe('incr', () => {
-  test('should create a non-existing key without expiry', async () => {
+  it('should create a non-existing key without expiry', async () => {
     const result = await client.incr('test:one')
 
     expect(result).toBe(1)
     expect(await client.ttl('test:one')).toBe(-1)
   })
 
-  test('should preserve the expiry of an existing key', async () => {
+  it('should preserve the expiry of an existing key', async () => {
     await client.setWithTTL('test:one', 1, localTime.now().plusSeconds(100).unix)
 
     const result = await client.incr('test:one')
@@ -36,7 +36,7 @@ describe('incr', () => {
   })
 })
 
-test('incrBatch should increase multiple keys', async () => {
+it('incrBatch should increase multiple keys', async () => {
   await client.set('test:one', 1)
   await client.set('test:two', 2)
 
@@ -52,7 +52,7 @@ test('incrBatch should increase multiple keys', async () => {
 })
 
 describe('incrBatchWithTTL', () => {
-  test('should increase multiple keys and give them an expiry', async () => {
+  it('should increase multiple keys and give them an expiry', async () => {
     await client.set('test:one', 1)
     await client.set('test:two', 2)
 
@@ -72,7 +72,7 @@ describe('incrBatchWithTTL', () => {
     expect(await client.ttl('test:two')).toBeGreaterThan(0)
   })
 
-  test('should NOT extend the expiry of an ongoing window', async () => {
+  it('should NOT extend the expiry of an ongoing window', async () => {
     const tuples: [string, number][] = [
       ['test:one', 1],
       ['test:two', 2],
@@ -91,14 +91,14 @@ describe('incrBatchWithTTL', () => {
 })
 
 describe('incrWithTTL', () => {
-  test('should create a non-existing key with an expiry', async () => {
+  it('should create a non-existing key with an expiry', async () => {
     const result = await client.incrWithTTL('test:one', localTime.now().plusSeconds(100).unix)
 
     expect(result).toBe(1)
     expect(await client.ttl('test:one')).toBeGreaterThan(0)
   })
 
-  test('should NOT extend the expiry of an ongoing window', async () => {
+  it('should NOT extend the expiry of an ongoing window', async () => {
     await client.incrWithTTL('test:one', localTime.now().plusSeconds(100).unix)
 
     const result = await client.incrWithTTL('test:one', localTime.now().plusSeconds(10_000).unix)
@@ -107,7 +107,7 @@ describe('incrWithTTL', () => {
     expect(await client.ttl('test:one')).toBeLessThanOrEqual(100)
   })
 
-  test('should restore a missing expiry', async () => {
+  it('should restore a missing expiry', async () => {
     // How a bare INCR on a missing key leaves it: a counter that never resets
     await client.set('test:one', 5)
     expect(await client.ttl('test:one')).toBe(-1)
@@ -118,7 +118,7 @@ describe('incrWithTTL', () => {
     expect(await client.ttl('test:one')).toBeGreaterThan(0)
   })
 
-  test('should throw on an invalid expireAt, leaving a key that self-heals', async () => {
+  it('should throw on an invalid expireAt, leaving a key that self-heals', async () => {
     await expect(client.incrWithTTL('test:one', 1.5 as UnixTimestamp)).rejects.toThrow(
       'value is not an integer or out of range',
     )
@@ -134,7 +134,7 @@ describe('incrWithTTL', () => {
 })
 
 describe('hashmap functions', () => {
-  test('hset should save a map', async () => {
+  it('hset should save a map', async () => {
     await client.hset('test:key', { foo: 'bar' })
 
     const result = await client.hgetall('test:key')
@@ -142,7 +142,7 @@ describe('hashmap functions', () => {
     expect(result).toEqual({ foo: 'bar' })
   })
 
-  test('should store/fetch numbers as strings', async () => {
+  it('should store/fetch numbers as strings', async () => {
     await client.hset('test:key', { one: 1 })
 
     const result = await client.hgetall('test:key')
@@ -150,7 +150,7 @@ describe('hashmap functions', () => {
     expect(result).toEqual({ one: '1' })
   })
 
-  test('hgetall should not fetch nested objects', async () => {
+  it('hgetall should not fetch nested objects', async () => {
     await client.hset('test:key', { nested: { one: 1 } })
 
     const result = await client.hgetall('test:key')
@@ -158,7 +158,7 @@ describe('hashmap functions', () => {
     expect(result).toEqual({ nested: '[object Object]' })
   })
 
-  test('hget should fetch map property', async () => {
+  it('hget should fetch map property', async () => {
     await client.hset('test:key', { foo: 'bar' })
 
     const result = await client.hget('test:key', 'foo')
@@ -166,7 +166,7 @@ describe('hashmap functions', () => {
     expect(result).toBe('bar')
   })
 
-  test('hget should fetch value as string', async () => {
+  it('hget should fetch value as string', async () => {
     await client.hset('test:key', { one: 1 })
 
     const result = await client.hget('test:key', 'one')
@@ -174,7 +174,7 @@ describe('hashmap functions', () => {
     expect(result).toBe('1')
   })
 
-  test('hmgetBuffer should get the values of the fields as strings', async () => {
+  it('hmgetBuffer should get the values of the fields as strings', async () => {
     await client.hset('test:key', { one: 1, two: 2, three: 3 })
 
     const result = await client.hmget('test:key', ['one', 'three'])
@@ -182,7 +182,7 @@ describe('hashmap functions', () => {
     expect(result).toEqual(['1', '3'])
   })
 
-  test('hmgetBuffer should get the values of the fields as buffers', async () => {
+  it('hmgetBuffer should get the values of the fields as buffers', async () => {
     await client.hset('test:key', { one: 1, two: 2, three: 3 })
 
     const result = await client.hmgetBuffer('test:key', ['one', 'three'])
@@ -190,7 +190,7 @@ describe('hashmap functions', () => {
     expect(result).toEqual([Buffer.from('1'), Buffer.from('3')])
   })
 
-  test('hincr should change the value and return with a numeric result', async () => {
+  it('hincr should change the value and return with a numeric result', async () => {
     await client.hset('test:key', { one: 1 })
 
     const result = await client.hincr('test:key', 'one', -2)
@@ -198,7 +198,7 @@ describe('hashmap functions', () => {
     expect(result).toBe(-1)
   })
 
-  test('hincr should increase the value by 1 by default', async () => {
+  it('hincr should increase the value by 1 by default', async () => {
     await client.hset('test:key', { one: 1 })
 
     const result = await client.hincr('test:key', 'one')
@@ -206,13 +206,13 @@ describe('hashmap functions', () => {
     expect(result).toBe(2)
   })
 
-  test('hincr should set the value to 1 for a non-existing field', async () => {
+  it('hincr should set the value to 1 for a non-existing field', async () => {
     const result = await client.hincr('test:key', 'one')
 
     expect(result).toBe(1)
   })
 
-  test('hincrBatch should increase multiple keys', async () => {
+  it('hincrBatch should increase multiple keys', async () => {
     await client.hset('test:key', { one: 1, two: 2 })
 
     const result = await client.hincrBatch('test:key', [
@@ -226,7 +226,7 @@ describe('hashmap functions', () => {
     ])
   })
 
-  test('hscanCount should return the number of keys in the hash', async () => {
+  it('hscanCount should return the number of keys in the hash', async () => {
     await client.hset('test:key', { one: 1, two: 2, three: 3 })
 
     const result = await client.hscanCount('test:key', {})
@@ -234,7 +234,7 @@ describe('hashmap functions', () => {
     expect(result).toBe(3)
   })
 
-  test('hscanCount with a match pattern should return the number of matching keys in the hash', async () => {
+  it('hscanCount with a match pattern should return the number of matching keys in the hash', async () => {
     await client.hset('test:key', { one: 1, two: 2, three: 3 })
 
     const result = await client.hscanCount('test:key', { match: 't*' })
@@ -242,7 +242,7 @@ describe('hashmap functions', () => {
     expect(result).toBe(2)
   })
 
-  test('hdel should delete a fields from the hash', async () => {
+  it('hdel should delete a fields from the hash', async () => {
     await client.hset('test:key', { one: 1, two: 2, three: 3 })
 
     await client.hdel('test:key', ['two', 'three'])
@@ -251,7 +251,7 @@ describe('hashmap functions', () => {
     expect(result).toEqual({ one: '1' })
   })
 
-  test.skip('hsetWithTTL should set the fields with expiry', async () => {
+  it.skip('hsetWithTTL should set the fields with expiry', async () => {
     const now = localTime.now().unix
 
     await client.hsetWithTTL('test:key', { foo1: 'bar' }, (now + 1000) as UnixTimestamp)

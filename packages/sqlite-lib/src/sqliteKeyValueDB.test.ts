@@ -1,5 +1,5 @@
 import { runCommonKeyValueDBTest, TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { SqliteKeyValueDB } from './sqliteKeyValueDB.js'
 
 const db = new SqliteKeyValueDB({
@@ -16,7 +16,7 @@ describe('runCommonKeyValueDBTest', async () => {
   await runCommonKeyValueDBTest(db)
 })
 
-test('count', async () => {
+it('count', async () => {
   const count = await db.count(TEST_TABLE)
   expect(count).toBe(0)
 })
