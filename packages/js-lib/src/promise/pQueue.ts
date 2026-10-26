@@ -108,8 +108,6 @@ export class PQueue {
           // check if there's room to start next job
           if (this.queue.length && this.inFlight <= concurrency) {
             const nextFn = this.queue.shift()!
-            // The caller already receives the outcome via the shared `nextFn.defer`, which they await
-            // in their own `push` call. This promise is a duplicate - swallow it to avoid UnhandledRejection
             this.push(nextFn).catch(_noop)
           } else {
             if (this.inFlight === 0) {
