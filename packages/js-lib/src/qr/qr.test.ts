@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { createQrCode } from './qr.js'
 import type { QrErrorCorrectionLevel, QrMode } from './qr.js'
 
@@ -724,7 +724,7 @@ function matrixToRows(
   return rows
 }
 
-test.each(FIXTURES)(
+it.each(FIXTURES)(
   'matches reference for $mode "$content" ecl=$ecl type=$typeNumber',
   ({ content, mode, ecl, typeNumber, size, rows }) => {
     const qr = createQrCode(content, { mode, ecl, typeNumber })
@@ -733,7 +733,7 @@ test.each(FIXTURES)(
   },
 )
 
-test('auto-detects the encoding mode', () => {
+it('auto-detects the encoding mode', () => {
   // numeric is the most compact -> smallest matrix; byte the least
   const numeric = createQrCode('12345')
   const alnum = createQrCode('HELLO WORLD')
@@ -745,7 +745,7 @@ test('auto-detects the encoding mode', () => {
   expect(byte.size).toBeGreaterThanOrEqual(21)
 })
 
-test('auto-selects the smallest fitting version, growing with payload', () => {
+it('auto-selects the smallest fitting version, growing with payload', () => {
   expect(createQrCode('a').size).toBe(21) // v1
   const big = createQrCode('a'.repeat(300))
   expect(big.size).toBeGreaterThan(21)
@@ -755,7 +755,7 @@ test('auto-selects the smallest fitting version, growing with payload', () => {
   )
 })
 
-test('encodes UTF-8 in byte mode (unlike the original Latin-1 behavior)', () => {
+it('encodes UTF-8 in byte mode (unlike the original Latin-1 behavior)', () => {
   // '€' is 3 UTF-8 bytes (0xE2 0x82 0xAC); a multibyte payload must still produce a valid matrix
   const qr = createQrCode('Price: 5€ café 🎉')
   expect(qr.size).toBeGreaterThanOrEqual(21)
@@ -765,7 +765,7 @@ test('encodes UTF-8 in byte mode (unlike the original Latin-1 behavior)', () => 
   ).toBe(true)
 })
 
-test('finder patterns are present in all three corners', () => {
+it('finder patterns are present in all three corners', () => {
   const qr = createQrCode('HELLO')
   const n = qr.size
   // top-left finder: dark border ring around a 3x3 dark core
@@ -780,7 +780,7 @@ test('finder patterns are present in all three corners', () => {
   }
 })
 
-test('toSvg renders a scalable svg of the right pixel size', () => {
+it('toSvg renders a scalable svg of the right pixel size', () => {
   const qr = createQrCode('HELLO', { ecl: 'M' })
   const svg = qr.toSvg({ scale: 8, border: 4 })
   const dimPx = (qr.size + 8) * 8
@@ -791,13 +791,13 @@ test('toSvg renders a scalable svg of the right pixel size', () => {
   expect(svg.endsWith('</svg>')).toBe(true)
 })
 
-test('toDataUrl produces a usable svg data url', () => {
+it('toDataUrl produces a usable svg data url', () => {
   const url = createQrCode('HELLO').toDataUrl()
   expect(url.startsWith('data:image/svg+xml,')).toBe(true)
   expect(decodeURIComponent(url.slice('data:image/svg+xml,'.length)).startsWith('<svg')).toBe(true)
 })
 
-test('toAscii renders a bordered block-character grid', () => {
+it('toAscii renders a bordered block-character grid', () => {
   const qr = createQrCode('HELLO')
   const ascii = qr.toAscii({ border: 2 })
   const lines = ascii.split('\n')
@@ -809,7 +809,7 @@ test('toAscii renders a bordered block-character grid', () => {
   expect(qr.toString()).toBe(qr.toAscii())
 })
 
-test('accepts raw bytes directly', () => {
+it('accepts raw bytes directly', () => {
   const bytes = new TextEncoder().encode('HELLO')
   const fromBytes = createQrCode(bytes, { ecl: 'M' })
   const fromString = createQrCode('HELLO', { mode: 'byte', ecl: 'M' })
@@ -823,6 +823,6 @@ test('accepts raw bytes directly', () => {
   }
 })
 
-test('throws on illegal alphanumeric input', () => {
+it('throws on illegal alphanumeric input', () => {
   expect(() => createQrCode('hello', { mode: 'alphanumeric' })).toThrow('illegal alphanumeric')
 })

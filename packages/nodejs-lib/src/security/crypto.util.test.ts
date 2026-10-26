@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { TEST_ENC_KEY } from '../test/test.cnst.js'
 import {
   decryptObject,
@@ -12,11 +12,11 @@ import {
 
 const encKeyBuffer = Buffer.from(TEST_ENC_KEY, 'base64')
 
-test('testEncKeySize', () => {
+it('testEncKeySize', () => {
   expect(encKeyBuffer).toHaveLength(256)
 })
 
-test('encryptBuffer, decryptBuffer', () => {
+it('encryptBuffer, decryptBuffer', () => {
   const plainStr = 'hello!@#123'
   const plain = Buffer.from(plainStr, 'utf8')
   const enc = encryptRandomIVBuffer(plain, encKeyBuffer)
@@ -26,7 +26,7 @@ test('encryptBuffer, decryptBuffer', () => {
   expect(decStr).toBe(plainStr)
 })
 
-test('encryptBuffer should not be deterministic', () => {
+it('encryptBuffer should not be deterministic', () => {
   const plainStr = 'hello!@#123'
   const plain = Buffer.from(plainStr, 'utf8')
   const enc1 = encryptRandomIVBuffer(plain, encKeyBuffer)
@@ -34,21 +34,21 @@ test('encryptBuffer should not be deterministic', () => {
   expect(enc1).not.toStrictEqual(enc2)
 })
 
-test('encryptString, decryptString', () => {
+it('encryptString, decryptString', () => {
   const plain = 'hello!@#123'
   const enc = encryptString(plain, encKeyBuffer)
   const dec = decryptString(enc, encKeyBuffer)
   expect(dec).toStrictEqual(plain)
 })
 
-test('encryptString should be deterministic', () => {
+it('encryptString should be deterministic', () => {
   const plain = 'hello!@#123'
   const enc1 = encryptString(plain, encKeyBuffer)
   const enc2 = encryptString(plain, encKeyBuffer)
   expect(enc2).toBe(enc1)
 })
 
-test('encryptObject, decryptObject', () => {
+it('encryptObject, decryptObject', () => {
   const obj1 = {
     a: 'aaa',
     b: 'bbb',
@@ -70,7 +70,7 @@ test('encryptObject, decryptObject', () => {
   expect(encryptObject(obj1, encKeyBuffer)).toEqual(enc)
 })
 
-test('timingSafeStringEquals', () => {
+it('timingSafeStringEquals', () => {
   const pw = 'hello!@#123'
 
   expect(timingSafeStringEqual(undefined, pw)).toBe(false)

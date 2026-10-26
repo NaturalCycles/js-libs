@@ -1,7 +1,7 @@
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { getDefaultRouter } from '../../express/getDefaultRouter.js'
 import { debugResource } from '../../test/debug.resource.js'
 import type { ExpressApp } from '../../testing/index.js'
@@ -16,7 +16,7 @@ afterAll(async () => {
 
 describe('ajvValidateRequest', () => {
   describe('body (kirill)', () => {
-    test('ajvValidateRequest', async () => {
+    it('ajvValidateRequest', async () => {
       // should pass (no error)
       await app.put('changePasswordAjv', {
         json: {
@@ -90,7 +90,7 @@ describe('ajvValidateRequest', () => {
       await app.close()
     })
 
-    test('accept an email with whitespaces', async () => {
+    it('accept an email with whitespaces', async () => {
       const response = await app.post<TestResponse>('', {
         json: { email: 'kamalaharris@gmail.com ' },
       })
@@ -135,7 +135,7 @@ describe('ajvValidateRequest', () => {
       await app.close()
     })
 
-    test('should pass valid headers', async () => {
+    it('should pass valid headers', async () => {
       const response = await app.get<TestResponse>('', {
         headers: {
           shortstring: 'shortstring',
@@ -154,7 +154,7 @@ describe('ajvValidateRequest', () => {
       })
     })
 
-    test('should throw error on invalid headers', async () => {
+    it('should throw error on invalid headers', async () => {
       const err = await app.expectError({
         url: '',
         method: 'GET',
@@ -172,7 +172,7 @@ describe('ajvValidateRequest', () => {
       )
     })
 
-    test('should redact sensitive data', async () => {
+    it('should redact sensitive data', async () => {
       const err = await app.expectError({
         url: '',
         method: 'GET',
@@ -189,7 +189,7 @@ describe('ajvValidateRequest', () => {
       expect(err.cause.message).not.toContain('sessionid')
     })
 
-    test('should replace the headers with the validated value by default', async () => {
+    it('should replace the headers with the validated value by default', async () => {
       const resource = getDefaultRouter().get('/', async (req, res) => {
         const validatedHeaders = validateRequest.headers(
           req,
@@ -251,13 +251,13 @@ describe('ajvValidateRequest', () => {
       await app.close()
     })
 
-    test('should coerce param types properly', async () => {
+    it('should coerce param types properly', async () => {
       const response = await app.get<TestResponse>('?algoVariant=1')
 
       expect(response).toMatchObject({ ok: 1, query: { algoVariant: 1 } })
     })
 
-    test('should have a properly worded error message', async () => {
+    it('should have a properly worded error message', async () => {
       const response = await app.expectError({ url: '?algoVariant=3', method: 'GET' })
 
       expect(response.message).toMatchInlineSnapshot(`"400 GET /?algoVariant=3"`)
@@ -301,13 +301,13 @@ describe('ajvValidateRequest', () => {
       await app.close()
     })
 
-    test('should coerce param types properly', async () => {
+    it('should coerce param types properly', async () => {
       const response = await app.get<TestResponse>('1')
 
       expect(response).toMatchObject({ ok: 1, params: { algoVariant: 1 } })
     })
 
-    test('should have a properly worded error message', async () => {
+    it('should have a properly worded error message', async () => {
       const response = await app.expectError({ url: '3', method: 'GET' })
 
       expect(response.message).toMatchInlineSnapshot(`"400 GET /3"`)

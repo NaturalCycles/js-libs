@@ -1,5 +1,5 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   mockStringId,
   stringId,
@@ -29,7 +29,7 @@ function validate(value: string, schema: JSchema<string, any>): void {
   schema.validate(value)
 }
 
-test('stringId', () => {
+it('stringId', () => {
   const id = stringId()
   expect(id).toHaveLength(16)
   expect(id.toLowerCase()).toBe(id)
@@ -41,7 +41,7 @@ test('stringId', () => {
   })
 })
 
-test('stringId mocked', () => {
+it('stringId mocked', () => {
   mockStringId('abc')
   expect(stringId()).toBe('abc')
   expect(stringId()).toBe('abc')
@@ -50,7 +50,7 @@ test('stringId mocked', () => {
   expect(stringId()).toHaveLength(16)
 })
 
-test('stringIdBase62', () => {
+it('stringIdBase62', () => {
   const id = stringIdBase62()
   expect(id).toHaveLength(16)
   expect(id).not.toContain('=')
@@ -67,7 +67,7 @@ test('stringIdBase62', () => {
   })
 })
 
-test('stringIdBase64', () => {
+it('stringIdBase64', () => {
   const id = stringIdBase64()
   expect(id).toHaveLength(16) // default
 
@@ -100,7 +100,7 @@ test('stringIdBase64', () => {
   })
 })
 
-test('stringIdBase64Url should have no padding', () => {
+it('stringIdBase64Url should have no padding', () => {
   // intentionally using odd sizes
   const lengths = [3, 7, 9, 11, 13]
 
@@ -113,7 +113,7 @@ test('stringIdBase64Url should have no padding', () => {
 })
 
 describe('stringIdNonAmbiguous', () => {
-  test('default size', () => {
+  it('default size', () => {
     const id = stringIdNonAmbiguous()
     expect(id).toHaveLength(16)
     expect(id).not.toContain('0')
@@ -122,7 +122,7 @@ describe('stringIdNonAmbiguous', () => {
     expect(id).not.toContain('l')
   })
 
-  test('custom size', () => {
+  it('custom size', () => {
     const id = stringIdNonAmbiguous(100)
     expect(id).toHaveLength(100)
     expect(id).not.toContain('0')

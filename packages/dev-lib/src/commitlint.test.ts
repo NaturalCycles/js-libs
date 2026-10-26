@@ -1,40 +1,40 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { validateCommitMessage } from './commitlint.util.js'
 
 // Valid messages
-test('valid: simple message', () => {
+it('valid: simple message', () => {
   const result = validateCommitMessage('feat: add login')
   expect(result.valid).toBe(true)
   expect(result.errors).toEqual([])
 })
 
-test('valid: message with scope', () => {
+it('valid: message with scope', () => {
   const result = validateCommitMessage('fix(auth): resolve crash')
   expect(result.valid).toBe(true)
 })
 
-test('valid: breaking change indicator', () => {
+it('valid: breaking change indicator', () => {
   const result = validateCommitMessage('feat!: breaking change')
   expect(result.valid).toBe(true)
 })
 
-test('valid: breaking change with scope', () => {
+it('valid: breaking change with scope', () => {
   const result = validateCommitMessage('feat(api)!: breaking change')
   expect(result.valid).toBe(true)
 })
 
-test('valid: merge commit', () => {
+it('valid: merge commit', () => {
   const result = validateCommitMessage("Merge branch 'feature' into main")
   expect(result.valid).toBe(true)
   expect(result.errors).toEqual([])
 })
 
-test('valid: merge commit with pull request', () => {
+it('valid: merge commit with pull request', () => {
   const result = validateCommitMessage('Merge pull request #123 from user/branch')
   expect(result.valid).toBe(true)
 })
 
-test('valid: message with body', () => {
+it('valid: message with body', () => {
   const msg = `feat: add feature
 
 This is the body with more details.
@@ -43,7 +43,7 @@ Multiple lines are allowed.`
   expect(result.valid).toBe(true)
 })
 
-test('valid: all allowed types', () => {
+it('valid: all allowed types', () => {
   const types = [
     'feat',
     'fix',
@@ -64,51 +64,51 @@ test('valid: all allowed types', () => {
 })
 
 // Invalid messages
-test('invalid: empty message', () => {
+it('invalid: empty message', () => {
   const result = validateCommitMessage('')
   expect(result.valid).toBe(false)
   expect(result.errors).toContain('Commit message is empty')
 })
 
-test('invalid: whitespace only', () => {
+it('invalid: whitespace only', () => {
   const result = validateCommitMessage('   \n\n  ')
   expect(result.valid).toBe(false)
   expect(result.errors).toContain('Commit message is empty')
 })
 
-test('invalid: no colon', () => {
+it('invalid: no colon', () => {
   const result = validateCommitMessage('feat add login')
   expect(result.valid).toBe(false)
   expect(result.errors[0]).toContain('must match format')
 })
 
-test('invalid: missing description', () => {
+it('invalid: missing description', () => {
   const result = validateCommitMessage('feat:')
   expect(result.valid).toBe(false)
   expect(result.errors[0]).toContain('must match format')
 })
 
-test('invalid: description is only whitespace', () => {
+it('invalid: description is only whitespace', () => {
   const result = validateCommitMessage('feat:   ')
   expect(result.valid).toBe(false)
   expect(result.errors[0]).toContain('must match format')
 })
 
-test('invalid: unknown type', () => {
+it('invalid: unknown type', () => {
   const result = validateCommitMessage('unknown: some description')
   expect(result.valid).toBe(false)
   expect(result.errors[0]).toContain('Invalid type "unknown"')
   expect(result.errors[0]).toContain('Allowed types:')
 })
 
-test('invalid: subject line too long', () => {
+it('invalid: subject line too long', () => {
   const longDesc = 'a'.repeat(120)
   const result = validateCommitMessage(`feat: ${longDesc}`)
   expect(result.valid).toBe(false)
   expect(result.errors[0]).toContain('Subject line too long')
 })
 
-test('invalid: missing blank line before body', () => {
+it('invalid: missing blank line before body', () => {
   const msg = `feat: add feature
 This body starts immediately without blank line.`
   const result = validateCommitMessage(msg)
@@ -117,18 +117,18 @@ This body starts immediately without blank line.`
 })
 
 // Scope validation with config
-test('config: requireScope enforced', () => {
+it('config: requireScope enforced', () => {
   const result = validateCommitMessage('feat: no scope', { requireScope: true })
   expect(result.valid).toBe(false)
   expect(result.errors).toContain('Scope is required')
 })
 
-test('config: requireScope satisfied', () => {
+it('config: requireScope satisfied', () => {
   const result = validateCommitMessage('feat(api): has scope', { requireScope: true })
   expect(result.valid).toBe(true)
 })
 
-test('config: allowedScopes enforced', () => {
+it('config: allowedScopes enforced', () => {
   const result = validateCommitMessage('feat(invalid): wrong scope', {
     allowedScopes: ['api', 'ui', 'core'],
   })
@@ -136,21 +136,21 @@ test('config: allowedScopes enforced', () => {
   expect(result.errors[0]).toContain('Scope must be one of the allowed scopes')
 })
 
-test('config: allowedScopes satisfied', () => {
+it('config: allowedScopes satisfied', () => {
   const result = validateCommitMessage('feat(api): valid scope', {
     allowedScopes: ['api', 'ui', 'core'],
   })
   expect(result.valid).toBe(true)
 })
 
-test('config: empty scope passes allowedScopes', () => {
+it('config: empty scope passes allowedScopes', () => {
   const result = validateCommitMessage('feat: no scope is fine', {
     allowedScopes: ['api', 'ui', 'core'],
   })
   expect(result.valid).toBe(true)
 })
 
-test('config: requireScope + allowedScopes combined', () => {
+it('config: requireScope + allowedScopes combined', () => {
   // Missing scope fails requireScope
   const r1 = validateCommitMessage('feat: no scope', {
     requireScope: true,

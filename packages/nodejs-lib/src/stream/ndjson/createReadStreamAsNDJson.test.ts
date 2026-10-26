@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 import { fs2 } from '../../fs/fs2.js'
 import { zip2 } from '../../zip/zip2.js'
 import { Pipeline } from '../pipeline.js'
@@ -37,65 +37,65 @@ beforeEach(() => {
   )
 })
 
-test('reads a plain ndjson file', async () => {
+it('reads a plain ndjson file', async () => {
   expect(await createReadStreamAsNDJson('rows.ndjson').toArray()).toEqual(rows)
 })
 
-test('reads a gzipped ndjson file', async () => {
+it('reads a gzipped ndjson file', async () => {
   expect(await createReadStreamAsNDJson('rows.ndjson.gz').toArray()).toEqual(rows)
 })
 
-test('reads a zstd-compressed ndjson file', async () => {
+it('reads a zstd-compressed ndjson file', async () => {
   expect(await createReadStreamAsNDJson('rows.ndjson.zst').toArray()).toEqual(rows)
 })
 
-test('supports .take(limit)', async () => {
+it('supports .take(limit)', async () => {
   expect(await createReadStreamAsNDJson('rows.ndjson.gz').take(2).toArray()).toEqual(
     rows.slice(0, 2),
   )
 })
 
-test('throws synchronously on a missing file', () => {
+it('throws synchronously on a missing file', () => {
   expect(() => createReadStreamAsNDJson('missing.ndjson')).toThrow('Required file should exist')
 })
 
-test('rejects on an invalid json line', async () => {
+it('rejects on an invalid json line', async () => {
   await expect(createReadStreamAsNDJson('badJson.ndjson').toArray()).rejects.toThrow(SyntaxError)
 })
 
 // The following used to crash the process with an unhandled 'error' event,
 // because `.pipe` does not forward errors from the decompression stream
-test('rejects on a corrupt gzip file', async () => {
+it('rejects on a corrupt gzip file', async () => {
   await expect(createReadStreamAsNDJson('corrupt.ndjson.gz').toArray()).rejects.toThrow(
     'invalid distance too far back',
   )
 })
 
-test('rejects on a truncated gzip file', async () => {
+it('rejects on a truncated gzip file', async () => {
   await expect(createReadStreamAsNDJson('truncated.ndjson.gz').toArray()).rejects.toThrow(
     'unexpected end of file',
   )
 })
 
-test('rejects on a .gz file that is not gzip', async () => {
+it('rejects on a .gz file that is not gzip', async () => {
   await expect(createReadStreamAsNDJson('notGzip.ndjson.gz').toArray()).rejects.toThrow(
     'incorrect header check',
   )
 })
 
-test('rejects on a corrupt zstd file', async () => {
+it('rejects on a corrupt zstd file', async () => {
   await expect(createReadStreamAsNDJson('corrupt.ndjson.zst').toArray()).rejects.toThrow(
     'Unknown frame descriptor',
   )
 })
 
-test('works with Pipeline.fromNDJsonFile and limitSource', async () => {
+it('works with Pipeline.fromNDJsonFile and limitSource', async () => {
   expect(await Pipeline.fromNDJsonFile('rows.ndjson.gz').limitSource(3).toArray()).toEqual(
     rows.slice(0, 3),
   )
 })
 
-test('Pipeline.fromNDJsonFile rejects on a corrupt gzip file', async () => {
+it('Pipeline.fromNDJsonFile rejects on a corrupt gzip file', async () => {
   await expect(Pipeline.fromNDJsonFile('corrupt.ndjson.gz').toArray()).rejects.toThrow(
     'invalid distance too far back',
   )

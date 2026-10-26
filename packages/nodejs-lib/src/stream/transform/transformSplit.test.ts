@@ -2,28 +2,28 @@ import type { Transform } from 'node:stream'
 import { Readable, Writable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import { transformSplit, transformSplitOnNewline } from './transformSplit.js'
 
-test('splits a single chunk on newline', async () => {
+it('splits a single chunk on newline', async () => {
   expect(await splitChunks(transformSplitOnNewline(), ['a\nbb\nccc\n'])).toEqual(['a', 'bb', 'ccc'])
 })
 
-test('flushes trailing data without a newline', async () => {
+it('flushes trailing data without a newline', async () => {
   expect(await splitChunks(transformSplitOnNewline(), ['a\nb'])).toEqual(['a', 'b'])
 })
 
-test('skips empty lines', async () => {
+it('skips empty lines', async () => {
   expect(await splitChunks(transformSplitOnNewline(), ['\n\na\n\n\nb\n\n'])).toEqual(['a', 'b'])
 })
 
-test('emits nothing for empty input', async () => {
+it('emits nothing for empty input', async () => {
   expect(await splitChunks(transformSplitOnNewline(), [])).toEqual([])
   expect(await splitChunks(transformSplitOnNewline(), ['', '\n', '\n\n'])).toEqual([])
 })
 
-test('emits Buffers', async () => {
+it('emits Buffers', async () => {
   const t = transformSplitOnNewline()
   const resultPromise = t.toArray()
   t.end('a\nb')
@@ -34,7 +34,7 @@ test('emits Buffers', async () => {
   }
 })
 
-test('accepts string and Buffer chunks', async () => {
+it('accepts string and Buffer chunks', async () => {
   expect(await splitChunks(transformSplitOnNewline(), ['a\n', Buffer.from('b\n'), 'c'])).toEqual([
     'a',
     'b',
@@ -42,7 +42,7 @@ test('accepts string and Buffer chunks', async () => {
   ])
 })
 
-test('joins a line split across chunks', async () => {
+it('joins a line split across chunks', async () => {
   expect(await splitChunks(transformSplitOnNewline(), ['ab', 'c\nd', 'e\n', 'f'])).toEqual([
     'abc',
     'de',
@@ -50,7 +50,7 @@ test('joins a line split across chunks', async () => {
   ])
 })
 
-test('joins a long line spanning many chunks', async () => {
+it('joins a long line spanning many chunks', async () => {
   const long = 'x'.repeat(1_000_000)
   const chunks = chunkify(Buffer.from(`${long}\ny`), 1024)
   expect(chunks.length).toBeGreaterThan(900)
@@ -60,7 +60,7 @@ test('joins a long line spanning many chunks', async () => {
   expect(lines[1]).toBe('y')
 })
 
-test('every chunking gives the same result (newline, multibyte utf8 content)', async () => {
+it('every chunking gives the same result (newline, multibyte utf8 content)', async () => {
   const text = '\nhéllo\n\nwörld\r\n🙂\n\n\nlast'
   const buf = Buffer.from(text)
   const expected = referenceSplit(text, '\n')
@@ -77,11 +77,11 @@ test('every chunking gives the same result (newline, multibyte utf8 content)', a
   }
 })
 
-test('transformSplit with a 1-byte custom separator', async () => {
+it('transformSplit with a 1-byte custom separator', async () => {
   expect(await splitChunks(transformSplit(';'), ['a;b', ';;c;'])).toEqual(['a', 'b', 'c'])
 })
 
-test('transformSplit with a 2-byte separator across chunk boundaries', async () => {
+it('transformSplit with a 2-byte separator across chunk boundaries', async () => {
   const text = 'a\r\nbb\r\n\r\nc\rd\ne\r\n\r'
   const buf = Buffer.from(text)
   const expected = referenceSplit(text, '\r\n')
@@ -94,7 +94,7 @@ test('transformSplit with a 2-byte separator across chunk boundaries', async () 
   }
 })
 
-test('transformSplit with a 3-byte separator across chunk boundaries', async () => {
+it('transformSplit with a 3-byte separator across chunk boundaries', async () => {
   const text = '<|x<|>yy<|><|>z<|<|>|>'
   const buf = Buffer.from(text)
   const expected = referenceSplit(text, '<|>')
@@ -107,14 +107,14 @@ test('transformSplit with a 3-byte separator across chunk boundaries', async () 
   }
 })
 
-test('transformSplit with a multi-byte separator and a long line spanning many chunks', async () => {
+it('transformSplit with a multi-byte separator and a long line spanning many chunks', async () => {
   const long = 'x\r'.repeat(100_000) // many partial separators inside the line
   const chunks = chunkify(Buffer.from(`${long}\r\ny\r\n`), 777)
   const lines = await splitChunks(transformSplit('\r\n'), chunks)
   expect(lines).toEqual([long, 'y'])
 })
 
-test('deterministic fuzz: random line lengths, random chunk sizes', async () => {
+it('deterministic fuzz: random line lengths, random chunk sizes', async () => {
   const rnd = lcg(42)
   const lines = _range(2000).map(() => 'abcdefghij'.repeat(rnd(0, 30)).slice(0, rnd(0, 300)))
 
@@ -132,11 +132,11 @@ test('deterministic fuzz: random line lengths, random chunk sizes', async () => 
   }
 })
 
-test('transformSplit throws on empty separator', () => {
+it('transformSplit throws on empty separator', () => {
   expect(() => transformSplit('')).toThrow('separator')
 })
 
-test('a synchronous throw while a line is consumed becomes a stream error', async () => {
+it('a synchronous throw while a line is consumed becomes a stream error', async () => {
   // chunk processing is deferred to a microtask, where an unhandled throw would crash the process
   const t = transformSplitOnNewline()
   t.on('data', (line: Buffer) => {
@@ -151,7 +151,7 @@ test('a synchronous throw while a line is consumed becomes a stream error', asyn
   ).rejects.toThrow('boom')
 })
 
-test('works inside Pipeline.splitOnNewline', async () => {
+it('works inside Pipeline.splitOnNewline', async () => {
   const chunks = chunkify(Buffer.from('{"a":1}\n{"b":2}\n{"c":3}'), 5)
   const lines = await Pipeline.from<Uint8Array>(Readable.from(chunks, { objectMode: false }))
     .splitOnNewline()

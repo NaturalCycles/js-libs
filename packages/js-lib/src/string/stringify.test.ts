@@ -1,6 +1,6 @@
 import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
 import { inspectStringifyFn } from '@naturalcycles/nodejs-lib'
-import { afterAll, expect, test } from 'vitest'
+import { afterAll, expect, it } from 'vitest'
 import type { BackendErrorResponseObject } from '../error/error.model.js'
 import { _errorLikeToErrorObject, AppError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
@@ -15,7 +15,7 @@ afterAll(() => {
   resetGlobalStringifyFunction()
 })
 
-test('stringify default', () => {
+it('stringify default', () => {
   expectResults(v => _stringify(v), mockAllKindsOfThings()).toMatchSnapshot()
 
   expectResults(
@@ -27,7 +27,7 @@ test('stringify default', () => {
   ).toMatchSnapshot()
 })
 
-test('appError', () => {
+it('appError', () => {
   const err = new AppError('la la', {
     backendResponseStatusCode: 409,
     userFriendly: true,
@@ -46,7 +46,7 @@ test('appError', () => {
   `)
 })
 
-test('appError with status 0', () => {
+it('appError with status 0', () => {
   const err = new AppError('la la', {
     backendResponseStatusCode: 0,
     userFriendly: true,
@@ -56,7 +56,7 @@ test('appError with status 0', () => {
   expect(_stringify(err)).toMatchInlineSnapshot(`"AppError: la la"`)
 })
 
-test('backendErrorResponse', () => {
+it('backendErrorResponse', () => {
   const err = new AppError('la la\nsecond line', {
     backendResponseStatusCode: 409,
     userFriendly: true,
@@ -77,7 +77,7 @@ test('backendErrorResponse', () => {
   // expect(_stringifyAny(resp, { includeErrorStack: true })).toMatchInlineSnapshot()
 })
 
-test('error with cause', () => {
+it('error with cause', () => {
   const err = new Error('err1', {
     cause: new AppError(
       'http_error1',
@@ -101,7 +101,7 @@ test('error with cause', () => {
   `)
 })
 
-test('AggregateError', async () => {
+it('AggregateError', async () => {
   const err = await pExpectedError(
     Promise.any([
       new Promise((_, reject) => reject(new Error('err1'))),
@@ -123,7 +123,7 @@ const obj = {
   b: { c: 'c' },
 }
 
-test('simple object', () => {
+it('simple object', () => {
   expect(_stringify(obj)).toMatchInlineSnapshot(`
     "{
       "a": "a",
@@ -134,7 +134,7 @@ test('simple object', () => {
   `)
 })
 
-test('setGlobalStringifyFunction', () => {
+it('setGlobalStringifyFunction', () => {
   setGlobalStringifyFunction(inspectStringifyFn)
 
   expect(_stringify(obj)).toMatchInlineSnapshot(`"{ a: 'a', b: { c: 'c' } }"`)

@@ -1,8 +1,8 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../index.js'
 
-test('transformFilter', async () => {
+it('transformFilter', async () => {
   const items = _range(5)
 
   let items2 = await Pipeline.fromArray(items)

@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 
 // todo: mock properly
 // const originalProcessEnv = process.env
@@ -29,7 +29,7 @@ import {
   setSecretMap,
 } from './secret.util.js'
 
-test('secret', async () => {
+it('secret', async () => {
   expect(() => secret('SECRET_A')).toThrow('not loaded')
   expect(() => getSecretMap()).toThrow('not loaded')
 
@@ -62,7 +62,7 @@ test('secret', async () => {
   expect(secret('a')).toBe('b')
 })
 
-test('loadSecretsFromEncryptedJsonFile', async () => {
+it('loadSecretsFromEncryptedJsonFile', async () => {
   setSecretMap({}) // reset
 
   loadSecretsFromEncryptedJsonFile(secretsJsonPath)
@@ -74,7 +74,7 @@ test('loadSecretsFromEncryptedJsonFile', async () => {
   expect(secret('very')).toBe('secretuous')
 })
 
-test('loadSecretsFromEncryptedJsonFileValues', async () => {
+it('loadSecretsFromEncryptedJsonFileValues', async () => {
   setSecretMap({}) // reset
 
   loadSecretsFromEncryptedJsonFileValues(secrets2JsonPath, TEST_ENC_KEY)

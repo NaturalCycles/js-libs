@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { _range } from './array/range.js'
 import { DeviceIdService } from './deviceIdService.js'
 import { InMemoryWebStorage } from './web.js'
 
 describe('when run in Node', () => {
-  test('deviceId should be null', () => {
+  it('deviceId should be null', () => {
     const deviceIdService = new DeviceIdService()
     expect(deviceIdService.deviceId).toBeNull()
     expect(deviceIdService.select(0.9)).toBe(false)
@@ -23,7 +23,7 @@ describe('when run in Browser', () => {
     })
   })
 
-  test('deviceId should be generated, and then persisted', () => {
+  it('deviceId should be generated, and then persisted', () => {
     const deviceIdService = new DeviceIdService()
     expect(deviceIdService.deviceId).not.toBeNull()
     expect(deviceIdService.deviceId?.length).toBe(21)
@@ -36,7 +36,7 @@ describe('when run in Browser', () => {
     expect(localStorage.getItem(deviceIdService.cfg.localStorageKey)).toBeNull()
   })
 
-  test('selection rate should be close to the target', () => {
+  it('selection rate should be close to the target', () => {
     const devices = 100_000
     const rate = 0.25
     let selected = 0

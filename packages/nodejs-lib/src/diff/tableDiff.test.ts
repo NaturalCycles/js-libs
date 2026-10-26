@@ -1,7 +1,7 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { tableDiff } from './tableDiff.js'
 
-test('tableDiff', () => {
+it('tableDiff', () => {
   tableDiff({}, {}, { logEmpty: true })
   tableDiff({}, {})
 

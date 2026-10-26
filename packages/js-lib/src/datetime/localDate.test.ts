@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _range } from '../array/range.js'
 import { Intl2 } from '../intl/intl.js'
 import { expectWithMessage, isUTC } from '../test/test.util.js'
@@ -18,7 +18,7 @@ const UNIT_RANGE: Record<LocalDateUnit, number> = {
 
 const DAYJS_ISO_DATE = 'YYYY-MM-DD'
 
-test('basic', () => {
+it('basic', () => {
   const str = '1984-06-21' as IsoDate
   const ld = localDate.fromInput(str)
   expect(ld.toString()).toBe(str)
@@ -85,7 +85,7 @@ test('basic', () => {
   expect(ld.isSameOrBeforeToday()).toBe(true)
 })
 
-test('constructors', () => {
+it('constructors', () => {
   const s = localDate('1984-06-21' as IsoDate).toISODate()
   expect(localDate.fromInput('1984-06-21' as IsoDate).toISODate()).toBe(s)
   expect(localDate.fromInput(localDate('1984-06-21' as IsoDate)).toISODate()).toBe(s)
@@ -96,7 +96,7 @@ test('constructors', () => {
   expect(localDate.fromDateObject({ year: 1984, month: 6, day: 21 }).toISODate()).toBe(s)
 })
 
-test('isBetween', () => {
+it('isBetween', () => {
   const ld = localDate.fromInput('1984-06-21' as IsoDate)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
@@ -112,7 +112,7 @@ test('isBetween', () => {
   expect(ld.isBetween('1984-06-22' as IsoDate, '1984-06-20' as IsoDate, '[)')).toBe(false)
 })
 
-test('sort', () => {
+it('sort', () => {
   const items = ['2022-01-03', '2022-01-01', '2022-01-02'].map(i => localDate(i as IsoDate))
 
   expect(localDate.sort(items).map(s => s.toString())).toEqual([
@@ -130,7 +130,7 @@ test('sort', () => {
   expect(localDate.max([...items, undefined]).toString()).toBe('2022-01-03')
 })
 
-test('add basic', () => {
+it('add basic', () => {
   const ld = localDate('2022-01-01' as IsoDate)
 
   expect(ld.clone().plus(1, 'day', { mutate: true }).toString()).toBe('2022-01-02')
@@ -144,7 +144,7 @@ test('add basic', () => {
   expect(d.minusMonths(1).toISODate()).toBe('2022-04-30')
 })
 
-test('add', () => {
+it('add', () => {
   const starts = ['2022-05-31', '2022-05-30', '2020-02-29', '2021-02-28', '2022-01-01'] as IsoDate[]
 
   starts.forEach(start => {
@@ -167,7 +167,7 @@ test('add', () => {
   })
 })
 
-test('diff', () => {
+it('diff', () => {
   const starts = ['2022-05-31', '2022-05-30', '2020-02-29', '2021-02-28', '2022-01-01'] as IsoDate[]
 
   starts.forEach(start => {
@@ -215,7 +215,7 @@ const validDates = [
   '2022-01-01nahuy',
 ] as IsoDate[]
 
-test.each(validDates)('%s is valid', s => {
+it.each(validDates)('%s is valid', s => {
   expect(localDate.isValid(s)).toBe(true)
   expect(localDate.isValidString(s)).toBe(true)
   expect(localDate(s).toISODate()).toBe(s.slice(0, 10))
@@ -232,7 +232,7 @@ const invalidDates = [
   '2022-01-x1',
 ] as IsoDate[]
 
-test.each(invalidDates)('%s is invalid', s => {
+it.each(invalidDates)('%s is invalid', s => {
   expect(localDate.isValid(s)).toBe(false)
   expect(localDate.isValidString(s)).toBe(false)
   expect(() => localDate(s)).toThrow('Cannot parse')
@@ -240,7 +240,7 @@ test.each(invalidDates)('%s is invalid', s => {
   expect(localDate.try(s)).toBeUndefined()
 })
 
-test('toDate', () => {
+it('toDate', () => {
   const str = '2022-03-06' as IsoDate
   const d = localDate.fromInput(str)
   if (isUTC()) {
@@ -258,7 +258,7 @@ test('toDate', () => {
   expect(d2.isSameOrBefore(d)).toBe(true)
 })
 
-test('range', () => {
+it('range', () => {
   expect(localDate.range('2021-12-24' as IsoDate, '2021-12-26' as IsoDate, '[)'))
     .toMatchInlineSnapshot(`
     [
@@ -296,7 +296,7 @@ test('range', () => {
   `)
 })
 
-test('rangeIterable', () => {
+it('rangeIterable', () => {
   expect([...localDate.rangeIterable('2021-12-24' as IsoDate, '2021-12-26' as IsoDate, '[)')])
     .toMatchInlineSnapshot(`
     [
@@ -306,7 +306,7 @@ test('rangeIterable', () => {
   `)
 })
 
-test('format', () => {
+it('format', () => {
   const fmt: LocalDateFormatter = ld => `${ld.year}-${String(ld.month).padStart(2, '0')}`
   expect(localDate('1984-06-21' as IsoDate).format(fmt)).toBe('1984-06')
 
@@ -320,7 +320,7 @@ test('format', () => {
   expect(localDate('1984-06-21' as IsoDate).format(fmt3)).toBe('21 июня')
 })
 
-test('diff2', () => {
+it('diff2', () => {
   expect(localDate('2020-03-03' as IsoDate).diff('1991-06-21' as IsoDate, 'year')).toBe(28)
 
   const ld = localDate('2022-01-01' as IsoDate)
@@ -341,14 +341,14 @@ test('diff2', () => {
   )
 })
 
-test('parse weird input', () => {
+it('parse weird input', () => {
   // should not fail, but return null gracefully
   expect(localDate.try(5 as any)).toBeUndefined()
   expect(localDate.try(Date.now() as any)).toBeUndefined()
   expect(localDate.try((() => {}) as any)).toBeUndefined()
 })
 
-test('dayOfWeek', () => {
+it('dayOfWeek', () => {
   expect(localDate('1984-06-18' as IsoDate).dayOfWeek).toBe(1)
   expect(localDate('1984-06-19' as IsoDate).dayOfWeek).toBe(2)
   expect(localDate('1984-06-20' as IsoDate).dayOfWeek).toBe(3)
@@ -392,7 +392,7 @@ test('dayOfWeek', () => {
 })
 
 // You shouldn't do it, I'm just discovering that it works, apparently
-test('comparison with string', () => {
+it('comparison with string', () => {
   const d = localDate('1984-06-21' as IsoDate) as any
   expect(d < '1984-06-22').toBe(true)
   expect(d < '1985-06-22').toBe(true)
@@ -404,7 +404,7 @@ test('comparison with string', () => {
 })
 
 // You shouldn't do it, I'm just discovering that it works, apparently
-test('comparison with other LocalDates like primitives', () => {
+it('comparison with other LocalDates like primitives', () => {
   const d = localDate('1984-06-21' as IsoDate) as any
   expect(d < localDate('1984-06-22' as IsoDate)).toBe(true)
   expect(d < localDate('1985-06-22' as IsoDate)).toBe(true)
@@ -415,7 +415,7 @@ test('comparison with other LocalDates like primitives', () => {
   expect(d > localDate('1981-06-20' as IsoDate)).toBe(true)
 })
 
-test('todayString', () => {
+it('todayString', () => {
   // expect(nowUnix()).toBeGreaterThan(localTime('2024-01-01').unix())
   const s = localDate.todayString()
   expect(s.startsWith(new Date().getFullYear() + '-')).toBe(true)
@@ -423,14 +423,14 @@ test('todayString', () => {
   expect(s < '2099-01-01').toBe(true)
 })
 
-test('todayString tz', () => {
+it('todayString tz', () => {
   if (isUTC()) return
   console.log(process.env['TZ'])
   console.log(localDate.todayString())
   console.log(new Date().toString())
 })
 
-test('fractional unit input', () => {
+it('fractional unit input', () => {
   const ld = localDate('1984-06-21' as IsoDate)
   expect(ld.plus(0.4, 'day').toISODate()).toBe('1984-06-21')
   expect(ld.plus(0.5, 'day').toISODate()).toBe('1984-06-21')

@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _gb, _hb, _hc, _kb, _mb } from './size.util.js'
 
-test('_hb', () => {
+it('_hb', () => {
   expect(_hb()).toBe('0 byte(s)')
   expect(_hb(0)).toBe('0 byte(s)')
   expect(_kb(1000)).toBe(1)
@@ -9,7 +9,7 @@ test('_hb', () => {
   expect(_gb(1024 ** 3)).toBe(1)
 })
 
-test('_hb log', () => {
+it('_hb log', () => {
   const map = new Map<number, string>()
   for (let n = 2; n < 10 ** 15; n *= 1.3) {
     map.set(Math.round(n), _hb(n))
@@ -150,7 +150,7 @@ test('_hb log', () => {
   `)
 })
 
-test('_hc log', () => {
+it('_hc log', () => {
   const map = new Map<number, string>()
   for (let n = 2; n < 10 ** 15; n *= 1.3) {
     map.set(Math.round(n), _hc(n))

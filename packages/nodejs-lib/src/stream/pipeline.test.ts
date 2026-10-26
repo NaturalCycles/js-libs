@@ -2,11 +2,11 @@ import { Readable } from 'node:stream'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
 import { pDelay } from '@naturalcycles/js-lib/promise'
 import { END } from '@naturalcycles/js-lib/types'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from './pipeline.js'
 import type { ReadableTyped } from './stream.model.js'
 
-test('Pipeline', async () => {
+it('Pipeline', async () => {
   const r = await Pipeline.from<string>(new HonestReadable(150, 'p'))
     .chunk(2)
     .flatten()
@@ -19,7 +19,7 @@ test('Pipeline', async () => {
   expect(r).toEqual(['p_1', 'p_2', 'p_3'])
 })
 
-test('limit after a transform completes gracefully on a small array source', async () => {
+it('limit after a transform completes gracefully on a small array source', async () => {
   // A source this small has already emitted `end` when the abort from `limit` lands,
   // which used to surface as "Premature close" instead of a graceful abort
   const r = await Pipeline.fromArray([1, 2, 3, 4])
@@ -30,7 +30,7 @@ test('limit after a transform completes gracefully on a small array source', asy
   expect(r).toEqual([10, 20])
 })
 
-test('forEach returning END completes gracefully on a small array source', async () => {
+it('forEach returning END completes gracefully on a small array source', async () => {
   const seen: number[] = []
 
   await Pipeline.fromArray([1, 2, 3, 4]).forEach(
@@ -44,7 +44,7 @@ test('forEach returning END completes gracefully on a small array source', async
   expect(seen).toEqual([1, 2])
 })
 
-test('limit followed by an async forEach resolves only after the in-flight mappers are done', async () => {
+it('limit followed by an async forEach resolves only after the in-flight mappers are done', async () => {
   const seen: number[] = []
 
   await Pipeline.fromArray([1, 2, 3, 4])
@@ -58,7 +58,7 @@ test('limit followed by an async forEach resolves only after the in-flight mappe
   expect(seen.toSorted(comparators.numericAsc)).toEqual([1, 2])
 })
 
-test('forEach returning END aborts the source', async () => {
+it('forEach returning END aborts the source', async () => {
   const seen: string[] = []
 
   await Pipeline.from<string>(new HonestReadable(100, 'p')).forEach(
@@ -73,7 +73,7 @@ test('forEach returning END aborts the source', async () => {
   expect(seen.length).toBeLessThan(100)
 })
 
-test('forEachSync returning END aborts the source', async () => {
+it('forEachSync returning END aborts the source', async () => {
   const seen: string[] = []
 
   await Pipeline.from<string>(new HonestReadable(100, 'p')).forEachSync(item => {

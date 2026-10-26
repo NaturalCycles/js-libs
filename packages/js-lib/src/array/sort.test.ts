@@ -1,8 +1,8 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _deepFreeze } from '../object/index.js'
 import { _sortBy, comparators } from './sort.js'
 
-test('_sortBy', () => {
+it('_sortBy', () => {
   const a = [{ age: 20 }, { age: 10 }]
   _deepFreeze(a)
   expect(_sortBy(a, r => r.age)).toEqual([{ age: 10 }, { age: 20 }])
@@ -10,14 +10,14 @@ test('_sortBy', () => {
   expect(_sortBy(a, o => o.age, { dir: 'desc' })).toEqual([{ age: 20 }, { age: 10 }])
 })
 
-test('_sortBy with mutation', () => {
+it('_sortBy with mutation', () => {
   const a = [{ age: 20 }, { age: 10 }]
   const r = _sortBy(a, r => r.age, { mutate: true })
   expect(r).toEqual([{ age: 10 }, { age: 20 }])
   expect(r).toBe(a)
 })
 
-test.each([
+it.each([
   [[], []],
   [[3], [3]],
   [
@@ -49,7 +49,7 @@ test.each([
   expect(numbers.sort(comparators.numericDesc)).toEqual(result.toReversed())
 })
 
-test('comparators.locale', () => {
+it('comparators.locale', () => {
   const a = ['a', 'r', 'Z']
   expect(a.sort(comparators.localeAsc)).toEqual(['a', 'r', 'Z'])
   expect(a.sort(comparators.localeDesc)).toEqual(['Z', 'r', 'a'])

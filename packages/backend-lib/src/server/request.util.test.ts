@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { getRequestEndpoint, getRequestEndpointUnsafe } from './request.util.js'
 import type { BackendRequest } from './server.model.js'
 
@@ -11,7 +11,7 @@ function mockReq(req: {
   return req as any
 }
 
-test('matched route: uses the route pattern, not the actual path', () => {
+it('matched route: uses the route pattern, not the actual path', () => {
   const req = mockReq({
     method: 'GET',
     baseUrl: '/API',
@@ -22,19 +22,19 @@ test('matched route: uses the route pattern, not the actual path', () => {
   expect(getRequestEndpointUnsafe(req)).toBe('GET /api/users/:id')
 })
 
-test('unmatched route: uses the actual path', () => {
+it('unmatched route: uses the actual path', () => {
   const req = mockReq({ method: 'POST', baseUrl: '', path: '/Some/Path/' })
   expect(getRequestEndpoint(req)).toBe('POST /some/path')
   expect(getRequestEndpointUnsafe(req)).toBe('POST /some/path')
 })
 
-test('stripPrefix', () => {
+it('stripPrefix', () => {
   const req = mockReq({ method: 'GET', baseUrl: '/api/v2', path: '/users/' })
   expect(getRequestEndpoint(req, '/api/v2')).toBe('GET /users')
   expect(getRequestEndpoint(req, '/other')).toBe('GET /api/v2/users')
 })
 
-test.each([
+it.each([
   // Node's http parser accepts these in a raw request path
   ['/<img/src=x/onerror=alert(1)>', '/_img/src=x/onerror=alert_1__'],
   [`/'"<>&\`{}\\|^[]`, '/_____________'],
@@ -49,7 +49,7 @@ test.each([
   expect(getRequestEndpointUnsafe(req)).toBe(`GET ${path.toLowerCase()}`)
 })
 
-test('matched route: baseUrl (mount path params) is sanitized, route pattern is not', () => {
+it('matched route: baseUrl (mount path params) is sanitized, route pattern is not', () => {
   const req = mockReq({
     method: 'GET',
     baseUrl: '/t/<b>',

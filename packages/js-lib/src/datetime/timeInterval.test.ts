@@ -1,8 +1,8 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import type { UnixTimestamp } from '../types.js'
 import { TimeInterval } from './timeInterval.js'
 
-test('basic', () => {
+it('basic', () => {
   const str1 = '1649267185/1649267187'
   const int1 = TimeInterval.parse(str1)
   expect(int1.toString()).toBe(str1)

@@ -1,6 +1,6 @@
 import { _try, AssertionError } from '@naturalcycles/js-lib/error'
 import { _deepFreeze } from '@naturalcycles/js-lib/object'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { fs2 } from '../../fs/fs2.js'
 import { testDir } from '../../test/paths.cnst.js'
 import { AjvValidationError } from './ajvValidationError.js'
@@ -22,7 +22,7 @@ interface TestType {
 const jsonSchemaSimple = fs2.readJson<JsonSchema<Simple>>(`${testDir}/schema/simple.schema.json`)
 const schema = AjvSchema.create<any>(jsonSchemaSimple)
 
-test('simple', () => {
+it('simple', () => {
   // Valid
   const valid: Simple = { s: 's' }
   schema.validate(valid)
@@ -85,14 +85,14 @@ test('simple', () => {
   `)
 })
 
-test('should mutate input by default', () => {
+it('should mutate input by default', () => {
   const input = { s: 's', extra: 'abc' } as Simple
   const result = schema.validate(input)
   expect(input).toEqual({ s: 's' }) // input is mutated
   expect(result === input).toBe(true) // reference to the same object is returned
 })
 
-test('should not mutate input when instructed so', () => {
+it('should not mutate input when instructed so', () => {
   const input = { s: 's', extra: 'abc' } as Simple
   _deepFreeze(input)
   const result = schema.validate(input, { mutateInput: false })
@@ -101,7 +101,7 @@ test('should not mutate input when instructed so', () => {
   expect(result !== input).toBe(true) // different object is returned
 })
 
-test('TestType', () => {
+it('TestType', () => {
   const jsonSchemaTest = fs2.readJson<JsonSchema<TestType>>(
     `${testDir}/schema/TestType.schema.json`,
   )
@@ -141,7 +141,7 @@ test('TestType', () => {
   `)
 })
 
-test('default string', () => {
+it('default string', () => {
   const schema = AjvSchema.create({
     type: 'object',
     properties: {
@@ -161,7 +161,7 @@ test('default string', () => {
   expect(obj2).toEqual({ s: 'def' })
 })
 
-test('default object', () => {
+it('default object', () => {
   const schema = AjvSchema.create({
     type: 'object',
     properties: {
@@ -192,7 +192,7 @@ test('default object', () => {
   expect(obj3).toEqual({ o: { hello: 'world', also: { n: 1 } } })
 })
 
-test('transform string', () => {
+it('transform string', () => {
   const schema = AjvSchema.create({
     type: 'object',
     properties: {
@@ -211,7 +211,7 @@ test('transform string', () => {
   expect(obj2).toEqual({ s: 'lo lo lo' })
 })
 
-test('inputName', () => {
+it('inputName', () => {
   const s = AjvSchema.create(
     {},
     {
@@ -225,7 +225,7 @@ interface Item {
   id: string
 }
 
-test('types', () => {
+it('types', () => {
   const rawSchema = j.object<{ id: string }>({
     id: j.string(),
   })
@@ -240,7 +240,7 @@ test('types', () => {
   expect(item).toEqual({ id: 'yay' })
 })
 
-test('buffer', () => {
+it('buffer', () => {
   const schema = AjvSchema.create({
     instanceof: 'Buffer',
     type: 'object',
@@ -256,7 +256,7 @@ describe('getValidationFunction with custom ajv', () => {
     int: j.number().optional(),
   })
 
-  test('should use custom ajv from options', () => {
+  it('should use custom ajv from options', () => {
     const coercingAjv = getCoercingAjv()
     const validateFn = objectSchema.getValidationFunction({ ajv: coercingAjv })
 
@@ -266,7 +266,7 @@ describe('getValidationFunction with custom ajv', () => {
     expect(result).toEqual({ s: 'hello', int: 5 })
   })
 
-  test('should fail without coercing ajv', () => {
+  it('should fail without coercing ajv', () => {
     const validateFn = objectSchema.getValidationFunction()
 
     // Default ajv does NOT coerce types
@@ -274,7 +274,7 @@ describe('getValidationFunction with custom ajv', () => {
     expect(err).toBeInstanceOf(AjvValidationError)
   })
 
-  test('per-call options should override outer options', () => {
+  it('per-call options should override outer options', () => {
     const validateFn = objectSchema.getValidationFunction({ inputName: 'Outer' })
     const [err] = validateFn({ int: 5 }, { inputName: 'Inner' })
     expect(err).toBeInstanceOf(AjvValidationError)
@@ -282,7 +282,7 @@ describe('getValidationFunction with custom ajv', () => {
     expect(err!.message).not.toContain('Outer')
   })
 
-  test('outer options should apply when per-call options are not provided', () => {
+  it('outer options should apply when per-call options are not provided', () => {
     const validateFn = objectSchema.getValidationFunction({ inputName: 'MyObject' })
     const [err] = validateFn({ int: 5 })
     expect(err).toBeInstanceOf(AjvValidationError)
@@ -291,26 +291,26 @@ describe('getValidationFunction with custom ajv', () => {
 })
 
 describe('regex flags', () => {
-  test('should throw when regex has flags', () => {
+  it('should throw when regex has flags', () => {
     expect(() => j.string().regex(/hello/i)).toThrow(AssertionError)
     expect(() => j.string().regex(/hello/i)).toThrow('Regex flags are not supported by JSON Schema')
     expect(() => j.string().regex(/hello/g)).toThrow(AssertionError)
     expect(() => j.string().regex(/hello/gim)).toThrow(AssertionError)
   })
 
-  test('should allow regex without flags', () => {
+  it('should allow regex without flags', () => {
     expect(() => j.string().regex(/hello/)).not.toThrow()
     expect(() => j.string().regex(/^[a-zA-Z]+$/)).not.toThrow()
   })
 
-  test('j.object.withRegexKeys should throw when regex has flags', () => {
+  it('j.object.withRegexKeys should throw when regex has flags', () => {
     expect(() => j.object.withRegexKeys(/hello/i, j.string())).toThrow(AssertionError)
     expect(() => j.object.withRegexKeys(/hello/i, j.string())).toThrow(
       'Regex flags are not supported by JSON Schema',
     )
   })
 
-  test('j.object.withRegexKeys should allow regex without flags', () => {
+  it('j.object.withRegexKeys should allow regex without flags', () => {
     expect(() => j.object.withRegexKeys(/hello/, j.string())).not.toThrow()
     expect(() => j.object.withRegexKeys('^[a-z]+$', j.string())).not.toThrow()
   })
@@ -458,7 +458,7 @@ describe('fingerprint for different keywords', () => {
     },
   ]
 
-  test.each(testCases)(
+  it.each(testCases)(
     'should generate fingerprint $fingerprint',
     ({ inputName, schema, data, fingerprint }) => {
       const [err] = _try(
@@ -471,7 +471,7 @@ describe('fingerprint for different keywords', () => {
 })
 
 describe('error params with custom msg', () => {
-  test('should drop params when a custom msg overrides the rule', () => {
+  it('should drop params when a custom msg overrides the rule', () => {
     const schemaWithMsg = j.string().regex(/^[0-9]{2}$/, { msg: 'is not a valid Oompa-loompa' })
     const [err] = schemaWithMsg.getValidationResult('abc')
     expect(err!.data).toMatchInlineSnapshot(`
@@ -492,7 +492,7 @@ describe('error params with custom msg', () => {
     expect(err!.data.errors[0]!.params).toEqual({})
   })
 
-  test('should preserve params when no custom msg is provided', () => {
+  it('should preserve params when no custom msg is provided', () => {
     const plainSchema = j.string().regex(/^[0-9]{2}$/)
 
     const [err] = plainSchema.getValidationResult('abc')
@@ -518,7 +518,7 @@ describe('error params with custom msg', () => {
     `)
   })
 
-  test('should drop params for nested property with custom msg', () => {
+  it('should drop params for nested property with custom msg', () => {
     const schema = j.object<{ foo: string }>({
       foo: j.string().pattern('^abc$', { msg: 'must equal "abc"' }),
     })
@@ -547,7 +547,7 @@ describe('error params with custom msg', () => {
     `)
   })
 
-  test('should drop params for enum with custom msg', () => {
+  it('should drop params for enum with custom msg', () => {
     const schema = j.enum(['foo', 'bar'], { msg: 'must be foo or bar' })
 
     const [err] = schema.getValidationResult('baz')
@@ -574,7 +574,7 @@ describe('error params with custom msg', () => {
   })
 })
 
-test('should print the narrow failing value even when the Input print is truncated', () => {
+it('should print the narrow failing value even when the Input print is truncated', () => {
   interface AnalyticsEvent {
     name: string
     data?: string
@@ -604,7 +604,7 @@ test('should print the narrow failing value even when the Input print is truncat
   expect(err!.message).toContain('Kb message truncated')
 })
 
-test('should resolve the failing value for a property name containing a dot', () => {
+it('should resolve the failing value for a property name containing a dot', () => {
   const schema = j.object<{ 'utm.source': string }>({
     'utm.source': j.string().maxLength(3),
   })

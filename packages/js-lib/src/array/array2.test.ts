@@ -1,11 +1,11 @@
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { Array2 } from './array2.js'
 
-test('isArray should be true', () => {
+it('isArray should be true', () => {
   expect(Array.isArray(Array2.of())).toBe(true)
 })
 
-test('stringification', () => {
+it('stringification', () => {
   const a = Array2.of(1, 2, 3)
   const native = [1, 2, 3]
   expect(a.toString()).toMatchInlineSnapshot(`"1,2,3"`)
@@ -13,31 +13,31 @@ test('stringification', () => {
   expect(JSON.stringify(a)).toBe(JSON.stringify(native))
 })
 
-test('firstOrUndefined', () => {
+it('firstOrUndefined', () => {
   const arr = Array2.of(1, 2, 3)
   expect(arr.firstOrUndefined()).toBe(1)
   expect(Array2.of().firstOrUndefined()).toBeUndefined()
 })
 
-test('first', () => {
+it('first', () => {
   const arr = new Array2('a', 'b')
   expect(arr.first()).toBe('a')
   expect(() => new Array2().first()).toThrow('Array.first called on empty array')
 })
 
-test('lastOrUndefined', () => {
+it('lastOrUndefined', () => {
   const arr = new Array2(1, 2, 3)
   expect(arr.lastOrUndefined()).toBe(3)
   expect(new Array2().lastOrUndefined()).toBeUndefined()
 })
 
-test('last', () => {
+it('last', () => {
   const arr = new Array2('x', 'y', 'z')
   expect(arr.last()).toBe('z')
   expect(() => new Array2().last()).toThrow('Array.last called on empty array')
 })
 
-test('uniq', () => {
+it('uniq', () => {
   const arr = new Array2(1, 2, 2, 3, 1)
   const uniq = arr.uniq()
   expect(uniq).toBeInstanceOf(Array2)
@@ -46,7 +46,7 @@ test('uniq', () => {
   expect(Array.from(arr)).toEqual([1, 2, 2, 3, 1])
 })
 
-test('shuffle', () => {
+it('shuffle', () => {
   const arr = new Array2(1, 2, 3, 4)
   const sequence = [0.75, 0.5, 0.1]
   // oxlint-disable-next-line vitest/prefer-mock-return-shorthand
@@ -62,7 +62,7 @@ test('shuffle', () => {
   randomSpy.mockRestore()
 })
 
-test('isEmpty and isNotEmpty', () => {
+it('isEmpty and isNotEmpty', () => {
   const empty = new Array2()
   const values = new Array2('a')
 

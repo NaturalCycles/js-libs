@@ -1,5 +1,5 @@
 import { inspect } from 'node:util'
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { _stringify } from '../string/stringify.js'
 import { _anyToErrorObject, AppError } from './error.util.js'
 
@@ -10,7 +10,7 @@ const throwAppErrorAsync = async (): Promise<never> => {
   throw new AppError('error')
 }
 
-test('appError properties should be present', async () => {
+it('appError properties should be present', async () => {
   // Error.captureStackTrace = false as any
   const r = new AppError('hello')
   // console.log(r.message, r.name, r.stack)
@@ -27,7 +27,7 @@ test('appError properties should be present', async () => {
   await expect(throwAppErrorAsync()).rejects.toThrow(AppError)
 })
 
-test('appError should work when Error.captureStacktrace is n/a', () => {
+it('appError should work when Error.captureStacktrace is n/a', () => {
   vi.spyOn(Error, 'captureStackTrace').mockReturnValue(undefined)
   const r = new AppError('hello')
   // console.log(r.message, r.name, r.stack)
@@ -36,7 +36,7 @@ test('appError should work when Error.captureStacktrace is n/a', () => {
   expect(r.stack).toBeDefined()
 })
 
-test('AppError log should NOT include constructor and data', () => {
+it('AppError log should NOT include constructor and data', () => {
   const err = new AppError('hello')
   // console.log(err)
 
@@ -53,7 +53,7 @@ test('AppError log should NOT include constructor and data', () => {
   err.data = {}
 })
 
-test('AppError with cause', () => {
+it('AppError with cause', () => {
   const err1 = new AppError('cozz')
   const err = new AppError('hello', {}, { cause: err1 })
   expect(err.cause!.stack).toBeDefined()
@@ -86,7 +86,7 @@ Object.defineProperty(MinifiedError.constructor, 'name', {
 })
 ;(MinifiedError.constructor as any).name = 'Weird'
 
-test('minified error name', () => {
+it('minified error name', () => {
   expect(MinifiedError.constructor.name).toBe('Weird')
 
   const err = new MinifiedError()

@@ -2,7 +2,7 @@ import type { BackendErrorResponseObject } from '@naturalcycles/js-lib/error'
 import { AppError } from '@naturalcycles/js-lib/error'
 import type { FetcherResponse } from '@naturalcycles/js-lib/http'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { afterAll, expect, test } from 'vitest'
+import { afterAll, expect, it } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { debugResource } from '../test/debug.resource.js'
 import { expressTestService } from '../testing/index.js'
@@ -106,7 +106,7 @@ async function post(
   })
 }
 
-test('genericErrorFormatter', async () => {
+it('genericErrorFormatter', async () => {
   let res = await app.get<BackendErrorResponseObject>('asyncError', {
     throwHttpErrors: false,
   })
@@ -130,7 +130,7 @@ test('genericErrorFormatter', async () => {
   await appWExtraMw.close()
 })
 
-test('should respond with 400 when the json body is malformed', async () => {
+it('should respond with 400 when the json body is malformed', async () => {
   const res = await post('echo', '{"email": "a@b.c')
 
   expect(res.statusCode).toBe(400)
@@ -138,28 +138,28 @@ test('should respond with 400 when the json body is malformed', async () => {
   expect(res.body!.error.message).toContain('JSON')
 })
 
-test('should respond with 413 when the body exceeds the limit', async () => {
+it('should respond with 413 when the body exceeds the limit', async () => {
   const res = await post('echo', JSON.stringify({ padding: 'x'.repeat(2000) }))
 
   expect(res.statusCode).toBe(413)
   expect(res.body!.error.message).toBe('request entity too large')
 })
 
-test('should respond with 415 when the charset is unsupported', async () => {
+it('should respond with 415 when the charset is unsupported', async () => {
   const res = await post('echo', '{}', 'application/json; charset=koi8-r')
 
   expect(res.statusCode).toBe(415)
   expect(res.body!.error.message).toBe('unsupported charset "KOI8-R"')
 })
 
-test('should still parse a well-formed json body', async () => {
+it('should still parse a well-formed json body', async () => {
   const res = await post('echo', '{"email": "a@b.c"}')
 
   expect(res.statusCode).toBe(200)
   expect(res.body).toEqual({ email: 'a@b.c' })
 })
 
-test('should keep the status of a 5xx http-error', async () => {
+it('should keep the status of a 5xx http-error', async () => {
   const res500 = await post('httpError5xx', '{}')
   const res502 = await post('httpError502', '{}')
 
@@ -168,34 +168,34 @@ test('should keep the status of a 5xx http-error', async () => {
   expect(res502.body!.error.data.backendResponseStatusCode).toBe(502)
 })
 
-test('should default to 500 for an error without a status', async () => {
+it('should default to 500 for an error without a status', async () => {
   const res = await post('plainError', '{}')
 
   expect(res.statusCode).toBe(500)
   expect(res.body!.error.data.backendResponseStatusCode).toBe(500)
 })
 
-test('should ignore statusCode and headers that are not accompanied by the http-errors marker', async () => {
+it('should ignore statusCode and headers that are not accompanied by the http-errors marker', async () => {
   const res = await post('gatewayError', '{}')
 
   expect(res.statusCode).toBe(500)
   expect(res.fetchResponse!.headers.get('request-id')).toBeNull()
 })
 
-test('should prefer an explicit backendResponseStatusCode over http-errors fields', async () => {
+it('should prefer an explicit backendResponseStatusCode over http-errors fields', async () => {
   const res = await post('appErrorWins', '{}')
 
   expect(res.statusCode).toBe(409)
 })
 
-test('should set the headers an http-error carries', async () => {
+it('should set the headers an http-error carries', async () => {
   const res = await post('httpErrorWithHeaders', '{}')
 
   expect(res.statusCode).toBe(405)
   expect(res.fetchResponse!.headers.get('allow')).toBe('GET, HEAD')
 })
 
-test('should drop headers set for the response that was never sent and forbid caching', async () => {
+it('should drop headers set for the response that was never sent and forbid caching', async () => {
   const res = await post('staleHeaders', '{}')
   const { headers } = res.fetchResponse!
 
@@ -210,7 +210,7 @@ test('should drop headers set for the response that was never sent and forbid ca
   expect(headers.get('retry-after')).toBe('30')
 })
 
-test('should cut the connection when the error happens mid-stream', async () => {
+it('should cut the connection when the error happens mid-stream', async () => {
   const response = await globalThis.fetch(`${appWithRouter.cfg.baseUrl}/errorMidStream`, {
     method: 'POST',
   })
@@ -221,7 +221,7 @@ test('should cut the connection when the error happens mid-stream', async () => 
   await expect(response.text()).rejects.toThrow('terminated')
 })
 
-test('should leave a completed response alone when the error comes after it', async () => {
+it('should leave a completed response alone when the error comes after it', async () => {
   const res = await post('errorAfterResponse', '{}')
 
   expect(res.statusCode).toBe(200)

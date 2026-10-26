@@ -1,8 +1,8 @@
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { memoryUsage, memoryUsageFull, processSharedUtil } from './process.util.js'
 
-test('cpuInfo', async () => {
+it('cpuInfo', async () => {
   const c = processSharedUtil.cpuInfo()
   // console.log(c)
   expect(c).toHaveProperty('count')
@@ -14,7 +14,7 @@ test('cpuInfo', async () => {
   expect(processSharedUtil.cpuAvg()).toHaveProperty('avg1')
 })
 
-test('memoryUsage', async () => {
+it('memoryUsage', async () => {
   const c = memoryUsage()
   // console.log(c)
   expect(c).toHaveProperty('heapUsed')
@@ -22,7 +22,7 @@ test('memoryUsage', async () => {
   expect(memoryUsageFull()).toHaveProperty('totalMem')
 })
 
-test('memoryTimer', async () => {
+it('memoryTimer', async () => {
   processSharedUtil.startMemoryTimer(10)
   await pDelay(20)
   processSharedUtil.stopMemoryTimer(10)

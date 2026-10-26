@@ -3,7 +3,7 @@ import dns from 'node:dns/promises'
 import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { Agent, fetch as undiciFetch } from 'undici'
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { _since, localTime } from '../datetime/index.js'
 import { HttpRequestError, TimeoutError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
@@ -14,7 +14,7 @@ import { getFetcher } from './fetcher.js'
 
 testOnline()
 
-test('basic get', async () => {
+it('basic get', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -35,7 +35,7 @@ test('basic get', async () => {
   expect(r).toEqual({ ok: 1 })
 })
 
-test('post with error', async () => {
+it('post with error', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -80,7 +80,7 @@ test('post with error', async () => {
   }
 })
 
-test('getReadableStream', async () => {
+it('getReadableStream', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -92,7 +92,7 @@ test('getReadableStream', async () => {
   await Pipeline.fromWeb(r).toFile(`${tmpDir}/resp.txt`)
 })
 
-test('redirect: error', async () => {
+it('redirect: error', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -109,7 +109,7 @@ test('redirect: error', async () => {
   `)
 })
 
-test('redirect: manual', async () => {
+it('redirect: manual', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -128,7 +128,7 @@ test('redirect: manual', async () => {
   expect(r.body).toBe('')
 })
 
-test('timeout', async () => {
+it('timeout', async () => {
   const fetcher = getFetcher({
     debug: true,
     timeoutSeconds: 1,
@@ -147,7 +147,7 @@ test('timeout', async () => {
   expect(err.cause.name).toBe(TimeoutError.name)
 })
 
-test('timeout retries', async () => {
+it('timeout retries', async () => {
   const fetcher = getFetcher({
     debug: true,
     timeoutSeconds: 1,
@@ -160,7 +160,7 @@ test('timeout retries', async () => {
 
 const webhookUrl = 'https://webhook.site/07577dc5-8a0a-4e21-866b-a3bdbaf641f4'
 
-test.skip('formData', async () => {
+it.skip('formData', async () => {
   const fetcher = getFetcher({
     debug: true,
     retry: { count: 0 },
@@ -182,7 +182,7 @@ test.skip('formData', async () => {
   //   }).json()
 })
 
-test.skip('formData with blob', async () => {
+it.skip('formData with blob', async () => {
   const fetcher = getFetcher({
     debug: true,
     retry: { count: 0 },
@@ -205,7 +205,7 @@ test.skip('formData with blob', async () => {
   })
 })
 
-test('with custom Agent', async () => {
+it('with custom Agent', async () => {
   const dispatcher = new Agent({
     allowH2: true,
     keepAliveTimeout: 30_000,

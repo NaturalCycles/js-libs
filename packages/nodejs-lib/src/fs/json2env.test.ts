@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { objectToGithubActionsEnv, objectToShellExport } from './json2env.js'
 
-test('objectToGithubActionsEnv', () => {
+it('objectToGithubActionsEnv', () => {
   expect(objectToGithubActionsEnv({})).toBe('')
 
   expect(

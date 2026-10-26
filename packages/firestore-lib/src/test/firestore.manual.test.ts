@@ -1,7 +1,7 @@
 import { createdUpdatedFields, DBQuery } from '@naturalcycles/db-lib'
 import type { TestItemDBM } from '@naturalcycles/db-lib/testing'
 import { runCommonDaoTest, runCommonDBTest, TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { describe, test } from 'vitest'
+import { describe, it } from 'vitest'
 import { firestoreDB } from './firestore.mock.js'
 
 describe('runCommonDBTest', async () => {
@@ -12,7 +12,7 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(firestoreDB)
 })
 
-test('undefined value', async () => {
+it('undefined value', async () => {
   const testItem: TestItemDBM = {
     id: '123',
     k1: 'k11',
@@ -30,7 +30,7 @@ test('undefined value', async () => {
   console.log(r)
 })
 
-test('experimentalCursorStream', async () => {
+it('experimentalCursorStream', async () => {
   const testItem: TestItemDBM = {
     id: '123',
     k1: 'k11',

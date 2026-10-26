@@ -1,4 +1,4 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import { createTestTimeSeries } from '../testing/timeSeriesTest.util.js'
 import { CommonTimeSeriesDao } from './commonTimeSeriesDao.js'
@@ -12,7 +12,7 @@ const tsDao = new CommonTimeSeriesDao({
   db,
 })
 
-test('test1', async () => {
+it('test1', async () => {
   const points = createTestTimeSeries()
   await tsDao.saveBatch('lala', points)
 

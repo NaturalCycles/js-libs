@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _safeJsonStringify } from './safeJsonStringify.js'
 
-test('_safeJsonStringify', () => {
+it('_safeJsonStringify', () => {
   const obj = {
     a: 'a',
   }

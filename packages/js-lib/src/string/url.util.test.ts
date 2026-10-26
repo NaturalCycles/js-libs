@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _parseQueryString, _toUrlOrNull } from './url.util.js'
 
-test.each([
+it.each([
   ['', {}],
   ['?a', { a: '' }],
   ['a', { a: '' }],
@@ -25,7 +25,7 @@ test.each([
   expect(r).toEqual(result)
 })
 
-test.each([
+it.each([
   // Valid urls
   [['http://google.com'], 'http://google.com/'],
   [['https://google.com'], 'https://google.com/'],

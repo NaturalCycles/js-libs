@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { AccumulatingAverage } from './accumulatingAverage.js'
 
-test('simple', () => {
+it('simple', () => {
   const aa = new AccumulatingAverage()
   expect(aa.average).toBe(0)
   expect(aa.total).toBe(0)

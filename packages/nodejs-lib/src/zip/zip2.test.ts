@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { zip2 } from './zip2.js'
 
-test('deflate/inflate', async () => {
+it('deflate/inflate', async () => {
   const s = 'abcd1234$%^'
 
   // String
@@ -15,7 +15,7 @@ test('deflate/inflate', async () => {
   expect(unzippedBuf).toEqual(sBuf)
 })
 
-test('zstd compress/decompress', async () => {
+it('zstd compress/decompress', async () => {
   const s = 'abcd1234$%^'
 
   let compressedBuf = await zip2.zstdCompress(s)
@@ -28,7 +28,7 @@ test('zstd compress/decompress', async () => {
   expect(decompressedBuf).toEqual(sBuf)
 })
 
-test('zstd compress/decompress sync', () => {
+it('zstd compress/decompress sync', () => {
   const s = 'abcd1234$%^'
 
   let compressedBuf = zip2.zstdCompressSync(s)
@@ -41,7 +41,7 @@ test('zstd compress/decompress sync', () => {
   expect(decompressedBuf).toEqual(sBuf)
 })
 
-test('gzip/gunzip', async () => {
+it('gzip/gunzip', async () => {
   const s = 'abcd1234$%^'
 
   // String
@@ -55,7 +55,7 @@ test('gzip/gunzip', async () => {
   expect(unzippedBuf).toEqual(sBuf)
 })
 
-test('compression detection', async () => {
+it('compression detection', async () => {
   const s = 'abcd1234$%^'
   const deflated = await zip2.deflate(s)
   const gzipped = await zip2.gzip(s)
@@ -74,7 +74,7 @@ test('compression detection', async () => {
   expect(await zip2.decompressZstdOrInflateToString(zsted)).toBe(s)
 })
 
-test('compatible with java impl', async () => {
+it('compatible with java impl', async () => {
   const s = 'aa'
   const zippedBuf = await zip2.deflate(s)
   const bytes: number[] = []
@@ -83,7 +83,7 @@ test('compatible with java impl', async () => {
   expect(bytes).toEqual([120, 156, 75, 76, 4, 0, 1, 37, 0, 195])
 })
 
-test('deflate vs gzip length', async () => {
+it('deflate vs gzip length', async () => {
   const s = 'a'
   const zipped = await zip2.deflate(s)
   const gzipped = await zip2.gzip(s)

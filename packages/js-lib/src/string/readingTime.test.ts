@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { ReadingTimeOptions, ReadingTimeResult } from './readingTime.js'
 import { readingTime } from './readingTime.js'
 
@@ -51,7 +51,7 @@ function generateText(words: number): string {
 }
 
 describe('readingTime()', () => {
-  test(
+  it(
     'should handle less than 1 minute text',
     runTest(2, {
       minutes: 1,
@@ -59,7 +59,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle less than 1 minute text with time',
     runTest(50, {
       minutes: 1,
@@ -67,7 +67,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle 1 minute text',
     runTest(100, {
       minutes: 1,
@@ -75,7 +75,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle 2 minutes text',
     runTest(300, {
       minutes: 2,
@@ -83,7 +83,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle a very long text',
     runTest(500, {
       minutes: 3,
@@ -91,7 +91,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle text containing multiple successive whitespaces',
     runTest('word  word    word', {
       minutes: 1,
@@ -99,7 +99,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle text starting with whitespaces',
     runTest('   word word word', {
       minutes: 1,
@@ -107,7 +107,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle text ending with whitespaces',
     runTest('word word word   ', {
       minutes: 1,
@@ -115,7 +115,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle text containing links',
     runTest('word http://ngryman.sh word', {
       minutes: 1,
@@ -123,7 +123,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle text containing markdown links',
     runTest('word [blog](http://ngryman.sh) word', {
       minutes: 1,
@@ -131,7 +131,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle text containing one word correctly',
     runTest('0', {
       minutes: 1,
@@ -139,7 +139,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should handle text containing a black hole',
     runTest('', {
       minutes: 0,
@@ -147,7 +147,7 @@ describe('readingTime()', () => {
     }),
   )
 
-  test(
+  it(
     'should accept a custom word per minutes value',
     runTest(
       200,
@@ -161,49 +161,49 @@ describe('readingTime()', () => {
 })
 
 describe('readingTime CJK', () => {
-  test(
+  it(
     'should handle a CJK paragraph',
     runTest('今天，我要说中文！（没错，现在这个库也完全支持中文了）', {
       words: { total: 22 },
     }),
   )
 
-  test(
+  it(
     'should handle a CJK paragraph with Latin words',
     runTest('你会说English吗？', {
       words: { total: 5 },
     }),
   )
 
-  test(
+  it(
     'should handle a CJK paragraph with Latin punctuation',
     runTest('科学文章中, 经常使用英语标点... (虽然这段话并不科学)', {
       words: { total: 22 },
     }),
   )
 
-  test(
+  it(
     'should handle a CJK paragraph starting and terminating in Latin words',
     runTest('JoshCena喜欢GitHub', {
       words: { total: 4 },
     }),
   )
 
-  test(
+  it(
     'should handle a typical Korean paragraph',
     runTest('이것은 한국어 단락입니다', {
       words: { total: 11 },
     }),
   )
 
-  test(
+  it(
     'should handle a typical Japanese paragraph',
     runTest('天気がいいから、散歩しましょう', {
       words: { total: 14 },
     }),
   )
 
-  test(
+  it(
     'should treat Katakana as one word',
     runTest('メガナイトありませんか？', {
       words: { total: 7 },

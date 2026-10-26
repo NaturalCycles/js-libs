@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _sortObject } from './sortObject.js'
 
 interface Item {
@@ -10,7 +10,7 @@ interface Item {
 
 const keyOrder: (keyof Item)[] = ['a', 'b', 'c', 'd']
 
-test('orderObject', () => {
+it('orderObject', () => {
   expect(
     Object.keys(
       _sortObject(

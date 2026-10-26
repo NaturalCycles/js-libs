@@ -1,7 +1,7 @@
 import type { CommonDBImplementationQuirks } from '@naturalcycles/db-lib/testing'
 import { runCommonDaoTest, runCommonDBTest } from '@naturalcycles/db-lib/testing'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
-import { describe, test } from 'vitest'
+import { describe, it } from 'vitest'
 import { AirtableDB } from '../airtableDB.js'
 
 loadEnvFileIfExists()
@@ -30,7 +30,7 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(db, quirks)
 })
 
-test.skip('manual1', async () => {
+it.skip('manual1', async () => {
   delete db.cfg.baseId
 
   await db.saveBatch<any>(`appT51quIWm4RiMpc.Translations`, [

@@ -2,12 +2,12 @@ import { AsyncLocalStorage } from 'node:async_hooks'
 import { createServer } from 'node:http'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { onFinished } from './onFinished.js'
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => void
 
-test('invokes listener after response is finished, in the caller async context', async () => {
+it('invokes listener after response is finished, in the caller async context', async () => {
   const als = new AsyncLocalStorage<string>()
   const { promise, resolve } = Promise.withResolvers<[Error | null, ServerResponse, string?]>()
 
@@ -28,7 +28,7 @@ test('invokes listener after response is finished, in the caller async context',
   )
 })
 
-test('invokes listener asynchronously when response is already finished', async () => {
+it('invokes listener asynchronously when response is already finished', async () => {
   const { promise, resolve } = Promise.withResolvers<Error | null>()
 
   await withServer(
@@ -49,7 +49,7 @@ test('invokes listener asynchronously when response is already finished', async 
   )
 })
 
-test('multiple listeners share one set of stream listeners, each in its own async context', async () => {
+it('multiple listeners share one set of stream listeners, each in its own async context', async () => {
   const als = new AsyncLocalStorage<number>()
   const { promise, resolve } = Promise.withResolvers<number[]>()
   const calls: number[] = []
@@ -77,7 +77,7 @@ test('multiple listeners share one set of stream listeners, each in its own asyn
   )
 })
 
-test('invokes listener with error when client aborts the request', async () => {
+it('invokes listener with error when client aborts the request', async () => {
   const { promise, resolve } = Promise.withResolvers<Error | null>()
   const ac = new AbortController()
 

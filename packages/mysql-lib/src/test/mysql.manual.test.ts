@@ -11,7 +11,7 @@ import {
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import { zip2 } from '@naturalcycles/nodejs-lib/zip'
-import { afterAll, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { MysqlDB } from '../mysql.db.js'
 
 loadEnvFileIfExists()
@@ -53,21 +53,21 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(db, { allowExtraPropertiesInResponse: false })
 })
 
-test('getTableSchema', async () => {
+it('getTableSchema', async () => {
   // console.log(await db.getTables())
   const schema = await db.getTableSchema(TEST_TABLE)
   console.log(schema)
   expect(testItemBMSchema.build()).toMatchObject(schema)
 })
 
-test('saveBatch overwrite', async () => {
+it('saveBatch overwrite', async () => {
   const items = createTestItemsDBM(1)
   // should not throw
   await db.saveBatch(TEST_TABLE, items)
   await db.saveBatch(TEST_TABLE, items)
 })
 
-test('null values', async () => {
+it('null values', async () => {
   const item3 = {
     ...createTestItemDBM(3),
     k2: null,
@@ -78,13 +78,13 @@ test('null values', async () => {
   // expect(item3Loaded.k2).toBe(null)
 })
 
-test('emojis', async () => {
+it('emojis', async () => {
   const items = createTestItemsDBM(5).map(r => ({ ...r, k1: `😣` }))
   // should not throw
   await db.saveBatch(TEST_TABLE, items)
 })
 
-test('fieldName with dot', async () => {
+it('fieldName with dot', async () => {
   const fieldName = 'field.with.dot'
   const table = TEST_TABLE + '2'
 
@@ -99,7 +99,7 @@ test('fieldName with dot', async () => {
   expect(rows).toEqual(items)
 })
 
-test('buffer', async () => {
+it('buffer', async () => {
   const table = TEST_TABLE + '2'
 
   const extra = zip2.zstdCompressSync('hello buffer')
@@ -120,7 +120,7 @@ test('buffer', async () => {
   expect(rows).toEqual(items)
 })
 
-test('stringify objects', async () => {
+it('stringify objects', async () => {
   const item = createTestItemsDBM(1)[0]!
   item.k1 = { some: 'obj', c: 'd', e: 5 } as any
 
@@ -136,7 +136,7 @@ test('stringify objects', async () => {
   ])
 })
 
-test('boolean undefined', async () => {
+it('boolean undefined', async () => {
   const accs = await db.getByIds<any>('Account', [
     '005734f1979f4ca890662c0b9f296dc2',
     '0000a67c9c034e379a938f915766540b',

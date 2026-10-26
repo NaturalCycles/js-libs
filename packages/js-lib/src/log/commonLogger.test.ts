@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import type { CommonLogger, LogEntry } from './commonLogger.js'
 import {
   commonLoggerCreate,
@@ -8,7 +8,7 @@ import {
   createCommonLoggerAtLevel,
 } from './commonLogger.js'
 
-test('should accept a string, an Error or structured data', () => {
+it('should accept a string, an Error or structured data', () => {
   const { logger, entries } = createTestLogger()
   const err = new Error('kaboom')
 
@@ -25,7 +25,7 @@ test('should accept a string, an Error or structured data', () => {
   ])
 })
 
-test('should merge the data into a message, the message wins', () => {
+it('should merge the data into a message, the message wins', () => {
   const { logger, entries } = createTestLogger()
   const err = new Error('kaboom')
 
@@ -38,7 +38,7 @@ test('should merge the data into a message, the message wins', () => {
   ])
 })
 
-test('should add the context to every entry', () => {
+it('should add the context to every entry', () => {
   const { logger, entries } = createTestLogger(() => ({ a: 1 }))
 
   logger.debug('hey')
@@ -50,7 +50,7 @@ test('should add the context to every entry', () => {
   ])
 })
 
-test('should call the context function on every log call', () => {
+it('should call the context function on every log call', () => {
   const context: { accountId?: string } = {}
   const { logger, entries } = createTestLogger(() => context)
 
@@ -64,7 +64,7 @@ test('should call the context function on every log call', () => {
   ])
 })
 
-test('should merge the child context, child and log data keys win', () => {
+it('should merge the child context, child and log data keys win', () => {
   const { logger, entries } = createTestLogger(() => ({ a: 1, b: 1, c: 1 }))
 
   logger.child({ b: 2, c: 2 }).child({ c: 3 }).log({ msg: 'foo', c: 4 })
@@ -72,7 +72,7 @@ test('should merge the child context, child and log data keys win', () => {
   expect(entries).toStrictEqual([{ a: 1, b: 2, c: 4, msg: 'foo', level: 'log' }])
 })
 
-test('should let the methods be passed around unbound', () => {
+it('should let the methods be passed around unbound', () => {
   const { logger, entries } = createTestLogger()
   const { error } = logger
 
@@ -81,19 +81,19 @@ test('should let the methods be passed around unbound', () => {
   expect(entries).toStrictEqual([{ msg: 'hey', level: 'error' }])
 })
 
-test('should log to console', () => {
+it('should log to console', () => {
   consoleLogger.log('hey')
   consoleLogger.warn({ msg: 'hey', n: 1 })
   consoleLogger.error(new Error('kaboom'))
   consoleLogger.child({ module: 'test' }).log('hey')
 })
 
-test('should do nothing in the noop logger', () => {
+it('should do nothing in the noop logger', () => {
   commonLoggerNoop.log('hey')
   commonLoggerNoop.child({ a: 1 }).error('hey')
 })
 
-test('should limit the logger to the minimum level', () => {
+it('should limit the logger to the minimum level', () => {
   const { logger, entries } = createTestLogger()
   const atLevel = createCommonLoggerAtLevel(logger, 'log')
 
@@ -108,7 +108,7 @@ test('should limit the logger to the minimum level', () => {
   ])
 })
 
-test.each([
+it.each([
   ['warn', ['warn', 'error']],
   ['error', ['error']],
 ] as const)('should drop the levels below %s', (minLevel, kept) => {
@@ -123,7 +123,7 @@ test.each([
   expect(entries.map(entry => entry.level)).toStrictEqual(kept)
 })
 
-test('should pipe to all loggers', () => {
+it('should pipe to all loggers', () => {
   const first = createTestLogger()
   const second = createTestLogger()
 

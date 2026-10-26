@@ -1,9 +1,9 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _range } from '../array/index.js'
 import { _isBetween, _randomInt, _runLessOften } from '../index.js'
 import { _clamp, _randomArrayItem, _round, _toFixed, _toPrecision } from './number.util.js'
 
-test('_randomInt', () => {
+it('_randomInt', () => {
   const f = _randomInt
   expect(f(0, 0)).toBe(0)
 
@@ -15,7 +15,7 @@ test('_randomInt', () => {
   }
 })
 
-test('_randomArrayItem', () => {
+it('_randomArrayItem', () => {
   const a = [1, 2, 3]
   _range(50).forEach(() => {
     const v = _randomArrayItem(a)
@@ -23,7 +23,7 @@ test('_randomArrayItem', () => {
   })
 })
 
-test.each([
+it.each([
   [2, 1, 3, true],
   [2, 2, 3, true],
   [2, 2, 1, false],
@@ -34,7 +34,7 @@ test.each([
   expect(_isBetween(n, min, max, '[)')).toBe(result)
 })
 
-test.each([
+it.each([
   [2, 1, 3, true],
   [2, 2, 3, true],
   [2, 2, 1, false],
@@ -44,7 +44,7 @@ test.each([
   expect(_isBetween(n, min, max, '[]')).toBe(result)
 })
 
-test.each([
+it.each([
   [1634, 1000, 2000],
   [1634, 500, 1500],
   [1634, 100, 1600],
@@ -66,7 +66,7 @@ test.each([
   expect(_round(n, precisionUnit)).toBe(result)
 })
 
-test.each([
+it.each([
   [0.1604, 1, 0.2],
   [0.1604, 2, 0.16],
   [0.1604, 3, 0.16],
@@ -76,7 +76,7 @@ test.each([
   expect(_toFixed(n, fractionDigits)).toBe(result)
 })
 
-test.each([
+it.each([
   [1634, 1, 2000],
   [1634, 2, 1600],
   [1634, 3, 1630],
@@ -90,7 +90,7 @@ test.each([
   expect(_toPrecision(n, precision)).toBe(result)
 })
 
-test.each([
+it.each([
   [3, 5, 10, 5],
   [4, 5, 10, 5],
   [5, 5, 10, 5],
@@ -105,7 +105,7 @@ test.each([
   expect(_clamp(x, min, max)).toBe(result)
 })
 
-test('_runLessOften', () => {
+it('_runLessOften', () => {
   let ranTimes = 0
   _range(10).forEach(() => {
     if (_runLessOften(10)) {

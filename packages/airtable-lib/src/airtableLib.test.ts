@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { AirtableLib } from './airtableLib.js'
 
-test('api', async () => {
+it('api', async () => {
   const airtableLib = new AirtableLib({
     apiKey: 'apiKey123',
   })
