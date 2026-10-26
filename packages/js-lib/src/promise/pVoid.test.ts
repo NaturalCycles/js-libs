@@ -1,4 +1,4 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { pDelay } from './pDelay.js'
 
 function pVoid(fn: () => Promise<any>): void {
@@ -12,7 +12,7 @@ function pVoid(fn: () => Promise<any>): void {
   })
 }
 
-test('pVoid', async () => {
+it('pVoid', async () => {
   await myFunction1()
 
   await pDelay(10)

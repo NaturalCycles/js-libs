@@ -3,7 +3,7 @@ import { pExpectedError } from '@naturalcycles/js-lib/error'
 import { Fetcher } from '@naturalcycles/js-lib/http'
 import { commonLoggerNoop } from '@naturalcycles/js-lib/log'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
-import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { slackDefaultMessagePrefixHook, SlackService } from './slack.service.js'
 
 let slackService = new SlackService({
@@ -37,7 +37,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-test('basic test', async () => {
+it('basic test', async () => {
   await slackService.log('hey')
   expect(lastBody).toMatchSnapshot()
 
@@ -65,7 +65,7 @@ test('basic test', async () => {
   // await expect(slackService.send({items: 'hey', throwOnError: true})).rejects.toThrow('Network request forbidden')
 })
 
-test('no webhookUrl', async () => {
+it('no webhookUrl', async () => {
   slackService = new SlackService({
     logger: commonLoggerNoop,
   })
@@ -73,7 +73,7 @@ test('no webhookUrl', async () => {
   expect(lastBody).toBeNull() // should be unchanged
 })
 
-test('error', async () => {
+it('error', async () => {
   slackService = new SlackService({
     webhookUrl: 'wrongUrl',
     logger: commonLoggerNoop,
@@ -93,7 +93,7 @@ test('error', async () => {
   `)
 })
 
-test('user group mentions use subteam format', async () => {
+it('user group mentions use subteam format', async () => {
   await slackService.send({
     items: 'alert',
     mentions: ['U123456', 'S789012'], // user ID and user group ID
@@ -101,7 +101,7 @@ test('user group mentions use subteam format', async () => {
   expect(lastBody).toMatchSnapshot()
 })
 
-test('messagePrefixHook returning null should NOT be sent', async () => {
+it('messagePrefixHook returning null should NOT be sent', async () => {
   slackService = new SlackService({
     webhookUrl: 'https://valid.com',
     messagePrefixHook: () => null,

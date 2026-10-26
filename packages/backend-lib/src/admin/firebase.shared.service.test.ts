@@ -1,4 +1,4 @@
-import { afterAll, expect, test } from 'vitest'
+import { afterAll, expect, it } from 'vitest'
 import { FirebaseSharedService } from './firebase.shared.service.js'
 
 const service = new FirebaseSharedService({
@@ -13,7 +13,7 @@ afterAll(async () => {
   await deleteApp(await service.admin())
 })
 
-test('firebase shared service', async () => {
+it('firebase shared service', async () => {
   const admin = await service.admin()
   expect(typeof admin).toBe('object')
   const auth = await service.auth()

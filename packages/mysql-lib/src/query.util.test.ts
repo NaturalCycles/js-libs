@@ -1,6 +1,6 @@
 import { DBQuery } from '@naturalcycles/db-lib'
 import { createTestItemDBM, createTestItemsDBM, TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import {
   dbQueryToSQLDelete,
   dbQueryToSQLSelect,
@@ -8,7 +8,7 @@ import {
   insertSQL,
 } from './query.util.js'
 
-test('dbQueryToSQLSelect', () => {
+it('dbQueryToSQLSelect', () => {
   let sql = dbQueryToSQLSelect(new DBQuery('TBL1'))
   expect(sql).toMatchSnapshot()
 
@@ -40,7 +40,7 @@ test('dbQueryToSQLSelect', () => {
   expect(sql).toMatchSnapshot()
 })
 
-test('dbQueryToSQLDelete', () => {
+it('dbQueryToSQLDelete', () => {
   let sql = dbQueryToSQLDelete(new DBQuery('TBL1'))
   expect(sql).toMatchSnapshot()
 
@@ -48,14 +48,14 @@ test('dbQueryToSQLDelete', () => {
   expect(sql).toMatchSnapshot()
 })
 
-test('insertSQL', () => {
+it('insertSQL', () => {
   const items = createTestItemsDBM(3)
   const [sql] = insertSQL(TEST_TABLE, items)
   // console.log(sql)
   expect(sql).toMatchSnapshot()
 })
 
-test('dbQueryToSQLUpdate', () => {
+it('dbQueryToSQLUpdate', () => {
   const item = createTestItemDBM()
 
   let sql = dbQueryToSQLUpdate(new DBQuery(TEST_TABLE), item)
@@ -67,7 +67,7 @@ test('dbQueryToSQLUpdate', () => {
   expect(sql).toMatchSnapshot()
 })
 
-test('large sql query split', () => {
+it('large sql query split', () => {
   const items = createTestItemsDBM(10).map(r => ({ ...r, lng: 'xxx'.repeat(80000) }))
   const sqls = insertSQL(TEST_TABLE, items)
   // console.log(sqls)

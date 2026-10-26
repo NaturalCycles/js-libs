@@ -9,7 +9,7 @@ import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _AsyncMemo } from '@naturalcycles/js-lib/decorators'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { afterAll, describe, expect, test } from 'vitest'
+import { afterAll, describe, expect, it } from 'vitest'
 import { RedisClient } from '../redisClient.js'
 import { RedisHashKeyValueDB } from '../redisHashKeyValueDB.js'
 
@@ -25,7 +25,7 @@ afterAll(async () => {
   await client.disconnect()
 })
 
-test('connect', async () => {
+it('connect', async () => {
   await db.ping()
 })
 
@@ -38,7 +38,7 @@ describe('runCommonKeyValueDaoTest', async () => {
 })
 
 // Saving expiring hash fields is not supported until Redis 7.4.0
-test.skip('saveBatch with EXAT', async () => {
+it.skip('saveBatch with EXAT', async () => {
   const testIds = _range(1, 4).map(n => `id${n}`)
   const testEntries: KeyValueDBTuple[] = testIds.map(id => [id, Buffer.from(`${id}value`)])
 
@@ -68,14 +68,14 @@ class C {
 
 const c = new C()
 
-test('CommonKeyValueDaoMemoCache serial', async () => {
+it('CommonKeyValueDaoMemoCache serial', async () => {
   for (const _ of _range(10)) {
     console.log(await c.get('key'))
     await pDelay(100)
   }
 })
 
-test('CommonKeyValueDaoMemoCache async swarm', async () => {
+it('CommonKeyValueDaoMemoCache async swarm', async () => {
   await Promise.all(
     _range(30).map(async () => {
       console.log(await c.get('key'))

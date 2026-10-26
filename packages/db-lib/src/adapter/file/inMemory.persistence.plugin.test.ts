@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { InMemoryPersistencePlugin } from './inMemory.persistence.plugin.js'
 
-test('clear removes all tables', async () => {
+it('clear removes all tables', async () => {
   const plugin = new InMemoryPersistencePlugin()
   await plugin.saveFiles([{ type: 'saveBatch', table: 'table1', rows: [{ id: 'id1' }] }])
 

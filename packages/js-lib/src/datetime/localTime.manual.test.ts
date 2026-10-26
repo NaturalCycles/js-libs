@@ -9,7 +9,7 @@ It's slow, therefor it's made manual.
 
 import dayjs from 'dayjs'
 import enGB from 'dayjs/locale/en-gb.js'
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { _range } from '../array/range.js'
 import { expectWithMessage, isUTC } from '../test/test.util.js'
 import type { IsoDateTime } from '../types.js'
@@ -36,7 +36,7 @@ const UNIT_RANGE: Record<LocalTimeUnit, number> = {
 
 const DAYJS_ISO_DATE = 'YYYY-MM-DD'
 
-test('add', () => {
+it('add', () => {
   if (!isUTC()) return
   const starts = [
     '2022-05-31',
@@ -123,7 +123,7 @@ test('add', () => {
   })
 })
 
-test('diff', () => {
+it('diff', () => {
   if (!isUTC()) return
   const starts = [
     '2022-05-31',

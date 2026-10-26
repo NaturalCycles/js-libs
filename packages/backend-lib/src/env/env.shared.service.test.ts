@@ -1,4 +1,4 @@
-import { afterAll, expect, test, vi } from 'vitest'
+import { afterAll, expect, it, vi } from 'vitest'
 import type { BaseEnv, EnvSharedServiceCfg } from './env.shared.service.js'
 import { EnvSharedService } from './env.shared.service.js'
 
@@ -23,7 +23,7 @@ afterAll(() => {
   process.env['APP_ENV'] = 'test' // restore
 })
 
-test('envService', () => {
+it('envService', () => {
   const envService = new EnvSharedService(cfg)
 
   // test.env.ts not found

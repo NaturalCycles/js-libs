@@ -1,11 +1,11 @@
 import { inspect } from 'node:util'
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { _deepEquals } from './deepEquals.js'
 import { Map2 } from './map2.js'
 
 /* oxlint-disable @typescript-eslint/no-base-to-string */
 
-test('map2', () => {
+it('map2', () => {
   const m = new Map([
     ['a', 1],
     ['b', 2],
@@ -36,7 +36,7 @@ test('map2', () => {
   expect(m3.toObject()).toEqual({ a: 1, b: 2, c: 3 })
 })
 
-test('inspect', () => {
+it('inspect', () => {
   const m2 = new Map2([
     ['a', 1],
     ['b', 2],

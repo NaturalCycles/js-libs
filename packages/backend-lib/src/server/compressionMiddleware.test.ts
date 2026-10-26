@@ -1,7 +1,7 @@
 import zlib from 'node:zlib'
 import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import express from 'express'
-import { afterAll, expect, test } from 'vitest'
+import { afterAll, expect, it } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import { expressTestService } from '../testing/index.js'
 import { compressionMiddleware } from './compressionMiddleware.js'
@@ -49,7 +49,7 @@ afterAll(async () => {
   await streamedApp.close()
 })
 
-test('should prefer zstd over other encodings when client supports all', async () => {
+it('should prefer zstd over other encodings when client supports all', async () => {
   const { fetchResponse } = await app.doFetch({
     headers: { 'Accept-Encoding': 'gzip, deflate, br, zstd' },
   })
@@ -57,7 +57,7 @@ test('should prefer zstd over other encodings when client supports all', async (
   expect(fetchResponse?.headers.get('Content-Encoding')).toBe('zstd')
 })
 
-test('should prefer zstd even when gzip comes first in Accept-Encoding', async () => {
+it('should prefer zstd even when gzip comes first in Accept-Encoding', async () => {
   // This is the Chrome scenario - gzip listed first but zstd should still be preferred
   const { fetchResponse } = await app.doFetch({
     headers: { 'Accept-Encoding': 'gzip, deflate, br, zstd' },
@@ -66,7 +66,7 @@ test('should prefer zstd even when gzip comes first in Accept-Encoding', async (
   expect(fetchResponse?.headers.get('Content-Encoding')).toBe('zstd')
 })
 
-test('should use br when zstd is not accepted', async () => {
+it('should use br when zstd is not accepted', async () => {
   const { fetchResponse } = await app.doFetch({
     headers: { 'Accept-Encoding': 'gzip, deflate, br' },
   })
@@ -74,7 +74,7 @@ test('should use br when zstd is not accepted', async () => {
   expect(fetchResponse?.headers.get('Content-Encoding')).toBe('br')
 })
 
-test('should use gzip when only gzip is accepted', async () => {
+it('should use gzip when only gzip is accepted', async () => {
   const { fetchResponse } = await app.doFetch({
     headers: { 'Accept-Encoding': 'gzip' },
   })
@@ -82,7 +82,7 @@ test('should use gzip when only gzip is accepted', async () => {
   expect(fetchResponse?.headers.get('Content-Encoding')).toBe('gzip')
 })
 
-test('should use deflate when only deflate is accepted', async () => {
+it('should use deflate when only deflate is accepted', async () => {
   const { fetchResponse } = await app.doFetch({
     headers: { 'Accept-Encoding': 'deflate' },
   })
@@ -90,7 +90,7 @@ test('should use deflate when only deflate is accepted', async () => {
   expect(fetchResponse?.headers.get('Content-Encoding')).toBe('deflate')
 })
 
-test('should not compress when response is below threshold', async () => {
+it('should not compress when response is below threshold', async () => {
   const smallRouter = getDefaultRouter()
   smallRouter.get('/', async (_req, res) => {
     res.json({ ok: 1 }) // Small response, below 1024 byte threshold
@@ -114,7 +114,7 @@ test('should not compress when response is below threshold', async () => {
   }
 })
 
-test('single-chunk body is compressed synchronously, with an exact Content-Length', async () => {
+it('single-chunk body is compressed synchronously, with an exact Content-Length', async () => {
   for (const [acceptEncoding, encoding, compress] of [
     [
       'zstd',
@@ -146,7 +146,7 @@ test('single-chunk body is compressed synchronously, with an exact Content-Lengt
   }
 })
 
-test('multi-chunk body (res.write + res.end) is streamed', async () => {
+it('multi-chunk body (res.write + res.end) is streamed', async () => {
   const { fetchResponse, body } = await app.doFetch<unknown[]>({
     url: 'multi',
     headers: { 'Accept-Encoding': 'zstd' },
@@ -158,7 +158,7 @@ test('multi-chunk body (res.write + res.end) is streamed', async () => {
   expect(body).toEqual([largeData, largeData])
 })
 
-test('syncMaxBytes: 0 streams single-chunk bodies too', async () => {
+it('syncMaxBytes: 0 streams single-chunk bodies too', async () => {
   const { fetchResponse, body } = await streamedApp.doFetch({
     headers: { 'Accept-Encoding': 'zstd' },
   })
@@ -169,7 +169,7 @@ test('syncMaxBytes: 0 streams single-chunk bodies too', async () => {
   expect(body).toEqual(largeData)
 })
 
-test('res.end(chunk, callback) calls the callback once', async () => {
+it('res.end(chunk, callback) calls the callback once', async () => {
   const { fetchResponse, body } = await app.doFetch({
     url: 'cb',
     headers: { 'Accept-Encoding': 'zstd' },
@@ -180,7 +180,7 @@ test('res.end(chunk, callback) calls the callback once', async () => {
   expect(await endCallbackCalls).toBe(1)
 })
 
-test('HEAD request is not compressed', async () => {
+it('HEAD request is not compressed', async () => {
   const { fetchResponse } = await app.doFetch({
     method: 'HEAD',
     headers: { 'Accept-Encoding': 'zstd' },

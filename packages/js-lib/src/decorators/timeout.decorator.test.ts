@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { TimeoutError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
 import { pDelay } from '../promise/pDelay.js'
@@ -15,7 +15,7 @@ class C {
   }
 }
 
-test('@_Timeout', async () => {
+it('@_Timeout', async () => {
   const c = new C(3)
 
   expect(await c.fn(10, 'hej')).toBe('hej')

@@ -1,8 +1,8 @@
 import { _range } from '@naturalcycles/js-lib/array'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { generateJsonSchemaFromData } from './generateJsonSchemaFromData.js'
 
-test('generateJsonSchemaFromData1', () => {
+it('generateJsonSchemaFromData1', () => {
   const data1 = _range(5).map(i => {
     return { a: 'a', n: i, b: i % 2 === 0, c: null, u: undefined }
   })
@@ -32,7 +32,7 @@ test('generateJsonSchemaFromData1', () => {
   `)
 })
 
-test('generateJsonSchemaFromData2', () => {
+it('generateJsonSchemaFromData2', () => {
   const data2 = _range(20).map(i => {
     const r: any = { a: 'a', n: i, b: i % 2 === 0, u: undefined }
 

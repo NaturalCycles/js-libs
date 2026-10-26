@@ -1,5 +1,5 @@
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, it } from 'vitest'
 import { EventLoopMonitor } from './eventLoop.util.js'
 import type { EventLoopStats } from './eventLoop.util.js'
 
@@ -10,7 +10,7 @@ afterEach(() => {
   monitor = undefined
 })
 
-test('should call onStats after measureInterval', async () => {
+it('should call onStats after measureInterval', async () => {
   const stats: EventLoopStats[] = []
 
   monitor = new EventLoopMonitor({
@@ -35,7 +35,7 @@ test('should call onStats after measureInterval', async () => {
   console.log(stats)
 })
 
-test('should reset gc counters between intervals', async () => {
+it('should reset gc counters between intervals', async () => {
   const stats: EventLoopStats[] = []
 
   monitor = new EventLoopMonitor({
@@ -58,7 +58,7 @@ test('should reset gc counters between intervals', async () => {
   }
 })
 
-test('stop should clean up resources', async () => {
+it('stop should clean up resources', async () => {
   monitor = new EventLoopMonitor({ measureInterval: 50 })
 
   await pDelay(30)
@@ -71,7 +71,7 @@ test('stop should clean up resources', async () => {
   await pDelay(100)
 })
 
-test('stats values should be non-negative', async () => {
+it('stats values should be non-negative', async () => {
   const stats: EventLoopStats[] = []
 
   monitor = new EventLoopMonitor({

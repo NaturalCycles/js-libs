@@ -1,9 +1,9 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { nanoidBrowser, nanoidBrowserCustomAlphabet } from './nanoid.js'
 
 const base64urlAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 
-test('should return a string of required length', () => {
+it('should return a string of required length', () => {
   const id = nanoidBrowser()
   expect(typeof id).toBe('string')
   expect(id).toHaveLength(21)
@@ -16,11 +16,11 @@ test('should return a string of required length', () => {
   expect(nanoidBrowser(300)).toHaveLength(300)
 })
 
-test('should be random, 2 values should not be equal', () => {
+it('should be random, 2 values should not be equal', () => {
   expect(nanoidBrowser()).not.toBe(nanoidBrowser())
 })
 
-test('customAlphabet id all characters should be from the alphabet', () => {
+it('customAlphabet id all characters should be from the alphabet', () => {
   const alphabet = 'abcdefgh'
   const fn = nanoidBrowserCustomAlphabet(alphabet)
   let id = fn()

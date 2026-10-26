@@ -1,9 +1,9 @@
 import { IncomingMessage, ServerResponse } from 'node:http'
 import { Socket } from 'node:net'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { vary } from './vary.js'
 
-test.each([
+it.each([
   [undefined, 'Accept-Encoding', 'Accept-Encoding'],
   ['', 'Accept-Encoding', 'Accept-Encoding'],
   ['Accept', 'Accept-Encoding', 'Accept, Accept-Encoding'],

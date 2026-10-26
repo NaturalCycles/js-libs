@@ -1,5 +1,5 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
-import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AirtableLib } from './airtableLib.js'
 import { AIRTABLE_CONNECTOR_JSON } from './connector/airtableJsonConnector.js'
 import { mockBaseDao } from './test/airtable.mock.js'
@@ -16,7 +16,7 @@ const airtableLib = new AirtableLib({
   apiKey: 'fakekey',
 })
 
-test('getCache', async () => {
+it('getCache', async () => {
   const baseDao = mockBaseDao(airtableLib, 'baseId')
 
   expect(baseDao.lastChanged).toBeUndefined()
@@ -30,7 +30,7 @@ test('getCache', async () => {
   expect(baseDao.lastChanged).toBeUndefined() // accessing the cache and lazy-loading it is not considered as "changed"
 })
 
-test('cacheUpdated$', async () => {
+it('cacheUpdated$', async () => {
   const baseDao = mockBaseDao(airtableLib, 'baseId')
 
   let updatedTimes = 0

@@ -1,5 +1,5 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../stream/index.js'
 import { csvStringParse } from './csvReader.js'
 import { arrayToCSVString } from './csvWriter.js'
@@ -23,7 +23,7 @@ const items: Item[] = _range(1, 11).map(i => ({
   n: i % 2 ? i : undefined,
 }))
 
-test('transformToCSV', async () => {
+it('transformToCSV', async () => {
   const rows = await Pipeline.fromArray(items)
     .transform(
       transformToCSV({
@@ -49,7 +49,7 @@ test('transformToCSV', async () => {
   `)
 })
 
-test('arrayToCSVString', () => {
+it('arrayToCSVString', () => {
   // Headers should not be printed on empty rows input
   expect(arrayToCSVString([])).toBe('')
 
@@ -97,7 +97,7 @@ test('arrayToCSVString', () => {
   `)
 })
 
-test('csvStringParse', () => {
+it('csvStringParse', () => {
   const str = `id,k,k2,n,b
 id1,k 1,"""yo 1""",1,false
 id2,k 2,"""yo 2""",,true

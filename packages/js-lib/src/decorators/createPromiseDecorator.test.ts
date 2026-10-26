@@ -1,5 +1,5 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
-import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { pDelay } from '../promise/index.js'
 import { _createPromiseDecorator } from './createPromiseDecorator.js'
 
@@ -57,7 +57,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-test('_createPromiseDecorator', async () => {
+it('_createPromiseDecorator', async () => {
   const r = await c.run(2)
   expect(r).toBe(4)
 

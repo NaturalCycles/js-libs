@@ -5,7 +5,7 @@ import {
   setGlobalStringifyFunction,
 } from '@naturalcycles/js-lib/string'
 import { _noop } from '@naturalcycles/js-lib/types'
-import { afterAll, expect, test, vi } from 'vitest'
+import { afterAll, expect, it, vi } from 'vitest'
 import { inspectStringifyFn } from '../string/inspect.js'
 import { runScript } from './runScript.js'
 
@@ -16,7 +16,7 @@ afterAll(() => {
 })
 
 // skipped, because mocking process.exit no longer works
-test.skip('runScript', async () => {
+it.skip('runScript', async () => {
   if (detectLeaks) return // Somehow it fails with detect-leaks SOMETIMES
   const processExit = vi.spyOn(process, 'exit').mockImplementation(_noop as any)
   const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -39,7 +39,7 @@ test.skip('runScript', async () => {
   expect(consoleError).toHaveBeenCalledTimes(1)
 })
 
-test('setGlobalStringifyFunction', () => {
+it('setGlobalStringifyFunction', () => {
   vi.spyOn(process, 'exit').mockImplementation(_noop as any)
 
   setGlobalStringifyFunction(inspectStringifyFn)

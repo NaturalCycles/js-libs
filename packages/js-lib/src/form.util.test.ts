@@ -1,8 +1,8 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { formDataToObject, objectToFormData } from './form.util.js'
 import type { AnyObject } from './types.js'
 
-test('objectToFormData', () => {
+it('objectToFormData', () => {
   let o: AnyObject = {}
   let fd = objectToFormData(o)
   expect(fd).toBeInstanceOf(FormData)

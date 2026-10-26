@@ -1,5 +1,5 @@
 import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { _sum } from './array/array.util.js'
 import {
   _isEmpty,
@@ -16,15 +16,15 @@ import { _undefinedIfEmpty } from './object/object.util.js'
 import { expectResults } from './test/test.util.js'
 import { SKIP } from './types.js'
 
-test.each([[undefined], [null], [1], [true], ['hello']] as any[])('isPrimitive "%s"', v => {
+it.each([[undefined], [null], [1], [true], ['hello']] as any[])('isPrimitive "%s"', v => {
   expect(_isPrimitive(v)).toBe(true)
 })
 
-test.each([[[]], [{}], [() => {}]] as any[])('!isPrimitive "%s"', v => {
+it.each([[[]], [{}], [() => {}]] as any[])('!isPrimitive "%s"', v => {
   expect(_isPrimitive(v)).toBe(false)
 })
 
-test.each([
+it.each([
   [undefined, true],
   [null, true],
   ['', true],
@@ -49,7 +49,7 @@ test.each([
   expect(_undefinedIfEmpty(v)).toBe(empty ? undefined : v)
 })
 
-test('_isObject', () => {
+it('_isObject', () => {
   const a: any[] = [
     1,
     0,
@@ -74,7 +74,7 @@ test('_isObject', () => {
   expect(_isObject(new Obj())).toBe(true)
 })
 
-test('_isPlainObject', () => {
+it('_isPlainObject', () => {
   expect(_isPlainObject({})).toBe(true)
   expect(_isPlainObject({ a: 1 })).toBe(true)
   expect(_isPlainObject(Object.create(null))).toBe(true)
@@ -98,7 +98,7 @@ test('_isPlainObject', () => {
   }
 })
 
-test('_isEmptyObject', () => {
+it('_isEmptyObject', () => {
   const a: any[] = [{}, { a: 'b' }]
 
   const empty = a.filter(i => _isEmptyObject(i))
@@ -106,11 +106,11 @@ test('_isEmptyObject', () => {
   expect(_isNotEmptyObject({})).toBe(false)
 })
 
-test('_isNull', () => {
+it('_isNull', () => {
   expectResults(v => _isNull(v), mockAllKindsOfThings()).toMatchSnapshot()
 })
 
-test('_isTruthy', () => {
+it('_isTruthy', () => {
   const a = [1, 2, undefined, null, 3].filter(_isTruthy)
   // This tests that type of a is number[] (no "undefined/null")
   expect(_sum(a)).toBe(6)

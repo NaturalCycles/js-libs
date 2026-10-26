@@ -1,5 +1,5 @@
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { LRUMemoCache } from './lruMemoCache.js'
 
 class A {
@@ -15,7 +15,7 @@ class A {
   }
 }
 
-test('memoCache a', () => {
+it('memoCache a', () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 

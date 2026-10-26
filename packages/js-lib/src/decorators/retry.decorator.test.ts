@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { pDelay } from '../promise/index.js'
 import { _Retry } from './retry.decorator.js'
 
@@ -24,7 +24,7 @@ class C {
   }
 }
 
-test('@Retry', async () => {
+it('@Retry', async () => {
   const inst = new C(3)
   const r = await inst.fn(1, 2, 3)
   // console.log(r)
@@ -71,22 +71,22 @@ class A {
   }
 }
 
-test('ok', async () => {
+it('ok', async () => {
   const a = new A()
   await a.ok()
 })
 
-test('error1time', async () => {
+it('error1time', async () => {
   const a = new A()
   await a.error1time()
 })
 
-test('error2times retry once should throw', async () => {
+it('error2times retry once should throw', async () => {
   const a = new A()
   await expect(a.error2times()).rejects.toThrow('custom_error')
 })
 
-test('error2times retry twice', async () => {
+it('error2times retry twice', async () => {
   const a = new A()
   await a.error2timesRetryTwice()
 })

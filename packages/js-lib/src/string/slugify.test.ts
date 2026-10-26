@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _slugify } from './slugify.js'
 
-test.each([
+it.each([
   ['', ''],
   ['Hello World', 'hello-world'],
   ['Klättermusen 2', 'klattermusen-2'],

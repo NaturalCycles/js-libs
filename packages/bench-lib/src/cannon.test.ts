@@ -1,11 +1,11 @@
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { expressFunctionFactory } from './cannon.profiles.js'
 import { runCannon } from './cannon.util.js'
 import { tmpDir } from './test/paths.cnst.js'
 
-test('runCannon', async () => {
+it('runCannon', async () => {
   const reportDirPath = `${tmpDir}/cannonTest`
   fs2.emptyDir(reportDirPath)
 

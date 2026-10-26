@@ -1,6 +1,6 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { isCloudRun } from './util.js'
 
-test('isCloudRun', () => {
+it('isCloudRun', () => {
   expect(isCloudRun()).toBe(false)
 })

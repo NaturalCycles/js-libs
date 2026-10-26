@@ -1,9 +1,9 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { bufferReviver } from './transformJsonParse.js'
 
-test.todo('transformJsonParse')
+it.todo('transformJsonParse')
 
-test('bufferReviver', () => {
+it('bufferReviver', () => {
   const s = 'Hello World 1'
   const b = Buffer.from(s)
 

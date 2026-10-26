@@ -1,5 +1,5 @@
 import { inspect } from 'node:util'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _stringify } from '../string/stringify.js'
 import {
   _assert,
@@ -12,7 +12,7 @@ import {
 import { AssertionError } from './error.util.js'
 import { _try } from './try.js'
 
-test('_assert', () => {
+it('_assert', () => {
   _assert(1 === 1) // should not throw
 
   const [err] = _try(() => _assert(1 * 1 === 2))
@@ -24,7 +24,7 @@ test('_assert', () => {
   expect(err2).toMatchInlineSnapshot('[AssertionError: Really should match]')
 })
 
-test('_assertEquals', () => {
+it('_assertEquals', () => {
   // should not throw
   _assertEquals(1, 1)
   _assertEquals('s', 's')
@@ -45,7 +45,7 @@ got     : 1"
   )
 })
 
-test('_assertDeepEquals', () => {
+it('_assertDeepEquals', () => {
   // should not throw
   _assertDeepEquals(1, 1)
   _assertDeepEquals('s', 's')
@@ -64,7 +64,7 @@ test('_assertDeepEquals', () => {
   `)
 })
 
-test('_assertIsError', () => {
+it('_assertIsError', () => {
   // should not throw
   _assertIsError(new Error('a'))
 
@@ -74,7 +74,7 @@ test('_assertIsError', () => {
   )
 })
 
-test('_assertIsString', () => {
+it('_assertIsString', () => {
   // should not throw
   _assertIsString('asd')
 
@@ -84,7 +84,7 @@ test('_assertIsString', () => {
   )
 })
 
-test('_assertIsNumber', () => {
+it('_assertIsNumber', () => {
   // should not throw
   _assertIsNumber(5)
 
@@ -94,7 +94,7 @@ test('_assertIsNumber', () => {
   )
 })
 
-test('AssertionError printability', () => {
+it('AssertionError printability', () => {
   const err = new AssertionError('error', { userFriendly: true })
   // console.log(err)
 

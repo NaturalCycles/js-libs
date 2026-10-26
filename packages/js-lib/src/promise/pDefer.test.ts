@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { pDefer } from './pDefer.js'
 
-test('pDefer', async () => {
+it('pDefer', async () => {
   let p = pDefer<string>()
   p.resolve('a')
   expect(await p).toBe('a')

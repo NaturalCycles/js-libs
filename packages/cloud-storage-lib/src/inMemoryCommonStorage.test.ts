@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { InMemoryCommonStorage } from './inMemoryCommonStorage.js'
 import { runCommonStorageTest } from './testing/commonStorageTest.js'
 
@@ -12,7 +12,7 @@ const bucket = 'b'
 const content = Buffer.from('content')
 const metadata = { hash: 'hash_1' }
 
-test('getFileMetadata returns a copy of the metadata', async () => {
+it('getFileMetadata returns a copy of the metadata', async () => {
   const s = new InMemoryCommonStorage()
   const input = { ...metadata }
   await s.saveFile(bucket, 'a/1', content, { metadata: input })
@@ -24,7 +24,7 @@ test('getFileMetadata returns a copy of the metadata', async () => {
   expect(await s.getFileMetadata(bucket, 'a/1')).toEqual({ metadata, size: content.length })
 })
 
-test('uploadFile removes metadata', async () => {
+it('uploadFile removes metadata', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.uploadFile(import.meta.filename, bucket, 'a/1')
@@ -32,7 +32,7 @@ test('uploadFile removes metadata', async () => {
   expect((await s.getFileMetadata(bucket, 'a/1'))!.metadata).toEqual({})
 })
 
-test('copyFile copies metadata', async () => {
+it('copyFile copies metadata', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.copyFile(bucket, 'a/1', 'a/2', 'b2')
@@ -41,7 +41,7 @@ test('copyFile copies metadata', async () => {
   expect((await s.getFileMetadata('b2', 'a/2'))!.metadata).toEqual(metadata)
 })
 
-test('moveFile moves metadata', async () => {
+it('moveFile moves metadata', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.moveFile(bucket, 'a/1', 'a/2')
@@ -50,7 +50,7 @@ test('moveFile moves metadata', async () => {
   expect((await s.getFileMetadata(bucket, 'a/2'))!.metadata).toEqual(metadata)
 })
 
-test('movePath moves metadata', async () => {
+it('movePath moves metadata', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.saveFile(bucket, 'a/2', content)
@@ -60,7 +60,7 @@ test('movePath moves metadata', async () => {
   expect(s.metadata['b2']).toEqual({ 'c/1': metadata })
 })
 
-test('deleteFiles, deletePath and deletePaths remove metadata', async () => {
+it('deleteFiles, deletePath and deletePaths remove metadata', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.saveFile(bucket, 'b/1', content, { metadata })
@@ -74,7 +74,7 @@ test('deleteFiles, deletePath and deletePaths remove metadata', async () => {
   expect(s.metadata[bucket]).toEqual({ 'd/1': metadata })
 })
 
-test('combineFiles does not keep metadata', async () => {
+it('combineFiles does not keep metadata', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.saveFile(bucket, 'a/2', content, { metadata })
@@ -88,7 +88,7 @@ test('combineFiles does not keep metadata', async () => {
   })
 })
 
-test('clear removes files, metadata and visibility', async () => {
+it('clear removes files, metadata and visibility', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.setFileVisibility(bucket, 'a/1', true)

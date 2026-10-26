@@ -1,5 +1,5 @@
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { createReadableFrom, Pipeline, progressReadableMapper } from '../index.js'
 import type { ProgressLogItem } from '../index.js'
 
@@ -15,7 +15,7 @@ async function* rangeItAsync(
   }
 }
 
-test('transformLogProgress', async () => {
+it('transformLogProgress', async () => {
   // const readable = readableFromArray(_range(0, 11), i => pDelay(10, i))
   // const readable = Readable.from(AsyncSequence.create(1, i => (i === 10 ? END : pDelay(10, i + 1))))
   let stats: ProgressLogItem
@@ -46,7 +46,7 @@ test('transformLogProgress', async () => {
   })
 })
 
-test('progressReadableMapper', async () => {
+it('progressReadableMapper', async () => {
   const readable = createReadableFrom(rangeItAsync(1, 11, 10))
 
   await readable

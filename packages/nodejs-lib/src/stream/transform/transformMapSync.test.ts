@@ -1,7 +1,7 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
-import { afterAll, beforeAll, expect, test, vi } from 'vitest'
+import { afterAll, beforeAll, expect, it, vi } from 'vitest'
 import { Pipeline } from '../index.js'
 import type { TransformMapStats } from '../index.js'
 
@@ -17,7 +17,7 @@ afterAll(() => {
   vi.useRealTimers()
 })
 
-test('transformMapSync simple', async () => {
+it('transformMapSync simple', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2: Item[] = []
 
@@ -29,7 +29,7 @@ test('transformMapSync simple', async () => {
   // expect(readable.destroyed).toBe(true)
 })
 
-test('transformMapSync error', async () => {
+it('transformMapSync error', async () => {
   let stats: TransformMapStats
   const data = _range(100).map(String)
 
@@ -68,7 +68,7 @@ test('transformMapSync error', async () => {
 `)
 })
 
-test('transformMapSync suppressed error', async () => {
+it('transformMapSync suppressed error', async () => {
   let stats: TransformMapStats
   const data = _range(100).map(String)
 

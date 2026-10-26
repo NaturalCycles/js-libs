@@ -1,7 +1,7 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { hashCode, hashCode16, hashCode36, hashCode64 } from './hash.util.js'
 
-test('hashCode', () => {
+it('hashCode', () => {
   const obj = {
     a: 'a',
     b: 'b',

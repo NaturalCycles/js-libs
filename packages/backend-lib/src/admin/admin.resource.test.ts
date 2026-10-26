@@ -1,6 +1,6 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _expectedError, AssertionError } from '@naturalcycles/js-lib/error'
-import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultRouter } from '../express/getDefaultRouter.js'
 import type { BackendRequest } from '../server/server.model.js'
 import { mockBackendRequest } from '../test/mocks.js'
@@ -110,7 +110,7 @@ afterAll(async () => {
 })
 
 describe('login', () => {
-  test('should return 401 if no auth header', async () => {
+  it('should return 401 if no auth header', async () => {
     const err = await app.expectError({
       url: 'admin/login',
       method: 'POST',
@@ -118,7 +118,7 @@ describe('login', () => {
     expect(err.data.responseStatusCode).toBe(401)
   })
 
-  test('login should set cookie', async () => {
+  it('login should set cookie', async () => {
     const TOKEN = 'abcdef1'
 
     const { statusCode, fetchResponse } = await app.doFetch({
@@ -136,7 +136,7 @@ describe('login', () => {
     )
   })
 
-  test('logout should clear cookie', async () => {
+  it('logout should clear cookie', async () => {
     const { statusCode, fetchResponse } = await app.doFetch({
       url: 'admin/login',
       method: 'POST',
@@ -161,12 +161,12 @@ describe('getAdminInfo', () => {
     })
   })
 
-  test('should return null if not admin', async () => {
+  it('should return null if not admin', async () => {
     const r = await app.get('admin/info')
     expect(r).toMatchInlineSnapshot(`null`)
   })
 
-  test('admin1 should see its permissions', async () => {
+  it('admin1 should see its permissions', async () => {
     const r = await app.get('admin/info', {
       headers: {
         'x-admin-token': 'good',
@@ -183,7 +183,7 @@ describe('getAdminInfo', () => {
     `)
   })
 
-  test('second admin should see its permissions', async () => {
+  it('second admin should see its permissions', async () => {
     const r = await app.get('admin/info', {
       headers: {
         'x-admin-token': 'second',
@@ -210,7 +210,7 @@ describe('createAdminMiddleware', () => {
     })
   })
 
-  test('AND-comparison requires that the user has ALL of the required permissions', async () => {
+  it('AND-comparison requires that the user has ALL of the required permissions', async () => {
     await app.get('admin/test-permission-and', {
       headers: {
         'x-admin-token': 'p1p2',
@@ -235,7 +235,7 @@ describe('createAdminMiddleware', () => {
     expect(err2.data.responseStatusCode).toBe(403)
   })
 
-  test('OR-comparison requires that the user has ONE OF the required permissions', async () => {
+  it('OR-comparison requires that the user has ONE OF the required permissions', async () => {
     await app.get('admin/test-permission-or', {
       headers: {
         'x-admin-token': 'p1p2',
@@ -255,7 +255,7 @@ describe('createAdminMiddleware', () => {
     })
   })
 
-  test('sets the isAuthenticatedAdminRequest when the admin user is successfully authenicated', async () => {
+  it('sets the isAuthenticatedAdminRequest when the admin user is successfully authenicated', async () => {
     const { success } = await app.get<{ success: boolean }>(
       'admin/set-isAuthenticatedAdminRequest-flag',
       {
@@ -268,7 +268,7 @@ describe('createAdminMiddleware', () => {
     expect(success).toBe(true)
   })
 
-  test('does not set the isAuthenticatedAdminRequest when the admin user is not successfully authenicated', async () => {
+  it('does not set the isAuthenticatedAdminRequest when the admin user is not successfully authenicated', async () => {
     const { success } = await app.get<{ success: boolean }>(
       'admin/set-isAuthenticatedAdminRequest-flag',
       {
@@ -281,21 +281,21 @@ describe('createAdminMiddleware', () => {
     expect(success).toBe(false)
   })
 
-  test('sets the flag when the secure header matches', async () => {
+  it('sets the flag when the secure header matches', async () => {
     const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
       headers: { 'x-secure-header': 'secret1' },
     })
     expect(success).toBe(true)
   })
 
-  test('does not set the flag when the secure header is wrong', async () => {
+  it('does not set the flag when the secure header is wrong', async () => {
     const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
       headers: { 'x-secure-header': 'wrong' },
     })
     expect(success).toBe(false)
   })
 
-  test('sets the flag when there is no secure header but a valid admin token', async () => {
+  it('sets the flag when there is no secure header but a valid admin token', async () => {
     const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
       headers: { 'x-admin-token': 'p1p2' },
     })
@@ -304,7 +304,7 @@ describe('createAdminMiddleware', () => {
 })
 
 describe('isAdmin', () => {
-  test('should resolve the admin even if auth is disabled', async () => {
+  it('should resolve the admin even if auth is disabled', async () => {
     vi.spyOn(adminServiceAuthDisabled, 'getEmailByToken').mockResolvedValue('p1@mail.com')
     const req = mockBackendRequest({ headers: { 'x-admin-token': 'p1' } })
 
@@ -314,7 +314,7 @@ describe('isAdmin', () => {
 })
 
 describe('resolveAdmin', () => {
-  test('should resolve email and permissions of an admin', async () => {
+  it('should resolve email and permissions of an admin', async () => {
     vi.spyOn(adminService, 'getEmailByToken').mockResolvedValue('p1@mail.com')
     const req = mockBackendRequest({ headers: { 'x-admin-token': 'p1' } })
 
@@ -326,7 +326,7 @@ describe('resolveAdmin', () => {
     expect(adminService.getEmailByToken).toHaveBeenCalledWith(req, 'p1')
   })
 
-  test('should resolve email without permissions if not an admin', async () => {
+  it('should resolve email without permissions if not an admin', async () => {
     vi.spyOn(adminService, 'getEmailByToken').mockResolvedValue('notAdmin@mail.com')
     const req = mockBackendRequest({ headers: { 'x-admin-token': 'notAdmin' } })
 
@@ -337,7 +337,7 @@ describe('resolveAdmin', () => {
     })
   })
 
-  test('should resolve to empty object if token is invalid', async () => {
+  it('should resolve to empty object if token is invalid', async () => {
     vi.spyOn(adminService, 'getEmailByToken').mockResolvedValue(undefined)
     const req = mockBackendRequest({ headers: { 'x-admin-token': 'invalid' } })
 
@@ -347,7 +347,7 @@ describe('resolveAdmin', () => {
 })
 
 describe('hasPermissions', () => {
-  test('should return undefined if some required permission is missing', async () => {
+  it('should return undefined if some required permission is missing', async () => {
     vi.spyOn(adminService, 'getEmailByToken').mockResolvedValue('p1@mail.com')
     const req = mockBackendRequest({ headers: { 'x-admin-token': 'p1' } })
 
@@ -357,7 +357,7 @@ describe('hasPermissions', () => {
 })
 
 describe('checkPermissions', () => {
-  test('should grant if all required permissions are present on AND-comparison', () => {
+  it('should grant if all required permissions are present on AND-comparison', () => {
     const admin = { email: 'p1p2@mail.com', permissions: new Set(['p1', 'p2']) }
 
     expect(adminService.checkPermissions(admin, ['p1', 'p2'])).toEqual({
@@ -370,7 +370,7 @@ describe('checkPermissions', () => {
     })
   })
 
-  test('should deny if some required permission is missing on AND-comparison', () => {
+  it('should deny if some required permission is missing on AND-comparison', () => {
     const admin = { email: 'p1@mail.com', permissions: new Set(['p1']) }
 
     expect(adminService.checkPermissions(admin, ['p1', 'p2'])).toEqual({
@@ -383,7 +383,7 @@ describe('checkPermissions', () => {
     })
   })
 
-  test('should grant if one required permission is present on OR-comparison', () => {
+  it('should grant if one required permission is present on OR-comparison', () => {
     const admin = { email: 'p1@mail.com', permissions: new Set(['p1']) }
 
     expect(adminService.checkPermissions(admin, ['p1', 'p2'], { andComparison: false })).toEqual({
@@ -396,7 +396,7 @@ describe('checkPermissions', () => {
     })
   })
 
-  test('should deny if the email is not an admin', () => {
+  it('should deny if the email is not an admin', () => {
     const admin = { email: 'notAdmin@mail.com' }
 
     expect(adminService.checkPermissions(admin, ['p1'])).toEqual({
@@ -409,7 +409,7 @@ describe('checkPermissions', () => {
     })
   })
 
-  test('should grant if auth is disabled', () => {
+  it('should grant if auth is disabled', () => {
     expect(adminServiceAuthDisabled.checkPermissions({}, ['p1'])).toEqual({
       email: undefined,
       isAdmin: false,
@@ -422,7 +422,7 @@ describe('checkPermissions', () => {
 })
 
 describe('requireGranted', () => {
-  test('should return AdminInfo with the granted permissions', () => {
+  it('should return AdminInfo with the granted permissions', () => {
     const result = {
       email: 'p1@mail.com',
       isAdmin: true,
@@ -438,7 +438,7 @@ describe('requireGranted', () => {
     })
   })
 
-  test('should throw 401 if there is no email', () => {
+  it('should throw 401 if there is no email', () => {
     const result = {
       isAdmin: false,
       granted: false,
@@ -452,7 +452,7 @@ describe('requireGranted', () => {
     expect(err.data.backendResponseStatusCode).toBe(401)
   })
 
-  test('should throw 403 if not granted', () => {
+  it('should throw 403 if not granted', () => {
     const result = {
       email: 'p1@mail.com',
       isAdmin: true,

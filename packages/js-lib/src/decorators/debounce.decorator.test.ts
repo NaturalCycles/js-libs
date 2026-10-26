@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { _since } from '../datetime/index.js'
 import { pDelay } from '../promise/index.js'
 import type { AnyFunction, UnixTimestampMillis } from '../types.js'
@@ -28,13 +28,13 @@ async function startTimer(fn: AnyFunction, interval: number, count: number): Pro
 }
 
 describe('@_Debounce', () => {
-  test('should debounce decorated method calls', async () => {
+  it('should debounce decorated method calls', async () => {
     await startTimer(fn, 10, 10)
   })
 })
 
 describe('@_AsyncDebounce', () => {
-  test('should coalesce calls and resolve every caller with a real result (never undefined)', async () => {
+  it('should coalesce calls and resolve every caller with a real result (never undefined)', async () => {
     class C {
       calls = 0
 
@@ -54,7 +54,7 @@ describe('@_AsyncDebounce', () => {
 })
 
 describe('@_AsyncThrottle', () => {
-  test('should invoke on the leading edge immediately', async () => {
+  it('should invoke on the leading edge immediately', async () => {
     class C {
       calls = 0
 
@@ -70,7 +70,7 @@ describe('@_AsyncThrottle', () => {
     expect(inst.calls).toBe(1)
   })
 
-  test('should resolve in-window calls with undefined when trailing is disabled', async () => {
+  it('should resolve in-window calls with undefined when trailing is disabled', async () => {
     class C {
       calls = 0
 

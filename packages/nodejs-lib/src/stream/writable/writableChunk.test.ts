@@ -1,10 +1,10 @@
 import { _range } from '@naturalcycles/js-lib/array'
 import type { Predicate } from '@naturalcycles/js-lib/types'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import { writableChunk } from './writableChunk.js'
 
-test('writableChunk', async () => {
+it('writableChunk', async () => {
   const splitPredicate: Predicate<number> = (_, i) => {
     return i % 3 === 0
   }

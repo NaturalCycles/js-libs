@@ -1,8 +1,8 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import type { PupaOptions } from './pupa.js'
 import { pupa } from './pupa.js'
 
-test('main', () => {
+it('main', () => {
   // Normal placeholder
   expect(pupa('{foo}', { foo: '!' })).toBe('!')
   expect(pupa('{foo}', { foo: 10 })).toBe('10')
@@ -51,18 +51,18 @@ test('main', () => {
   )
 })
 
-test('do not match non-identifiers', () => {
+it('do not match non-identifiers', () => {
   const fixture = '"*.{json,md,css,graphql,html}"'
   expect(pupa(fixture, [])).toBe(fixture)
 })
 
-test('ignore missing', () => {
+it('ignore missing', () => {
   const template = 'foo{{bar}}{undefined}'
   const options = { ignoreMissing: true }
   expect(pupa(template, {}, options)).toBe(template)
 })
 
-test('throw on undefined by default', () => {
+it('throw on undefined by default', () => {
   expect(() => {
     pupa('{foo}', {})
   }).toThrowErrorMatchingInlineSnapshot(
@@ -70,7 +70,7 @@ test('throw on undefined by default', () => {
   )
 })
 
-test('transform and ignore missing', () => {
+it('transform and ignore missing', () => {
   const options: PupaOptions = {
     ignoreMissing: true,
     transform: ({ value }) => (Number.isNaN(Number.parseInt(value, 10)) ? undefined : value),
@@ -79,7 +79,7 @@ test('transform and ignore missing', () => {
   expect(pupa('{0} {1} {2}', ['0', null, 3.14], options)).toBe('0 {1} 3.14')
 })
 
-test('transform and throw on undefined', () => {
+it('transform and throw on undefined', () => {
   const options: PupaOptions = {
     transform: ({ value }) => (Number.isNaN(Number.parseInt(value, 10)) ? undefined : value),
   }
