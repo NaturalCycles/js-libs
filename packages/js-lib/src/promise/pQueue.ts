@@ -1,6 +1,7 @@
 import { ErrorMode } from '../error/errorMode.js'
 import { createCommonLoggerAtLevel } from '../log/commonLogger.js'
 import type { CommonLogger, CommonLogLevel } from '../log/commonLogger.js'
+import { _noop } from '../types.js'
 import type { AsyncFunction, PositiveInteger } from '../types.js'
 import type { DeferredPromise } from './pDefer.js'
 import { pDefer } from './pDefer.js'
@@ -107,7 +108,9 @@ export class PQueue {
           // check if there's room to start next job
           if (this.queue.length && this.inFlight <= concurrency) {
             const nextFn = this.queue.shift()!
-            void this.push(nextFn)
+            // The caller already receives the outcome via the shared `nextFn.defer`, which they await
+            // in their own `push` call. This promise is a duplicate - swallow it to avoid UnhandledRejection
+            this.push(nextFn).catch(_noop)
           } else {
             if (this.inFlight === 0) {
               logger.debug('onIdle')
