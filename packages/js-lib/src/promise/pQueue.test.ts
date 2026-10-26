@@ -1,9 +1,9 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _range } from '../array/range.js'
 import { pDelay, pMap } from './index.js'
 import { PQueue } from './pQueue.js'
 
-test('PQueue', async () => {
+it('PQueue', async () => {
   const q = new PQueue({
     concurrency: 1,
     logLevel: 'debug',
@@ -30,7 +30,7 @@ test('PQueue', async () => {
   await q.onIdle()
 })
 
-test('queued job rejection does not cause unhandledRejection', async () => {
+it('queued job rejection does not cause unhandledRejection', async () => {
   const q = new PQueue({ concurrency: 2 })
   const unhandled: unknown[] = []
   const onUnhandled = (err: unknown): void => void unhandled.push(err)
@@ -53,4 +53,17 @@ test('queued job rejection does not cause unhandledRejection', async () => {
   }
 
   expect(unhandled).toEqual([])
+})
+
+it('same function can be pushed multiple times', async () => {
+  const q = new PQueue({ concurrency: 1 })
+  let n = 0
+  const fn = async (): Promise<number> => {
+    await pDelay(1)
+    return ++n
+  }
+
+  expect(await q.push(fn)).toBe(1)
+  expect(await q.push(fn)).toBe(2)
+  expect(await Promise.all([q.push(fn), q.push(fn)])).toEqual([3, 4])
 })

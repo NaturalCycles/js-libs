@@ -1,7 +1,6 @@
 import { ErrorMode } from '../error/errorMode.js'
 import { createCommonLoggerAtLevel } from '../log/commonLogger.js'
 import type { CommonLogger, CommonLogLevel } from '../log/commonLogger.js'
-import { _noop } from '../types.js'
 import type { AsyncFunction, PositiveInteger } from '../types.js'
 import type { DeferredPromise } from './pDefer.js'
 import { pDefer } from './pDefer.js'
@@ -62,67 +61,77 @@ export class PQueue {
   private readonly logger: CommonLogger
 
   inFlight = 0
-  private queue: AsyncFunction[] = []
+  private queue: PQueueJob<any>[] = []
   private onIdleListeners: DeferredPromise[] = []
 
   /**
    * Push PromiseReturningFunction to the Queue.
    * Returns a Promise that resolves (or rejects) with the return value from the Promise.
    */
-  async push<R>(fn_: AsyncFunction<R>): Promise<R> {
-    const { concurrency } = this.cfg
-    const { resolveOnStart, logger } = this
+  async push<R>(fn: AsyncFunction<R>): Promise<R> {
+    const job: PQueueJob<R> = { fn, defer: pDefer<R>() }
 
-    const fn = fn_ as AsyncFunctionWithDefer<R>
-    fn.defer ||= pDefer<R>()
-
-    if (this.inFlight < concurrency) {
+    if (this.inFlight < this.cfg.concurrency) {
       // There is room for more jobs. Can start immediately
-      this.inFlight++
-      logger.debug(`inFlight++ ${this.inFlight}/${concurrency}, queue ${this.queue.length}`)
-      if (resolveOnStart) fn.defer.resolve()
-
-      runSafe(fn)
-        .then(result => {
-          if (!resolveOnStart) fn.defer.resolve(result)
-        })
-        .catch((err: Error) => {
-          if (resolveOnStart) {
-            logger.error(err)
-            return
-          }
-
-          if (this.cfg.errorMode === ErrorMode.SUPPRESS) {
-            logger.error(err)
-            fn.defer.resolve() // resolve with `void`
-          } else {
-            // Should be handled on the outside, otherwise it'll cause UnhandledRejection
-            // Not logging, because it's re-thrown upstream
-            fn.defer.reject(err)
-          }
-        })
-        .finally(() => {
-          this.inFlight--
-          logger.debug(`inFlight-- ${this.inFlight}/${concurrency}, queue ${this.queue.length}`)
-
-          // check if there's room to start next job
-          if (this.queue.length && this.inFlight <= concurrency) {
-            const nextFn = this.queue.shift()!
-            this.push(nextFn).catch(_noop)
-          } else {
-            if (this.inFlight === 0) {
-              logger.debug('onIdle')
-              this.onIdleListeners.forEach(defer => defer.resolve())
-              this.onIdleListeners.length = 0 // empty the array
-            }
-          }
-        })
+      this.start(job)
     } else {
-      this.queue.push(fn)
-      logger.debug(`inFlight ${this.inFlight}/${concurrency}, queue++ ${this.queue.length}`)
+      this.queue.push(job)
+      this.logger.debug(
+        `inFlight ${this.inFlight}/${this.cfg.concurrency}, queue++ ${this.queue.length}`,
+      )
     }
 
-    return await fn.defer
+    return await job.defer
+  }
+
+  /**
+   * Starts the job and settles its `defer`.
+   * Intentionally not async: it's called both from `push` and when a running job finishes,
+   * and must not create a Promise that nobody handles (which would cause UnhandledRejection).
+   */
+  private start<R>(job: PQueueJob<R>): void {
+    const { concurrency } = this.cfg
+    const { resolveOnStart, logger } = this
+    const { defer } = job
+
+    this.inFlight++
+    logger.debug(`inFlight++ ${this.inFlight}/${concurrency}, queue ${this.queue.length}`)
+    if (resolveOnStart) defer.resolve()
+
+    runSafe(job.fn)
+      .then(result => {
+        if (!resolveOnStart) defer.resolve(result)
+      })
+      .catch((err: Error) => {
+        if (resolveOnStart) {
+          logger.error(err)
+          return
+        }
+
+        if (this.cfg.errorMode === ErrorMode.SUPPRESS) {
+          logger.error(err)
+          defer.resolve() // resolve with `void`
+        } else {
+          // Should be handled on the outside, otherwise it'll cause UnhandledRejection
+          // Not logging, because it's re-thrown upstream
+          defer.reject(err)
+        }
+      })
+      .finally(() => {
+        this.inFlight--
+        logger.debug(`inFlight-- ${this.inFlight}/${concurrency}, queue ${this.queue.length}`)
+
+        // check if there's room to start next job
+        if (this.queue.length && this.inFlight < concurrency) {
+          this.start(this.queue.shift()!)
+        } else {
+          if (this.inFlight === 0) {
+            logger.debug('onIdle')
+            this.onIdleListeners.forEach(defer => defer.resolve())
+            this.onIdleListeners.length = 0 // empty the array
+          }
+        }
+      })
   }
 
   get queueSize(): number {
@@ -156,6 +165,7 @@ function runSafe<R>(fn: AsyncFunction<R>): Promise<R> {
   }
 }
 
-interface AsyncFunctionWithDefer<R> extends AsyncFunction<R> {
+interface PQueueJob<R> {
+  fn: AsyncFunction<R>
   defer: DeferredPromise<R>
 }
