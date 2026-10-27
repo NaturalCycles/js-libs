@@ -1,3 +1,5 @@
+include:
+  ./packages/pnpm-config/pnpm.config.yaml: '*'
 packages:
   - packages/*
 catalog:
@@ -5,27 +7,11 @@ catalog:
   'typescript': ^7
   oxlint: ^1
   'oxlint-tsgolint': ^7
-minimumReleaseAgeExclude:
-  - '@naturalcycles/*'
-  - vitest
-  - '@vitest/*'
-  - oxfmt
-  - '@oxfmt/*'
-  - eslint-plugin-oxlint
-  - oxlint
-  - oxlint-tsgolint
-  - '@oxlint/*'
-  - '@oxlint-tsgolint/*'
 autoDedupe: true
-trustLockfile: true
-trustPolicyExcludePrune: true
-trustPolicy: no-downgrade
-blockExoticSubdeps: true
 auditConfig:
   ignoreGhsas:
     - GHSA-h755-8qp9-cq85
     - GHSA-67mh-4wv8-2f99
-strictDepBuilds: true
 ignoreWorkspaceCycles: true
 publicHoistPattern:
   - typescript
@@ -33,5 +19,3 @@ allowBuilds:
   esbuild: true
   '@firebase/util': false
   protobufjs: false
-update:
-  githubActions: false

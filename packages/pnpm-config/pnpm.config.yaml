@@ -1,0 +1,20 @@
+# Shared pnpm workspace config, consumed as a config dependency (https://pnpm.io/config-includes).
+
+minimumReleaseAgeExclude:
+  - '@naturalcycles/*'
+  - vitest
+  - '@vitest/*'
+  - oxfmt
+  - '@oxfmt/*'
+  - eslint-plugin-oxlint
+  - oxlint
+  - oxlint-tsgolint
+  - '@oxlint/*'
+  - '@oxlint-tsgolint/*'
+trustLockfile: true
+trustPolicyExcludePrune: true
+trustPolicy: no-downgrade
+# Below settings are kept as defaults.
+# minimumReleaseAge: 1440
+# blockExoticSubdeps: true
+# strictDepBuilds: true

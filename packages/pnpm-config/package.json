@@ -1,0 +1,21 @@
+{
+  "name": "@naturalcycles/pnpm-config",
+  "pnpm": {
+    "config": "./pnpm.config.yaml"
+  },
+  "files": [
+    "pnpm.config.yaml"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:NaturalCycles/js-libs.git",
+    "directory": "packages/pnpm-config"
+  },
+  "version": "0.0.0",
+  "description": "Shared pnpm config",
+  "author": "Natural Cycles Team",
+  "license": "MIT"
+}
