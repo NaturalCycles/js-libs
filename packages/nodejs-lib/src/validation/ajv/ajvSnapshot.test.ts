@@ -2,7 +2,7 @@ import type { JSONSchemaType } from 'ajv'
 // CJS module: under nodenext the default import is `module.exports`, the function lives on `.default`
 import standaloneCode from 'ajv/dist/standalone/index.js'
 import { format } from 'oxfmt'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { createAjv } from './getAjv.js'
 import { j } from './jSchema.js'
 
@@ -13,7 +13,7 @@ const ajv = createAjv({
   },
 })
 
-test('snapshot ajv schema', async () => {
+it('snapshot ajv schema', async () => {
   const jsonSchema = j.object
     .infer({
       s: j.string(),

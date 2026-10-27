@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import type { InstanceId } from '../types.js'
 import { _getArgsSignature, _getMethodSignature } from './decorator.util.js'
 
@@ -10,7 +10,7 @@ class C implements InstanceId {
   }
 }
 
-test('getMethodSignature', () => {
+it('getMethodSignature', () => {
   const c = new C()
   expect(_getMethodSignature(c, 'method1')).toBe('C.method1')
 
@@ -18,7 +18,7 @@ test('getMethodSignature', () => {
   expect(_getMethodSignature(c, 'method1')).toBe('C#instance_1.method1')
 })
 
-test('getArgsSignature', () => {
+it('getArgsSignature', () => {
   expect(_getArgsSignature()).toBe('')
   expect(_getArgsSignature([])).toBe('')
   expect(_getArgsSignature([''])).toBe('')

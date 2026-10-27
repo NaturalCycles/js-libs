@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _mapToObject } from '../array/array.util.js'
 import { _range } from '../array/range.js'
 import { _averageOrNull, _percentiles } from './index.js'
@@ -27,7 +27,7 @@ const numbers = [
   10 / 3,
 ]
 
-test.each([
+it.each([
   [[1], 1],
   [[1, 2], 1.5],
   [[1, 2, 3], 2],
@@ -36,7 +36,7 @@ test.each([
   expect(_average(numbers)).toBe(result)
 })
 
-test('_averageOrNull', () => {
+it('_averageOrNull', () => {
   expect(() => _average([])).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: _average is called on empty array]`,
   )
@@ -45,7 +45,7 @@ test('_averageOrNull', () => {
   expect(_averageOrNull([1])).toBe(1)
 })
 
-test.each([
+it.each([
   [[1], 0],
   [[1, 1, 1], 0],
   [[2, 4, 4, 4, 5, 5, 7, 9], 2],
@@ -54,7 +54,7 @@ test.each([
   expect(_stdDev(numbers)).toBe(result)
 })
 
-test('_stdDevOrNull', () => {
+it('_stdDevOrNull', () => {
   expect(() => _stdDev([])).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: _stdDev is called on empty array]`,
   )
@@ -63,14 +63,14 @@ test('_stdDevOrNull', () => {
   expect(_stdDevOrNull([1])).toBe(0)
 })
 
-test('_averageWeighted', () => {
+it('_averageWeighted', () => {
   expect(_averageWeighted([1, 2], [3, 1])).toMatchInlineSnapshot('1.25')
 
   const weights = numbers.map((_, i) => 1 + 0.1 * i)
   expect(_averageWeighted(numbers, weights)).toBe(39.25869391025641)
 })
 
-test.each([
+it.each([
   [[1], 50, 1],
   [[1, 2], 50, 1.5],
   [[1, 3], 50, 2],
@@ -92,7 +92,7 @@ test.each([
   expect(_percentile(numbers, pc)).toBe(result)
 })
 
-test('_percentile', () => {
+it('_percentile', () => {
   const numbers = [1200, 1400]
 
   const pcs = _mapToObject(_range(0, 101, 10), pc => [pc, _percentile(numbers, pc)])
@@ -115,7 +115,7 @@ test('_percentile', () => {
   `)
 })
 
-test('_percentiles', () => {
+it('_percentiles', () => {
   const numbers = [1200, 1400]
 
   const pcs = _percentiles(numbers, [50, 90, 99])
@@ -128,7 +128,7 @@ test('_percentiles', () => {
   `)
 })
 
-test('_median', () => {
+it('_median', () => {
   expect(_median([1, 2, 3])).toBe(2)
   expect(_median([1, 2, 3, 4])).toBe(2.5)
   expect(_median([5])).toBe(5)

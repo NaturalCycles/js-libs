@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { _stringMapValuesSorted } from './array/index.js'
 import { localTime } from './datetime/index.js'
 import { asUnixTimestamp, asUnixTimestamp2000 } from './error/index.js'
@@ -42,7 +42,7 @@ interface ItemDBM extends Item {}
 
 const _ = '2021-01' as IsoMonth
 
-test('saved/unsaved', () => {
+it('saved/unsaved', () => {
   const a = 1
   expectTypeOf(a).toEqualTypeOf<number>()
 
@@ -136,7 +136,7 @@ test('saved/unsaved', () => {
   }>()
 })
 
-test('types', () => {
+it('types', () => {
   const _: Reviver = (_k, _v) => {}
 
   expect(_passthroughMapper('a', 1)).toBe('a')
@@ -155,7 +155,7 @@ test('types', () => {
   expectTypeOf(map['d']).toEqualTypeOf<string | undefined>()
 })
 
-test('_stringMapValues, _stringMapEntries', () => {
+it('_stringMapValues, _stringMapEntries', () => {
   const o = { b: 2, c: 3, d: 4 }
   const b = o.b // number
   expectTypeOf(b).toEqualTypeOf<number>()
@@ -185,7 +185,7 @@ test('_stringMapValues, _stringMapEntries', () => {
   expect(_stringMapValuesSorted(o, v => v, 'desc')).toEqual([4, 3, 2])
 })
 
-test('_objectEntries with number Enum', () => {
+it('_objectEntries with number Enum', () => {
   enum A {
     k1 = 1,
     k2 = 2,
@@ -214,7 +214,7 @@ test('_objectEntries with number Enum', () => {
   `)
 })
 
-test('_objectEntries with string Enum', () => {
+it('_objectEntries with string Enum', () => {
   enum B {
     k1 = 'v1',
     k2 = 'v2',
@@ -243,7 +243,7 @@ test('_objectEntries with string Enum', () => {
   `)
 })
 
-test('_objectKeys with number Enum', () => {
+it('_objectKeys with number Enum', () => {
   enum A {
     k1 = 1,
     k2 = 2,
@@ -266,7 +266,7 @@ test('_objectKeys with number Enum', () => {
   `)
 })
 
-test('_objectKeys with string Enum', () => {
+it('_objectKeys with string Enum', () => {
   enum B {
     k1 = 'v1',
     k2 = 'v2',
@@ -289,7 +289,7 @@ test('_objectKeys with string Enum', () => {
   `)
 })
 
-test('_typeCast', () => {
+it('_typeCast', () => {
   const err = _expectedError(() => {
     throw new Error('yo')
   })
@@ -307,7 +307,7 @@ test('_typeCast', () => {
   `)
 })
 
-test('_objectAssign', () => {
+it('_objectAssign', () => {
   const item = {} as Item
 
   // No TypeScript error here
@@ -330,13 +330,13 @@ test('_objectAssign', () => {
   `)
 })
 
-test('Unsaved type', () => {
+it('Unsaved type', () => {
   // expectTypeOf<Unsaved<any>>().toEqualTypeOf<any>()
 
   function _<BM extends AnyObject>(_a: Unsaved<BM>): void {}
 })
 
-test('branded', () => {
+it('branded', () => {
   type MyId = Branded<string, 'MyId'>
   const id = '123' as MyId
   const id2 = '124' as MyId
@@ -347,14 +347,14 @@ test('branded', () => {
   expect(s).toEqual(id)
 })
 
-test('UnixTimestamp branded type', () => {
+it('UnixTimestamp branded type', () => {
   const ts = 123 as UnixTimestamp
   const ts2: number = ts // compatible
   const _: UnixTimestamp = ts2 as UnixTimestamp // needs casting
   const __ = asUnixTimestamp(ts2) // casting with a helper function
 })
 
-test('NotPromise', () => {
+it('NotPromise', () => {
   // NotPromise resolves to T for non-promise types
   expectTypeOf<NotPromise<string>>().toEqualTypeOf<string>()
   expectTypeOf<NotPromise<number>>().toEqualTypeOf<number>()
@@ -370,7 +370,7 @@ test('NotPromise', () => {
   expectTypeOf<NotPromise<PromiseLike<number>>>().toEqualTypeOf<never>()
 })
 
-test('SyncFunction', () => {
+it('SyncFunction', () => {
   // Sync functions are assignable
   const syncFn: SyncFunction<string> = () => 'hello'
   expect(syncFn()).toBe('hello')
@@ -384,7 +384,7 @@ test('SyncFunction', () => {
   const __rejectAsync: SyncFunction<string> = asyncFn
 })
 
-test('AnySyncFunction', () => {
+it('AnySyncFunction', () => {
   // Sync functions with args are assignable
   const syncFn: AnySyncFunction<number> = (a: number, b: number) => a + b
   expect(syncFn(1, 2)).toBe(3)
@@ -395,7 +395,7 @@ test('AnySyncFunction', () => {
   const __rejectAsync: AnySyncFunction<number> = asyncFn
 })
 
-test('asUnixTimestamp2000', () => {
+it('asUnixTimestamp2000', () => {
   const valid = localTime('2022-07-14' as IsoDate).unix
   const tooOld = localTime('1984-06-21' as IsoDate).unix
   const tsInMillis = localTime('2022-07-14' as IsoDate).unixMillis

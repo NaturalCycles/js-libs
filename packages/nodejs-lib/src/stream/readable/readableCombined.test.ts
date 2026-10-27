@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { test, vi } from 'vitest'
+import { it, vi } from 'vitest'
 import { Pipeline } from '../index.js'
 import { ReadableCombined } from './readableCombined.js'
 
@@ -54,7 +54,7 @@ class HonestReadable extends Readable {
   }
 }
 
-test.skip('readableCombined', async () => {
+it.skip('readableCombined', async () => {
   // const source1 = Readable.from(timedIterable(1))
   // const source2 = Readable.from(timedIterable(2))
   // const source3 = Readable.from(timedIterable(3))

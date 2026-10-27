@@ -1,9 +1,9 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import { transformNoOp } from './transformNoOp.js'
 
-test('transformNoOp', async () => {
+it('transformNoOp', async () => {
   const data = _range(1, 4).map(String)
 
   const data2: string[] = []

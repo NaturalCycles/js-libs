@@ -1,4 +1,4 @@
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { AppError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
 import { normalizeStack } from '../test/test.util.js'
@@ -6,7 +6,7 @@ import { pDefer } from './pDefer.js'
 import { pDelay } from './pDelay.js'
 import { pProps } from './pProps.js'
 
-test('main', async () => {
+it('main', async () => {
   const defer = pDefer<number>()
 
   const input = {
@@ -29,7 +29,7 @@ test('main', async () => {
   })
 })
 
-test('rejects if any of the input promises reject', async () => {
+it('rejects if any of the input promises reject', async () => {
   await expect(
     pProps({
       foo: Promise.resolve(1),
@@ -38,7 +38,7 @@ test('rejects if any of the input promises reject', async () => {
   ).rejects.toThrow('bar')
 })
 
-test('handles empty object', async () => {
+it('handles empty object', async () => {
   expect(await pProps({})).toEqual({})
 })
 
@@ -48,7 +48,7 @@ test('handles empty object', async () => {
 //     at wrappingFn (pProps.test.ts:52:3)
 //     at pExpectedError (try.ts:81:5)
 //     at Object.<anonymous> (pProps.test.ts:44:15)
-test('should preserve stack', async () => {
+it('should preserve stack', async () => {
   const err = await pExpectedError(wrappingFn())
 
   // console.log(err)
@@ -68,7 +68,7 @@ test('should preserve stack', async () => {
   `)
 })
 
-test('expectType', async () => {
+it('expectType', async () => {
   const r = await pProps({
     a: pDelay(0, 'a'),
     b: pDelay(0, 42),

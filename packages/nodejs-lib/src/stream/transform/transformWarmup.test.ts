@@ -1,9 +1,9 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
-test('transformWarmup passes all items through', async () => {
+it('transformWarmup passes all items through', async () => {
   const data = _range(1, 11).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)
@@ -16,7 +16,7 @@ test('transformWarmup passes all items through', async () => {
   expect(results).toEqual(data)
 })
 
-test('transformWarmup with warmupSeconds=0 is pure pass-through', async () => {
+it('transformWarmup with warmupSeconds=0 is pure pass-through', async () => {
   const data = _range(1, 101).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)
@@ -29,7 +29,7 @@ test('transformWarmup with warmupSeconds=0 is pure pass-through', async () => {
   expect(results).toEqual(data)
 })
 
-test('transformWarmup with concurrency=1 is pure pass-through', async () => {
+it('transformWarmup with concurrency=1 is pure pass-through', async () => {
   const data = _range(1, 21).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)
@@ -42,7 +42,7 @@ test('transformWarmup with concurrency=1 is pure pass-through', async () => {
   expect(results).toEqual(data)
 })
 
-test('transformWarmup limits concurrency during warmup', async () => {
+it('transformWarmup limits concurrency during warmup', async () => {
   const concurrencyLog: number[] = []
   let currentConcurrency = 0
   let maxConcurrency = 0
@@ -72,7 +72,7 @@ test('transformWarmup limits concurrency during warmup', async () => {
   expect(concurrencyLog[0]).toBeLessThanOrEqual(2) // First item(s) should be low concurrency
 })
 
-test('transformWarmup reaches full concurrency after warmup', async () => {
+it('transformWarmup reaches full concurrency after warmup', async () => {
   const concurrencyLog: number[] = []
   let currentConcurrency = 0
 
@@ -105,7 +105,7 @@ test('transformWarmup reaches full concurrency after warmup', async () => {
   expect(avgLastConcurrency).toBeGreaterThan(1)
 })
 
-test('transformWarmup works with Pipeline.map', async () => {
+it('transformWarmup works with Pipeline.map', async () => {
   const data = _range(1, 11).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)

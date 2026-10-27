@@ -1,6 +1,6 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 
-test('should not leak memory', async () => {
+it('should not leak memory', async () => {
   await import('./index.js')
   await import('./validation/index.js')
   await import('./testing/index.js')

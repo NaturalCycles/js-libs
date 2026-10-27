@@ -1,4 +1,4 @@
-import type { MemoCache } from '@naturalcycles/js-lib/decorators'
+import type { AsyncMemoCache, MemoCache } from '@naturalcycles/js-lib/decorators'
 import { LRUCache } from 'lru-cache'
 
 // Partial, to be able to provide default `max`
@@ -34,6 +34,36 @@ export class LRUMemoCache<KEY = any, VALUE = any> implements MemoCache<KEY, VALU
   }
 
   clear(): void {
+    this.lru.clear()
+  }
+}
+
+/**
+ * Same as LRUMemoCache, but implements AsyncMemoCache interface, for when you need it.
+ */
+export class LRUAsyncMemoCache<KEY = any, VALUE = any> implements AsyncMemoCache<KEY, VALUE> {
+  constructor(opt: LRUMemoCacheOptions<KEY, VALUE>) {
+    this.lru = new LRUCache<any, any>({
+      max: 100,
+      ...opt,
+    })
+  }
+
+  private lru!: LRUCache<any, any>
+
+  async has(k: any): Promise<boolean> {
+    return this.lru.has(k)
+  }
+
+  async get(k: any): Promise<any> {
+    return this.lru.get(k)
+  }
+
+  async set(k: any, v: any): Promise<void> {
+    this.lru.set(k, v)
+  }
+
+  async clear(): Promise<void> {
     this.lru.clear()
   }
 }

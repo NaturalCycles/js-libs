@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { _range } from '../array/range.js'
 import { pDelay } from '../promise/pDelay.js'
 import { _AsyncMemo, _getAsyncMemo } from './asyncMemo.decorator.js'
@@ -17,7 +17,7 @@ class A {
   }
 }
 
-test('memo a', async () => {
+it('memo a', async () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -40,7 +40,7 @@ test('memo a', async () => {
   await _getAsyncMemo(a.a).clear()
 })
 
-test('MEMO_DROP_CACHE', async () => {
+it('MEMO_DROP_CACHE', async () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -72,7 +72,7 @@ class B {
   }
 }
 
-test('should work with default arg values', async () => {
+it('should work with default arg values', async () => {
   const b = new B()
 
   // Call 1 with default (cache miss). arg1=undefined
@@ -102,7 +102,7 @@ class C {
   }
 }
 
-test('swarm test of async function', async () => {
+it('swarm test of async function', async () => {
   // Swarm is when one "slow" async function is called multiple times in parallel
   // Expectation is that it should return the same Promise and `calls` should equal to 1
   // Because it **synchronously** returns a Promise (despite the fact that it's async)

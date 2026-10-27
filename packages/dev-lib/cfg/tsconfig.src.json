@@ -6,7 +6,6 @@
 {
   "compilerOptions": {
     "rootDir": "${configDir}/src",
-    // "baseUrl": "${configDir}/src",
     "outDir": "${configDir}/dist",
     // Target/module
     "target": "es2024",
@@ -20,9 +19,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "verbatimModuleSyntax": true,
-    // Faster compilation in general
-    // Support for external compilers (e.g esbuild)
-    // Speedup in Jest by using "isolatedModules" in 'ts-jest' config
+    // Faster compilation in general, support for external compilers (e.g esbuild)
     "isolatedModules": true,
     "types": ["node"],
 

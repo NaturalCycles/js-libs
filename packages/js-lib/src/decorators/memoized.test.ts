@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from 'vitest'
+import { beforeEach, expect, it } from 'vitest'
 import { _memoized } from './memoized.js'
 
 let calledTimes = 0
@@ -15,7 +15,7 @@ beforeEach(() => {
   calledTimes = 0
 })
 
-test('memoFn', () => {
+it('memoFn', () => {
   let expectedCallTimes = 0
   expect(calledTimes).toBe(expectedCallTimes)
 

@@ -1,11 +1,11 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { SortedArray, SortedNumberArray, SortedStringArray } from './sortedArray.js'
 
-test('isArray should be true', () => {
+it('isArray should be true', () => {
   expect(Array.isArray(new SortedArray())).toBe(true)
 })
 
-test('stringification', () => {
+it('stringification', () => {
   const a = new SortedArray([1, 2, 3])
   const native = [1, 2, 3]
   expect(a.toString()).toMatchInlineSnapshot(`"1,2,3"`)
@@ -13,7 +13,7 @@ test('stringification', () => {
   expect(JSON.stringify(a)).toBe(JSON.stringify(native))
 })
 
-test('constructor sorts initial values', () => {
+it('constructor sorts initial values', () => {
   const arr = new SortedArray(['c', 'a', 'b'])
 
   expect(arr).toEqual(['a', 'b', 'c'])
@@ -21,7 +21,7 @@ test('constructor sorts initial values', () => {
   expect(arr.last()).toBe('c')
 })
 
-test('push keeps items sorted', () => {
+it('push keeps items sorted', () => {
   const arr = new SortedArray(['b'])
 
   arr.push('d', 'a', 'c')
@@ -29,7 +29,7 @@ test('push keeps items sorted', () => {
   expect(arr).toEqual(['a', 'b', 'c', 'd'])
 })
 
-test('unshift and splice keep items sorted', () => {
+it('unshift and splice keep items sorted', () => {
   const arr = new SortedArray(['d'])
 
   arr.unshift('c')
@@ -47,7 +47,7 @@ test('unshift and splice keep items sorted', () => {
   expect(arr).toEqual(['a', 'aa', 'c', 'd'])
 })
 
-test('respects custom comparator', () => {
+it('respects custom comparator', () => {
   const arr = new SortedArray<number>([1, 3, 2], { comparator: (a, b) => b - a })
 
   expect(arr).toEqual([3, 2, 1])
@@ -56,7 +56,7 @@ test('respects custom comparator', () => {
   expect(arr).toEqual([4, 3, 2, 1])
 })
 
-test('SortedNumberArray sorts numerically', () => {
+it('SortedNumberArray sorts numerically', () => {
   const arr = new SortedNumberArray([10, 2, 1])
 
   expect(arr).toEqual([1, 2, 10])
@@ -65,7 +65,7 @@ test('SortedNumberArray sorts numerically', () => {
   expect(arr).toEqual([1, 2, 3, 10])
 })
 
-test('constructors remain identifiable', () => {
+it('constructors remain identifiable', () => {
   expect(new SortedArray().constructor.name).toBe('SortedArray')
   expect(new SortedStringArray().constructor.name).toBe('SortedStringArray')
   expect(new SortedNumberArray().constructor.name).toBe('SortedNumberArray')

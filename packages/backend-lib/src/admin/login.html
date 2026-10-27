@@ -6,38 +6,59 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-    <!-- CSS only -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      crossorigin="anonymous"
-    />
+    <style>
+      body {
+        max-width: 45rem;
+        margin: 0 auto;
+        padding: 40px 1rem;
+        font-family: system-ui, sans-serif;
+        font-size: 1.15rem;
+        line-height: 1.5;
+      }
+      pre {
+        padding: 1rem 1.4rem;
+        overflow-x: auto;
+        background: #f5f7ff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        padding: 1rem 1.4rem;
+        font-size: 1.5rem;
+        color: #fff;
+        cursor: pointer;
+        background: #0d47a1;
+        border: none;
+        border-radius: 5px;
+      }
+      button:hover {
+        opacity: 0.8;
+      }
+    </style>
   </head>
   <body>
-    <div id="app" style="padding: 40px 50px">
-      <pre v-if="loading">Checking login...</pre>
-      <div v-else>
-        <div v-if="user">
-          <p>Logged in as:</p>
-          <pre><mark>{{ user.email }}</mark></pre>
-          <pre><mark>{{ user.token }}</mark></pre>
-          <button class="btn btn-primary btn-lg" @click="logout">Logout</button>
-        </div>
-        <div v-else>
-          <button class="btn btn-primary btn-lg" @click="login" id="loginBtn">Login</button>
-        </div>
-      </div>
+    <pre id="loading">Checking login...</pre>
+
+    <div id="loggedIn" hidden>
+      <p>Logged in as:</p>
+      <pre><code id="email"></code></pre>
+      <pre><code id="token"></code></pre>
+      <button id="logoutButton">Logout</button>
+    </div>
+
+    <div id="loggedOut" hidden>
+      <button id="loginBtn">Login</button>
     </div>
 
     <script type="module">
-      import { createApp } from 'https://cdn.jsdelivr.net/npm/vue@3.2.20/dist/vue.esm-browser.prod.js'
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js'
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'
       import {
         getAuth,
         GoogleAuthProvider,
         onAuthStateChanged,
         signInWithRedirect,
-      } from 'https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js'
+        signOut,
+      } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'
 
       const apiKey = '<%= firebaseApiKey %>'
       const authDomain = '<%= firebaseAuthDomain %>'
@@ -47,86 +68,92 @@
         alert(`Error: 'apiKey' or 'authDomain' is missing!`)
       }
 
-      // Initialize Firebase
-      initializeApp({
-        apiKey,
-        authDomain,
-      })
+      const qs = Object.fromEntries(new URLSearchParams(location.search))
+      const { autoLogin, adminTokenKey = 'admin_token' } = qs
+      const returnUrl = toSafeReturnUrl(qs.returnUrl)
+      // console.log(qs)
 
-      const auth = getAuth()
+      // Initialize Firebase
+      const auth = getAuth(
+        initializeApp({
+          apiKey,
+          authDomain,
+        }),
+      )
       const provider = new GoogleAuthProvider()
+
+      const el = {
+        loading: document.getElementById('loading'),
+        loggedIn: document.getElementById('loggedIn'),
+        loggedOut: document.getElementById('loggedOut'),
+        email: document.getElementById('email'),
+        token: document.getElementById('token'),
+      }
+
+      document.getElementById('loginBtn').addEventListener('click', login)
+      document.getElementById('logoutButton').addEventListener('click', logout)
 
       onAuthStateChanged(auth, user => {
         // console.log('onAuthStateChanged, user: ', JSON.stringify(user, null, 2))
         // console.log('onAuthStateChanged, user: ', user)
-        onUser(user)
+        void onUser(user)
       })
 
-      const qs = Object.fromEntries(new URLSearchParams(location.search))
-      const { autoLogin, logout, adminTokenKey = 'admin_token' } = qs
-      const returnUrl = toSafeReturnUrl(qs.returnUrl)
-      // console.log(qs)
-
-      const app = createApp({
-        data() {
-          return {
-            loading: 'Loading...',
-            user: undefined,
-          }
-        },
-        methods: {
-          login: async function () {
-            try {
-              await signInWithRedirect(auth, provider)
-            } catch (err) {
-              logError(err)
-            }
-          },
-
-          logout: async function () {
-            try {
-              await auth.signOut()
-
-              await postToken('logout') // magic string
-
-              if (logout && returnUrl) {
-                alert('Logged out, redurecting back...')
-                location.href = returnUrl
-              }
-            } catch (err) {
-              logError(err)
-            }
-          },
-        },
-      }).mount('#app')
-
-      if (logout) app.logout()
+      if (qs.logout) void logout()
 
       ////
 
       async function onUser(user) {
         try {
           // alert('onUser')
-          app.user = user
-          app.loading = false
+          render(user)
           if (!user) {
-            if (autoLogin) app.login()
+            if (autoLogin) void login()
           } else {
-            const token = await auth.currentUser.getIdToken()
+            const token = await user.getIdToken()
 
             // alert('idToken')
             // console.log(idToken)
-            app.user = Object.assign({}, app.user, {
-              token,
-            })
+            render(user, token)
 
             await postToken(token)
 
             // Redirect if needed
             if (returnUrl) {
-              // alert(`Logged in as ${app.user.email}, redirecting back...`)
+              // alert(`Logged in as ${user.email}, redirecting back...`)
               location.href = returnUrl
             }
+          }
+        } catch (err) {
+          logError(err)
+        }
+      }
+
+      function render(user, token = '') {
+        el.loading.hidden = true
+        el.loggedIn.hidden = !user
+        el.loggedOut.hidden = !!user
+        el.email.textContent = user?.email || ''
+        el.token.textContent = token
+      }
+
+      async function login() {
+        try {
+          await signInWithRedirect(auth, provider)
+        } catch (err) {
+          logError(err)
+        }
+      }
+
+      async function logout() {
+        try {
+          await signOut(auth)
+
+          await postToken('logout') // magic string
+
+          if (qs.logout && returnUrl) {
+            alert('Logged out, redirecting back...')
+            location.href = returnUrl
           }
         } catch (err) {
           logError(err)

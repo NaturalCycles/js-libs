@@ -63,7 +63,7 @@ export class PGradualQueue {
   private warmupComplete: boolean
 
   inFlight = 0
-  private queue: AsyncFunction[] = []
+  private queue: PGradualQueueJob<any>[] = []
 
   /**
    * Get current allowed concurrency based on warmup progress.
@@ -89,54 +89,62 @@ export class PGradualQueue {
    * Push PromiseReturningFunction to the Queue.
    * Returns a Promise that resolves (or rejects) with the return value from the Promise.
    */
-  async push<R>(fn_: AsyncFunction<R>): Promise<R> {
+  async push<R>(fn: AsyncFunction<R>): Promise<R> {
     // Initialize start time on first push
     if (this.startTime === 0) {
       this.startTime = Date.now()
     }
 
-    const { logger } = this
-    const fn = fn_ as AsyncFunctionWithDefer<R>
-    fn.defer ||= pDefer<R>()
-
+    const job: PGradualQueueJob<R> = { fn, defer: pDefer<R>() }
     const concurrency = this.getCurrentConcurrency()
 
     if (this.inFlight < concurrency) {
-      this.inFlight++
-      logger.debug(`inFlight++ ${this.inFlight}/${concurrency}, queue ${this.queue.length}`)
-
-      runSafe(fn)
-        .then(result => {
-          fn.defer.resolve(result)
-        })
-        .catch((err: Error) => {
-          if (this.cfg.errorMode === ErrorMode.SUPPRESS) {
-            logger.error(err)
-            fn.defer.resolve() // resolve with `void`
-          } else {
-            fn.defer.reject(err)
-          }
-        })
-        .finally(() => {
-          this.inFlight--
-          const currentConcurrency = this.getCurrentConcurrency()
-          logger.debug(
-            `inFlight-- ${this.inFlight}/${currentConcurrency}, queue ${this.queue.length}`,
-          )
-
-          // Start queued jobs up to the current concurrency limit
-          // Use while loop since concurrency may have increased during warmup
-          while (this.queue.length && this.inFlight < this.getCurrentConcurrency()) {
-            const nextFn = this.queue.shift()!
-            void this.push(nextFn)
-          }
-        })
+      this.start(job, concurrency)
     } else {
-      this.queue.push(fn)
-      logger.debug(`inFlight ${this.inFlight}/${concurrency}, queue++ ${this.queue.length}`)
+      this.queue.push(job)
+      this.logger.debug(`inFlight ${this.inFlight}/${concurrency}, queue++ ${this.queue.length}`)
     }
 
-    return await fn.defer
+    return await job.defer
+  }
+
+  /**
+   * Starts the job and settles its `defer`.
+   * Intentionally not async: it's called both from `push` and when a running job finishes,
+   * and must not create a Promise that nobody handles (which would cause UnhandledRejection).
+   */
+  private start<R>(job: PGradualQueueJob<R>, concurrency: number): void {
+    const { logger } = this
+    const { defer } = job
+
+    this.inFlight++
+    logger.debug(`inFlight++ ${this.inFlight}/${concurrency}, queue ${this.queue.length}`)
+
+    runSafe(job.fn)
+      .then(result => {
+        defer.resolve(result)
+      })
+      .catch((err: Error) => {
+        if (this.cfg.errorMode === ErrorMode.SUPPRESS) {
+          logger.error(err)
+          defer.resolve() // resolve with `void`
+        } else {
+          defer.reject(err)
+        }
+      })
+      .finally(() => {
+        this.inFlight--
+        const currentConcurrency = this.getCurrentConcurrency()
+        logger.debug(
+          `inFlight-- ${this.inFlight}/${currentConcurrency}, queue ${this.queue.length}`,
+        )
+
+        // Start queued jobs up to the current concurrency limit
+        // Use while loop since concurrency may have increased during warmup
+        while (this.queue.length && this.inFlight < currentConcurrency) {
+          this.start(this.queue.shift()!, currentConcurrency)
+        }
+      })
   }
 
   get queueSize(): number {
@@ -164,6 +172,7 @@ function runSafe<R>(fn: AsyncFunction<R>): Promise<R> {
   }
 }
 
-interface AsyncFunctionWithDefer<R = unknown> extends AsyncFunction<R> {
+interface PGradualQueueJob<R> {
+  fn: AsyncFunction<R>
   defer: DeferredPromise<R>
 }

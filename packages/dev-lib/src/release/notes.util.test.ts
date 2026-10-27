@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { parseCommit } from './commit.util.js'
 import { generateReleaseNotes } from './notes.util.js'
 import type { RepoInfo } from './release.model.js'
@@ -9,7 +9,7 @@ const repo: RepoInfo = {
   url: 'https://github.com/NaturalCycles/js-libs',
 }
 
-test('generateReleaseNotes: full example', () => {
+it('generateReleaseNotes: full example', () => {
   const commits = [
     { hash: 'a'.repeat(40), subject: 'feat(array): add _chunk', body: '' },
     { hash: 'b'.repeat(40), subject: 'fix: resolve crash', body: '' },
@@ -52,13 +52,13 @@ test('generateReleaseNotes: full example', () => {
 `)
 })
 
-test('generateReleaseNotes: first release has no compare link', () => {
+it('generateReleaseNotes: first release has no compare link', () => {
   const commits = [{ hash: 'a'.repeat(40), subject: 'feat: initial', body: '' }].map(parseCommit)
   const notes = generateReleaseNotes({ repo, commits, nextTag: 'v1.0.0', date: '2026-07-06' })
   expect(notes.startsWith('## v1.0.0 (2026-07-06)')).toBe(true)
 })
 
-test('generateReleaseNotes: revert section', () => {
+it('generateReleaseNotes: revert section', () => {
   const commits = [{ hash: 'a'.repeat(40), subject: 'Revert "feat: broken thing"', body: '' }].map(
     parseCommit,
   )

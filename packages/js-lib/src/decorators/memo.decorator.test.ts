@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { _range } from '../array/range.js'
 import { pDelay } from '../promise/pDelay.js'
 import { _getMemo, _Memo } from './memo.decorator.js'
@@ -16,7 +16,7 @@ class A {
   }
 }
 
-test('memo a', () => {
+it('memo a', () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -43,7 +43,7 @@ test('memo a', () => {
   expect(_getMemo(a.a).getInstanceCache().size).toBe(0)
 })
 
-test('MEMO_DROP_CACHE', () => {
+it('MEMO_DROP_CACHE', () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -58,7 +58,7 @@ test('MEMO_DROP_CACHE', () => {
   expect(a.func).toHaveBeenCalledTimes(2)
 })
 
-test('memo unsupported', () => {
+it('memo unsupported', () => {
   const pd = { value: 'property' } as PropertyDescriptor
   expect(() => _Memo()(null as any, 'a', pd)).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: Memoization can be applied only to methods]`,
@@ -75,7 +75,7 @@ class B {
   }
 }
 
-test('should work with default arg values', () => {
+it('should work with default arg values', () => {
   const b = new B()
 
   // Call 1 with default (cache miss). arg1=undefined
@@ -103,7 +103,7 @@ class C {
   }
 }
 
-test('swarm test of async function', async () => {
+it('swarm test of async function', async () => {
   // Swarm is when one "slow" async function is called multiple times in parallel
   // Expectation is that it should return the same Promise and `calls` should equal to 1
   // Because it **synchronously** returns a Promise (despite the fact that it's async)

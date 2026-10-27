@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import type { BackendRequest } from './server.model.js'
 import { getRequestTraceContext, getRequestTraceId, parseTraceparent } from './trace.util.js'
 
@@ -6,7 +6,7 @@ const traceId = '4bf92f3577b34da6a3ce929d0e0e4736'
 const spanId = '00f067aa0ba902b7'
 const traceparent = `00-${traceId}-${spanId}-01`
 
-test('parseTraceparent: parses the trace id, span id and sampled flag', () => {
+it('parseTraceparent: parses the trace id, span id and sampled flag', () => {
   expect(parseTraceparent(traceparent)).toEqual({ traceId, spanId, sampled: true })
   expect(parseTraceparent(`00-${traceId}-${spanId}-00`)).toEqual({
     traceId,
@@ -16,7 +16,7 @@ test('parseTraceparent: parses the trace id, span id and sampled flag', () => {
   expect(parseTraceparent(`01-${traceId}-${spanId}-03`)).toEqual({ traceId, spanId, sampled: true })
 })
 
-test('parseTraceparent: ignores the extra fields of a higher version', () => {
+it('parseTraceparent: ignores the extra fields of a higher version', () => {
   expect(parseTraceparent(`01-${traceId}-${spanId}-01-extra`)).toEqual({
     traceId,
     spanId,
@@ -24,7 +24,7 @@ test('parseTraceparent: ignores the extra fields of a higher version', () => {
   })
 })
 
-test.each([
+it.each([
   undefined,
   '',
   `00-${traceId}-${spanId}`,
@@ -39,7 +39,7 @@ test.each([
   expect(parseTraceparent(header)).toBeUndefined()
 })
 
-test('getRequestTraceContext: reads traceparent', () => {
+it('getRequestTraceContext: reads traceparent', () => {
   expect(getRequestTraceContext(mockReq({ traceparent }))).toEqual({
     traceId,
     spanId,
@@ -48,7 +48,7 @@ test('getRequestTraceContext: reads traceparent', () => {
   expect(getRequestTraceContext(mockReq({}))).toBeUndefined()
 })
 
-test('getRequestTraceId: undefined without a valid traceparent', () => {
+it('getRequestTraceId: undefined without a valid traceparent', () => {
   expect(getRequestTraceId(mockReq({}))).toBeUndefined()
   expect(getRequestTraceId(mockReq({ traceparent: 'not-a-trace' }))).toBeUndefined()
   expect(
@@ -56,7 +56,7 @@ test('getRequestTraceId: undefined without a valid traceparent', () => {
   ).toBeUndefined()
 })
 
-test('getRequestTraceId: is cached per request', () => {
+it('getRequestTraceId: is cached per request', () => {
   const req = mockReq({ traceparent })
 
   expect(getRequestTraceId(req)).toBe(traceId)

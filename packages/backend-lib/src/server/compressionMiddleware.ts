@@ -11,11 +11,11 @@
  */
 
 import zlib from 'node:zlib'
-import compressible from 'compressible'
 // @ts-expect-error no types
 import Negotiator from 'negotiator'
-import onHeaders from 'on-headers'
-import vary from 'vary'
+import { compressible } from '../compressible.js'
+import { onHeaders } from '../onHeaders.js'
+import { vary } from '../vary.js'
 import type { BackendRequest, BackendRequestHandler, BackendResponse } from './server.model.js'
 
 export interface CompressionOptions {
@@ -30,6 +30,19 @@ export interface CompressionOptions {
    * @default 1024
    */
   threshold?: number | string
+
+  /**
+   * Bodies sent in one `res.end(chunk)` call (which is what `res.json` and `res.send` do) up to this
+   * size are compressed synchronously on the event loop, instead of through a zlib stream.
+   * For typical JSON responses the per-response stream setup and threadpool round-trip cost more
+   * than the compression itself, and the sync path also keeps an exact `Content-Length`
+   * (streamed responses are chunked).
+   * Bodies above this size, and bodies written in several `res.write` calls, are streamed.
+   * Set to `0` to always stream.
+   *
+   * @default 128kb
+   */
+  syncMaxBytes?: number | string
 
   /**
    * Encoding to use when Accept-Encoding header is not present.
@@ -71,7 +84,8 @@ const cacheControlNoTransformRegExp = /(?:^|,)\s*?no-transform\s*?(?:,|$)/i
 /**
  * Compression middleware with support for gzip, deflate, brotli, and zstd.
  *
- * This is a fork of the `compression` npm package with added zstd support.
+ * This is a fork of the `compression` npm package with added zstd support,
+ * and a synchronous fast path for single-chunk bodies (see `syncMaxBytes`).
  *
  * Encoding preference order: zstd > br > gzip > deflate
  */
@@ -88,10 +102,14 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
   }
 
   // Zstd options
+  // Level 1 instead of zstd's own default of 3: for typical JSON responses the CPU cost and
+  // compression ratio are the same (measured 2026-10 on 22 KB and 115 KB payloads), but a level 3
+  // stream holds ~850 KB of native memory per in-flight response vs ~150 KB at level 1.
+  // That per-response allocation churn is what MALLOC_ARENA_MAX=2 works around on Cloud Run.
   const optsZstd: zlib.ZstdOptions = {
     ...opts.zstd,
     params: {
-      [zlib.constants.ZSTD_c_compressionLevel]: 3,
+      [zlib.constants.ZSTD_c_compressionLevel]: 1,
       ...opts.zstd?.params,
     },
   }
@@ -104,12 +122,19 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
   if (opts.windowBits !== undefined) zlibOpts.windowBits = opts.windowBits
   if (opts.chunkSize !== undefined) zlibOpts.chunkSize = opts.chunkSize
 
+  const codecOpts: CodecOptions = { zstd: optsZstd, brotli: optsBrotli, zlib: zlibOpts }
+
   const filter = opts.filter || shouldCompress
   const threshold = parseBytes(opts.threshold) ?? 1024
+  const syncMaxBytes = parseBytes(opts.syncMaxBytes) ?? 128 * 1024
   const enforceEncoding = opts.enforceEncoding || 'identity'
 
   return function compression(req, res, next) {
     let ended = false
+    // Set by the first `res.write`: the body comes in several chunks, so only the stream path applies
+    let wrote = false
+    // Set once the compress-or-not decision has been made for this response (by either path)
+    let decided = false
     let length: number | undefined
     let listeners: [string, (...args: any[]) => void][] | null = []
     let stream: zlib.Gzip | zlib.Deflate | zlib.BrotliCompress | zlib.ZstdCompress | undefined
@@ -136,6 +161,8 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
         return false
       }
 
+      wrote = true
+
       if (!headersSent(res)) {
         res.writeHead(res.statusCode)
       }
@@ -161,6 +188,30 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
         if (!res.getHeader('Content-Length')) {
           length = chunkLength(chunk, encodingOrCallback as BufferEncoding)
         }
+
+        // Single-chunk body (no prior `res.write`): the whole body is right here, so compress it
+        // synchronously instead of setting up a zlib stream for one chunk.
+        if (chunk && !wrote && !decided) {
+          const encoding = typeof encodingOrCallback === 'function' ? undefined : encodingOrCallback
+          const body = toBuffer(chunk, encoding)
+
+          if (body.length <= syncMaxBytes) {
+            const method = decide(body.length)
+
+            if (method) {
+              const compressed = compressSync(method, body, codecOpts)
+              res.setHeader('Content-Encoding', method)
+              res.setHeader('Content-Length', compressed.length)
+              ended = true
+              const cb = typeof encodingOrCallback === 'function' ? encodingOrCallback : callback
+              // encoding is irrelevant for a Buffer chunk; it is passed to satisfy the `end` overload
+              return _end.call(res, compressed, 'utf8', cb)
+            }
+            // Not compressing: falls through to the plain `end`.
+            // The `onHeaders` listener below sees `decided` and does nothing.
+          }
+        }
+
         res.writeHead(res.statusCode)
       }
 
@@ -195,34 +246,27 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
       return res
     }
 
-    function nocompress(_msg: string): void {
+    function nocompress(_msg: string): undefined {
       addListeners(res, _on, listeners!)
       listeners = null
     }
 
-    // Release the compression stream when the response closes, freeing native
-    // zlib memory even if the client disconnected before the response finished.
-    // Registered before onHeaders so a close that happens before the stream
-    // exists is not missed (the `closed` flag below handles a stream created
-    // afterwards). Fixes CVE-2026-87776 / GHSA-vc2v-76pw-4v95.
-    // We use `stream.destroy()` (not the `destroy` npm package upstream added)
-    // because our Node target frees the zlib handle on destroy().
-    _on.call(res, 'close', function onResponseClose() {
-      closed = true
-      stream?.destroy()
-    })
+    /**
+     * The compress-or-not decision, shared by the sync path (`res.end` holding the whole body)
+     * and the stream path (`onHeaders`).
+     * Returns the encoding to use, or undefined when the response is to be sent as-is.
+     */
+    function decide(bodyLength: number | undefined): string | undefined {
+      decided = true
 
-    onHeaders(res, function onResponseHeaders() {
       // determine if request is filtered
       if (!filter(req, res)) {
-        nocompress('filtered')
-        return
+        return nocompress('filtered')
       }
 
       // determine if the entity should be transformed
       if (!shouldTransform(req, res)) {
-        nocompress('no transform')
-        return
+        return nocompress('no transform')
       }
 
       // vary
@@ -231,24 +275,21 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
       // content-length below threshold
       if (
         Number(res.getHeader('Content-Length')) < threshold ||
-        (length !== undefined && length < threshold)
+        (bodyLength !== undefined && bodyLength < threshold)
       ) {
-        nocompress('size below threshold')
-        return
+        return nocompress('size below threshold')
       }
 
       const encoding = (res.getHeader('Content-Encoding') as string) || 'identity'
 
       // already encoded
       if (encoding !== 'identity') {
-        nocompress('already encoded')
-        return
+        return nocompress('already encoded')
       }
 
       // head
       if (req.method === 'HEAD') {
-        nocompress('HEAD request')
-        return
+        return nocompress('HEAD request')
       }
 
       // compression method
@@ -266,9 +307,30 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
 
       // negotiation failed
       if (!method || method === 'identity') {
-        nocompress('not acceptable')
-        return
+        return nocompress('not acceptable')
       }
+
+      return method
+    }
+
+    // Release the compression stream when the response closes, freeing native
+    // zlib memory even if the client disconnected before the response finished.
+    // Registered before onHeaders so a close that happens before the stream
+    // exists is not missed (the `closed` flag below handles a stream created
+    // afterwards). Fixes CVE-2026-87776 / GHSA-vc2v-76pw-4v95.
+    // We use `stream.destroy()` (not the `destroy` npm package upstream added)
+    // because our Node target frees the zlib handle on destroy().
+    _on.call(res, 'close', function onResponseClose() {
+      closed = true
+      stream?.destroy()
+    })
+
+    onHeaders(res, function onResponseHeaders() {
+      // The sync path has already handled this response (compressed it, or declined to)
+      if (decided) return
+
+      const method = decide(length)
+      if (!method) return
 
       // compression stream
       if (method === 'zstd') {
@@ -329,6 +391,23 @@ export function shouldCompress(_req: any, res: any): boolean {
   }
 
   return true
+}
+
+interface CodecOptions {
+  zstd: zlib.ZstdOptions
+  brotli: zlib.BrotliOptions
+  zlib: zlib.ZlibOptions
+}
+
+/**
+ * Compresses a whole body in one call, on the event loop.
+ * Same codec options as the streams, so the output is identical to the streamed one.
+ */
+function compressSync(method: string, body: Buffer, opts: CodecOptions): Buffer {
+  if (method === 'zstd') return zlib.zstdCompressSync(body, opts.zstd)
+  if (method === 'br') return zlib.brotliCompressSync(body, opts.brotli)
+  if (method === 'gzip') return zlib.gzipSync(body, opts.zlib)
+  return zlib.deflateSync(body, opts.zlib)
 }
 
 function addListeners(

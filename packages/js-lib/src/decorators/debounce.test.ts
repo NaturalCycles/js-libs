@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { _since } from '../datetime/index.js'
 import { pDelay } from '../promise/index.js'
 import type { AnyFunction, UnixTimestampMillis } from '../types.js'
@@ -23,7 +23,7 @@ async function startTimer(fn: AnyFunction, interval: number, count: number): Pro
 }
 
 describe('_debounce', () => {
-  test('should debounce calls with leading/trailing/maxWait', async () => {
+  it('should debounce calls with leading/trailing/maxWait', async () => {
     vi.useFakeTimers()
 
     const fn = _debounce(originalFn, 20, { leading: true, trailing: true, maxWait: 300 })
@@ -45,7 +45,7 @@ describe('_debounce', () => {
 })
 
 describe('_asyncDebounce', () => {
-  test('should return a real promise (never undefined) resolving with the invocation result', async () => {
+  it('should return a real promise (never undefined) resolving with the invocation result', async () => {
     let calls = 0
     const fn = _asyncDebounce(async (n: number) => {
       calls++
@@ -58,7 +58,7 @@ describe('_asyncDebounce', () => {
     expect(calls).toBe(1)
   })
 
-  test('should coalesce rapid calls into one invocation and resolve all callers with that result', async () => {
+  it('should coalesce rapid calls into one invocation and resolve all callers with that result', async () => {
     let calls = 0
     const fn = _asyncDebounce(async (n: number) => {
       calls++
@@ -70,7 +70,7 @@ describe('_asyncDebounce', () => {
     expect(calls).toBe(1)
   })
 
-  test('should reject all coalesced callers when the invocation throws', async () => {
+  it('should reject all coalesced callers when the invocation throws', async () => {
     const fn = _asyncDebounce(async () => {
       throw new Error('boom')
     }, 20)
@@ -82,7 +82,7 @@ describe('_asyncDebounce', () => {
     await expect(p2).rejects.toThrow('boom')
   })
 
-  test('should reject pending promises on cancel()', async () => {
+  it('should reject pending promises on cancel()', async () => {
     const fn = _asyncDebounce(async (n: number) => n, 50)
 
     const p = fn(1)
@@ -91,7 +91,7 @@ describe('_asyncDebounce', () => {
     await expect(p).rejects.toThrow('asyncDebounce cancelled')
   })
 
-  test('should resolve dropped calls with undefined when the config yields no invocation (trailing: false)', async () => {
+  it('should resolve dropped calls with undefined when the config yields no invocation (trailing: false)', async () => {
     const fn = _asyncDebounce(async (n: number) => n, 20, { trailing: false })
 
     expect(await fn(1)).toBeUndefined()
@@ -99,7 +99,7 @@ describe('_asyncDebounce', () => {
 })
 
 describe('_asyncThrottle', () => {
-  test('should invoke on the leading edge immediately', async () => {
+  it('should invoke on the leading edge immediately', async () => {
     let calls = 0
     const fn = _asyncThrottle(async (n: number) => {
       calls++
@@ -110,7 +110,7 @@ describe('_asyncThrottle', () => {
     expect(calls).toBe(1)
   })
 
-  test('should resolve the leading caller but resolve in-window callers with undefined when trailing is disabled', async () => {
+  it('should resolve the leading caller but resolve in-window callers with undefined when trailing is disabled', async () => {
     const fn = _asyncThrottle(async (n: number) => n, 50, { trailing: false })
 
     expect(await fn(1)).toBe(1)

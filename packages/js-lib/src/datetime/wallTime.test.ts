@@ -1,8 +1,8 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import type { IsoDateTime } from '../types.js'
 import { localTime } from './localTime.js'
 
-test('basic', () => {
+it('basic', () => {
   const t = localTime('1984-06-21T17:56:21' as IsoDateTime).toWallTime()
   expect(t).toMatchObject({
     year: 1984,

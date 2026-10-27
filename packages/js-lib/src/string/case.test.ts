@@ -1,4 +1,4 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { expectResults } from '../test/test.util.js'
 import { _camelCase, _kebabCase, _snakeCase } from './case.js'
 
@@ -20,15 +20,15 @@ const words = [
   'la-lo-lo',
 ]
 
-test('_snakeCase', () => {
+it('_snakeCase', () => {
   expectResults(_snakeCase, words).toMatchSnapshot()
 })
 
-test('_camelCase', () => {
+it('_camelCase', () => {
   const allWords = [...words, ...words.map(w => _snakeCase(w))]
   expectResults(s => _camelCase(s), allWords).toMatchSnapshot()
 })
 
-test('_kebabCase', () => {
+it('_kebabCase', () => {
   expectResults(_kebabCase, words).toMatchSnapshot()
 })

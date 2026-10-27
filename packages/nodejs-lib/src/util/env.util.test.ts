@@ -1,4 +1,4 @@
-import { afterAll, expect, test, vi } from 'vitest'
+import { afterAll, expect, it, vi } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
 import { requireEnvKeys } from '../index.js'
 import { srcDir } from '../test/paths.cnst.js'
@@ -7,7 +7,7 @@ afterAll(() => {
   process.env['APP_ENV'] = 'test' // restore
 })
 
-test('requireEnvKeys', () => {
+it('requireEnvKeys', () => {
   expect(() => requireEnvKeys('NON_EXISTING')).toThrowErrorMatchingInlineSnapshot(
     `[Error: NON_EXISTING env variable is required, but missing]`,
   )
@@ -29,7 +29,7 @@ test('requireEnvKeys', () => {
   })
 })
 
-test('requireFileToExist', async () => {
+it('requireFileToExist', async () => {
   // should not throw
   fs2.requireFileToExist(`${srcDir}/util/env.util.ts`)
 

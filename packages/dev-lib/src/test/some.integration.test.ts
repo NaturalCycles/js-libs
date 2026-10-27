@@ -1,3 +1,3 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 
-test('some integration test', () => {})
+it('some integration test', () => {})

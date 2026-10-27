@@ -1,4 +1,4 @@
-import { beforeEach, expect, test, vi } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
 import { BotReason } from '../bot.model.js'
 import { BotDetectionService } from './bot.js'
 
@@ -13,7 +13,7 @@ const botDetectionService = new BotDetectionService()
 const userAgentChrome = 'Innocent Chrome 998 Mozilla IE Trident All Good Windows 95'
 const userAgentSafari = 'Innocent Safari 21 Apple Cupertino 991 Next'
 
-test('serverSide script is not a bot', () => {
+it('serverSide script is not a bot', () => {
   Object.assign(globalThis, {
     window: undefined,
   })
@@ -23,7 +23,7 @@ test('serverSide script is not a bot', () => {
   expect(botDetectionService.isBotOrCDP()).toBe(false)
 })
 
-test('innocent chrome is not a bot', () => {
+it('innocent chrome is not a bot', () => {
   Object.assign(globalThis, {
     navigator: {
       userAgent: userAgentChrome,
@@ -33,7 +33,7 @@ test('innocent chrome is not a bot', () => {
   expect(botDetectionService.getBotReason()).toBeNull()
 })
 
-test('innocent safari is not a bot', () => {
+it('innocent safari is not a bot', () => {
   Object.assign(globalThis, {
     navigator: {
       userAgent: userAgentSafari,
@@ -42,7 +42,7 @@ test('innocent safari is not a bot', () => {
   expect(botDetectionService.getBotReason()).toBeNull()
 })
 
-test('snapchat in-app-browser is not a bot', () => {
+it('snapchat in-app-browser is not a bot', () => {
   Object.assign(globalThis, {
     navigator: {
       userAgent:
@@ -52,43 +52,43 @@ test('snapchat in-app-browser is not a bot', () => {
   expect(botDetectionService.getBotReason()).toBeNull()
 })
 
-test('no navigator means bot', () => {
+it('no navigator means bot', () => {
   expect(botDetectionService.getBotReason()).toBe(BotReason.NoNavigator)
   expect(botDetectionService.isBot()).toBe(true)
   expect(botDetectionService.isBotOrCDP()).toBe(true)
 })
 
-test('no userAgent means bot', () => {
+it('no userAgent means bot', () => {
   globalThis.navigator = {} as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.NoUserAgent)
 })
 
-test('"bot" in userAgent means bot', () => {
+it('"bot" in userAgent means bot', () => {
   globalThis.navigator = { userAgent: 'KlaviyoBot' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-test('"headless" in userAgent means bot', () => {
+it('"headless" in userAgent means bot', () => {
   globalThis.navigator = { userAgent: 'HeadlessChrome' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-test('"electron" in userAgent means bot', () => {
+it('"electron" in userAgent means bot', () => {
   globalThis.navigator = { userAgent: 'I am Electron 99' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-test('"phantom" in userAgent means bot', () => {
+it('"phantom" in userAgent means bot', () => {
   globalThis.navigator = { userAgent: 'Phantom Menace' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-test('"slimer" in userAgent means bot', () => {
+it('"slimer" in userAgent means bot', () => {
   globalThis.navigator = { userAgent: 'Slimer than Slime' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-test('disabled should return "not bot"', () => {
+it('disabled should return "not bot"', () => {
   globalThis.navigator = { userAgent: 'HeadlessChrome' } as Navigator
   const service = new BotDetectionService({
     enabled: false,
@@ -98,7 +98,7 @@ test('disabled should return "not bot"', () => {
   expect(service.isBotOrCDP()).toBe(false)
 })
 
-test('navigator.webdriver means bot', () => {
+it('navigator.webdriver means bot', () => {
   globalThis.navigator = {
     userAgent: userAgentSafari,
     webdriver: true,
@@ -114,7 +114,7 @@ test('navigator.webdriver means bot', () => {
 //   expect(botDetectionService.isBot()).toBe(BotReason.ZeroPlugins)
 // })
 
-test('"" languages means bot', () => {
+it('"" languages means bot', () => {
   globalThis.navigator = {
     userAgent: userAgentSafari,
     languages: '' as any,
@@ -130,7 +130,7 @@ test('"" languages means bot', () => {
 // })
 
 // This test helps with coverage, while not really testing anything useful
-test('cdp in jest looks like a bot, because it does error serialization', () => {
+it('cdp in jest looks like a bot, because it does error serialization', () => {
   Object.assign(globalThis, {
     window: globalThis,
   })
@@ -149,7 +149,7 @@ test('cdp in jest looks like a bot, because it does error serialization', () => 
   // expect(isCDP).toBe(expectedIsCDP)
 })
 
-test('treatCDPAsBotReason', () => {
+it('treatCDPAsBotReason', () => {
   const botDetectionService = new BotDetectionService({
     treatCDPAsBotReason: true,
   })

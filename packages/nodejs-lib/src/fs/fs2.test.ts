@@ -1,9 +1,9 @@
 import fs from 'node:fs'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { testDir } from '../test/paths.cnst.js'
 import { fs2 } from './fs2.js'
 
-test('readFile', async () => {
+it('readFile', async () => {
   const someFilePath = `${testDir}/someFile.json`
 
   let r = fs2.readText(someFilePath)
@@ -35,6 +35,6 @@ test('readFile', async () => {
   await fs2.ensureFileAsync(someFilePath)
 })
 
-test('extends native fs', () => {
+it('extends native fs', () => {
   expect(fs2.createWriteStream).toBe(fs.createWriteStream)
 })

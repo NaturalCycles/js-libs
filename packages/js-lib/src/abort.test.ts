@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   abortSignalAny,
   abortSignalAnyOrUndefined,
@@ -9,7 +9,7 @@ import {
   polyfilledAbortSignalTimeout,
 } from './abort.js'
 
-test('abortableSignal', () => {
+it('abortableSignal', () => {
   class A {
     constructor(public signal: AbortSignal) {}
   }
@@ -24,13 +24,13 @@ test('abortableSignal', () => {
 })
 
 describe('abortSignalTimeout', () => {
-  test('returns an AbortSignal', () => {
+  it('returns an AbortSignal', () => {
     const signal = abortSignalTimeout(1000)
     expect(signal).toBeInstanceOf(AbortSignal)
     expect(signal.aborted).toBe(false)
   })
 
-  test('aborts after the given time', async () => {
+  it('aborts after the given time', async () => {
     const signal = abortSignalTimeout(50)
     expect(signal.aborted).toBe(false)
 
@@ -41,7 +41,7 @@ describe('abortSignalTimeout', () => {
     expect(signal.reason.name).toBe('TimeoutError')
   })
 
-  test('abort reason is DOMException with name TimeoutError', async () => {
+  it('abort reason is DOMException with name TimeoutError', async () => {
     const signal = abortSignalTimeout(50)
     await new Promise(resolve => setTimeout(resolve, 100))
 
@@ -51,28 +51,28 @@ describe('abortSignalTimeout', () => {
 })
 
 describe('abortSignalTimeoutOrUndefined', () => {
-  test('returns AbortSignal when ms is defined', () => {
+  it('returns AbortSignal when ms is defined', () => {
     const signal = abortSignalTimeoutOrUndefined(1000)
     expect(signal).toBeInstanceOf(AbortSignal)
   })
 
-  test('returns undefined when ms is undefined', () => {
+  it('returns undefined when ms is undefined', () => {
     expect(abortSignalTimeoutOrUndefined(undefined)).toBeUndefined()
   })
 
-  test('returns undefined when ms is 0', () => {
+  it('returns undefined when ms is 0', () => {
     expect(abortSignalTimeoutOrUndefined(0)).toBeUndefined()
   })
 })
 
 describe('polyfilledAbortSignalTimeout', () => {
-  test('returns an AbortSignal', () => {
+  it('returns an AbortSignal', () => {
     const signal = polyfilledAbortSignalTimeout(1000)
     expect(signal).toBeInstanceOf(AbortSignal)
     expect(signal.aborted).toBe(false)
   })
 
-  test('aborts after the given time', async () => {
+  it('aborts after the given time', async () => {
     const signal = polyfilledAbortSignalTimeout(50)
     expect(signal.aborted).toBe(false)
 
@@ -83,7 +83,7 @@ describe('polyfilledAbortSignalTimeout', () => {
     expect(signal.reason.name).toBe('TimeoutError')
   })
 
-  test('rejects fetch-like promise on abort', async () => {
+  it('rejects fetch-like promise on abort', async () => {
     const signal = polyfilledAbortSignalTimeout(50)
 
     const fetchPromise = new Promise((_resolve, reject) => {
@@ -100,7 +100,7 @@ describe('polyfilledAbortSignalTimeout', () => {
 })
 
 describe('abortSignalAny', () => {
-  test('aborts when any signal aborts', () => {
+  it('aborts when any signal aborts', () => {
     const c1 = new AbortController()
     const c2 = new AbortController()
     const combined = abortSignalAny([c1.signal, c2.signal])
@@ -115,13 +115,13 @@ describe('abortSignalAny', () => {
     expect(combined.reason.name).toBe('AbortError')
   })
 
-  test('returns the signal as-is when only 1 signal is passed', () => {
+  it('returns the signal as-is when only 1 signal is passed', () => {
     const controller = new AbortController()
     const combined = abortSignalAny([controller.signal])
     expect(combined).toBe(controller.signal)
   })
 
-  test('returns already-aborted signal if input is aborted', () => {
+  it('returns already-aborted signal if input is aborted', () => {
     const controller = new AbortController()
     const reason = new DOMException('already done', 'AbortError')
     controller.abort(reason)
@@ -132,7 +132,7 @@ describe('abortSignalAny', () => {
     expect(combined.reason.name).toBe('AbortError')
   })
 
-  test('caller abort wins over long timeout', () => {
+  it('caller abort wins over long timeout', () => {
     const controller = new AbortController()
     const combined = abortSignalAny([abortSignalTimeout(10_000), controller.signal])
 
@@ -144,21 +144,21 @@ describe('abortSignalAny', () => {
 })
 
 describe('abortSignalAnyOrUndefined', () => {
-  test('returns AbortSignal when signals are provided', () => {
+  it('returns AbortSignal when signals are provided', () => {
     const controller = new AbortController()
     const signal = abortSignalAnyOrUndefined([controller.signal])
     expect(signal).toBeInstanceOf(AbortSignal)
   })
 
-  test('returns undefined when all signals are undefined', () => {
+  it('returns undefined when all signals are undefined', () => {
     expect(abortSignalAnyOrUndefined([undefined, undefined])).toBeUndefined()
   })
 
-  test('returns undefined for empty array', () => {
+  it('returns undefined for empty array', () => {
     expect(abortSignalAnyOrUndefined([])).toBeUndefined()
   })
 
-  test('filters out undefined signals', () => {
+  it('filters out undefined signals', () => {
     const controller = new AbortController()
     const signal = abortSignalAnyOrUndefined([undefined, controller.signal, undefined])
     expect(signal).toBeInstanceOf(AbortSignal)
@@ -166,7 +166,7 @@ describe('abortSignalAnyOrUndefined', () => {
 })
 
 describe('polyfilledAbortSignalAny', () => {
-  test('aborts when any signal aborts', () => {
+  it('aborts when any signal aborts', () => {
     const c1 = new AbortController()
     const c2 = new AbortController()
     const combined = polyfilledAbortSignalAny([c1.signal, c2.signal])
@@ -181,7 +181,7 @@ describe('polyfilledAbortSignalAny', () => {
     expect(combined.reason.name).toBe('AbortError')
   })
 
-  test('returns already-aborted signal if input is aborted', () => {
+  it('returns already-aborted signal if input is aborted', () => {
     const controller = new AbortController()
     const reason = new DOMException('already done', 'AbortError')
     controller.abort(reason)
@@ -192,7 +192,7 @@ describe('polyfilledAbortSignalAny', () => {
     expect(combined.reason.name).toBe('AbortError')
   })
 
-  test('first abort reason wins', () => {
+  it('first abort reason wins', () => {
     const c1 = new AbortController()
     const c2 = new AbortController()
     const combined = polyfilledAbortSignalAny([c1.signal, c2.signal])
@@ -203,7 +203,7 @@ describe('polyfilledAbortSignalAny', () => {
     expect(combined.reason.message).toContain('first')
   })
 
-  test('works with timeout signal', async () => {
+  it('works with timeout signal', async () => {
     const controller = new AbortController()
     const combined = polyfilledAbortSignalAny([polyfilledAbortSignalTimeout(50), controller.signal])
 

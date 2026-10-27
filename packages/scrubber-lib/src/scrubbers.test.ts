@@ -1,6 +1,6 @@
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import { nanoid } from '@naturalcycles/nodejs-lib'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { BcryptStringScrubberParams } from './scrubbers.js'
 import {
   bcryptStringScrubber,
@@ -40,19 +40,19 @@ const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
 const bryptStr2 = '$2a$10$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
 
 describe('undefinedScrubber', () => {
-  test('replaces any value with undefined', () => {
+  it('replaces any value with undefined', () => {
     expect(undefinedScrubber(true)).toBeUndefined()
     expect(undefinedScrubber(1)).toBeUndefined()
     expect(undefinedScrubber('foo')).toBeUndefined()
   })
 })
 
-test('undefinedScrubberSQL', () => {
+it('undefinedScrubberSQL', () => {
   expect(undefinedScrubberSQL()).toMatchInlineSnapshot(`"NULL"`)
 })
 
 describe('preserveOriginalScrubber', () => {
-  test('preserves the original value', () => {
+  it('preserves the original value', () => {
     expect(preserveOriginalScrubber(true)).toBe(true)
     expect(preserveOriginalScrubber(1)).toBe(1)
     expect(preserveOriginalScrubber('foo')).toBe('foo')
@@ -60,12 +60,12 @@ describe('preserveOriginalScrubber', () => {
   })
 })
 
-test('preserveOriginalScrubberSQL', () => {
+it('preserveOriginalScrubberSQL', () => {
   expect(preserveOriginalScrubberSQL()).toMatchInlineSnapshot(`"VAL"`)
 })
 
 describe('staticScrubber', () => {
-  test.each([
+  it.each([
     [undefined, 'replacement'],
     ['', 'replacement'],
   ])('handles undefined values "%s" > "%s"', (input, replacement) => {
@@ -73,21 +73,21 @@ describe('staticScrubber', () => {
     expect(result).toEqual(replacement)
   })
 
-  test('replaces any string with replacement', () => {
+  it('replaces any string with replacement', () => {
     const o = 'bar'
 
     expect(staticScrubber('', { replacement: o })).toEqual(o)
     expect(staticScrubber('foo', { replacement: o })).toEqual(o)
   })
 
-  test('replace number', () => {
+  it('replace number', () => {
     const secretNum = 666
     const r = 123
 
     expect(staticScrubber(secretNum, { replacement: r })).toEqual(r)
   })
 
-  test.each([
+  it.each([
     ['wontmatch', 'wontmatch'],
     ['could VERYWELL match', 'replacement'],
   ])('replaces only ifMatch matches "%s" > "%s"', (input, replacement) => {
@@ -96,7 +96,7 @@ describe('staticScrubber', () => {
   })
 })
 
-test('staticScrubberSQL', () => {
+it('staticScrubberSQL', () => {
   expect(staticScrubberSQL({ replacement: 'hello world' })).toMatchInlineSnapshot(`"'hello world'"`)
   expect(staticScrubberSQL({ replacement: 12345 })).toMatchInlineSnapshot(`"12345"`)
   expect(staticScrubberSQL({ ifMatch: '.*V.RY.*LL.*', replacement: 12345 })).toMatchInlineSnapshot(
@@ -105,7 +105,7 @@ test('staticScrubberSQL', () => {
 })
 
 describe('unixTimestampScrubber', () => {
-  test.each([
+  it.each([
     [undefined, undefined],
     ['', undefined],
   ])('handles undefined values "%s" > "%s"', (date, expected) => {
@@ -113,35 +113,35 @@ describe('unixTimestampScrubber', () => {
     expect(result).toEqual(expected)
   })
 
-  test('scrubs only time (string)', () => {
+  it('scrubs only time (string)', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, July 3, 2019 00:00:00 AM
     const result = unixTimestampScrubber('1562146521', { excludeTime: true })
     expect(result).toBe(1562112000)
   })
 
-  test('scrubs only time', () => {
+  it('scrubs only time', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, July 3, 2019 00:00:00 AM
     const result = unixTimestampScrubber(1562146521, { excludeTime: true })
     expect(result).toBe(1562112000)
   })
 
-  test('scrubs only day', () => {
+  it('scrubs only day', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, July 1, 2019 9:35:21 AM
     const result = unixTimestampScrubber(1562146521, { excludeDay: true })
     expect(result).toBe(1561973721)
   })
 
-  test('scrubs day and month', () => {
+  it('scrubs day and month', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, January 1, 2019 9:35:21 AM
     const result = unixTimestampScrubber(1562146521, { excludeDay: true, excludeMonth: true })
     expect(result).toBe(1546335321)
   })
 
-  test('scrubs only year', () => {
+  it('scrubs only year', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, July 3, 1970 9:35:21 AM
     const result = unixTimestampScrubber(1562146521, { excludeYear: true })
@@ -149,7 +149,7 @@ describe('unixTimestampScrubber', () => {
   })
 })
 
-test('unixTimestampScrubberSQL', () => {
+it('unixTimestampScrubberSQL', () => {
   expect(unixTimestampScrubberSQL({ excludeDay: true })).toMatchInlineSnapshot(
     `"TIMESTAMP_NTZ_FROM_PARTS(DATE_PART('YEAR', VAL), DATE_PART('MONTH', VAL), 1, DATE_PART('HOUR', VAL), DATE_PART('MINUTE', VAL), DATE_PART('SECOND', VAL))"`,
   )
@@ -165,7 +165,7 @@ test('unixTimestampScrubberSQL', () => {
 })
 
 describe('isoDateStringScrubber', () => {
-  test.each([
+  it.each([
     [undefined, undefined],
     ['', undefined],
   ])('handles undefined values "%s" > "%s"', (date, expected) => {
@@ -173,33 +173,33 @@ describe('isoDateStringScrubber', () => {
     expect(result).toEqual(expected)
   })
 
-  test('scrubs only day', () => {
+  it('scrubs only day', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true })
     expect(result).toBe('2019-05-01')
   })
 
-  test('scrubs only month', () => {
+  it('scrubs only month', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeMonth: true })
     expect(result).toBe('2019-01-12')
   })
 
-  test('scrubs both day and month', () => {
+  it('scrubs both day and month', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true, excludeMonth: true })
     expect(result).toBe('2019-01-01')
   })
 
-  test('scrubs only year', () => {
+  it('scrubs only year', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeYear: true })
     expect(result).toBe('1970-05-12')
   })
 
-  test('scrubs both day and year', () => {
+  it('scrubs both day and year', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true, excludeYear: true })
     expect(result).toBe('1970-05-01')
   })
 })
 
-test('isoDateStringScrubberSQL', () => {
+it('isoDateStringScrubberSQL', () => {
   expect(isoDateStringScrubberSQL({ excludeDay: true })).toMatchInlineSnapshot(
     `"SUBSTR(VAL, 0, 8) || '01'"`,
   )
@@ -215,7 +215,7 @@ test('isoDateStringScrubberSQL', () => {
 })
 
 describe('charsFromRightScrubber', () => {
-  test.each([
+  it.each([
     [undefined, undefined],
     ['', undefined],
     ['11225', '112XX'],
@@ -228,17 +228,17 @@ describe('charsFromRightScrubber', () => {
     expect(result).toEqual(expected)
   })
 
-  test('removes 2 chars', () => {
+  it('removes 2 chars', () => {
     const result = charsFromRightScrubber('76543', { count: 2, replacement: 'X' })
     expect(result).toBe('765XX')
   })
 
-  test('does not fail/crash if count > input length', () => {
+  it('does not fail/crash if count > input length', () => {
     const result = charsFromRightScrubber('123', { count: 5, replacement: 'X' })
     expect(result).toBe('XXX')
   })
 
-  test('charsFromRightScrubber - Full replacement', () => {
+  it('charsFromRightScrubber - Full replacement', () => {
     const result = charsFromRightScrubber('blabla_123', {
       count: 3,
       replacement: '456',
@@ -248,7 +248,7 @@ describe('charsFromRightScrubber', () => {
   })
 })
 
-test('charsFromRightScrubberSQL', () => {
+it('charsFromRightScrubberSQL', () => {
   expect(charsFromRightScrubberSQL({ count: 2, replacement: 'X' })).toMatchInlineSnapshot(
     `"SUBSTR(VAL, 0, LEN(VAL) - 2) || REPEAT('X', LEAST(2, LEN(VAL)))"`,
   )
@@ -261,7 +261,7 @@ test('charsFromRightScrubberSQL', () => {
 })
 
 describe('keepCharsFromLeftScrubber', () => {
-  test.each([
+  it.each([
     [undefined, undefined],
     ['', undefined],
     ['11225', '112XX'],
@@ -275,12 +275,12 @@ describe('keepCharsFromLeftScrubber', () => {
     expect(result).toEqual(expected)
   })
 
-  test('keeps 3 chars', () => {
+  it('keeps 3 chars', () => {
     const result = keepCharsFromLeftScrubber('76543', { count: 3, replacement: 'X' })
     expect(result).toBe('765XX')
   })
 
-  test('keepCharsFromLeftScrubber - Full replacement', () => {
+  it('keepCharsFromLeftScrubber - Full replacement', () => {
     const result = keepCharsFromLeftScrubber('blabla_123', {
       count: 3,
       replacement: '456',
@@ -290,7 +290,7 @@ describe('keepCharsFromLeftScrubber', () => {
   })
 })
 
-test('keepCharsFromLeftScrubberSQL', () => {
+it('keepCharsFromLeftScrubberSQL', () => {
   expect(keepCharsFromLeftScrubberSQL({ count: 2, replacement: 'X' })).toMatchInlineSnapshot(
     `"SUBSTR(VAL, 0, 2) || REPEAT('X', LEAST(0, LEN(VAL)-2)"`,
   )
@@ -303,35 +303,35 @@ test('keepCharsFromLeftScrubberSQL', () => {
 })
 
 describe('randomScrubber', () => {
-  test('generates with default arguments', () => {
+  it('generates with default arguments', () => {
     const result = randomScrubber('secret')
     expect(result).not.toBe('secret')
   })
 
-  test('accepts length', () => {
+  it('accepts length', () => {
     const result = randomScrubber('secret', { length: 5 })
     expect(result).toHaveLength(5)
   })
 
-  test('accepts alphabet and length', () => {
+  it('accepts alphabet and length', () => {
     const result = randomScrubber('secret', { alphabet: 'a', length: 5 })
     expect(result).toBe('aaaaa')
   })
 })
 
-test('randomScrubberSQL', () => {
+it('randomScrubberSQL', () => {
   expect(randomScrubberSQL()).toMatchInlineSnapshot(`"RANDSTR(16, HASH(RANDOM()))"`)
   expect(randomScrubberSQL({ length: 5 })).toMatchInlineSnapshot(`"RANDSTR(5, HASH(RANDOM()))"`)
 })
 
 describe('randomEmailScrubber', () => {
-  test('generates with default arguments', () => {
+  it('generates with default arguments', () => {
     const result = randomEmailScrubber('secret')
     expect(result).not.toBe('secret')
     expect(result).toContain('@example.com')
   })
 
-  test('accepts alphabet, length and domain', () => {
+  it('accepts alphabet, length and domain', () => {
     const result = randomEmailScrubber('secret', {
       alphabet: 'a',
       length: 5,
@@ -341,7 +341,7 @@ describe('randomEmailScrubber', () => {
   })
 })
 
-test('randomEmailScrubberSQL', () => {
+it('randomEmailScrubberSQL', () => {
   expect(randomEmailScrubberSQL()).toMatchInlineSnapshot(
     `"RANDSTR(16, HASH(RANDOM())) || '@example.com'"`,
   )
@@ -354,13 +354,13 @@ test('randomEmailScrubberSQL', () => {
 })
 
 describe('randomEmailInContentScrubber', () => {
-  test('scrub content without email', () => {
+  it('scrub content without email', () => {
     const content = 'I am a string without and email in it @hello!'
     const result = randomEmailInContentScrubber(content)
     expect(result).toEqual(content)
   })
 
-  test('scrub email in URL', () => {
+  it('scrub email in URL', () => {
     const email = 'real@gmail.com'
     const prefix = '/api/user/'
     const result = randomEmailInContentScrubber(prefix + email)
@@ -368,7 +368,7 @@ describe('randomEmailInContentScrubber', () => {
     expect(result).toContain(prefix)
   })
 
-  test('scrub complex email in text', () => {
+  it('scrub complex email in text', () => {
     const email = 'real_email-address.2@gmail2.com.br'
     const suffix = ', not a gmail2.com.br address'
     const text = 'This should be a random email: ' + email + suffix
@@ -380,7 +380,7 @@ describe('randomEmailInContentScrubber', () => {
     expect(result).toContain(suffix)
   })
 
-  test('scrub complex email with long TLD in text', () => {
+  it('scrub complex email with long TLD in text', () => {
     const text = 'Foo bar baz qux@quux.corge grault'
     const result = randomEmailInContentScrubber(text)
 
@@ -391,7 +391,7 @@ describe('randomEmailInContentScrubber', () => {
   })
 })
 
-test('randomEmailInContentScrubberSQL', () => {
+it('randomEmailInContentScrubberSQL', () => {
   expect(randomEmailInContentScrubberSQL()).toMatchInlineSnapshot(String.raw`
     "REGEXP_REPLACE(
         VAL,
@@ -417,7 +417,7 @@ test('randomEmailInContentScrubberSQL', () => {
 })
 
 describe('saltedHashScrubber', () => {
-  test('generates hash using initializationVector', () => {
+  it('generates hash using initializationVector', () => {
     const initializationVector = nanoid()
 
     const result = saltedHashScrubber('secret', { initializationVector })
@@ -432,7 +432,7 @@ describe('saltedHashScrubber', () => {
   })
 })
 
-test('saltedHashScrubberSQL', () => {
+it('saltedHashScrubberSQL', () => {
   const initializationVector = 'thisIsAStaticVector'
   expect(saltedHashScrubberSQL({ initializationVector })).toMatchInlineSnapshot(
     `"SHA2(VAL || 'thisIsAStaticVector', 256)"`,
@@ -440,7 +440,7 @@ test('saltedHashScrubberSQL', () => {
 })
 
 describe('saltedHashEmailScrubber', () => {
-  test('generates hash using initializationVector and suffixes domain', () => {
+  it('generates hash using initializationVector and suffixes domain', () => {
     const initializationVector = 'staticvector'
 
     const result = saltedHashEmailScrubber('secret', {
@@ -453,7 +453,7 @@ describe('saltedHashEmailScrubber', () => {
   })
 })
 
-test('saltedHashEmailScrubberSQL', () => {
+it('saltedHashEmailScrubberSQL', () => {
   const initializationVector = 'staticvector'
   expect(saltedHashEmailScrubberSQL({ initializationVector })).toMatchInlineSnapshot(
     `"SHA2(VAL || 'staticvector', 256) || '@example.com'"`,
@@ -464,31 +464,31 @@ test('saltedHashEmailScrubberSQL', () => {
 })
 
 describe('bcryptStringScrubber', () => {
-  test('generates valid bcrypt string while maintaining algo and cost factor', () => {
+  it('generates valid bcrypt string while maintaining algo and cost factor', () => {
     const result = bcryptStringScrubber(bryptStr1)
     expect(result).not.toEqual(bryptStr1)
     expect(result!.slice(0, 7)).toBe('$2a$12$')
     expect(result!).toHaveLength(bryptStr1.length)
   })
 
-  test('ensure older cost factor is preserved', () => {
+  it('ensure older cost factor is preserved', () => {
     const result = bcryptStringScrubber(bryptStr2)
     expect(result).not.toEqual(bryptStr2)
     expect(result!.slice(0, 7)).toBe('$2a$10$')
   })
-  test('handling undefined and empty', () => {
+  it('handling undefined and empty', () => {
     const undefinedResult = bcryptStringScrubber(undefined)
     expect(undefinedResult).toBeUndefined()
 
     const emptyResult = bcryptStringScrubber('')
     expect(emptyResult).toBe('')
   })
-  test('handling non-valid bcrypt strings, should return valid bcrypt string', () => {
+  it('handling non-valid bcrypt strings, should return valid bcrypt string', () => {
     const result = bcryptStringScrubber('stringWithToFew$')
     expect(result!.slice(0, 7)).toBe('$2a$12$')
     expect(result!).toHaveLength(bryptStr1.length)
   })
-  test('handling replacements map', () => {
+  it('handling replacements map', () => {
     const params: BcryptStringScrubberParams = {
       replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123',
     }
@@ -500,7 +500,7 @@ describe('bcryptStringScrubber', () => {
   })
 })
 
-test('bcryptStringScrubberSQL', () => {
+it('bcryptStringScrubberSQL', () => {
   expect(bcryptStringScrubberSQL()).toMatchSnapshot()
   expect(
     bcryptStringScrubberSQL({ replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123' }),
@@ -510,7 +510,7 @@ test('bcryptStringScrubberSQL', () => {
 describe('saltedHashSubstringScrubber', () => {
   const initializationVector = nanoid()
 
-  test('should scrub the matching substring with a hash', () => {
+  it('should scrub the matching substring with a hash', () => {
     const result = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
       regex: '00:00:00:00:00:00',
       initializationVector,
@@ -520,7 +520,7 @@ describe('saltedHashSubstringScrubber', () => {
     expect(result).not.toContain('00:00:00:00:00:00')
   })
 
-  test('should scrub the same value with the same hash', () => {
+  it('should scrub the same value with the same hash', () => {
     const result1 = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
       regex: '00:00:00:00:00:00',
       initializationVector,
@@ -534,7 +534,7 @@ describe('saltedHashSubstringScrubber', () => {
     expect(result1?.slice(4, 64)).toBe(result2?.slice(4, 64))
   })
 
-  test('should scrub substring using regex', () => {
+  it('should scrub substring using regex', () => {
     const result = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
       regex:
         '[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}',
@@ -545,7 +545,7 @@ describe('saltedHashSubstringScrubber', () => {
     expect(result).not.toContain('00:00:00:00:00:00')
   })
 
-  test('should scrub multiple occurrences', () => {
+  it('should scrub multiple occurrences', () => {
     const result = saltedHashSubstringScrubber('foo|max|bar|max|boo', {
       regex: 'max',
       initializationVector,
@@ -554,13 +554,13 @@ describe('saltedHashSubstringScrubber', () => {
     expect(result).not.toContain('max')
   })
 
-  test('should throw when the salt is missing', () => {
+  it('should throw when the salt is missing', () => {
     expect(() => saltedHashSubstringScrubber('foo|max|bar', { regex: 'max' } as any)).toThrow(
       'Initialization vector is missing',
     )
   })
 
-  test('should throw when the regex or substring is missing', () => {
+  it('should throw when the regex or substring is missing', () => {
     expect(() =>
       saltedHashSubstringScrubber('foo|max|bar', {
         initializationVector,
@@ -570,7 +570,7 @@ describe('saltedHashSubstringScrubber', () => {
 })
 
 describe('zipScrubber', () => {
-  test.each([
+  it.each([
     [undefined, undefined],
     ['', undefined],
     ['11225', '112XX'],
@@ -586,7 +586,7 @@ describe('zipScrubber', () => {
   })
 })
 
-test('zipScrubberSQL', () => {
+it('zipScrubberSQL', () => {
   expect(zipScrubberSQL()).toMatchInlineSnapshot(
     `
     "CASE WHEN ARRAY_CONTAINS(
@@ -601,12 +601,12 @@ test('zipScrubberSQL', () => {
 })
 
 const scrubberNames = _stringMapEntries(defaultScrubbers).map(([k]) => k)
-test.each(scrubberNames)('the %s should have its SQL scrubber counterpart', scrubberName => {
+it.each(scrubberNames)('the %s should have its SQL scrubber counterpart', scrubberName => {
   console.log(scrubberName, defaultScrubbersSQL[scrubberName])
   expect(defaultScrubbersSQL[scrubberName]).toBeDefined()
 })
 
 const sqlScrubberNames = _stringMapEntries(defaultScrubbersSQL).map(([k]) => k)
-test.each(sqlScrubberNames)('the %s should have its scrubber counterpart', scrubberName => {
+it.each(sqlScrubberNames)('the %s should have its scrubber counterpart', scrubberName => {
   expect(defaultScrubbers[scrubberName]).toBeDefined()
 })

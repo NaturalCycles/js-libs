@@ -1,9 +1,9 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import type { IsoDate } from '../types.js'
 import { DateInterval } from './dateInterval.js'
 import { localDate } from './localDate.js'
 
-test('basic', () => {
+it('basic', () => {
   const str1 = '2022-02-24/2022-03-30'
   const int1 = DateInterval.parse(str1)
   expect(int1.toString()).toBe(str1)
@@ -39,7 +39,7 @@ test('basic', () => {
   )
 })
 
-test('includes', () => {
+it('includes', () => {
   const int = DateInterval.parse('2022-02-24/2022-03-30')
   // oxlint-disable jest/prefer-to-contain
   expect(int.includes('2022-02-23' as IsoDate)).toBe(false)
@@ -54,7 +54,7 @@ test('includes', () => {
   expect(int.includes('2022-04-01' as IsoDate)).toBe(false)
 })
 
-test('getDays', () => {
+it('getDays', () => {
   const int = DateInterval.parse('2022-02-24/2022-03-01')
   expect(int.getDays()).toMatchInlineSnapshot(`
     [
@@ -68,7 +68,7 @@ test('getDays', () => {
   `)
 })
 
-test('intersects', () => {
+it('intersects', () => {
   const int = DateInterval.parse('2022-03-01/2022-03-31')
   expect(int.intersects('2022-03-01/2022-03-31')).toBe(true)
   expect(int.intersects('2022-03-02/2022-03-31')).toBe(true)

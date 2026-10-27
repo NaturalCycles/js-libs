@@ -7,7 +7,7 @@ import {
 import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
-import { describe, expect, test } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { DatastoreDB } from '../datastore.db.js'
 
 testOnline()
@@ -34,33 +34,33 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(datastoreDB)
 })
 
-test('getStats, getStatsCount non-existing table', async () => {
+it('getStats, getStatsCount non-existing table', async () => {
   expect(await datastoreDB.getStats('NonEx')).toBeUndefined()
   expect(await datastoreDB.getStatsCount('NonEx')).toBeUndefined()
 })
 
-test('getStatsCount', async () => {
+it('getStatsCount', async () => {
   console.log(await datastoreDB.getStatsCount('Session'))
 })
 
-test('getStats', async () => {
+it('getStats', async () => {
   console.log(await datastoreDB.getStats('Session'))
 })
 
-test('getAllStats', async () => {
+it('getAllStats', async () => {
   console.log(await datastoreDB.getAllStats())
 })
 
-test('getTables', async () => {
+it('getTables', async () => {
   console.log(await datastoreDB.getTables())
 })
 
-test('getTableSchema', async () => {
+it('getTableSchema', async () => {
   // console.log(await datastoreDB.getTableProperties('Account'))
   console.log(await datastoreDB.getTableSchema('Account'))
 })
 
-test.skip('GOAWAY stress test', async () => {
+it.skip('GOAWAY stress test', async () => {
   const items = createTestItemsDBM(10_001)
 
   await pMap(items, async item => {
@@ -68,7 +68,7 @@ test.skip('GOAWAY stress test', async () => {
   })
 })
 
-test('multiGetByIds', async () => {
+it('multiGetByIds', async () => {
   // const r = await datastoreDB.runQuery(DBQuery.create('Session').limit(5))
   // console.log(r.rows.map(rr => rr.id))
 

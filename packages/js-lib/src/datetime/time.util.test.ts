@@ -1,5 +1,5 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
-import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { _range } from '../array/index.js'
 import type { NumberOfMilliseconds, UnixTimestampMillis } from '../types.js'
 import { _ms, _since } from './time.util.js'
@@ -12,12 +12,12 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-test('since', () => {
+it('since', () => {
   expect(_since(1000 as UnixTimestampMillis, 1001 as UnixTimestampMillis)).toBe('1 ms')
   expect(_since(1000 as UnixTimestampMillis, 1010 as UnixTimestampMillis)).toBe('10 ms')
 })
 
-test('ms', () => {
+it('ms', () => {
   const values = [
     1,
     10,
@@ -71,7 +71,7 @@ test('ms', () => {
   `)
 })
 
-test('log progression', () => {
+it('log progression', () => {
   const map = new Map<number, string>()
   let m = 700
   _range(1, 200).forEach(() => {

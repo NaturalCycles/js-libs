@@ -39,13 +39,13 @@ export async function runCommonStorageTest(
   bucketName: string,
 ): Promise<void> {
   // this is because vitest cannot be "required" from cjs
-  const { test, expect } = await import('vitest')
+  const { expect, it } = await import('vitest')
 
   // test('createBucket', async () => {
   //   await storage.createBucket(bucketName)
   // })
 
-  test('ping', async () => {
+  it('ping', async () => {
     await storage.ping(bucketName)
   })
 
@@ -59,7 +59,7 @@ export async function runCommonStorageTest(
   //   console.log(buckets)
   // })
 
-  test('prepare: clear bucket', async () => {
+  it('prepare: clear bucket', async () => {
     await pMap(
       TEST_FILES.map(f => f.filePath),
       async filePath => await storage.deletePath(bucketName, filePath),
@@ -71,26 +71,26 @@ export async function runCommonStorageTest(
   //   expect(fileNames).toEqual([])
   // })
 
-  test(`listFileNames on ${TEST_FOLDER} should return empty`, async () => {
+  it(`listFileNames on ${TEST_FOLDER} should return empty`, async () => {
     const fileNames = await storage.getFileNames(bucketName, { prefix: TEST_FOLDER })
     expect(fileNames).toEqual([])
   })
 
-  test(`streamFileNames on ${TEST_FOLDER} should return empty`, async () => {
+  it(`streamFileNames on ${TEST_FOLDER} should return empty`, async () => {
     const fileNames = await storage
       .getFileNamesStream(bucketName, { prefix: TEST_FOLDER })
       .toArray()
     expect(fileNames).toEqual([])
   })
 
-  test(`exists should return empty array`, async () => {
+  it(`exists should return empty array`, async () => {
     await pMap(TEST_FILES, async f => {
       const exists = await storage.fileExists(bucketName, f.filePath)
       expect(exists).toBe(false)
     })
   })
 
-  test(`saveFiles, then listFileNames, streamFileNames and getFiles should return just saved files`, async () => {
+  it(`saveFiles, then listFileNames, streamFileNames and getFiles should return just saved files`, async () => {
     const testFilesMap = Object.fromEntries(TEST_FILES.map(f => [f.filePath, f.content]))
 
     // It's done in the same test to ensure "strong consistency"
@@ -126,7 +126,7 @@ export async function runCommonStorageTest(
     })
   })
 
-  test('saveFile with metadata, then getFileMetadata should return it', async () => {
+  it('saveFile with metadata, then getFileMetadata should return it', async () => {
     const f = TEST_FILES[0]!
     const metadata = { hash: 'hash_1' }
 
@@ -145,7 +145,7 @@ export async function runCommonStorageTest(
     expect(await storage.getFileMetadata(bucketName, `${TEST_FOLDER}/non_existing.json`)).toBeNull()
   })
 
-  test('cleanup', async () => {
+  it('cleanup', async () => {
     await storage.deletePath(bucketName, TEST_FOLDER)
   })
 

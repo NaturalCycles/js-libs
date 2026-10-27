@@ -1,4 +1,4 @@
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { AsyncManager } from './asyncManager.js'
 import { _isBetween } from './index.js'
 import { pDelay } from './promise/pDelay.js'
@@ -6,11 +6,11 @@ import { timeSpan } from './test/test.util.js'
 
 afterEach(() => AsyncManager.reset())
 
-test('allDone resolves immediately when no pending ops', async () => {
+it('allDone resolves immediately when no pending ops', async () => {
   await AsyncManager.allDone()
 })
 
-test('allDone waits for all pending ops', async () => {
+it('allDone waits for all pending ops', async () => {
   let resolved = false
 
   AsyncManager.runInBackground(
@@ -24,7 +24,7 @@ test('allDone waits for all pending ops', async () => {
   expect(resolved).toBe(true)
 })
 
-test('allDone does not throw on rejected ops', async () => {
+it('allDone does not throw on rejected ops', async () => {
   AsyncManager.runInBackground(Promise.reject(new Error('boom')))
   const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   await AsyncManager.allDone()
@@ -32,7 +32,7 @@ test('allDone does not throw on rejected ops', async () => {
   errorSpy.mockRestore()
 })
 
-test('rejected ops fire onError hooks', async () => {
+it('rejected ops fire onError hooks', async () => {
   const errors: Error[] = []
   AsyncManager.onError(err => errors.push(err))
 
@@ -43,7 +43,7 @@ test('rejected ops fire onError hooks', async () => {
   expect(errors[0]!.message).toBe('boom')
 })
 
-test('pendingOps is cleaned up after settlement', async () => {
+it('pendingOps is cleaned up after settlement', async () => {
   AsyncManager.runInBackground(pDelay(10))
   AsyncManager.runInBackground(pDelay(10))
   await AsyncManager.allDone()
@@ -54,7 +54,7 @@ test('pendingOps is cleaned up after settlement', async () => {
   expect(end()).toBeLessThan(20)
 })
 
-test('allDone with timeout resolves early and logs', async () => {
+it('allDone with timeout resolves early and logs', async () => {
   const logSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
   AsyncManager.runInBackground(pDelay(500))
 
@@ -67,7 +67,7 @@ test('allDone with timeout resolves early and logs', async () => {
   logSpy.mockRestore()
 })
 
-test('allDone with timeout does not log timeout if ops finish before timeout', async () => {
+it('allDone with timeout does not log timeout if ops finish before timeout', async () => {
   const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
   let resolved = false
 
@@ -84,7 +84,7 @@ test('allDone with timeout does not log timeout if ops finish before timeout', a
   logSpy.mockRestore()
 })
 
-test('multiple onError hooks are all called', async () => {
+it('multiple onError hooks are all called', async () => {
   const calls: number[] = []
   AsyncManager.onError(() => calls.push(1))
   AsyncManager.onError(() => calls.push(2))
@@ -95,7 +95,7 @@ test('multiple onError hooks are all called', async () => {
   expect(calls).toEqual([1, 2])
 })
 
-test('runInBackground with multiple concurrent ops', async () => {
+it('runInBackground with multiple concurrent ops', async () => {
   const order: number[] = []
 
   AsyncManager.runInBackground(

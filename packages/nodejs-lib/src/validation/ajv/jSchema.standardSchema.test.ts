@@ -1,26 +1,26 @@
 import type { IsoDate, StringMap, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import type { StandardJSONSchemaV1, StandardSchemaV1 } from '@standard-schema/spec'
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { j } from './jSchema.js'
 
-test('implements StandardSchemaV1 interface', () => {
+it('implements StandardSchemaV1 interface', () => {
   const schema = j.string()
   expectTypeOf(schema).toMatchTypeOf<StandardSchemaV1<unknown, string>>()
 })
 
-test('~standard has correct version and vendor', () => {
+it('~standard has correct version and vendor', () => {
   const schema = j.string()
   expect(schema['~standard'].version).toBe(1)
   expect(schema['~standard'].vendor).toBe('j')
 })
 
-test('validate returns value on success', () => {
+it('validate returns value on success', () => {
   const schema = j.string()
   const result = schema['~standard'].validate('hello')
   expect(result).toEqual({ value: 'hello' })
 })
 
-test('validate returns issues on failure', () => {
+it('validate returns issues on failure', () => {
   const schema = j.string()
   const result = schema['~standard'].validate(123)
   expect(result).toHaveProperty('issues')
@@ -34,7 +34,7 @@ interface TestObj {
   age: number
 }
 
-test('validate works with object schemas', () => {
+it('validate works with object schemas', () => {
   const schema = j.object<TestObj>({
     name: j.string(),
     age: j.number(),
@@ -48,7 +48,7 @@ test('validate works with object schemas', () => {
   expect(invalid).toHaveProperty('issues')
 })
 
-test('validate strips unknown properties', () => {
+it('validate strips unknown properties', () => {
   const schema = j.object<TestObj>({
     name: j.string(),
     age: j.number(),
@@ -57,12 +57,12 @@ test('validate strips unknown properties', () => {
   expect(result).toEqual({ value: { name: 'Alice', age: 30 } })
 })
 
-test('implements StandardJSONSchemaV1 interface', () => {
+it('implements StandardJSONSchemaV1 interface', () => {
   const schema = j.string()
   expectTypeOf(schema).toMatchTypeOf<StandardJSONSchemaV1<unknown, string>>()
 })
 
-test('jsonSchema returns build() output', () => {
+it('jsonSchema returns build() output', () => {
   const schema = j.string().minLength(1).maxLength(10)
   const opts = { target: 'draft-07' as const }
   const input = schema['~standard'].jsonSchema.input(opts)
@@ -88,7 +88,7 @@ interface User {
   tags: string[]
 }
 
-test('nested object schema', () => {
+it('nested object schema', () => {
   const schema = j.object<User>({
     name: j.string().minLength(1),
     email: j.string().email(),
@@ -152,7 +152,7 @@ interface Order {
   metadata: StringMap
 }
 
-test('object with optional fields, arrays of objects, and stringMap', () => {
+it('object with optional fields, arrays of objects, and stringMap', () => {
   const schema = j.object<Order>({
     id: j.string().uuid(),
     created: j.number().unixTimestamp2000(),
@@ -202,7 +202,7 @@ interface Config {
   label: 'a' | 'b'
 }
 
-test('enum, isoDate, array, and literal union', () => {
+it('enum, isoDate, array, and literal union', () => {
   const schema = j.object<Config>({
     status: j.enum(Status),
     date: j.string().isoDate(),
@@ -237,7 +237,7 @@ test('enum, isoDate, array, and literal union', () => {
   expect(invalidDate).toHaveProperty('issues')
 })
 
-test('nullable and optional fields', () => {
+it('nullable and optional fields', () => {
   interface WithNullable {
     required: string
     nullable: string | null
@@ -273,7 +273,7 @@ test('nullable and optional fields', () => {
   expect(nullRequired).toHaveProperty('issues')
 })
 
-test('jsonSchema for nested object', () => {
+it('jsonSchema for nested object', () => {
   const schema = j.object<{ name: string; address: Address }>({
     name: j.string(),
     address: j.object<Address>({
@@ -294,7 +294,7 @@ test('jsonSchema for nested object', () => {
   expect(props['address']['properties']).toHaveProperty('zip')
 })
 
-test('jsonSchema for array of objects', () => {
+it('jsonSchema for array of objects', () => {
   const schema = j.array(
     j.object.infer({
       id: j.number().integer(),
@@ -310,14 +310,14 @@ test('jsonSchema for array of objects', () => {
   expect(items['properties']).toHaveProperty('value')
 })
 
-test('~standard is cached after first access', () => {
+it('~standard is cached after first access', () => {
   const schema = j.string()
   const first = schema['~standard']
   const second = schema['~standard']
   expect(first).toBe(second)
 })
 
-test('vitest expect.schemaMatching works with JSchema', () => {
+it('vitest expect.schemaMatching works with JSchema', () => {
   const userSchema = j.object<User>({
     name: j.string().minLength(1),
     email: j.string().email(),

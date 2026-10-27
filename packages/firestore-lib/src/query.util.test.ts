@@ -1,10 +1,10 @@
 import { Firestore } from '@google-cloud/firestore'
 import { DBQuery } from '@naturalcycles/db-lib'
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { dbQueryToFirestoreQuery } from './query.util.js'
 
-test('dbQueryToFirestoreQuery passes limit and offset', () => {
+it('dbQueryToFirestoreQuery passes limit and offset', () => {
   const firestore = new Firestore()
 
   // no limit/offset by default

@@ -1,6 +1,6 @@
-import { test } from 'vitest'
+import { it } from 'vitest'
 import { pHang } from './pHang.js'
 
-test('pHang', async () => {
+it('pHang', async () => {
   void pHang() // never resolves
 })

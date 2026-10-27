@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import {
   _substringAfter,
   _substringAfterLast,
@@ -17,42 +17,42 @@ import {
   _upperFirst,
 } from './string.util.js'
 
-test('capitalize', () => {
+it('capitalize', () => {
   expect(_capitalize('abc')).toBe('Abc')
   expect(_capitalize('aBc')).toBe('Abc')
 })
 
-test('toUppercase', () => {
+it('toUppercase', () => {
   expect(_toUpperCase('abc')).toBe('ABC')
   expect(_toUpperCase('aBc')).toBe('ABC')
 })
 
-test('toLowercase', () => {
+it('toLowercase', () => {
   expect(_toLowercase('ABC')).toBe('abc')
   expect(_toLowercase('aBc')).toBe('abc')
 })
 
-test('upperFirst', () => {
+it('upperFirst', () => {
   expect(_upperFirst('abc')).toBe('Abc')
   expect(_upperFirst('aBc')).toBe('ABc')
 })
 
-test('lowerFirst', () => {
+it('lowerFirst', () => {
   expect(_lowerFirst('Abc')).toBe('abc')
 })
 
-test('removeWhitespace', () => {
+it('removeWhitespace', () => {
   expect(_removeWhitespace(' 1 * A ')).toBe('1*A')
 })
 
-test('_split', () => {
+it('_split', () => {
   expect(_split('a b c', ' ', 1)).toEqual(['a b c'])
   expect(_split('a b c', ' ', 2)).toEqual(['a', 'b c'])
   expect(_split('a b c', ' ', 3)).toEqual(['a', 'b', 'c'])
   expect(_split('abc', '|', 3)).toEqual(['abc'])
 })
 
-test('substringBefore, substringAfter', () => {
+it('substringBefore, substringAfter', () => {
   const s1 = 'someFile.test.ts'
   const s2 = '/Users/lalala/someFile.test.ts'
 
@@ -65,12 +65,12 @@ test('substringBefore, substringAfter', () => {
   expect(_substringAfterLast(s2, 'la')).toBe('/someFile.test.ts')
 })
 
-test('_substringBetweenLast', () => {
+it('_substringBetweenLast', () => {
   const s = '/Users/lalala/someFile.test.ts'
   expect(_substringBetweenLast(s, '/', '.')).toBe('someFile')
 })
 
-test.each([
+it.each([
   ['', ''],
   ['a', 'a'],
   ['a\nb', 'a<br>\nb'],

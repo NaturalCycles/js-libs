@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { expect, it } from 'vitest'
 import { _omit } from '../object/index.js'
 import { _stringify } from '../string/stringify.js'
 import { expectResults } from '../test/test.util.js'
@@ -70,12 +70,12 @@ const anyItems = [
   } as BackendErrorResponseObject,
 ]
 
-test('anyToErrorObject', () => {
+it('anyToErrorObject', () => {
   // omitting stack only for snapshot determinism
   expectResults(v => _omit(_anyToErrorObject(v), ['stack']), anyItems).toMatchSnapshot()
 })
 
-test('anyToError', () => {
+it('anyToError', () => {
   expectResults(v => _anyToError(v), anyItems).toMatchSnapshot()
 
   const httpError = new AppError('la la', {
@@ -120,7 +120,7 @@ test('anyToError', () => {
   expect(httpError4.stack).toBe(httpError.stack)
 })
 
-test('appErrorToErrorObject / errorObjectToAppError snapshot', () => {
+it('appErrorToErrorObject / errorObjectToAppError snapshot', () => {
   const data = { a: 'b' }
   const err1 = new AppError('hello', data)
   const err2 = _errorLikeToErrorObject(err1)
@@ -133,23 +133,23 @@ test('appErrorToErrorObject / errorObjectToAppError snapshot', () => {
   })
 })
 
-test('isErrorObject', () => {
+it('isErrorObject', () => {
   expectResults(v => _isErrorObject(v), anyItems).toMatchSnapshot()
 })
 
-test('isErrorLike', () => {
+it('isErrorLike', () => {
   expectResults(v => _isErrorLike(v), anyItems).toMatchSnapshot()
 })
 
-test('isHttpRequestErrorObject', () => {
+it('isHttpRequestErrorObject', () => {
   expectResults(v => _isHttpRequestErrorObject(v), anyItems).toMatchSnapshot()
 })
 
-test('isHttpErrorResponse', () => {
+it('isHttpErrorResponse', () => {
   expectResults(v => _isBackendErrorResponseObject(v), anyItems).toMatchSnapshot()
 })
 
-test('duck-typing checks should not throw on objects with throwing property getters', () => {
+it('duck-typing checks should not throw on objects with throwing property getters', () => {
   for (const prop of ['name', 'message', 'error', 'data']) {
     const o = {}
     Object.defineProperty(o, prop, {
@@ -168,7 +168,7 @@ test('duck-typing checks should not throw on objects with throwing property gett
   }
 })
 
-test('_errorObjectToError should not repack if already same error', () => {
+it('_errorObjectToError should not repack if already same error', () => {
   const e = new AppError('yo', { backendResponseStatusCode: 400 })
   expect(_isErrorObject(e)).toBe(true)
   // HttpError not an ErrorObject, actually
@@ -190,7 +190,7 @@ test('_errorObjectToError should not repack if already same error', () => {
   expect(e4.stack).toBe(e.stack) // important to preserve the stack!
 })
 
-test('_errorDataAppend', () => {
+it('_errorDataAppend', () => {
   const err = new Error('yo') as any
   const err_ = _errorDataAppend(err, { backendResponseStatusCode: 401 })
   expect(err_).toBe(err) // same object
@@ -225,7 +225,7 @@ test('_errorDataAppend', () => {
 `)
 })
 
-test('_errorDataAppend should not fail if input is not error', () => {
+it('_errorDataAppend should not fail if input is not error', () => {
   const err = _errorDataAppend(undefined, { a: 'a' })
   expect(err).toMatchInlineSnapshot(`[Error: undefined]`)
   expect((err as any).data).toEqual({ a: 'a' })
@@ -236,6 +236,6 @@ test('_errorDataAppend should not fail if input is not error', () => {
   _errorDataAppend(['abc'], { a: 'a' })
 })
 
-test('_errorSnippet', () => {
+it('_errorSnippet', () => {
   expectResults(v => _errorSnippet(v), anyItems).toMatchSnapshot()
 })

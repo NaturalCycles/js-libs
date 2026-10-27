@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import { _noop } from '@naturalcycles/js-lib/types'
-import { beforeEach, test, vi } from 'vitest'
+import { beforeEach, it, vi } from 'vitest'
 import { scriptsDir, testDir, tmpDir } from '../test/paths.cnst.js'
 import { json2env } from './json2env.js'
 import { kpy, kpySync } from './kpy.js'
@@ -27,7 +27,7 @@ beforeEach(() => {
 const outputDir = `${tmpDir}/debug/kpy`
 const inputPatterns = ['*.json']
 
-test('kpy', async () => {
+it('kpy', async () => {
   kpySync({
     baseDir: scriptsDir,
     outputDir,
@@ -78,7 +78,7 @@ test('kpy', async () => {
   // })
 })
 
-test('json2env', async () => {
+it('json2env', async () => {
   const jsonPath = `${testDir}/someFile.json`
 
   json2env({

@@ -1,8 +1,8 @@
 import type { IsoDate } from '@naturalcycles/js-lib/types'
-import { expect, expectTypeOf, test } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { _parseArgs, ParseArgsError } from './parseArgs.js'
 
-test('basic types and optionality', () => {
+it('basic types and optionality', () => {
   const args = _parseArgs(
     {
       str: { type: 'string' },
@@ -22,19 +22,19 @@ test('basic types and optionality', () => {
   expectTypeOf(args._).toEqualTypeOf<string[]>()
 })
 
-test('number coercion', () => {
+it('number coercion', () => {
   const args = _parseArgs({ n: { type: 'number' } }, { args: ['--n', '42'] })
   expect(args.n).toBe(42)
   expectTypeOf(args.n).toEqualTypeOf<number | undefined>()
 })
 
-test('invalid number throws', () => {
+it('invalid number throws', () => {
   expect(() => _parseArgs({ n: { type: 'number' } }, { args: ['--n', 'abc'] })).toThrow(
     ParseArgsError,
   )
 })
 
-test('array option', () => {
+it('array option', () => {
   const args = _parseArgs(
     { p: { type: 'string', array: true } },
     { args: ['--p', 'a', '--p', 'b'] },
@@ -43,7 +43,7 @@ test('array option', () => {
   expectTypeOf(args.p).toEqualTypeOf<string[] | undefined>()
 })
 
-test('array with scalar default is normalized to array', () => {
+it('array with scalar default is normalized to array', () => {
   const args = _parseArgs(
     { p: { type: 'string', array: true, default: './secret/**' } },
     { args: [] },
@@ -52,7 +52,7 @@ test('array with scalar default is normalized to array', () => {
   expectTypeOf(args.p).toEqualTypeOf<string[]>() // default present => required
 })
 
-test('number array', () => {
+it('number array', () => {
   const args = _parseArgs(
     { n: { type: 'number', array: true } },
     { args: ['--n', '1', '--n', '2'] },
@@ -61,13 +61,13 @@ test('number array', () => {
   expectTypeOf(args.n).toEqualTypeOf<number[] | undefined>()
 })
 
-test('demandOption missing throws', () => {
+it('demandOption missing throws', () => {
   expect(() => _parseArgs({ x: { type: 'string', demandOption: true } }, { args: [] })).toThrow(
     /Missing required option: --x/,
   )
 })
 
-test('choices narrow the type and validate', () => {
+it('choices narrow the type and validate', () => {
   const args = _parseArgs(
     { cmd: { type: 'string', choices: ['success', 'start', 'fail'], default: 'success' } },
     { args: ['--cmd', 'start'] },
@@ -83,7 +83,7 @@ test('choices narrow the type and validate', () => {
   ).toThrow(/Invalid value for --cmd/)
 })
 
-test('numeric choices', () => {
+it('numeric choices', () => {
   const args = _parseArgs(
     { size: { type: 'number', choices: [128, 256] as const, default: 256 } },
     { args: ['--size', '128'] },
@@ -92,7 +92,7 @@ test('numeric choices', () => {
   expectTypeOf(args.size).toEqualTypeOf<128 | 256>()
 })
 
-test('negated boolean (--no-flag)', () => {
+it('negated boolean (--no-flag)', () => {
   const args = _parseArgs(
     { overwrite: { type: 'boolean', default: true } },
     { args: ['--no-overwrite'] },
@@ -101,7 +101,7 @@ test('negated boolean (--no-flag)', () => {
   expectTypeOf(args.overwrite).toEqualTypeOf<boolean>()
 })
 
-test('boolean --flag=false coerces to boolean false', () => {
+it('boolean --flag=false coerces to boolean false', () => {
   const args = _parseArgs(
     { requireJira: { type: 'boolean', default: true } },
     { args: ['--requireJira=false'] },
@@ -110,7 +110,7 @@ test('boolean --flag=false coerces to boolean false', () => {
   expectTypeOf(args.requireJira).toEqualTypeOf<boolean>()
 })
 
-test('boolean --flag=true coerces to boolean true', () => {
+it('boolean --flag=true coerces to boolean true', () => {
   const args = _parseArgs(
     { requireJira: { type: 'boolean', default: false } },
     { args: ['--requireJira=true'] },
@@ -118,13 +118,13 @@ test('boolean --flag=true coerces to boolean true', () => {
   expect(args.requireJira).toBe(true)
 })
 
-test('invalid boolean value throws', () => {
+it('invalid boolean value throws', () => {
   expect(() => _parseArgs({ b: { type: 'boolean' } }, { args: ['--b=nope'] })).toThrow(
     /Invalid boolean for --b/,
   )
 })
 
-test('boolean --flag with space-separated true/false throws (ambiguous)', () => {
+it('boolean --flag with space-separated true/false throws (ambiguous)', () => {
   // node never consumes the next token as a boolean's value, so `--arg false`
   // would silently yield `arg: true` and leak "false" into positionals.
   expect(() => _parseArgs({ arg: { type: 'boolean' } }, { args: ['--arg', 'false'] })).toThrow(
@@ -135,12 +135,12 @@ test('boolean --flag with space-separated true/false throws (ambiguous)', () => 
   )
 })
 
-test('boolean --flag followed by a non-boolean positional is left alone', () => {
+it('boolean --flag followed by a non-boolean positional is left alone', () => {
   const args = _parseArgs({ arg: { type: 'boolean' } }, { args: ['--arg', 'foo.txt'] })
   expect(args).toEqual({ _: ['foo.txt'], arg: true })
 })
 
-test('non-boolean option passed as a bare flag throws (missing value)', () => {
+it('non-boolean option passed as a bare flag throws (missing value)', () => {
   // node returns boolean `true` for a bare flag in non-strict mode; without this
   // guard a string field would be `true` and a number field would silently be `1`.
   expect(() => _parseArgs({ x: { type: 'string' } }, { args: ['--x'] })).toThrow(
@@ -158,12 +158,12 @@ test('non-boolean option passed as a bare flag throws (missing value)', () => {
   )
 })
 
-test('short alias', () => {
+it('short alias', () => {
   const args = _parseArgs({ verbose: { type: 'boolean', short: 'v' } }, { args: ['-v'] })
   expect(args.verbose).toBe(true)
 })
 
-test('positionals and minPositionals', () => {
+it('positionals and minPositionals', () => {
   const args = _parseArgs({ x: { type: 'string' } }, { args: ['a', 'b', '--x', '1'] })
   expect(args._).toEqual(['a', 'b'])
   const [first, ...rest] = args._
@@ -175,26 +175,26 @@ test('positionals and minPositionals', () => {
   )
 })
 
-test('unknown option is ignored by default', () => {
+it('unknown option is ignored by default', () => {
   const args = _parseArgs({ x: { type: 'string' } }, { args: ['--nope', '--x', '1'] })
   expect(args).toEqual({ _: [], x: '1' })
   expect(args).not.toHaveProperty('nope')
 })
 
-test('unknown option throws in strict mode', () => {
+it('unknown option throws in strict mode', () => {
   expect(() => _parseArgs({ x: { type: 'string' } }, { args: ['--nope'], strict: true })).toThrow(
     ParseArgsError,
   )
 })
 
-test('type defaults to string', () => {
+it('type defaults to string', () => {
   const args = _parseArgs({ s: {}, n: { type: 'number' } }, { args: ['--s', 'x', '--n', '5'] })
   expect(args).toEqual({ _: [], s: 'x', n: 5 })
   expectTypeOf(args.s).toEqualTypeOf<string | undefined>()
   expectTypeOf(args.n).toEqualTypeOf<number | undefined>()
 })
 
-test('transform infers branded type and converts the value', () => {
+it('transform infers branded type and converts the value', () => {
   const args = _parseArgs(
     { date: { transform: s => s as IsoDate } },
     { args: ['--date', '2020-01-01'] },
@@ -203,7 +203,7 @@ test('transform infers branded type and converts the value', () => {
   expectTypeOf(args.date).toEqualTypeOf<IsoDate | undefined>()
 })
 
-test('transform can actually transform the value', () => {
+it('transform can actually transform the value', () => {
   const args = _parseArgs(
     { name: { transform: s => s.toUpperCase() } },
     { args: ['--name', 'abc'] },
@@ -212,7 +212,7 @@ test('transform can actually transform the value', () => {
   expectTypeOf(args.name).toEqualTypeOf<string | undefined>()
 })
 
-test('transform applies per array element', () => {
+it('transform applies per array element', () => {
   const args = _parseArgs(
     { ids: { array: true, transform: Number } },
     { args: ['--ids', '1', '--ids', '2'] },
@@ -221,7 +221,7 @@ test('transform applies per array element', () => {
   expectTypeOf(args.ids).toEqualTypeOf<number[] | undefined>()
 })
 
-test('transform is not applied to default value', () => {
+it('transform is not applied to default value', () => {
   const seen: string[] = []
   const args = _parseArgs(
     {
@@ -240,7 +240,7 @@ test('transform is not applied to default value', () => {
   expectTypeOf(args.date).toEqualTypeOf<IsoDate>() // default present => required
 })
 
-test('env-var default stays optional', () => {
+it('env-var default stays optional', () => {
   const args = _parseArgs(
     { token: { type: 'string', default: process.env['NON_EXISTENT_VAR_XYZ'] } },
     { args: [] },

@@ -17,12 +17,12 @@ import type {
   UnixTimestamp,
   UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
-import { describe, expect, expectTypeOf, test } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { JSchema } from './jSchema.js'
 import { AjvSchema, HIDDEN_AJV_SCHEMA, j } from './jSchema.js'
 
 describe('immutability', () => {
-  test('the rule chains should return new instances', () => {
+  it('the rule chains should return new instances', () => {
     const schema1 = j.string()
     const schema2 = schema1.minLength(1)
     const schema3 = schema2.maxLength(2)
@@ -33,7 +33,7 @@ describe('immutability', () => {
 })
 
 describe('any', () => {
-  test('should accept any value', () => {
+  it('should accept any value', () => {
     const schema = j.any()
 
     const validCases: any[] = ['hello', 42, true, null, { a: 1 }, [1, 2], undefined]
@@ -45,7 +45,7 @@ describe('any', () => {
 })
 
 describe('string', () => {
-  test('should work correctly with type inference', () => {
+  it('should work correctly with type inference', () => {
     const schema = j.string()
 
     const [err, result] = schema.getValidationResult('foo')
@@ -56,7 +56,7 @@ describe('string', () => {
   })
 
   describe('nullable', () => {
-    test('should accept both strings and null', () => {
+    it('should accept both strings and null', () => {
       const schema = j.string().nullable()
 
       const [err1] = schema.getValidationResult('hello')
@@ -66,7 +66,7 @@ describe('string', () => {
       expect(err2).toBeNull()
     })
 
-    test('should reject non-string, non-null values', () => {
+    it('should reject non-string, non-null values', () => {
       const schema = j.string().nullable()
 
       const invalidCases: any[] = [42, true, {}, []]
@@ -78,7 +78,7 @@ describe('string', () => {
   })
 
   describe('optional(values)', () => {
-    test('should convert specific values to `undefined`', () => {
+    it('should convert specific values to `undefined`', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().optional(['abcd']) })
 
       const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
@@ -102,7 +102,7 @@ describe('string', () => {
       expect(result4).toEqual({})
     })
 
-    test('should work with `null` values', () => {
+    it('should work with `null` values', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
 
       const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
@@ -114,7 +114,7 @@ describe('string', () => {
       expect(result2).toEqual({ foo: undefined })
     })
 
-    test('should not allow chaining after `optional([null])` (compile-time error)', () => {
+    it('should not allow chaining after `optional([null])` (compile-time error)', () => {
       const schema = j.string().optional([null])
       // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
       // which doesn't have string-specific methods like minLength().
@@ -123,7 +123,7 @@ describe('string', () => {
       expect(() => schema.minLength(1)).toThrow(TypeError)
     })
 
-    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+    it('should throw when used on a standalone schema (and not in an object/array)', () => {
       const schema = j.string().optional(['foo'])
       const ajvSchema = AjvSchema.create(schema)
 
@@ -132,7 +132,7 @@ describe('string', () => {
       )
     })
 
-    test('should still be an optional field when passing in `null`', () => {
+    it('should still be an optional field when passing in `null`', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
 
       const [err1, result1] = schema.getValidationResult({})
@@ -142,7 +142,7 @@ describe('string', () => {
   })
 
   describe('regex', () => {
-    test('should correctly validate against the regex', () => {
+    it('should correctly validate against the regex', () => {
       const schema = j.string().regex(/^[0-9]{2}$/)
 
       const [err01] = schema.getValidationResult('00')
@@ -156,7 +156,7 @@ describe('string', () => {
       expect(err12).not.toBeNull()
     })
 
-    test('should allow setting custom error message', () => {
+    it('should allow setting custom error message', () => {
       const schema = j.string().regex(/^[0-9]{2}$/, { msg: 'is not a valid Oompa-loompa' })
 
       const [err11] = schema.getValidationResult('000')
@@ -166,7 +166,7 @@ describe('string', () => {
       `)
     })
 
-    test('should allow setting custom validation name', () => {
+    it('should allow setting custom validation name', () => {
       const schema = j.string().regex(/^[0-9]{2}$/, { name: 'Oompa-loompa' })
 
       const [err11] = schema.getValidationResult('000')
@@ -176,7 +176,7 @@ describe('string', () => {
       `)
     })
 
-    test('should throw custom error from regex in item schema', () => {
+    it('should throw custom error from regex in item schema', () => {
       const itemSchema = j.string().regex(/^foo$/, { msg: 'must be "foo"' })
       const schema = j.array(itemSchema)
 
@@ -191,7 +191,7 @@ describe('string', () => {
       `)
     })
 
-    test('should throw custom error from regex in property schema of object nested in item schema', () => {
+    it('should throw custom error from regex in property schema of object nested in item schema', () => {
       interface Item {
         name: string
       }
@@ -210,7 +210,7 @@ describe('string', () => {
       `)
     })
 
-    test('regex schema should not print the regex rule', () => {
+    it('regex schema should not print the regex rule', () => {
       const schema = j.string().regex(/\D+/)
 
       const [err] = schema.getValidationResult('42')
@@ -222,7 +222,7 @@ describe('string', () => {
   })
 
   describe('pattern', () => {
-    test('should correctly validate against the pattern', () => {
+    it('should correctly validate against the pattern', () => {
       const schema = j.string().pattern('^[0-9]{2}$')
 
       const [err01] = schema.getValidationResult('00')
@@ -236,7 +236,7 @@ describe('string', () => {
       expect(err12).not.toBeNull()
     })
 
-    test('should throw custom error from pattern in property schema', () => {
+    it('should throw custom error from pattern in property schema', () => {
       interface Foo {
         foo: string
       }
@@ -254,7 +254,7 @@ describe('string', () => {
       `)
     })
 
-    test('should throw custom error from pattern in nested property schema', () => {
+    it('should throw custom error from pattern in nested property schema', () => {
       interface Foo {
         foo: {
           bar: string
@@ -276,7 +276,7 @@ describe('string', () => {
       `)
     })
 
-    test('should throw custom error from pattern in object with number keys', () => {
+    it('should throw custom error from pattern in object with number keys', () => {
       interface Foo {
         1: string
       }
@@ -294,7 +294,7 @@ describe('string', () => {
       `)
     })
 
-    test('pattern schema should not print the regex rule', () => {
+    it('pattern schema should not print the regex rule', () => {
       const schema = j.string().pattern(String.raw`\D+`)
 
       const [err] = schema.getValidationResult('42')
@@ -306,7 +306,7 @@ describe('string', () => {
   })
 
   describe('minLength', () => {
-    test('should correctly validate the minimum length of the string', () => {
+    it('should correctly validate the minimum length of the string', () => {
       const schema = j.string().minLength(5)
 
       const [err01] = schema.getValidationResult('01234')
@@ -320,7 +320,7 @@ describe('string', () => {
   })
 
   describe('maxLength', () => {
-    test('should correctly validate the maximum length of the string', () => {
+    it('should correctly validate the maximum length of the string', () => {
       const schema = j.string().maxLength(5)
 
       const [err01] = schema.getValidationResult('0123')
@@ -334,7 +334,7 @@ describe('string', () => {
   })
 
   describe('length(min, max)', () => {
-    test('should correctly validate the length of the string', () => {
+    it('should correctly validate the length of the string', () => {
       const schema = j.string().length(4, 5)
 
       const [err01] = schema.getValidationResult('0123')
@@ -350,7 +350,7 @@ describe('string', () => {
   })
 
   describe('length(eq)', () => {
-    test('should correctly validate the length of the string', () => {
+    it('should correctly validate the length of the string', () => {
       const schema = j.string().length(4)
 
       const [err01] = schema.getValidationResult('0123')
@@ -366,7 +366,7 @@ describe('string', () => {
   })
 
   describe('trim', () => {
-    test('should trim the input string - when inside an object schema', () => {
+    it('should trim the input string - when inside an object schema', () => {
       const schema = j.object.infer({ trim: j.string().trim() }).isOfType<{ trim: string }>()
 
       const [err, result] = schema.getValidationResult({
@@ -377,7 +377,7 @@ describe('string', () => {
       expect(result.trim).toBe('trimmed  string')
     })
 
-    test('should trim the input string - when inside an array schema', () => {
+    it('should trim the input string - when inside an array schema', () => {
       const schema = j.array(j.string().trim())
 
       const [err, result] = schema.getValidationResult(['  trimmed  string  '])
@@ -386,7 +386,7 @@ describe('string', () => {
       expect(result[0]).toBe('trimmed  string')
     })
 
-    test('should silently fail when not inside a parent schema', () => {
+    it('should silently fail when not inside a parent schema', () => {
       const schema = j.string().trim()
 
       const [err, result] = schema.getValidationResult('  trimmed  string  ')
@@ -397,7 +397,7 @@ describe('string', () => {
   })
 
   describe('toLowerCase', () => {
-    test('should toLowerCase the input string - when inside an object schema', () => {
+    it('should toLowerCase the input string - when inside an object schema', () => {
       const schema = j.object
         .infer({ toLowerCase: j.string().toLowerCase() })
         .isOfType<{ toLowerCase: string }>()
@@ -410,7 +410,7 @@ describe('string', () => {
       expect(result.toLowerCase).toBe('lowercase string')
     })
 
-    test('should toLowerCase the input string - when inside an array schema', () => {
+    it('should toLowerCase the input string - when inside an array schema', () => {
       const schema = j.array(j.string().toLowerCase())
 
       const [err, result] = schema.getValidationResult(['lOwErCaSe StRiNg'])
@@ -419,7 +419,7 @@ describe('string', () => {
       expect(result[0]).toBe('lowercase string')
     })
 
-    test('should silently fail when not inside a parent schema', () => {
+    it('should silently fail when not inside a parent schema', () => {
       const schema = j.string().toLowerCase()
 
       const [err, result] = schema.getValidationResult('lOwErCaSe StRiNg')
@@ -430,7 +430,7 @@ describe('string', () => {
   })
 
   describe('toUpperCase', () => {
-    test('should toUpperCase the input string - when inside an object schema', () => {
+    it('should toUpperCase the input string - when inside an object schema', () => {
       const schema = j.object
         .infer({ toUpperCase: j.string().toUpperCase() })
         .isOfType<{ toUpperCase: string }>()
@@ -443,7 +443,7 @@ describe('string', () => {
       expect(result.toUpperCase).toBe('UPPERCASE STRING')
     })
 
-    test('should toUpperCase the input string - when inside an array schema', () => {
+    it('should toUpperCase the input string - when inside an array schema', () => {
       const schema = j.array(j.string().toUpperCase())
 
       const [err, result] = schema.getValidationResult(['UpPeRcAsE StRiNg'])
@@ -452,7 +452,7 @@ describe('string', () => {
       expect(result[0]).toBe('UPPERCASE STRING')
     })
 
-    test('should silently fail when not inside a parent schema', () => {
+    it('should silently fail when not inside a parent schema', () => {
       const schema = j.string().toUpperCase()
 
       const [err, result] = schema.getValidationResult('UpPeRcAsE StRiNg')
@@ -463,7 +463,7 @@ describe('string', () => {
   })
 
   describe('truncate', () => {
-    test('should truncate the input string - when inside an object schema', () => {
+    it('should truncate the input string - when inside an object schema', () => {
       const schema = j.object
         .infer({ truncate: j.string().truncate(5) })
         .isOfType<{ truncate: string }>()
@@ -476,7 +476,7 @@ describe('string', () => {
       expect(result.truncate).toBe('01234')
     })
 
-    test('should truncate the input string - when inside an array schema', () => {
+    it('should truncate the input string - when inside an array schema', () => {
       const schema = j.array(j.string().truncate(5))
 
       const [err, result] = schema.getValidationResult(['0123456'])
@@ -485,7 +485,7 @@ describe('string', () => {
       expect(result[0]).toBe('01234')
     })
 
-    test('should silently fail when not inside a parent schema', () => {
+    it('should silently fail when not inside a parent schema', () => {
       const schema = j.string().truncate(5)
 
       const [err, result] = schema.getValidationResult('0123456')
@@ -494,7 +494,7 @@ describe('string', () => {
       expect(result).toBe('0123456')
     })
 
-    test('should trim the result when trim is part of the chain', () => {
+    it('should trim the result when trim is part of the chain', () => {
       const schema = j.object
         .infer({ truncate: j.string().trim().truncate(5) })
         .isOfType<{ truncate: string }>()
@@ -509,7 +509,7 @@ describe('string', () => {
   })
 
   describe('branded', () => {
-    test('should work correctly with type inference', () => {
+    it('should work correctly with type inference', () => {
       type AccountId = Branded<string, 'AccountId'>
       const schema = j.string().branded<AccountId>()
 
@@ -523,7 +523,7 @@ describe('string', () => {
   })
 
   describe('email', () => {
-    test('should accept valid email address - %s', () => {
+    it('should accept valid email address - %s', () => {
       const testCases: string[] = [
         'david@nc.se',
         'paul-louis@nc.co.uk',
@@ -539,7 +539,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject invalid email address', () => {
+    it('should reject invalid email address', () => {
       const schema = j.string().email()
 
       const invalidTestCases: any[] = [
@@ -558,7 +558,7 @@ describe('string', () => {
       })
     })
 
-    test('should trim the email when it`s wrapped in an object or array', () => {
+    it('should trim the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
 
       const [err1, value1] = schema1.getValidationResult({ email: 'kamalaharris@gmail.com ' }) // em space
@@ -572,7 +572,7 @@ describe('string', () => {
       expect(value2).toEqual(['kamalaharris@gmail.com'])
     })
 
-    test('should lowercase the email when it`s wrapped in an object or array', () => {
+    it('should lowercase the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
 
       const [err1, value1] = schema1.getValidationResult({ email: 'KAMALAHARRIS@gmail.com' })
@@ -586,7 +586,7 @@ describe('string', () => {
       expect(value2).toEqual(['kamalaharris@gmail.com'])
     })
 
-    test('should produce a readable error message', () => {
+    it('should produce a readable error message', () => {
       const schema = j.string().email()
 
       const [err1] = schema.getValidationResult('karius@tandtroll.con')
@@ -602,7 +602,7 @@ describe('string', () => {
       `)
     })
 
-    test('should convert the email to lowercase - when inside an object schema', () => {
+    it('should convert the email to lowercase - when inside an object schema', () => {
       const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
 
       const [, result] = schema.getValidationResult({ email: 'LOWERCASE@nc.COM' })
@@ -610,7 +610,7 @@ describe('string', () => {
       expect(result.email).toBe('lowercase@nc.com')
     })
 
-    test('should trim the email - when inside an object schema', () => {
+    it('should trim the email - when inside an object schema', () => {
       const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
 
       const [, result] = schema.getValidationResult({
@@ -620,7 +620,7 @@ describe('string', () => {
       expect(result.email).toBe('trimmed@nc.com')
     })
 
-    test('should work with optional(values)', () => {
+    it('should work with optional(values)', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().email().optional(['']) })
 
       const [err1, result1] = schema.getValidationResult({ foo: 'foo@boo.com' })
@@ -638,7 +638,7 @@ describe('string', () => {
   })
 
   describe('the checkTLD option', () => {
-    test('should validate the TLD part strictly by default', () => {
+    it('should validate the TLD part strictly by default', () => {
       const schema = j.string().email()
 
       const [err01] = schema.getValidationResult('david@nc.se')
@@ -653,7 +653,7 @@ describe('string', () => {
       `)
     })
 
-    test('should not validate the TLD part strictly when `checkTLD` is `false`', () => {
+    it('should not validate the TLD part strictly when `checkTLD` is `false`', () => {
       const schema = j.string().email({ checkTLD: false })
 
       const [err01] = schema.getValidationResult('david@nc.se')
@@ -667,7 +667,7 @@ describe('string', () => {
   })
 
   describe('IsoDate', () => {
-    test('should work correctly with type inference', () => {
+    it('should work correctly with type inference', () => {
       const schema = j.string().isoDate()
 
       const [err, result] = schema.getValidationResult('2025-10-15')
@@ -677,7 +677,7 @@ describe('string', () => {
       expectTypeOf(result).toEqualTypeOf<IsoDate>()
     })
 
-    test('should reject with proper error message', () => {
+    it('should reject with proper error message', () => {
       const schema = j.string().isoDate()
 
       const [err] = schema.getValidationResult(
@@ -690,7 +690,7 @@ describe('string', () => {
       `)
     })
 
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const testCases = ['2001-01-01', '1984-02-29', '2026-08-08', '2000-02-29']
       const d = localDate.fromString('2001-01-01' as IsoDate)
       for (let i = 1; i < 366; ++i) {
@@ -704,7 +704,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject invalid data', () => {
+    it('should reject invalid data', () => {
       const invalidCases: any[] = [
         'abcd',
         '0-0-0',
@@ -740,7 +740,7 @@ describe('string', () => {
     })
 
     describe('optional(values)', () => {
-      test('should work with `null` values', () => {
+      it('should work with `null` values', () => {
         const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
 
         const [err1, result1] = schema.getValidationResult({ date: '2025-01-15' as IsoDate })
@@ -752,7 +752,7 @@ describe('string', () => {
         expect(result2).toEqual({ date: undefined })
       })
 
-      test('should still be an optional field when passing in `null`', () => {
+      it('should still be an optional field when passing in `null`', () => {
         const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
 
         const [err1, result1] = schema.getValidationResult({})
@@ -760,7 +760,7 @@ describe('string', () => {
         expect(result1).toEqual({})
       })
 
-      test('should work even after a `nullable()` call', () => {
+      it('should work even after a `nullable()` call', () => {
         const schema = j.object<{ foo?: string | null }>({
           foo: j.string().nullable().optional([null]),
         })
@@ -774,7 +774,7 @@ describe('string', () => {
         expect(result2).toEqual({ foo: undefined })
       })
 
-      test('should not mutate the base builder when deriving optional([null]) from nullable()', () => {
+      it('should not mutate the base builder when deriving optional([null]) from nullable()', () => {
         const base = j.string().nullable()
 
         // Derive two independent optional schemas from the same base
@@ -794,7 +794,7 @@ describe('string', () => {
     })
 
     describe('before', () => {
-      test('should accept valid data', () => {
+      it('should accept valid data', () => {
         const testCases: any[] = ['2018-06-20']
         const schema = j.string().isoDate().before('2018-06-21')
 
@@ -811,7 +811,7 @@ describe('string', () => {
         })
       })
 
-      test('should reject invalid date for the rule', () => {
+      it('should reject invalid date for the rule', () => {
         const schema = j.string().isoDate().before('abcd')
         const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
@@ -822,7 +822,7 @@ describe('string', () => {
     })
 
     describe('sameOrBefore', () => {
-      test('should accept valid data', () => {
+      it('should accept valid data', () => {
         const testCases: any[] = ['2018-06-20', '2018-06-21']
         const schema = j.string().isoDate().sameOrBefore('2018-06-21')
 
@@ -839,7 +839,7 @@ describe('string', () => {
         })
       })
 
-      test('should reject invalid date for the rule', () => {
+      it('should reject invalid date for the rule', () => {
         const schema = j.string().isoDate().sameOrBefore('abcd')
         const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
@@ -850,7 +850,7 @@ describe('string', () => {
     })
 
     describe('after', () => {
-      test('should accept valid data', () => {
+      it('should accept valid data', () => {
         const testCases: any[] = ['2018-06-22']
         const schema = j.string().isoDate().after('2018-06-21')
 
@@ -867,7 +867,7 @@ describe('string', () => {
         })
       })
 
-      test('should reject invalid date for the rule', () => {
+      it('should reject invalid date for the rule', () => {
         const schema = j.string().isoDate().after('abcd')
         const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
@@ -878,7 +878,7 @@ describe('string', () => {
     })
 
     describe('sameOrAfter', () => {
-      test('should accept valid data', () => {
+      it('should accept valid data', () => {
         const testCases: any[] = ['2018-06-21', '2018-06-22']
         const schema = j.string().isoDate().sameOrAfter('2018-06-21')
 
@@ -895,7 +895,7 @@ describe('string', () => {
         })
       })
 
-      test('should reject invalid date for the rule', () => {
+      it('should reject invalid date for the rule', () => {
         const schema = j.string().isoDate().sameOrAfter('abcd')
         const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
@@ -906,7 +906,7 @@ describe('string', () => {
     })
 
     describe('between', () => {
-      test('should accept valid data', () => {
+      it('should accept valid data', () => {
         const testCases: any[] = ['2018-06-20', '2018-06-21', '2018-06-22']
         const schema = j.string().isoDate().between('2018-06-20', '2018-06-22', '[]')
 
@@ -923,7 +923,7 @@ describe('string', () => {
         })
       })
 
-      test('should work with [) inclusiveness - include start, exclude end', () => {
+      it('should work with [) inclusiveness - include start, exclude end', () => {
         const schema = j.string().isoDate().between('2018-06-20', '2018-06-22', '[)')
 
         const validCases: any[] = ['2018-06-20', '2018-06-21']
@@ -939,7 +939,7 @@ describe('string', () => {
         })
       })
 
-      test('should reject invalid date for the rule', () => {
+      it('should reject invalid date for the rule', () => {
         const schema1 = j.string().isoDate().between('abcd', '2018-06-22', '[]')
         const [err1] = schema1.getValidationResult('2018-06-21')
         expect(err1).toMatchInlineSnapshot(`
@@ -958,7 +958,7 @@ describe('string', () => {
   })
 
   describe('IsoDateTime', () => {
-    test('should work correctly with type inference', () => {
+    it('should work correctly with type inference', () => {
       const schema = j.string().isoDateTime()
 
       const [err, result] = schema.getValidationResult('2025-10-15T01:01:01Z')
@@ -968,7 +968,7 @@ describe('string', () => {
       expectTypeOf(result).toEqualTypeOf<IsoDateTime>()
     })
 
-    test('should reject with proper error message', () => {
+    it('should reject with proper error message', () => {
       const schema = j.string().isoDateTime()
 
       const [err] = schema.getValidationResult(
@@ -981,7 +981,7 @@ describe('string', () => {
       `)
     })
 
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const testCases = [
         '2001-01-01T01:01:01',
         '2001-01-01T01:01:01Z',
@@ -1011,7 +1011,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject invalid data', () => {
+    it('should reject invalid data', () => {
       const invalidCases = [
         'abcd',
         '20250930T070629Z', // valid ISO6801 but we don't support it
@@ -1059,7 +1059,7 @@ describe('string', () => {
   })
 
   describe('IsoMonth', () => {
-    test('should work correctly with type inference', () => {
+    it('should work correctly with type inference', () => {
       const schema = j.string().isoMonth()
 
       const [err, result] = schema.getValidationResult('2025-10')
@@ -1069,7 +1069,7 @@ describe('string', () => {
       expectTypeOf(result).toEqualTypeOf<IsoMonth>()
     })
 
-    test('should reject with proper error message', () => {
+    it('should reject with proper error message', () => {
       const schema = j.string().isoMonth()
 
       const [err] = schema.getValidationResult('Second day of the second month')
@@ -1080,7 +1080,7 @@ describe('string', () => {
       `)
     })
 
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const testCases: any[] = []
       const d = localDate.fromString('2001-01-01' as IsoDate)
       for (let i = 1; i < 366; ++i) {
@@ -1094,7 +1094,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject invalid data', () => {
+    it('should reject invalid data', () => {
       const invalidCases: any[] = [
         'abcd',
         '0-0',
@@ -1120,7 +1120,7 @@ describe('string', () => {
   })
 
   describe('jwt', () => {
-    test('should accept string with valid JWT format', () => {
+    it('should accept string with valid JWT format', () => {
       const testCases = [
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30',
       ]
@@ -1132,7 +1132,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid JWT format', () => {
+    it('should reject string with invalid JWT format', () => {
       const invalidCases: any[] = [
         'a',
         // Missing signature part - technically valid JWT, but we do not accept it
@@ -1152,7 +1152,7 @@ describe('string', () => {
   })
 
   describe('url', () => {
-    test('should accept string with valid URL', () => {
+    it('should accept string with valid URL', () => {
       const testCases = ['https://nevergonna.giveyou.up']
       const schema = j.string().url()
 
@@ -1162,7 +1162,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid URL', () => {
+    it('should reject string with invalid URL', () => {
       const invalidCases: any[] = ['not a URL', 0, true, [], {}]
       const schema = j.string().url()
 
@@ -1172,7 +1172,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject internationalized domain names (IDN)', () => {
+    it('should reject internationalized domain names (IDN)', () => {
       // IDNs are not supported because JSON Schema patterns don't support regex flags,
       // and the unicode flag is required to match non-ASCII characters.
       // Use punycode encoding (e.g., https://xn--mnchen-3ya.de) instead.
@@ -1187,7 +1187,7 @@ describe('string', () => {
   })
 
   describe('ipv4', () => {
-    test('should accept string with valid IPv4', () => {
+    it('should accept string with valid IPv4', () => {
       const testCases = ['127.0.0.1', '192.168.0.1']
       const schema = j.string().ipv4()
 
@@ -1197,7 +1197,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid IPv4', () => {
+    it('should reject string with invalid IPv4', () => {
       const invalidCases: any[] = ['192.168.0.1/255.255.255.0', 'not a ipv4', 0, true, [], {}]
       const schema = j.string().ipv4()
 
@@ -1209,7 +1209,7 @@ describe('string', () => {
   })
 
   describe('ipv6', () => {
-    test('should accept string with valid IPv6', () => {
+    it('should accept string with valid IPv6', () => {
       const testCases = [
         '2001:0db8:0000:0000:0000:ff00:0042:8329', // lowercase
         '2001:0DB8:0000:0000:0000:FF00:0042:8329', // uppercase
@@ -1226,7 +1226,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid IPv6', () => {
+    it('should reject string with invalid IPv6', () => {
       const invalidCases: any[] = [
         '127.0.0.1',
         '192.168.0.1',
@@ -1247,7 +1247,7 @@ describe('string', () => {
   })
 
   describe('slug', () => {
-    test('should accept string with valid slug', () => {
+    it('should accept string with valid slug', () => {
       const testCases = ['some-slug', '012345']
       const schema = j.string().slug()
 
@@ -1257,7 +1257,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid slug', () => {
+    it('should reject string with invalid slug', () => {
       const invalidCases: any[] = [
         '', // empty
         'no_underscore', // `_`
@@ -1277,7 +1277,7 @@ describe('string', () => {
   })
 
   describe('semVer', () => {
-    test('should accept string with valid semver', () => {
+    it('should accept string with valid semver', () => {
       const testCases = ['0.0.0', '1.2.3']
       const schema = j.string().semVer()
 
@@ -1287,7 +1287,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid semver', () => {
+    it('should reject string with invalid semver', () => {
       const invalidCases: any[] = [
         '', // empty
         '1.1', // missing part
@@ -1309,7 +1309,7 @@ describe('string', () => {
   })
 
   describe('semVer4', () => {
-    test('should accept string with valid 4-part semver', () => {
+    it('should accept string with valid 4-part semver', () => {
       const testCases = ['0.0.0.0', '1.2.3.4', '10.20.30.40']
       const schema = j.string().semVer4()
 
@@ -1319,7 +1319,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid 4-part semver', () => {
+    it('should reject string with invalid 4-part semver', () => {
       const invalidCases: any[] = [
         '', // empty
         '1.2.3', // missing part
@@ -1344,7 +1344,7 @@ describe('string', () => {
   })
 
   describe('languageTag', () => {
-    test('should accept string with valid languageTag', () => {
+    it('should accept string with valid languageTag', () => {
       const testCases = ['hu-HU', 'en-US', 'se-SE', 'se']
       const schema = j.string().languageTag()
 
@@ -1354,7 +1354,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid languageTag', () => {
+    it('should reject string with invalid languageTag', () => {
       const invalidCases: any[] = [
         '', // empty
         'en_SE', // `_` instead of `-`
@@ -1374,7 +1374,7 @@ describe('string', () => {
   })
 
   describe('countryCode', () => {
-    test('should accept string with valid countryCode', () => {
+    it('should accept string with valid countryCode', () => {
       const testCases = ['SE', 'HU']
       const schema = j.string().countryCode()
 
@@ -1384,7 +1384,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid countryCode', () => {
+    it('should reject string with invalid countryCode', () => {
       const invalidCases: any[] = [
         '', // empty
         'se', // lowercase
@@ -1405,7 +1405,7 @@ describe('string', () => {
   })
 
   describe('currency', () => {
-    test('should accept string with valid currency', () => {
+    it('should accept string with valid currency', () => {
       const testCases = ['SEK', 'HUF', 'EUR', 'USD']
       const schema = j.string().currency()
 
@@ -1415,7 +1415,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject string with invalid currency', () => {
+    it('should reject string with invalid currency', () => {
       const invalidCases: any[] = [
         '', // empty
         'huf', // lowercase
@@ -1436,7 +1436,7 @@ describe('string', () => {
   })
 
   describe('ianaTimezone', () => {
-    test('should work correctly with type inference', () => {
+    it('should work correctly with type inference', () => {
       const schema = j.string().ianaTimezone()
 
       const [err, result] = schema.getValidationResult('Europe/Stockholm')
@@ -1446,7 +1446,7 @@ describe('string', () => {
       expectTypeOf(result).toEqualTypeOf<IANATimezone>()
     })
 
-    test('should support "UTC" as we sometimes use it in unit tests', () => {
+    it('should support "UTC" as we sometimes use it in unit tests', () => {
       const schema = j.string().ianaTimezone()
 
       const [err] = schema.getValidationResult('UTC')
@@ -1454,7 +1454,7 @@ describe('string', () => {
       expect(err).toBeNull()
     })
 
-    test('should reject with proper error message', () => {
+    it('should reject with proper error message', () => {
       const schema = j.string().ianaTimezone()
 
       const [err] = schema.getValidationResult(
@@ -1467,7 +1467,7 @@ describe('string', () => {
       `)
     })
 
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       // oxlint-disable-next-line no-restricted-globals
       const testCases = [...Intl.supportedValuesOf('timeZone'), 'UTC']
       const schema = j.string().ianaTimezone()
@@ -1478,7 +1478,7 @@ describe('string', () => {
       })
     })
 
-    test('should reject invalid data', () => {
+    it('should reject invalid data', () => {
       const invalidCases: any[] = ['abcd', 0, null, [], {}]
       const schema = j.string().ianaTimezone()
 
@@ -1490,7 +1490,7 @@ describe('string', () => {
   })
 
   describe('base64Url', () => {
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const testCases = ['azAZ09_-']
       const schema = j.string().base64Url()
 
@@ -1508,7 +1508,7 @@ describe('string', () => {
   })
 
   describe('uuid', () => {
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const testCases = [
         '257631be-26d6-4a18-b28e-4bb7c6495cf4', // lowercase
         '257631BE-26D6-4A18-B28E-4BB7C6495CF4', // uppercase (valid per RFC 4122)
@@ -1539,7 +1539,7 @@ describe('string', () => {
 })
 
 describe('number', () => {
-  test('should work correctly with type inference', () => {
+  it('should work correctly with type inference', () => {
     const schema = j.number()
 
     const [err, result] = schema.getValidationResult(0)
@@ -1549,7 +1549,7 @@ describe('number', () => {
     expectTypeOf(result).toEqualTypeOf<number>()
   })
 
-  test('should accept a number with a valid value', () => {
+  it('should accept a number with a valid value', () => {
     const testCases = [-2, 0, 2, 3.14]
     const schema = j.number()
 
@@ -1559,7 +1559,7 @@ describe('number', () => {
     })
   })
 
-  test('should reject a number with an invalid value', () => {
+  it('should reject a number with an invalid value', () => {
     const invalidCases: any[] = [Number.NaN, Number.POSITIVE_INFINITY, 'a', true, {}, []]
     const schema = j.number()
 
@@ -1570,7 +1570,7 @@ describe('number', () => {
   })
 
   describe('nullable', () => {
-    test('should accept both numbers and null', () => {
+    it('should accept both numbers and null', () => {
       const schema = j.number().nullable()
 
       const [err1] = schema.getValidationResult(42)
@@ -1580,7 +1580,7 @@ describe('number', () => {
       expect(err2).toBeNull()
     })
 
-    test('should reject non-number, non-null values', () => {
+    it('should reject non-number, non-null values', () => {
       const schema = j.number().nullable()
 
       const invalidCases: any[] = ['abc', true, {}, []]
@@ -1592,7 +1592,7 @@ describe('number', () => {
   })
 
   describe('optional(values)', () => {
-    test('should convert specific values to `undefined`', () => {
+    it('should convert specific values to `undefined`', () => {
       const schema = j.object<{ foo?: number }>({ foo: j.number().optional([6147]) })
 
       const [err1, result1] = schema.getValidationResult({ foo: 1234 })
@@ -1611,7 +1611,7 @@ describe('number', () => {
       expect(result3).toEqual({})
     })
 
-    test('should work with `null` values', () => {
+    it('should work with `null` values', () => {
       const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
 
       const [err1, result1] = schema.getValidationResult({ foo: 1 })
@@ -1623,7 +1623,7 @@ describe('number', () => {
       expect(result2).toEqual({ foo: undefined })
     })
 
-    test('should not allow chaining after `optional([null])` (compile-time error)', () => {
+    it('should not allow chaining after `optional([null])` (compile-time error)', () => {
       const schema = j.number().optional([null])
       // When `null` is included in optionalValues, the return type is JsonSchemaTerminal,
       // which doesn't have number-specific methods like min().
@@ -1632,7 +1632,7 @@ describe('number', () => {
       expect(() => schema.min(1)).toThrow(TypeError)
     })
 
-    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+    it('should throw when used on a standalone schema (and not in an object/array)', () => {
       const schema = j.number().optional([112])
       const ajvSchema = AjvSchema.create(schema)
 
@@ -1641,7 +1641,7 @@ describe('number', () => {
       )
     })
 
-    test('should still be an optional field when passing in `null`', () => {
+    it('should still be an optional field when passing in `null`', () => {
       const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
 
       const [err1, result1] = schema.getValidationResult({})
@@ -1651,7 +1651,7 @@ describe('number', () => {
   })
 
   describe('multipleOf', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [-2, 0, 2, 4]
       const schema = j.number().multipleOf(2)
 
@@ -1661,7 +1661,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [1, 3]
       const schema = j.number().multipleOf(2)
 
@@ -1673,7 +1673,7 @@ describe('number', () => {
   })
 
   describe('integer', () => {
-    test('should accept integers', () => {
+    it('should accept integers', () => {
       const testCases = [-2, 0, 1, 100]
       const schema = j.number().integer()
 
@@ -1683,7 +1683,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject floats', () => {
+    it('should reject floats', () => {
       const invalidCases = [1.5, 3.14, -0.1]
       const schema = j.number().integer()
 
@@ -1695,7 +1695,7 @@ describe('number', () => {
   })
 
   describe('min', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [2, 3, 4]
       const schema = j.number().min(2)
 
@@ -1705,7 +1705,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [1, 1.9999]
       const schema = j.number().min(2)
 
@@ -1717,7 +1717,7 @@ describe('number', () => {
   })
 
   describe('exclusiveMin', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [2.0001, 3, 4]
       const schema = j.number().exclusiveMin(2)
 
@@ -1727,7 +1727,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [1, 1.9999, 2]
       const schema = j.number().exclusiveMin(2)
 
@@ -1739,7 +1739,7 @@ describe('number', () => {
   })
 
   describe('max', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [0, 1, 2]
       const schema = j.number().max(2)
 
@@ -1749,7 +1749,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [2.0001, 3, 4]
       const schema = j.number().max(2)
 
@@ -1761,7 +1761,7 @@ describe('number', () => {
   })
 
   describe('exclusiveMax', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [0, 1, 1.9999]
       const schema = j.number().exclusiveMax(2)
 
@@ -1771,7 +1771,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [2, 3, 4]
       const schema = j.number().exclusiveMax(2)
 
@@ -1783,7 +1783,7 @@ describe('number', () => {
   })
 
   describe('moreThanOrEqual', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [2, 3, 4]
       const schema = j.number().moreThanOrEqual(2)
 
@@ -1793,7 +1793,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [1, 1.9999]
       const schema = j.number().moreThanOrEqual(2)
 
@@ -1805,7 +1805,7 @@ describe('number', () => {
   })
 
   describe('moreThan', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [2.0001, 3, 4]
       const schema = j.number().moreThan(2)
 
@@ -1815,7 +1815,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [1, 1.9999, 2]
       const schema = j.number().moreThan(2)
 
@@ -1827,7 +1827,7 @@ describe('number', () => {
   })
 
   describe('lessThanOrEqual', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [0, 1, 2]
       const schema = j.number().lessThanOrEqual(2)
 
@@ -1837,7 +1837,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [2.0001, 3, 4]
       const schema = j.number().lessThanOrEqual(2)
 
@@ -1849,7 +1849,7 @@ describe('number', () => {
   })
 
   describe('lessThan', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [0, 1, 1.9999]
       const schema = j.number().lessThan(2)
 
@@ -1859,7 +1859,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [2, 3, 4]
       const schema = j.number().lessThan(2)
 
@@ -1871,7 +1871,7 @@ describe('number', () => {
   })
 
   describe('equal', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [2]
       const schema = j.number().equal(2)
 
@@ -1881,7 +1881,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [1.9, 2.1]
       const schema = j.number().equal(2)
 
@@ -1894,7 +1894,7 @@ describe('number', () => {
 
   describe('range', () => {
     describe('[]', () => {
-      test('should accept a number with a valid value', () => {
+      it('should accept a number with a valid value', () => {
         const testCases = [2, 2.5, 3]
         const schema = j.number().range(2, 3, '[]')
 
@@ -1904,7 +1904,7 @@ describe('number', () => {
         })
       })
 
-      test('should reject a number with an invalid value', () => {
+      it('should reject a number with an invalid value', () => {
         const invalidCases = [1, 1.999, 3.001, 4]
         const schema = j.number().range(2, 3, '[]')
 
@@ -1916,7 +1916,7 @@ describe('number', () => {
     })
 
     describe('[)', () => {
-      test('should accept a number with a valid value', () => {
+      it('should accept a number with a valid value', () => {
         const testCases = [2, 2.5, 2.9]
         const schema = j.number().range(2, 3, '[)')
 
@@ -1926,7 +1926,7 @@ describe('number', () => {
         })
       })
 
-      test('should reject a number with an invalid value', () => {
+      it('should reject a number with an invalid value', () => {
         const invalidCases = [1, 1.999, 3, 3.001, 4]
         const schema = j.number().range(2, 3, '[)')
 
@@ -1939,7 +1939,7 @@ describe('number', () => {
   })
 
   describe('int32', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [-(2 ** 31), 0, 2 ** 31 - 1]
       const schema = j.number().int32()
 
@@ -1949,7 +1949,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [-(2 ** 31) - 1, 2 ** 31]
       const schema = j.number().int32()
 
@@ -1959,7 +1959,7 @@ describe('number', () => {
       })
     })
 
-    test('should not update already set min or max within valid boundaries', () => {
+    it('should not update already set min or max within valid boundaries', () => {
       const testCases = [2, 3]
       const schema = j.number().min(2).max(3).int32()
 
@@ -1977,7 +1977,7 @@ describe('number', () => {
   })
 
   describe('int64', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
       const schema = j.number().int64()
 
@@ -1987,7 +1987,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [Number.MIN_SAFE_INTEGER - 1, Number.MAX_SAFE_INTEGER + 1]
       const schema = j.number().int64()
 
@@ -2005,7 +2005,7 @@ describe('number', () => {
   // describe('double', () => {})
 
   describe('unixTimestamp', () => {
-    test('should brand the value', () => {
+    it('should brand the value', () => {
       const schema = j.number().unixTimestamp()
 
       const input = 0 as UnixTimestamp
@@ -2013,7 +2013,7 @@ describe('number', () => {
       expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
-    test('should accept any integer, including negative and post-2500 values', () => {
+    it('should accept any integer, including negative and post-2500 values', () => {
       const testCases: UnixTimestamp[] = [
         localTime('1900-01-01T00:00:00Z' as IsoDateTime).unix,
         -1 as UnixTimestamp,
@@ -2030,7 +2030,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a non-integer value', () => {
+    it('should reject a non-integer value', () => {
       const invalidCases = [-0.5, 0.1, 1.5]
       const schema = j.number().unixTimestamp()
 
@@ -2042,7 +2042,7 @@ describe('number', () => {
   })
 
   describe('unixTimestamp2000', () => {
-    test('should brand the value', () => {
+    it('should brand the value', () => {
       const schema = j.number().unixTimestamp2000()
 
       const input = 0 as UnixTimestamp
@@ -2050,7 +2050,7 @@ describe('number', () => {
       expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases: UnixTimestamp[] = [
         localTime('2000-01-01T00:00:00Z' as IsoDateTime).unix,
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).unix,
@@ -2063,7 +2063,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [
         localTime('2000-01-01T00:00:00Z' as IsoDateTime).minusSeconds(1).unix,
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unix,
@@ -2079,7 +2079,7 @@ describe('number', () => {
   })
 
   describe('unixTimestampMillis', () => {
-    test('should brand the value', () => {
+    it('should brand the value', () => {
       const schema = j.number().unixTimestampMillis()
 
       const input = 0 as UnixTimestampMillis
@@ -2087,7 +2087,7 @@ describe('number', () => {
       expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
-    test('should accept any integer, including negative and post-2500 values', () => {
+    it('should accept any integer, including negative and post-2500 values', () => {
       const testCases: UnixTimestampMillis[] = [
         localTime('1900-01-01T00:00:00Z' as IsoDateTime).unixMillis,
         -1 as UnixTimestampMillis,
@@ -2104,7 +2104,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a non-integer value', () => {
+    it('should reject a non-integer value', () => {
       const invalidCases = [-0.5, 0.1, 1.5]
       const schema = j.number().unixTimestampMillis()
 
@@ -2116,7 +2116,7 @@ describe('number', () => {
   })
 
   describe('unixTimestamp2000Millis', () => {
-    test('should brand the value', () => {
+    it('should brand the value', () => {
       const schema = j.number().unixTimestamp2000Millis()
 
       const input = 0 as UnixTimestampMillis
@@ -2124,7 +2124,7 @@ describe('number', () => {
       expectTypeOf(result).toEqualTypeOf<typeof input>()
     })
 
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases: UnixTimestampMillis[] = [
         localTime('2000-01-01T00:00:00Z' as IsoDateTime).unixMillis,
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).unixMillis,
@@ -2137,7 +2137,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [
         localTime('2000-01-01T00:00:00Z' as IsoDateTime).minusSeconds(1).unixMillis,
         localTime('2500-01-01T00:00:00Z' as IsoDateTime).plusSeconds(1).unixMillis,
@@ -2153,7 +2153,7 @@ describe('number', () => {
   })
 
   describe('utcOffset', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [-12 * 60, 0, 14 * 60]
       const schema = j.number().utcOffset()
 
@@ -2163,7 +2163,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [
         0.1, // non-integer
         14, // not a multiple of 15
@@ -2180,7 +2180,7 @@ describe('number', () => {
   })
 
   describe('utcOffsetHour', () => {
-    test('should accept a number with a valid value', () => {
+    it('should accept a number with a valid value', () => {
       const testCases = [-12, 0, 14]
       const schema = j.number().utcOffsetHour()
 
@@ -2190,7 +2190,7 @@ describe('number', () => {
       })
     })
 
-    test('should reject a number with an invalid value', () => {
+    it('should reject a number with an invalid value', () => {
       const invalidCases = [
         0.1, // non-integer
         -13, // out of lower bound
@@ -2206,7 +2206,7 @@ describe('number', () => {
   })
 
   describe('precision', () => {
-    test('should convert a floating point number to the precision when it makes sense', () => {
+    it('should convert a floating point number to the precision when it makes sense', () => {
       const schema = j.object<{ foo: number }>({ foo: j.number().precision(3) })
 
       const testCases: [number, number][] = [
@@ -2227,7 +2227,7 @@ describe('number', () => {
 })
 
 describe('boolean', () => {
-  test('should work correctly with type inference', () => {
+  it('should work correctly with type inference', () => {
     const schema = j.boolean()
 
     const [err, result] = schema.getValidationResult(true)
@@ -2237,7 +2237,7 @@ describe('boolean', () => {
     expectTypeOf(result).toEqualTypeOf<boolean>()
   })
 
-  test('should accept a boolean with a valid value', () => {
+  it('should accept a boolean with a valid value', () => {
     const testCases = [true, false]
     const schema = j.boolean()
 
@@ -2247,7 +2247,7 @@ describe('boolean', () => {
     })
   })
 
-  test('should reject a boolean with an invalid value', () => {
+  it('should reject a boolean with an invalid value', () => {
     const invalidCases: any[] = ['a', 0, {}, []]
     const schema = j.boolean()
 
@@ -2258,7 +2258,7 @@ describe('boolean', () => {
   })
 
   describe('nullable', () => {
-    test('should accept both booleans and null', () => {
+    it('should accept both booleans and null', () => {
       const schema = j.boolean().nullable()
 
       const [err1] = schema.getValidationResult(true)
@@ -2271,7 +2271,7 @@ describe('boolean', () => {
       expect(err3).toBeNull()
     })
 
-    test('should reject non-boolean, non-null values', () => {
+    it('should reject non-boolean, non-null values', () => {
       const schema = j.boolean().nullable()
 
       const invalidCases: any[] = ['a', 0, {}, []]
@@ -2283,7 +2283,7 @@ describe('boolean', () => {
   })
 
   describe('optional(values)', () => {
-    test('should convert specific values to `undefined`', () => {
+    it('should convert specific values to `undefined`', () => {
       const schema = j.object<{ foo?: boolean }>({ foo: j.boolean().optional([false]) })
 
       const [err1, result1] = schema.getValidationResult({ foo: true })
@@ -2305,7 +2305,7 @@ describe('boolean', () => {
 })
 
 describe('array', () => {
-  test('should work correctly with type inference', () => {
+  it('should work correctly with type inference', () => {
     const schema = j.array(j.string().nullable())
 
     const [err, result] = schema.getValidationResult(['foo', null])
@@ -2315,7 +2315,7 @@ describe('array', () => {
     expectTypeOf(result).toEqualTypeOf<(string | null)[]>()
   })
 
-  test('should accept valid data', () => {
+  it('should accept valid data', () => {
     const testCases: any[] = [
       [j.string(), []],
       [j.string(), ['foo', 'bar']],
@@ -2332,7 +2332,7 @@ describe('array', () => {
     })
   })
 
-  test('should reject invalid data', () => {
+  it('should reject invalid data', () => {
     const invalidTestCases: any[] = [
       // Invalid items
       [j.string(), ['foo', 1]],
@@ -2355,7 +2355,7 @@ describe('array', () => {
   })
 
   describe('minLength', () => {
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const testCases: any[] = [
         ['foo', 'bar'],
         ['foo', 'bar', 'shu'],
@@ -2370,7 +2370,7 @@ describe('array', () => {
       })
     })
 
-    test('should reject invalid data', () => {
+    it('should reject invalid data', () => {
       const testCases: any[] = [[], ['foo'], 0, 'foo', {}, true]
       const schema = j.array(j.string()).minLength(2)
 
@@ -2383,7 +2383,7 @@ describe('array', () => {
   })
 
   describe('maxLength', () => {
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const testCases: any[] = [[], ['foo'], ['foo', 'bar']]
       const schema = j.array(j.string()).maxLength(2)
 
@@ -2395,7 +2395,7 @@ describe('array', () => {
       })
     })
 
-    test('should reject invalid data', () => {
+    it('should reject invalid data', () => {
       const testCases: any[] = [['foo', 'bar', 'shu'], 0, 'foo', {}, true]
       const schema = j.array(j.string()).maxLength(2)
 
@@ -2408,7 +2408,7 @@ describe('array', () => {
   })
 
   describe('length(min, max)', () => {
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const schema = j.array(j.string()).length(1, 2)
 
       const validCases: any[] = [['foo'], ['foo', 'bar']]
@@ -2429,7 +2429,7 @@ describe('array', () => {
   })
 
   describe('length(eq)', () => {
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const schema = j.array(j.string()).length(2)
 
       const validCases: any[] = [['foo', 'bar']]
@@ -2450,7 +2450,7 @@ describe('array', () => {
   })
 
   describe('exactLength', () => {
-    test('should accept valid data', () => {
+    it('should accept valid data', () => {
       const schema = j.array(j.string()).exactLength(2)
 
       const validCases: any[] = [['foo', 'bar']]
@@ -2471,14 +2471,14 @@ describe('array', () => {
   })
 
   describe('unique', () => {
-    test('should accept arrays with unique items', () => {
+    it('should accept arrays with unique items', () => {
       const schema = j.array(j.number()).unique()
 
       const [err] = schema.getValidationResult([1, 2, 3])
       expect(err).toBeNull()
     })
 
-    test('should reject arrays with duplicate items', () => {
+    it('should reject arrays with duplicate items', () => {
       const schema = j.array(j.number()).unique()
 
       const [err] = schema.getValidationResult([1, 2, 2])
@@ -2488,7 +2488,7 @@ describe('array', () => {
 })
 
 describe('tuple', () => {
-  test('should work correctly with type inference', () => {
+  it('should work correctly with type inference', () => {
     const schema = j.tuple([j.string().nullable(), j.number(), j.boolean()])
 
     const [err, result] = schema.getValidationResult(['foo', 1, true])
@@ -2498,7 +2498,7 @@ describe('tuple', () => {
     expectTypeOf(result).toExtend<[string | null, number, boolean]>()
   })
 
-  test('should accept valid data', () => {
+  it('should accept valid data', () => {
     const schema = j.tuple([j.string().minLength(3).nullable(), j.number(), j.boolean()])
 
     const testCases: any[] = [
@@ -2521,7 +2521,7 @@ describe('tuple', () => {
 })
 
 describe('set', () => {
-  test('should work correctly with type inference', () => {
+  it('should work correctly with type inference', () => {
     const schema = j.set(j.string())
 
     const [err, result] = schema.getValidationResult(new Set2(['foo', 'bar']))
@@ -2532,7 +2532,7 @@ describe('set', () => {
     expectTypeOf(result).toEqualTypeOf<Set2<string>>()
   })
 
-  test('should accept valid data', () => {
+  it('should accept valid data', () => {
     const testCases: any[] = [
       [j.string(), new Set2(['foo', 'bar'])],
       [j.string().nullable(), new Set2(['foo', null])],
@@ -2548,7 +2548,7 @@ describe('set', () => {
     })
   })
 
-  test('should reject invalid data', () => {
+  it('should reject invalid data', () => {
     const invalidTestCases: any[] = [
       // Invalid items
       [j.string(), new Set2(['foo', 1])],
@@ -2570,7 +2570,7 @@ describe('set', () => {
     })
   })
 
-  test('should NOT accept an Array - when it is a standalone schema', () => {
+  it('should NOT accept an Array - when it is a standalone schema', () => {
     const schema = j.set(j.string())
 
     const [err] = schema.getValidationResult(['foo', 'bar'])
@@ -2581,7 +2581,7 @@ describe('set', () => {
     `)
   })
 
-  test('should accept an Array and produce a Set2 - when it is a property of an object', () => {
+  it('should accept an Array and produce a Set2 - when it is a property of an object', () => {
     const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = schema.getValidationResult({ set: ['foo', 'bar'] })
@@ -2592,7 +2592,7 @@ describe('set', () => {
     expectTypeOf(result).toEqualTypeOf<{ set: Set2<string> }>()
   })
 
-  test('should automagically make an Array unique', () => {
+  it('should automagically make an Array unique', () => {
     const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = schema.getValidationResult({
@@ -2604,7 +2604,7 @@ describe('set', () => {
   })
 
   describe('min', () => {
-    test('should reject sets with fewer items', () => {
+    it('should reject sets with fewer items', () => {
       const schema = j.object
         .infer({ set: j.set(j.string()).min(2) })
         .isOfType<{ set: Set2<string> }>()
@@ -2618,7 +2618,7 @@ describe('set', () => {
   })
 
   describe('max', () => {
-    test('should reject sets with more items', () => {
+    it('should reject sets with more items', () => {
       const schema = j.object
         .infer({ set: j.set(j.string()).max(2) })
         .isOfType<{ set: Set2<string> }>()
@@ -2633,7 +2633,7 @@ describe('set', () => {
 })
 
 describe('object', () => {
-  test('should work correctly with the passed-in type', () => {
+  it('should work correctly with the passed-in type', () => {
     const schema = j.object<TestEverythingObject>({
       string: j.string(),
       stringOptional: j.string().optional(),
@@ -2687,7 +2687,7 @@ describe('object', () => {
     }>()
   })
 
-  test('should work correctly with type assignment', () => {
+  it('should work correctly with type assignment', () => {
     interface Foo {
       string: string
       stringOptional?: string
@@ -2703,7 +2703,7 @@ describe('object', () => {
     expectTypeOf(result).toEqualTypeOf<Foo>()
   })
 
-  test('should reject when required properties are missing', () => {
+  it('should reject when required properties are missing', () => {
     interface Foo {
       foo: string
       bar?: string
@@ -2728,7 +2728,7 @@ describe('object', () => {
   }
 
   describe('extend', () => {
-    test('should work correctly with type assignment', () => {
+    it('should work correctly with type assignment', () => {
       interface Foo {
         foo: string | null
         bar?: number
@@ -2744,7 +2744,7 @@ describe('object', () => {
       expectTypeOf(result).toExtend<Foo>()
     })
 
-    test('should not work without passing in a type', () => {
+    it('should not work without passing in a type', () => {
       const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
       const schema2 = schema1.extend({ bar: j.number().optional() })
 
@@ -2754,7 +2754,7 @@ describe('object', () => {
       )
     })
 
-    test('should accept a valid object', () => {
+    it('should accept a valid object', () => {
       interface Foo {
         foo: string | null
         bar: number
@@ -2784,7 +2784,7 @@ describe('object', () => {
       })
     })
 
-    test('should work with property narrowing', () => {
+    it('should work with property narrowing', () => {
       interface Base {
         foo: string | null
         bar: AnyObject
@@ -2844,7 +2844,7 @@ describe('object', () => {
       })
     })
 
-    test('should be logical', () => {
+    it('should be logical', () => {
       interface Foo {
         bar: string
       }
@@ -2859,7 +2859,7 @@ describe('object', () => {
       expectTypeOf(result).toExtend<Foo>()
     })
 
-    test('it should work with dbEntity', () => {
+    it('it should work with dbEntity', () => {
       interface BM {
         id: string
         created: UnixTimestamp
@@ -2897,7 +2897,7 @@ describe('object', () => {
       expectTypeOf(result).toExtend<Bar>()
     })
 
-    test('should support type extension', () => {
+    it('should support type extension', () => {
       enum Color {
         RED = 1,
         BLUE = 2,
@@ -2948,7 +2948,7 @@ describe('object', () => {
   })
 
   describe('concat', () => {
-    test('should work correctly with type assignment', () => {
+    it('should work correctly with type assignment', () => {
       interface Foo {
         foo: string
       }
@@ -2978,7 +2978,7 @@ describe('object', () => {
       expectTypeOf(result).toExtend<Foo>()
     })
 
-    test('should throw without `isOfType` check', () => {
+    it('should throw without `isOfType` check', () => {
       interface Foo {
         foo: string
       }
@@ -3000,7 +3000,7 @@ describe('object', () => {
   })
 
   describe('allowAdditionalProperties', () => {
-    test('should strip away unspecified properties during validation when not set', () => {
+    it('should strip away unspecified properties during validation when not set', () => {
       const schema = j.object
         .infer({
           string: j.string(),
@@ -3015,7 +3015,7 @@ describe('object', () => {
       expect(result).toEqual({ string: 'hello' })
     })
 
-    test('should not strip away unspecified properties during validation when set', () => {
+    it('should not strip away unspecified properties during validation when set', () => {
       const schema = j.object
         .infer({
           string: j.string(),
@@ -3036,7 +3036,7 @@ describe('object', () => {
   })
 
   describe('.dbEntity', () => {
-    test('should work correctly with type inference', () => {
+    it('should work correctly with type inference', () => {
       interface DB extends BaseDBEntity {
         foo: string
       }
@@ -3063,7 +3063,7 @@ describe('object', () => {
       expectTypeOf(result).toEqualTypeOf<DB>()
     })
 
-    test('should work as an instance method on j.object', () => {
+    it('should work as an instance method on j.object', () => {
       interface Foo {
         foo: string
       }
@@ -3093,7 +3093,7 @@ describe('object', () => {
   })
 
   describe('.infer', () => {
-    test('should work correctly with type inference', () => {
+    it('should work correctly with type inference', () => {
       const schema = j.object
         .infer({
           string: j.string(),
@@ -3149,7 +3149,7 @@ describe('object', () => {
       }>()
     })
 
-    test('should work correctly with type assignment', () => {
+    it('should work correctly with type assignment', () => {
       interface Foo {
         string: string
         stringOptional?: string
@@ -3167,7 +3167,7 @@ describe('object', () => {
       expectTypeOf(result).toEqualTypeOf<Foo>()
     })
 
-    test('should reject when required properties are missing', () => {
+    it('should reject when required properties are missing', () => {
       const schema = j.object
         .infer({ foo: j.string(), bar: j.string().optional() })
         .isOfType<{ foo: string; bar?: string }>()
@@ -3199,7 +3199,7 @@ describe('object', () => {
     }
 
     describe('extend', () => {
-      test('should work correctly with type assignment', () => {
+      it('should work correctly with type assignment', () => {
         interface Foo {
           foo: string | null
           bar?: number
@@ -3217,7 +3217,7 @@ describe('object', () => {
     })
 
     describe('allowAdditionalProperties', () => {
-      test('should strip away unspecified properties during validation when not set', () => {
+      it('should strip away unspecified properties during validation when not set', () => {
         const schema = j.object
           .infer({
             string: j.string(),
@@ -3232,7 +3232,7 @@ describe('object', () => {
         expect(result).toEqual({ string: 'hello' })
       })
 
-      test('should not strip away unspecified properties during validation when set', () => {
+      it('should not strip away unspecified properties during validation when set', () => {
         const schema = j.object
           .infer({
             string: j.string(),
@@ -3253,7 +3253,7 @@ describe('object', () => {
     })
 
     describe('.dbEntity instance method', () => {
-      test('should extend an inferred object schema with base DB fields', () => {
+      it('should extend an inferred object schema with base DB fields', () => {
         interface FooDB extends BaseDBEntity {
           foo: string
         }
@@ -3281,7 +3281,7 @@ describe('object', () => {
   })
 
   describe('.any', () => {
-    test('should work correctly with type inference', () => {
+    it('should work correctly with type inference', () => {
       const schema = j.object.any()
 
       const [err, result] = schema.getValidationResult({ foo: 'bar' })
@@ -3293,7 +3293,7 @@ describe('object', () => {
   })
 
   describe('optional(null)', () => {
-    test('should convert `null` to `undefined` for j.object', () => {
+    it('should convert `null` to `undefined` for j.object', () => {
       interface Inner {
         foo: string
       }
@@ -3317,7 +3317,7 @@ describe('object', () => {
       expect(result3).toEqual({})
     })
 
-    test('should convert `null` to `undefined` for j.object.infer', () => {
+    it('should convert `null` to `undefined` for j.object.infer', () => {
       interface Outer {
         inner?: { foo: string }
       }
@@ -3334,7 +3334,7 @@ describe('object', () => {
       expect(result2).toEqual({ inner: undefined })
     })
 
-    test('should convert `null` to `undefined` for j.object.dbEntity', () => {
+    it('should convert `null` to `undefined` for j.object.dbEntity', () => {
       interface Inner extends BaseDBEntity {
         foo: string
       }
@@ -3358,7 +3358,7 @@ describe('object', () => {
       expect(result2).toEqual({ inner: undefined })
     })
 
-    test('should not allow chaining after `optional(null)` (compile-time error)', () => {
+    it('should not allow chaining after `optional(null)` (compile-time error)', () => {
       const schema = j.object<{ foo: string }>({ foo: j.string() }).optional([null])
       // When `null` is passed to optional(), the return type is JsonSchemaTerminal,
       // which doesn't have object-specific methods like extend().
@@ -3367,7 +3367,7 @@ describe('object', () => {
       expect(() => schema.extend({})).toThrow(TypeError)
     })
 
-    test('should throw when used on a standalone schema (and not in an object/array)', () => {
+    it('should throw when used on a standalone schema (and not in an object/array)', () => {
       const schema = j.object<{ foo: string }>({ foo: j.string() }).optional([null])
       const ajvSchema = AjvSchema.create(schema)
 
@@ -3377,7 +3377,7 @@ describe('object', () => {
       )
     })
 
-    test('should still be an optional field when passing in `null`', () => {
+    it('should still be an optional field when passing in `null`', () => {
       interface Outer {
         inner?: { foo: string }
       }
@@ -3392,7 +3392,7 @@ describe('object', () => {
   })
 
   describe('minProperties', () => {
-    test('should accept a valid object', () => {
+    it('should accept a valid object', () => {
       const schema = j
         .object<{ foo?: string; bar?: string; shu?: string }>({
           foo: j.string().optional(),
@@ -3427,7 +3427,7 @@ describe('object', () => {
   })
 
   describe('maxProperties', () => {
-    test('should accept a valid object', () => {
+    it('should accept a valid object', () => {
       const schema = j
         .object<{ foo?: string; bar?: string; shu?: string }>({
           foo: j.string().optional(),
@@ -3451,7 +3451,7 @@ describe('object', () => {
   })
 
   describe('.exclusiveProperties', () => {
-    test('should accept a valid object', () => {
+    it('should accept a valid object', () => {
       const schema = j
         .object<{ foo?: string; bar?: string; shu?: string }>({
           foo: j.string().optional(),
@@ -3475,7 +3475,7 @@ describe('object', () => {
   })
 
   describe('.record', () => {
-    test('should correctly infer the type', () => {
+    it('should correctly infer the type', () => {
       type B = Branded<string, 'B'>
       const schema = j.object
         .record(
@@ -3517,7 +3517,7 @@ describe('object', () => {
       }
     })
 
-    test('should allow undefined values when value schema is optional', () => {
+    it('should allow undefined values when value schema is optional', () => {
       const schema = j.object
         .record(j.string(), j.number().optional())
         .isOfType<Partial<Record<string, number>>>()
@@ -3538,7 +3538,7 @@ describe('object', () => {
   })
 
   describe('.withEnumKeys', () => {
-    test('should work with a list of const values', () => {
+    it('should work with a list of const values', () => {
       const schema = j.object
         .withEnumKeys(['a', 'b', 1], j.number().optional())
         .isOfType<Partial<Record<'a' | 'b' | '1', number>>>()
@@ -3564,7 +3564,7 @@ describe('object', () => {
       }
     })
 
-    test('should work with NumberEnum', () => {
+    it('should work with NumberEnum', () => {
       enum E {
         A = 1,
         B = 2,
@@ -3594,7 +3594,7 @@ describe('object', () => {
       }
     })
 
-    test('should work with StringEnum', () => {
+    it('should work with StringEnum', () => {
       enum E {
         A = 'a',
         B = 'b',
@@ -3625,7 +3625,7 @@ describe('object', () => {
       }
     })
 
-    test('should require all keys when the schema is non-optional', () => {
+    it('should require all keys when the schema is non-optional', () => {
       enum E {
         A = 'a',
         B = 'b',
@@ -3647,7 +3647,7 @@ describe('object', () => {
       }
     })
 
-    test('should accept partial objects when the schema is optional', () => {
+    it('should accept partial objects when the schema is optional', () => {
       enum E {
         A = 'a',
         B = 'b',
@@ -3665,7 +3665,7 @@ describe('object', () => {
       }
     })
 
-    test('should throw without `.isOfType` check', () => {
+    it('should throw without `.isOfType` check', () => {
       const schema = j.object.withEnumKeys(['a', 'b', 1], j.number().optional())
 
       const fn = () => AjvSchema.create(schema)
@@ -3676,7 +3676,7 @@ describe('object', () => {
     })
 
     describe('type narrowing', () => {
-      test('should not match StringMap for NumberEnum', () => {
+      it('should not match StringMap for NumberEnum', () => {
         enum E {
           A = 1,
           B = 2,
@@ -3691,7 +3691,7 @@ describe('object', () => {
         expectTypeOf(schema.isOfType<Partial<Record<`${E}`, number>>>()).not.toBeNever()
       })
 
-      test('should not match StringMap for StringEnum', () => {
+      it('should not match StringMap for StringEnum', () => {
         enum E {
           A = 'a',
           B = 'b',
@@ -3706,7 +3706,7 @@ describe('object', () => {
         expectTypeOf(schema.isOfType<Partial<Record<E, number>>>()).not.toBeNever()
       })
 
-      test('should not match Record<string, V>', () => {
+      it('should not match Record<string, V>', () => {
         enum E {
           A = 'a',
           B = 'b',
@@ -3721,7 +3721,7 @@ describe('object', () => {
         expectTypeOf(schema.isOfType<Partial<Record<E, number>>>()).not.toBeNever()
       })
 
-      test('should reject Record<number, V> for NumberEnum', () => {
+      it('should reject Record<number, V> for NumberEnum', () => {
         enum E {
           A = 1,
           B = 2,
@@ -3739,7 +3739,7 @@ describe('object', () => {
     })
 
     describe('j.object compatibility', () => {
-      test('should work with Partial<Record<E, V>>', () => {
+      it('should work with Partial<Record<E, V>>', () => {
         enum E {
           A = 'a',
           B = 'b',
@@ -3756,7 +3756,7 @@ describe('object', () => {
         expectTypeOf(schema).not.toEqualTypeOf<never>()
       })
 
-      test('should work with Record<E, V>', () => {
+      it('should work with Record<E, V>', () => {
         enum E {
           A = 'a',
           B = 'b',
@@ -3775,7 +3775,7 @@ describe('object', () => {
     })
 
     describe('minProperties', () => {
-      test('should work for withEnumKeys as well', () => {
+      it('should work for withEnumKeys as well', () => {
         enum E {
           A = 'a',
           B = 'b',
@@ -3803,7 +3803,7 @@ describe('object', () => {
   })
 
   describe('.stringMap', () => {
-    test('should work', () => {
+    it('should work', () => {
       const schema = j.object.stringMap(j.number().nullable()).isOfType<StringMap<number | null>>()
 
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }]
@@ -3820,7 +3820,7 @@ describe('object', () => {
       }
     })
 
-    test('should throw without `.isOfType` check', () => {
+    it('should throw without `.isOfType` check', () => {
       const schema = j.object.stringMap(j.number())
 
       const fn = () => AjvSchema.create(schema)
@@ -3830,7 +3830,7 @@ describe('object', () => {
       )
     })
 
-    test('should allow undefined values when value schema is optional', () => {
+    it('should allow undefined values when value schema is optional', () => {
       const schema = j.object.stringMap(j.number().optional()).isOfType<StringMap<number>>()
 
       const validCases: any[] = [
@@ -3849,7 +3849,7 @@ describe('object', () => {
   })
 
   describe('.withRegexKeys', () => {
-    test('should accept keys matching the regex and strip non-matching keys', () => {
+    it('should accept keys matching the regex and strip non-matching keys', () => {
       const schema = j.object.withRegexKeys(/^\d{3,4}$/, j.number()).isOfType<StringMap<number>>()
 
       const [err, result] = schema.getValidationResult({ '123': 1, '1234': 2, abc: 3 })
@@ -3857,7 +3857,7 @@ describe('object', () => {
       expect(result).toEqual({ '123': 1, '1234': 2 })
     })
 
-    test('should reject invalid value types', () => {
+    it('should reject invalid value types', () => {
       const schema = j.object.withRegexKeys(/^\d{3,4}$/, j.number()).isOfType<StringMap<number>>()
 
       const [err] = schema.getValidationResult({ '123': 'not a number' })
@@ -3865,7 +3865,7 @@ describe('object', () => {
     })
   })
 
-  test('should collapse to never when OUT has no keys but props are provided', () => {
+  it('should collapse to never when OUT has no keys but props are provided', () => {
     interface Foo {}
 
     const schema = j.object<Foo>({
@@ -3878,7 +3878,7 @@ describe('object', () => {
 })
 
 describe('enum', () => {
-  test('should work correctly with type inference', () => {
+  it('should work correctly with type inference', () => {
     const schema = j.enum([0, 'foo', false])
 
     const [err, result] = schema.getValidationResult(0)
@@ -3888,7 +3888,7 @@ describe('enum', () => {
     expectTypeOf(result).toEqualTypeOf<0 | 'foo' | false>()
   })
 
-  test('should accept a valid value', () => {
+  it('should accept a valid value', () => {
     const testCases = [0, 'foo', false] as const
     const schema = j.enum([0, 'foo', false])
 
@@ -3898,7 +3898,7 @@ describe('enum', () => {
     })
   })
 
-  test('should reject an invalid value', () => {
+  it('should reject an invalid value', () => {
     const invalidCases: any[] = [1, 'abc', true, [], {}]
     const schema = j.enum([0, 'foo', false])
 
@@ -3908,7 +3908,7 @@ describe('enum', () => {
     })
   })
 
-  test('should support typescript string enums', () => {
+  it('should support typescript string enums', () => {
     enum OompaLoompa {
       Foo = 'foo',
       Bar = 'bar',
@@ -3921,7 +3921,7 @@ describe('enum', () => {
     expectTypeOf(result).toEqualTypeOf<OompaLoompa>()
   })
 
-  test('should support typescript numeric enums', () => {
+  it('should support typescript numeric enums', () => {
     enum OompaLoompa {
       Foo = 0,
       Bar = 1,
@@ -3934,7 +3934,7 @@ describe('enum', () => {
     expectTypeOf(result).toEqualTypeOf<OompaLoompa>()
   })
 
-  test('should support _enum() objects', () => {
+  it('should support _enum() objects', () => {
     const OompaLoompa = _enum({ Foo: 'foo', Bar: 'bar' })
     const schema = j.enum(OompaLoompa)
     const [err, result] = schema.getValidationResult(OompaLoompa.Bar)
@@ -3950,7 +3950,7 @@ describe('enum', () => {
     expectTypeOf(result2).toEqualTypeOf<'foo' | 'bar'>()
   })
 
-  test('should support numeric _enum() objects', () => {
+  it('should support numeric _enum() objects', () => {
     const OompaLoompa = _enum({ Foo: 0, Bar: 1 })
     const schema = j.enum(OompaLoompa)
     const [err, result] = schema.getValidationResult(OompaLoompa.Bar)
@@ -3960,7 +3960,7 @@ describe('enum', () => {
     expectTypeOf(result).toEqualTypeOf<0 | 1>()
   })
 
-  test('should produce custom error message when msg option is provided', () => {
+  it('should produce custom error message when msg option is provided', () => {
     const schema = j.enum(['foo', 'bar'], { msg: 'must be foo or bar' })
 
     const [err] = schema.getValidationResult('baz')
@@ -3972,7 +3972,7 @@ describe('enum', () => {
 })
 
 describe('buffer', () => {
-  test('should work correctly with type inference', () => {
+  it('should work correctly with type inference', () => {
     const schema = j.buffer()
 
     const [err, result] = schema.getValidationResult(Buffer.from('asdf'))
@@ -3983,7 +3983,7 @@ describe('buffer', () => {
     expectTypeOf(result).toEqualTypeOf<Buffer>()
   })
 
-  test('should accept valid data', () => {
+  it('should accept valid data', () => {
     const testCases: any[] = ['foobar', [0, 1, 2]]
 
     const schema = j.buffer()
@@ -3994,7 +3994,7 @@ describe('buffer', () => {
     })
   })
 
-  test('should reject invalid data', () => {
+  it('should reject invalid data', () => {
     const invalidTestCases: any[] = [
       // Invalid input for Buffer
       null,
@@ -4009,7 +4009,7 @@ describe('buffer', () => {
     })
   })
 
-  test('should NOT accept an Array - when it is a standalone schema', () => {
+  it('should NOT accept an Array - when it is a standalone schema', () => {
     const schema = j.buffer()
 
     const [err] = schema.getValidationResult(['foo', 'bar'])
@@ -4020,7 +4020,7 @@ describe('buffer', () => {
     `)
   })
 
-  test('should accept an Array and produce a Buffer - when it is a property of an object', () => {
+  it('should accept an Array and produce a Buffer - when it is a property of an object', () => {
     const schema = j.object.infer({ buffer: j.buffer() }).isOfType<{ buffer: Buffer }>()
 
     const [err, result] = schema.getValidationResult({ buffer: 'foobar' })
@@ -4031,7 +4031,7 @@ describe('buffer', () => {
     expectTypeOf(result).toEqualTypeOf<{ buffer: Buffer }>()
   })
 
-  test('should automagically make an Array unique', () => {
+  it('should automagically make an Array unique', () => {
     const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
 
     const [err, result] = schema.getValidationResult({
@@ -4044,13 +4044,13 @@ describe('buffer', () => {
 })
 
 describe('oneOf', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema = j.oneOf([j.string().nullable(), j.number()])
     const [, result] = schema.getValidationResult({})
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
-  test('should accept valid values', () => {
+  it('should accept valid values', () => {
     const testCases = ['a', 1, null]
     const schema = j.oneOf([j.string().nullable(), j.number()])
 
@@ -4060,7 +4060,7 @@ describe('oneOf', () => {
     })
   })
 
-  test('should reject invalid values', () => {
+  it('should reject invalid values', () => {
     const invalidCases: any[] = [undefined, true, [], {}]
     const schema = j.oneOf([j.string().nullable(), j.number()])
 
@@ -4070,7 +4070,7 @@ describe('oneOf', () => {
     })
   })
 
-  test('should reject values matching multiple schemas', () => {
+  it('should reject values matching multiple schemas', () => {
     // Both schemas accept strings of length 5-10
     const schema = j.oneOf([j.string().minLength(5), j.string().maxLength(10)])
 
@@ -4079,7 +4079,7 @@ describe('oneOf', () => {
     expect(err).not.toBeNull()
   })
 
-  test('should work with complex values', () => {
+  it('should work with complex values', () => {
     const schema1 = j.object<{ data: { foo: string; bar: number } }>({
       data: j.object.infer({ foo: j.string(), bar: j.number() }),
     })
@@ -4105,7 +4105,7 @@ describe('oneOf', () => {
     j.oneOf([j.array(j.enum(['valid', 'invalid'])), j.enum(['valid', 'invalid'])]).optional()
   })
 
-  test('should propagate custom errorMessages from a branch', () => {
+  it('should propagate custom errorMessages from a branch', () => {
     const schema = j.oneOf([j.string().regex(/^[a-z]+$/, { msg: 'must be lowercase' }), j.number()])
     const [err] = schema.getValidationResult('ABC')
     expect(err).toMatchInlineSnapshot(`
@@ -4118,13 +4118,13 @@ describe('oneOf', () => {
 })
 
 describe('anyOf', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema = j.anyOf([j.string().nullable(), j.number()])
     const [, result] = schema.getValidationResult({})
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
-  test('should accept valid values', () => {
+  it('should accept valid values', () => {
     const testCases = ['a', 1, null]
     const schema = j.anyOf([j.string().nullable(), j.number()])
 
@@ -4134,7 +4134,7 @@ describe('anyOf', () => {
     })
   })
 
-  test('should reject invalid values', () => {
+  it('should reject invalid values', () => {
     const invalidCases: any[] = [undefined, true, [], {}]
     const schema = j.anyOf([j.string().nullable(), j.number()])
 
@@ -4144,7 +4144,7 @@ describe('anyOf', () => {
     })
   })
 
-  test('should accept values matching multiple schemas', () => {
+  it('should accept values matching multiple schemas', () => {
     // Both schemas accept strings of length 5-10
     const schema = j.anyOf([j.string().minLength(5), j.string().maxLength(10)])
 
@@ -4153,7 +4153,7 @@ describe('anyOf', () => {
     expect(err).toBeNull()
   })
 
-  test('should not work with complex values', () => {
+  it('should not work with complex values', () => {
     const schema1 = j.object<{ data: { foo: string; bar: number } }>({
       data: j.object.infer({ foo: j.string(), bar: j.number() }),
     })
@@ -4179,7 +4179,7 @@ describe('anyOf', () => {
     j.anyOf([j.array(j.enum(['valid', 'invalid'])), j.enum(['valid', 'invalid'])]).optional()
   })
 
-  test('should propagate custom errorMessages from a branch', () => {
+  it('should propagate custom errorMessages from a branch', () => {
     const schema = j.anyOf([j.string().regex(/^[a-z]+$/, { msg: 'must be lowercase' }), j.number()])
     const [err] = schema.getValidationResult('ABC')
     expect(err).toMatchInlineSnapshot(`
@@ -4199,7 +4199,7 @@ describe('anyOf', () => {
     `)
   })
 
-  test('should propagate custom errorMessages from a branch of a nested property', () => {
+  it('should propagate custom errorMessages from a branch of a nested property', () => {
     const schema = j.object<{ token: string }>({
       token: j.anyOf([j.string().uuid(), j.string().email()]),
     })
@@ -4224,7 +4224,7 @@ describe('anyOf', () => {
 })
 
 describe('nullable anyOf error messages', () => {
-  test('should show clean error for nullable string with invalid input', () => {
+  it('should show clean error for nullable string with invalid input', () => {
     const schema = j.string().nullable()
     const [err] = schema.getValidationResult(123)
     expect(err).toMatchInlineSnapshot(`
@@ -4233,7 +4233,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should show clean error for nullable number with invalid input', () => {
+  it('should show clean error for nullable number with invalid input', () => {
     const schema = j.number().nullable()
     const [err] = schema.getValidationResult('abc')
     expect(err).toMatchInlineSnapshot(`
@@ -4242,7 +4242,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should show property errors for nullable object with invalid input', () => {
+  it('should show property errors for nullable object with invalid input', () => {
     const schema = j
       .object<{ name: string; age: number }>({
         name: j.string(),
@@ -4259,7 +4259,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should propagate custom errorMessages through nullable', () => {
+  it('should propagate custom errorMessages through nullable', () => {
     const schema = j
       .string()
       .regex(/^[a-z]+$/, { msg: 'must be lowercase' })
@@ -4271,7 +4271,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should accept null for nullable schemas', () => {
+  it('should accept null for nullable schemas', () => {
     const [err1] = j.string().nullable().getValidationResult(null)
     expect(err1).toBeNull()
 
@@ -4279,7 +4279,7 @@ describe('nullable anyOf error messages', () => {
     expect(err2).toBeNull()
   })
 
-  test('should show clean error for nested nullable property', () => {
+  it('should show clean error for nested nullable property', () => {
     interface NullableFoo {
       foo: string | null
     }
@@ -4292,7 +4292,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should preserve all errors for non-nullable anyOf', () => {
+  it('should preserve all errors for non-nullable anyOf', () => {
     const schema = j.anyOf([j.string(), j.number()])
     const [err] = schema.getValidationResult(true)
     expect(err).toMatchInlineSnapshot(`
@@ -4303,7 +4303,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should show clean error for isoDate.optional([null]) #1', () => {
+  it('should show clean error for isoDate.optional([null]) #1', () => {
     const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
     const [err] = schema.getValidationResult({ date: 123 })
     expect(err).toMatchInlineSnapshot(`
@@ -4313,7 +4313,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  test('should show clean error for isoDate.optional([null]) #2', () => {
+  it('should show clean error for isoDate.optional([null]) #2', () => {
     const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
     const [err] = schema.getValidationResult({ date: '2025-02-30' })
     expect(err).toMatchInlineSnapshot(`
@@ -4352,13 +4352,13 @@ describe('anyOfBy', () => {
     }),
   })
 
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const [, result] = schema.getValidationResult({ type: Foo.A, foo: 'asdf' })
 
     expectTypeOf(result).toEqualTypeOf<FooA | FooB | FooC>()
   })
 
-  test('should accept valid values', () => {
+  it('should accept valid values', () => {
     const testCases = [
       { type: Foo.A, foo: 'asdf' },
       { type: Foo.B, bar: 1 },
@@ -4389,13 +4389,13 @@ describe('anyOfBy', () => {
 })
 
 describe('anyOfThese', () => {
-  test('should correctly infer the type', () => {
+  it('should correctly infer the type', () => {
     const schema = j.anyOfThese([j.string().nullable(), j.number()])
     const [, result] = schema.getValidationResult({})
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
-  test('should accept valid values', () => {
+  it('should accept valid values', () => {
     const schema = j.anyOfThese([j.string().nullable(), j.number()])
 
     const testCases = ['a', 1, null]
@@ -4411,7 +4411,7 @@ describe('anyOfThese', () => {
     })
   })
 
-  test('should accept values matching multiple schemas', () => {
+  it('should accept values matching multiple schemas', () => {
     // Both schemas accept strings of length 5-10
     const schema = j.anyOfThese([j.string().minLength(5), j.string().maxLength(10)])
 
@@ -4420,7 +4420,7 @@ describe('anyOfThese', () => {
     expect(err).toBeNull()
   })
 
-  test('should work with complex values', () => {
+  it('should work with complex values', () => {
     const schema1 = j.object<{ data: { foo: string; bar: number } }>({
       data: j.object.infer({ foo: j.string(), bar: j.number() }),
     })
@@ -4448,7 +4448,7 @@ describe('anyOfThese', () => {
     `)
   })
 
-  test('should work with nested schemas', () => {
+  it('should work with nested schemas', () => {
     const schema = j.object<{ data: { foo: string } | { bar: number } }>({
       data: j.anyOfThese([
         j.object.infer({ foo: j.string() }),
@@ -4471,7 +4471,7 @@ describe('anyOfThese', () => {
 })
 
 describe('errors', () => {
-  test('should properly display the path to the erronous value', () => {
+  it('should properly display the path to the erronous value', () => {
     const schema = j.object.infer({ foo: j.array(j.string()) }).isOfType<{ foo: string[] }>()
 
     const [err] = schema.getValidationResult({
@@ -4487,7 +4487,7 @@ describe('errors', () => {
 })
 
 describe('castAs', () => {
-  test('should correctly infer the new type', () => {
+  it('should correctly infer the new type', () => {
     const schema = j.object
       .infer({ foo: j.string() })
       .castAs<{ bar: number }>()
@@ -4500,7 +4500,7 @@ describe('castAs', () => {
     expectTypeOf(result).toEqualTypeOf<{ bar: number }>()
   })
 
-  test('should work on JSchema (non-JBuilder) instances', () => {
+  it('should work on JSchema (non-JBuilder) instances', () => {
     // .optional(['']) returns a JSchema, not a JBuilder
     const schema = j.string().optional(['']).castAs<string | undefined>()
     expectTypeOf(schema).toEqualTypeOf<JSchema<string | undefined, true>>()
@@ -4508,7 +4508,7 @@ describe('castAs', () => {
 })
 
 describe('default', () => {
-  test('should use the default when the property is missing', () => {
+  it('should use the default when the property is missing', () => {
     const schema = j.object<{ foo: string; bar: number; shu: boolean }>({
       foo: j.string().default('foo'),
       bar: j.number().default(123),
@@ -4532,7 +4532,7 @@ describe('default', () => {
     expect(result4).toEqual({ foo: 'good', bar: 1, shu: true })
   })
 
-  test('.optional() + .default() should throw an assertion error', () => {
+  it('.optional() + .default() should throw an assertion error', () => {
     expect(() => j.string().optional().default('x').build()).toThrow(
       '.optional() and .default() should not be used together',
     )
@@ -4540,7 +4540,7 @@ describe('default', () => {
 })
 
 describe('final', () => {
-  test('locks the given schema', async () => {
+  it('locks the given schema', async () => {
     const schema = j.string().minLength(2).maxLength(3).final()
 
     const [err1] = schema.getValidationResult('abc')
@@ -4557,7 +4557,7 @@ describe('final', () => {
 })
 
 describe('literal', () => {
-  test('should accept a valid value', () => {
+  it('should accept a valid value', () => {
     const schema1 = j.literal('magic')
 
     const [, result1] = schema1.getValidationResult('magic')
@@ -4619,7 +4619,7 @@ describe('literal', () => {
 })
 
 describe('custom', () => {
-  test('should accept a valid value', () => {
+  it('should accept a valid value', () => {
     const schema = j.number().custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
 
     const [err1] = schema.getValidationResult(1)
@@ -4632,7 +4632,7 @@ describe('custom', () => {
     `)
   })
 
-  test('should handle multiple validators', () => {
+  it('should handle multiple validators', () => {
     const schema = j
       .number()
       .custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
@@ -4657,7 +4657,7 @@ describe('custom', () => {
 })
 
 describe('convert', () => {
-  test('should convert a value in an object/array', () => {
+  it('should convert a value in an object/array', () => {
     const schema1 = j.object<{ foo: number }>({ foo: j.number().convert(v => Math.round(v)) })
 
     const [err11, result11] = schema1.getValidationResult({ foo: 3.14 })
@@ -4671,7 +4671,7 @@ describe('convert', () => {
     expect(result21).toEqual([3])
   })
 
-  test('should handle multiple converters', () => {
+  it('should handle multiple converters', () => {
     const schema = j.object<{ foo: number }>({
       foo: j
         .number()
@@ -4684,7 +4684,7 @@ describe('convert', () => {
     expect(result1).toEqual({ foo: 9 })
   })
 
-  test('should throw when used on a standalone schema (and not in an object/array)', () => {
+  it('should throw when used on a standalone schema (and not in an object/array)', () => {
     const schema = j.number().convert(v => Math.round(v))
     const ajvSchema = AjvSchema.create(schema)
 
@@ -4695,7 +4695,7 @@ describe('convert', () => {
 })
 
 describe('postValidation', () => {
-  test('should call postValidation after successful validation', () => {
+  it('should call postValidation after successful validation', () => {
     const calls: unknown[] = []
     const schema = j
       .string()
@@ -4712,7 +4712,7 @@ describe('postValidation', () => {
     expect(calls).toEqual(['hello'])
   })
 
-  test('should not call postValidation when validation fails', () => {
+  it('should not call postValidation when validation fails', () => {
     const calls: unknown[] = []
     const schema = j
       .string()
@@ -4728,7 +4728,7 @@ describe('postValidation', () => {
     expect(calls).toEqual([])
   })
 
-  test('should return validation error when postValidation throws', () => {
+  it('should return validation error when postValidation throws', () => {
     const schema = j.string().postValidation(() => {
       throw new Error('custom post-validation error')
     })
@@ -4739,7 +4739,7 @@ describe('postValidation', () => {
     expect(err!.message).toContain('custom post-validation error')
   })
 
-  test('should work with isValid', () => {
+  it('should work with isValid', () => {
     const schemaPass = j.string().postValidation(v => v)
     const schemaFail = j.string().postValidation(() => {
       throw new Error('nope')
@@ -4749,7 +4749,7 @@ describe('postValidation', () => {
     expect(schemaFail.isValid('hello')).toBe(false)
   })
 
-  test('should throw from validate when postValidation throws', () => {
+  it('should throw from validate when postValidation throws', () => {
     const schema = j.string().postValidation(() => {
       throw new Error('post error')
     })
@@ -4757,7 +4757,7 @@ describe('postValidation', () => {
     expect(() => schema.validate('hello')).toThrow('post error')
   })
 
-  test('should allow mutating the input in an object schema', () => {
+  it('should allow mutating the input in an object schema', () => {
     interface Foo {
       name: string
     }
@@ -4773,7 +4773,7 @@ describe('postValidation', () => {
     expect(result).toEqual({ name: 'HELLO' })
   })
 
-  test('should support type narrowing via OUT2', () => {
+  it('should support type narrowing via OUT2', () => {
     interface Input {
       value: string
       computed?: number
@@ -4798,7 +4798,7 @@ describe('postValidation', () => {
     expect(result).toEqual({ value: 'hello', computed: 5 })
   })
 
-  test('should support optional schemas with postValidation', () => {
+  it('should support optional schemas with postValidation', () => {
     const schema = j
       .string()
       .optional()
@@ -4807,7 +4807,7 @@ describe('postValidation', () => {
     expectTypeOf(schema.out).toEqualTypeOf<string | undefined>()
   })
 
-  test('should preserve optional typing through postValidation', () => {
+  it('should preserve optional typing through postValidation', () => {
     const schema = j
       .number()
       .optional()
@@ -4817,7 +4817,7 @@ describe('postValidation', () => {
     expectTypeOf(schema.opt).toEqualTypeOf<true>()
   })
 
-  test('should allow changing the type from optional to required via postValidation', () => {
+  it('should allow changing the type from optional to required via postValidation', () => {
     const schema = j
       .string()
       .optional()
@@ -4828,7 +4828,7 @@ describe('postValidation', () => {
 })
 
 describe('getValidationResult', () => {
-  test('should validate and infer the type', () => {
+  it('should validate and infer the type', () => {
     const schema = j.object<{ string: string; nested: { string: string } }>({
       string: j.string(),
       nested: j.object.infer({
@@ -4858,7 +4858,7 @@ describe('getValidationResult', () => {
     }>()
   })
 
-  test('the AjvSchema is compiled and hidden on the schema instance', () => {
+  it('the AjvSchema is compiled and hidden on the schema instance', () => {
     const schema = j.object<{ string: string; nested: { string: string } }>({
       string: j.string(),
       nested: j.object.infer({
@@ -4884,7 +4884,7 @@ describe('getValidationResult', () => {
 })
 
 describe('getValidationFunction', () => {
-  test('should validate and infer the type', () => {
+  it('should validate and infer the type', () => {
     const schema = j.object<{ string: string; nested: { string: string } }>({
       string: j.string(),
       nested: j.object.infer({
@@ -4918,7 +4918,7 @@ describe('getValidationFunction', () => {
 })
 
 describe('isValid', () => {
-  test('should validate', () => {
+  it('should validate', () => {
     const schema = j.object<{ string: string; nested: { string: string } }>({
       string: j.string(),
       nested: j.object.infer({
@@ -4938,7 +4938,7 @@ describe('isValid', () => {
 })
 
 describe('validate', () => {
-  test('should validate and infer the type', () => {
+  it('should validate and infer the type', () => {
     const schema = j.object<{ string: string; nested: { string: string } }>({
       string: j.string(),
       nested: j.object.infer({
@@ -4969,7 +4969,7 @@ describe('validate', () => {
 })
 
 describe('getOriginalInput option', () => {
-  test('should use getOriginalInput for error messages instead of mutated input', () => {
+  it('should use getOriginalInput for error messages instead of mutated input', () => {
     const schema = j.object<{ foo: string }>({ foo: j.string().minLength(5) })
     const ajvSchema = AjvSchema.create(schema)
 
@@ -4987,7 +4987,7 @@ describe('getOriginalInput option', () => {
 })
 
 describe('j.object.instanceOf()', () => {
-  test('should validate Date instances', () => {
+  it('should validate Date instances', () => {
     const schema = j.object.instanceOf(Date)
 
     const [err, result] = schema.getValidationResult(new Date())
@@ -4997,7 +4997,7 @@ describe('j.object.instanceOf()', () => {
     expectTypeOf(result).toEqualTypeOf<Date>()
   })
 
-  test('should have correct type inference with optional', () => {
+  it('should have correct type inference with optional', () => {
     const schema = j.object.instanceOf(Date).optional()
 
     const [err, result] = schema.getValidationResult(new Date())
@@ -5005,7 +5005,7 @@ describe('j.object.instanceOf()', () => {
     expectTypeOf(result).toEqualTypeOf<Date | undefined>()
   })
 
-  test('should have correct type inference with nullable', () => {
+  it('should have correct type inference with nullable', () => {
     const schema = j.object.instanceOf(Date).nullable()
 
     const [err, result] = schema.getValidationResult(new Date())
@@ -5013,7 +5013,7 @@ describe('j.object.instanceOf()', () => {
     expectTypeOf(result).toEqualTypeOf<Date | null>()
   })
 
-  test('should reject non-Date values', () => {
+  it('should reject non-Date values', () => {
     const schema = j.object.instanceOf(Date)
 
     const invalidCases: any[] = [42, 'not a date', true, null, {}, []]
@@ -5023,7 +5023,7 @@ describe('j.object.instanceOf()', () => {
     })
   })
 
-  test('should work with RegExp', () => {
+  it('should work with RegExp', () => {
     const schema = j.object.instanceOf(RegExp)
 
     const [err, result] = schema.getValidationResult(/foo/)
@@ -5036,7 +5036,7 @@ describe('j.object.instanceOf()', () => {
     expect(err2).not.toBeNull()
   })
 
-  test('should work with custom classes', () => {
+  it('should work with custom classes', () => {
     class MyClass {
       constructor(public value: number) {}
     }
@@ -5054,7 +5054,7 @@ describe('j.object.instanceOf()', () => {
     expect(err2).not.toBeNull()
   })
 
-  test('should work with subclasses', () => {
+  it('should work with subclasses', () => {
     class Base {
       constructor(public id: number) {}
     }
@@ -5077,7 +5077,7 @@ describe('j.object.instanceOf()', () => {
     expect(err2).toBeNull()
   })
 
-  test('should work as a property in an object schema', () => {
+  it('should work as a property in an object schema', () => {
     interface WithDate {
       created: Date
       name: string
@@ -5102,7 +5102,7 @@ describe('j.object.instanceOf()', () => {
 })
 
 describe('j.any().instanceof()', () => {
-  test('should validate class instances', () => {
+  it('should validate class instances', () => {
     const ajvSchema = AjvSchema.create({ type: 'object', instanceof: 'Date' })
 
     const [err1] = ajvSchema.getValidationResult(new Date())
@@ -5112,7 +5112,7 @@ describe('j.any().instanceof()', () => {
     expect(err2).not.toBeNull()
   })
 
-  test('should reject non-instances', () => {
+  it('should reject non-instances', () => {
     const ajvSchema = AjvSchema.create({ type: 'object', instanceof: 'Date' })
 
     const invalidCases: any[] = [42, true, null, {}, []]
@@ -5126,7 +5126,7 @@ describe('j.any().instanceof()', () => {
 describe('type inference check', () => {
   type GarminUserId = Branded<'userId', string>
 
-  test('should work when the schema and the type matches', () => {
+  it('should work when the schema and the type matches', () => {
     interface GarminUserState {
       hasValidToken?: boolean
       lastSyncTimestamp?: UnixTimestamp | null
@@ -5146,7 +5146,7 @@ describe('type inference check', () => {
     expectTypeOf(garminUserStateSchema.out).toEqualTypeOf<GarminUserState>()
   })
 
-  test('should collapse the schema to never when optionality is missing', () => {
+  it('should collapse the schema to never when optionality is missing', () => {
     interface GarminUserState {
       hasValidToken?: boolean
       lastSyncTimestamp?: UnixTimestamp | null
@@ -5171,7 +5171,7 @@ describe('type inference check', () => {
     expectTypeOf(garminUserStateSchema).toEqualTypeOf<never>()
   })
 
-  test('should collapse the schema to never when optionality is not needed', () => {
+  it('should collapse the schema to never when optionality is not needed', () => {
     interface GarminUserState {
       hasValidToken: boolean
       lastSyncTimestamp: UnixTimestamp | null
@@ -5197,7 +5197,7 @@ describe('type inference check', () => {
   })
 })
 
-test('xxx', () => {
+it('xxx', () => {
   interface ZendeskTriggerWebhookBody {
     assignee: {
       email?: string // empty = not set
@@ -5218,7 +5218,7 @@ describe('type invariance', () => {
   // which makes j.object<T>() strict about type matching.
 
   describe('record', () => {
-    test('should reject numeric key schemas', () => {
+    it('should reject numeric key schemas', () => {
       // JSON keys are always strings, so numeric key schemas can never work.
       // record() throws at runtime and returns never at the type level.
       expect(() => j.object.record(j.number(), j.string())).toThrow(
@@ -5229,7 +5229,7 @@ describe('type invariance', () => {
       )
     })
 
-    test('should reject numeric enum key schemas', () => {
+    it('should reject numeric enum key schemas', () => {
       // j.enum with numeric values produces a union of numeric literals
       const enumSchema = j.enum([1, 2, 3])
 
@@ -5240,7 +5240,7 @@ describe('type invariance', () => {
       )
     })
 
-    test('should accept string-based key schemas', () => {
+    it('should accept string-based key schemas', () => {
       const schema1 = j.object.record(j.string(), j.number())
       expectTypeOf(schema1).not.toBeNever()
 
@@ -5248,7 +5248,7 @@ describe('type invariance', () => {
       expectTypeOf(schema2).not.toBeNever()
     })
 
-    test('should not satisfy Record<E, V> in j.object', () => {
+    it('should not satisfy Record<E, V> in j.object', () => {
       enum E {
         A = 'a',
         B = 'b',
@@ -5269,7 +5269,7 @@ describe('type invariance', () => {
   })
 
   describe('stringMap', () => {
-    test('should not satisfy Record<E, V> in j.object', () => {
+    it('should not satisfy Record<E, V> in j.object', () => {
       enum E {
         A = 'a',
         B = 'b',
@@ -5290,7 +5290,7 @@ describe('type invariance', () => {
   })
 
   describe('j.object<T>', () => {
-    test('should reject optional schema for required property', () => {
+    it('should reject optional schema for required property', () => {
       interface Foo {
         name: string // required
       }
@@ -5304,7 +5304,7 @@ describe('type invariance', () => {
       expectTypeOf(schema).toBeNever()
     })
 
-    test('should reject required schema for optional property', () => {
+    it('should reject required schema for optional property', () => {
       interface Foo {
         name?: string // optional (string | undefined)
       }
@@ -5318,7 +5318,7 @@ describe('type invariance', () => {
       expectTypeOf(schema).toBeNever()
     })
 
-    test('should reject wrong value type', () => {
+    it('should reject wrong value type', () => {
       interface Foo {
         name: string
       }
@@ -5331,7 +5331,7 @@ describe('type invariance', () => {
       expectTypeOf(schema).toBeNever()
     })
 
-    test('should reject nullable schema for non-nullable property', () => {
+    it('should reject nullable schema for non-nullable property', () => {
       interface Foo {
         name: string
       }
@@ -5344,7 +5344,7 @@ describe('type invariance', () => {
       expectTypeOf(schema).toBeNever()
     })
 
-    test('should accept nullable schema for nullable property', () => {
+    it('should accept nullable schema for nullable property', () => {
       interface Foo {
         name: string | null
       }
@@ -5356,7 +5356,7 @@ describe('type invariance', () => {
       expectTypeOf(schema).not.toBeNever()
     })
 
-    test('should reject non-nullable schema for nullable property', () => {
+    it('should reject non-nullable schema for nullable property', () => {
       interface Foo {
         name: string | null
       }
@@ -5369,7 +5369,7 @@ describe('type invariance', () => {
       expectTypeOf(schema).toBeNever()
     })
 
-    test('should reject anyOfThese union that widens the expected array element type', () => {
+    it('should reject anyOfThese union that widens the expected array element type', () => {
       interface Foo {
         id: string
         content: string
@@ -5396,7 +5396,7 @@ describe('type invariance', () => {
       expectTypeOf(schema).toBeNever()
     })
 
-    test('should reject anyOfBy union that widens the expected type', () => {
+    it('should reject anyOfBy union that widens the expected type', () => {
       interface Success {
         ok: true
         data: string

@@ -5,6 +5,7 @@
   "scripts": {
     "prepare": "husky",
     "upd": "pnpm -r up --no-save",
+    "upd2": "pnpm clean && rm pnpm-lock.yaml && pnpm up --no-save",
     "out": "pnpm -r outdated",
     "ci:setup": "pnpm install && pnpm build",
     "build": "pnpm --filter '@naturalcycles/*' --filter '!@naturalcycles/pnpm-config' --parallel exec tsc -P tsconfig.prod.json --noCheck --incremental false",
@@ -94,5 +95,5 @@
   "engines": {
     "node": ">=24.15.0"
   },
-  "packageManager": "pnpm@12.13.0"
+  "packageManager": "pnpm@12.16.0"
 }
