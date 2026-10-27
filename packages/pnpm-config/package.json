@@ -15,7 +15,7 @@
     "directory": "packages/pnpm-config"
   },
   "version": "0.0.0",
-  "description": "Shared pnpm settings, consumed as a pnpm config dependency",
+  "description": "Shared pnpm config",
   "author": "Natural Cycles Team",
   "license": "MIT"
 }

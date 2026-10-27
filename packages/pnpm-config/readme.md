@@ -7,7 +7,7 @@
 
 ## Usage
 
-Requires pnpm >= 12.15.0.
+Requires pnpm >= 12.16.0.
 
 Add the package as a config dependency, then delegate settings to it in `pnpm-workspace.yaml`. A
 config dependency always needs an explicit list of the settings it owns (`'*'` is only allowed for
@@ -51,6 +51,3 @@ delegate stay fully under your control.
 
 - This package must stay dependency-free: pnpm config dependencies cannot have `dependencies` or
   lifecycle scripts.
-- Inside the js-libs monorepo itself the file is included by path
-  (`./packages/pnpm-config/pnpm.config.yaml`), because config dependencies must come from a
-  registry.

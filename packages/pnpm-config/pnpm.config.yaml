@@ -1,7 +1,5 @@
-# Shared pnpm settings, consumed by other repos as a config dependency (https://pnpm.io/config-includes)
-# and by this monorepo via `include` in the root pnpm-workspace.yaml.
+# Shared pnpm workspace config, consumed as a config dependency (https://pnpm.io/config-includes).
 
-# minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - '@naturalcycles/*'
   - vitest
@@ -16,5 +14,7 @@ minimumReleaseAgeExclude:
 trustLockfile: true
 trustPolicyExcludePrune: true
 trustPolicy: no-downgrade
+# Below settings are kept as defaults.
+# minimumReleaseAge: 1440
 # blockExoticSubdeps: true
 # strictDepBuilds: true
