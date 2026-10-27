@@ -1,6 +1,7 @@
+import { _AsyncMemo } from '@naturalcycles/js-lib/decorators/asyncMemo.decorator.js'
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import { expect, it, vi } from 'vitest'
-import { LRUMemoCache } from './lruMemoCache.js'
+import { LRUAsyncMemoCache, LRUMemoCache } from './lruMemoCache.js'
 
 class A {
   func(n: number): void {
@@ -33,4 +34,36 @@ it('memoCache a', () => {
 
   // to be called once per set of arguments (2)
   expect(a.func).toMatchSnapshot()
+})
+
+class B {
+  calls = 0
+
+  @_AsyncMemo({ cacheFactory: () => new LRUAsyncMemoCache({ max: 100 }) })
+  async square(n: number): Promise<number> {
+    this.calls++
+    return n * n
+  }
+
+  @_AsyncMemo({ cacheFactory: () => new LRUAsyncMemoCache({ max: 100 }) })
+  async nothing(_n: number): Promise<undefined> {
+    this.calls++
+    return undefined
+  }
+}
+
+it('LRUAsyncMemoCache with _AsyncMemo should call the method on a miss and cache the result', async () => {
+  const b = new B()
+
+  expect(await b.square(3)).toBe(9)
+  expect(await b.square(3)).toBe(9)
+  expect(b.calls).toBe(1)
+})
+
+it('LRUAsyncMemoCache with _AsyncMemo should return a cached undefined as a hit', async () => {
+  const b = new B()
+
+  expect(await b.nothing(1)).toBeUndefined()
+  expect(await b.nothing(1)).toBeUndefined()
+  expect(b.calls).toBe(1)
 })
