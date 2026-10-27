@@ -1,11 +1,5 @@
-import {
-  createTestItemsDBM,
-  runCommonDaoTest,
-  runCommonDBTest,
-  TEST_TABLE,
-} from '@naturalcycles/db-lib/testing'
+import { runCommonDaoTest, runCommonDBTest } from '@naturalcycles/db-lib/testing'
 import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
-import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { describe, expect, it } from 'vitest'
 import { DatastoreDB } from '../datastore.db.js'
@@ -37,35 +31,6 @@ describe('runCommonDaoTest', async () => {
 it('should return undefined stats and count for a missing table', async () => {
   expect(await datastoreDB.getStats('NonEx')).toBeUndefined()
   expect(await datastoreDB.getStatsCount('NonEx')).toBeUndefined()
-})
-
-it('should get the stats count of a table without throwing', async () => {
-  console.log(await datastoreDB.getStatsCount('Session'))
-})
-
-it('should get the stats of a table without throwing', async () => {
-  console.log(await datastoreDB.getStats('Session'))
-})
-
-it('should get the stats of all tables without throwing', async () => {
-  console.log(await datastoreDB.getAllStats())
-})
-
-it('should list the tables without throwing', async () => {
-  console.log(await datastoreDB.getTables())
-})
-
-it('should get a table schema without throwing', async () => {
-  // console.log(await datastoreDB.getTableProperties('Account'))
-  console.log(await datastoreDB.getTableSchema('Account'))
-})
-
-it.skip('should save 10k items one by one without a GOAWAY error', async () => {
-  const items = createTestItemsDBM(10_001)
-
-  await pMap(items, async item => {
-    await datastoreDB.saveBatch(TEST_TABLE, [item])
-  })
 })
 
 it('should get rows from several tables with multiGet without throwing', async () => {

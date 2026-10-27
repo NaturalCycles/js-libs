@@ -1,94 +1,88 @@
 import fs from 'node:fs'
-import fsp from 'node:fs/promises'
-import { _noop } from '@naturalcycles/js-lib/types'
-import { beforeEach, it, vi } from 'vitest'
-import { scriptsDir, testDir, tmpDir } from '../test/paths.cnst.js'
+import os from 'node:os'
+import path from 'node:path'
+import { globSync } from 'tinyglobby'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { testDir } from '../test/paths.cnst.js'
+import { fs2 } from './fs2.js'
 import { json2env } from './json2env.js'
+import type { KpyOptions } from './kpy.js'
 import { kpy, kpySync } from './kpy.js'
 
+const inputFiles = ['a.json', 'b.txt', 'sub/c.json']
+
+let tmpDir: string
+let baseDir: string
+let outputDir: string
+
 beforeEach(() => {
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kpy-'))
+  baseDir = `${tmpDir}/in`
+  outputDir = `${tmpDir}/out`
+  inputFiles.forEach(file => fs2.outputFile(`${baseDir}/${file}`, file))
+})
+
+afterEach(() => {
+  fs2.removePath(tmpDir)
+})
+
+describe.each([
+  ['kpySync', async (opt: KpyOptions) => kpySync(opt)],
+  ['kpy', kpy],
+])('%s', (_name, kpyFn) => {
+  it('should copy only the files matching inputPatterns', async () => {
+    await kpyFn({ baseDir, outputDir, inputPatterns: ['*.json'], silent: true })
+
+    expect(listFiles(outputDir)).toEqual(['a.json'])
+    expect(fs2.readText(`${outputDir}/a.json`)).toBe('a.json')
+    expect(listFiles(baseDir)).toEqual(inputFiles)
+  })
+
+  it('should copy all files into the output dir root with flat', async () => {
+    await kpyFn({ baseDir, outputDir, flat: true, verbose: true })
+
+    expect(listFiles(outputDir)).toEqual(['a.json', 'b.txt', 'c.json'])
+    expect(fs2.readText(`${outputDir}/c.json`)).toBe('sub/c.json')
+  })
+
+  it('should move the files with move', async () => {
+    await kpyFn({ baseDir, outputDir, move: true, silent: true })
+
+    expect(listFiles(outputDir)).toEqual(inputFiles)
+    expect(listFiles(baseDir)).toEqual([])
+  })
+
+  it('should copy nothing with dry', async () => {
+    await kpyFn({ baseDir, outputDir, dry: true, verbose: true })
+
+    expect(listFiles(outputDir)).toEqual([])
+    expect(listFiles(baseDir)).toEqual(inputFiles)
+  })
+})
+
+it('should write the JSON file as shell exports next to it, unless saveEnvFile is false', async () => {
   vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {})
-  vi.spyOn(fs, 'unlinkSync').mockImplementation(() => {})
-  vi.spyOn(fs, 'mkdirSync').mockImplementation(_noop as any)
-  vi.spyOn(fs, 'copyFileSync').mockImplementation(() => {})
-  vi.spyOn(fs, 'renameSync').mockImplementation(() => {})
-  vi.spyOn(fs, 'rmSync').mockImplementation(() => {})
-  // vi.spyOn(fse, 'copySync').mockImplementation(() => {})
-  vi.spyOn(fs, 'cpSync').mockImplementation(() => {})
-  vi.spyOn(fs, 'rename').mockImplementation(() => {})
-  vi.spyOn(fsp, 'rename').mockImplementation(_noop as any)
-  vi.spyOn(fsp, 'mkdir').mockImplementation(_noop as any)
-  vi.spyOn(fsp, 'cp').mockImplementation(_noop as any)
-  vi.spyOn(fsp, 'copyFile').mockImplementation(_noop as any)
-  vi.spyOn(fsp, 'unlink').mockImplementation(_noop as any)
-  vi.spyOn(fsp, 'rm').mockImplementation(_noop as any)
-})
-
-const outputDir = `${tmpDir}/debug/kpy`
-const inputPatterns = ['*.json']
-
-it('should not throw when copying or moving files with kpy and kpySync', async () => {
-  kpySync({
-    baseDir: scriptsDir,
-    outputDir,
-    inputPatterns,
-  })
-
-  // Trying different options for coverage
-  kpySync({
-    baseDir: scriptsDir,
-    outputDir,
-    verbose: true,
-    flat: true,
-  })
-
-  kpySync({
-    baseDir: scriptsDir,
-    outputDir,
-    silent: true,
-    move: true,
-  })
-
-  await kpy({
-    baseDir: scriptsDir,
-    outputDir,
-    silent: true,
-  })
-
-  await kpy({
-    baseDir: scriptsDir,
-    outputDir,
-    dry: true,
-    verbose: true,
-    flat: true,
-  })
-
-  await kpy({
-    baseDir: scriptsDir,
-    outputDir,
-    move: true,
-    silent: true,
-  })
-
-  // kpySync({
-  //   // for coverage
-  //   baseDir: undefined as any,
-  //   outputDir: undefined as any,
-  //   dry: true,
-  // })
-})
-
-it('should not throw when converting a JSON file to env', async () => {
   const jsonPath = `${testDir}/someFile.json`
 
   json2env({
     jsonPath,
   })
 
-  // Different options for coverage
+  expect(fs.writeFileSync).toHaveBeenCalledExactlyOnceWith(
+    `${jsonPath}.sh`,
+    'export a="aaa"\nexport b="bbb"\n',
+    undefined,
+  )
+
   json2env({
     jsonPath,
     debug: true,
     saveEnvFile: false,
   })
+
+  expect(fs.writeFileSync).toHaveBeenCalledOnce()
 })
+
+function listFiles(dir: string): string[] {
+  return globSync('**', { cwd: dir }).sort()
+}

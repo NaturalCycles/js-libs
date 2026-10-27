@@ -46,9 +46,11 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
     expect(results).toEqual([])
   })
 
-  it('should count 0 entries in an empty table', async () => {
-    expect(await db.count(TEST_TABLE)).toBe(0)
-  })
+  if (support.count) {
+    it('should count 0 entries in an empty table', async () => {
+      expect(await db.count(TEST_TABLE)).toBe(0)
+    })
+  }
 
   it('should return the saved entries by ids', async () => {
     await db.saveBatch(TEST_TABLE, testEntries)

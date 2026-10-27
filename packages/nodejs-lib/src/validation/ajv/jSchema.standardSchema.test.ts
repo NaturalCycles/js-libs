@@ -202,7 +202,7 @@ interface Config {
   label: 'a' | 'b'
 }
 
-it('should accept a valid config and reject an unknown enum value or an invalid isoDate', () => {
+it('should accept a valid config and reject an unknown enum value, an invalid isoDate, an out-of-range score or an unlisted label', () => {
   const schema = j.object<Config>({
     status: j.enum(Status),
     date: j.string().isoDate(),
@@ -225,16 +225,36 @@ it('should accept a valid config and reject an unknown enum value or an invalid 
     date: '2024-06-15',
     scores: [],
     label: 'a',
-  })
-  expect(invalidEnum).toHaveProperty('issues')
+  }) as StandardSchemaV1.FailureResult
+  expect(invalidEnum.issues[0]!.message).toMatch(
+    /^Object\.status must be equal to one of the allowed values/,
+  )
 
   const invalidDate = schema['~standard'].validate({
     status: 'active',
     date: 'not-a-date',
     scores: [],
     label: 'b',
-  })
-  expect(invalidDate).toHaveProperty('issues')
+  }) as StandardSchemaV1.FailureResult
+  expect(invalidDate.issues[0]!.message).toMatch(/^Object\.date is an invalid IsoDate/)
+
+  const invalidScore = schema['~standard'].validate({
+    status: 'active',
+    date: '2024-06-15',
+    scores: [80, 101],
+    label: 'a',
+  }) as StandardSchemaV1.FailureResult
+  expect(invalidScore.issues[0]!.message).toMatch(/^Object\.scores\[1\] must be <= 100/)
+
+  const invalidLabel = schema['~standard'].validate({
+    status: 'active',
+    date: '2024-06-15',
+    scores: [],
+    label: 'c',
+  }) as StandardSchemaV1.FailureResult
+  expect(invalidLabel.issues[0]!.message).toMatch(
+    /^Object\.label must be equal to one of the allowed values/,
+  )
 })
 
 it('should accept nullable and missing optional fields and reject null for a required one', () => {

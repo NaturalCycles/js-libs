@@ -1,3 +1,4 @@
+import { stripVTControlCharacters } from 'node:util'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { devLogger, gcpStructuredLogger } from './logMiddleware.js'
@@ -89,7 +90,5 @@ it('should print the devLogger entry with its message and fields', () => {
 
   expect(calls).toHaveLength(1)
   const output = calls[0]![0] as string
-  expect(output).toContain('hello')
-  expect(output).toContain('accountId')
-  expect(output).toContain('n')
+  expect(stripVTControlCharacters(output)).toBe("hello { accountId: 'a1', n: 1 }")
 })

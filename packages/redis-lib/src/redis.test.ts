@@ -1,16 +1,18 @@
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expect, it } from 'vitest'
 import { RedisClient } from './redisClient.js'
 import { RedisKeyValueDB } from './redisKeyValueDB.js'
 
-it('should not throw when a client is created but never used', async () => {
-  await using _ = new RedisClient({
+it('should not connect a client that is never used and dispose it without throwing', async () => {
+  const client = new RedisClient({
     redisOptions: {
       maxRetriesPerRequest: 1,
     },
   })
-  await pDelay(1000)
+  expect(client.connected).toBe(false)
+
+  await client[Symbol.asyncDispose]()
+  expect(client.connected).toBe(false)
 })
 
 it('should reject a query when the server is unreachable', async () => {

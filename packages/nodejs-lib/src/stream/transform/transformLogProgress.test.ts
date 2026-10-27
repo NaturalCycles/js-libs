@@ -1,5 +1,7 @@
+import { stripVTControlCharacters } from 'node:util'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { createReadableFrom, Pipeline, progressReadableMapper } from '../index.js'
 import type { ProgressLogItem } from '../index.js'
 
@@ -46,14 +48,21 @@ it('should report final progress stats to onProgressDone', async () => {
   })
 })
 
-it('should not throw when mapping a readable through progressReadableMapper', async () => {
+it('should pass items through progressReadableMapper unchanged and log progress every logEvery items', async () => {
+  vi.spyOn(console, 'log').mockImplementation(() => {})
   const readable = createReadableFrom(rangeItAsync(1, 11, 10))
 
-  await readable
+  const items = await readable
     .map(
       progressReadableMapper({
         logEvery: 2,
       }),
     )
     .toArray()
+
+  expect(items).toEqual(_range(1, 11))
+  const loggedProgress = vi
+    .mocked(console.log)
+    .mock.calls.map(([line]) => stripVTControlCharacters(line).match(/progress: (\d+)/)?.[1])
+  expect(loggedProgress).toEqual(['0', '2', '4', '6', '8', '10'])
 })

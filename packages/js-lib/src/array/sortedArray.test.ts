@@ -38,7 +38,7 @@ it('should keep items sorted after unshift and splice', () => {
   arr.unshift('b', 'a')
   expect(arr).toEqual(['a', 'b', 'c', 'd'])
 
-  const removed = arr.splice(1, 0, 'aa')
+  const removed = arr.splice(0, 0, 'aa')
   expect(removed).toEqual([])
   expect(arr).toEqual(['a', 'aa', 'b', 'c', 'd'])
 

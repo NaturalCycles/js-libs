@@ -1,8 +1,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { _range } from '../array/index.js'
 import { AppError, ErrorMode, pExpectedError } from '../error/index.js'
-import { _isBetween, _randomInt } from '../index.js'
-import { timeSpan } from '../test/test.util.js'
+import { _randomInt } from '../index.js'
 import { END, SKIP } from '../types.js'
 import type { AsyncMapper } from '../types.js'
 import { pDelay } from './pDelay.js'
@@ -43,15 +42,25 @@ const mapper: AsyncMapper = async ([val, ms]) => {
 }
 
 it('should map concurrently and keep the input order', async () => {
-  const end = timeSpan()
-  expect(await pMap(input, mapper)).toEqual([10, 20, 30])
-  expect(_isBetween(end(), 25, 80, '[)')).toBe(true)
+  vi.useFakeTimers()
+  const started = Date.now()
+
+  const promise = pMap(input, mapper)
+  await vi.runAllTimersAsync()
+
+  expect(await promise).toEqual([10, 20, 30])
+  expect(Date.now() - started).toBe(30)
 })
 
 it('should map one item at a time with concurrency 1', async () => {
-  const end = timeSpan()
-  expect(await pMap(input, mapper, { concurrency: 1 })).toEqual([10, 20, 30])
-  expect(_isBetween(end(), 55, 120, '[)')).toBe(true)
+  vi.useFakeTimers()
+  const started = Date.now()
+
+  const promise = pMap(input, mapper, { concurrency: 1 })
+  await vi.runAllTimersAsync()
+
+  expect(await promise).toEqual([10, 20, 30])
+  expect(Date.now() - started).toBe(60)
 })
 
 it('should never run more than 4 mappers at once with concurrency 4', async () => {
@@ -196,13 +205,13 @@ it('should reject with an AggregateError of all errors with THROW_AGGREGATED', a
   `)
 })
 
-it('should not reject on mapper errors with SUPPRESS', async () => {
+it('should resolve with the successful results, dropping mapper errors, with SUPPRESS', async () => {
   const errorMode = ErrorMode.SUPPRESS
 
-  await pMap(fastInput, mapper, { concurrency: 1, errorMode })
+  expect(await pMap(fastInput, mapper, { concurrency: 1, errorMode })).toEqual([10, 20, 30])
 
-  await pMap(errorInput1, mapper, { concurrency: 1, errorMode })
-  await pMap(errorInput2, mapper, { concurrency: 1, errorMode })
+  expect(await pMap(errorInput1, mapper, { concurrency: 1, errorMode })).toEqual([20, 30])
+  expect(await pMap(errorInput2, mapper, { concurrency: 1, errorMode })).toEqual([20, 30])
 })
 
 it('should leave out SKIP results', async () => {
@@ -238,6 +247,20 @@ it('should preserve stack', async () => {
   expect(err.stack).toContain('at pExpectedError')
 })
 
+it('should keep the input order with unlimited concurrency and reversed delays', async () => {
+  vi.useFakeTimers()
+  const input = _range(6)
+  const promise = pMap(input, async v => {
+    await pDelay(100 - v * 20)
+    // console.log('done', v)
+    return v
+  })
+  await vi.runAllTimersAsync()
+  const result = await promise
+  // console.log(result)
+  expect(result).toEqual(input)
+})
+
 async function wrappingFn(): Promise<void> {
   await pMap([1, 2, 3], async n => await fn(n))
   // await Promise.all([1, 2, 3].map(n => fn(n)))
@@ -255,27 +278,3 @@ async function fn(n: number): Promise<number> {
 
   return n * 2
 }
-
-it('should treat Infinity as equal to itself', () => {
-  const a = Infinity
-  const b = Infinity
-  expect(a).toBe(b)
-
-  expect(a === b).toBe(true)
-
-  expect(a === Infinity).toBe(true)
-})
-
-it('should keep the input order with unlimited concurrency and reversed delays', async () => {
-  vi.useFakeTimers()
-  const input = _range(6)
-  const promise = pMap(input, async v => {
-    await pDelay(100 - v * 20)
-    // console.log('done', v)
-    return v
-  })
-  await vi.runAllTimersAsync()
-  const result = await promise
-  // console.log(result)
-  expect(result).toEqual(input)
-})

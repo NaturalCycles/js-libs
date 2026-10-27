@@ -164,10 +164,8 @@ it('should parse an ISO date-time and expose its parts, formats, setters and com
 it('should respect [) and [] inclusivity, returning false when min is after max', () => {
   const ld = localTime('1984-06-21' as IsoDate)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[]')).toBe(true)
 
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[]')).toBe(true)
 
@@ -606,15 +604,10 @@ it('should return the current unix time in seconds and milliseconds', () => {
   expect(localTime.nowUnixMillis()).toBeGreaterThan(localTime('2024-01-01' as IsoDate).unixMillis)
 })
 
-it('should report a zero UTC offset when running in UTC', () => {
-  const offset = dayjs().utcOffset()
-  const offset2 = -new Date().getTimezoneOffset()
-  expect(offset2).toBe(offset)
-
-  if (isUTC()) {
-    expect(localTime.now().getUTCOffsetMinutes()).toBe(0)
-    expect(localTime.now().getUTCOffsetHours()).toBe(0)
-  }
+it('should report the UTC offset of the local timezone', () => {
+  const offsetMinutes = -new Date().getTimezoneOffset() || 0
+  expect(localTime.now().getUTCOffsetMinutes()).toBe(offsetMinutes)
+  expect(localTime.now().getUTCOffsetHours()).toBe(Math.round(offsetMinutes / 60))
 })
 
 it('should keep the unix time when converting between UTC and local', () => {

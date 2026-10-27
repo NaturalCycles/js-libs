@@ -1,35 +1,32 @@
-import { describe, expect, it } from 'vitest'
-import { _since } from '../datetime/index.js'
-import { pDelay } from '../promise/index.js'
-import type { AnyFunction, UnixTimestampMillis } from '../types.js'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { _AsyncDebounce, _AsyncThrottle, _Debounce } from './debounce.decorator.js'
 
-class C {
-  // @debounce(200, {leading: true, trailing: true})
-  // @throttle(200, {leading: true, trailing: true})
-  @_Debounce(20)
-  fn(started: UnixTimestampMillis, n: number): void {
-    console.log(`#${n} after ${_since(started)}`)
-  }
-}
-
-const inst = new C()
-const fn = (started: UnixTimestampMillis, n: number): void => inst.fn(started, n)
-
-async function startTimer(fn: AnyFunction, interval: number, count: number): Promise<void> {
-  const started = Date.now()
-
-  for (let i = 0; i < count; i++) {
-    await pDelay(interval)
-    fn(started, i + 1)
-  }
-
-  await pDelay(1000) // extra wait
-}
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 describe('@_Debounce', () => {
-  it('should call the decorated method repeatedly without throwing', async () => {
-    await startTimer(fn, 10, 10)
+  it('should call the decorated method once, with the last args, after the calls stop', () => {
+    vi.useFakeTimers()
+
+    class C {
+      calls: number[] = []
+
+      @_Debounce(20)
+      fn(n: number): void {
+        this.calls.push(n)
+      }
+    }
+
+    const inst = new C()
+    for (let n = 1; n <= 10; n++) {
+      inst.fn(n)
+      vi.advanceTimersByTime(10)
+    }
+    expect(inst.calls).toEqual([])
+
+    vi.advanceTimersByTime(100)
+    expect(inst.calls).toEqual([10])
   })
 })
 
@@ -54,7 +51,7 @@ describe('@_AsyncDebounce', () => {
 })
 
 describe('@_AsyncThrottle', () => {
-  it('should invoke the first call and resolve it with its result', async () => {
+  it('should invoke the first call at once and resolve it with its result', async () => {
     class C {
       calls = 0
 
@@ -66,7 +63,9 @@ describe('@_AsyncThrottle', () => {
     }
 
     const inst = new C()
-    expect(await inst.ping(7)).toBe(7)
+    const promise = inst.ping(7)
+    expect(inst.calls).toBe(1)
+    expect(await promise).toBe(7)
     expect(inst.calls).toBe(1)
   })
 

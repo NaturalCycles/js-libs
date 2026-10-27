@@ -7,7 +7,6 @@ import { expect, expectTypeOf, it } from 'vitest'
 import { _since, localTime } from '../datetime/index.js'
 import { HttpRequestError, TimeoutError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
-import { objectToFormData } from '../form.util.js'
 import { _stringify } from '../string/stringify.js'
 import { tmpDir } from '../test/paths.js'
 import { getFetcher } from './fetcher.js'
@@ -157,53 +156,6 @@ it('should retry a timed-out request and log the error', async () => {
   console.log(err)
   console.log(_stringify(err))
 }, 20_000)
-
-const webhookUrl = 'https://webhook.site/07577dc5-8a0a-4e21-866b-a3bdbaf641f4'
-
-it.skip('should post an object as form data', async () => {
-  const fetcher = getFetcher({
-    debug: true,
-    retry: { count: 0 },
-  })
-
-  await fetcher.post(webhookUrl, {
-    form: {
-      a: 'a',
-      b: 2,
-    },
-  })
-
-  // to compare with how Got is doing it
-  // await getGot().post('https://webhook.site/07577dc5-8a0a-4e21-866b-a3bdbaf641f4', {
-  //     form: {
-  //       a: 'a',
-  //       b: 2,
-  //     },
-  //   }).json()
-})
-
-it.skip('should post JSON and form data with a blob', async () => {
-  const fetcher = getFetcher({
-    debug: true,
-    retry: { count: 0 },
-  })
-
-  const buf = Buffer.from('asdfsdfsdf')
-
-  await fetcher.post(webhookUrl, {
-    json: { a: 'a' },
-    headers: {
-      lo: 'lo',
-    },
-  })
-
-  await fetcher.post('https://webhook.site/f7dba637-38ac-4b3c-a29b-1b5adeb04fd2', {
-    body: objectToFormData({
-      a: 'a',
-      b: new Blob([buf]),
-    }),
-  })
-})
 
 it('should make requests through a custom undici Agent and undici fetch', async () => {
   const dispatcher = new Agent({

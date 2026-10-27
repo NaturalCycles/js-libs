@@ -589,7 +589,7 @@ it('should return the item with the largest or smallest mapped value', () => {
 })
 
 it('should return the items with the smallest and largest mapped values', () => {
-  expect(_maxByOrUndefined([], () => 0)).toBeUndefined()
+  expect(_minMaxByOrUndefined([], () => 0)).toBeUndefined()
   expect(() => _minMaxBy([], () => 0)).toThrowErrorMatchingInlineSnapshot(
     `[Error: _minMaxBy called on empty array]`,
   )

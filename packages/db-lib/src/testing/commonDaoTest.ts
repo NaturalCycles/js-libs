@@ -14,7 +14,7 @@ export async function runCommonDaoTest(
   quirks: CommonDBImplementationQuirks = {},
 ): Promise<void> {
   // this is because vitest cannot be "required" from cjs
-  const { expect, it } = await import('vitest')
+  const { afterAll, beforeAll, expect, it } = await import('vitest')
 
   const { support } = db
   const dao = new CommonDao({
@@ -33,6 +33,32 @@ export async function runCommonDaoTest(
     updated: expect.any(Number),
   }))
 
+  beforeAll(async () => {
+    // Tests in this suite are not isolated: a failed run can leave rows behind for the next run
+    if (support.createTable) {
+      await dao.createTable(testItemBMSchema.build(), { dropIfExists: true })
+    }
+
+    // DELETE ALL initially
+    if (support.queries) {
+      const rows = await dao.query().select(['id']).runQuery()
+      await db.deleteByQuery(
+        DBQuery.create(TEST_TABLE).filter(
+          'id',
+          'in',
+          rows.map(r => r.id),
+        ),
+      )
+    }
+  })
+
+  afterAll(async () => {
+    // CLEAN UP
+    if (support.queries) {
+      await dao.query().deleteByQuery()
+    }
+  })
+
   it('should respond to ping', async () => {
     await dao.ping()
   })
@@ -45,18 +71,6 @@ export async function runCommonDaoTest(
   }
 
   if (support.queries) {
-    // DELETE ALL initially
-    it('should delete leftover test items', async () => {
-      const rows = await dao.query().select(['id']).runQuery()
-      await db.deleteByQuery(
-        DBQuery.create(TEST_TABLE).filter(
-          'id',
-          'in',
-          rows.map(r => r.id),
-        ),
-      )
-    })
-
     // QUERY empty
     it('should return no rows and a count of 0 for an empty table', async () => {
       expect(await dao.query().runQuery()).toEqual([])
@@ -299,11 +313,6 @@ export async function runCommonDaoTest(
       expect(deleted).toBe(items.filter(item => !item.even).length)
       expect(await dao.query().runQueryCount()).toBe(1)
     })
-
-    it('should delete all test items on cleanup', async () => {
-      // CLEAN UP
-      await dao.query().deleteByQuery()
-    })
   }
 
   if (support.transactions) {
@@ -353,7 +362,11 @@ export async function runCommonDaoTest(
 
       const rows = await dao.query().runQuery()
       const expected = [items[0], { ...items[2]!, k1: 'k1_mod' }]
-      expectMatch(expected, rows, quirks)
+      expectMatch(
+        expected,
+        _sortBy(rows, r => r.id),
+        quirks,
+      )
     })
 
     if (support.createTransaction) {
@@ -391,7 +404,11 @@ export async function runCommonDaoTest(
 
         const rows = await dao.query().runQuery()
         const expected = [items[0], { ...items[2]!, k1: 'k1_mod' }]
-        expectMatch(expected, rows, quirks)
+        expectMatch(
+          expected,
+          _sortBy(rows, r => r.id),
+          quirks,
+        )
       })
     }
 
@@ -413,34 +430,28 @@ export async function runCommonDaoTest(
       expect(err).toBeInstanceOf(Error)
 
       const rows = await dao.query().runQuery()
-      expectMatch(expected, rows, quirks)
+      expectMatch(
+        expected,
+        _sortBy(rows, r => r.id),
+        quirks,
+      )
     })
 
     if (support.createTransaction) {
-      it('should not apply a created transaction whose save fails before commit', async () => {
+      it('should leave the data unchanged when a created transaction is rolled back after a failed save', async () => {
         const expected = await prepare()
 
-        let err: any
-        try {
-          const tx = await dao.createTransaction()
-          await tx.deleteById(dao, items[2]!.id)
-          await tx.save(dao, { ...items[0]!, k1: 5 as any }) // it should fail here
-          await tx.commit()
-        } catch (err2) {
-          err = err2
-        }
-
-        expect(err).toBeDefined()
-        expect(err).toBeInstanceOf(Error)
+        const tx = await dao.createTransaction()
+        await tx.deleteById(dao, items[2]!.id)
+        await expect(tx.save(dao, { ...items[0]!, k1: 5 as any })).rejects.toThrow() // it should fail here
+        await tx.rollback()
 
         const rows = await dao.query().runQuery()
-        expectMatch(expected, rows, quirks)
-      })
-    }
-
-    if (support.queries) {
-      it('should delete all test items after the transaction tests', async () => {
-        await dao.query().deleteByQuery()
+        expectMatch(
+          expected,
+          _sortBy(rows, r => r.id),
+          quirks,
+        )
       })
     }
   }

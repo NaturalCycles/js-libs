@@ -207,6 +207,7 @@ describe('createAdminMiddleware', () => {
       if (token === 'p1') return 'p1@mail.com'
       if (token === 'p2') return 'p2@mail.com'
       if (token === 'p1p2') return 'p1p2@mail.com'
+      if (token === 's1s2') return 'second@mail.com'
     })
   })
 
@@ -235,24 +236,23 @@ describe('createAdminMiddleware', () => {
     expect(err2.data.responseStatusCode).toBe(403)
   })
 
-  it('should accept any one of the permissions on OR-comparison', async () => {
-    await app.get('admin/test-permission-or', {
-      headers: {
-        'x-admin-token': 'p1p2',
-      },
-    })
+  it('should accept a token with any one of the permissions on OR-comparison and reject one with neither', async () => {
+    for (const token of ['p1p2', 'p1', 'p2']) {
+      const r = await app.get('admin/test-permission-or', {
+        headers: {
+          'x-admin-token': token,
+        },
+      })
+      expect(r).toEqual({ success: true })
+    }
 
-    await app.get('admin/test-permission-or', {
+    const err = await app.expectError({
+      url: 'admin/test-permission-or',
       headers: {
-        'x-admin-token': 'p1',
+        'x-admin-token': 's1s2',
       },
     })
-
-    await app.get('admin/test-permission-or', {
-      headers: {
-        'x-admin-token': 'p2',
-      },
-    })
+    expect(err.data.responseStatusCode).toBe(403)
   })
 
   it('should set isAuthenticatedAdminRequest when the admin is granted', async () => {
@@ -279,6 +279,14 @@ describe('createAdminMiddleware', () => {
     )
 
     expect(success).toBe(false)
+  })
+})
+
+describe('createSecureHeaderMiddleware', () => {
+  beforeEach(() => {
+    vi.spyOn(adminService, 'getEmailByToken').mockImplementation(async (_, token) => {
+      if (token === 'p1p2') return 'p1p2@mail.com'
+    })
   })
 
   it('should set isAuthenticatedAdminRequest when the secure header matches', async () => {

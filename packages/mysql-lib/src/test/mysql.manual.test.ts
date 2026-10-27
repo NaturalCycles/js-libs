@@ -135,19 +135,3 @@ it('should store object values as JSON strings', async () => {
     },
   ])
 })
-
-it('should load accounts with boolean fields without throwing', async () => {
-  const accs = await db.getByIds<any>('Account', [
-    '005734f1979f4ca890662c0b9f296dc2',
-    '0000a67c9c034e379a938f915766540b',
-    '0002ea1a93e84f12bbc12a306f452427',
-  ])
-  // console.log(accs.map(acc => acc.appConsent))
-  console.log(
-    accs.map(acc => ({
-      id: acc.id,
-      appConsent: acc.appConsent,
-    })),
-  )
-  // expect undefined, true, false
-})

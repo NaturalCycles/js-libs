@@ -1,10 +1,14 @@
-import { createTestItemsDBM, TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import { it } from 'vitest'
+import { expect, it } from 'vitest'
 import { insertSQL } from './query.util.js'
 
-it('should build insert statements without throwing', () => {
-  const items = createTestItemsDBM(3)
-  const sqls = insertSQL(TEST_TABLE, items)
-  console.log(sqls)
-  // sqls.forEach(s => console.log(s.values))
+it('should build one parameterized INSERT statement per row', () => {
+  const rows = [
+    { id: 'id1', k1: 'v1', k3: 1 },
+    { id: 'id2', k1: 'v2' },
+  ]
+
+  expect(insertSQL('TEST_TABLE', rows)).toEqual([
+    ['INSERT INTO TEST_TABLE (id, k1, k3) VALUES (?, ?, ?)', ['id1', 'v1', 1]],
+    ['INSERT INTO TEST_TABLE (id, k1) VALUES (?, ?)', ['id2', 'v2']],
+  ])
 })

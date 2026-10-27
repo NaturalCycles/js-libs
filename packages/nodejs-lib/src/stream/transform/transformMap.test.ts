@@ -1,107 +1,15 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
-import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
+import { ErrorMode } from '@naturalcycles/js-lib/error'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
 import { SKIP } from '@naturalcycles/js-lib/types'
-import { expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import type { TransformMapStats } from './transformMap.js'
 import { transformMap } from './transformMap.js'
 
-interface Item {
-  id: string
-}
-
-const mapperError3: AsyncIndexedMapper<Item, Item> = async item => {
-  if (item.id === '3') throw new Error('my error')
-  return item
-}
-
-it('should call the mapper for every item', async () => {
-  const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
-  const data2: Item[] = []
-
-  await Pipeline.fromArray(data)
-    .transform(transformMap(async r => void data2.push(r)))
-    .run()
-
-  expect(data2).toEqual(data)
-})
-
-it('should emit the mapped items', async () => {
-  const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
-  const data2 = await Pipeline.fromArray(data)
-    .transform(
-      transformMap(async r => ({
-        id: r.id + '!',
-      })),
-    )
-    .toArray()
-
-  expect(data2).toEqual(data.map(r => ({ id: r.id + '!' })))
-})
-
-it('should reject on the first mapper error in the default THROW_IMMEDIATELY mode', async () => {
-  let stats: TransformMapStats
-  const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
-  const data2: Item[] = []
-
-  await expect(
-    Pipeline.fromArray(data)
-      .transform(transformMap(mapperError3, { concurrency: 1, onDone: s => (stats = s) }))
-      .transform(transformMap(async r => void data2.push(r)))
-      .run(),
-  ).rejects.toThrow('my error')
-
-  expect(data2).toEqual(data.filter(r => Number(r.id) < 3))
-
-  expect(stats!.ok).toBe(false)
-  expect(stats!.countErrors).toBe(1)
-})
-
-it('should reject with an AggregateError after all items in THROW_AGGREGATED mode', async () => {
-  let stats: TransformMapStats
-  const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
-  const data2: Item[] = []
-
-  const err = await pExpectedError(
-    Pipeline.fromArray(data)
-      .transform(
-        transformMap(mapperError3, {
-          errorMode: ErrorMode.THROW_AGGREGATED,
-          onDone: s => (stats = s),
-        }),
-      )
-      .transform(transformMap(async r => void data2.push(r)))
-      .run(),
-    AggregateError,
-  )
-  expect(err.message).toContain('1 error(s)')
-
-  expect(data2).toEqual(data.filter(r => r.id !== '3'))
-
-  expect(stats!.ok).toBe(false)
-  expect(stats!.countErrors).toBe(1)
-  expect(stats!.collectedErrors).toHaveLength(1)
-})
-
-it('should skip failed items without rejecting in SUPPRESS mode', async () => {
-  let stats: TransformMapStats
-  const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
-  const data2: Item[] = []
-
-  await Pipeline.fromArray(data)
-    .transform(
-      transformMap(mapperError3, { errorMode: ErrorMode.SUPPRESS, onDone: s => (stats = s) }),
-    )
-    .transform(transformMap(async r => void data2.push(r)))
-    .run()
-
-  expect(data2).toEqual(data.filter(r => r.id !== '3'))
-
-  expect(stats!.ok).toBe(true)
-  expect(stats!.countErrors).toBe(1)
+afterEach(() => {
+  vi.useRealTimers()
 })
 
 it('should pass all items through with warmup', async () => {
@@ -123,42 +31,41 @@ it('should pass all items through with warmup', async () => {
   expect(results.sort(comparators.by(r => r.id))).toEqual(data)
 })
 
-it('should still reach a concurrency above 1 with warmup', async () => {
-  const concurrencyLog: number[] = []
-  let currentConcurrency = 0
+it('should run one item at a time in the first second of a 2s warmup, 4 in the next, and 8 after it', async () => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
+  const started = Date.now()
+  const maxInFlightBySecond: number[] = []
+  let inFlight = 0
 
-  const data = _range(1, 51).map(id => ({ id }))
-
-  await Pipeline.fromArray(data)
+  const promise = Pipeline.fromArray(_range(1, 81))
     .transform(
       transformMap(
         async item => {
-          currentConcurrency++
-          concurrencyLog.push(currentConcurrency)
-          await pDelay(50) // longer delay to span warmup period
-          currentConcurrency--
+          inFlight++
+          const second = Math.floor((Date.now() - started) / 1000)
+          maxInFlightBySecond[second] = Math.max(maxInFlightBySecond[second] ?? 0, inFlight)
+          await pDelay(100)
+          inFlight--
           return item
         },
-        { concurrency: 8, warmupSeconds: 2 }, // longer warmup to exceed check interval
+        { concurrency: 8, warmupSeconds: 2 },
       ),
     )
     .run()
+  await vi.runAllTimersAsync()
+  await promise
 
-  // First items should have lower concurrency
-  expect(concurrencyLog[0]).toBeLessThanOrEqual(2)
-
-  // Later items should reach higher concurrency
-  const maxConcurrency = Math.max(...concurrencyLog)
-  expect(maxConcurrency).toBeGreaterThan(1)
+  expect(maxInFlightBySecond).toEqual([1, 4, 8])
 })
 
-it('should reach a concurrency of at least 4 without warmup', async () => {
+it('should start 8 items at once without warmup', async () => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
   const concurrencyLog: number[] = []
   let currentConcurrency = 0
 
   const data = _range(1, 21).map(id => ({ id }))
 
-  await Pipeline.fromArray(data)
+  const promise = Pipeline.fromArray(data)
     .transform(
       transformMap(
         async item => {
@@ -172,10 +79,11 @@ it('should reach a concurrency of at least 4 without warmup', async () => {
       ),
     )
     .run()
+  await vi.runAllTimersAsync()
+  await promise
 
-  // Should reach high concurrency quickly
-  const maxConcurrency = Math.max(...concurrencyLog)
-  expect(maxConcurrency).toBeGreaterThanOrEqual(4)
+  expect(concurrencyLog.slice(0, 8)).toEqual(_range(1, 9))
+  expect(Math.max(...concurrencyLog)).toBe(8)
 })
 
 it('should call onDone with ok stats and in and out counts', async () => {
@@ -199,32 +107,38 @@ it('should call onDone with ok stats and in and out counts', async () => {
 
 // Backpressure and concurrency control tests
 
-it('should never exceed the concurrency and reach it under load', async () => {
-  let currentConcurrency = 0
-  let maxObservedConcurrency = 0
-  const targetConcurrency = 4
+it.each([
+  { delays: 'random', delay: () => Math.random() * 10 },
+  { delays: 'equal', delay: () => 5 },
+])(
+  'should never exceed the concurrency and reach it under load with $delays delays',
+  async ({ delay }) => {
+    let currentConcurrency = 0
+    let maxObservedConcurrency = 0
+    const targetConcurrency = 4
 
-  const data = _range(1, 101)
+    const data = _range(1, 101)
 
-  await Pipeline.fromArray(data)
-    .transform(
-      transformMap(
-        async n => {
-          currentConcurrency++
-          maxObservedConcurrency = Math.max(maxObservedConcurrency, currentConcurrency)
-          // Verify we never exceed the limit
-          expect(currentConcurrency).toBeLessThanOrEqual(targetConcurrency)
-          await pDelay(Math.random() * 10)
-          currentConcurrency--
-          return n
-        },
-        { concurrency: targetConcurrency },
-      ),
-    )
-    .run()
+    await Pipeline.fromArray(data)
+      .transform(
+        transformMap(
+          async n => {
+            currentConcurrency++
+            maxObservedConcurrency = Math.max(maxObservedConcurrency, currentConcurrency)
+            // Verify we never exceed the limit
+            expect(currentConcurrency).toBeLessThanOrEqual(targetConcurrency)
+            await pDelay(delay())
+            currentConcurrency--
+            return n
+          },
+          { concurrency: targetConcurrency },
+        ),
+      )
+      .run()
 
-  expect(maxObservedConcurrency).toBe(targetConcurrency)
-})
+    expect(maxObservedConcurrency).toBe(targetConcurrency)
+  },
+)
 
 it('should start and complete items in input order with concurrency 1', async () => {
   const processingOrder: number[] = []
@@ -251,13 +165,14 @@ it('should start and complete items in input order with concurrency 1', async ()
   expect(completionOrder).toEqual(data)
 })
 
-it('should start the first two items together and complete all items with concurrency 2', async () => {
+it('should start the next item only when one of the 2 in flight completes with concurrency 2', async () => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
   const events: string[] = []
   const concurrency = 2
 
   const data = _range(1, 6) // 5 items
 
-  await Pipeline.fromArray(data)
+  const promise = Pipeline.fromArray(data)
     .transform(
       transformMap(
         async n => {
@@ -271,42 +186,21 @@ it('should start the first two items together and complete all items with concur
       ),
     )
     .run()
+  await vi.runAllTimersAsync()
+  await promise
 
-  // Items 1 and 2 should start first (concurrency=2)
-  expect(events[0]).toBe('start:1')
-  expect(events[1]).toBe('start:2')
-
-  // All items should complete
-  expect(events.filter(e => e.startsWith('end:'))).toHaveLength(5)
-})
-
-it('should map all items of a fast producer without exceeding the concurrency', async () => {
-  let inFlight = 0
-  let maxInFlight = 0
-  const concurrency = 3
-
-  // 50 items, each takes 20ms to process
-  const data = _range(1, 51)
-
-  const results = await Pipeline.fromArray(data)
-    .transform(
-      transformMap(
-        async n => {
-          inFlight++
-          maxInFlight = Math.max(maxInFlight, inFlight)
-          await pDelay(20)
-          inFlight--
-          return n * 2
-        },
-        { concurrency },
-      ),
-    )
-    .toArray()
-
-  expect(results).toHaveLength(50)
-  expect(maxInFlight).toBeLessThanOrEqual(concurrency)
-  // Verify all items were processed correctly
-  expect(results.sort(comparators.numericAsc)).toEqual(data.map(n => n * 2))
+  expect(events).toEqual([
+    'start:1',
+    'start:2',
+    'end:2',
+    'start:3',
+    'end:3',
+    'start:4',
+    'end:4',
+    'start:5',
+    'end:5',
+    'end:1',
+  ])
 })
 
 // Edge cases
@@ -412,30 +306,6 @@ it('should keep only results matching the asyncPredicate', async () => {
 })
 
 // Race condition and timing tests
-
-it('should not exceed the concurrency when items take the same time', async () => {
-  let inFlight = 0
-  const concurrency = 5
-  const data = _range(1, 21)
-
-  const results = await Pipeline.fromArray(data)
-    .transform(
-      transformMap(
-        async n => {
-          inFlight++
-          expect(inFlight).toBeLessThanOrEqual(concurrency)
-          // All items take same time - will complete close together
-          await pDelay(10)
-          inFlight--
-          return n
-        },
-        { concurrency },
-      ),
-    )
-    .toArray()
-
-  expect(results).toHaveLength(20)
-})
 
 it('should let some fast items complete before slow ones', async () => {
   const completionOrder: number[] = []

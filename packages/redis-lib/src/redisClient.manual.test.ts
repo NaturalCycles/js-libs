@@ -250,14 +250,4 @@ describe('hashmap functions', () => {
     const result = await client.hgetall('test:key')
     expect(result).toEqual({ one: '1' })
   })
-
-  it.skip('should keep only the fields whose expiry has not passed with hsetWithTTL', async () => {
-    const now = localTime.now().unix
-
-    await client.hsetWithTTL('test:key', { foo1: 'bar' }, (now + 1000) as UnixTimestamp)
-    await client.hsetWithTTL('test:key', { foo2: 'bar' }, (now - 1) as UnixTimestamp)
-
-    const result = await client.hgetall('test:key')
-    expect(result).toEqual({ foo1: 'bar' })
-  })
 })

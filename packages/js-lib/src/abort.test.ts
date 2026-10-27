@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   abortSignalAny,
   abortSignalAnyOrUndefined,
@@ -40,14 +40,6 @@ describe('abortSignalTimeout', () => {
     expect(signal.reason).toBeInstanceOf(DOMException)
     expect(signal.reason.name).toBe('TimeoutError')
   })
-
-  it('should set a DOMException named TimeoutError as the abort reason', async () => {
-    const signal = abortSignalTimeout(50)
-    await new Promise(resolve => setTimeout(resolve, 100))
-
-    expect(signal.reason).toBeInstanceOf(DOMException)
-    expect(signal.reason.name).toBe('TimeoutError')
-  })
 })
 
 describe('abortSignalTimeoutOrUndefined', () => {
@@ -72,8 +64,10 @@ describe('polyfilledAbortSignalTimeout', () => {
     expect(signal.aborted).toBe(false)
   })
 
-  it('should abort with a TimeoutError after the given time', async () => {
+  it('should abort with a TimeoutError and fire the abort event after the given time', async () => {
     const signal = polyfilledAbortSignalTimeout(50)
+    const onAbort = vi.fn<() => void>()
+    signal.addEventListener('abort', onAbort)
     expect(signal.aborted).toBe(false)
 
     await new Promise(resolve => setTimeout(resolve, 100))
@@ -81,21 +75,7 @@ describe('polyfilledAbortSignalTimeout', () => {
     expect(signal.aborted).toBe(true)
     expect(signal.reason).toBeInstanceOf(DOMException)
     expect(signal.reason.name).toBe('TimeoutError')
-  })
-
-  it('should fire the abort event with a TimeoutError reason', async () => {
-    const signal = polyfilledAbortSignalTimeout(50)
-
-    const fetchPromise = new Promise((_resolve, reject) => {
-      signal.addEventListener('abort', () => {
-        // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-        reject(signal.reason)
-      })
-    })
-
-    const err = (await fetchPromise.catch(err => err)) as DOMException
-    expect(err).toBeInstanceOf(DOMException)
-    expect(err.name).toBe('TimeoutError')
+    expect(onAbort).toHaveBeenCalledOnce()
   })
 })
 

@@ -2,54 +2,6 @@ import { describe, expect, it } from 'vitest'
 import type { ReadingTimeOptions, ReadingTimeResult } from './readingTime.js'
 import { readingTime } from './readingTime.js'
 
-function runTest(
-  words: number | string,
-  exp: Partial<ReadingTimeResult>,
-  options?: ReadingTimeOptions,
-) {
-  return () => {
-    const text = 'number' === typeof words ? generateText(words) : words
-
-    if ('string' === typeof words) {
-      if (text.includes(' ')) {
-        words = words.split(/.+ +.+/g).length + 1
-      } else if (text.length > 0) {
-        words = 1
-      } else {
-        words = 0
-      }
-    }
-
-    const res = readingTime(text, options)
-
-    if (exp.minutes) {
-      expect(res.minutes).toBe(exp.minutes)
-    }
-    if (exp.time) {
-      expect(res.time).toBe(exp.time)
-    }
-    if (exp.words) {
-      expect(res.words).toEqual(exp.words)
-    }
-  }
-}
-
-function generateText(words: number): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789àâéèêôùûçÀÂÉÈÔÙÛÇ'
-  const charsLength = chars.length
-  let text = ''
-
-  for (let i = 0; i < words; i++) {
-    const wordLength = Math.ceil(Math.random() * 10)
-    for (let j = 0; j < wordLength; j++) {
-      text += chars[Math.floor(Math.random() * charsLength)]
-    }
-    text += ' '
-  }
-
-  return text
-}
-
 describe('readingTime()', () => {
   it(
     'should round a 2-word text up to 1 minute',
@@ -140,7 +92,7 @@ describe('readingTime()', () => {
   )
 
   it(
-    'should not throw on an empty text',
+    'should give an empty text zero minutes and zero time',
     runTest('', {
       minutes: 0,
       time: 0,
@@ -210,3 +162,41 @@ describe('readingTime CJK', () => {
     }),
   )
 })
+
+function runTest(
+  words: number | string,
+  exp: Partial<ReadingTimeResult>,
+  options?: ReadingTimeOptions,
+) {
+  return () => {
+    const text = 'number' === typeof words ? generateText(words) : words
+
+    const res = readingTime(text, options)
+
+    if (exp.minutes !== undefined) {
+      expect(res.minutes).toBe(exp.minutes)
+    }
+    if (exp.time !== undefined) {
+      expect(res.time).toBe(exp.time)
+    }
+    if (exp.words !== undefined) {
+      expect(res.words).toEqual(exp.words)
+    }
+  }
+}
+
+function generateText(words: number): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789àâéèêôùûçÀÂÉÈÔÙÛÇ'
+  const charsLength = chars.length
+  let text = ''
+
+  for (let i = 0; i < words; i++) {
+    const wordLength = Math.ceil(Math.random() * 10)
+    for (let j = 0; j < wordLength; j++) {
+      text += chars[Math.floor(Math.random() * charsLength)]
+    }
+    text += ' '
+  }
+
+  return text
+}

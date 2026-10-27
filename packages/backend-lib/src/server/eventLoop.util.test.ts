@@ -1,93 +1,73 @@
-import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { afterEach, expect, it } from 'vitest'
+import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { EventLoopMonitor } from './eventLoop.util.js'
 import type { EventLoopStats } from './eventLoop.util.js'
 
 let monitor: EventLoopMonitor | undefined
 
+beforeEach(() => {
+  vi.useFakeTimers()
+})
+
 afterEach(() => {
   monitor?.stop()
   monitor = undefined
+  vi.useRealTimers()
 })
 
-it('should call onStats after measureInterval', async () => {
-  const stats: EventLoopStats[] = []
+it('should call onStats with non-negative stats once per measureInterval', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
 
-  monitor = new EventLoopMonitor({
-    measureInterval: 100,
-    onStats: s => stats.push(s),
-  })
+  await vi.advanceTimersByTimeAsync(99)
+  expect(onStats).not.toHaveBeenCalled()
 
-  await pDelay(150)
-
-  expect(stats).toHaveLength(1)
-  expect(stats[0]).toMatchObject({
-    p50: expect.any(Number),
-    p90: expect.any(Number),
-    p99: expect.any(Number),
-    max: expect.any(Number),
-    mean: expect.any(Number),
-    elu: expect.any(Number),
-    gcCount: expect.any(Number),
-    gcTotalTime: expect.any(Number),
-    gcCPU: expect.any(Number),
-  })
-  console.log(stats)
-})
-
-it('should report gc stats within bounds on every interval', async () => {
-  const stats: EventLoopStats[] = []
-
-  monitor = new EventLoopMonitor({
-    measureInterval: 50,
-    onStats: s => stats.push(s),
-  })
-
-  await pDelay(130)
-
-  expect(stats.length).toBeGreaterThanOrEqual(2)
-
-  // gcCount and gcTotalTime should be reset between intervals
-  // They should reflect only the current interval, not accumulate
-  // We can't easily trigger GC, but we can verify the values are reasonable (not growing unbounded)
-  for (const s of stats) {
-    expect(s.gcCount).toBeGreaterThanOrEqual(0)
-    expect(s.gcTotalTime).toBeGreaterThanOrEqual(0)
-    expect(s.gcCPU).toBeGreaterThanOrEqual(0)
-    expect(s.gcCPU).toBeLessThanOrEqual(10_000)
+  await vi.advanceTimersByTimeAsync(1)
+  expect(onStats).toHaveBeenCalledTimes(1)
+  const stats = onStats.mock.calls[0]![0]
+  for (const value of Object.values(stats)) {
+    expect(value).toBeGreaterThanOrEqual(0)
   }
+  expect(Object.keys(stats).sort()).toEqual([
+    'elu',
+    'gcCPU',
+    'gcCount',
+    'gcTotalTime',
+    'max',
+    'mean',
+    'p50',
+    'p90',
+    'p99',
+  ])
+  expect(monitor.lastStats).toBe(stats)
+
+  await vi.advanceTimersByTimeAsync(100)
+  expect(onStats).toHaveBeenCalledTimes(2)
 })
 
-it('should stop without throwing', async () => {
-  monitor = new EventLoopMonitor({ measureInterval: 50 })
+it('should report the gc stats of an interval and reset them for the next one', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
+  monitor.gcCount = 1000
+  monitor.gcTotalTime = 50
 
-  await pDelay(30)
+  await vi.advanceTimersByTimeAsync(100)
+  const firstStats = onStats.mock.calls[0]![0]
+  expect(firstStats.gcCount).toBeGreaterThanOrEqual(1000)
+  expect(firstStats.gcTotalTime).toBeGreaterThanOrEqual(50)
+  expect(firstStats.gcCPU).toBe(Math.round((firstStats.gcTotalTime / 100) * 10_000))
 
-  // Should not throw
+  await vi.advanceTimersByTimeAsync(100)
+  const secondStats = onStats.mock.calls[1]![0]
+  expect(secondStats.gcCount).toBeLessThan(1000)
+  expect(secondStats.gcTotalTime).toBeLessThan(50)
+})
+
+it('should not call onStats after stop', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 50, onStats })
+
   monitor.stop()
-  monitor = undefined
+  await vi.advanceTimersByTimeAsync(200)
 
-  // Wait to ensure no callbacks fire after stop
-  await pDelay(100)
-})
-
-it('should report non-negative delay and utilization stats', async () => {
-  const stats: EventLoopStats[] = []
-
-  monitor = new EventLoopMonitor({
-    measureInterval: 50,
-    onStats: s => stats.push(s),
-  })
-
-  await pDelay(80)
-
-  expect(stats).toHaveLength(1)
-  const s = stats[0]!
-
-  expect(s.p50).toBeGreaterThanOrEqual(0)
-  expect(s.p90).toBeGreaterThanOrEqual(0)
-  expect(s.p99).toBeGreaterThanOrEqual(0)
-  expect(s.max).toBeGreaterThanOrEqual(0)
-  expect(s.mean).toBeGreaterThanOrEqual(0)
-  expect(s.elu).toBeGreaterThanOrEqual(0)
+  expect(onStats).not.toHaveBeenCalled()
 })

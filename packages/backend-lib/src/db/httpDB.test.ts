@@ -22,7 +22,6 @@ describe('runCommonDBTest', async () => {
   await runCommonDBTest(db)
 })
 
-// todo: unskip and figure it out
-describe.skip('runCommonDaoTest', async () => {
+describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(db)
 })

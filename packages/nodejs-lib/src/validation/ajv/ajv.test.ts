@@ -1,6 +1,6 @@
 import { _try, AssertionError } from '@naturalcycles/js-lib/error'
 import { _deepFreeze } from '@naturalcycles/js-lib/object'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { fs2 } from '../../fs/fs2.js'
 import { testDir } from '../../test/paths.cnst.js'
 import { AjvValidationError } from './ajvValidationError.js'
@@ -211,33 +211,33 @@ it('should trim and lowercase a string with the transform keyword', () => {
   expect(obj2).toEqual({ s: 'lo lo lo' })
 })
 
-it('should keep the inputName from the create options in cfg', () => {
+it('should use the inputName from the create options in error messages', () => {
   const s = AjvSchema.create(
-    {},
+    { type: 'string' },
     {
       inputName: 'body',
     },
   )
-  expect(s.cfg.inputName).toBe('body')
+  const [err] = s.getValidationResult(5)
+  expect(err!.message).toMatch(/^body must be string/)
+  expect(err!.data.inputName).toBe('body')
 })
 
 interface Item {
   id: string
 }
 
-it('should return the validated item from an AjvSchema created from j.object', () => {
+it('should infer the item type for an AjvSchema created from j.object', () => {
   const rawSchema = j.object<{ id: string }>({
     id: j.string(),
   })
 
-  // Type of ajvSchema must be AjvSchema<Item> (not AjvSchema<any> !)
-  // todo: make it work without explicit <Item>
-  const ajvSchema = AjvSchema.create<Item>(rawSchema)
-
-  // Let's assert it by using
+  const ajvSchema = AjvSchema.create(rawSchema)
 
   const item = ajvSchema.validate({ id: 'yay' })
   expect(item).toEqual({ id: 'yay' })
+  expectTypeOf(ajvSchema).toEqualTypeOf<AjvSchema<Item>>()
+  expectTypeOf(item).toEqualTypeOf<Item>()
 })
 
 it('should accept a Buffer and reject a string for instanceof Buffer', () => {
@@ -288,6 +288,21 @@ describe('getValidationFunction with custom ajv', () => {
     expect(err).toBeInstanceOf(AjvValidationError)
     expect(err!.message).toContain('MyObject')
   })
+})
+
+it('should use a custom ajv passed to validate() on a builder', () => {
+  const schema = j
+    .object<{ count: number }>({
+      count: j.number(),
+    })
+    .isOfType<{ count: number }>()
+
+  // Without coercing ajv, string "5" should fail
+  const [err] = schema.getValidationResult({ count: '5' })
+  expect(err).toBeInstanceOf(AjvValidationError)
+
+  // With coercing ajv at validation time
+  expect(schema.validate({ count: '5' }, { ajv: getCoercingAjv() })).toEqual({ count: 5 })
 })
 
 describe('regex flags', () => {
@@ -516,6 +531,16 @@ describe('error params with custom msg', () => {
         "inputName": "Object",
       }
     `)
+  })
+
+  it('should keep the params of a rule that has no msg', () => {
+    const [err] = j.string().minLength(3).getValidationResult('ab')
+
+    expect(err!.data.errors[0]).toMatchObject({
+      keyword: 'minLength',
+      message: 'must NOT have fewer than 3 characters',
+      params: { limit: 3 },
+    })
   })
 
   it('should drop params for nested property with custom msg', () => {

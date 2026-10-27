@@ -235,7 +235,7 @@ describe('object', () => {
     }
 
     const schema1 = j.object<Schema1>({
-      // @ts-expect-error That's the purpose of the test, that's why. There. Explained. There is already a warning here
+      // @ts-expect-error There is already a warning here
       foo: j.number(),
     })
 
@@ -258,7 +258,7 @@ describe('object', () => {
       bar?: number
     }
 
-    // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
+    // @ts-expect-error missing optional property `bar`
     const schema1 = j.object<Schema1>({
       foo: j.string(),
     })
@@ -273,7 +273,7 @@ describe('object', () => {
 
     const schema1 = j.object<Schema1>({
       foo: j.string(),
-      // @ts-expect-error That's the purpose of the test, that's why. There. Explained. There is already a warning here
+      // @ts-expect-error There is already a warning here
       bar: j.number().optional(),
     })
 
@@ -476,7 +476,7 @@ describe('object', () => {
         foo: string
       }
 
-      // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
+      // @ts-expect-error wrong type for `foo`
       const schema1 = j.object.dbEntity<DB>({ foo: j.number() })
 
       expectTypeOf(schema1).toBeNever()
@@ -490,7 +490,7 @@ describe('object', () => {
         shu?: number
       }
 
-      // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
+      // @ts-expect-error missing optional property `shu`
       const schema1 = j.object.dbEntity<DB>({
         id: j.string().branded<Id>(),
         foo: j.string(),
@@ -506,7 +506,7 @@ describe('object', () => {
         foo: string
       }
 
-      // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
+      // @ts-expect-error missing overridden property `id`
       const schema1 = j.object.dbEntity<DB>({
         foo: j.string(),
       })
@@ -697,7 +697,7 @@ describe('object', () => {
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.out).toEqualTypeOf<Record<B, number | null>>()
-      expectTypeOf(schema1.isOfType<Record<B, number | null>>).not.toBeNever()
+      expectTypeOf(schema1.isOfType<Record<B, number | null>>()).not.toBeNever()
 
       const schema2 = j.object.record(
         j
@@ -709,7 +709,7 @@ describe('object', () => {
 
       expectTypeOf(schema2).not.toBeNever()
       expectTypeOf(schema2.out).toEqualTypeOf<Partial<Record<B, number>>>()
-      expectTypeOf(schema2.isOfType<Partial<Record<B, number>>>).not.toBeNever()
+      expectTypeOf(schema2.isOfType<Partial<Record<B, number>>>()).not.toBeNever()
     })
   })
 
@@ -719,7 +719,7 @@ describe('object', () => {
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.out).toEqualTypeOf<StringMap<number | null>>()
-      expectTypeOf(schema1.isOfType<StringMap<number | null>>).not.toBeNever()
+      expectTypeOf(schema1.isOfType<StringMap<number | null>>()).not.toBeNever()
     })
   })
 
@@ -729,7 +729,7 @@ describe('object', () => {
 
       expectTypeOf(schema1).not.toBeNever()
       expectTypeOf(schema1.out).toEqualTypeOf<StringMap<number | null>>()
-      expectTypeOf(schema1.isOfType<StringMap<number | null>>).not.toBeNever()
+      expectTypeOf(schema1.isOfType<StringMap<number | null>>()).not.toBeNever()
     })
   })
 })
@@ -904,9 +904,9 @@ describe('final', () => {
   it('should not allow to call other chain functions', () => {
     const schema = j.string().final()
 
-    // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
+    // @ts-expect-error .optional() is not available on final schema
     expect(() => schema.optional()).toThrow('schema.optional is not a function')
-    // @ts-expect-error That's the purpose of the test, that's why. There. Explained.
+    // @ts-expect-error .nullable() is not available on final schema
     expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
   })
 })
@@ -965,22 +965,27 @@ describe('schema cloning with custom/convert', () => {
     expect(schema.validate({ name: 'test', count: 1.5 })).toEqual({ name: 'test', count: 2 })
   })
 
-  it('should run a convert function in a nested object', () => {
+  it('should run custom and convert functions in a nested object', () => {
     const schema = AjvSchema.create(
       j
-        .object<{ inner: { value: number } }>({
-          inner: j.object({
+        .object<{ inner: { name: string; value: number } }>({
+          inner: j.object.infer({
+            name: j.string().custom(v => (v.length > 0 ? undefined : 'Name required')),
             value: j.number().convert(v => v * 2),
           }),
         })
         .build(),
     )
 
-    expect(schema.validate({ inner: { value: 10 } })).toEqual({ inner: { value: 20 } })
-    expect(schema.validate({ inner: { value: 60 } })).toEqual({ inner: { value: 120 } })
+    expect(() => schema.validate({ inner: { name: '', value: 10 } })).toThrow(
+      'Object.inner.name Name required',
+    )
+    expect(schema.validate({ inner: { name: 'test', value: 10 } })).toEqual({
+      inner: { name: 'test', value: 20 },
+    })
   })
 
-  it('should leave the base schema unchanged when chaining a second custom validator', () => {
+  it('should run both custom validators on the derived schema and leave the base schema unchanged', () => {
     const base = j.string().custom(v => (v.length > 0 ? undefined : 'Must not be empty'))
     const withExtra = base.custom(v => (v.length <= 5 ? undefined : 'Too long'))
 
@@ -991,6 +996,7 @@ describe('schema cloning with custom/convert', () => {
     )
 
     expect(baseSchema.validate({ value: 'hello world' })).toEqual({ value: 'hello world' }) // long string OK
+    expect(() => withExtraSchema.validate({ value: '' })).toThrow('Must not be empty')
     expect(() => withExtraSchema.validate({ value: 'hello world' })).toThrow('Too long')
     expect(withExtraSchema.validate({ value: 'hi' })).toEqual({ value: 'hi' })
   })
@@ -1064,7 +1070,7 @@ describe('j.fromSchema', () => {
     // Without coercing ajv, string "5" should fail for type: number
     const strict = j.fromSchema<{ count: number }>(plainSchema)
     const [err] = strict.getValidationResult({ count: '5' })
-    expect(err).toBeDefined()
+    expect(err).not.toBeNull()
 
     // With coercing ajv at construction time, string "5" should be coerced to number 5
     const coercing = j.fromSchema<{ count: number }>(plainSchema, { ajv: getCoercingAjv() })
@@ -1083,28 +1089,13 @@ describe('j.fromSchema', () => {
 
     // Without coercing ajv, string "5" should fail
     const [err] = schema.getValidationResult({ count: '5' })
-    expect(err).toBeDefined()
+    expect(err).not.toBeNull()
 
     // With coercing ajv at validation time, string "5" should be coerced to number 5
     expect(schema.validate({ count: '5' }, { ajv: getCoercingAjv() })).toEqual({ count: 5 })
 
     // The same schema still works without coercion for normal calls
     expect(schema.validate({ count: 5 })).toEqual({ count: 5 })
-  })
-
-  it('should support custom ajv at validation time on builders', () => {
-    const schema = j
-      .object<{ count: number }>({
-        count: j.number(),
-      })
-      .isOfType<{ count: number }>()
-
-    // Without coercing ajv, string "5" should fail
-    const [err] = schema.getValidationResult({ count: '5' })
-    expect(err).toBeDefined()
-
-    // With coercing ajv at validation time
-    expect(schema.validate({ count: '5' }, { ajv: getCoercingAjv() })).toEqual({ count: 5 })
   })
 
   it('should support postValidation', () => {

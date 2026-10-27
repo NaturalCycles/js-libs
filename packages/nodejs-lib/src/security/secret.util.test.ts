@@ -1,7 +1,7 @@
-import { expect, it } from 'vitest'
+import { afterAll, expect, it } from 'vitest'
 
 // todo: mock properly
-// const originalProcessEnv = process.env
+const originalProcessEnv = process.env
 process.env = {
   A: 'AAA',
   B: 'BBB',
@@ -28,6 +28,10 @@ import {
   secretOptional,
   setSecretMap,
 } from './secret.util.js'
+
+afterAll(() => {
+  process.env = originalProcessEnv
+})
 
 it('should load env secrets into a case-insensitive secret map', async () => {
   expect(() => secret('SECRET_A')).toThrow('not loaded')

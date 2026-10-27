@@ -1,4 +1,3 @@
-import type { KeyValueDBTuple } from '@naturalcycles/db-lib/kv'
 import { CommonKeyValueDao, CommonKeyValueDaoMemoCache } from '@naturalcycles/db-lib/kv'
 import {
   runCommonKeyValueDaoTest,
@@ -6,10 +5,8 @@ import {
   TEST_TABLE,
 } from '@naturalcycles/db-lib/testing'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _AsyncMemo } from '@naturalcycles/js-lib/decorators'
-import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it, vi } from 'vitest'
 import { RedisClient } from '../redisClient.js'
 import { RedisHashKeyValueDB } from '../redisHashKeyValueDB.js'
 
@@ -37,48 +34,43 @@ describe('runCommonKeyValueDaoTest', async () => {
   await runCommonKeyValueDaoTest(db)
 })
 
-// Saving expiring hash fields is not supported until Redis 7.4.0
-it.skip('should expire entries saved with expireAt', async () => {
-  const testIds = _range(1, 4).map(n => `id${n}`)
-  const testEntries: KeyValueDBTuple[] = testIds.map(id => [id, Buffer.from(`${id}value`)])
+it('should call a memoized method once for serial calls, serving the rest from the cache', async () => {
+  const key = 'memoSerial'
+  await dao.deleteByIds([key])
+  const c = new C()
 
-  await db.saveBatch(TEST_TABLE, testEntries, {
-    expireAt: localTime.now().plus(1, 'second').unix,
-  })
-  let loaded = await db.getByIds(TEST_TABLE, testIds)
-  expect(loaded).toHaveLength(3)
-  await pDelay(2000)
-  loaded = await db.getByIds(TEST_TABLE, testIds)
-  expect(loaded).toHaveLength(0)
+  expect(await c.get(key)).toEqual(Buffer.from(key))
+  await vi.waitFor(async () => expect(await dao.getById(key)).toEqual(Buffer.from(key)))
+
+  for (const _ of _range(9)) {
+    expect(await c.get(key)).toEqual(Buffer.from(key))
+  }
+
+  expect(c.calls).toBe(1)
+})
+
+it('should call a memoized method once for concurrent calls', async () => {
+  const key = 'memoConcurrent'
+  await dao.deleteByIds([key])
+  const c = new C()
+
+  const results = await Promise.all(_range(30).map(async () => await c.get(key)))
+
+  expect(results).toEqual(_range(30).map(() => Buffer.from(key)))
+  expect(c.calls).toBe(1)
 })
 
 class C {
+  calls = 0
+
   @_AsyncMemo({
     cacheFactory: () =>
       new CommonKeyValueDaoMemoCache({
         dao,
-        ttl: 1,
       }),
   })
   async get(k: string): Promise<Buffer | null> {
-    console.log(`get ${k}`)
+    this.calls++
     return Buffer.from(k)
   }
 }
-
-const c = new C()
-
-it('should serve serial memoized calls without throwing', async () => {
-  for (const _ of _range(10)) {
-    console.log(await c.get('key'))
-    await pDelay(100)
-  }
-})
-
-it('should serve concurrent memoized calls without throwing', async () => {
-  await Promise.all(
-    _range(30).map(async () => {
-      console.log(await c.get('key'))
-    }),
-  )
-})

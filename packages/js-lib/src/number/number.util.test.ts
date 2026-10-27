@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { _range } from '../array/index.js'
 import { _isBetween, _randomInt, _runLessOften } from '../index.js'
 import { _clamp, _randomArrayItem, _round, _toFixed, _toPrecision } from './number.util.js'
@@ -105,14 +105,9 @@ it.each([
   expect(_clamp(x, min, max)).toBe(result)
 })
 
-it('should not throw when called repeatedly', () => {
-  let ranTimes = 0
-  _range(10).forEach(() => {
-    if (_runLessOften(10)) {
-      ranTimes++
-    }
-  })
+it('should run only when Math.random falls below the given percent', () => {
+  vi.spyOn(Math, 'random').mockReturnValueOnce(0.05).mockReturnValueOnce(0.15)
 
-  console.log({ ranTimes })
-  // not asserting this, as it's based on random
+  expect(_runLessOften(10)).toBe(true)
+  expect(_runLessOften(10)).toBe(false)
 })

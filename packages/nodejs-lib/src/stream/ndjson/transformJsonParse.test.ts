@@ -1,8 +1,6 @@
 import { expect, it } from 'vitest'
 import { bufferReviver } from './transformJsonParse.js'
 
-it.todo('should parse JSON lines with transformJsonParse')
-
 it('should revive a JSON-serialized Buffer with bufferReviver', () => {
   const s = 'Hello World 1'
   const b = Buffer.from(s)

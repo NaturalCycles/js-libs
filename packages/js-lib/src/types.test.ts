@@ -330,10 +330,15 @@ it('should assign props and reject unknown ones at the type level with _objectAs
   `)
 })
 
-it('should accept Unsaved of a generic object type', () => {
-  // expectTypeOf<Unsaved<any>>().toEqualTypeOf<any>()
+it('should type the optional BaseDBEntity fields of Unsaved of a generic object type', () => {
+  function getBaseFields<BM extends AnyObject>(bm: Unsaved<BM>): unknown[] {
+    expectTypeOf(bm.id).toEqualTypeOf<string | undefined>()
+    expectTypeOf(bm.created).toEqualTypeOf<UnixTimestamp | undefined>()
+    expectTypeOf(bm.updated).toEqualTypeOf<UnixTimestamp | undefined>()
+    return [bm.id, bm.created, bm.updated]
+  }
 
-  function _<BM extends AnyObject>(_a: Unsaved<BM>): void {}
+  expect(getBaseFields<Item>({ a: 1 })).toEqual([undefined, undefined, undefined])
 })
 
 it('should keep a branded string comparable and assignable to string', () => {
@@ -347,11 +352,12 @@ it('should keep a branded string comparable and assignable to string', () => {
   expect(s).toEqual(id)
 })
 
-it('should allow a UnixTimestamp to be used as a number', () => {
+it('should allow a UnixTimestamp to be used as a number, but not a number as a UnixTimestamp', () => {
   const ts = 123 as UnixTimestamp
   const ts2: number = ts // compatible
-  const _: UnixTimestamp = ts2 as UnixTimestamp // needs casting
-  const __ = asUnixTimestamp(ts2) // casting with a helper function
+  // @ts-expect-error needs casting
+  const _: UnixTimestamp = ts2
+  expectTypeOf(asUnixTimestamp(ts2)).toEqualTypeOf<UnixTimestamp>() // casting with a helper function
 })
 
 it('should resolve NotPromise to the type, or to never for promises', () => {

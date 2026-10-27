@@ -29,16 +29,10 @@ it('should scrub a single object and return an object', () => {
   expect(result).toEqual({ pw: 'notsecret', name: 'Jane Doe' })
 })
 
-it('should scrub an array of one object and return an array', () => {
-  const data = { pw: 'secret', name: 'Real Name' }
-  const result = scrub([data])
-
-  expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
-})
-
-it('should scrub several fields without mutating the input', () => {
+it('should scrub an array of one object without mutating it and return an array', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
   _deepFreeze(data) // Ensure data doesnt mutate
+
   const result = scrub(data)
   expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
 })
@@ -262,8 +256,8 @@ it('should use a different initializationVector and hash per scrubber instance',
   const result2 = mockScrubber.mock.results[1]
 
   expect(vector1).not.toEqual(vector2)
-  expect(result1).not.toEqual(toBeSalted)
-  expect(result1).not.toEqual(result2)
+  expect(result1!.value).not.toBe(toBeSalted)
+  expect(result1!.value).not.toBe(result2!.value)
 })
 
 it('should pass the constructor initializationVector to scrubbers, giving stable hashes', () => {
@@ -283,9 +277,7 @@ it('should pass the constructor initializationVector to scrubbers, giving stable
   const initializationVector = nanoid()
   const scrubber1 = new Scrubber(cfg, additionalScrubbers, undefined, initializationVector)
   scrubber1.scrub(data)
-  expect(mockScrubber).toHaveBeenCalledWith(toBeSalted, {
-    initializationVector: expect.stringMatching(initializationVector),
-  })
+  expect(mockScrubber).toHaveBeenCalledWith(toBeSalted, { initializationVector })
   const vector1 = mockScrubber.mock.calls[0]
   const result1 = mockScrubber.mock.results[0]
 
@@ -295,8 +287,8 @@ it('should pass the constructor initializationVector to scrubbers, giving stable
   const result2 = mockScrubber.mock.results[1]
 
   expect(vector1).toEqual(vector2)
-  expect(result1).not.toEqual(toBeSalted)
-  expect(result1).toEqual(result2)
+  expect(result1!.value).not.toBe(toBeSalted)
+  expect(result1!.value).toBe(result2!.value)
 })
 
 it('should prefer the config initializationVector over the constructor one', () => {
@@ -350,13 +342,12 @@ it('should hash the email with the config initializationVector and append the do
 
   // Result should stay the same since config vector is static
   expect(result).toMatchSnapshot()
-  expect(result).not.toEqual(data)
   const emailRes = result['email']
   expect(emailRes).toContain(domain)
   expect(emailRes).not.toContain(toBeSalted)
 })
 
-it('should scrub the readme example without throwing', () => {
+it('should scrub the readme example', () => {
   const cfg: ScrubberConfig = {
     fields: {
       name: {
@@ -375,7 +366,7 @@ it('should scrub the readme example without throwing', () => {
   const object = { name: 'Real Name', password: 'secret' }
 
   const scrubber = new Scrubber(cfg)
-  const _ = scrubber.scrub(object)
+  expect(scrubber.scrub(object)).toEqual({ name: 'John Doe', password: undefined })
 })
 
 it('should scrub a field only under the configured parent', () => {

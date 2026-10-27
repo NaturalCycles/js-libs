@@ -169,7 +169,7 @@ describe('saveExperiment', () => {
     const updatedExperiment2 = await experimentsDAO.requireById(experiment2.id)
     expect(updatedExperiment2.exclusions).toEqual([experiment3.id])
 
-    // Ensure non-related are not updated
+    // Ensure the exclusions between the other experiments are kept
     const updatedExperiment3 = await experimentsDAO.requireById(experiment3.id)
     expect(updatedExperiment3.exclusions).toEqual([experiment2.id])
   })
@@ -192,12 +192,13 @@ describe('getUserAssignment', () => {
     expect(assignment).toBeNull()
   })
 
-  it('should return null for a paused experiment when the user has no assignment', async () => {
+  it('should return null for a paused experiment when the user has no assignment, even if existingOnly is false', async () => {
     const experiment = await experimentsDAO.save(
       mockExperiment({ status: AssignmentStatus.Paused }),
     )
+    await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
 
-    const assignment = await abba.getUserAssignment(experiment.key, 'userId', true, undefined)
+    const assignment = await abba.getUserAssignment(experiment.key, 'userId', false, {})
 
     expect(assignment).toBeNull()
   })
@@ -348,20 +349,21 @@ describe('generateUserAssignments', () => {
 })
 
 describe('getExperimentAssignmentStatistics', () => {
-  it('should count the assignments of the experiment and of each bucket', async () => {
-    const experiment = await experimentsDAO.save(mockExperiment({ sampling: 50 }))
+  it('should count the assignments of the experiment, including sampled-out ones, and of each bucket', async () => {
+    const experiment = await experimentsDAO.save(mockExperiment())
     const bucket = await bucketsDAO.save(mockBucket(experiment.id, 'test', 100))
     await userAssignmentsDAO.saveBatch([
       mockUserAssignment(experiment.id, bucket.id),
-      mockUserAssignment(experiment.id, 'bucket.id', { id: 'mockUserAssignment2' }),
+      mockUserAssignment(experiment.id, bucket.id, { userId: 'mockUserId2' }),
+      mockUserAssignment(experiment.id, null, { userId: 'sampledOutUserId' }),
     ])
 
     const { totalAssignments, bucketAssignments } = await abba.getExperimentAssignmentStatistics(
       experiment.id,
     )
 
-    expect(totalAssignments).toBe(2)
-    expect(bucketAssignments).toEqual([{ bucketId: bucket.id, totalAssignments: 1 }])
+    expect(totalAssignments).toBe(3)
+    expect(bucketAssignments).toEqual([{ bucketId: bucket.id, totalAssignments: 2 }])
   })
 })
 
@@ -427,7 +429,7 @@ describe('getAllExperimentsWithBucketsNoCache', () => {
   })
 })
 
-describe('getAllExperimentsWithUserAssignments', () => {
+describe('getUserExperiments', () => {
   it('should request the experiments without deleted ones', async () => {
     vi.spyOn(abba, 'getAllExperimentsWithBuckets')
 
@@ -513,7 +515,7 @@ describe('softDeleteExperiment', () => {
     expect(updatedExperiment.status).toBe(AssignmentStatus.Inactive)
   })
 
-  it('should clear the exclusions of the soft-deleted experiment', async () => {
+  it('should remove the mutual exclusions of the soft-deleted experiment', async () => {
     const experiment1Id = 'experiment1'
     const experiment2Id = 'experiment2'
     const experiment1 = mockExperiment({ id: experiment1Id, exclusions: [experiment2Id] })
@@ -526,7 +528,7 @@ describe('softDeleteExperiment', () => {
     expect(updatedExperiment1.deleted).toBe(true)
     expect(updatedExperiment1.exclusions).toEqual([])
 
-    const updatedExperiment2 = await experimentsDAO.requireById(experiment1Id)
+    const updatedExperiment2 = await experimentsDAO.requireById(experiment2Id)
     expect(updatedExperiment2.exclusions).toEqual([])
   })
 })

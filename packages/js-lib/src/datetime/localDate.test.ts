@@ -1,11 +1,15 @@
 import dayjs from 'dayjs'
-import { expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { _range } from '../array/range.js'
 import { Intl2 } from '../intl/intl.js'
 import { expectWithMessage, isUTC } from '../test/test.util.js'
 import type { IsoDate } from '../types.js'
 import type { LocalDateFormatter, LocalDateUnit } from './localDate.js'
 import { localDate } from './localDate.js'
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 const units: LocalDateUnit[] = ['year', 'month', 'day', 'week']
 
@@ -99,10 +103,8 @@ it('should create the same date from every supported input type', () => {
 it('should respect [) and [] inclusivity, returning false when min is after max', () => {
   const ld = localDate.fromInput('1984-06-21' as IsoDate)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[]')).toBe(true)
 
-  expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[)')).toBe(true)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-22' as IsoDate, '[]')).toBe(true)
 
@@ -423,11 +425,9 @@ it('should return today as an ISO date string', () => {
   expect(s < '2099-01-01').toBe(true)
 })
 
-it('should log today in the local timezone when not in UTC', () => {
-  if (isUTC()) return
-  console.log(process.env['TZ'])
-  console.log(localDate.todayString())
-  console.log(new Date().toString())
+it('should return today in the local timezone', () => {
+  vi.useFakeTimers({ now: new Date(2024, 5, 21, 23, 30) })
+  expect(localDate.todayString()).toBe('2024-06-21')
 })
 
 it('should floor fractional day amounts and ignore a fractional day in the input', () => {

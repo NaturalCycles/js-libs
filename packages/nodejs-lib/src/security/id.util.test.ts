@@ -17,6 +17,7 @@ const stringIdRegex = /^[a-z0-9]*$/
 const base62regex = /^[a-zA-Z0-9]*$/
 const base64regex = /^[a-zA-Z0-9+/]*$/
 const base64urlRegex = /^[a-zA-Z0-9-_]*$/
+const nonAmbiguousRegex = /^[2-9A-HJ-NP-Z]+$/
 
 const base62Schema = j.string().regex(BASE62_REGEX)
 const idBase62Schema = j.string().regex(BASE62_REGEX).minLength(8)
@@ -113,22 +114,13 @@ it('should generate base64url ids without padding for odd lengths', () => {
 })
 
 describe('stringIdNonAmbiguous', () => {
-  it('should generate 16 characters without 0, O, I or l by default', () => {
-    const id = stringIdNonAmbiguous()
-    expect(id).toHaveLength(16)
-    expect(id).not.toContain('0')
-    expect(id).not.toContain('O')
-    expect(id).not.toContain('I')
-    expect(id).not.toContain('l')
-  })
+  it('should generate 16 characters by default, or the given size, without 0, 1, I, O or lowercase letters', () => {
+    expect(stringIdNonAmbiguous()).toHaveLength(16)
+    expect(stringIdNonAmbiguous(100)).toHaveLength(100)
 
-  it('should generate the given size without 0, 1, O, I or l', () => {
-    const id = stringIdNonAmbiguous(100)
-    expect(id).toHaveLength(100)
-    expect(id).not.toContain('0')
-    expect(id).not.toContain('O')
-    expect(id).not.toContain('1')
-    expect(id).not.toContain('I')
-    expect(id).not.toContain('l')
+    _range(100).forEach(() => {
+      expect(stringIdNonAmbiguous()).toMatch(nonAmbiguousRegex)
+      expect(stringIdNonAmbiguous(100)).toMatch(nonAmbiguousRegex)
+    })
   })
 })

@@ -12,10 +12,6 @@ import {
 
 const encKeyBuffer = Buffer.from(TEST_ENC_KEY, 'base64')
 
-it('should have a 256-byte test encryption key', () => {
-  expect(encKeyBuffer).toHaveLength(256)
-})
-
 it('should decrypt a random-IV encrypted buffer to the original', () => {
   const plainStr = 'hello!@#123'
   const plain = Buffer.from(plainStr, 'utf8')

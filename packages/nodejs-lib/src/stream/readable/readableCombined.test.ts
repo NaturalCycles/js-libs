@@ -1,12 +1,8 @@
 import { Readable } from 'node:stream'
-import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { it, vi } from 'vitest'
+import { _range } from '@naturalcycles/js-lib/array/range.js'
+import { expect, it } from 'vitest'
 import { Pipeline } from '../index.js'
 import { ReadableCombined } from './readableCombined.js'
-
-vi.setConfig({
-  testTimeout: 600_000,
-})
 
 // const delay = 100
 //
@@ -20,6 +16,40 @@ vi.setConfig({
 //     yield await pDelay(delay, `${sourceNum}_6`)
 //   }
 // }
+
+it('should emit every item of every readable, in order within each readable', async () => {
+  // const source1 = Readable.from(timedIterable(1))
+  // const source2 = Readable.from(timedIterable(2))
+  // const source3 = Readable.from(timedIterable(3))
+  const source1 = new HonestReadable(30, 1)
+  const source2 = new HonestReadable(30, 2)
+  const source3 = new HonestReadable(30, 3)
+
+  // await ReadableCombined.create([
+  //   source1,
+  //   source2,
+  //   source3,
+  // ]).forEach(item => {
+  //   console.log(item)
+  // })
+
+  const items = await Pipeline.from(ReadableCombined.create<string>([source1, source2, source3]))
+    .map(
+      async item => {
+        // console.log('map incoming', item)
+        return item
+      },
+      { concurrency: 1 },
+    )
+    .toArray()
+
+  expect(items).toHaveLength(90)
+  for (const num of [1, 2, 3]) {
+    expect(items.filter(item => item.startsWith(`${num}_`))).toEqual(
+      _range(1, 31).map(count => `${num}_${count}`),
+    )
+  }
+})
 
 /**
  * Readable that Honestly respects backpressure.
@@ -53,41 +83,3 @@ class HonestReadable extends Readable {
     }
   }
 }
-
-it.skip('should combine several readables into one stream', async () => {
-  // const source1 = Readable.from(timedIterable(1))
-  // const source2 = Readable.from(timedIterable(2))
-  // const source3 = Readable.from(timedIterable(3))
-  const source1 = new HonestReadable(30, 1)
-  const source2 = new HonestReadable(30, 2)
-  const source3 = new HonestReadable(30, 3)
-
-  // await ReadableCombined.create([
-  //   source1,
-  //   source2,
-  //   source3,
-  // ]).forEach(item => {
-  //   console.log(item)
-  // })
-
-  await Pipeline.from(ReadableCombined.create([source1, source2, source3]))
-    .logProgress({
-      metric: 'door1',
-      logEvery: 1,
-    })
-    .map(
-      async item => {
-        // console.log('map incoming', item)
-        await pDelay(1000)
-        return item
-      },
-      { concurrency: 1 },
-    )
-    .logProgress({
-      metric: 'door2',
-      logEvery: 1,
-    })
-    .run()
-
-  console.log('done')
-})

@@ -1,13 +1,16 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { AsyncManager } from './asyncManager.js'
-import { _isBetween } from './index.js'
 import { pDelay } from './promise/pDelay.js'
-import { timeSpan } from './test/test.util.js'
 
-afterEach(() => AsyncManager.reset())
+afterEach(() => {
+  AsyncManager.reset()
+  vi.useRealTimers()
+})
 
-it('should resolve allDone when there are no pending ops', async () => {
+it('should resolve allDone without logging when there are no pending ops', async () => {
+  const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
   await AsyncManager.allDone()
+  expect(logSpy).not.toHaveBeenCalled()
 })
 
 it('should wait in allDone for all pending ops', async () => {
@@ -43,32 +46,36 @@ it('should pass rejections of ops to the onError hook', async () => {
   expect(errors[0]!.message).toBe('boom')
 })
 
-it('should resolve a second allDone at once after the ops settle', async () => {
+it('should remove settled ops from pendingOps', async () => {
   AsyncManager.runInBackground(pDelay(10))
   AsyncManager.runInBackground(pDelay(10))
+  expect(AsyncManager.pendingOps.size).toBe(2)
+
   await AsyncManager.allDone()
 
-  // A second allDone should resolve immediately since the set is empty
-  const end = timeSpan()
-  await AsyncManager.allDone()
-  expect(end()).toBeLessThan(20)
+  expect(AsyncManager.pendingOps.size).toBe(0)
 })
 
 it('should resolve allDone at the timeout and warn about pending ops', async () => {
-  const logSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  vi.useFakeTimers()
+  const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
   AsyncManager.runInBackground(pDelay(500))
 
-  const end = timeSpan()
-  await AsyncManager.allDone(50)
-  expect(_isBetween(end(), 30, 120, '[)')).toBe(true)
-  expect(logSpy).toHaveBeenCalledWith(
+  let done = false
+  void AsyncManager.allDone(50).then(() => (done = true))
+  await vi.advanceTimersByTimeAsync(49)
+  expect(done).toBe(false)
+
+  await vi.advanceTimersByTimeAsync(1)
+  expect(done).toBe(true)
+  expect(warnSpy).toHaveBeenCalledWith(
     expect.stringContaining('timed out after 50 ms with 1 pending op(s)'),
   )
-  logSpy.mockRestore()
 })
 
 it('should log completion and not time out when ops finish before the allDone timeout', async () => {
   const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+  const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
   let resolved = false
 
   AsyncManager.runInBackground(
@@ -79,9 +86,8 @@ it('should log completion and not time out when ops finish before the allDone ti
 
   await AsyncManager.allDone(500)
   expect(resolved).toBe(true)
-  expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('timed out'))
+  expect(warnSpy).not.toHaveBeenCalled()
   expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('allDone for 1 op(s)'))
-  logSpy.mockRestore()
 })
 
 it('should call every onError hook', async () => {

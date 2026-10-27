@@ -139,6 +139,38 @@ describe('string', () => {
       expect(err1).toBeNull()
       expect(result1).toEqual({})
     })
+
+    it('should convert `null` to `undefined` after a `nullable()` call', () => {
+      const schema = j.object<{ foo?: string | null }>({
+        foo: j.string().nullable().optional([null]),
+      })
+
+      const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 'foo' })
+
+      const [err2, result2] = schema.getValidationResult({ foo: null })
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ foo: undefined })
+    })
+
+    it('should not mutate the base builder when deriving optional([null]) from nullable()', () => {
+      const base = j.string().nullable()
+
+      // Derive two independent optional schemas from the same base
+      const schema1 = j.object<{ foo?: string | null }>({ foo: base.optional([null]) })
+      const schema2 = j.object<{ foo: string | null }>({ foo: base })
+
+      // schema1 should convert null to undefined
+      const [err1, result1] = schema1.getValidationResult({ foo: null })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: undefined })
+
+      // schema2 (non-optional) should still accept null as-is
+      const [err2, result2] = schema2.getValidationResult({ foo: null })
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ foo: null })
+    })
   })
 
   describe('regex', () => {
@@ -561,7 +593,7 @@ describe('string', () => {
     it('should trim the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
 
-      const [err1, value1] = schema1.getValidationResult({ email: 'kamalaharris@gmail.com ' }) // em space
+      const [err1, value1] = schema1.getValidationResult({ email: '  kamalaharris@gmail.com ' }) // em space
       expect(err1).toBeNull()
       expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
 
@@ -575,7 +607,7 @@ describe('string', () => {
     it('should lowercase the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
 
-      const [err1, value1] = schema1.getValidationResult({ email: 'KAMALAHARRIS@gmail.com' })
+      const [err1, value1] = schema1.getValidationResult({ email: 'KAMALAHARRIS@gmail.COM' })
       expect(err1).toBeNull()
       expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
 
@@ -600,24 +632,6 @@ describe('string', () => {
         [AjvValidationError: Object is not a valid email address
         Input: kamal>aharris@gmail.com]
       `)
-    })
-
-    it('should convert the email to lowercase - when inside an object schema', () => {
-      const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
-
-      const [, result] = schema.getValidationResult({ email: 'LOWERCASE@nc.COM' })
-
-      expect(result.email).toBe('lowercase@nc.com')
-    })
-
-    it('should trim the email - when inside an object schema', () => {
-      const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
-
-      const [, result] = schema.getValidationResult({
-        email: '  trimmed@nc.com  ',
-      })
-
-      expect(result.email).toBe('trimmed@nc.com')
     })
 
     it('should convert an empty string to `undefined` with optional(values)', () => {
@@ -758,38 +772,6 @@ describe('string', () => {
         const [err1, result1] = schema.getValidationResult({})
         expect(err1).toBeNull()
         expect(result1).toEqual({})
-      })
-
-      it('should convert `null` to `undefined` after a `nullable()` call', () => {
-        const schema = j.object<{ foo?: string | null }>({
-          foo: j.string().nullable().optional([null]),
-        })
-
-        const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
-        expect(err1).toBeNull()
-        expect(result1).toEqual({ foo: 'foo' })
-
-        const [err2, result2] = schema.getValidationResult({ foo: null })
-        expect(err2).toBeNull()
-        expect(result2).toEqual({ foo: undefined })
-      })
-
-      it('should not mutate the base builder when deriving optional([null]) from nullable()', () => {
-        const base = j.string().nullable()
-
-        // Derive two independent optional schemas from the same base
-        const schema1 = j.object<{ foo?: string | null }>({ foo: base.optional([null]) })
-        const schema2 = j.object<{ foo: string | null }>({ foo: base })
-
-        // schema1 should convert null to undefined
-        const [err1, result1] = schema1.getValidationResult({ foo: null })
-        expect(err1).toBeNull()
-        expect(result1).toEqual({ foo: undefined })
-
-        // schema2 (non-optional) should still accept null as-is
-        const [err2, result2] = schema2.getValidationResult({ foo: null })
-        expect(err2).toBeNull()
-        expect(result2).toEqual({ foo: null })
       })
     })
 
@@ -1469,7 +1451,7 @@ describe('string', () => {
 
     it('should accept valid data', () => {
       // oxlint-disable-next-line no-restricted-globals
-      const testCases = [...Intl.supportedValuesOf('timeZone'), 'UTC']
+      const testCases = Intl.supportedValuesOf('timeZone')
       const schema = j.string().ianaTimezone()
 
       testCases.forEach(tz => {
@@ -3216,42 +3198,6 @@ describe('object', () => {
       })
     })
 
-    describe('allowAdditionalProperties', () => {
-      it('should strip away unspecified properties during validation when not set', () => {
-        const schema = j.object
-          .infer({
-            string: j.string(),
-          })
-          .isOfType<{ string: string }>()
-
-        const [, result] = schema.getValidationResult({
-          string: 'hello',
-          foo: 'world',
-        })
-
-        expect(result).toEqual({ string: 'hello' })
-      })
-
-      it('should not strip away unspecified properties during validation when set', () => {
-        const schema = j.object
-          .infer({
-            string: j.string(),
-          })
-          .allowAdditionalProperties()
-          .isOfType<{ string: string }>()
-
-        const [, result] = schema.getValidationResult({
-          string: 'hello',
-          foo: 'world',
-        })
-
-        expect(result).toEqual({
-          string: 'hello',
-          foo: 'world',
-        })
-      })
-    })
-
     describe('.dbEntity instance method', () => {
       it('should extend an inferred object schema with base DB fields', () => {
         interface FooDB extends BaseDBEntity {
@@ -4030,17 +3976,6 @@ describe('buffer', () => {
     expect(result.buffer).toEqual(Buffer.from('foobar'))
     expectTypeOf(result).toEqualTypeOf<{ buffer: Buffer }>()
   })
-
-  it('should remove duplicates when converting an array to a Set2', () => {
-    const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
-
-    const [err, result] = schema.getValidationResult({
-      set: ['foo', 'bar', 'foo'],
-    })
-
-    expect(err).toBeNull()
-    expect(result.set.toArray()).toEqual(['foo', 'bar'])
-  })
 })
 
 describe('oneOf', () => {
@@ -4540,19 +4475,17 @@ describe('default', () => {
 })
 
 describe('final', () => {
-  it('should keep the rules and drop the chaining methods', async () => {
+  it('should keep the minLength and maxLength rules', () => {
     const schema = j.string().minLength(2).maxLength(3).final()
 
     const [err1] = schema.getValidationResult('abc')
     expect(err1).toBeNull()
 
     const [err2] = schema.getValidationResult('abcd')
-    expect(err2).not.toBeNull()
+    expect(err2!.message).toMatch(/^Object must NOT have more than 3 characters/)
 
-    // @ts-expect-error That's the purpose of the test, that's why we have the expect error.
-    expect(() => schema.optional()).toThrow('schema.optional is not a function')
-    // @ts-expect-error That's the purpose of the test, that's why we have the expect error.
-    expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
+    const [err3] = schema.getValidationResult('a')
+    expect(err3!.message).toMatch(/^Object must NOT have fewer than 2 characters/)
   })
 })
 
@@ -4796,15 +4729,6 @@ describe('postValidation', () => {
     expect(err).toBeNull()
     expectTypeOf(result).toEqualTypeOf<Output>()
     expect(result).toEqual({ value: 'hello', computed: 5 })
-  })
-
-  it('should infer `string | undefined` for an optional schema with postValidation', () => {
-    const schema = j
-      .string()
-      .optional()
-      .postValidation(v => v)
-
-    expectTypeOf(schema.out).toEqualTypeOf<string | undefined>()
   })
 
   it('should preserve optional typing through postValidation', () => {

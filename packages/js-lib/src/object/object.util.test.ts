@@ -49,11 +49,11 @@ it('should pick only the existing given props with _pick, mutating only when ask
   }
 
   // empty fields
-  expect(f(obj, [])).toEqual({})
+  expect(f(obj, [])).toStrictEqual({})
 
   const fields = ['a', 'c', 'd', 'e'] as const
   const r = f(obj, fields as any)
-  expect(r).toEqual({ a: 1, c: 3, d: false })
+  expect(r).toStrictEqual({ a: 1, c: 3, d: false })
   expect('e' in r).toBe(false) // should not add more fields with 'undefined' value
   // should not mutate
   expect(obj.c).toBe(3)
@@ -61,7 +61,7 @@ it('should pick only the existing given props with _pick, mutating only when ask
 
   // should mutate
   const obj2 = f(obj, ['a'], { mutate: true })
-  expect(obj2).toEqual({
+  expect(obj2).toStrictEqual({
     a: 1,
   })
   expect(obj2).toBe(obj)
@@ -78,7 +78,7 @@ it('should keep the given props with _pickWithUndefined, mutating only when aske
   }
 
   // empty fields
-  expect(f(obj, [])).toEqual({
+  expect(f(obj, [])).toStrictEqual({
     a: undefined,
     b: undefined,
     c: undefined,
@@ -87,7 +87,7 @@ it('should keep the given props with _pickWithUndefined, mutating only when aske
 
   const fields = ['a', 'c', 'd', 'e'] as const
   const r = f(obj, fields as any)
-  expect(r).toEqual({ a: 1, b: undefined, c: 3, d: false })
+  expect(r).toStrictEqual({ a: 1, b: undefined, c: 3, d: false })
   expect('e' in r).toBe(false) // should not add more fields with 'undefined' value
   // should not mutate
   expect(obj.c).toBe(3)
@@ -95,7 +95,7 @@ it('should keep the given props with _pickWithUndefined, mutating only when aske
 
   // should mutate
   const obj2 = f(obj, ['a'], { mutate: true })
-  expect(obj2).toEqual({
+  expect(obj2).toStrictEqual({
     a: 1,
     b: undefined,
     c: undefined,
@@ -116,15 +116,15 @@ it('should omit the given props from a frozen object with _omit', () => {
   _deepFreeze(obj)
 
   // empty props
-  expect(_omit(obj, [])).toEqual(obj)
+  expect(_omit(obj, [])).toStrictEqual(obj)
 
-  expect(_omit(obj, ['b', 'c'])).toEqual({
+  expect(_omit(obj, ['b', 'c'])).toStrictEqual({
     a: 1,
     d: false,
     e: undefined,
   })
 
-  expect(_omit(obj, ['a', 'd', 'e'])).toEqual({
+  expect(_omit(obj, ['a', 'd', 'e'])).toStrictEqual({
     b: 2,
     c: 3,
   })
@@ -142,9 +142,9 @@ it('should clear the given props of a frozen object with _omitWithUndefined', ()
   _deepFreeze(obj)
 
   // empty props
-  expect(_omitWithUndefined(obj, [])).toEqual(obj)
+  expect(_omitWithUndefined(obj, [])).toStrictEqual(obj)
 
-  expect(_omitWithUndefined(obj, ['b', 'c'])).toEqual({
+  expect(_omitWithUndefined(obj, ['b', 'c'])).toStrictEqual({
     a: 1,
     b: undefined,
     c: undefined,
@@ -152,7 +152,7 @@ it('should clear the given props of a frozen object with _omitWithUndefined', ()
     e: undefined,
   })
 
-  expect(_omit(obj, ['a', 'd', 'e'])).toEqual({
+  expect(_omitWithUndefined(obj, ['a', 'd', 'e'])).toStrictEqual({
     a: undefined,
     b: 2,
     c: 3,
@@ -171,7 +171,7 @@ it('should omit the given props in place with _omit and mutate', () => {
   }
 
   const obj2 = _omit(obj, ['b', 'c'], { mutate: true })
-  expect(obj2).toEqual({
+  expect(obj2).toStrictEqual({
     a: 1,
     d: false,
     e: undefined,
@@ -189,7 +189,7 @@ it('should clear the given props in place with _omitWithUndefined and mutate', (
   }
 
   const obj2 = _omitWithUndefined(obj, ['b', 'c'], { mutate: true })
-  expect(obj2).toEqual({
+  expect(obj2).toStrictEqual({
     a: 1,
     b: undefined,
     c: undefined,
@@ -310,7 +310,7 @@ it('should drop falsy values with _filterFalsyValues, mutating only when asked',
   expect(o2.b).toBeUndefined()
 })
 
-it('should drop null values from a frozen object with _filterNullishValues', () => {
+it('should drop null and undefined values from a frozen object with _filterNullishValues', () => {
   const o = {
     a: 1,
     b: 0,
@@ -321,14 +321,12 @@ it('should drop null values from a frozen object with _filterNullishValues', () 
   }
   _deepFreeze(o)
 
-  expect(_filterNullishValues(o)).toEqual({
+  expect(_filterNullishValues(o)).toStrictEqual({
     a: 1,
     b: 0,
     e: '',
     f: 'wer',
   })
-
-  const _ = _filterNullishValues(o)
 })
 
 it('should keep the defined values of a frozen object with _filterUndefinedValues', () => {
@@ -342,7 +340,7 @@ it('should keep the defined values of a frozen object with _filterUndefinedValue
   }
   _deepFreeze(o)
 
-  expect(_filterUndefinedValues(o)).toEqual({
+  expect(_filterUndefinedValues(o)).toStrictEqual({
     a: 1,
     b: 0,
     d: null,
@@ -435,7 +433,7 @@ it('should remove a nested path and a top-level key with _unset', () => {
   expect(o.b.c).toBeUndefined()
 })
 
-it('should return an equal object from _deepCopy', () => {
+it('should return an equal object with new nested references from _deepCopy', () => {
   const o = {
     a: 1,
     b: {
@@ -443,7 +441,12 @@ it('should return an equal object from _deepCopy', () => {
       d: 4,
     },
   }
-  expect(_deepCopy(o)).toEqual(o)
+
+  const copy = _deepCopy(o)
+
+  expect(copy).toStrictEqual(o)
+  expect(copy).not.toBe(o)
+  expect(copy.b).not.toBe(o.b)
 })
 
 it('should merge objects with later values winning in _mergeObjects', () => {

@@ -1,5 +1,4 @@
 import { afterEach, expect, expectTypeOf, it, vi } from 'vitest'
-import { _range } from '../array/range.js'
 import { localTime } from '../datetime/index.js'
 import {
   _assert,
@@ -279,59 +278,22 @@ it('should fail with a JsonParseError cause when the body is not JSON', async ()
   `)
 })
 
-it('should fetch every page in a manual pagination loop', async () => {
-  const fetcher = getNonRetryFetcher({
-    debug: true,
-    logResponseBody: true,
-  })
-
-  const pageSize = 10
+it('should append searchParams from the config and the request to the url', async () => {
+  const urls: string[] = []
   vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(async url => {
-    const u = new URL(url)
-    const page = Number(u.searchParams.get('page'))
-    if (page > pageSize) return Response.json([])
-    return Response.json(_range((page - 1) * pageSize, page * pageSize))
+    urls.push(url)
+    return Response.json({ ok: 1 })
+  })
+  const fetcher = getNonRetryFetcher({ searchParams: { key: 'k' } })
+
+  await fetcher.get('https://a.com/items?sort=asc', {
+    searchParams: { page: 2, q: 'a b', skip: undefined },
   })
 
-  const results: number[] = []
-
-  // UPD: Pagination API was removed as "not ergonomic enough"
-  // Use "while(true) loop" instead
-  //
-  // await fetcher.get<number[]>('https://a.com', {
-  //   searchParams: {
-  //     page: 1,
-  //   },
-  //   paginate: (res, opt) => {
-  //     if (!res.body.length) return false // no more items
-  //     results.push(...res.body)
-  //
-  //     opt.searchParams!['page']++
-  //     return true
-  //   },
-  // })
-  //
-  // expect(results).toEqual(_range(0, pageSize * 10))
-
-  // Alternative implementation without Pagination API (for comparison)
-  let page = 1
-
-  while (true) {
-    const r = await fetcher.get<number[]>('https://a.com', {
-      searchParams: {
-        page,
-      },
-    })
-
-    if (!r.length) break
-    results.push(...r)
-    page++
-  }
-
-  expect(results).toEqual(_range(0, pageSize * 10))
+  expect(urls).toEqual(['https://a.com/items?sort=asc&key=k&page=2&q=a+b'])
 })
 
-it('should retry a 429 with a retry-after delay and return the final response', async () => {
+it('should retry a 429 after its retry-after delay and return the final response', async () => {
   vi.useFakeTimers()
   const fetcher = getFetcher({
     debug: true,
@@ -350,13 +312,17 @@ it('should retry a 429 with a retry-after delay and return the final response', 
     .mockResolvedValueOnce(new Response('ok'))
 
   const promise = fetcher.getText('')
-  await vi.runAllTimersAsync()
+  await expectCallsAfter(1999, 1)
+  await expectCallsAfter(2, 2)
+  await expectCallsAfter(1998, 2)
+  await expectCallsAfter(2, 3)
   const r = await promise
   expect(r).toBe('ok')
 })
 
-it('should retry a 429 with a retry-after date and return the final response', async () => {
-  vi.useFakeTimers()
+it('should retry a 429 at its retry-after date and return the final response', async () => {
+  // A whole second, since the retry-after date has second precision
+  vi.useFakeTimers({ now: new Date('2024-06-21T00:00:00Z') })
   const fetcher = getFetcher({
     debug: true,
   })
@@ -375,7 +341,10 @@ it('should retry a 429 with a retry-after date and return the final response', a
     .mockResolvedValueOnce(new Response('ok'))
 
   const promise = fetcher.getText('')
-  await vi.runAllTimersAsync()
+  await expectCallsAfter(1999, 1)
+  await expectCallsAfter(2, 2)
+  await expectCallsAfter(1998, 2)
+  await expectCallsAfter(2, 3)
   const r = await promise
   expect(r).toBe('ok')
 })
@@ -394,6 +363,7 @@ it('should return [error, null] on failure and [null, data] on success from tryF
   expectTypeOf(err).toEqualTypeOf<HttpRequestError | null>()
   expectTypeOf(data).toEqualTypeOf<{ ok: boolean } | null>()
   expect(err).toBeInstanceOf(HttpRequestError)
+  expect(data).toBeNull()
 
   if (err) {
     expectTypeOf(err).toEqualTypeOf<HttpRequestError>()
@@ -409,6 +379,7 @@ it('should return [error, null] on failure and [null, data] on success from tryF
   vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(Response.json({ ok: true }))
 
   const [err2, data2] = await getFetcher().tryFetch<{ ok: boolean }>({ url: 'https://example.com' })
+  expect(err2).toBeNull()
   if (err2) {
     expectTypeOf(err2).toEqualTypeOf<HttpRequestError>()
   } else {
@@ -451,6 +422,7 @@ it('should not leak per-request headers into later requests', async () => {
     }
   `)
   expect(a[0]).not.toBe(a[1])
+  expect(headers).toEqual({ a: 'a' })
 })
 
 it('should expose the response headers on fetchResponse', async () => {
@@ -513,6 +485,11 @@ function getNonRetryFetcher(opt?: FetcherCfg & FetcherOptions): Fetcher {
       count: 0,
     },
   })
+}
+
+async function expectCallsAfter(millis: number, calls: number): Promise<void> {
+  await vi.advanceTimersByTimeAsync(millis)
+  expect(Fetcher.callNativeFetch).toHaveBeenCalledTimes(calls)
 }
 
 it('should let the onError hook modify the error', async () => {
@@ -641,29 +618,7 @@ it('should fail with a TimeoutError cause when the request times out', async () 
   expect(err.cause.name).toBe('TimeoutError')
 })
 
-it('should fail tryFetch with a TimeoutError cause when the request times out', async () => {
-  const fetcher = getNonRetryFetcher({
-    timeoutSeconds: 0.05,
-  })
-
-  vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(
-    async (_url, init) =>
-      new Promise((_resolve, reject) => {
-        init.signal?.addEventListener('abort', () => {
-          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-          reject(init.signal!.reason)
-        })
-      }),
-  )
-
-  const [err] = await fetcher.tryFetch({ url: 'https://example.com' })
-  _assertIsError(err, HttpRequestError)
-  // Standard DOMException TimeoutError - detectable via cause.name
-  _assertIsErrorObject(err.cause)
-  expect(err.cause.name).toBe('TimeoutError')
-})
-
-it('should fail when the caller aborts the signal', async () => {
+it('should fail with an AbortError cause when the caller aborts the signal', async () => {
   const fetcher = getNonRetryFetcher()
   const controller = new AbortController()
 
@@ -682,7 +637,8 @@ it('should fail when the caller aborts the signal', async () => {
 
   const { err } = await fetcher.doFetch({ url: 'https://example.com', signal: controller.signal })
   _assertIsError(err)
-  expect(err).toBeDefined()
+  _assertIsErrorObject(err.cause)
+  expect(err.cause.name).toBe('AbortError')
 })
 
 it('should fail with the AbortError of the caller when it aborts before a long timeout', async () => {
@@ -712,6 +668,32 @@ it('should fail with the AbortError of the caller when it aborts before a long t
   _assertIsErrorObject(err.cause)
   expect(err.cause.name).toBe('AbortError')
   expect(err.cause.message).toContain('user cancelled')
+})
+
+it('should fail with a TimeoutError cause when the timeout fires before the caller aborts', async () => {
+  const fetcher = getNonRetryFetcher({
+    timeoutSeconds: 0.05,
+  })
+  const controller = new AbortController()
+
+  vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(
+    async (_url, init) =>
+      new Promise((_resolve, reject) => {
+        init.signal?.addEventListener('abort', () => {
+          // oxlint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(init.signal!.reason)
+        })
+      }),
+  )
+
+  const abortTimer = setTimeout(() => controller.abort(), 500)
+
+  const { err } = await fetcher.doFetch({ url: 'https://example.com', signal: controller.signal })
+  clearTimeout(abortTimer)
+  _assertIsError(err)
+  _assertIsErrorObject(err.cause)
+  expect(err.cause.name).toBe('TimeoutError')
+  expect(controller.signal.aborted).toBe(false)
 })
 
 it('should fail with the AbortError of the caller when no timeout is set', async () => {

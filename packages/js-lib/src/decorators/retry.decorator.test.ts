@@ -37,7 +37,7 @@ class A {
     return 'ok'
   }
 
-  private tries1 = 0
+  tries1 = 0
 
   @_Retry({
     delay: 20,
@@ -49,7 +49,7 @@ class A {
     return 'ok'
   }
 
-  private tries2 = 0
+  tries2 = 0
 
   @_Retry({ delay: 20, maxAttempts: 2, logAll: true })
   async error2times(): Promise<any> {
@@ -71,14 +71,15 @@ class A {
   }
 }
 
-it('should resolve when the method succeeds on the first attempt', async () => {
+it('should resolve with the result when the method succeeds on the first attempt', async () => {
   const a = new A()
-  await a.ok()
+  expect(await a.ok()).toBe('ok')
 })
 
-it('should resolve when the method fails once and then succeeds', async () => {
+it('should resolve with the result on the second attempt when the method fails once', async () => {
   const a = new A()
-  await a.error1time()
+  expect(await a.error1time()).toBe('ok')
+  expect(a.tries1).toBe(2)
 })
 
 it('should reject when every attempt fails', async () => {
@@ -86,7 +87,8 @@ it('should reject when every attempt fails', async () => {
   await expect(a.error2times()).rejects.toThrow('custom_error')
 })
 
-it('should resolve when the method succeeds on the last of three attempts', async () => {
+it('should resolve with the result when the method succeeds on the last of three attempts', async () => {
   const a = new A()
-  await a.error2timesRetryTwice()
+  expect(await a.error2timesRetryTwice()).toBe('ok')
+  expect(a.tries2).toBe(3)
 })

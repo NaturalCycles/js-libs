@@ -145,6 +145,18 @@ it('should detect none of the sample values as an HttpRequestError object', () =
   expectResults(v => _isHttpRequestErrorObject(v), anyItems).toMatchSnapshot()
 })
 
+it('should detect an HttpRequestError object only when data.requestUrl is a string', () => {
+  const name = 'HttpRequestError'
+  const message = 'http err msg'
+  expect(_isHttpRequestErrorObject({ name, message, data: { requestUrl: 'https://a.com' } })).toBe(
+    true,
+  )
+  expect(_isHttpRequestErrorObject({ name, message, data: { requestUrl: 1 } })).toBe(false)
+  expect(
+    _isHttpRequestErrorObject({ name: 'AppError', message, data: { requestUrl: 'https://a.com' } }),
+  ).toBe(false)
+})
+
 it('should detect backend error response objects', () => {
   expectResults(v => _isBackendErrorResponseObject(v), anyItems).toMatchSnapshot()
 })

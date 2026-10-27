@@ -42,8 +42,8 @@ it('should resolve with the result when pTimeout finishes in time', async () => 
   expect(r).toBe('hello world')
 })
 
-it('should resolve with the result with a timeout of 0', async () => {
-  const r = await pTimeout(async () => 'hi', { timeout: 0 })
+it('should run the function without a timeout when the timeout is 0', async () => {
+  const r = await pTimeout(() => pDelay(20, 'hi'), { timeout: 0 })
   expect(r).toBe('hi')
 })
 

@@ -1,13 +1,23 @@
-import { expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { pExpectedError } from '../error/index.js'
 import { _isBetween } from '../index.js'
 import { timeSpan } from '../test/test.util.js'
 import { pDelay, pDelayFn, pDelaySignal } from './pDelay.js'
+import { pState } from './pState.js'
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 it('should resolve after the given delay', async () => {
-  const end = timeSpan()
-  await pDelay(100)
-  expect(_isBetween(end(), 90, 160, '[)')).toBe(true)
+  vi.useFakeTimers()
+  const promise = pDelay(100)
+
+  await vi.advanceTimersByTimeAsync(99)
+  expect(await pState(promise)).toBe('pending')
+
+  await vi.advanceTimersByTimeAsync(1)
+  expect(await pState(promise)).toBe('resolved')
 })
 
 it('should resolve with the given value, or reject with a given Error', async () => {
@@ -39,27 +49,41 @@ it('should resolve with the function result, or reject with its error', async ()
   ).toMatchInlineSnapshot('[Error: yo]')
 })
 
-it('should resolve instead of rejecting when aborted', async () => {
-  const p = pDelayFn(100, () => {
+it('should resolve with undefined and never call the function when aborted', async () => {
+  vi.useFakeTimers()
+  const fn = vi.fn<() => never>(() => {
     throw new Error('yo')
   })
-  // Abort should not throw, but resolve immediately
-  p.abort()
+  const promise = pDelayFn(100, fn)
 
-  await p
+  promise.abort()
+  await vi.advanceTimersByTimeAsync(100)
+
+  await expect(promise).resolves.toBeUndefined()
+  expect(fn).not.toHaveBeenCalled()
 })
 
 it('should resolve after the delay without a signal', async () => {
-  const end = timeSpan()
-  await pDelaySignal(100)
-  expect(_isBetween(end(), 90, 160, '[)')).toBe(true)
+  vi.useFakeTimers()
+  const promise = pDelaySignal(100)
+
+  await vi.advanceTimersByTimeAsync(99)
+  expect(await pState(promise)).toBe('pending')
+
+  await vi.advanceTimersByTimeAsync(1)
+  expect(await pState(promise)).toBe('resolved')
 })
 
 it('should resolve after the delay with a signal that never aborts', async () => {
+  vi.useFakeTimers()
   const controller = new AbortController()
-  const end = timeSpan()
-  await pDelaySignal(100, controller.signal)
-  expect(_isBetween(end(), 90, 160, '[)')).toBe(true)
+  const promise = pDelaySignal(100, controller.signal)
+
+  await vi.advanceTimersByTimeAsync(99)
+  expect(await pState(promise)).toBe('pending')
+
+  await vi.advanceTimersByTimeAsync(1)
+  expect(await pState(promise)).toBe('resolved')
 })
 
 it('should resolve immediately with an already aborted signal', async () => {

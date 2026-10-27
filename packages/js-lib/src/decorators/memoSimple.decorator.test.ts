@@ -31,7 +31,9 @@ it('should call the method once per set of arguments', () => {
   expect(r).toBe(12)
 
   // to be called once per set of arguments (2)
-  expect(a.func).toMatchSnapshot()
+  expect(a.func).toHaveBeenCalledTimes(2)
+  expect(a.func).toHaveBeenNthCalledWith(1, 6)
+  expect(a.func).toHaveBeenNthCalledWith(2, 12)
 
   // cleanup for the next tests
   ;(a.a as any).dropCache()

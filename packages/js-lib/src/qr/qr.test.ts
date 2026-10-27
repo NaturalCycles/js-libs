@@ -733,16 +733,14 @@ it.each(FIXTURES)(
   },
 )
 
-it('should give auto-detected content the same size as its forced mode', () => {
-  // numeric is the most compact -> smallest matrix; byte the least
-  const numeric = createQrCode('12345')
-  const alnum = createQrCode('HELLO WORLD')
-  const byte = createQrCode('Hello, world!')
+it.each([
+  ['12345', 'numeric', 'alphanumeric'],
+  ['HELLO WORLD', 'alphanumeric', 'byte'],
+] as const)('should auto-detect %s as %s mode, not %s', (content, mode, wrongMode) => {
+  const detected = createQrCode(content).modules
 
-  // same payload, forced byte mode is never smaller than the auto-detected mode
-  expect(createQrCode('12345', { mode: 'numeric' }).size).toBe(numeric.size)
-  expect(createQrCode('HELLO WORLD', { mode: 'alphanumeric' }).size).toBe(alnum.size)
-  expect(byte.size).toBeGreaterThanOrEqual(21)
+  expect(detected).toEqual(createQrCode(content, { mode }).modules)
+  expect(detected).not.toEqual(createQrCode(content, { mode: wrongMode }).modules)
 })
 
 it('should pick the smallest fitting version, growing with the payload and ECC level', () => {
@@ -755,10 +753,11 @@ it('should pick the smallest fitting version, growing with the payload and ECC l
   )
 })
 
-it('should build a full boolean matrix for multibyte UTF-8 content', () => {
+it('should encode multibyte content as its UTF-8 bytes in byte mode', () => {
   // '€' is 3 UTF-8 bytes (0xE2 0x82 0xAC); a multibyte payload must still produce a valid matrix
-  const qr = createQrCode('Price: 5€ café 🎉')
-  expect(qr.size).toBeGreaterThanOrEqual(21)
+  const text = 'Price: 5€ café 🎉'
+  const qr = createQrCode(text)
+  expect(qr.modules).toEqual(createQrCode(new TextEncoder().encode(text)).modules)
   // matrix is fully populated with booleans
   expect(
     qr.modules.every(row => row.length === qr.size && row.every(v => typeof v === 'boolean')),
@@ -813,7 +812,6 @@ it('should give raw bytes the same matrix as the same string in byte mode', () =
   const bytes = new TextEncoder().encode('HELLO')
   const fromBytes = createQrCode(bytes, { ecl: 'M' })
   const fromString = createQrCode('HELLO', { mode: 'byte', ecl: 'M' })
-  expect(matrixToRows('HELLO', 'byte', 'M', 0)).toEqual(matrixToRows('HELLO', 'byte', 'M', 0))
   expect(fromBytes.size).toBe(fromString.size)
   // identical matrices
   for (let r = 0; r < fromBytes.size; r++) {

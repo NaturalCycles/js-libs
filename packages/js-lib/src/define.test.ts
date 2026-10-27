@@ -71,38 +71,7 @@ it('should compute each lazy prop once on first access', () => {
 })
 
 it('should define a writable, enumerable and configurable property, with overrides', () => {
-  const obj: AnyObject = { v: 42 }
-  expect(Object.getOwnPropertyDescriptor(obj, 'v')).toMatchInlineSnapshot(`
-    {
-      "configurable": true,
-      "enumerable": true,
-      "value": 42,
-      "writable": true,
-    }
-  `)
-
-  // define over existing property - looks like it doesn't change anything
-  Object.defineProperty(obj, 'v', {})
-
-  expect(Object.getOwnPropertyDescriptor(obj, 'v')).toMatchInlineSnapshot(`
-    {
-      "configurable": true,
-      "enumerable": true,
-      "value": 42,
-      "writable": true,
-    }
-  `)
-
-  // New property defaults
-  Object.defineProperty(obj, 'v2', {})
-  expect(Object.getOwnPropertyDescriptor(obj, 'v2')).toMatchInlineSnapshot(`
-    {
-      "configurable": false,
-      "enumerable": false,
-      "value": undefined,
-      "writable": false,
-    }
-  `)
+  const obj: AnyObject = {}
 
   // Define with undefined value
   _defineProperty(obj, 'v3', {})

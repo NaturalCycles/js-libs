@@ -49,22 +49,17 @@ afterAll(async () => {
   await streamedApp.close()
 })
 
-it('should prefer zstd over other encodings when client supports all', async () => {
-  const { fetchResponse } = await app.doFetch({
-    headers: { 'Accept-Encoding': 'gzip, deflate, br, zstd' },
-  })
+// 'gzip, deflate, br, zstd' is the Chrome scenario - gzip listed first but zstd should still be preferred
+it.each(['gzip, deflate, br, zstd', 'br, zstd, gzip, deflate'])(
+  'should prefer zstd over the other encodings in "%s"',
+  async acceptEncoding => {
+    const { fetchResponse } = await app.doFetch({
+      headers: { 'Accept-Encoding': acceptEncoding },
+    })
 
-  expect(fetchResponse?.headers.get('Content-Encoding')).toBe('zstd')
-})
-
-it('should prefer zstd even when gzip comes first in Accept-Encoding', async () => {
-  // This is the Chrome scenario - gzip listed first but zstd should still be preferred
-  const { fetchResponse } = await app.doFetch({
-    headers: { 'Accept-Encoding': 'gzip, deflate, br, zstd' },
-  })
-
-  expect(fetchResponse?.headers.get('Content-Encoding')).toBe('zstd')
-})
+    expect(fetchResponse?.headers.get('Content-Encoding')).toBe('zstd')
+  },
+)
 
 it('should use br when zstd is not accepted', async () => {
   const { fetchResponse } = await app.doFetch({

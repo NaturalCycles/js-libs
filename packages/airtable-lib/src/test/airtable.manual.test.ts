@@ -1,7 +1,6 @@
 import { _omit } from '@naturalcycles/js-lib/object'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { expect, it } from 'vitest'
-import { AirtableDB } from '../airtableDB.js'
 import { AirtableLib } from '../airtableLib.js'
 import { AIRTABLE_CONNECTOR_JSON, AIRTABLE_CONNECTOR_REMOTE } from '../index.js'
 import {
@@ -22,18 +21,6 @@ const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = requireEnvKeys(
 
 const airtableLib = new AirtableLib({
   apiKey: AIRTABLE_API_KEY,
-})
-
-it('should get records by ids without throwing', async () => {
-  const db = new AirtableDB({
-    apiKey: AIRTABLE_API_KEY,
-    baseId: AIRTABLE_BASE_ID,
-    // tableCfgMap: {},
-    noAttachmentQueryString: true,
-  })
-
-  const r = await db.getByIds('users', ['user1', 'user4'])
-  console.log(r)
 })
 
 it('should create, get and delete records', async () => {
@@ -90,12 +77,6 @@ it('should replace the records of two tables without throwing', async () => {
 
   const __records1 = await tableDao1.createRecords(mocks1)
   const __records2 = await tableDao2.createRecords(mocks2)
-})
-
-it('should fetch a base from the remote connector without throwing', async () => {
-  const baseDao = mockBaseDao(airtableLib, AIRTABLE_BASE_ID)
-  const base = await baseDao.fetch(AIRTABLE_CONNECTOR_REMOTE)
-  console.log(JSON.stringify(base, null, 2))
 })
 
 it('should fetch remote bases and save them as JSON without throwing', async () => {

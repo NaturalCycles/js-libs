@@ -63,172 +63,74 @@ describe('determineAssignment', () => {
 })
 
 describe('validateSegmentationRules', () => {
-  interface TestCase {
-    operator: SegmentationRuleOperator
-    ruleValue: SegmentationRule['value']
-    valid: Parameters<SegmentationRuleFn>[0]
-    invalid: Parameters<SegmentationRuleFn>[0]
-  }
-
-  const cases: TestCase[] = [
-    {
-      operator: SegmentationRuleOperator.EqualsText,
-      ruleValue: 'Yes way Marvin Gaye',
-      valid: 'Yes way Marvin Gaye',
-      invalid: 'No way jose',
-    },
-    {
-      operator: SegmentationRuleOperator.NotEqualsText,
-      ruleValue: 'No way jose',
-      valid: 'Yes way Marvin Gaye',
-      invalid: 'No way jose',
-    },
-    {
-      operator: SegmentationRuleOperator.IsSet,
-      ruleValue: '',
-      valid: 'Not Empty',
-      invalid: '',
-    },
-    {
-      operator: SegmentationRuleOperator.IsNotSet,
-      ruleValue: '',
-      valid: '',
-      invalid: 'Not Empty',
-    },
-    {
-      operator: SegmentationRuleOperator.Semver,
-      ruleValue: '>3.2.1',
-      valid: '3.2.2',
-      invalid: '3.2.0',
-    },
-    {
-      operator: SegmentationRuleOperator.Regex,
-      ruleValue: 'app|app2',
-      valid: 'app',
-      invalid: 'website',
-    },
-    {
-      operator: SegmentationRuleOperator.Boolean,
-      ruleValue: 'true',
-      valid: 'true',
-      invalid: 'false',
-    },
-    {
-      operator: SegmentationRuleOperator.Boolean,
-      ruleValue: 'false',
-      valid: 'false',
-      invalid: 'true',
-    },
-    {
-      operator: SegmentationRuleOperator.Boolean,
-      ruleValue: 'false',
-      valid: '',
-      invalid: 'true',
-    },
-    {
-      operator: SegmentationRuleOperator.Boolean,
-      ruleValue: 'true',
-      valid: true,
-      invalid: false,
-    },
-    {
-      operator: SegmentationRuleOperator.Boolean,
-      ruleValue: 'false',
-      valid: false,
-      invalid: true,
-    },
-    {
-      operator: SegmentationRuleOperator.LessThan,
-      ruleValue: '2021-01-11',
-      valid: '2021-01-01',
-      invalid: '2021-01-21',
-    },
-    {
-      operator: SegmentationRuleOperator.LessThan,
-      ruleValue: '2',
-      valid: '1',
-      invalid: '3',
-    },
-    {
-      operator: SegmentationRuleOperator.LessThan,
-      ruleValue: '2',
-      valid: 1,
-      invalid: 3,
-    },
-    {
-      operator: SegmentationRuleOperator.LessThan,
-      ruleValue: 'b',
-      valid: 'a',
-      invalid: 'c',
-    },
-    {
-      operator: SegmentationRuleOperator.LessThan,
-      ruleValue: '2',
-      valid: '1',
-      invalid: null,
-    },
-    {
-      operator: SegmentationRuleOperator.LessThan,
-      ruleValue: '2',
-      valid: '1',
-      invalid: undefined,
-    },
-    {
-      operator: SegmentationRuleOperator.GreaterThan,
-      ruleValue: '2021-01-11',
-      valid: '2021-01-21',
-      invalid: '2021-01-01',
-    },
-    {
-      operator: SegmentationRuleOperator.GreaterThan,
-      ruleValue: '2',
-      valid: '3',
-      invalid: '1',
-    },
-    {
-      operator: SegmentationRuleOperator.GreaterThan,
-      ruleValue: '2',
-      valid: 3,
-      invalid: 1,
-    },
-    {
-      operator: SegmentationRuleOperator.GreaterThan,
-      ruleValue: 'b',
-      valid: 'c',
-      invalid: 'a',
-    },
-    {
-      operator: SegmentationRuleOperator.GreaterThan,
-      ruleValue: '2',
-      valid: '3',
-      invalid: null,
-    },
-    {
-      operator: SegmentationRuleOperator.GreaterThan,
-      ruleValue: '2',
-      valid: '3',
-      invalid: undefined,
-    },
+  type TestCase = [
+    input: Parameters<SegmentationRuleFn>[0],
+    operator: SegmentationRuleOperator,
+    ruleValue: SegmentationRule['value'],
   ]
 
-  for (const testcase of cases) {
-    const key = 'myProp'
-    it(`should accept ${JSON.stringify(testcase.valid)} for ${testcase.operator} ${JSON.stringify(testcase.ruleValue)}`, () => {
-      const result = util.validateSegmentationRules(
-        [{ key, operator: testcase.operator, value: testcase.ruleValue }],
-        { myProp: testcase.valid },
-      )
-      expect(result).toBe(true)
-    })
+  const key = 'myProp'
 
-    it(`should reject ${JSON.stringify(testcase.invalid)} for ${testcase.operator} ${JSON.stringify(testcase.ruleValue)}`, () => {
-      const result = util.validateSegmentationRules(
-        [{ key, operator: testcase.operator, value: testcase.ruleValue }],
-        { myProp: testcase.invalid },
-      )
-      expect(result).toBe(false)
+  const acceptedCases: TestCase[] = [
+    ['Yes way Marvin Gaye', SegmentationRuleOperator.EqualsText, 'Yes way Marvin Gaye'],
+    ['Yes way Marvin Gaye', SegmentationRuleOperator.NotEqualsText, 'No way jose'],
+    ['Not Empty', SegmentationRuleOperator.IsSet, ''],
+    ['', SegmentationRuleOperator.IsNotSet, ''],
+    ['3.2.2', SegmentationRuleOperator.Semver, '>3.2.1'],
+    ['app', SegmentationRuleOperator.Regex, 'app|app2'],
+    ['true', SegmentationRuleOperator.Boolean, 'true'],
+    ['false', SegmentationRuleOperator.Boolean, 'false'],
+    ['', SegmentationRuleOperator.Boolean, 'false'],
+    [true, SegmentationRuleOperator.Boolean, 'true'],
+    [false, SegmentationRuleOperator.Boolean, 'false'],
+    ['2021-01-01', SegmentationRuleOperator.LessThan, '2021-01-11'],
+    ['1', SegmentationRuleOperator.LessThan, '2'],
+    [1, SegmentationRuleOperator.LessThan, '2'],
+    ['a', SegmentationRuleOperator.LessThan, 'b'],
+    ['2021-01-21', SegmentationRuleOperator.GreaterThan, '2021-01-11'],
+    ['3', SegmentationRuleOperator.GreaterThan, '2'],
+    [3, SegmentationRuleOperator.GreaterThan, '2'],
+    ['c', SegmentationRuleOperator.GreaterThan, 'b'],
+  ]
+
+  const rejectedCases: TestCase[] = [
+    ['No way jose', SegmentationRuleOperator.EqualsText, 'Yes way Marvin Gaye'],
+    ['No way jose', SegmentationRuleOperator.NotEqualsText, 'No way jose'],
+    ['', SegmentationRuleOperator.IsSet, ''],
+    ['Not Empty', SegmentationRuleOperator.IsNotSet, ''],
+    ['3.2.0', SegmentationRuleOperator.Semver, '>3.2.1'],
+    ['website', SegmentationRuleOperator.Regex, 'app|app2'],
+    ['false', SegmentationRuleOperator.Boolean, 'true'],
+    ['true', SegmentationRuleOperator.Boolean, 'false'],
+    [false, SegmentationRuleOperator.Boolean, 'true'],
+    [true, SegmentationRuleOperator.Boolean, 'false'],
+    ['2021-01-21', SegmentationRuleOperator.LessThan, '2021-01-11'],
+    ['3', SegmentationRuleOperator.LessThan, '2'],
+    [3, SegmentationRuleOperator.LessThan, '2'],
+    ['c', SegmentationRuleOperator.LessThan, 'b'],
+    [null, SegmentationRuleOperator.LessThan, '2'],
+    [undefined, SegmentationRuleOperator.LessThan, '2'],
+    ['2021-01-01', SegmentationRuleOperator.GreaterThan, '2021-01-11'],
+    ['1', SegmentationRuleOperator.GreaterThan, '2'],
+    [1, SegmentationRuleOperator.GreaterThan, '2'],
+    ['a', SegmentationRuleOperator.GreaterThan, 'b'],
+    [null, SegmentationRuleOperator.GreaterThan, '2'],
+    [undefined, SegmentationRuleOperator.GreaterThan, '2'],
+  ]
+
+  it.each(acceptedCases)('should accept %j for %s %j', (input, operator, ruleValue) => {
+    const result = util.validateSegmentationRules([{ key, operator, value: ruleValue }], {
+      [key]: input,
     })
-  }
+    expect(result).toBe(true)
+  })
+
+  it.each(rejectedCases)('should reject %j for %s %j', (input, operator, ruleValue) => {
+    const result = util.validateSegmentationRules([{ key, operator, value: ruleValue }], {
+      [key]: input,
+    })
+    expect(result).toBe(false)
+  })
 })
 
 describe('canGenerateNewAssignments', () => {
@@ -240,8 +142,11 @@ describe('canGenerateNewAssignments', () => {
     expect(result).toBe(false)
   })
 
-  it('should return true for an active experiment within its dates', () => {
-    const result = util.canGenerateNewAssignments(experiment, new Set())
+  it('should return true for an active experiment on its start date', () => {
+    const result = util.canGenerateNewAssignments(
+      mockExperiment({ startDateIncl: localDate.today().toISODate() }),
+      new Set(),
+    )
 
     expect(result).toBe(true)
   })
@@ -255,17 +160,24 @@ describe('canGenerateNewAssignments', () => {
     expect(result).toBe(false)
   })
 
-  it('should return false for an experiment that has ended', () => {
-    const result = util.canGenerateNewAssignments(
-      mockExperiment({
-        startDateIncl: localDate.today().minus(2, 'day').toISODate(),
-        endDateExcl: localDate.today().minus(1, 'day').toISODate(),
-      }),
-      new Set(),
-    )
+  it.each([
+    ['has ended', -2, -1],
+    ['ends today', -1, 0],
+    ['starts tomorrow', 1, 2],
+  ])(
+    'should return false for an experiment that %s',
+    (_name, startDaysFromToday, endDaysFromToday) => {
+      const result = util.canGenerateNewAssignments(
+        mockExperiment({
+          startDateIncl: localDate.today().plus(startDaysFromToday, 'day').toISODate(),
+          endDateExcl: localDate.today().plus(endDaysFromToday, 'day').toISODate(),
+        }),
+        new Set(),
+      )
 
-    expect(result).toBe(false)
-  })
+      expect(result).toBe(false)
+    },
+  )
 })
 
 describe('getUserExclusionSet', () => {

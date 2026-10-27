@@ -1,6 +1,6 @@
 import { runCommonKeyValueDBTest, TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe } from 'vitest'
 import { MySQLKeyValueDB } from '../mysqlKeyValueDB.js'
 
 loadEnvFileIfExists()
@@ -32,11 +32,6 @@ afterAll(async () => {
 
 describe('runCommonKeyValueDBTest', async () => {
   await runCommonKeyValueDBTest(db)
-})
-
-it('should count zero entries in the emptied table', async () => {
-  const count = await db.count(TEST_TABLE)
-  expect(count).toBe(0)
 })
 
 // test('test1', async () => {

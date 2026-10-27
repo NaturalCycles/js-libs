@@ -1,4 +1,4 @@
-import { it } from 'vitest'
+import { expect, it } from 'vitest'
 import { InMemoryDB } from '../inmemory/inMemory.db.js'
 import { createTestTimeSeries } from '../testing/timeSeriesTest.util.js'
 import { CommonTimeSeriesDao } from './commonTimeSeriesDao.js'
@@ -12,12 +12,12 @@ const tsDao = new CommonTimeSeriesDao({
   db,
 })
 
-it('should save and query a time series', async () => {
+it('should return the saved points of a series in ascending time order', async () => {
   const points = createTestTimeSeries()
   await tsDao.saveBatch('lala', points)
 
   const r = await tsDao.query({ series: 'lala' })
-  console.log(r)
+  expect(r).toEqual(points.toReversed())
 
   // await db.flushToDisk()
 })

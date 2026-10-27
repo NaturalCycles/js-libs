@@ -1,6 +1,7 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
 import { afterAll, beforeAll, expect, it, vi } from 'vitest'
@@ -48,13 +49,16 @@ it('should emit the mapped items', async () => {
   expect(data2).toEqual(data.map(r => ({ id: r.id + '!' })))
 })
 
-it('should emit each mapped array as one item and call an async onDone with stats', async () => {
+it('should emit each mapped array as one item and await an async onDone with stats', async () => {
   let stats: TransformMapStats
   const data = _range(1, 4)
   const data2 = await Pipeline.fromArray(data)
     .map(async n => [n * 2, n * 2 + 1], {
       // async is to test that it's awaited
-      onDone: async s => (stats = s),
+      onDone: async s => {
+        await pDelay(10)
+        stats = s
+      },
     })
     .flatten()
     .toArray()

@@ -129,24 +129,24 @@ it('should detect a bot when navigator.languages is an empty string', () => {
 //   expect(botDetectionService.isBot()).toBe(BotReason.ChromeWithoutChrome)
 // })
 
-// This test helps with coverage, while not really testing anything useful
-it('should run the CDP check without throwing when window is defined', () => {
-  Object.assign(globalThis, {
-    window: globalThis,
+it('should detect CDP when console.debug reads the stack of the logged error', () => {
+  vi.stubGlobal('window', {
+    document: {},
+    Error,
+    Object,
+    console: { debug: (err: Error) => err.stack },
   })
+  expect(botDetectionService.isCDP()).toBe(true)
+})
 
-  // console.log('isBot', botDetectionService.isBot())
-  const isCDP = botDetectionService.isCDP()
-  // expect(isCDP).toBe(botDetectionService.isBotOrCDP())
-  expect(isCDP).toBeDefined()
-
-  // const runInIDE = process.argv.some(
-  //   a => a === '--runTestsByPath' || a.includes('IDEA') || a.includes('processChild.js'),
-  // )
-  // console.log({ runInIDE, argv: process.argv })
-  // When running in IntelliJ it is detected as CDP (involves Error.stack serialization somehow), while in Jest CLI it is not
-  // const expectedIsCDP = runInIDE
-  // expect(isCDP).toBe(expectedIsCDP)
+it('should not detect CDP when console.debug does not read the stack of the logged error', () => {
+  vi.stubGlobal('window', {
+    document: {},
+    Error,
+    Object,
+    console: { debug: () => {} },
+  })
+  expect(botDetectionService.isCDP()).toBe(false)
 })
 
 it('should return the CDP reason when treatCDPAsBotReason is set and CDP is detected', () => {

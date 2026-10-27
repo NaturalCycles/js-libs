@@ -1,13 +1,6 @@
-import { CommonDao } from '@naturalcycles/db-lib/dao'
-import {
-  createTestItemsBM,
-  runCommonDaoTest,
-  runCommonDBTest,
-  TEST_TABLE,
-  testItemBMSchema,
-} from '@naturalcycles/db-lib/testing'
+import { runCommonDaoTest, runCommonDBTest } from '@naturalcycles/db-lib/testing'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
-import { afterAll, describe, it } from 'vitest'
+import { afterAll, describe } from 'vitest'
 import { MongoDB } from '../mongo.db.js'
 
 loadEnvFileIfExists()
@@ -28,18 +21,4 @@ describe('runCommonDBTest', async () => {
 
 describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(mongoDB)
-})
-
-it.skip('should save items and query them with an empty select without throwing', async () => {
-  const dao = new CommonDao({
-    table: TEST_TABLE,
-    db: mongoDB,
-    validateBM: testItemBMSchema.getValidationFunction(),
-  })
-
-  const items = createTestItemsBM(3)
-  await dao.saveBatch(items)
-
-  const r = await dao.query().select([]).runQuery()
-  console.log(r)
 })

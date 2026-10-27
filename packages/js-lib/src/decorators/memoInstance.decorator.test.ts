@@ -1,5 +1,4 @@
 import { expect, it, vi } from 'vitest'
-import { _range } from '../array/index.js'
 import { _Memo } from './memo.decorator.js'
 
 class C {
@@ -47,12 +46,4 @@ it('should cache per instance', () => {
 
   c2.method(2) // hit
   expect(fn2).toHaveBeenCalledTimes(fn2Calls)
-})
-
-// Intended to fail if memoInstance is not using WeakMap (not normal Map)
-it('should memoize calls on many short-lived instances without throwing', () => {
-  _range(0, 100).forEach(() => {
-    const c = new C()
-    _range(1, 10).forEach(n => c.method(n))
-  })
 })

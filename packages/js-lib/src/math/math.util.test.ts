@@ -36,10 +36,11 @@ it.each([
   expect(_average(numbers)).toBe(result)
 })
 
-it('should throw on an empty array, and return null for nullish input from _averageOrNull', () => {
+it('should throw on an empty array, and return null for an empty or nullish input from _averageOrNull', () => {
   expect(() => _average([])).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: _average is called on empty array]`,
   )
+  expect(_averageOrNull([])).toBeNull()
   expect(_averageOrNull(undefined)).toBeNull()
   expect(_averageOrNull(null)).toBeNull()
   expect(_averageOrNull([1])).toBe(1)
@@ -54,10 +55,11 @@ it.each([
   expect(_stdDev(numbers)).toBe(result)
 })
 
-it('should throw on an empty array, and return null for nullish input from _stdDevOrNull', () => {
+it('should throw on an empty array, and return null for an empty or nullish input from _stdDevOrNull', () => {
   expect(() => _stdDev([])).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: _stdDev is called on empty array]`,
   )
+  expect(_stdDevOrNull([])).toBeNull()
   expect(_stdDevOrNull(undefined)).toBeNull()
   expect(_stdDevOrNull(null)).toBeNull()
   expect(_stdDevOrNull([1])).toBe(0)

@@ -1,6 +1,9 @@
-import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import { expect, it } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { memoryUsage, memoryUsageFull, processSharedUtil } from './process.util.js'
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 it('should return cpu info, a cpu percent and load averages', async () => {
   const c = processSharedUtil.cpuInfo()
@@ -22,9 +25,20 @@ it('should return memory usage with heapUsed and full usage with totalMem', asyn
   expect(memoryUsageFull()).toHaveProperty('totalMem')
 })
 
-it('should not throw when starting and stopping the memory timer', async () => {
+it('should log memory usage on start and on every interval until the timer is stopped', () => {
+  vi.useFakeTimers()
+  vi.spyOn(console, 'log').mockImplementation(() => {})
+
   processSharedUtil.startMemoryTimer(10)
-  await pDelay(20)
+  expect(console.log).toHaveBeenCalledOnce()
+  expect(console.log).toHaveBeenLastCalledWith(
+    expect.objectContaining({ heapUsed: expect.any(Number) }),
+  )
+
+  vi.advanceTimersByTime(25)
+  expect(console.log).toHaveBeenCalledTimes(3)
+
   processSharedUtil.stopMemoryTimer(10)
-  await pDelay(30)
+  vi.advanceTimersByTime(100)
+  expect(console.log).toHaveBeenCalledTimes(4)
 })

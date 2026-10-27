@@ -228,11 +228,6 @@ describe('charsFromRightScrubber', () => {
     expect(result).toEqual(expected)
   })
 
-  it('should replace the last two chars of a zip code', () => {
-    const result = charsFromRightScrubber('76543', { count: 2, replacement: 'X' })
-    expect(result).toBe('765XX')
-  })
-
   it('should replace every char when count exceeds the input length', () => {
     const result = charsFromRightScrubber('123', { count: 5, replacement: 'X' })
     expect(result).toBe('XXX')
@@ -273,11 +268,6 @@ describe('keepCharsFromLeftScrubber', () => {
   ])('should keep the first three chars and mask the rest with X "%s" > "%s"', (zip, expected) => {
     const result = keepCharsFromLeftScrubber(zip, { count: 3, replacement: 'X' })
     expect(result).toEqual(expected)
-  })
-
-  it('should keep the first three chars of a zip code', () => {
-    const result = keepCharsFromLeftScrubber('76543', { count: 3, replacement: 'X' })
-    expect(result).toBe('765XX')
   })
 
   it('should append the whole replacement after the kept chars when replaceFull is set', () => {

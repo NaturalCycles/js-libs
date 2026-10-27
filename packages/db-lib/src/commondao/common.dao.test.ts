@@ -52,6 +52,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   vi.useRealTimers()
+  throwError = false
 })
 
 it('should return null or 0 for missing ids and empty queries', async () => {
@@ -68,10 +69,10 @@ it('should return null or 0 for missing ids and empty queries', async () => {
   expect(await dao.deleteByQuery(dao.query(), { chunkSize: 500 })).toBe(0)
 
   expect(dao.anyToDBM(undefined)).toBeNull()
-  expect(dao.anyToDBM({}, { skipValidation: true })).toMatchObject({})
+  expect(dao.anyToDBM({}, { skipValidation: true })).toEqual({})
 })
 
-it('should save and get rows of several daos with multiSave and multiGet', async () => {
+it('should save, get and delete rows of several daos with multiSave, multiGet and multiDelete', async () => {
   const { testItems1, testItems2 } = await CommonDao.multiGet({
     testItems1: dao.withIds(['id1', 'id2', 'id3']),
     testItems2: dao2.withIds(['id2', 'id4']),
@@ -86,17 +87,28 @@ it('should save and get rows of several daos with multiSave and multiGet', async
   expect(item1).toBeNull()
   expect(item2).toBeNull()
 
-  await CommonDao.multiDelete([dao.withIds(['id1', 'id2', 'id3']), dao2.withId('id4')])
-
   const items1 = createTestItemsBM(20)
   const items2 = createTestItemsBM(10)
   await CommonDao.multiSave([
     dao.withRowsToSave(items1),
     dao2.withRowsToSave(items2),
-    dao2.withRowToSave(items2[0]!, {
-      skipIfEquals: items2[1]!,
+    dao2.withRowToSave(createTestItemBM(11), {
+      skipIfEquals: createTestItemBM(12),
+    }),
+    dao2.withRowToSave(createTestItemBM(12), {
+      skipIfEquals: createTestItemBM(12),
     }),
   ])
+
+  expect(
+    await CommonDao.multiGet({
+      changedRow: dao2.withId('id11'),
+      unchangedRow: dao2.withId('id12'),
+    }),
+  ).toEqual({
+    changedRow: createTestItemBM(11),
+    unchangedRow: null,
+  })
 
   const result = await CommonDao.multiGet({
     item11: dao.withId('id1'),
@@ -161,6 +173,19 @@ it('should save and get rows of several daos with multiSave and multiGet', async
       ],
     }
   `)
+
+  await CommonDao.multiDelete([dao.withIds(['id1', 'id2']), dao2.withId('id1')])
+
+  const afterDelete = await CommonDao.multiGet({
+    items1: dao.withIds(['id1', 'id2', 'id3']),
+    item21: dao2.withId('id1'),
+    item22: dao2.withId('id2'),
+  })
+  expect(afterDelete).toEqual({
+    items1: [items1[2]],
+    item21: null,
+    item22: items2[1],
+  })
 })
 
 it('should return the unique rows of a union of queries', async () => {
@@ -505,13 +530,14 @@ it('should reject updates and deletes in an immutable dao unless allowMutability
   ).resolves.not.toThrow()
 })
 
-it('should allow saving an existing row again in a mutable dao', async () => {
+it('should save changes to an existing row in a mutable dao', async () => {
   const [item1] = createTestItemsBM(1).map(r => _omit(r, ['id']))
   const item1Saved = await dao.save(item1!)
 
   item1Saved.k1 = 'modifiedk1'
-  // Ensure object cannot be modified with save
-  await expect(dao.save(item1Saved)).resolves.not.toThrow()
+  await dao.save(item1Saved)
+
+  expect((await dao.requireById(item1Saved.id)).k1).toBe('modifiedk1')
 })
 
 it('should return the input object from save, with created set on it', async () => {
@@ -539,13 +565,14 @@ it('should return a new object from validateAndConvert without mutating the inpu
 })
 
 it('should pass `mutateInput` option to the validateBM method', async () => {
+  const validateBM = vi.fn<NonNullable<CommonDaoCfg<TestItemBM>['validateBM']>>(bm => [
+    null,
+    bm as TestItemBM,
+  ])
   const dao = new CommonDao<TestItemBM>({
     table: TEST_TABLE,
     db,
-    validateBM: (bm, opt) => {
-      expect(opt?.mutateInput).toBe(true)
-      return [null, bm as TestItemBM]
-    },
+    validateBM,
   })
 
   await dao.save(
@@ -553,6 +580,11 @@ it('should pass `mutateInput` option to the validateBM method', async () => {
       k1: 'sdf',
     },
     { mutateInput: true },
+  )
+
+  expect(validateBM).toHaveBeenCalledWith(
+    expect.objectContaining({ k1: 'sdf' }),
+    expect.objectContaining({ mutateInput: true }),
   )
 })
 
@@ -663,7 +695,7 @@ interface Item extends BaseDBEntity {
   shu?: string
 }
 
-it('should round-trip rows through the beforeBMToDBM and beforeDBMToBM hooks', async () => {
+it('should store rows as beforeBMToDBM returns them and load them through beforeDBMToBM', async () => {
   const dao = new CommonDao<Item>({
     table: TEST_TABLE,
     db,
@@ -692,11 +724,13 @@ it('should round-trip rows through the beforeBMToDBM and beforeDBMToBM hooks', a
 
   await dao.saveBatch(items)
 
+  expect(db.data[TEST_TABLE]!['id0']!['obj']).toBe('{"objId":"objId0"}')
+
   const items2 = await dao.getByIds(items.map(item => item.id))
   expect(items2).toEqual(items)
 })
 
-it('should throw an error with a stack when a queried row fails validation', async () => {
+it('should throw a validation error whose stack reaches the caller of the query', async () => {
   // save invalid value
   await dao.save(
     {
@@ -706,14 +740,16 @@ it('should throw an error with a stack when a queried row fails validation', asy
     { skipValidation: true },
   )
 
-  const err = await pExpectedError(getEven())
-  // expect(err.stack).toContain('at getEven (') // todo: fix me!
-  expect(err.stack).toBeDefined() // todo: fix me!
+  // The default 10-frame stack ends inside CommonDao, before the caller's frame
+  const { stackTraceLimit } = Error
+  Error.stackTraceLimit = Infinity
+  try {
+    const err = await pExpectedError(getEven(), AjvValidationError)
+    expect(err.stack).toContain('at getEven (')
+  } finally {
+    Error.stackTraceLimit = stackTraceLimit
+  }
 })
-
-async function getEven(): Promise<TestItemBM[]> {
-  return await dao.query().filterEq('even', true).runQuery()
-}
 
 it('should commit the saves and deletes made in runInTransaction', async () => {
   const items = createTestItemsBM(4)
@@ -1110,23 +1146,6 @@ describe('auto compression', () => {
       expectDecompressed(restored, 1)
     })
 
-    it('should round-trip a row through dbmToStorageRow and storageRowToDBM', async () => {
-      const dao = createDao()
-      const item = createItem(1) as Item
-      dao.assignIdCreatedUpdated(item)
-      const dbm = dao.bmToDBM(item)
-
-      // Round-trip: DBM -> storage -> DBM
-      const storageRow = await dao.dbmToStorageRow(dbm)
-      const restored = dao.storageRowToDBM(storageRow)
-
-      expect(restored).toMatchObject({
-        id: dbm.id,
-        obj: dbm.obj,
-        shu: dbm.shu,
-      })
-    })
-
     it('should read back a row written to the DB directly from dbmToStorageRow', async () => {
       const dao = createDao()
       const item = createItem(1) as Item
@@ -1280,7 +1299,7 @@ describe('auto compression', () => {
       NonNullable<CommonDaoCfg<Item>['compress']>['onOversizeWarning']
     >
 
-    it('should call onOversizeWarning when the compressed size exceeds the threshold', async () => {
+    it('should call onOversizeWarning with an unmutated copy of the row when the compressed size exceeds the threshold', async () => {
       const onOversizeWarning = vi.fn<OnOversizeWarning>()
       const dao = new CommonDao<Item>({
         table: TEST_TABLE,
@@ -1304,26 +1323,6 @@ describe('auto compression', () => {
       // hook receives pre-mutation snapshot (no __compressed yet, source keys still present)
       expect(dbm).not.toHaveProperty('__compressed')
       expect(size).toBeGreaterThan(1)
-    })
-
-    it('should pass onOversizeWarning a copy of the row that save does not mutate', async () => {
-      let capturedDbm: Item | undefined
-      const dao = new CommonDao<Item>({
-        table: TEST_TABLE,
-        db,
-        compress: {
-          keys: ['obj', 'shu'],
-          warnSizeBytes: 1,
-          onOversizeWarning: dbm => {
-            capturedDbm = dbm
-          },
-        },
-      })
-
-      await dao.save({ id: 'id1', obj: { objId: 'objId1' }, shu: 'shu1' })
-
-      expect(capturedDbm).toMatchObject({ obj: { objId: 'objId1' }, shu: 'shu1' })
-      expect(capturedDbm).not.toHaveProperty('__compressed')
     })
 
     it('should not call onOversizeWarning when the compressed size is under the threshold', async () => {
@@ -1536,3 +1535,7 @@ describe('auto compression', () => {
     })
   })
 })
+
+async function getEven(): Promise<TestItemBM[]> {
+  return await dao.query().filterEq('even', true).runQuery()
+}

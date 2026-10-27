@@ -39,7 +39,18 @@ export async function runCommonStorageTest(
   bucketName: string,
 ): Promise<void> {
   // this is because vitest cannot be "required" from cjs
-  const { expect, it } = await import('vitest')
+  const { afterAll, beforeAll, expect, it } = await import('vitest')
+
+  beforeAll(async () => {
+    await pMap(
+      TEST_FILES.map(f => f.filePath),
+      async filePath => await storage.deletePath(bucketName, filePath),
+    )
+  })
+
+  afterAll(async () => {
+    await storage.deletePath(bucketName, TEST_FOLDER)
+  })
 
   // test('createBucket', async () => {
   //   await storage.createBucket(bucketName)
@@ -58,13 +69,6 @@ export async function runCommonStorageTest(
   //   const buckets = await readableToArray(storage.getBucketNamesStream())
   //   console.log(buckets)
   // })
-
-  it('should delete the test files left from a previous run', async () => {
-    await pMap(
-      TEST_FILES.map(f => f.filePath),
-      async filePath => await storage.deletePath(bucketName, filePath),
-    )
-  })
 
   // test('listFileNames on root should return empty', async () => {
   //   const fileNames = await storage.getFileNames(bucketName)
@@ -143,10 +147,6 @@ export async function runCommonStorageTest(
     })
 
     expect(await storage.getFileMetadata(bucketName, `${TEST_FOLDER}/non_existing.json`)).toBeNull()
-  })
-
-  it('should delete the test folder', async () => {
-    await storage.deletePath(bucketName, TEST_FOLDER)
   })
 
   // Cannot update access control for an object when uniform bucket-level access is enabled. Read more at https://cloud.google.com/storage/docs/uniform-bucket-level-access

@@ -1,20 +1,38 @@
 import { afterAll, expect, it, vi } from 'vitest'
+import { fs2 } from '../fs/fs2.js'
 import { generateBuildInfo } from './buildInfo.util.js'
 
 afterAll(() => {
   process.env['APP_ENV'] = 'test' // restore
 })
 
-it('should include the repo name and not take env from an empty APP_ENV', () => {
-  let buildInfo = generateBuildInfo()
+it('should include the repo name and the branch name, and take env from APP_ENV', () => {
+  vi.stubEnv('APP_ENV', 'abc')
+
+  const buildInfo = generateBuildInfo({ overrideBranchName: 'my-branch' })
   // console.log(buildInfo)
   expect(buildInfo).toMatchObject({
     repoName: 'js-libs',
-    // env: 'test',
+    branchName: 'my-branch',
+    env: 'abc',
   })
-
-  vi.stubEnv('APP_ENV', '') // to not throw on APP_ENV=test check
-  buildInfo = generateBuildInfo()
-  console.log(buildInfo)
-  expect(buildInfo.env).not.toBe('test') // read from package.json
 })
+
+it.each([
+  ['master', 'master'],
+  ['my-branch', 'branch'],
+])(
+  'should take env from envByBranch in package.json for branch %s when APP_ENV is empty',
+  (branchName, env) => {
+    vi.stubEnv('APP_ENV', '')
+    vi.spyOn(fs2, 'readJson').mockReturnValue({
+      envByBranch: {
+        master: 'master',
+        '*': 'branch',
+      },
+    })
+
+    expect(generateBuildInfo({ overrideBranchName: branchName }).env).toBe(env)
+    expect(fs2.readJson).toHaveBeenCalledExactlyOnceWith('package.json')
+  },
+)

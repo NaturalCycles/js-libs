@@ -48,5 +48,5 @@ Where to look
 
 - These files live under `packages/nodejs-lib/src/validation/ajv/`.
 - `j` API + intent: `j.readme.md`
-- Type behavior: `jsonSchemaBuilder.test.ts`
-- Runtime behavior: `ajv.validations.test.ts` and `ajv.test.ts`
+- Type behavior: `jSchemaBuilder.test.ts`
+- Runtime behavior: `j.validations.test.ts` and `ajv.test.ts`
