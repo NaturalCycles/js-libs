@@ -1,4 +1,5 @@
 import type { AsyncMemoCache, MemoCache } from '@naturalcycles/js-lib/decorators'
+import { MISS } from '@naturalcycles/js-lib/types'
 import { LRUCache } from 'lru-cache'
 
 // Partial, to be able to provide default `max`
@@ -38,6 +39,9 @@ export class LRUMemoCache<KEY = any, VALUE = any> implements MemoCache<KEY, VALU
   }
 }
 
+// lru-cache never stores `undefined` (`set(k, undefined)` deletes `k`), so it's stored as this sentinel
+const UNDEFINED = Symbol('undefined')
+
 /**
  * Same as LRUMemoCache, but implements AsyncMemoCache interface, for when you need it.
  */
@@ -55,12 +59,14 @@ export class LRUAsyncMemoCache<KEY = any, VALUE = any> implements AsyncMemoCache
     return this.lru.has(k)
   }
 
-  async get(k: any): Promise<any> {
-    return this.lru.get(k)
+  async get(k: any): Promise<VALUE | typeof MISS> {
+    const v = this.lru.get(k)
+    if (v === undefined) return MISS
+    return v === UNDEFINED ? (undefined as VALUE) : v
   }
 
   async set(k: any, v: any): Promise<void> {
-    this.lru.set(k, v)
+    this.lru.set(k, v === undefined ? UNDEFINED : v)
   }
 
   async clear(): Promise<void> {
