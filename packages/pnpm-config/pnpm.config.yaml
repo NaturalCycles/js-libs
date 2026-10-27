@@ -11,9 +11,10 @@ minimumReleaseAgeExclude:
   - oxlint-tsgolint
   - '@oxlint/*'
   - '@oxlint-tsgolint/*'
-trustLockfile: true
-trustPolicyExcludePrune: true
-trustPolicy: no-downgrade
+# Below settings are one-liners and are not "worth" to be shared (-1 line, +1 line in the target config)
+# trustLockfile: true
+# trustPolicyExcludePrune: true
+# trustPolicy: no-downgrade
 # Below settings are kept as defaults.
 # minimumReleaseAge: 1440
 # blockExoticSubdeps: true
