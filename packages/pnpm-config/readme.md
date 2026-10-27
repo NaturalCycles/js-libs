@@ -46,8 +46,3 @@ bootConfig:
 Each setting has exactly one owner: a delegated setting must not also be defined in your own
 `pnpm-workspace.yaml`, or pnpm fails with `ERR_PNPM_DUPLICATE_SETTING`. Settings that you do not
 delegate stay fully under your control.
-
-## Notes
-
-- This package must stay dependency-free: pnpm config dependencies cannot have `dependencies` or
-  lifecycle scripts.
