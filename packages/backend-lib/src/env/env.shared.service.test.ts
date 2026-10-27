@@ -20,6 +20,7 @@ const cfg: EnvSharedServiceCfg<MyEnv> = {
 }
 
 afterAll(() => {
+  vi.unstubAllEnvs()
   process.env['APP_ENV'] = 'test' // restore
 })
 

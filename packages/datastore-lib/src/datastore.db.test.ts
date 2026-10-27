@@ -3,7 +3,9 @@ import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { afterAll, expect, it, vi } from 'vitest'
 import { DatastoreDB } from './datastore.db.js'
 
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
 afterAll(() => {
+  vi.unstubAllEnvs()
   process.env['APP_ENV'] = 'test' // restore original value
 })
 

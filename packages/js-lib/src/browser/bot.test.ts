@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, expect, it, vi } from 'vitest'
 import { BotReason } from '../bot.model.js'
 import { BotDetectionService } from './bot.js'
 
@@ -6,6 +6,11 @@ beforeEach(() => {
   vi.stubGlobal('window', { document: {} }) // this make isServerSide() return false
   vi.stubGlobal('navigator', undefined)
   vi.stubGlobal('chrome', undefined)
+})
+
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
+afterAll(() => {
+  vi.unstubAllGlobals()
 })
 
 const botDetectionService = new BotDetectionService()

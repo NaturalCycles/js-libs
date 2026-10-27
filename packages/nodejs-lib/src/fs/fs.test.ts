@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { globSync } from 'tinyglobby'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { testDir } from '../test/paths.cnst.js'
 import { fs2 } from './fs2.js'
 import { json2env } from './json2env.js'
@@ -24,6 +24,11 @@ beforeEach(() => {
 
 afterEach(() => {
   fs2.removePath(tmpDir)
+})
+
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
+afterAll(() => {
+  vi.unstubAllEnvs()
 })
 
 describe.each([

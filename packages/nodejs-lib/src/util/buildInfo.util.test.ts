@@ -2,7 +2,9 @@ import { afterAll, expect, it, vi } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
 import { generateBuildInfo } from './buildInfo.util.js'
 
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
 afterAll(() => {
+  vi.unstubAllEnvs()
   process.env['APP_ENV'] = 'test' // restore
 })
 

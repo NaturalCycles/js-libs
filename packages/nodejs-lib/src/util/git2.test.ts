@@ -73,6 +73,7 @@ describe('in a repo with a pushed and an unpushed commit, a modified and an untr
   })
 
   afterAll(() => {
+    vi.unstubAllEnvs()
     fs2.removePath(repoDir)
   })
 

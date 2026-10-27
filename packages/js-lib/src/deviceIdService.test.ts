@@ -1,7 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { _range } from './array/range.js'
 import { DeviceIdService } from './deviceIdService.js'
 import { InMemoryWebStorage } from './web.js'
+
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
+afterAll(() => {
+  vi.unstubAllGlobals()
+})
 
 describe('when run in Node', () => {
   it('should have a null deviceId and select no device', () => {

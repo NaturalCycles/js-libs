@@ -4,6 +4,7 @@ import { requireEnvKeys } from '../index.js'
 import { srcDir } from '../test/paths.cnst.js'
 
 afterAll(() => {
+  vi.unstubAllEnvs()
   process.env['APP_ENV'] = 'test' // restore
 })
 
