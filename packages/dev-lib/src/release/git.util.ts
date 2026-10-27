@@ -147,7 +147,10 @@ export function getCommitsSince(tag: string | undefined, relativeDir?: string): 
  * Create the release tag on HEAD and push it to origin.
  */
 export function createAndPushTag(tag: string, repo: RepoInfo): void {
-  exec2.exec(`git tag "${tag}"`)
+  // Always a lightweight tag: with `tag.gpgsign=true` in the local git config a plain `git tag`
+  // would try to create a signed annotated tag and fail with "no tag message?" - after the
+  // package was already published, leaving a version on npm without its tag.
+  exec2.exec(`git tag --no-sign "${tag}"`)
   try {
     exec2.exec(`git push "${getAuthenticatedRemote(repo)}" "refs/tags/${tag}"`)
   } catch {
