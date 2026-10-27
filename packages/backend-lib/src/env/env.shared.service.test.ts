@@ -23,7 +23,7 @@ afterAll(() => {
   process.env['APP_ENV'] = 'test' // restore
 })
 
-it('envService', () => {
+it('should load the env named by APP_ENV and cache it until setEnv', () => {
   const envService = new EnvSharedService(cfg)
 
   // test.env.ts not found

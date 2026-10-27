@@ -23,7 +23,7 @@ describe(`runCommonStorageTest`, async () => {
   await runCommonStorageTest(storage, FIREBASE_BUCKET)
 })
 
-it('listFiles', async () => {
+it('should list the file names of the bucket without throwing', async () => {
   const files = await storage.getFileNames(FIREBASE_BUCKET)
   console.log(files)
 })

@@ -35,7 +35,7 @@ it('should call onStats after measureInterval', async () => {
   console.log(stats)
 })
 
-it('should reset gc counters between intervals', async () => {
+it('should report gc stats within bounds on every interval', async () => {
   const stats: EventLoopStats[] = []
 
   monitor = new EventLoopMonitor({
@@ -58,7 +58,7 @@ it('should reset gc counters between intervals', async () => {
   }
 })
 
-it('stop should clean up resources', async () => {
+it('should stop without throwing', async () => {
   monitor = new EventLoopMonitor({ measureInterval: 50 })
 
   await pDelay(30)
@@ -71,7 +71,7 @@ it('stop should clean up resources', async () => {
   await pDelay(100)
 })
 
-it('stats values should be non-negative', async () => {
+it('should report non-negative delay and utilization stats', async () => {
   const stats: EventLoopStats[] = []
 
   monitor = new EventLoopMonitor({

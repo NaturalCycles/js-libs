@@ -2,7 +2,7 @@ import { _range } from '@naturalcycles/js-lib/array'
 import { expect, it } from 'vitest'
 import { generateJsonSchemaFromData } from './generateJsonSchemaFromData.js'
 
-it('generateJsonSchemaFromData1', () => {
+it('should infer primitive property types and skip undefined values', () => {
   const data1 = _range(5).map(i => {
     return { a: 'a', n: i, b: i % 2 === 0, c: null, u: undefined }
   })
@@ -32,7 +32,7 @@ it('generateJsonSchemaFromData1', () => {
   `)
 })
 
-it('generateJsonSchemaFromData2', () => {
+it('should infer oneOf for mixed types and nested schemas for objects and arrays', () => {
   const data2 = _range(20).map(i => {
     const r: any = { a: 'a', n: i, b: i % 2 === 0, u: undefined }
 

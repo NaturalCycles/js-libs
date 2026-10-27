@@ -15,7 +15,7 @@ beforeEach(() => {
   calledTimes = 0
 })
 
-it('memoFn', () => {
+it('should call the function once per set of args until the cache is cleared', () => {
   let expectedCallTimes = 0
   expect(calledTimes).toBe(expectedCallTimes)
 

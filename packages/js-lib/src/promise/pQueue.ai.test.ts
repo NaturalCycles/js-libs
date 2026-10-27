@@ -6,13 +6,13 @@ import { PQueue } from './pQueue.js'
 
 const quietCfg = { logLevel: 'warn' as const }
 
-it('basic - single job executes and returns result', async () => {
+it('should resolve a single job with its result', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   const result = await queue.push(async () => 42)
   expect(result).toBe(42)
 })
 
-it('basic - multiple jobs execute sequentially with concurrency 1', async () => {
+it('should run jobs one after another with concurrency 1', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   const order: number[] = []
 
@@ -42,7 +42,7 @@ it('basic - multiple jobs execute sequentially with concurrency 1', async () => 
   expect(order).toEqual([1, 2, 3, 4, 5, 6])
 })
 
-it('concurrency - respects concurrency limit of 2', async () => {
+it('should run at most 2 jobs at once with concurrency 2', async () => {
   const queue = new PQueue({ concurrency: 2, ...quietCfg })
   const maxConcurrent = { current: 0, max: 0 }
   const inFlight = { count: 0 }
@@ -70,7 +70,7 @@ it('concurrency - respects concurrency limit of 2', async () => {
   expect(maxConcurrent.max).toBe(2)
 })
 
-it('concurrency - high concurrency greater than job count', async () => {
+it('should start all jobs at once when concurrency exceeds the job count', async () => {
   const queue = new PQueue({ concurrency: 10, ...quietCfg })
   const startTimes: number[] = []
   const start = Date.now()
@@ -98,7 +98,7 @@ it('concurrency - high concurrency greater than job count', async () => {
   expect(startTimes.every(t => t < 15)).toBe(true)
 })
 
-it('queue order - jobs execute in FIFO order', async () => {
+it('should run jobs in FIFO order', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   const executionOrder: number[] = []
 
@@ -118,7 +118,7 @@ it('queue order - jobs execute in FIFO order', async () => {
   expect(executionOrder).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 })
 
-it('queueSize - reflects pending jobs count', async () => {
+it('should report the number of waiting jobs in queueSize', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   expect(queue.queueSize).toBe(0)
 
@@ -141,7 +141,7 @@ it('queueSize - reflects pending jobs count', async () => {
   expect(queue.inFlight).toBe(0)
 })
 
-it('inFlight - tracks currently executing jobs', async () => {
+it('should report the number of running jobs in inFlight', async () => {
   const queue = new PQueue({ concurrency: 3, ...quietCfg })
   expect(queue.inFlight).toBe(0)
 
@@ -166,7 +166,7 @@ it('inFlight - tracks currently executing jobs', async () => {
   expect(queue.inFlight).toBe(0)
 })
 
-it('error - THROW_IMMEDIATELY rejects push promise', async () => {
+it('should reject the push promise with THROW_IMMEDIATELY', async () => {
   const queue = new PQueue({
     concurrency: 1,
     errorMode: ErrorMode.THROW_IMMEDIATELY,
@@ -181,7 +181,7 @@ it('error - THROW_IMMEDIATELY rejects push promise', async () => {
   ).rejects.toThrow('test error')
 })
 
-it('error - THROW_IMMEDIATELY does not block queue', async () => {
+it('should keep running queued jobs after an error with THROW_IMMEDIATELY', async () => {
   const queue = new PQueue({
     concurrency: 1,
     errorMode: ErrorMode.THROW_IMMEDIATELY,
@@ -209,7 +209,7 @@ it('error - THROW_IMMEDIATELY does not block queue', async () => {
   expect(results[1]).toBe('success')
 })
 
-it('error - SUPPRESS resolves with undefined', async () => {
+it('should resolve a failing job with undefined with SUPPRESS', async () => {
   const queue = new PQueue({
     concurrency: 1,
     errorMode: ErrorMode.SUPPRESS,
@@ -223,7 +223,7 @@ it('error - SUPPRESS resolves with undefined', async () => {
   expect(result).toBeUndefined()
 })
 
-it('error - SUPPRESS does not block queue', async () => {
+it('should keep running queued jobs after an error with SUPPRESS', async () => {
   const queue = new PQueue({
     concurrency: 1,
     errorMode: ErrorMode.SUPPRESS,
@@ -238,7 +238,7 @@ it('error - SUPPRESS does not block queue', async () => {
   expect([r1, r2]).toEqual([undefined, 'success'])
 })
 
-it('resolveOn start - push resolves when job starts', async () => {
+it('should resolve push when the job starts with resolveOn start', async () => {
   const queue = new PQueue({
     concurrency: 1,
     resolveOn: 'start',
@@ -264,7 +264,7 @@ it('resolveOn start - push resolves when job starts', async () => {
   expect(jobCompleted).toBe(true)
 })
 
-it('resolveOn start - returns void not result', async () => {
+it('should resolve push with undefined with resolveOn start', async () => {
   const queue = new PQueue({
     concurrency: 1,
     resolveOn: 'start',
@@ -275,7 +275,7 @@ it('resolveOn start - returns void not result', async () => {
   expect(result).toBeUndefined()
 })
 
-it('resolveOn start - errors do not reject', async () => {
+it('should not reject push on a job error with resolveOn start', async () => {
   const queue = new PQueue({
     concurrency: 1,
     resolveOn: 'start',
@@ -291,14 +291,14 @@ it('resolveOn start - errors do not reject', async () => {
   await queue.onIdle()
 })
 
-it('onIdle - resolves immediately when already idle', async () => {
+it('should resolve onIdle immediately when idle', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   const start = Date.now()
   await queue.onIdle()
   expect(Date.now() - start).toBeLessThan(10)
 })
 
-it('onIdle - waits for in-flight jobs', async () => {
+it('should wait in onIdle for the running job', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   void queue.push(async () => {
@@ -315,7 +315,7 @@ it('onIdle - waits for in-flight jobs', async () => {
   expect(queue.inFlight).toBe(0)
 })
 
-it('onIdle - waits for queued jobs', async () => {
+it('should wait in onIdle for the queued jobs', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   void queue.push(async () => await pDelay(20))
@@ -330,7 +330,7 @@ it('onIdle - waits for queued jobs', async () => {
   expect(Date.now() - start).toBeGreaterThanOrEqual(50)
 })
 
-it('onIdle - multiple listeners all resolve', async () => {
+it('should resolve every onIdle listener', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   void queue.push(async () => await pDelay(30))
@@ -346,7 +346,7 @@ it('onIdle - multiple listeners all resolve', async () => {
   expect(resolved.sort()).toEqual([1, 2, 3])
 })
 
-it('no lost executions - all jobs complete with high concurrency', async () => {
+it('should run all 100 jobs with concurrency 5', async () => {
   const queue = new PQueue({ concurrency: 5, ...quietCfg })
   const executed = new Set<number>()
 
@@ -370,7 +370,7 @@ it('no lost executions - all jobs complete with high concurrency', async () => {
   }
 })
 
-it('no lost executions - rapid push and complete cycle', async () => {
+it('should run every job over rapid push and complete rounds', async () => {
   const queue = new PQueue({ concurrency: 2, ...quietCfg })
   const executed: number[] = []
 
@@ -392,7 +392,7 @@ it('no lost executions - rapid push and complete cycle', async () => {
   expect(new Set(executed).size).toBe(50)
 })
 
-it('no lost executions - interleaved errors and successes', async () => {
+it('should run every job when some fail with SUPPRESS', async () => {
   const queue = new PQueue({
     concurrency: 3,
     errorMode: ErrorMode.SUPPRESS,
@@ -418,7 +418,7 @@ it('no lost executions - interleaved errors and successes', async () => {
   expect(executed).toHaveLength(30)
 })
 
-it('stress - many jobs with varying delays', async () => {
+it('should run 200 jobs with random delays at concurrency 10', async () => {
   const queue = new PQueue({ concurrency: 10, ...quietCfg })
   const completed: number[] = []
 
@@ -438,7 +438,7 @@ it('stress - many jobs with varying delays', async () => {
   expect(completed).toHaveLength(200)
 })
 
-it('edge case - empty queue operations', async () => {
+it('should report an empty queue as idle', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   expect(queue.queueSize).toBe(0)
@@ -446,19 +446,19 @@ it('edge case - empty queue operations', async () => {
   await queue.onIdle() // Should resolve immediately
 })
 
-it('edge case - job that returns undefined', async () => {
+it('should resolve a job returning undefined with undefined', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   const result = await queue.push(async () => undefined)
   expect(result).toBeUndefined()
 })
 
-it('edge case - job that returns null', async () => {
+it('should resolve a job returning null with null', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   const result = await queue.push(async () => null)
   expect(result).toBeNull()
 })
 
-it('edge case - job that returns a nested promise', async () => {
+it('should resolve a job returning a promise with its value', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   // Test that nested promises are properly unwrapped
   const nestedPromise = Promise.resolve('nested')
@@ -466,7 +466,7 @@ it('edge case - job that returns a nested promise', async () => {
   expect(result).toBe('nested')
 })
 
-it('edge case - concurrency 1 acts as serial queue', async () => {
+it('should not start the next job before the previous one ends with concurrency 1', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   const events: string[] = []
 
@@ -486,8 +486,8 @@ it('edge case - concurrency 1 acts as serial queue', async () => {
   expect(events).toEqual(['a-start', 'a-end', 'b-start', 'b-end'])
 })
 
-describe('potential bug - same function reference pushed twice', () => {
-  it('same function pushed twice should execute twice', async () => {
+describe('the same function reference is pushed twice', () => {
+  it('should call the function twice', async () => {
     const queue = new PQueue({ concurrency: 1, ...quietCfg })
     let callCount = 0
 
@@ -512,7 +512,7 @@ describe('potential bug - same function reference pushed twice', () => {
   })
 })
 
-it('synchronous throw does not block queue', async () => {
+it('should keep running queued jobs after a job throws synchronously with SUPPRESS', async () => {
   const queue = new PQueue({
     concurrency: 1,
     errorMode: ErrorMode.SUPPRESS,
@@ -541,7 +541,7 @@ it('synchronous throw does not block queue', async () => {
   expect(queue.inFlight).toBe(0)
 })
 
-it('concurrent push calls at same instant', async () => {
+it('should run all 20 jobs pushed at once with concurrency 2', async () => {
   const queue = new PQueue({ concurrency: 2, ...quietCfg })
   const results: number[] = []
 
@@ -559,7 +559,7 @@ it('concurrent push calls at same instant', async () => {
   expect(results).toHaveLength(20)
 })
 
-it('push during onIdle resolution', async () => {
+it('should run a job pushed while onIdle is pending', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   void queue.push(async () => await pDelay(20))
@@ -576,7 +576,7 @@ it('push during onIdle resolution', async () => {
   expect(result).toBe('late result')
 })
 
-it('jobs pushed from within job callback', async () => {
+it('should run a job pushed from inside another job', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
   const executed: string[] = []
 
@@ -599,7 +599,7 @@ it('jobs pushed from within job callback', async () => {
   expect(executed).toContain('inner')
 })
 
-it('error in job does not affect other jobs results', async () => {
+it('should resolve the other jobs when one job rejects with concurrency 2', async () => {
   const queue = new PQueue({
     concurrency: 2,
     errorMode: ErrorMode.THROW_IMMEDIATELY,
@@ -639,7 +639,7 @@ it('error in job does not affect other jobs results', async () => {
   expect(results.find(r => r.id === 3)?.status).toBe('success')
 })
 
-it('queue continues after rejection in THROW_IMMEDIATELY mode', async () => {
+it('should run the remaining jobs in order after a rejection with THROW_IMMEDIATELY', async () => {
   const queue = new PQueue({
     concurrency: 1,
     errorMode: ErrorMode.THROW_IMMEDIATELY,
@@ -673,7 +673,7 @@ it('queue continues after rejection in THROW_IMMEDIATELY mode', async () => {
   expect(executed).toEqual([1, 2, 3])
 })
 
-it('returning rejected promise vs throwing', async () => {
+it('should reject push for both a returned rejected promise and a thrown error', async () => {
   const queue = new PQueue({
     concurrency: 1,
     errorMode: ErrorMode.THROW_IMMEDIATELY,
@@ -696,7 +696,7 @@ it('returning rejected promise vs throwing', async () => {
   expect(await queue.push(async () => 'ok')).toBe('ok')
 })
 
-it('very long queue processes completely', async () => {
+it('should run all 500 immediately resolving jobs and end empty', async () => {
   const queue = new PQueue({ concurrency: 5, ...quietCfg })
   const count = 500
   const executed = new Set<number>()
@@ -715,7 +715,7 @@ it('very long queue processes completely', async () => {
   expect(queue.inFlight).toBe(0)
 })
 
-it('mixed resolveOn behavior is not supported (config is per queue)', async () => {
+it('should resolve push with the job result with resolveOn finish', async () => {
   // Just verifying that resolveOn is a queue-wide setting, not per-job
   const queue = new PQueue({
     concurrency: 1,
@@ -731,7 +731,7 @@ it('mixed resolveOn behavior is not supported (config is per queue)', async () =
   expect(result).toBe('finished')
 })
 
-it('onIdle called multiple times in sequence', async () => {
+it('should resolve onIdle again after each new job', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   void queue.push(async () => await pDelay(20))
@@ -747,7 +747,7 @@ it('onIdle called multiple times in sequence', async () => {
   expect(queue.queueSize).toBe(0)
 })
 
-it('rapid onIdle polling', async () => {
+it('should resolve many concurrent onIdle calls once the job ends', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   void queue.push(async () => await pDelay(50))
@@ -759,7 +759,7 @@ it('rapid onIdle polling', async () => {
   expect(queue.inFlight).toBe(0)
 })
 
-it('job returning complex object', async () => {
+it('should resolve a job with the same object reference it returns', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   const complexResult = {
@@ -774,7 +774,7 @@ it('job returning complex object', async () => {
   expect(result.nested.value).toBe(42)
 })
 
-it('async generator function as job', async () => {
+it('should resolve a job that awaits in a loop with its array result', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   // Note: This doesn't truly test async generators, but jobs returning async iterables
@@ -790,7 +790,7 @@ it('async generator function as job', async () => {
   expect(result).toEqual([1, 2, 3])
 })
 
-it('default errorMode is THROW_IMMEDIATELY', async () => {
+it('should reject push on a job error by default', async () => {
   const queue = new PQueue({ concurrency: 1, ...quietCfg })
 
   await expect(
@@ -800,7 +800,7 @@ it('default errorMode is THROW_IMMEDIATELY', async () => {
   ).rejects.toThrow('test')
 })
 
-it('logger receives debug calls when logLevel is debug', async () => {
+it('should log debug messages with inFlight when logLevel is debug', async () => {
   const debugMessages: string[] = []
   const mockLogger = commonLoggerCreate(entry => {
     if (entry.level === 'debug') debugMessages.push(String(entry.msg))
@@ -815,7 +815,7 @@ it('logger receives debug calls when logLevel is debug', async () => {
   expect(debugMessages.some(m => m.includes('inFlight'))).toBe(true)
 })
 
-it('error logging - only logs when not re-throwing', async () => {
+it('should log a job error only when it is suppressed', async () => {
   const errors: unknown[] = []
   const mockLogger = commonLoggerCreate(entry => {
     if (entry.level === 'error') errors.push(entry.err)

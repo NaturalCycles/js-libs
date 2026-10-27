@@ -16,7 +16,7 @@ const airtableLib = new AirtableLib({
   apiKey: 'fakekey',
 })
 
-it('getCache', async () => {
+it('should lazy-load the cache without setting lastChanged', async () => {
   const baseDao = mockBaseDao(airtableLib, 'baseId')
 
   expect(baseDao.lastChanged).toBeUndefined()
@@ -30,7 +30,7 @@ it('getCache', async () => {
   expect(baseDao.lastChanged).toBeUndefined() // accessing the cache and lazy-loading it is not considered as "changed"
 })
 
-it('cacheUpdated$', async () => {
+it('should notify cache listeners only when the cache content changes', async () => {
   const baseDao = mockBaseDao(airtableLib, 'baseId')
 
   let updatedTimes = 0

@@ -13,42 +13,42 @@ import {
   osFixtures,
 } from './ua.test.fixtures.js'
 
-it('parseUserAgent equals new UAParser().setUA().getResult()', () => {
+it('should return the same result from parseUserAgent as from UAParser', () => {
   const ua =
     'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/536.6 (KHTML, like Gecko) Chrome/20.0.1090.0 Safari/536.6'
   expect(parseUserAgent(ua)).toStrictEqual(new UAParser().setUA(ua).getResult())
 })
 
-it('constructor does not throw with undefined ua argument', () => {
+it('should not throw on an undefined ua in the constructor', () => {
   expect(() => new UAParser(undefined).getResult()).not.toThrow()
   expect(() => uaParser(undefined).getResult()).not.toThrow()
 })
 
-it('setUA does not throw with undefined ua argument', () => {
+it('should not throw on an undefined ua in setUA', () => {
   expect(() => new UAParser().setUA(undefined).getResult()).not.toThrow()
 })
 
-it('getBrowser', () => {
+it('should parse the browser of every fixture', () => {
   testFixtures(browserFixtures, parser => parser.getBrowser())
 })
 
-it('getCPU', () => {
+it('should parse the CPU of every fixture', () => {
   testFixtures(cpuFixtures, parser => parser.getCPU())
 })
 
-it('getDevice', () => {
+it('should parse the device of every fixture', () => {
   testFixtures(deviceFixtures, parser => parser.getDevice())
 })
 
-it('getEngine', () => {
+it('should parse the engine of every fixture', () => {
   testFixtures(engineFixtures, parser => parser.getEngine())
 })
 
-it('getOS', () => {
+it('should parse the OS of every fixture', () => {
   testFixtures(osFixtures, parser => parser.getOS())
 })
 
-it('getResult returns all-undefined values for empty ua', () => {
+it('should return all-undefined values for an empty ua', () => {
   expect(new UAParser('').getResult()).toStrictEqual({
     ua: '',
     browser: { name: undefined, version: undefined, major: undefined },
@@ -59,7 +59,7 @@ it('getResult returns all-undefined values for empty ua', () => {
   })
 })
 
-it('extending regexes', () => {
+it('should parse a custom browser with extension regexes', () => {
   const uaString = 'Mozilla/5.0 MyOwnBrowser/1.3'
   const myOwnBrowser: UARegexMapEntry[] = [
     [/(myownbrowser)\/((\d+)?[\w.]+)/i],
@@ -80,7 +80,7 @@ it('extending regexes', () => {
   expect(parser2.getBrowser().name).toBe('MyOwnBrowser')
 })
 
-it('user-agent longer than 500 characters is trimmed down', () => {
+it('should trim a user agent longer than 500 characters', () => {
   const uaString = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '.padEnd(1000, 'x')
   expect(parseUserAgent(uaString).ua).toHaveLength(500)
 })
@@ -121,7 +121,7 @@ const UA_INSTAGRAM_IOS =
 
 // Fixed-assignment names are wired to the enums inside the regex maps; names captured
 // from the UA text (e.g. 'Android', 'Safari', desktop 'Chrome') are pinned by these tests.
-it('UAOSName matches the parser vocabulary', () => {
+it('should parse every UAOSName from a sample user agent', () => {
   const uaByOsName: Record<UAOSName, string> = {
     [UAOSName.iOS]: UA_IPHONE_SAFARI,
     [UAOSName.Android]: UA_ANDROID_CHROME,
@@ -136,7 +136,7 @@ it('UAOSName matches the parser vocabulary', () => {
   }
 })
 
-it('UABrowserName matches the parser vocabulary', () => {
+it('should parse every UABrowserName from a sample user agent', () => {
   const uaByBrowserName: Record<UABrowserName, string> = {
     [UABrowserName.Chrome]: UA_MAC_CHROME,
     [UABrowserName.ChromeWebView]: UA_ANDROID_WEBVIEW,
@@ -156,7 +156,7 @@ it('UABrowserName matches the parser vocabulary', () => {
   }
 })
 
-it('is* helpers', () => {
+it('should detect the OS, browser and device type with the is* helpers', () => {
   const parser = uaParser(UA_IPHONE_SAFARI)
   expect(parser.isIos()).toBe(true)
   expect(parser.isAndroid()).toBe(false)

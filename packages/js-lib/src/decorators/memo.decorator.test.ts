@@ -16,7 +16,7 @@ class A {
   }
 }
 
-it('memo a', () => {
+it('should call the method once per set of arguments and clear the instance cache', () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -43,7 +43,7 @@ it('memo a', () => {
   expect(_getMemo(a.a).getInstanceCache().size).toBe(0)
 })
 
-it('MEMO_DROP_CACHE', () => {
+it('should call the method again after the cache is cleared', () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -58,7 +58,7 @@ it('MEMO_DROP_CACHE', () => {
   expect(a.func).toHaveBeenCalledTimes(2)
 })
 
-it('memo unsupported', () => {
+it('should throw when applied to a non-method', () => {
   const pd = { value: 'property' } as PropertyDescriptor
   expect(() => _Memo()(null as any, 'a', pd)).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: Memoization can be applied only to methods]`,
@@ -75,7 +75,7 @@ class B {
   }
 }
 
-it('should work with default arg values', () => {
+it('should cache a call with default args apart from one passing the default explicitly', () => {
   const b = new B()
 
   // Call 1 with default (cache miss). arg1=undefined
@@ -103,7 +103,7 @@ class C {
   }
 }
 
-it('swarm test of async function', async () => {
+it('should call an async method once for parallel calls', async () => {
   // Swarm is when one "slow" async function is called multiple times in parallel
   // Expectation is that it should return the same Promise and `calls` should equal to 1
   // Because it **synchronously** returns a Promise (despite the fact that it's async)

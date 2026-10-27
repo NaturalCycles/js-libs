@@ -1,3 +1,3 @@
 import { it } from 'vitest'
 
-it('some manual test', () => {})
+it('should run as a manual test', () => {})

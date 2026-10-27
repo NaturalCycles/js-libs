@@ -3,7 +3,7 @@ import { expect, it } from 'vitest'
 import { createReadableFrom } from '../index.js'
 import { Pipeline } from '../pipeline.js'
 
-it('transformLimit', async () => {
+it('should pass only the first items with limit', async () => {
   const data = _range(1, 50).map(n => ({ id: String(n) }))
 
   const arr = await Pipeline.fromArray(data).limit(5).toArray()
@@ -11,7 +11,7 @@ it('transformLimit', async () => {
   expect(arr).toEqual(data.slice(0, 5))
 })
 
-it('using .take', async () => {
+it('should take the first items with Readable.take', async () => {
   const data = _range(1, 50).map(n => ({ id: String(n) }))
   const readable = createReadableFrom(data)
 
@@ -20,7 +20,7 @@ it('using .take', async () => {
   expect(arr).toEqual(data.slice(0, 5))
 })
 
-it('flatMap', async () => {
+it('should flatMap items after Readable.take', async () => {
   const data = _range(1, 50).map(n => ({ id: n }))
   const readable = createReadableFrom(data)
 

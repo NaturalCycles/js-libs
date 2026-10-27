@@ -1,6 +1,6 @@
 import { it } from 'vitest'
 import { pHang } from './pHang.js'
 
-it('pHang', async () => {
+it('should return a promise without throwing', async () => {
   void pHang() // never resolves
 })

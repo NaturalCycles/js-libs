@@ -106,7 +106,7 @@ async function post(
   })
 }
 
-it('genericErrorFormatter', async () => {
+it('should apply formatError to the error data in the response', async () => {
   let res = await app.get<BackendErrorResponseObject>('asyncError', {
     throwHttpErrors: false,
   })

@@ -2,7 +2,7 @@ import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, it } from 'vitest'
 import { _chunkBuffer } from './buffer.util.js'
 
-it('_chunkBuffer', () => {
+it('should split a buffer into chunks of the given size', () => {
   const buf = Buffer.from(_range(1, 11))
 
   // <Buffer 01 02 03 04 05 06 07 08 09 0a>

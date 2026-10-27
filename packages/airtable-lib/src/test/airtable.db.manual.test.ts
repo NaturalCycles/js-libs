@@ -30,7 +30,7 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(db, quirks)
 })
 
-it.skip('manual1', async () => {
+it.skip('should save to a table qualified with its base id', async () => {
   delete db.cfg.baseId
 
   await db.saveBatch<any>(`appT51quIWm4RiMpc.Translations`, [

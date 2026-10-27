@@ -26,7 +26,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-it('defaults', () => {
+it('should apply the default config and request options', () => {
   const fetcher = getFetcher()
   expect(_omit(fetcher.cfg, ['logger'])).toMatchInlineSnapshot(`
     {
@@ -133,7 +133,7 @@ it('should not mutate console', () => {
   expect(consoleSpy).toHaveBeenCalledTimes(1)
 })
 
-it('mocking fetch', async () => {
+it('should return an HttpRequestError with the backend error as cause on a 500 response', async () => {
   const fetcher = getNonRetryFetcher({
     logResponse: true,
   })
@@ -216,7 +216,7 @@ it('mocking fetch', async () => {
   })
 })
 
-it('fetchFn', async () => {
+it('should use the configured fetchFn', async () => {
   const fetcher = getNonRetryFetcher({
     fetchFn: async (url, _init) => {
       return Response.json({ url })
@@ -228,7 +228,7 @@ it('fetchFn', async () => {
   expect(r).toEqual({ url })
 })
 
-it('throwHttpErrors = false', async () => {
+it('should return the error body instead of throwing when throwHttpErrors is false', async () => {
   const fetcher = getNonRetryFetcher({
     throwHttpErrors: false,
   })
@@ -252,7 +252,7 @@ it('throwHttpErrors = false', async () => {
   expect(r).toEqual({ error })
 })
 
-it('json parse error', async () => {
+it('should fail with a JsonParseError cause when the body is not JSON', async () => {
   const fetcher = getNonRetryFetcher()
   vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(new Response('some text'))
 
@@ -279,7 +279,7 @@ it('json parse error', async () => {
   `)
 })
 
-it('paginate', async () => {
+it('should fetch every page in a manual pagination loop', async () => {
   const fetcher = getNonRetryFetcher({
     debug: true,
     logResponseBody: true,
@@ -331,7 +331,7 @@ it('paginate', async () => {
   expect(results).toEqual(_range(0, pageSize * 10))
 })
 
-it('retryAfter', async () => {
+it('should retry a 429 with a retry-after delay and return the final response', async () => {
   vi.useFakeTimers()
   const fetcher = getFetcher({
     debug: true,
@@ -355,7 +355,7 @@ it('retryAfter', async () => {
   expect(r).toBe('ok')
 })
 
-it('retryAfter date', async () => {
+it('should retry a 429 with a retry-after date and return the final response', async () => {
   vi.useFakeTimers()
   const fetcher = getFetcher({
     debug: true,
@@ -380,7 +380,7 @@ it('retryAfter date', async () => {
   expect(r).toBe('ok')
 })
 
-it('tryFetch', async () => {
+it('should return [error, null] on failure and [null, data] on success from tryFetch', async () => {
   vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(
     new Response('bad', {
       status: 500,
@@ -417,7 +417,7 @@ it('tryFetch', async () => {
   }
 })
 
-it('should not mutate headers', async () => {
+it('should not leak per-request headers into later requests', async () => {
   const a: any[] = []
   vi.spyOn(Fetcher, 'callNativeFetch').mockImplementation(async (_url, init) => {
     a.push(init.headers)
@@ -453,7 +453,7 @@ it('should not mutate headers', async () => {
   expect(a[0]).not.toBe(a[1])
 })
 
-it('fetcher response headers', async () => {
+it('should expose the response headers on fetchResponse', async () => {
   const fetcher = getNonRetryFetcher()
 
   vi.spyOn(Fetcher, 'callNativeFetch').mockResolvedValue(Response.json({ ok: 1 }))
@@ -466,7 +466,7 @@ it('fetcher response headers', async () => {
   `)
 })
 
-it('expectError', async () => {
+it('should return the error from expectError, throwing UnexpectedPassError on success', async () => {
   const fetcher = getNonRetryFetcher()
 
   // 1. Error should pass
@@ -515,7 +515,7 @@ function getNonRetryFetcher(opt?: FetcherCfg & FetcherOptions): Fetcher {
   })
 }
 
-it('onError', async () => {
+it('should let the onError hook modify the error', async () => {
   mockFetcherWithError()
   const fetcher = getNonRetryFetcher()
 
@@ -530,7 +530,7 @@ it('onError', async () => {
   expect(err.data['aa']).toBe('aa')
 })
 
-it('errorData', async () => {
+it('should add errorData to the error data', async () => {
   mockFetcherWithError()
   const fetcher = getNonRetryFetcher()
 
@@ -562,7 +562,7 @@ it('should allow to change user-agent', async () => {
   Fetcher.userAgent = backup
 })
 
-it('HttpRequestError', async () => {
+it('should set the base url, fetcher name and request name in the error data', async () => {
   mockFetcherWithError()
 
   // Bare fetcher: no name, no baseUrl
@@ -616,7 +616,7 @@ it('HttpRequestError', async () => {
   expect(err.data.requestName).toBe(requestName)
 })
 
-it('timeout should throw DOMException with name TimeoutError', async () => {
+it('should fail with a TimeoutError cause when the request times out', async () => {
   const fetcher = getNonRetryFetcher({
     timeoutSeconds: 0.05,
   })
@@ -641,7 +641,7 @@ it('timeout should throw DOMException with name TimeoutError', async () => {
   expect(err.cause.name).toBe('TimeoutError')
 })
 
-it('timeout error is detectable via cause.name === TimeoutError', async () => {
+it('should fail tryFetch with a TimeoutError cause when the request times out', async () => {
   const fetcher = getNonRetryFetcher({
     timeoutSeconds: 0.05,
   })
@@ -663,7 +663,7 @@ it('timeout error is detectable via cause.name === TimeoutError', async () => {
   expect(err.cause.name).toBe('TimeoutError')
 })
 
-it('signal - caller can abort the request', async () => {
+it('should fail when the caller aborts the signal', async () => {
   const fetcher = getNonRetryFetcher()
   const controller = new AbortController()
 
@@ -685,7 +685,7 @@ it('signal - caller can abort the request', async () => {
   expect(err).toBeDefined()
 })
 
-it('signal - combined with timeout, whichever fires first wins', async () => {
+it('should fail with the AbortError of the caller when it aborts before a long timeout', async () => {
   const fetcher = getNonRetryFetcher({
     timeoutSeconds: 10, // long timeout
   })
@@ -714,7 +714,7 @@ it('signal - combined with timeout, whichever fires first wins', async () => {
   expect(err.cause.message).toContain('user cancelled')
 })
 
-it('signal - no timeout, only caller signal', async () => {
+it('should fail with the AbortError of the caller when no timeout is set', async () => {
   const fetcher = getNonRetryFetcher({
     timeoutSeconds: 0,
   })
@@ -741,7 +741,7 @@ it('signal - no timeout, only caller signal', async () => {
   expect(err.cause.name).toBe('AbortError')
 })
 
-it('signal - aborted signal should not retry', async () => {
+it('should not retry after the caller aborts', async () => {
   const fetchSpy = vi.spyOn(Fetcher, 'callNativeFetch')
   let callCount = 0
 
@@ -769,7 +769,7 @@ it('signal - aborted signal should not retry', async () => {
   expect(callCount).toBe(1)
 })
 
-it('cfg-level retry3xx is honored', async () => {
+it('should retry 3xx responses when retry3xx is set in the config', async () => {
   const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
   let attempts = 0
   const fetcher = getFetcher({
@@ -787,7 +787,7 @@ it('cfg-level retry3xx is honored', async () => {
   randomSpy.mockRestore()
 })
 
-it('throwHttpErrors=false still retries and returns error body', async () => {
+it('should retry and then return the error body when throwHttpErrors is false', async () => {
   const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
   let attempts = 0
   const fetcher = getFetcher({
@@ -806,7 +806,7 @@ it('throwHttpErrors=false still retries and returns error body', async () => {
   randomSpy.mockRestore()
 })
 
-it('throwHttpErrors=false still throws on network errors', async () => {
+it('should still throw on network errors when throwHttpErrors is false', async () => {
   const fetcher = getNonRetryFetcher({
     throwHttpErrors: false,
     fetchFn: async () => {
@@ -817,7 +817,7 @@ it('throwHttpErrors=false still throws on network errors', async () => {
   await expect(fetcher.get('someUrl')).rejects.toThrow(HttpRequestError)
 })
 
-it('error cause is taken from the last retry attempt', async () => {
+it('should take the error cause from the last retry attempt', async () => {
   const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
   let attempts = 0
   const fetcher = getFetcher({
@@ -839,7 +839,7 @@ it('error cause is taken from the last retry attempt', async () => {
   randomSpy.mockRestore()
 })
 
-it('first retry delay uses the configured retry timeout', async () => {
+it('should wait the configured retry timeout before the first retry and double it after', async () => {
   vi.useFakeTimers()
   const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
   let attempts = 0
@@ -865,7 +865,7 @@ it('first retry delay uses the configured retry timeout', async () => {
   randomSpy.mockRestore()
 })
 
-it('per-request fetchFn is used', async () => {
+it('should use a per-request fetchFn', async () => {
   const fetcher = getNonRetryFetcher()
 
   const r = await fetcher.get('someUrl', {
@@ -874,7 +874,7 @@ it('per-request fetchFn is used', async () => {
   expect(r).toEqual({ per: 'request' })
 })
 
-it('retry-after larger than timeoutMax is honored as-is', async () => {
+it('should wait for a retry-after above timeoutMax without clamping it', async () => {
   vi.useFakeTimers()
   let attempts = 0
   const fetcher = getFetcher({
@@ -897,7 +897,7 @@ it('retry-after larger than timeoutMax is honored as-is', async () => {
   await promise
 })
 
-it('retry-after exceeding maxRetryAfter stops retrying', async () => {
+it('should stop retrying when retry-after exceeds maxRetryAfter', async () => {
   let attempts = 0
   const fetcher = getFetcher({
     logger: commonLoggerNoop,
@@ -917,7 +917,7 @@ it('retry-after exceeding maxRetryAfter stops retrying', async () => {
   expect(attempts).toBe(1)
 })
 
-it('x-ratelimit-reset with unix timestamp value', async () => {
+it('should wait until an x-ratelimit-reset unix timestamp before retrying', async () => {
   vi.useFakeTimers()
   let attempts = 0
   const resetAt = Math.floor(Date.now() / 1000) + 10 // 10 seconds from now
@@ -941,7 +941,7 @@ it('x-ratelimit-reset with unix timestamp value', async () => {
   await promise
 })
 
-it('abort during retry backoff stops promptly without another attempt', async () => {
+it('should stop without another attempt when aborted during the retry backoff', async () => {
   const controller = new AbortController()
   let attempts = 0
   const fetcher = getFetcher({
@@ -961,7 +961,7 @@ it('abort during retry backoff stops promptly without another attempt', async ()
   expect(Date.now() - started).toBeLessThan(5000)
 })
 
-it('getBytes returns Uint8Array', async () => {
+it('should return the body as a Uint8Array from getBytes', async () => {
   const fetcher = getNonRetryFetcher({
     fetchFn: async () => new Response(new Uint8Array([1, 2, 3])),
   })
@@ -971,7 +971,7 @@ it('getBytes returns Uint8Array', async () => {
   expect(Array.from(r)).toEqual([1, 2, 3])
 })
 
-it('json option does not override explicitly-set content-type', async () => {
+it('should keep an explicitly set content-type when the json option is used', async () => {
   let headers: any
   const fetcher = getNonRetryFetcher({
     fetchFn: async (_url, init) => {
@@ -987,7 +987,7 @@ it('json option does not override explicitly-set content-type', async () => {
   expect(headers['content-type']).toBe('application/vnd.api+json')
 })
 
-it('init hooks run lazily, once per instance', async () => {
+it('should run init hooks lazily, once per instance', async () => {
   let inits = 0
   const seenTokens: any[] = []
   const fetcher = getNonRetryFetcher({
@@ -1008,7 +1008,7 @@ it('init hooks run lazily, once per instance', async () => {
   expect(seenTokens).toEqual(['secret', 'secret', 'secret'])
 })
 
-it('failing init hook is re-attempted on the next request', async () => {
+it('should re-run a failing init hook on the next request', async () => {
   let inits = 0
   const fetcher = getNonRetryFetcher({
     fetchFn: async () => Response.json({ ok: 1 }),
@@ -1022,7 +1022,7 @@ it('failing init hook is re-attempted on the next request', async () => {
   expect(inits).toBe(2)
 })
 
-it('shouldReinit triggers reinit and a single retry', async () => {
+it('should reinit and retry once when shouldReinit returns true', async () => {
   let inits = 0
   const fetcher = getNonRetryFetcher({
     fetchFn: async (_url, init) => {
@@ -1040,7 +1040,7 @@ it('shouldReinit triggers reinit and a single retry', async () => {
   expect(inits).toBe(2)
 })
 
-it('shouldReinit retries at most once per request', async () => {
+it('should reinit and retry at most once per request', async () => {
   let inits = 0
   let requests = 0
   const fetcher = getNonRetryFetcher({
@@ -1060,7 +1060,7 @@ it('shouldReinit retries at most once per request', async () => {
   expect(inits).toBe(2)
 })
 
-it('shouldReinit returning false does not reinit', async () => {
+it('should not reinit when shouldReinit returns false', async () => {
   let requests = 0
   const fetcher = getNonRetryFetcher({
     logger: commonLoggerNoop,
@@ -1076,7 +1076,7 @@ it('shouldReinit returning false does not reinit', async () => {
   expect(requests).toBe(1)
 })
 
-it('resetInit forces init hooks to re-run on the next request', async () => {
+it('should re-run init hooks on the next request after resetInit', async () => {
   let inits = 0
   const fetcher = getNonRetryFetcher({
     fetchFn: async () => Response.json({ ok: 1 }),
@@ -1093,7 +1093,7 @@ it('resetInit forces init hooks to re-run on the next request', async () => {
   expect(inits).toBe(2)
 })
 
-it('concurrent stale requests share a single reinit', async () => {
+it('should share a single reinit between concurrent stale requests', async () => {
   let inits = 0
   const fetcher = getNonRetryFetcher({
     fetchFn: async (_url, init) => {
@@ -1112,7 +1112,7 @@ it('concurrent stale requests share a single reinit', async () => {
   expect(inits).toBe(2)
 })
 
-it('fetchWithMeta returns body and response metadata', async () => {
+it('should return the body and response metadata from fetchWithMeta', async () => {
   const fetcher = getNonRetryFetcher({
     fetchFn: async () => Response.json({ ok: 1 }, { headers: { 'x-next-cursor': 'abc' } }),
   })
@@ -1123,7 +1123,7 @@ it('fetchWithMeta returns body and response metadata', async () => {
   expect(res.fetchResponse.headers.get('x-next-cursor')).toBe('abc')
 })
 
-it('timeoutSeconds=0 disables the body download timeout', async () => {
+it('should not time out the body download when timeoutSeconds is 0', async () => {
   const slowBody = new ReadableStream<Uint8Array>({
     async start(controller) {
       await new Promise(resolve => setTimeout(resolve, 30))
@@ -1140,7 +1140,7 @@ it('timeoutSeconds=0 disables the body download timeout', async () => {
   expect(r).toBe('slow but fine')
 })
 
-it('fetchWithMeta throws on http error', async () => {
+it('should throw from fetchWithMeta on an http error', async () => {
   const fetcher = getNonRetryFetcher({
     fetchFn: async () => new Response('bad', { status: 500 }),
   })

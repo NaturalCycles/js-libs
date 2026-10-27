@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { _rangeAsyncIterable } from '../array/range.js'
 import { AsyncIterable2 } from './asyncIterable2.js'
 
-it('asyncIterable2', async () => {
+it('should find, test, filter, map and iterate an async range with sync callbacks', async () => {
   expect(await _rangeAsyncIterable(3).toArray()).toEqual([0, 1, 2])
 
   expect(await _rangeAsyncIterable(1, 4).findSync(v => v % 2 === 0)).toBe(2)

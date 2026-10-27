@@ -1,6 +1,8 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`bcryptStringScrubberSQL 1`] = `
+exports[`saltedHashEmailScrubber > should hash with the initializationVector and append the domain 1`] = `"7ecc1443f9a0c0c795069118020ac1f11dcba568bc9dfaf01433fff8b6b42de2@naturalcycles.com"`;
+
+exports[`should build bcryptStringScrubberSQL with and without replacements 1`] = `
 "CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
           THEN
               CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' -- this is the prefix
@@ -11,7 +13,7 @@ exports[`bcryptStringScrubberSQL 1`] = `
           END"
 `;
 
-exports[`bcryptStringScrubberSQL 2`] = `
+exports[`should build bcryptStringScrubberSQL with and without replacements 2`] = `
 "CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
           THEN
               CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' -- this is the prefix
@@ -23,5 +25,3 @@ exports[`bcryptStringScrubberSQL 2`] = `
           ELSE '$2a$12$' || RANDSTR(53, HASH(RANDOM()))
           END"
 `;
-
-exports[`saltedHashEmailScrubber > generates hash using initializationVector and suffixes domain 1`] = `"7ecc1443f9a0c0c795069118020ac1f11dcba568bc9dfaf01433fff8b6b42de2@naturalcycles.com"`;

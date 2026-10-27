@@ -17,7 +17,7 @@ afterAll(async () => {
   await app.close()
 })
 
-it('got timeout', async () => {
+it('should retry a request that times out', async () => {
   // 10 retries by 2 seconds
   // So, we'll see how Got works, between 2 options:
   // A. It does 10 * 1 second (20 seconds)

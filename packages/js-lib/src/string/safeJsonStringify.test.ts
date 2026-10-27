@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { _safeJsonStringify } from './safeJsonStringify.js'
 
-it('_safeJsonStringify', () => {
+it('should stringify a circular reference as a marker', () => {
   const obj = {
     a: 'a',
   }

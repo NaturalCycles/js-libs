@@ -27,7 +27,7 @@ beforeEach(() => {
 const outputDir = `${tmpDir}/debug/kpy`
 const inputPatterns = ['*.json']
 
-it('kpy', async () => {
+it('should not throw when copying or moving files with kpy and kpySync', async () => {
   kpySync({
     baseDir: scriptsDir,
     outputDir,
@@ -78,7 +78,7 @@ it('kpy', async () => {
   // })
 })
 
-it('json2env', async () => {
+it('should not throw when converting a JSON file to env', async () => {
   const jsonPath = `${testDir}/someFile.json`
 
   json2env({

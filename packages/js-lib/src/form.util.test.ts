@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { formDataToObject, objectToFormData } from './form.util.js'
 import type { AnyObject } from './types.js'
 
-it('objectToFormData', () => {
+it('should convert an object to FormData and back, with values as strings', () => {
   let o: AnyObject = {}
   let fd = objectToFormData(o)
   expect(fd).toBeInstanceOf(FormData)

@@ -5,7 +5,7 @@ import { testDir } from '../../../test/paths.cnst.js'
 import { Pipeline } from '../../index.js'
 import { transformMultiThreaded } from './transformMultiThreaded.js'
 
-it('transformMultiThreaded', async () => {
+it('should process items in a worker pool and skip items the worker fails on', async () => {
   const items = _range(1, 12).map(i => ({ id: i }))
 
   const silent = !!process.env['TEST_SILENT'] || true

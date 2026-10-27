@@ -114,7 +114,7 @@ it('should not compress when response is below threshold', async () => {
   }
 })
 
-it('single-chunk body is compressed synchronously, with an exact Content-Length', async () => {
+it('should compress a single-chunk body synchronously with an exact Content-Length', async () => {
   for (const [acceptEncoding, encoding, compress] of [
     [
       'zstd',
@@ -146,7 +146,7 @@ it('single-chunk body is compressed synchronously, with an exact Content-Length'
   }
 })
 
-it('multi-chunk body (res.write + res.end) is streamed', async () => {
+it('should stream a body written in several chunks', async () => {
   const { fetchResponse, body } = await app.doFetch<unknown[]>({
     url: 'multi',
     headers: { 'Accept-Encoding': 'zstd' },
@@ -158,7 +158,7 @@ it('multi-chunk body (res.write + res.end) is streamed', async () => {
   expect(body).toEqual([largeData, largeData])
 })
 
-it('syncMaxBytes: 0 streams single-chunk bodies too', async () => {
+it('should stream single-chunk bodies when syncMaxBytes is 0', async () => {
   const { fetchResponse, body } = await streamedApp.doFetch({
     headers: { 'Accept-Encoding': 'zstd' },
   })
@@ -169,7 +169,7 @@ it('syncMaxBytes: 0 streams single-chunk bodies too', async () => {
   expect(body).toEqual(largeData)
 })
 
-it('res.end(chunk, callback) calls the callback once', async () => {
+it('should call the res.end callback once', async () => {
   const { fetchResponse, body } = await app.doFetch({
     url: 'cb',
     headers: { 'Accept-Encoding': 'zstd' },
@@ -180,7 +180,7 @@ it('res.end(chunk, callback) calls the callback once', async () => {
   expect(await endCallbackCalls).toBe(1)
 })
 
-it('HEAD request is not compressed', async () => {
+it('should not compress a HEAD response', async () => {
   const { fetchResponse } = await app.doFetch({
     method: 'HEAD',
     headers: { 'Accept-Encoding': 'zstd' },

@@ -4,7 +4,7 @@ import { KeySortedMap } from './keySortedMap.js'
 
 // todo: stringification test
 
-it('constructs with sorted keys and keeps last value for duplicates', () => {
+it('should sort the constructor entries by key and keep the last value of a duplicate key', () => {
   const map = new KeySortedMap([
     ['beta', 1],
     ['alpha', 2],
@@ -22,7 +22,7 @@ it('constructs with sorted keys and keeps last value for duplicates', () => {
   expect(Object.prototype.toString.call(map)).toBe('[object KeySortedMap]')
 })
 
-it('set inserts keys in sorted order and exposes sorted views', () => {
+it('should insert set keys in sorted order and expose sorted views', () => {
   const map = new KeySortedMap<number, string>()
   map.set(5, 'five')
   map.set(1, 'one')
@@ -46,7 +46,7 @@ it('set inserts keys in sorted order and exposes sorted views', () => {
   ])
 })
 
-it('numeric keys stay numerically sorted when enabled', () => {
+it('should sort numeric keys numerically with the numericAsc comparator', () => {
   const map = new KeySortedMap<number, string>(
     [
       [15, 'fifteen'],
@@ -66,7 +66,7 @@ it('numeric keys stay numerically sorted when enabled', () => {
   ])
 })
 
-it('of() builds a map from object entries', () => {
+it('should build a map from object entries with of()', () => {
   const map = KeySortedMap.of({ beta: 2, alpha: 1 })
 
   expect(map instanceof KeySortedMap).toBe(true)
@@ -75,7 +75,7 @@ it('of() builds a map from object entries', () => {
   expect(map.get('beta')).toBe(2)
 })
 
-it('setMany adds multiple entries and resorts once', () => {
+it('should insert setMany entries in sorted order', () => {
   const map = new KeySortedMap<string, number>()
 
   map.set('delta', 4)
@@ -85,7 +85,7 @@ it('setMany adds multiple entries and resorts once', () => {
   expect(Array.from(map.values())).toEqual([1, 2, 3, 4])
 })
 
-it('toObject and toJSON expose plain records', () => {
+it('should convert to a plain object with toObject, toJSON and JSON.stringify', () => {
   const map = new KeySortedMap<string, number>([
     ['b', 2],
     ['a', 1],
@@ -98,7 +98,7 @@ it('toObject and toJSON expose plain records', () => {
   expect(map.toJSON()).toEqual(obj)
 })
 
-it('updates existing keys without duplicating or reordering', () => {
+it('should update an existing key in place and return the map', () => {
   const map = new KeySortedMap<number, string>()
   map.set(2, 'two')
   map.set(1, 'one')
@@ -111,7 +111,7 @@ it('updates existing keys without duplicating or reordering', () => {
   expect(map.keys().toArray()).toEqual([1, 2])
 })
 
-it('delete handles present and missing keys while keeping order', () => {
+it('should delete present keys, return false for missing ones and keep the order', () => {
   const map = new KeySortedMap<number, string>([
     [10, 'ten'],
     [5, 'five'],
@@ -133,7 +133,7 @@ it('delete handles present and missing keys while keeping order', () => {
   expect(map.lastEntryOrUndefined()).toBeUndefined()
 })
 
-it('clear removes all entries and iteration helpers reflect emptiness', () => {
+it('should leave no entries and return undefined from every first and last helper after clear', () => {
   const map = new KeySortedMap<number, string>([
     [3, 'three'],
     [1, 'one'],
@@ -155,7 +155,7 @@ it('clear removes all entries and iteration helpers reflect emptiness', () => {
   expect(map.lastEntryOrUndefined()).toBeUndefined()
 })
 
-it('iterators and forEach use sorted order and pass the map and thisArg', () => {
+it('should iterate in sorted order and pass the map and thisArg to forEach', () => {
   const map = new KeySortedMap<number, string>([
     [3, 'three'],
     [1, 'one'],

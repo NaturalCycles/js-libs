@@ -4,7 +4,7 @@ import { tmpDir } from '../test/paths.cnst.js'
 import { createTestItemsDBM, TEST_TABLE } from '../testing/index.js'
 import { dbPipelineBackup } from './dbPipelineBackup.js'
 
-it('dbPipelineSaveToNDJson', async () => {
+it('should back up the db to ndjson files without throwing', async () => {
   const db = new InMemoryDB()
 
   const items = createTestItemsDBM(70)

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`memoCache a 1`] = `
+exports[`should call the memoized method once per argument set with LRUMemoCache 1`] = `
 [MockFunction func] {
   "calls": [
     [

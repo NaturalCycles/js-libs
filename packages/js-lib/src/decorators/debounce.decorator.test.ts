@@ -28,7 +28,7 @@ async function startTimer(fn: AnyFunction, interval: number, count: number): Pro
 }
 
 describe('@_Debounce', () => {
-  it('should debounce decorated method calls', async () => {
+  it('should call the decorated method repeatedly without throwing', async () => {
     await startTimer(fn, 10, 10)
   })
 })
@@ -54,7 +54,7 @@ describe('@_AsyncDebounce', () => {
 })
 
 describe('@_AsyncThrottle', () => {
-  it('should invoke on the leading edge immediately', async () => {
+  it('should invoke the first call and resolve it with its result', async () => {
     class C {
       calls = 0
 

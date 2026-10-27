@@ -16,7 +16,7 @@ describe('runCommonKeyValueDBTest', async () => {
   await runCommonKeyValueDBTest(db)
 })
 
-it('count', async () => {
+it('should count zero entries in the emptied table', async () => {
   const count = await db.count(TEST_TABLE)
   expect(count).toBe(0)
 })

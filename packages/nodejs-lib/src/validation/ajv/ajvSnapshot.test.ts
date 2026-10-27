@@ -13,7 +13,7 @@ const ajv = createAjv({
   },
 })
 
-it('snapshot ajv schema', async () => {
+it('should match the snapshot of the standalone code for a one-property object schema', async () => {
   const jsonSchema = j.object
     .infer({
       s: j.string(),

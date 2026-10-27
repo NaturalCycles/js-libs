@@ -14,14 +14,14 @@ import * as util from './util.js'
 const experimentId = 'mockExperimentId'
 
 describe('validateTotalBucketRatio', () => {
-  it('sum of bucket ratios !== 100 throws', () => {
+  it('should throw when the bucket ratios do not sum to 100', () => {
     const buckets: Bucket[] = [mockBucket(experimentId, 'A', 50), mockBucket(experimentId, 'A', 49)]
     expect(() => util.validateTotalBucketRatio(buckets)).toThrow(
       'Total bucket ratio must be 100 before you can activate an experiment',
     )
   })
 
-  it('sum of bucket ratios === 100 does not throw', () => {
+  it('should not throw when the bucket ratios sum to 100', () => {
     const buckets: Bucket[] = [mockBucket(experimentId, 'A', 50), mockBucket(experimentId, 'A', 50)]
     expect(() => util.validateTotalBucketRatio(buckets)).not.toThrow()
   })
@@ -37,14 +37,14 @@ describe('determineAssignment', () => {
     mockBucket(experimentId, 'C', 34),
   ]
 
-  it('returns null if excluded from sample population', () => {
+  it('should return null when the roll falls outside the sample', () => {
     vi.spyOn(randomService, 'rollDie').mockReturnValueOnce(notIncludedInSample)
 
     const assignment = util.determineAssignment(sampleRatio, buckets)
     expect(assignment).toBeNull()
   })
 
-  it('returns bucket by ratio allocation', () => {
+  it('should pick the bucket whose ratio range contains the roll', () => {
     vi.spyOn(randomService, 'rollDie').mockReturnValueOnce(includedInSample).mockReturnValueOnce(30)
 
     const assignment1 = util.determineAssignment(sampleRatio, buckets)
@@ -213,7 +213,7 @@ describe('validateSegmentationRules', () => {
 
   for (const testcase of cases) {
     const key = 'myProp'
-    it(`${testcase.operator} - Valid`, () => {
+    it(`should accept ${JSON.stringify(testcase.valid)} for ${testcase.operator} ${JSON.stringify(testcase.ruleValue)}`, () => {
       const result = util.validateSegmentationRules(
         [{ key, operator: testcase.operator, value: testcase.ruleValue }],
         { myProp: testcase.valid },
@@ -221,7 +221,7 @@ describe('validateSegmentationRules', () => {
       expect(result).toBe(true)
     })
 
-    it(`${testcase.operator} - Invalid`, () => {
+    it(`should reject ${JSON.stringify(testcase.invalid)} for ${testcase.operator} ${JSON.stringify(testcase.ruleValue)}`, () => {
       const result = util.validateSegmentationRules(
         [{ key, operator: testcase.operator, value: testcase.ruleValue }],
         { myProp: testcase.invalid },
@@ -233,20 +233,20 @@ describe('validateSegmentationRules', () => {
 
 describe('canGenerateNewAssignments', () => {
   const experiment = mockExperiment()
-  it('returns false if exclusionSet contains experimentId', () => {
+  it('should return false when the experiment is in the exclusion set', () => {
     const exclusionSet: ExclusionSet = new Set([experiment.id])
 
     const result = util.canGenerateNewAssignments(experiment, exclusionSet)
     expect(result).toBe(false)
   })
 
-  it('true if active and within start/end date', () => {
+  it('should return true for an active experiment within its dates', () => {
     const result = util.canGenerateNewAssignments(experiment, new Set())
 
     expect(result).toBe(true)
   })
 
-  it('false if not active', () => {
+  it('should return false for an inactive experiment', () => {
     const result = util.canGenerateNewAssignments(
       mockExperiment({ status: AssignmentStatus.Inactive }),
       new Set(),
@@ -255,7 +255,7 @@ describe('canGenerateNewAssignments', () => {
     expect(result).toBe(false)
   })
 
-  it('false if not within start/end date', () => {
+  it('should return false for an experiment that has ended', () => {
     const result = util.canGenerateNewAssignments(
       mockExperiment({
         startDateIncl: localDate.today().minus(2, 'day').toISODate(),
@@ -272,7 +272,7 @@ describe('getUserExclusionSet', () => {
   const experiment1Id = 'mockExperiment1'
   const experiment2Id = 'mockExperiment2'
 
-  it('returns a set containing mutually exclusive experiment ids where the user already has an assigment to a mutually exclusive experiment', () => {
+  it('should exclude the experiments mutually exclusive with one the user is assigned to', () => {
     const experiment1 = mockUserExperiment({
       id: experiment1Id,
       exclusions: [experiment2Id],
@@ -290,7 +290,7 @@ describe('getUserExclusionSet', () => {
     expect(set.has(experiment2.id)).toBe(true)
   })
 
-  it('returns a set that does not include mutual exclusions for existing assignments where a user was excluded due to sampling rates. i.e bucketId=null', () => {
+  it('should not exclude anything for an assignment without a bucket', () => {
     const experiment1 = mockUserExperiment({
       id: experiment1Id,
       exclusions: [experiment2Id],

@@ -9,7 +9,7 @@ const _fnError = (): never => {
   throw new Error('fail')
 }
 
-it('_tryCatch', async () => {
+it('should return the result on success and undefined on error', async () => {
   const fnSuccess = _tryCatch(_fnSuccess)
   let r = await fnSuccess(1, 2, 3)
   expect(r).toEqual([1, 2, 3])
@@ -46,7 +46,7 @@ class C {
 
 const c = new C()
 
-it('@_TryCatch', async () => {
+it('should return the result on success and undefined on error for a decorated method', async () => {
   const r = await c.fnSuccess(1, 2, 3)
   expect(r).toEqual([1, 2, 3])
 

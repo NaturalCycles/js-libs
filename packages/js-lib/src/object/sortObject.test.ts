@@ -10,7 +10,7 @@ interface Item {
 
 const keyOrder: (keyof Item)[] = ['a', 'b', 'c', 'd']
 
-it('orderObject', () => {
+it('should put keys in the given order and extra keys last', () => {
   expect(
     Object.keys(
       _sortObject(

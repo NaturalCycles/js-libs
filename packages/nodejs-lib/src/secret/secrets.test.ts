@@ -12,7 +12,7 @@ beforeEach(() => {
 
 const encKeyBuffer = Buffer.from(TEST_ENC_KEY, 'base64')
 
-it('secrets', async () => {
+it('should not throw when decrypting and encrypting a secrets dir', async () => {
   secretsDecrypt([secretDir], undefined, encKeyBuffer)
   secretsDecrypt([secretDir], undefined, encKeyBuffer, true)
 

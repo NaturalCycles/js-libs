@@ -2,7 +2,7 @@ import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { expect, it, vi } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
-it('transformThrottleByRSS passthrough when below threshold', async () => {
+it('should pass all items through when RSS is below maxRSS', async () => {
   const items = _range(1, 11).map(id => ({ id: String(id) }))
   const result = await Pipeline.fromArray(items)
     .throttleByRSS({
@@ -14,7 +14,7 @@ it('transformThrottleByRSS passthrough when below threshold', async () => {
   expect(result).toEqual(items)
 })
 
-it('transformThrottleByRSS pauses and resumes', async () => {
+it('should pass all items through once a high RSS drops below maxRSS', async () => {
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // 500 MB
   const lowRSS = 50 * 1024 * 1024 // 50 MB
@@ -36,7 +36,7 @@ it('transformThrottleByRSS pauses and resumes', async () => {
   expect(result).toEqual(items)
 }, 10_000)
 
-it('transformThrottleByRSS pollTimeout open-the-floodgates', async () => {
+it('should pass all items through after pollTimeout with open-the-floodgates', async () => {
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // always high
 
@@ -55,7 +55,7 @@ it('transformThrottleByRSS pollTimeout open-the-floodgates', async () => {
   expect(result).toEqual(items)
 }, 10_000)
 
-it('transformThrottleByRSS pollTimeout throw', async () => {
+it('should reject after pollTimeout with onPollTimeout throw', async () => {
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // always high
 

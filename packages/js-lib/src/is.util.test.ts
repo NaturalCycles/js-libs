@@ -16,11 +16,14 @@ import { _undefinedIfEmpty } from './object/object.util.js'
 import { expectResults } from './test/test.util.js'
 import { SKIP } from './types.js'
 
-it.each([[undefined], [null], [1], [true], ['hello']] as any[])('isPrimitive "%s"', v => {
-  expect(_isPrimitive(v)).toBe(true)
-})
+it.each([[undefined], [null], [1], [true], ['hello']] as any[])(
+  'should treat "%s" as a primitive',
+  v => {
+    expect(_isPrimitive(v)).toBe(true)
+  },
+)
 
-it.each([[[]], [{}], [() => {}]] as any[])('!isPrimitive "%s"', v => {
+it.each([[[]], [{}], [() => {}]] as any[])('should not treat "%s" as a primitive', v => {
   expect(_isPrimitive(v)).toBe(false)
 })
 
@@ -43,13 +46,13 @@ it.each([
   [new Set(['']), false],
   [false, false],
   [true, false],
-])('_isEmpty %s == %s', (v, empty) => {
+])('should classify %o as empty: %s', (v, empty) => {
   expect(_isEmpty(v)).toBe(empty)
   expect(_isNotEmpty(v)).toBe(!empty)
   expect(_undefinedIfEmpty(v)).toBe(empty ? undefined : v)
 })
 
-it('_isObject', () => {
+it('should accept objects, regexes and class instances, but not arrays, functions or primitives', () => {
   const a: any[] = [
     1,
     0,
@@ -74,7 +77,7 @@ it('_isObject', () => {
   expect(_isObject(new Obj())).toBe(true)
 })
 
-it('_isPlainObject', () => {
+it('should accept only object literals and null-prototype objects as plain objects', () => {
   expect(_isPlainObject({})).toBe(true)
   expect(_isPlainObject({ a: 1 })).toBe(true)
   expect(_isPlainObject(Object.create(null))).toBe(true)
@@ -98,7 +101,7 @@ it('_isPlainObject', () => {
   }
 })
 
-it('_isEmptyObject', () => {
+it('should detect an object without own keys as empty', () => {
   const a: any[] = [{}, { a: 'b' }]
 
   const empty = a.filter(i => _isEmptyObject(i))
@@ -106,11 +109,11 @@ it('_isEmptyObject', () => {
   expect(_isNotEmptyObject({})).toBe(false)
 })
 
-it('_isNull', () => {
+it('should return true only for null', () => {
   expectResults(v => _isNull(v), mockAllKindsOfThings()).toMatchSnapshot()
 })
 
-it('_isTruthy', () => {
+it('should filter out nullish values and narrow the array type', () => {
   const a = [1, 2, undefined, null, 3].filter(_isTruthy)
   // This tests that type of a is number[] (no "undefined/null")
   expect(_sum(a)).toBe(6)

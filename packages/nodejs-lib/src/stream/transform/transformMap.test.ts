@@ -18,7 +18,7 @@ const mapperError3: AsyncIndexedMapper<Item, Item> = async item => {
   return item
 }
 
-it('transformMap2 simple', async () => {
+it('should call the mapper for every item', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2: Item[] = []
 
@@ -29,7 +29,7 @@ it('transformMap2 simple', async () => {
   expect(data2).toEqual(data)
 })
 
-it('transformMap2 with mapping', async () => {
+it('should emit the mapped items', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2 = await Pipeline.fromArray(data)
     .transform(
@@ -42,7 +42,7 @@ it('transformMap2 with mapping', async () => {
   expect(data2).toEqual(data.map(r => ({ id: r.id + '!' })))
 })
 
-it('transformMap2 errorMode=THROW_IMMEDIATELY', async () => {
+it('should reject on the first mapper error in the default THROW_IMMEDIATELY mode', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -60,7 +60,7 @@ it('transformMap2 errorMode=THROW_IMMEDIATELY', async () => {
   expect(stats!.countErrors).toBe(1)
 })
 
-it('transformMap2 errorMode=THROW_AGGREGATED', async () => {
+it('should reject with an AggregateError after all items in THROW_AGGREGATED mode', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -86,7 +86,7 @@ it('transformMap2 errorMode=THROW_AGGREGATED', async () => {
   expect(stats!.collectedErrors).toHaveLength(1)
 })
 
-it('transformMap2 errorMode=SUPPRESS', async () => {
+it('should skip failed items without rejecting in SUPPRESS mode', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -104,7 +104,7 @@ it('transformMap2 errorMode=SUPPRESS', async () => {
   expect(stats!.countErrors).toBe(1)
 })
 
-it('transformMap2 with warmup passes all items', async () => {
+it('should pass all items through with warmup', async () => {
   const data = _range(1, 21).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)
@@ -123,7 +123,7 @@ it('transformMap2 with warmup passes all items', async () => {
   expect(results.sort(comparators.by(r => r.id))).toEqual(data)
 })
 
-it('transformMap2 warmup limits initial concurrency', async () => {
+it('should still reach a concurrency above 1 with warmup', async () => {
   const concurrencyLog: number[] = []
   let currentConcurrency = 0
 
@@ -152,7 +152,7 @@ it('transformMap2 warmup limits initial concurrency', async () => {
   expect(maxConcurrency).toBeGreaterThan(1)
 })
 
-it('transformMap2 without warmup reaches full concurrency immediately', async () => {
+it('should reach a concurrency of at least 4 without warmup', async () => {
   const concurrencyLog: number[] = []
   let currentConcurrency = 0
 
@@ -178,7 +178,7 @@ it('transformMap2 without warmup reaches full concurrency immediately', async ()
   expect(maxConcurrency).toBeGreaterThanOrEqual(4)
 })
 
-it('transformMap2 onDone is called with stats', async () => {
+it('should call onDone with ok stats and in and out counts', async () => {
   let stats: TransformMapStats
 
   const data = _range(1, 6).map(id => ({ id }))
@@ -199,7 +199,7 @@ it('transformMap2 onDone is called with stats', async () => {
 
 // Backpressure and concurrency control tests
 
-it('backpressure: concurrency is never exceeded', async () => {
+it('should never exceed the concurrency and reach it under load', async () => {
   let currentConcurrency = 0
   let maxObservedConcurrency = 0
   const targetConcurrency = 4
@@ -226,7 +226,7 @@ it('backpressure: concurrency is never exceeded', async () => {
   expect(maxObservedConcurrency).toBe(targetConcurrency)
 })
 
-it('backpressure: concurrency=1 processes sequentially', async () => {
+it('should start and complete items in input order with concurrency 1', async () => {
   const processingOrder: number[] = []
   const completionOrder: number[] = []
 
@@ -251,7 +251,7 @@ it('backpressure: concurrency=1 processes sequentially', async () => {
   expect(completionOrder).toEqual(data)
 })
 
-it('backpressure: blocked items are released when slots free up', async () => {
+it('should start the first two items together and complete all items with concurrency 2', async () => {
   const events: string[] = []
   const concurrency = 2
 
@@ -280,7 +280,7 @@ it('backpressure: blocked items are released when slots free up', async () => {
   expect(events.filter(e => e.startsWith('end:'))).toHaveLength(5)
 })
 
-it('backpressure: handles fast producer with slow consumer', async () => {
+it('should map all items of a fast producer without exceeding the concurrency', async () => {
   let inFlight = 0
   let maxInFlight = 0
   const concurrency = 3
@@ -311,7 +311,7 @@ it('backpressure: handles fast producer with slow consumer', async () => {
 
 // Edge cases
 
-it('edge case: empty stream', async () => {
+it('should emit nothing and report zero counts for an empty stream', async () => {
   let stats: TransformMapStats | undefined
 
   const results = await Pipeline.fromArray([])
@@ -327,7 +327,7 @@ it('edge case: empty stream', async () => {
   expect(stats!.countOut).toBe(0)
 })
 
-it('edge case: single item', async () => {
+it('should map a single item', async () => {
   const results = await Pipeline.fromArray([42])
     .transform(transformMap(async n => n * 2, { concurrency: 4 }))
     .toArray()
@@ -335,7 +335,7 @@ it('edge case: single item', async () => {
   expect(results).toEqual([84])
 })
 
-it('edge case: concurrency higher than item count', async () => {
+it('should run all items at once when the concurrency exceeds the item count', async () => {
   let maxConcurrency = 0
   let current = 0
 
@@ -360,7 +360,7 @@ it('edge case: concurrency higher than item count', async () => {
   expect(maxConcurrency).toBe(3)
 })
 
-it('edge case: SKIP filters items correctly', async () => {
+it('should drop items mapped to SKIP', async () => {
   const data = _range(1, 11)
 
   const results = await Pipeline.fromArray(data)
@@ -378,7 +378,7 @@ it('edge case: SKIP filters items correctly', async () => {
   expect(results.sort(comparators.numericAsc)).toEqual([1, 3, 5, 7, 9])
 })
 
-it('edge case: predicate filters output', async () => {
+it('should keep only results matching the predicate', async () => {
   const data = _range(1, 11)
 
   const results = await Pipeline.fromArray(data)
@@ -393,7 +393,7 @@ it('edge case: predicate filters output', async () => {
   expect(results.sort(comparators.numericAsc)).toEqual([12, 14, 16, 18, 20])
 })
 
-it('edge case: asyncPredicate filters output', async () => {
+it('should keep only results matching the asyncPredicate', async () => {
   const data = _range(1, 11)
 
   const results = await Pipeline.fromArray(data)
@@ -413,7 +413,7 @@ it('edge case: asyncPredicate filters output', async () => {
 
 // Race condition and timing tests
 
-it('race condition: multiple items completing simultaneously', async () => {
+it('should not exceed the concurrency when items take the same time', async () => {
   let inFlight = 0
   const concurrency = 5
   const data = _range(1, 21)
@@ -437,7 +437,7 @@ it('race condition: multiple items completing simultaneously', async () => {
   expect(results).toHaveLength(20)
 })
 
-it('race condition: interleaved fast and slow operations', async () => {
+it('should let some fast items complete before slow ones', async () => {
   const completionOrder: number[] = []
   const data = _range(1, 11)
 
@@ -462,7 +462,7 @@ it('race condition: interleaved fast and slow operations', async () => {
   expect(firstFew.some(n => n % 2 === 0)).toBe(true)
 })
 
-it('flush waits for all in-flight operations', async () => {
+it('should wait for all in-flight mappers before the pipeline resolves', async () => {
   const completed: number[] = []
   const data = _range(1, 6)
 
@@ -483,7 +483,7 @@ it('flush waits for all in-flight operations', async () => {
   expect(completed.sort(comparators.numericAsc)).toEqual(data)
 })
 
-it('stress: large number of items with high concurrency', async () => {
+it('should map 1000 items with concurrency 50 without exceeding it', async () => {
   const itemCount = 1000
   const concurrency = 50
   let maxConcurrency = 0
@@ -510,7 +510,7 @@ it('stress: large number of items with high concurrency', async () => {
   expect(maxConcurrency).toBeLessThanOrEqual(concurrency)
 })
 
-it('ordering: concurrency=1 preserves order', async () => {
+it('should preserve order with concurrency 1', async () => {
   const data = _range(1, 21)
 
   const results = await Pipeline.fromArray(data)
@@ -529,7 +529,7 @@ it('ordering: concurrency=1 preserves order', async () => {
   expect(results).toEqual(data)
 })
 
-it('error handling: onError callback receives correct arguments', async () => {
+it('should call onError with the error and the input', async () => {
   const errorsCaught: { err: Error; input: number }[] = []
 
   const data = _range(1, 6)

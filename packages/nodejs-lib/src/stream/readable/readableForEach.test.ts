@@ -6,7 +6,7 @@ interface Item {
   id: string
 }
 
-it('readableForEachSync', async () => {
+it('should call forEachSync for every item in order', async () => {
   const items: Item[] = _range(10).map(i => ({ id: `id_${i}` }))
 
   const ids: string[] = []
@@ -18,7 +18,7 @@ it('readableForEachSync', async () => {
   expect(ids).toEqual(items.map(i => i.id))
 })
 
-it('readableForEach', async () => {
+it('should call forEach for every item in order', async () => {
   const items: Item[] = _range(10).map(i => ({ id: `id_${i}` }))
 
   const ids: string[] = []

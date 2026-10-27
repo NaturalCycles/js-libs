@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`_inspect 1`] = `
+exports[`should format values of every kind as readable strings 1`] = `
 Map {
   undefined => "undefined",
   null => "null",

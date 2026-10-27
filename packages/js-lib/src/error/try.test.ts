@@ -8,7 +8,7 @@ const errFunction = (): never => {
   throw new AppError('oj')
 }
 
-it('_try', () => {
+it('should return [null, result] on success and [error, null] on throw', () => {
   const [err, res] = _try(() => okFunction())
   expectTypeOf(err).toEqualTypeOf<Error | null>()
   expectTypeOf(res).toEqualTypeOf<{ result: number } | null>()
@@ -35,7 +35,7 @@ const createErrorPromise = async (): Promise<never> => {
   throw new AppError('oj')
 }
 
-it('pTry', async () => {
+it('should resolve to [null, result] or [error, null], rethrowing errors of another class', async () => {
   const [err, res] = await pTry(createOkPromise())
   expectTypeOf(err).toEqualTypeOf<Error | null>()
   expectTypeOf(res).toEqualTypeOf<{ result: number } | null>()
@@ -73,7 +73,7 @@ it('pTry', async () => {
   expect(err4).toMatchInlineSnapshot(`"AppError: oj"`)
 })
 
-it('_expectedError', () => {
+it('should return the thrown error, throwing UnexpectedPassError when nothing is thrown', () => {
   const err = _expectedError(errFunction, AppError)
   expectTypeOf(err).toEqualTypeOf<AppError<any>>()
   expect(err).toMatchInlineSnapshot(`[AppError: oj]`)
@@ -84,7 +84,7 @@ it('_expectedError', () => {
   expect(err2!.message).toMatchInlineSnapshot(`"expected error was not thrown"`)
 })
 
-it('pExpectedError', async () => {
+it('should resolve to the rejection error, rejecting on success or on another error class', async () => {
   const err = await pExpectedError<AppError>(createErrorPromise())
   expect(err).toMatchInlineSnapshot(`[AppError: oj]`)
   expect(err).toBeInstanceOf(AppError)

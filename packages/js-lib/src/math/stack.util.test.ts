@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { _range } from '../array/range.js'
 import { NumberStack, Stack } from './stack.util.js'
 
-it('Stack', () => {
+it('should keep the last N numbers and compute their average, median and percentile', () => {
   const stack = new NumberStack(10)
 
   // Empty stack
@@ -36,7 +36,7 @@ it('Stack', () => {
   expect(stack.items).toEqual([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 })
 
-it('Stack fill with zeros', () => {
+it('should fill every slot with zero', () => {
   const stack = new Stack(5).fill(0)
   expect(stack.items).toEqual([0, 0, 0, 0, 0])
 })

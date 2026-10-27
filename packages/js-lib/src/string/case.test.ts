@@ -20,15 +20,15 @@ const words = [
   'la-lo-lo',
 ]
 
-it('_snakeCase', () => {
+it('should convert words to snake_case', () => {
   expectResults(_snakeCase, words).toMatchSnapshot()
 })
 
-it('_camelCase', () => {
+it('should convert words and their snake_case form to camelCase', () => {
   const allWords = [...words, ...words.map(w => _snakeCase(w))]
   expectResults(s => _camelCase(s), allWords).toMatchSnapshot()
 })
 
-it('_kebabCase', () => {
+it('should convert words to kebab-case', () => {
   expectResults(_kebabCase, words).toMatchSnapshot()
 })

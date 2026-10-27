@@ -4,7 +4,7 @@ import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import { writableChunk } from './writableChunk.js'
 
-it('writableChunk', async () => {
+it('should split the stream into sub-pipelines where the predicate is true', async () => {
   const splitPredicate: Predicate<number> = (_, i) => {
     return i % 3 === 0
   }

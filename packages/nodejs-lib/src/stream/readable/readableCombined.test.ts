@@ -54,7 +54,7 @@ class HonestReadable extends Readable {
   }
 }
 
-it.skip('readableCombined', async () => {
+it.skip('should combine several readables into one stream', async () => {
   // const source1 = Readable.from(timedIterable(1))
   // const source2 = Readable.from(timedIterable(2))
   // const source3 = Readable.from(timedIterable(3))

@@ -24,7 +24,7 @@ class C {
   }
 }
 
-it('@Retry', async () => {
+it('should retry until an attempt succeeds and return its result', async () => {
   const inst = new C(3)
   const r = await inst.fn(1, 2, 3)
   // console.log(r)
@@ -71,22 +71,22 @@ class A {
   }
 }
 
-it('ok', async () => {
+it('should resolve when the method succeeds on the first attempt', async () => {
   const a = new A()
   await a.ok()
 })
 
-it('error1time', async () => {
+it('should resolve when the method fails once and then succeeds', async () => {
   const a = new A()
   await a.error1time()
 })
 
-it('error2times retry once should throw', async () => {
+it('should reject when every attempt fails', async () => {
   const a = new A()
   await expect(a.error2times()).rejects.toThrow('custom_error')
 })
 
-it('error2times retry twice', async () => {
+it('should resolve when the method succeeds on the last of three attempts', async () => {
   const a = new A()
   await a.error2timesRetryTwice()
 })

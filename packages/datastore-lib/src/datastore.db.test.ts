@@ -22,7 +22,7 @@ it('should throw on missing id', async () => {
   )
 })
 
-it('can load datastore', async () => {
+it('should create a Datastore client when APP_ENV is not test', async () => {
   vi.stubEnv('APP_ENV', 'abc') // to not throw on APP_ENV=test check
 
   const db = new DatastoreDB()

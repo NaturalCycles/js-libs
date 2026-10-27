@@ -17,7 +17,7 @@ afterAll(() => {
   vi.useRealTimers()
 })
 
-it('transformMapSync simple', async () => {
+it('should call the mapper for every item', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2: Item[] = []
 
@@ -29,7 +29,7 @@ it('transformMapSync simple', async () => {
   // expect(readable.destroyed).toBe(true)
 })
 
-it('transformMapSync error', async () => {
+it('should reject with the mapper error, stop at the failing item and report stats', async () => {
   let stats: TransformMapStats
   const data = _range(100).map(String)
 
@@ -68,7 +68,7 @@ it('transformMapSync error', async () => {
 `)
 })
 
-it('transformMapSync suppressed error', async () => {
+it('should skip the failing item and report ok stats in SUPPRESS mode', async () => {
   let stats: TransformMapStats
   const data = _range(100).map(String)
 

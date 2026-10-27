@@ -15,7 +15,7 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-it('gcpStructuredLogger writes the log entry as structured fields', () => {
+it('should write a gcpStructuredLogger entry as structured JSON fields', () => {
   gcpStructuredLogger.child({ accountId: 'a1' }).warn({ msg: 'hello', n: 1 })
 
   expect(calls).toHaveLength(1)
@@ -28,7 +28,7 @@ it('gcpStructuredLogger writes the log entry as structured fields', () => {
   })
 })
 
-it('the log entry cannot override meta', () => {
+it('should not let a context field override the severity', () => {
   gcpStructuredLogger.child({ severity: 'nope' }).error('x')
 
   expect(JSON.parse(calls[0]![0])).toStrictEqual({
@@ -37,7 +37,7 @@ it('the log entry cannot override meta', () => {
   })
 })
 
-it('gcpStructuredLogger with a single string argument', () => {
+it('should log a single string argument as the message', () => {
   gcpStructuredLogger.log('plain')
 
   expect(JSON.parse(calls[0]![0])).toStrictEqual({ message: 'plain', severity: 'INFO' })
@@ -52,7 +52,7 @@ it('should log an Error input as err, with the inspected error as message', () =
   expect(entry.severity).toBe('ERROR')
 })
 
-it('gcpStructuredLogger keeps the error stack in message', () => {
+it('should append the error stack to the message', () => {
   gcpStructuredLogger.error({ msg: 'failed', err: new Error('kaboom') })
 
   const entry = JSON.parse(calls[0]![0])
@@ -64,7 +64,7 @@ it('gcpStructuredLogger keeps the error stack in message', () => {
   )
 })
 
-it('gcpStructuredLogger keeps a message field, msg wins over it', () => {
+it('should keep a message field unless msg is set', () => {
   gcpStructuredLogger.log({ message: 'x' })
   gcpStructuredLogger.log({ message: 'x', msg: 'y' })
 
@@ -72,7 +72,7 @@ it('gcpStructuredLogger keeps a message field, msg wins over it', () => {
   expect(JSON.parse(calls[1]![0])).toStrictEqual({ message: 'y', severity: 'INFO' })
 })
 
-it('gcpStructuredLogger survives a circular value', () => {
+it('should serialize a circular value as a Circular marker', () => {
   const circular: AnyObject = { n: 1 }
   circular['self'] = circular
 
@@ -84,7 +84,7 @@ it('gcpStructuredLogger survives a circular value', () => {
   expect(entry.circular.self).toContain('Circular')
 })
 
-it('devLogger prints the log entry', () => {
+it('should print the devLogger entry with its message and fields', () => {
   devLogger.child({ accountId: 'a1' }).log({ msg: 'hello', n: 1 })
 
   expect(calls).toHaveLength(1)

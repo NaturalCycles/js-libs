@@ -4,7 +4,7 @@ import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { expect, it } from 'vitest'
 import { dbQueryToFirestoreQuery } from './query.util.js'
 
-it('dbQueryToFirestoreQuery passes limit and offset', () => {
+it('should pass limit and offset to the Firestore query and none by default', () => {
   const firestore = new Firestore()
 
   // no limit/offset by default

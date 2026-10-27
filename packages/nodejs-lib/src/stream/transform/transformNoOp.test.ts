@@ -3,7 +3,7 @@ import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import { transformNoOp } from './transformNoOp.js'
 
-it('transformNoOp', async () => {
+it('should pass items through unchanged', async () => {
   const data = _range(1, 4).map(String)
 
   const data2: string[] = []

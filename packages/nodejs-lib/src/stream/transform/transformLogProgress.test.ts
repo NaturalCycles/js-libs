@@ -15,7 +15,7 @@ async function* rangeItAsync(
   }
 }
 
-it('transformLogProgress', async () => {
+it('should report final progress stats to onProgressDone', async () => {
   // const readable = readableFromArray(_range(0, 11), i => pDelay(10, i))
   // const readable = Readable.from(AsyncSequence.create(1, i => (i === 10 ? END : pDelay(10, i + 1))))
   let stats: ProgressLogItem
@@ -46,7 +46,7 @@ it('transformLogProgress', async () => {
   })
 })
 
-it('progressReadableMapper', async () => {
+it('should not throw when mapping a readable through progressReadableMapper', async () => {
   const readable = createReadableFrom(rangeItAsync(1, 11, 10))
 
   await readable

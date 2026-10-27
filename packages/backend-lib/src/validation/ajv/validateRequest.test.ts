@@ -16,7 +16,7 @@ afterAll(async () => {
 
 describe('ajvValidateRequest', () => {
   describe('body (kirill)', () => {
-    it('ajvValidateRequest', async () => {
+    it('should accept a valid body and reject an invalid one with a redacted 400 error', async () => {
       // should pass (no error)
       await app.put('changePasswordAjv', {
         json: {
@@ -90,7 +90,7 @@ describe('ajvValidateRequest', () => {
       await app.close()
     })
 
-    it('accept an email with whitespaces', async () => {
+    it('should trim surrounding whitespace from an email', async () => {
       const response = await app.post<TestResponse>('', {
         json: { email: 'kamalaharris@gmail.com ' },
       })
@@ -189,7 +189,7 @@ describe('ajvValidateRequest', () => {
       expect(err.cause.message).not.toContain('sessionid')
     })
 
-    it('should replace the headers with the validated value by default', async () => {
+    it('should return the validated headers without mutating req.headers', async () => {
       const resource = getDefaultRouter().get('/', async (req, res) => {
         const validatedHeaders = validateRequest.headers(
           req,

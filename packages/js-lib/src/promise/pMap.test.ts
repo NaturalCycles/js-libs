@@ -42,19 +42,19 @@ const mapper: AsyncMapper = async ([val, ms]) => {
   return await pDelay(ms, val)
 }
 
-it('main', async () => {
+it('should map concurrently and keep the input order', async () => {
   const end = timeSpan()
   expect(await pMap(input, mapper)).toEqual([10, 20, 30])
   expect(_isBetween(end(), 25, 80, '[)')).toBe(true)
 })
 
-it('concurrency: 1', async () => {
+it('should map one item at a time with concurrency 1', async () => {
   const end = timeSpan()
   expect(await pMap(input, mapper, { concurrency: 1 })).toEqual([10, 20, 30])
   expect(_isBetween(end(), 55, 120, '[)')).toBe(true)
 })
 
-it('concurrency: 4', async () => {
+it('should never run more than 4 mappers at once with concurrency 4', async () => {
   vi.useFakeTimers()
   const concurrency = 4
   let running = 0
@@ -73,11 +73,11 @@ it('concurrency: 4', async () => {
   await promise
 })
 
-it('handles empty iterable', async () => {
+it('should return an empty array for an empty iterable', async () => {
   expect(await pMap([], mapper)).toEqual([])
 })
 
-it('async with concurrency: 2 (random time sequence)', async () => {
+it('should keep the input order with concurrency 2 and random delays', async () => {
   vi.useFakeTimers()
   const input = _range(10).map(() => _randomInt(0, 100))
   const promise = pMap(input, v => pDelay(v, v), { concurrency: 2 })
@@ -86,7 +86,7 @@ it('async with concurrency: 2 (random time sequence)', async () => {
   expect(result).toEqual(input)
 })
 
-it('async with concurrency: 2 (problematic time sequence)', async () => {
+it('should keep the input order with concurrency 2 and a problematic delay sequence', async () => {
   vi.useFakeTimers()
   const input = [10, 20, 10, 36, 13, 45]
   const promise = pMap(input, v => pDelay(v, v), { concurrency: 2 })
@@ -95,7 +95,7 @@ it('async with concurrency: 2 (problematic time sequence)', async () => {
   expect(result).toEqual(input)
 })
 
-it('async with concurrency: 2 (out of order time sequence)', async () => {
+it('should keep the input order with concurrency 2 and out-of-order delays', async () => {
   vi.useFakeTimers()
   const input = [20, 10, 50]
   const promise = pMap(input, v => pDelay(v, v), { concurrency: 2 })
@@ -104,7 +104,7 @@ it('async with concurrency: 2 (out of order time sequence)', async () => {
   expect(result).toEqual(input)
 })
 
-it('reject', async () => {
+it('should reject with the mapper error with concurrency 1', async () => {
   vi.useFakeTimers()
   const input = [1, 1, 0, 1]
   const mapper: AsyncMapper = async v => {
@@ -119,7 +119,7 @@ it('reject', async () => {
   expect((result as Error).message).toBe('Err')
 })
 
-it('immediately rejects when errorMode=THROW_IMMEDIATELY', async () => {
+it('should reject with the first error by default', async () => {
   await expect(
     pMap(errorInput1, mapper, { concurrency: 1 }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: foo]`)
@@ -142,7 +142,7 @@ it('immediately rejects when errorMode=THROW_IMMEDIATELY', async () => {
   ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: foo]`)
 })
 
-it('aggregate errors when errorMode=THROW_AGGREGATED', async () => {
+it('should reject with an AggregateError of all errors with THROW_AGGREGATED', async () => {
   const errorMode = ErrorMode.THROW_AGGREGATED
 
   // should not throw
@@ -196,7 +196,7 @@ it('aggregate errors when errorMode=THROW_AGGREGATED', async () => {
   `)
 })
 
-it('suppress errors when errorMode=SUPPRESS', async () => {
+it('should not reject on mapper errors with SUPPRESS', async () => {
   const errorMode = ErrorMode.SUPPRESS
 
   await pMap(fastInput, mapper, { concurrency: 1, errorMode })
@@ -205,13 +205,13 @@ it('suppress errors when errorMode=SUPPRESS', async () => {
   await pMap(errorInput2, mapper, { concurrency: 1, errorMode })
 })
 
-it('SKIP', async () => {
+it('should leave out SKIP results', async () => {
   const values = _range(1, 4)
   const r = await pMap(values, async v => (v % 2 === 0 ? SKIP : v), { concurrency: 1 })
   expect(r).toEqual([1, 3])
 })
 
-it('END', async () => {
+it('should stop at END, except for items in flight with high concurrency', async () => {
   const values = _range(1, 10)
   let r = await pMap(values, async v => (v === 3 ? END : v), { concurrency: 1 })
   expect(r).toEqual([1, 2])
@@ -256,7 +256,7 @@ async function fn(n: number): Promise<number> {
   return n * 2
 }
 
-it('Infinity math', () => {
+it('should treat Infinity as equal to itself', () => {
   const a = Infinity
   const b = Infinity
   expect(a).toBe(b)
@@ -266,7 +266,7 @@ it('Infinity math', () => {
   expect(a === Infinity).toBe(true)
 })
 
-it('order is preserved', async () => {
+it('should keep the input order with unlimited concurrency and reversed delays', async () => {
   vi.useFakeTimers()
   const input = _range(6)
   const promise = pMap(input, async v => {

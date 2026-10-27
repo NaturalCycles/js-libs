@@ -14,7 +14,7 @@ class C {
   }
 }
 
-it('swarmSafe sequential', async () => {
+it('should run every sequential call', async () => {
   const c = new C()
 
   for (const _ of _range(10)) {
@@ -25,7 +25,7 @@ it('swarmSafe sequential', async () => {
   expect(c.ranTimes).toBe(10)
 })
 
-it('swarmSafe parallel', async () => {
+it('should run parallel calls once, resolving all with the result of the first', async () => {
   const c = new C()
 
   const [r1, r2, r3] = await Promise.all([

@@ -14,7 +14,7 @@ import { getFetcher } from './fetcher.js'
 
 testOnline()
 
-it('basic get', async () => {
+it('should get the JSON body of a GET with search params', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -35,7 +35,7 @@ it('basic get', async () => {
   expect(r).toEqual({ ok: 1 })
 })
 
-it('post with error', async () => {
+it('should return a 404 HttpRequestError with request data and cause on a failed POST', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -80,7 +80,7 @@ it('post with error', async () => {
   }
 })
 
-it('getReadableStream', async () => {
+it('should stream the response body to a file', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -92,7 +92,7 @@ it('getReadableStream', async () => {
   await Pipeline.fromWeb(r).toFile(`${tmpDir}/resp.txt`)
 })
 
-it('redirect: error', async () => {
+it('should fail on a redirect when redirect is error', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -109,7 +109,7 @@ it('redirect: error', async () => {
   `)
 })
 
-it('redirect: manual', async () => {
+it('should return the 301 response without following it when redirect is manual', async () => {
   const fetcher = getFetcher({
     debug: true,
   })
@@ -128,7 +128,7 @@ it('redirect: manual', async () => {
   expect(r.body).toBe('')
 })
 
-it('timeout', async () => {
+it('should fail with a TimeoutError cause when the request times out', async () => {
   const fetcher = getFetcher({
     debug: true,
     timeoutSeconds: 1,
@@ -147,7 +147,7 @@ it('timeout', async () => {
   expect(err.cause.name).toBe(TimeoutError.name)
 })
 
-it('timeout retries', async () => {
+it('should retry a timed-out request and log the error', async () => {
   const fetcher = getFetcher({
     debug: true,
     timeoutSeconds: 1,
@@ -160,7 +160,7 @@ it('timeout retries', async () => {
 
 const webhookUrl = 'https://webhook.site/07577dc5-8a0a-4e21-866b-a3bdbaf641f4'
 
-it.skip('formData', async () => {
+it.skip('should post an object as form data', async () => {
   const fetcher = getFetcher({
     debug: true,
     retry: { count: 0 },
@@ -182,7 +182,7 @@ it.skip('formData', async () => {
   //   }).json()
 })
 
-it.skip('formData with blob', async () => {
+it.skip('should post JSON and form data with a blob', async () => {
   const fetcher = getFetcher({
     debug: true,
     retry: { count: 0 },
@@ -205,7 +205,7 @@ it.skip('formData with blob', async () => {
   })
 })
 
-it('with custom Agent', async () => {
+it('should make requests through a custom undici Agent and undici fetch', async () => {
   const dispatcher = new Agent({
     allowH2: true,
     keepAliveTimeout: 30_000,

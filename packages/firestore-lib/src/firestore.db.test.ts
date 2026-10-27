@@ -1,3 +1,3 @@
 import { it } from 'vitest'
 
-it('empty', () => {})
+it('should pass as an empty placeholder', () => {})

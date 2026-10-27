@@ -8,7 +8,7 @@ afterAll(async () => {
   await app.close()
 })
 
-it('root resource ok', async () => {
+it('should respond with ok on the root path', async () => {
   const r = await app.get('')
   expect(r).toEqual({ ok: 1 })
 })

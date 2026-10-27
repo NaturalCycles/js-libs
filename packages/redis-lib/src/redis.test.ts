@@ -4,7 +4,7 @@ import { expect, it } from 'vitest'
 import { RedisClient } from './redisClient.js'
 import { RedisKeyValueDB } from './redisKeyValueDB.js'
 
-it('redis lazy initialization should not throw', async () => {
+it('should not throw when a client is created but never used', async () => {
   await using _ = new RedisClient({
     redisOptions: {
       maxRetriesPerRequest: 1,
@@ -13,7 +13,7 @@ it('redis lazy initialization should not throw', async () => {
   await pDelay(1000)
 })
 
-it('redis connection failure should throw', async () => {
+it('should reject a query when the server is unreachable', async () => {
   await using client = new RedisClient({
     redisOptions: {
       port: 15464, // non-existing

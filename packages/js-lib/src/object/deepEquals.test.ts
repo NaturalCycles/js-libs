@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { deepEqualsMocks } from '../test/deepEqualsMocks.js'
 import { _deepEquals, _deepJsonEquals, _jsonEquals } from './deepEquals.js'
 
-it('_deepEquals Issue!', () => {
+it('should treat objects with keys in a different order as equal', () => {
   expect(
     _deepEquals(
       {
@@ -17,7 +17,7 @@ it('_deepEquals Issue!', () => {
   ).toBe(true)
 })
 
-it('_deepEquals', () => {
+it('should return true for equal objects and false for an extra key', () => {
   expect(
     _deepEquals(
       {
@@ -46,7 +46,7 @@ it('_deepEquals', () => {
   ).toBe(false)
 })
 
-it('_deepJsonEquals', () => {
+it('should ignore a key with an undefined value', () => {
   const a = {
     a: 'a',
     b: 'b',
@@ -61,7 +61,7 @@ it('_deepJsonEquals', () => {
 })
 
 it.each(deepEqualsMocks)(
-  '_deepEquals2 %s %s jsonEq=%s deepJsonEq=%s deepEq=%s',
+  'should compare %o and %o as jsonEq=%s deepJsonEq=%s deepEq=%s',
   (v1, v2, jsonEq, deepJsonEq, deepEq) => {
     if (jsonEq !== 'error') {
       expect(_jsonEquals(v1, v2)).toBe(jsonEq)
@@ -78,7 +78,7 @@ class A {
   }
 }
 
-it('debug', () => {
+it('should not throw when comparing a toJSON class instance with a string', () => {
   const r = _deepEquals(new A('a'), 'a' as any)
   console.log(r)
 })

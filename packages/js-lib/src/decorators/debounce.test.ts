@@ -23,7 +23,7 @@ async function startTimer(fn: AnyFunction, interval: number, count: number): Pro
 }
 
 describe('_debounce', () => {
-  it('should debounce calls with leading/trailing/maxWait', async () => {
+  it('should run debounced calls with leading, trailing and maxWait without throwing', async () => {
     vi.useFakeTimers()
 
     const fn = _debounce(originalFn, 20, { leading: true, trailing: true, maxWait: 300 })
@@ -45,7 +45,7 @@ describe('_debounce', () => {
 })
 
 describe('_asyncDebounce', () => {
-  it('should return a real promise (never undefined) resolving with the invocation result', async () => {
+  it('should return a promise that resolves with the invocation result', async () => {
     let calls = 0
     const fn = _asyncDebounce(async (n: number) => {
       calls++
@@ -99,7 +99,7 @@ describe('_asyncDebounce', () => {
 })
 
 describe('_asyncThrottle', () => {
-  it('should invoke on the leading edge immediately', async () => {
+  it('should invoke the first call and resolve it with its result', async () => {
     let calls = 0
     const fn = _asyncThrottle(async (n: number) => {
       calls++

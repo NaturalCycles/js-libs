@@ -12,7 +12,7 @@ const bucket = 'b'
 const content = Buffer.from('content')
 const metadata = { hash: 'hash_1' }
 
-it('getFileMetadata returns a copy of the metadata', async () => {
+it('should keep stored metadata isolated from the saved input and returned copies', async () => {
   const s = new InMemoryCommonStorage()
   const input = { ...metadata }
   await s.saveFile(bucket, 'a/1', content, { metadata: input })
@@ -24,7 +24,7 @@ it('getFileMetadata returns a copy of the metadata', async () => {
   expect(await s.getFileMetadata(bucket, 'a/1')).toEqual({ metadata, size: content.length })
 })
 
-it('uploadFile removes metadata', async () => {
+it('should clear the metadata of a file overwritten by uploadFile', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.uploadFile(import.meta.filename, bucket, 'a/1')
@@ -32,7 +32,7 @@ it('uploadFile removes metadata', async () => {
   expect((await s.getFileMetadata(bucket, 'a/1'))!.metadata).toEqual({})
 })
 
-it('copyFile copies metadata', async () => {
+it('should copy the metadata with copyFile', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.copyFile(bucket, 'a/1', 'a/2', 'b2')
@@ -41,7 +41,7 @@ it('copyFile copies metadata', async () => {
   expect((await s.getFileMetadata('b2', 'a/2'))!.metadata).toEqual(metadata)
 })
 
-it('moveFile moves metadata', async () => {
+it('should move the metadata with moveFile', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.moveFile(bucket, 'a/1', 'a/2')
@@ -50,7 +50,7 @@ it('moveFile moves metadata', async () => {
   expect((await s.getFileMetadata(bucket, 'a/2'))!.metadata).toEqual(metadata)
 })
 
-it('movePath moves metadata', async () => {
+it('should move the metadata of files under the path with movePath', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.saveFile(bucket, 'a/2', content)
@@ -60,7 +60,7 @@ it('movePath moves metadata', async () => {
   expect(s.metadata['b2']).toEqual({ 'c/1': metadata })
 })
 
-it('deleteFiles, deletePath and deletePaths remove metadata', async () => {
+it('should remove the metadata with deleteFiles, deletePath and deletePaths', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.saveFile(bucket, 'b/1', content, { metadata })
@@ -74,7 +74,7 @@ it('deleteFiles, deletePath and deletePaths remove metadata', async () => {
   expect(s.metadata[bucket]).toEqual({ 'd/1': metadata })
 })
 
-it('combineFiles does not keep metadata', async () => {
+it('should drop the metadata of source and target files with combineFiles', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.saveFile(bucket, 'a/2', content, { metadata })
@@ -88,7 +88,7 @@ it('combineFiles does not keep metadata', async () => {
   })
 })
 
-it('clear removes files, metadata and visibility', async () => {
+it('should remove files, metadata and visibility on clear', async () => {
   const s = new InMemoryCommonStorage()
   await s.saveFile(bucket, 'a/1', content, { metadata })
   await s.setFileVisibility(bucket, 'a/1', true)

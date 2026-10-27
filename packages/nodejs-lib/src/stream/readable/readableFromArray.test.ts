@@ -3,7 +3,7 @@ import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expect, it } from 'vitest'
 import { readableFromArray } from '../index.js'
 
-it('readableFromArray', async () => {
+it('should emit every array item through the async mapper', async () => {
   const items = _range(1, 11)
 
   const readable = readableFromArray(items, async item => await pDelay(10, item))

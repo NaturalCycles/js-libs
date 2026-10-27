@@ -3,14 +3,14 @@ import { pDefer } from './pDefer.js'
 import { pDelay } from './pDelay.js'
 import { pState } from './pState.js'
 
-it('pending', async () => {
+it('should report a hanging promise as pending', async () => {
   const p = new Promise(() => {}) // hanging promise
   expect(await pState(p)).toBe('pending')
   await pDelay(100)
   expect(await pState(p)).toBe('pending')
 })
 
-it('resolved', async () => {
+it('should report a resolved deferred as resolved', async () => {
   const p = pDefer<string>()
   expect(await pState(p)).toBe('pending')
   await pDelay(100)
@@ -19,7 +19,7 @@ it('resolved', async () => {
   expect(await p).toBe('hello')
 })
 
-it('rejected', async () => {
+it('should report a rejected deferred as rejected', async () => {
   const p = pDefer<string>()
   expect(await pState(p)).toBe('pending')
   await pDelay(100)

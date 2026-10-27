@@ -34,33 +34,33 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(datastoreDB)
 })
 
-it('getStats, getStatsCount non-existing table', async () => {
+it('should return undefined stats and count for a missing table', async () => {
   expect(await datastoreDB.getStats('NonEx')).toBeUndefined()
   expect(await datastoreDB.getStatsCount('NonEx')).toBeUndefined()
 })
 
-it('getStatsCount', async () => {
+it('should get the stats count of a table without throwing', async () => {
   console.log(await datastoreDB.getStatsCount('Session'))
 })
 
-it('getStats', async () => {
+it('should get the stats of a table without throwing', async () => {
   console.log(await datastoreDB.getStats('Session'))
 })
 
-it('getAllStats', async () => {
+it('should get the stats of all tables without throwing', async () => {
   console.log(await datastoreDB.getAllStats())
 })
 
-it('getTables', async () => {
+it('should list the tables without throwing', async () => {
   console.log(await datastoreDB.getTables())
 })
 
-it('getTableSchema', async () => {
+it('should get a table schema without throwing', async () => {
   // console.log(await datastoreDB.getTableProperties('Account'))
   console.log(await datastoreDB.getTableSchema('Account'))
 })
 
-it.skip('GOAWAY stress test', async () => {
+it.skip('should save 10k items one by one without a GOAWAY error', async () => {
   const items = createTestItemsDBM(10_001)
 
   await pMap(items, async item => {
@@ -68,7 +68,7 @@ it.skip('GOAWAY stress test', async () => {
   })
 })
 
-it('multiGetByIds', async () => {
+it('should get rows from several tables with multiGet without throwing', async () => {
   // const r = await datastoreDB.runQuery(DBQuery.create('Session').limit(5))
   // console.log(r.rows.map(rr => rr.id))
 

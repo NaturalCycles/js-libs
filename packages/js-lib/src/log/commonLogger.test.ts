@@ -81,14 +81,14 @@ it('should let the methods be passed around unbound', () => {
   expect(entries).toStrictEqual([{ msg: 'hey', level: 'error' }])
 })
 
-it('should log to console', () => {
+it('should not throw when logging to the console', () => {
   consoleLogger.log('hey')
   consoleLogger.warn({ msg: 'hey', n: 1 })
   consoleLogger.error(new Error('kaboom'))
   consoleLogger.child({ module: 'test' }).log('hey')
 })
 
-it('should do nothing in the noop logger', () => {
+it('should not throw when logging to the noop logger or its child', () => {
   commonLoggerNoop.log('hey')
   commonLoggerNoop.child({ a: 1 }).error('hey')
 })

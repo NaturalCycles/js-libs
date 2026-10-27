@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`sortObjectDeep 1`] = `
+exports[`should match the snapshot for a nested object 1`] = `
 {
   "a": 1,
   "aa": 6,

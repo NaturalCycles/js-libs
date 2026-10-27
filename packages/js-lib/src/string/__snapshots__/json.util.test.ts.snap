@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`jsonParseIfPossible 1`] = `
+exports[`should parse JSON strings and return anything else unchanged with _jsonParseIfPossible 1`] = `
 Map {
   undefined => undefined,
   null => null,

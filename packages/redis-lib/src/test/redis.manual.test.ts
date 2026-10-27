@@ -25,7 +25,7 @@ afterAll(async () => {
   await client.disconnect()
 })
 
-it('connect', async () => {
+it('should ping the server', async () => {
   await db.ping()
 })
 
@@ -37,7 +37,7 @@ describe('runCommonKeyValueDaoTest', async () => {
   await runCommonKeyValueDaoTest(db)
 })
 
-it('saveBatch with EXAT', async () => {
+it('should expire entries saved with expireAt', async () => {
   const testIds = _range(1, 4).map(n => `id${n}`)
   const testEntries: KeyValueDBTuple[] = testIds.map(id => [id, Buffer.from(`${id}value`)])
 
@@ -67,14 +67,14 @@ class C {
 
 const c = new C()
 
-it('CommonKeyValueDaoMemoCache serial', async () => {
+it('should serve serial memoized calls without throwing', async () => {
   for (const _ of _range(10)) {
     console.log(await c.get('key'))
     await pDelay(100)
   }
 })
 
-it('CommonKeyValueDaoMemoCache async swarm', async () => {
+it('should serve concurrent memoized calls without throwing', async () => {
   await Promise.all(
     _range(30).map(async () => {
       console.log(await c.get('key'))

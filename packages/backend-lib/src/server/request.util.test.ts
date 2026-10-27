@@ -11,7 +11,7 @@ function mockReq(req: {
   return req as any
 }
 
-it('matched route: uses the route pattern, not the actual path', () => {
+it('should use the route pattern, not the actual path, for a matched route', () => {
   const req = mockReq({
     method: 'GET',
     baseUrl: '/API',
@@ -22,13 +22,13 @@ it('matched route: uses the route pattern, not the actual path', () => {
   expect(getRequestEndpointUnsafe(req)).toBe('GET /api/users/:id')
 })
 
-it('unmatched route: uses the actual path', () => {
+it('should use the actual path for an unmatched route', () => {
   const req = mockReq({ method: 'POST', baseUrl: '', path: '/Some/Path/' })
   expect(getRequestEndpoint(req)).toBe('POST /some/path')
   expect(getRequestEndpointUnsafe(req)).toBe('POST /some/path')
 })
 
-it('stripPrefix', () => {
+it('should strip only a matching prefix from the endpoint', () => {
   const req = mockReq({ method: 'GET', baseUrl: '/api/v2', path: '/users/' })
   expect(getRequestEndpoint(req, '/api/v2')).toBe('GET /users')
   expect(getRequestEndpoint(req, '/other')).toBe('GET /api/v2/users')
@@ -43,13 +43,13 @@ it.each([
   ['/ü/😀', '/_/_'],
   // allowed as-is: letters, digits and inert url punctuation
   ['/a-b_c.d~e:f@g!h$i*j+k,l;m=n/%2F', '/a-b_c.d~e:f@g!h$i*j+k,l;m=n/%2f'],
-])('unmatched route: path %s is sanitized to %s', (path, expected) => {
+])('should sanitize the unmatched path %s to %s', (path, expected) => {
   const req = mockReq({ method: 'GET', baseUrl: '', path })
   expect(getRequestEndpoint(req)).toBe(`GET ${expected}`)
   expect(getRequestEndpointUnsafe(req)).toBe(`GET ${path.toLowerCase()}`)
 })
 
-it('matched route: baseUrl (mount path params) is sanitized, route pattern is not', () => {
+it('should sanitize the baseUrl but not the route pattern of a matched route', () => {
   const req = mockReq({
     method: 'GET',
     baseUrl: '/t/<b>',

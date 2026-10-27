@@ -16,7 +16,7 @@ afterAll(() => {
 })
 
 // skipped, because mocking process.exit no longer works
-it.skip('runScript', async () => {
+it.skip('should exit with code 0 on success and code 1 on error', async () => {
   if (detectLeaks) return // Somehow it fails with detect-leaks SOMETIMES
   const processExit = vi.spyOn(process, 'exit').mockImplementation(_noop as any)
   const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -39,7 +39,7 @@ it.skip('runScript', async () => {
   expect(consoleError).toHaveBeenCalledTimes(1)
 })
 
-it('setGlobalStringifyFunction', () => {
+it('should stringify with util.inspect after setting inspectStringifyFn globally', () => {
   vi.spyOn(process, 'exit').mockImplementation(_noop as any)
 
   setGlobalStringifyFunction(inspectStringifyFn)

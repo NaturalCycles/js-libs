@@ -6,7 +6,7 @@ import { expect, it } from 'vitest'
 import { Pipeline } from './pipeline.js'
 import type { ReadableTyped } from './stream.model.js'
 
-it('Pipeline', async () => {
+it('should chunk, flatten and limit a readable source', async () => {
   const r = await Pipeline.from<string>(new HonestReadable(150, 'p'))
     .chunk(2)
     .flatten()
@@ -19,7 +19,7 @@ it('Pipeline', async () => {
   expect(r).toEqual(['p_1', 'p_2', 'p_3'])
 })
 
-it('limit after a transform completes gracefully on a small array source', async () => {
+it('should complete gracefully when limit follows a transform on a small array source', async () => {
   // A source this small has already emitted `end` when the abort from `limit` lands,
   // which used to surface as "Premature close" instead of a graceful abort
   const r = await Pipeline.fromArray([1, 2, 3, 4])
@@ -30,7 +30,7 @@ it('limit after a transform completes gracefully on a small array source', async
   expect(r).toEqual([10, 20])
 })
 
-it('forEach returning END completes gracefully on a small array source', async () => {
+it('should complete gracefully when forEach returns END on a small array source', async () => {
   const seen: number[] = []
 
   await Pipeline.fromArray([1, 2, 3, 4]).forEach(
@@ -44,7 +44,7 @@ it('forEach returning END completes gracefully on a small array source', async (
   expect(seen).toEqual([1, 2])
 })
 
-it('limit followed by an async forEach resolves only after the in-flight mappers are done', async () => {
+it('should resolve limit then async forEach only after the in-flight mappers are done', async () => {
   const seen: number[] = []
 
   await Pipeline.fromArray([1, 2, 3, 4])
@@ -58,7 +58,7 @@ it('limit followed by an async forEach resolves only after the in-flight mappers
   expect(seen.toSorted(comparators.numericAsc)).toEqual([1, 2])
 })
 
-it('forEach returning END aborts the source', async () => {
+it('should abort the source when forEach returns END', async () => {
   const seen: string[] = []
 
   await Pipeline.from<string>(new HonestReadable(100, 'p')).forEach(
@@ -73,7 +73,7 @@ it('forEach returning END aborts the source', async () => {
   expect(seen.length).toBeLessThan(100)
 })
 
-it('forEachSync returning END aborts the source', async () => {
+it('should abort the source when forEachSync returns END', async () => {
   const seen: string[] = []
 
   await Pipeline.from<string>(new HonestReadable(100, 'p')).forEachSync(item => {

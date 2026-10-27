@@ -46,14 +46,14 @@ enum MyStringEnum {
 // Object.values(MyStringEnum)
 // [ 'K1_VALUE', 'K2_VALUE', 'K3_VALUE' ]
 
-it('_numberEnumKeys', () => {
+it('should return the keys of a number enum without the reverse mappings', () => {
   expect(_numberEnumKeys(MyNumberEnum)).toEqual(['K1', 'K2', 'K3'])
   expectTypeOf(_numberEnumKeys(MyNumberEnum)).toEqualTypeOf<(keyof typeof MyNumberEnum)[]>()
   const keys = _numberEnumKeys(MyNumberEnum)
   expect(keys).not.toContain('some')
 })
 
-it('_numberEnumValues', () => {
+it('should return the values of a number enum without the reverse mappings', () => {
   expect(_numberEnumValues(MyNumberEnum)).toEqual([1, 2, 3])
   expectTypeOf(_numberEnumValues(MyNumberEnum)).toMatchTypeOf<MyNumberEnum[]>()
   expectTypeOf(_numberEnumValues(MyNumberEnum)).toMatchTypeOf<number[]>()
@@ -61,7 +61,7 @@ it('_numberEnumValues', () => {
   expect(values).toContain(MyNumberEnum.K1)
 })
 
-it('_stringEnumKeys', () => {
+it('should return the keys of a string enum', () => {
   expect(_stringEnumKeys(MyStringEnum)).toMatchInlineSnapshot(`
     [
       "K1_KEY",
@@ -72,7 +72,7 @@ it('_stringEnumKeys', () => {
   expectTypeOf(_stringEnumKeys(MyStringEnum)).toEqualTypeOf<(keyof typeof MyStringEnum)[]>()
 })
 
-it('_stringEnumValues', () => {
+it('should return the values of a string enum', () => {
   expect(_stringEnumValues(MyStringEnum)).toMatchInlineSnapshot(`
     [
       "K1_VALUE",
@@ -84,7 +84,7 @@ it('_stringEnumValues', () => {
   expectTypeOf(_stringEnumValues(MyStringEnum)).toMatchTypeOf<MyStringEnum[]>()
 })
 
-it('_numberEnumEntries', () => {
+it('should return the entries and maps of a number enum, also reversed', () => {
   expect(Object.fromEntries(_numberEnumEntries(MyNumberEnum))).toMatchInlineSnapshot(`
     {
       "K1": 1,
@@ -121,7 +121,7 @@ it('_numberEnumEntries', () => {
   `)
 })
 
-it('_stringEnumEntries', () => {
+it('should return the entries and maps of a string enum, also reversed', () => {
   expect(Object.fromEntries(_stringEnumEntries(MyStringEnum))).toMatchInlineSnapshot(`
     {
       "K1_KEY": "K1_VALUE",
@@ -154,7 +154,7 @@ it('_stringEnumEntries', () => {
   `)
 })
 
-it('_numberEnumValue', () => {
+it('should look up a number enum value by key, throwing or returning undefined if missing', () => {
   expect(_numberEnumValue(MyNumberEnum, 'K2')).toBe(2)
   expect(() => _numberEnumValue(MyNumberEnum, 'K4' as any)).toThrowErrorMatchingInlineSnapshot(
     `[Error: _numberEnumValue not found for: K4]`,
@@ -168,7 +168,7 @@ it('_numberEnumValue', () => {
   expect(_numberEnumValueOrUndefined(MyNumberEnum, 0 as any)).toBeUndefined()
 })
 
-it('_numberEnumNormalize', () => {
+it('should normalize a number enum key or value to the value', () => {
   expect(_numberEnumNormalize(MyNumberEnum, 'K2')).toBe(2)
   expect(_numberEnumNormalize(MyNumberEnum, MyNumberEnum.K2)).toBe(2)
 
@@ -189,7 +189,7 @@ it('_numberEnumNormalize', () => {
   expect(_numberEnumNormalizeOrUndefined(MyNumberEnum, 'K4')).toBeUndefined()
 })
 
-it('_numberEnumKey, _numberEnumKeyOrUndefined', () => {
+it('should look up a number enum key by value, throwing or returning undefined if missing', () => {
   expect(_numberEnumKeyOrUndefined(MyNumberEnum, 'non-existing' as any)).toBeUndefined()
   expect(_numberEnumKeyOrUndefined(MyNumberEnum, MyNumberEnum.K1)).toBe('K1')
   expect(_numberEnumKeyOrUndefined(MyNumberEnum, 1)).toBe('K1')
@@ -206,7 +206,7 @@ it('_numberEnumKey, _numberEnumKeyOrUndefined', () => {
   expect(_numberEnumKey(MyNumberEnum, 1)).toBe('K1')
 })
 
-it('_stringEnumKey', () => {
+it('should look up a string enum key by value, throwing or returning undefined if missing', () => {
   expect(_stringEnumKeyOrUndefined(MyStringEnum, 'non-existing' as any)).toBeUndefined()
   expect(() =>
     _stringEnumKey(MyStringEnum, 'non-existing' as any),
@@ -244,14 +244,14 @@ describe('getEnumType', () => {
     expect(getEnumType({ a: 'a', b: 'b' })).toBe('StringEnum')
   })
 
-  it('should return "undefined" for empty enums', () => {
+  it('should return undefined for empty enums', () => {
     enum Foo {}
 
     expect(getEnumType(Foo)).toBeUndefined()
   })
 
   const testCases = [{}, { a: [1] }, { a: 1, b: 'b' }]
-  it.each(testCases)('should return "undefined" for other objects: %s', value => {
+  it.each(testCases)('should return undefined for other objects: %s', value => {
     expect(getEnumType(value)).toBeUndefined()
   })
 })

@@ -13,7 +13,7 @@ afterAll(async () => {
   await deleteApp(await service.admin())
 })
 
-it('firebase shared service', async () => {
+it('should create the firebase admin app and auth', async () => {
   const admin = await service.admin()
   expect(typeof admin).toBe('object')
   const auth = await service.auth()

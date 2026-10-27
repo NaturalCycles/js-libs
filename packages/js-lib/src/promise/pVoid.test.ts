@@ -12,7 +12,7 @@ function pVoid(fn: () => Promise<any>): void {
   })
 }
 
-it('pVoid', async () => {
+it('should catch the rejection of a voided async function', async () => {
   await myFunction1()
 
   await pDelay(10)

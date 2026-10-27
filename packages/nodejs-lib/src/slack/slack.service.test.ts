@@ -37,7 +37,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-it('basic test', async () => {
+it('should post a timestamped webhook body with items, kv fields and mentions', async () => {
   await slackService.log('hey')
   expect(lastBody).toMatchSnapshot()
 
@@ -65,7 +65,7 @@ it('basic test', async () => {
   // await expect(slackService.send({items: 'hey', throwOnError: true})).rejects.toThrow('Network request forbidden')
 })
 
-it('no webhookUrl', async () => {
+it('should not post anything without a webhookUrl', async () => {
   slackService = new SlackService({
     logger: commonLoggerNoop,
   })
@@ -73,7 +73,7 @@ it('no webhookUrl', async () => {
   expect(lastBody).toBeNull() // should be unchanged
 })
 
-it('error', async () => {
+it('should throw an HttpRequestError for an invalid webhook url with throwOnError', async () => {
   slackService = new SlackService({
     webhookUrl: 'wrongUrl',
     logger: commonLoggerNoop,
@@ -93,7 +93,7 @@ it('error', async () => {
   `)
 })
 
-it('user group mentions use subteam format', async () => {
+it('should format user group mentions in the subteam format', async () => {
   await slackService.send({
     items: 'alert',
     mentions: ['U123456', 'S789012'], // user ID and user group ID
@@ -101,7 +101,7 @@ it('user group mentions use subteam format', async () => {
   expect(lastBody).toMatchSnapshot()
 })
 
-it('messagePrefixHook returning null should NOT be sent', async () => {
+it('should not send a message when messagePrefixHook returns null', async () => {
   slackService = new SlackService({
     webhookUrl: 'https://valid.com',
     messagePrefixHook: () => null,

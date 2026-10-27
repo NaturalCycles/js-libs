@@ -30,7 +30,7 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(mongoDB)
 })
 
-it.skip('some', async () => {
+it.skip('should save items and query them with an empty select without throwing', async () => {
   const dao = new CommonDao({
     table: TEST_TABLE,
     db: mongoDB,

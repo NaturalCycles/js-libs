@@ -34,7 +34,7 @@ const UNIT_RANGE: Record<LocalTimeUnit, number> = {
 
 const DAYJS_ISO_DATE = 'YYYY-MM-DD'
 
-it('basic', () => {
+it('should parse an ISO date-time and expose its parts, formats, setters and comparisons', () => {
   const start = '2022-01-01T00:00:00' as IsoDateTime
   const lt = localTime.fromInput(start)
   expect(lt.year).toBe(2022)
@@ -161,7 +161,7 @@ it('basic', () => {
   expect(localTime.isTimezoneValid('Europe/Stockholm2')).toBe(false)
 })
 
-it('isBetween', () => {
+it('should respect [) and [] inclusivity, returning false when min is after max', () => {
   const ld = localTime('1984-06-21' as IsoDate)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
@@ -177,7 +177,7 @@ it('isBetween', () => {
   expect(ld.isBetween('1984-06-22' as IsoDate, '1984-06-20' as IsoDate, '[)')).toBe(false)
 })
 
-it('fromNow', () => {
+it('should describe the distance to now as a relative string', () => {
   const past = localTime('2022-02-24' as IsoDate)
   const now = localTime('2022-03-28' as IsoDate)
   const future = localTime('2022-04-01' as IsoDate)
@@ -224,7 +224,7 @@ const invalidDates = [
   '2022-01-32',
 ] as IsoDateTime[]
 
-it.each(validDates)('%s parses to %s and is strictly valid', (s, expected) => {
+it.each(validDates)('should parse %s strictly to %s', (s, expected) => {
   expect(localTime.isValid(s)).toBe(true)
   expect(localTime.isValidString(s)).toBe(true)
   expect(localTime(s).toISODate()).toBe(expected.slice(0, 10))
@@ -244,12 +244,12 @@ it.each([
   ['2022-01-31T05:05:05.123', 123],
   ['2022-01-31T05:05:05.123Z', 123],
   ['2022-01-31T05:05:05.123456+02:00', 123],
-] as [IsoDateTime, number][])('%s parses milliseconds as %s', (s, expected) => {
+] as [IsoDateTime, number][])('should parse the milliseconds of %s as %s', (s, expected) => {
   expect(localTime.fromIsoDateTimeString(s).$date.getMilliseconds()).toBe(expected)
   expect(localTime(s).$date.getMilliseconds()).toBe(expected)
 })
 
-it.each(looselyValidDates)('%s parses to %s and is loosely valid', (s, expected) => {
+it.each(looselyValidDates)('should parse %s loosely to %s but not strictly', (s, expected) => {
   expect(localTime.isValid(s)).toBe(false)
   expect(localTime.isValidString(s)).toBe(false)
   expect(() => localTime(s)).toThrow('Cannot parse')
@@ -259,7 +259,7 @@ it.each(looselyValidDates)('%s parses to %s and is loosely valid', (s, expected)
   expect(localTime.try(s)?.toString()).toBe(expected)
 })
 
-it.each(invalidDates)('%s is invalid', s => {
+it.each(invalidDates)('should reject %s in both strict and loose parsing', s => {
   expect(localTime.isValidString(s)).toBe(false)
   expect(() => localTime.fromIsoDateTimeString(s)).toThrow('Cannot parse')
   expect(() => localTime.parse(s)).toThrow('Cannot parse')
@@ -274,7 +274,7 @@ it.each(invalidDates)('%s is invalid', s => {
 //   expect(localDate.try(s)).toBeUndefined()
 // })
 
-it('add', () => {
+it('should add, subtract and round every unit like dayjs', () => {
   if (!isUTC()) return
   const starts = [
     '2022-05-31',
@@ -361,7 +361,7 @@ it('add', () => {
   })
 })
 
-it('diff', () => {
+it('should diff in every unit like dayjs', () => {
   if (!isUTC()) return
   const starts = [
     '2022-05-31',
@@ -402,14 +402,14 @@ it('diff', () => {
   })
 })
 
-it('timezone-full string', () => {
+it('should ignore the UTC offset of the input string', () => {
   if (!isUTC()) return // todo: this should parse to the same unixtime regardless of TZ
   const lt = localTime.fromInput('2022-04-06T23:15:00+09:00' as IsoDateTime)
   expect(lt.unix).toMatchInlineSnapshot(`1649286900`)
   expect(lt.toPretty()).toBe('2022-04-06 23:15:00')
 })
 
-it('startOf should have 0 millis', () => {
+it('should zero the time parts on startOf day', () => {
   const t = localTime.now().startOf('day')
   expect(t.toDate().getMilliseconds()).toBe(0)
   expect(t.toDate().getSeconds()).toBe(0)
@@ -417,7 +417,7 @@ it('startOf should have 0 millis', () => {
   expect(t.toDate().getHours()).toBe(0)
 })
 
-it('format', () => {
+it('should format with a custom function or an Intl formatter', () => {
   const fmt: LocalTimeFormatter = ld => `${ld.year}-${String(ld.month).padStart(2, '0')}`
   expect(localTime('1984-06-21' as IsoDate).format(fmt)).toBe('1984-06')
 
@@ -430,7 +430,7 @@ it('format', () => {
   expect(localTime('1984-06-21T05:23:13' as IsoDateTime).format(fmt2)).toBe('21 июня в 05:23')
 })
 
-it('dayOfWeek', () => {
+it('should get and set the ISO day of week, throwing on an invalid day', () => {
   const t = localTime('1984-06-21' as IsoDate)
   expect(t.dayOfWeek).toBe(ISODayOfWeek.THURSDAY)
 
@@ -461,7 +461,7 @@ it('dayOfWeek', () => {
   expect(t.setNextDayOfWeek(7).toISODate()).toBe('1984-06-24')
 })
 
-it('diff2', () => {
+it('should diff in full years and days', () => {
   expect(localTime('2020-03-03' as IsoDate).diff('1991-06-21' as IsoDate, 'year')).toBe(28)
 
   const ld = localTime('2022-01-01' as IsoDate)
@@ -474,13 +474,13 @@ it('diff2', () => {
   expect(ld.diff('2020-12-01' as IsoDate, 'day')).toBe(396)
 })
 
-it('fromDateTimeObject', () => {
+it('should create a time from a date object', () => {
   if (!isUTC()) return
   const lt = localTime.fromDateTimeObject({ year: 1984, month: 6, day: 21 })
   expect(lt.toISODate()).toBe('1984-06-21')
 })
 
-it('add edge', () => {
+it('should clamp to the end of the month when adding months or years', () => {
   if (!isUTC()) return
   // 2020-02-29 - 2020 year == 0000-02-29 00:00:00
   // expect(localTime('2020-02-29').add(-2020, 'year').toPretty()).toBe(dayjs('2020-02-29').add(-2020, 'year').toPretty())
@@ -549,7 +549,7 @@ it('add edge', () => {
   ).toBe('2020-02-28 00:00:00')
 })
 
-it('diff edge', () => {
+it('should diff in full months like dayjs around the end of the month', () => {
   // 2022-05-31 + 1 month == 2022-06-30 00:00:00 should diff 1 month
   // console.log(differenceInMonths(new Date('2022-06-30'), new Date('2022-05-31')))
   // console.log(differenceInMonths(new Date('2022-05-31'), new Date('2022-04-30')))
@@ -576,7 +576,7 @@ it('diff edge', () => {
 })
 
 // You shouldn't do it, I'm just discovering that it works, apparently
-it('comparison with string', () => {
+it('should compare with unix timestamps via relational operators', () => {
   if (!isUTC()) return
   const d = localTime('1984-06-21T05:00:00' as IsoDateTime) as any
   expect(d < localTime('1984-06-22' as IsoDate).unix).toBe(true)
@@ -589,7 +589,7 @@ it('comparison with string', () => {
 })
 
 // You shouldn't do it, I'm just discovering that it works, apparently
-it('comparison with other LocalTimes like primitives', () => {
+it('should compare with other times via relational operators', () => {
   if (!isUTC()) return
   const d = localTime('1984-06-21T05:00:00' as IsoDate) as any
   expect(d < localTime('1984-06-22' as IsoDate)).toBe(true)
@@ -601,12 +601,12 @@ it('comparison with other LocalTimes like primitives', () => {
   expect(d > localTime('1981-06-20' as IsoDate)).toBe(true)
 })
 
-it('nowUnix', () => {
+it('should return the current unix time in seconds and milliseconds', () => {
   expect(localTime.nowUnix()).toBeGreaterThan(localTime('2024-01-01' as IsoDate).unix)
   expect(localTime.nowUnixMillis()).toBeGreaterThan(localTime('2024-01-01' as IsoDate).unixMillis)
 })
 
-it('utcOffset', () => {
+it('should report a zero UTC offset when running in UTC', () => {
   const offset = dayjs().utcOffset()
   const offset2 = -new Date().getTimezoneOffset()
   expect(offset2).toBe(offset)
@@ -617,7 +617,7 @@ it('utcOffset', () => {
   }
 })
 
-it('fromDateUTC', () => {
+it('should keep the unix time when converting between UTC and local', () => {
   const s = `1984-06-21T05:00:00` as IsoDate
   const lt = localTime(s).toUTC()
   const ltUtc = lt.toUTC()
@@ -639,7 +639,7 @@ it('fromDateUTC', () => {
   // todo: figure out what to assert in non-utc mode
 })
 
-it('getUTCOffsetMinutes', () => {
+it('should return the UTC offset of a timezone in minutes and hours', () => {
   const now = localTime('2024-05-14' as IsoDate)
   expect(now.getUTCOffsetMinutes('America/Los_Angeles' as IANATimezone)).toBe(-7 * 60)
   expect(now.getUTCOffsetMinutes('America/New_York' as IANATimezone)).toBe(-4 * 60)
@@ -651,7 +651,7 @@ it('getUTCOffsetMinutes', () => {
   expect(now.getUTCOffsetMinutes('Asia/Tokyo' as IANATimezone)).toBe(9 * 60)
 })
 
-it('getUTCOffsetString', () => {
+it('should format the UTC offset of a timezone as +HH:MM', () => {
   const now = localTime('2024-05-14' as IsoDate)
   expect(now.getUTCOffsetString('America/Los_Angeles' as IANATimezone)).toBe('-07:00')
   expect(now.getUTCOffsetString('America/New_York' as IANATimezone)).toBe('-04:00')
@@ -660,7 +660,7 @@ it('getUTCOffsetString', () => {
   expect(now.getUTCOffsetString('Asia/Tokyo' as IANATimezone)).toBe('+09:00')
 })
 
-it('inTimezone', () => {
+it('should convert to the wall time of a timezone', () => {
   const lt = localTime(`1984-06-21T05:00:00` as IsoDate)
   expect(lt.toPretty()).toBe(`1984-06-21 05:00:00`)
 
@@ -685,7 +685,7 @@ it('inTimezone', () => {
   expect(lt2.inTimezone('Asia/Tokyo' as IANATimezone).toPretty()).toBe(`1984-02-15 06:00:00`)
 })
 
-it('inTimezone across DST transitions of the target timezone', () => {
+it('should convert to the wall time of a timezone across its DST transitions', () => {
   // America/New_York springs forward 2025-03-09: 02:00 EST -> 03:00 EDT
   expect(
     localTime(1741503540 as UnixTimestamp) // 2025-03-09T06:59:00Z
@@ -711,7 +711,7 @@ it('inTimezone across DST transitions of the target timezone', () => {
   ).toBe('2025-11-02 01:30:00')
 })
 
-it('inTimezone around midnight', () => {
+it('should render midnight as hour 0 of the next day when converting to a timezone', () => {
   // Midnight must render as hour 0 (not 24), and roll the date over
   expect(
     localTime(1750543200 as UnixTimestamp) // 2025-06-21T22:00:00Z
@@ -720,7 +720,7 @@ it('inTimezone around midnight', () => {
   ).toBe('2025-06-22 00:00:00')
 })
 
-it('inTimezone with fractional-offset timezones', () => {
+it('should convert to the wall time of a timezone with a fractional offset', () => {
   // Asia/Kolkata is UTC+5:30.
   // This wall time also falls into Europe/Stockholm's 2025-03-30 02:00->03:00 DST gap:
   // the previous implementation was corrupted by the *host* timezone's DST gap
@@ -744,7 +744,7 @@ it('inTimezone with fractional-offset timezones', () => {
   ).toBe('2025-07-15 22:30:00')
 })
 
-it('getUTCOffsetMinutes across DST and fractional offsets', () => {
+it('should return the UTC offset in minutes across DST and for fractional offsets', () => {
   const jan = localTime(1736942400 as UnixTimestamp) // 2025-01-15T12:00:00Z
   const jul = localTime(1752580800 as UnixTimestamp) // 2025-07-15T12:00:00Z
 
@@ -763,7 +763,7 @@ it('getUTCOffsetMinutes across DST and fractional offsets', () => {
   expect(jul.getUTCOffsetMinutes('America/St_Johns' as IANATimezone)).toBe(-150)
 })
 
-it('getUTCOffsetString with fractional offsets', () => {
+it('should format fractional and negative fractional UTC offsets', () => {
   const jan = localTime(1736942400 as UnixTimestamp) // 2025-01-15T12:00:00Z
   expect(jan.getUTCOffsetString('Asia/Kolkata' as IANATimezone)).toBe('+05:30')
   expect(jan.getUTCOffsetString('Asia/Kathmandu' as IANATimezone)).toBe('+05:45')
@@ -773,7 +773,7 @@ it('getUTCOffsetString with fractional offsets', () => {
 })
 
 // This test should work both in `yarn test` (UTC) and `yarn test-tz2` (JST-09)
-it('parsing date string in negative timezone bug', () => {
+it('should parse a date string to local midnight', () => {
   const s = '2023-03-03' as IsoDate
   console.log(new Date(s).toString())
   const lt = localTime(s)
@@ -781,7 +781,7 @@ it('parsing date string in negative timezone bug', () => {
   expect(lt.toPretty()).toBe('2023-03-03 00:00:00')
 })
 
-it('fractional unit input', () => {
+it('should floor fractional day amounts and reject a fractional day in the input', () => {
   const lt = localTime('1984-06-21' as IsoDate)
   expect(lt.toString()).toBe('1984-06-21T00:00:00')
 

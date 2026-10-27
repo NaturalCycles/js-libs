@@ -25,7 +25,7 @@ const mapperError3: AsyncIndexedMapper<Item, Item> = async item => {
   return item
 }
 
-it('transformMap simple', async () => {
+it('should call the mapper for every item', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2: Item[] = []
 
@@ -37,7 +37,7 @@ it('transformMap simple', async () => {
   // expect(readable.destroyed).toBe(true)
 })
 
-it('transformMap with mapping', async () => {
+it('should emit the mapped items', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2 = await Pipeline.fromArray(data)
     .map(async r => ({
@@ -48,7 +48,7 @@ it('transformMap with mapping', async () => {
   expect(data2).toEqual(data.map(r => ({ id: r.id + '!' })))
 })
 
-it('transformMap emit array as multiple items', async () => {
+it('should emit each mapped array as one item and call an async onDone with stats', async () => {
   let stats: TransformMapStats
   const data = _range(1, 4)
   const data2 = await Pipeline.fromArray(data)
@@ -95,7 +95,7 @@ it('transformMap emit array as multiple items', async () => {
 //   expect(data2).toEqual(data)
 // })
 
-it('transformMap errorMode=THROW_IMMEDIATELY', async () => {
+it('should reject on the first mapper error in the default THROW_IMMEDIATELY mode', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -123,7 +123,7 @@ it('transformMap errorMode=THROW_IMMEDIATELY', async () => {
 `)
 })
 
-it('transformMap errorMode=THROW_AGGREGATED', async () => {
+it('should reject with an AggregateError after all items in THROW_AGGREGATED mode and summarize stats', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -189,7 +189,7 @@ n1: 145"
 `)
 })
 
-it('transformMap errorMode=SUPPRESS', async () => {
+it('should skip failed items without rejecting in SUPPRESS mode', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []

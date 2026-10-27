@@ -12,7 +12,7 @@ describe('runCommonKeyValueDaoTest', async () => {
   await runCommonKeyValueDaoTest(db)
 })
 
-it('clear removes all tables', async () => {
+it('should remove all tables on clear', async () => {
   const kvDB = new InMemoryKeyValueDB()
   await kvDB.saveBatch('table1', [['id1', Buffer.from('v1')]])
   await kvDB.saveBatch('table2', [['id2', Buffer.from('v2')]])

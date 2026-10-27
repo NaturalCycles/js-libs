@@ -1,19 +1,19 @@
 import { expect, it } from 'vitest'
 import { DBQuery } from './dbQuery.js'
 
-it('DBQuery', () => {
+it('should create a query for a table without conditions', () => {
   const q = DBQuery.create('TestKind')
   expect(q.table).toBe('TestKind')
   expect(q.prettyConditions()).toEqual([])
 })
 
-it('prettyConditions', () => {
+it('should format a filter as a pretty condition', () => {
   const q = new DBQuery<any>('TestKind').filter('a', '>', 5)
   expect(q.prettyConditions()).toEqual(['a>5'])
   expect(q.pretty()).toBe('a>5')
 })
 
-it('toJson, fromJson', () => {
+it('should round-trip a query through JSON', () => {
   const q = new DBQuery<any>('TestKind')
     .filter('a', '>', 5)
     .order('a', true)

@@ -14,7 +14,7 @@ it.each([
   ['*', 'Accept-Encoding', '*'],
   ['Accept, *', 'Accept', '*'],
   ['Accept', '*', '*'],
-] as const)('vary(%j, %s) => %j', (header, field, expected) => {
+] as const)('should turn Vary %j plus %s into %j', (header, field, expected) => {
   const res = new ServerResponse(new IncomingMessage(new Socket()))
   if (header !== undefined) res.setHeader('Vary', header)
   vary(res, field)

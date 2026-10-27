@@ -17,7 +17,7 @@ class A {
   }
 }
 
-it('memo a', async () => {
+it('should call the method once per set of arguments', async () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -40,7 +40,7 @@ it('memo a', async () => {
   await _getAsyncMemo(a.a).clear()
 })
 
-it('MEMO_DROP_CACHE', async () => {
+it('should call the method again after the cache is cleared', async () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -72,7 +72,7 @@ class B {
   }
 }
 
-it('should work with default arg values', async () => {
+it('should cache a call with default args apart from one passing the default explicitly', async () => {
   const b = new B()
 
   // Call 1 with default (cache miss). arg1=undefined
@@ -102,7 +102,7 @@ class C {
   }
 }
 
-it('swarm test of async function', async () => {
+it('should call the method once for parallel calls and serve later calls from the cache', async () => {
   // Swarm is when one "slow" async function is called multiple times in parallel
   // Expectation is that it should return the same Promise and `calls` should equal to 1
   // Because it **synchronously** returns a Promise (despite the fact that it's async)

@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`_createPromiseDecorator 1`] = `
+exports[`should pass the call context and result to thenFn and resolve with the result 1`] = `
 [MockFunction] {
   "calls": [
     [

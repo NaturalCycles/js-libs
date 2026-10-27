@@ -29,28 +29,28 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
 
   const { support } = db
 
-  it('ping', async () => {
+  it('should respond to ping', async () => {
     await db.ping()
   })
 
-  it('createTable', async () => {
+  it('should create the table, dropping an existing one', async () => {
     await db.createTable(TEST_TABLE, { dropIfExists: true })
   })
 
-  it('deleteByIds non existing', async () => {
+  it('should not throw when deleting ids that do not exist', async () => {
     await db.deleteByIds(TEST_TABLE, testIds)
   })
 
-  it('getByIds should return empty', async () => {
+  it('should return no entries for ids that do not exist', async () => {
     const results = await db.getByIds(TEST_TABLE, testIds)
     expect(results).toEqual([])
   })
 
-  it('count should be 0', async () => {
+  it('should count 0 entries in an empty table', async () => {
     expect(await db.count(TEST_TABLE)).toBe(0)
   })
 
-  it('saveBatch, then getByIds', async () => {
+  it('should return the saved entries by ids', async () => {
     await db.saveBatch(TEST_TABLE, testEntries)
 
     const entries = await db.getByIds(TEST_TABLE, testIds)
@@ -59,18 +59,18 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
   })
 
   if (support.count) {
-    it('count should be 3', async () => {
+    it('should count the saved entries', async () => {
       expect(await db.count(TEST_TABLE)).toBe(3)
     })
   }
 
-  it('streamIds', async () => {
+  it('should stream all ids', async () => {
     const ids = await db.streamIds(TEST_TABLE).toArray()
     ids.sort()
     expect(ids).toEqual(testIds)
   })
 
-  it('streamIds limited', async () => {
+  it('should stream as many ids as the limit', async () => {
     const idsLimited = await db.streamIds(TEST_TABLE, 2).toArray()
     // Order is non-deterministic, so, cannot compare values
     // idsLimited.sort()
@@ -78,33 +78,33 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
     expect(idsLimited.length).toBe(2)
   })
 
-  it('streamValues', async () => {
+  it('should stream all values', async () => {
     const values = await db.streamValues(TEST_TABLE).toArray()
     values.sort()
     expect(values).toEqual(testEntries.map(e => e[1]))
   })
 
-  it('streamValues limited', async () => {
+  it('should stream as many values as the limit', async () => {
     const valuesLimited = await db.streamValues(TEST_TABLE, 2).toArray()
     // valuesLimited.sort()
     // expect(valuesLimited).toEqual(testEntries.map(e => e[1]).slice(0, 2))
     expect(valuesLimited.length).toBe(2)
   })
 
-  it('streamEntries', async () => {
+  it('should stream all entries', async () => {
     const entries = await db.streamEntries(TEST_TABLE).toArray()
     entries.sort()
     expect(entries).toEqual(testEntries)
   })
 
-  it('streamEntries limited', async () => {
+  it('should stream as many entries as the limit', async () => {
     const entriesLimited = await db.streamEntries(TEST_TABLE, 2).toArray()
     // entriesLimited.sort()
     // expect(entriesLimited).toEqual(testEntries.slice(0, 2))
     expect(entriesLimited.length).toBe(2)
   })
 
-  it('deleteByIds should clear', async () => {
+  it('should delete the entries by ids', async () => {
     await db.deleteByIds(TEST_TABLE, testIds)
     const results = await db.getByIds(TEST_TABLE, testIds)
     expect(results).toEqual([])
@@ -114,22 +114,22 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
     const id = 'nonExistingField'
     const id2 = 'nonExistingField2'
 
-    it('increment on a non-existing field should set the value to 1', async () => {
+    it('should increment a missing key from 0', async () => {
       const result = await db.incrementBatch(TEST_TABLE, [[id, 1]])
       expect(result).toEqual([[id, 1]])
     })
 
-    it('increment on a existing field should increase the value by one', async () => {
+    it('should increment an existing key by 1', async () => {
       const result = await db.incrementBatch(TEST_TABLE, [[id, 1]])
       expect(result).toEqual([[id, 2]])
     })
 
-    it('increment should increase the value by the specified amount', async () => {
+    it('should increment an existing key by the given amount', async () => {
       const result = await db.incrementBatch(TEST_TABLE, [[id, 2]])
       expect(result).toEqual([[id, 4]])
     })
 
-    it('increment 2 ids at the same time', async () => {
+    it('should increment two keys in one batch', async () => {
       const result = await db.incrementBatch(TEST_TABLE, [
         [id, 1],
         [id2, 2],

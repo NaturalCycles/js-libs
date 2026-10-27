@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { _sortObjectDeep } from './sortObjectDeep.js'
 
-it('sortObjectDeep', () => {
+it('should match the snapshot for a nested object', () => {
   const o = {
     b: 2,
     a: 1,

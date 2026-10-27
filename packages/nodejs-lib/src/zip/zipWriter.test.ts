@@ -8,7 +8,7 @@ import { zip2 } from './zip2.js'
 import { openZipBuffer } from './zipReader.js'
 import { createZipBuffer, zipPaths, ZipWriter } from './zipWriter.js'
 
-it('round-trips stored, deflated, empty and directory entries through the reader', async () => {
+it('should round-trip stored, deflated, empty and directory entries through the reader', async () => {
   const text = 'The quick brown fox '.repeat(100)
   const buf = await createZipBuffer([
     { name: 'hello.txt', content: Buffer.from('Hello, world!'), compress: false },
@@ -33,7 +33,7 @@ it('round-trips stored, deflated, empty and directory entries through the reader
   await zip.close()
 })
 
-it('addStream writes a streamed entry with a data descriptor', async () => {
+it('should write a streamed entry with a data descriptor via addStream', async () => {
   const text = 'streaming '.repeat(1000)
   const chunks = [Buffer.from('streaming '.repeat(400)), Buffer.from('streaming '.repeat(600))]
 
@@ -58,7 +58,7 @@ it('addStream writes a streamed entry with a data descriptor', async () => {
   await zip.close()
 })
 
-it('addFile streams a file from disk, defaulting name/mtime from it', async () => {
+it('should stream a file from disk via addFile, defaulting the name and mtime from it', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipWriter-'))
   try {
     const srcPath = path.join(dir, 'source.txt')
@@ -81,7 +81,7 @@ it('addFile streams a file from disk, defaulting name/mtime from it', async () =
   }
 })
 
-it('createZip writes to disk and extractZip round-trips files and directories', async () => {
+it('should write a zip to disk with createZip and extract its files and directories', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipWriter-'))
   try {
     const zipPath = path.join(dir, 'archive.zip')
@@ -103,14 +103,14 @@ it('createZip writes to disk and extractZip round-trips files and directories', 
   }
 })
 
-it('preserves utf-8 file names', async () => {
+it('should preserve utf-8 file names', async () => {
   const buf = await createZipBuffer([{ name: 'café/résumé.txt', content: Buffer.from('x') }])
   const zip = await openZipBuffer(buf)
   expect(zip.entries.map(e => e.fileName)).toEqual(['café/résumé.txt'])
   await zip.close()
 })
 
-it('round-trips mtime via the Info-ZIP extended timestamp', async () => {
+it('should round-trip mtime via the Info-ZIP extended timestamp', async () => {
   const mtime = Math.floor(new Date('2021-06-15T10:30:45.000Z').getTime() / 1000) as UnixTimestamp
   const buf = await createZipBuffer([{ name: 'x.txt', content: Buffer.from('x'), mtime }])
   const zip = await openZipBuffer(buf)
@@ -118,7 +118,7 @@ it('round-trips mtime via the Info-ZIP extended timestamp', async () => {
   await zip.close()
 })
 
-it('round-trips archive and per-entry comments', async () => {
+it('should round-trip archive and per-entry comments', async () => {
   const { writer, result } = memoryWriter()
   await writer.addBuffer(Buffer.from('x'), 'x.txt', { comment: 'entry comment' })
   await writer.finalize({ comment: 'archive comment' })
@@ -129,7 +129,7 @@ it('round-trips archive and per-entry comments', async () => {
   await zip.close()
 })
 
-it('round-trips a forced-ZIP64 entry', async () => {
+it('should round-trip a forced-ZIP64 entry', async () => {
   const content = 'hello zip64'
   const buf = await createZipBuffer([
     { name: 'z.txt', content: Buffer.from(content), compress: false, forceZip64: true },
@@ -148,7 +148,7 @@ it('round-trips a forced-ZIP64 entry', async () => {
   await zip.close()
 })
 
-it('round-trips a forced-ZIP64 end-of-central-directory', async () => {
+it('should round-trip a forced-ZIP64 end-of-central-directory', async () => {
   const { writer, result } = memoryWriter()
   await writer.addBuffer(Buffer.from('a'), 'a.txt')
   await writer.addBuffer(Buffer.from('b'), 'b.txt')
@@ -165,13 +165,13 @@ it('round-trips a forced-ZIP64 end-of-central-directory', async () => {
   await zip.close()
 })
 
-it('does not emit ZIP64 records for a small archive', async () => {
+it('should not emit ZIP64 records for a small archive', async () => {
   const buf = await createZipBuffer([{ name: 'a.txt', content: Buffer.from('a') }])
   const hasZip64Eocd = buf.includes(ZIP64_EOCDR_SIGNATURE)
   expect(hasZip64Eocd).toBe(false)
 })
 
-it('finalizes automatically with `await using` (AsyncDisposable)', async () => {
+it('should finalize automatically with `await using` (AsyncDisposable)', async () => {
   const chunks: Buffer[] = []
   const sink = new Writable({
     write(chunk: Buffer, _enc, cb) {
@@ -188,7 +188,7 @@ it('finalizes automatically with `await using` (AsyncDisposable)', async () => {
   await zip.close()
 })
 
-it('rejects path traversal and absolute names', async () => {
+it('should reject path traversal and absolute names', async () => {
   await expect(
     createZipBuffer([{ name: '../evil.txt', content: Buffer.from('x') }]),
   ).rejects.toThrow(/invalid relative path/)
@@ -197,14 +197,14 @@ it('rejects path traversal and absolute names', async () => {
   ).rejects.toThrow(/absolute path/)
 })
 
-it('rejects adding entries after finalize', async () => {
+it('should reject adding entries after finalize', async () => {
   const { writer } = memoryWriter()
   await writer.addBuffer(Buffer.from('x'), 'x.txt')
   await writer.finalize()
   await expect(writer.addBuffer(Buffer.from('y'), 'y.txt')).rejects.toThrow(/finalized/)
 })
 
-it('rejects an archive comment containing the EOCD signature', async () => {
+it('should reject an archive comment containing the EOCD signature', async () => {
   const { writer } = memoryWriter()
   await writer.addBuffer(Buffer.from('x'), 'x.txt')
   await expect(writer.finalize({ comment: 'PK\u0005\u0006' })).rejects.toThrow(
@@ -212,7 +212,7 @@ it('rejects an archive comment containing the EOCD signature', async () => {
   )
 })
 
-it('zipFiles zips a directory recursively, preserving the directory name', async () => {
+it('should zip a directory recursively with zipPaths, keeping the directory name', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipWriter-'))
   try {
     const srcDir = path.join(dir, 'photos')
@@ -233,7 +233,7 @@ it('zipFiles zips a directory recursively, preserving the directory name', async
   }
 })
 
-it('zipFiles zips an explicit list of files using their basenames', async () => {
+it('should zip an explicit list of files with zipPaths under their basenames', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipWriter-'))
   try {
     await writeFile(path.join(dir, 'a.txt'), 'AAA')
@@ -250,7 +250,7 @@ it('zipFiles zips an explicit list of files using their basenames', async () => 
   }
 })
 
-it('zipFiles baseDir places directory contents at the archive root', async () => {
+it('should place directory contents at the archive root with the zipPaths baseDir option', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipWriter-'))
   try {
     const srcDir = path.join(dir, 'photos')
@@ -269,7 +269,7 @@ it('zipFiles baseDir places directory contents at the archive root', async () =>
   }
 })
 
-it('zipFiles removes the partial archive if an input does not exist', async () => {
+it('should remove the partial archive when a zipPaths input does not exist', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'zipWriter-'))
   try {
     const zipPath = path.join(dir, 'out.zip')

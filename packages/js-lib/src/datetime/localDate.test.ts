@@ -18,7 +18,7 @@ const UNIT_RANGE: Record<LocalDateUnit, number> = {
 
 const DAYJS_ISO_DATE = 'YYYY-MM-DD'
 
-it('basic', () => {
+it('should parse an ISO date and expose its parts, formats and comparisons', () => {
   const str = '1984-06-21' as IsoDate
   const ld = localDate.fromInput(str)
   expect(ld.toString()).toBe(str)
@@ -85,7 +85,7 @@ it('basic', () => {
   expect(ld.isSameOrBeforeToday()).toBe(true)
 })
 
-it('constructors', () => {
+it('should create the same date from every supported input type', () => {
   const s = localDate('1984-06-21' as IsoDate).toISODate()
   expect(localDate.fromInput('1984-06-21' as IsoDate).toISODate()).toBe(s)
   expect(localDate.fromInput(localDate('1984-06-21' as IsoDate)).toISODate()).toBe(s)
@@ -96,7 +96,7 @@ it('constructors', () => {
   expect(localDate.fromDateObject({ year: 1984, month: 6, day: 21 }).toISODate()).toBe(s)
 })
 
-it('isBetween', () => {
+it('should respect [) and [] inclusivity, returning false when min is after max', () => {
   const ld = localDate.fromInput('1984-06-21' as IsoDate)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
   expect(ld.isBetween('1984-06-21' as IsoDate, '1984-06-21' as IsoDate, '[)')).toBe(false)
@@ -112,7 +112,7 @@ it('isBetween', () => {
   expect(ld.isBetween('1984-06-22' as IsoDate, '1984-06-20' as IsoDate, '[)')).toBe(false)
 })
 
-it('sort', () => {
+it('should sort dates and find the min and max, ignoring undefined in max', () => {
   const items = ['2022-01-03', '2022-01-01', '2022-01-02'].map(i => localDate(i as IsoDate))
 
   expect(localDate.sort(items).map(s => s.toString())).toEqual([
@@ -130,7 +130,7 @@ it('sort', () => {
   expect(localDate.max([...items, undefined]).toString()).toBe('2022-01-03')
 })
 
-it('add basic', () => {
+it('should add and subtract days and months, clamping to the end of the month', () => {
   const ld = localDate('2022-01-01' as IsoDate)
 
   expect(ld.clone().plus(1, 'day', { mutate: true }).toString()).toBe('2022-01-02')
@@ -144,7 +144,7 @@ it('add basic', () => {
   expect(d.minusMonths(1).toISODate()).toBe('2022-04-30')
 })
 
-it('add', () => {
+it('should add and subtract every unit like dayjs', () => {
   const starts = ['2022-05-31', '2022-05-30', '2020-02-29', '2021-02-28', '2022-01-01'] as IsoDate[]
 
   starts.forEach(start => {
@@ -167,7 +167,7 @@ it('add', () => {
   })
 })
 
-it('diff', () => {
+it('should diff in every unit like dayjs', () => {
   const starts = ['2022-05-31', '2022-05-30', '2020-02-29', '2021-02-28', '2022-01-01'] as IsoDate[]
 
   starts.forEach(start => {
@@ -215,7 +215,7 @@ const validDates = [
   '2022-01-01nahuy',
 ] as IsoDate[]
 
-it.each(validDates)('%s is valid', s => {
+it.each(validDates)('should parse %s as a valid date', s => {
   expect(localDate.isValid(s)).toBe(true)
   expect(localDate.isValidString(s)).toBe(true)
   expect(localDate(s).toISODate()).toBe(s.slice(0, 10))
@@ -232,7 +232,7 @@ const invalidDates = [
   '2022-01-x1',
 ] as IsoDate[]
 
-it.each(invalidDates)('%s is invalid', s => {
+it.each(invalidDates)('should reject %s as an invalid date', s => {
   expect(localDate.isValid(s)).toBe(false)
   expect(localDate.isValidString(s)).toBe(false)
   expect(() => localDate(s)).toThrow('Cannot parse')
@@ -240,7 +240,7 @@ it.each(invalidDates)('%s is invalid', s => {
   expect(localDate.try(s)).toBeUndefined()
 })
 
-it('toDate', () => {
+it('should convert to a Date and back to the same date', () => {
   const str = '2022-03-06' as IsoDate
   const d = localDate.fromInput(str)
   if (isUTC()) {
@@ -258,7 +258,7 @@ it('toDate', () => {
   expect(d2.isSameOrBefore(d)).toBe(true)
 })
 
-it('range', () => {
+it('should list the dates of a range with [) or [] and an optional step', () => {
   expect(localDate.range('2021-12-24' as IsoDate, '2021-12-26' as IsoDate, '[)'))
     .toMatchInlineSnapshot(`
     [
@@ -296,7 +296,7 @@ it('range', () => {
   `)
 })
 
-it('rangeIterable', () => {
+it('should iterate over the dates of a range', () => {
   expect([...localDate.rangeIterable('2021-12-24' as IsoDate, '2021-12-26' as IsoDate, '[)')])
     .toMatchInlineSnapshot(`
     [
@@ -306,7 +306,7 @@ it('rangeIterable', () => {
   `)
 })
 
-it('format', () => {
+it('should format with a custom function or an Intl formatter', () => {
   const fmt: LocalDateFormatter = ld => `${ld.year}-${String(ld.month).padStart(2, '0')}`
   expect(localDate('1984-06-21' as IsoDate).format(fmt)).toBe('1984-06')
 
@@ -320,7 +320,7 @@ it('format', () => {
   expect(localDate('1984-06-21' as IsoDate).format(fmt3)).toBe('21 июня')
 })
 
-it('diff2', () => {
+it('should diff in full years, months and days', () => {
   expect(localDate('2020-03-03' as IsoDate).diff('1991-06-21' as IsoDate, 'year')).toBe(28)
 
   const ld = localDate('2022-01-01' as IsoDate)
@@ -341,14 +341,14 @@ it('diff2', () => {
   )
 })
 
-it('parse weird input', () => {
+it('should return undefined from try for non-string input', () => {
   // should not fail, but return null gracefully
   expect(localDate.try(5 as any)).toBeUndefined()
   expect(localDate.try(Date.now() as any)).toBeUndefined()
   expect(localDate.try((() => {}) as any)).toBeUndefined()
 })
 
-it('dayOfWeek', () => {
+it('should get and set the ISO day of week, with setNextDayOfWeek never going back', () => {
   expect(localDate('1984-06-18' as IsoDate).dayOfWeek).toBe(1)
   expect(localDate('1984-06-19' as IsoDate).dayOfWeek).toBe(2)
   expect(localDate('1984-06-20' as IsoDate).dayOfWeek).toBe(3)
@@ -392,7 +392,7 @@ it('dayOfWeek', () => {
 })
 
 // You shouldn't do it, I'm just discovering that it works, apparently
-it('comparison with string', () => {
+it('should compare with ISO date strings via relational operators', () => {
   const d = localDate('1984-06-21' as IsoDate) as any
   expect(d < '1984-06-22').toBe(true)
   expect(d < '1985-06-22').toBe(true)
@@ -404,7 +404,7 @@ it('comparison with string', () => {
 })
 
 // You shouldn't do it, I'm just discovering that it works, apparently
-it('comparison with other LocalDates like primitives', () => {
+it('should compare with other dates via relational operators', () => {
   const d = localDate('1984-06-21' as IsoDate) as any
   expect(d < localDate('1984-06-22' as IsoDate)).toBe(true)
   expect(d < localDate('1985-06-22' as IsoDate)).toBe(true)
@@ -415,7 +415,7 @@ it('comparison with other LocalDates like primitives', () => {
   expect(d > localDate('1981-06-20' as IsoDate)).toBe(true)
 })
 
-it('todayString', () => {
+it('should return today as an ISO date string', () => {
   // expect(nowUnix()).toBeGreaterThan(localTime('2024-01-01').unix())
   const s = localDate.todayString()
   expect(s.startsWith(new Date().getFullYear() + '-')).toBe(true)
@@ -423,14 +423,14 @@ it('todayString', () => {
   expect(s < '2099-01-01').toBe(true)
 })
 
-it('todayString tz', () => {
+it('should log today in the local timezone when not in UTC', () => {
   if (isUTC()) return
   console.log(process.env['TZ'])
   console.log(localDate.todayString())
   console.log(new Date().toString())
 })
 
-it('fractional unit input', () => {
+it('should floor fractional day amounts and ignore a fractional day in the input', () => {
   const ld = localDate('1984-06-21' as IsoDate)
   expect(ld.plus(0.4, 'day').toISODate()).toBe('1984-06-21')
   expect(ld.plus(0.5, 'day').toISODate()).toBe('1984-06-21')

@@ -15,7 +15,7 @@ const slackService = new SlackService({
   },
 })
 
-it('hello world', async () => {
+it('should send string messages via log and send', async () => {
   await slackService.log(`Hello Slack`)
   await slackService.send({
     items: 'hello string',
@@ -24,12 +24,12 @@ it('hello world', async () => {
   await slackService.send('hello 3')
 })
 
-it('hello error', async () => {
+it('should log an Error and a string', async () => {
   await slackService.log(new Error('hello error'))
   await slackService.log('hello error string')
 })
 
-it('attachments', async () => {
+it('should send a message with attachments', async () => {
   await slackService.send({
     items: 'hello',
     attachments: [
@@ -69,7 +69,7 @@ it('attachments', async () => {
   })
 })
 
-it('kv', async () => {
+it('should send a message with mentions and key-value fields', async () => {
   await slackService.send({
     items: 'hello kv',
     mentions: ['kirill'],
@@ -81,6 +81,6 @@ it('kv', async () => {
   })
 })
 
-it('array', async () => {
+it('should log several items in one message', async () => {
   await slackService.log('a', 'b', { c: 'c' }, null)
 })

@@ -6,11 +6,11 @@ import { timeSpan } from './test/test.util.js'
 
 afterEach(() => AsyncManager.reset())
 
-it('allDone resolves immediately when no pending ops', async () => {
+it('should resolve allDone when there are no pending ops', async () => {
   await AsyncManager.allDone()
 })
 
-it('allDone waits for all pending ops', async () => {
+it('should wait in allDone for all pending ops', async () => {
   let resolved = false
 
   AsyncManager.runInBackground(
@@ -24,7 +24,7 @@ it('allDone waits for all pending ops', async () => {
   expect(resolved).toBe(true)
 })
 
-it('allDone does not throw on rejected ops', async () => {
+it('should not throw in allDone on rejected ops and log them when no onError hook is set', async () => {
   AsyncManager.runInBackground(Promise.reject(new Error('boom')))
   const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   await AsyncManager.allDone()
@@ -32,7 +32,7 @@ it('allDone does not throw on rejected ops', async () => {
   errorSpy.mockRestore()
 })
 
-it('rejected ops fire onError hooks', async () => {
+it('should pass rejections of ops to the onError hook', async () => {
   const errors: Error[] = []
   AsyncManager.onError(err => errors.push(err))
 
@@ -43,7 +43,7 @@ it('rejected ops fire onError hooks', async () => {
   expect(errors[0]!.message).toBe('boom')
 })
 
-it('pendingOps is cleaned up after settlement', async () => {
+it('should resolve a second allDone at once after the ops settle', async () => {
   AsyncManager.runInBackground(pDelay(10))
   AsyncManager.runInBackground(pDelay(10))
   await AsyncManager.allDone()
@@ -54,7 +54,7 @@ it('pendingOps is cleaned up after settlement', async () => {
   expect(end()).toBeLessThan(20)
 })
 
-it('allDone with timeout resolves early and logs', async () => {
+it('should resolve allDone at the timeout and warn about pending ops', async () => {
   const logSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
   AsyncManager.runInBackground(pDelay(500))
 
@@ -67,7 +67,7 @@ it('allDone with timeout resolves early and logs', async () => {
   logSpy.mockRestore()
 })
 
-it('allDone with timeout does not log timeout if ops finish before timeout', async () => {
+it('should log completion and not time out when ops finish before the allDone timeout', async () => {
   const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
   let resolved = false
 
@@ -84,7 +84,7 @@ it('allDone with timeout does not log timeout if ops finish before timeout', asy
   logSpy.mockRestore()
 })
 
-it('multiple onError hooks are all called', async () => {
+it('should call every onError hook', async () => {
   const calls: number[] = []
   AsyncManager.onError(() => calls.push(1))
   AsyncManager.onError(() => calls.push(2))
@@ -95,7 +95,7 @@ it('multiple onError hooks are all called', async () => {
   expect(calls).toEqual([1, 2])
 })
 
-it('runInBackground with multiple concurrent ops', async () => {
+it('should run ops concurrently and wait for all of them in allDone', async () => {
   const order: number[] = []
 
   AsyncManager.runInBackground(

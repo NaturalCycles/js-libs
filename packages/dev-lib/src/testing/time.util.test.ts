@@ -3,7 +3,7 @@ import { MOCK_TS_2018_06_21 } from './time.js'
 
 const now = Date.now()
 
-it('mockTime default', () => {
+it('should use the real clock by default and the mocked time after setSystemTime', () => {
   expect(new Date().getFullYear()).toBeGreaterThan(2018)
 
   expect(Date.now()).toBeGreaterThanOrEqual(now)

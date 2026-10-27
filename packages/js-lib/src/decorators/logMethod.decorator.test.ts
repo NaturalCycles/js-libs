@@ -50,12 +50,12 @@ class C {
 
 const c = new C()
 
-it('syncMethodSuccess', () => {
+it('should return the result of a sync method', () => {
   const r = c.syncMethodSuccess()
   expect(r).toBe('a')
 })
 
-it('asyncMethodSuccessAvg', async () => {
+it('should run an async method with avg, logStart and logResult options without throwing', async () => {
   // Repeating to test count, avg, logResult, noLogStart, noLogArgs
   await c.asyncMethodSuccessAvg(1)
   await c.asyncMethodSuccessAvg(10)
@@ -63,40 +63,40 @@ it('asyncMethodSuccessAvg', async () => {
   await c.asyncMethodSuccessAvg(30)
 })
 
-it('syncMethodThrow', () => {
+it('should rethrow the error of a sync method', () => {
   expect(() => c.syncMethodThrow()).toThrow('MyError')
 })
 
-it('asyncMethodSuccess', async () => {
+it('should return the result of an async method', async () => {
   const r = await c.asyncMethodSuccess()
   expect(r).toBe('a')
 })
 
-it('asyncMethodThrow', async () => {
+it('should reject with the error of an async method', async () => {
   await expect(c.asyncMethodThrow()).rejects.toThrow('MyError')
 })
 
-it('methodResultFn', () => {
+it('should run a method with logResultFn without throwing', () => {
   // Manual test to inspect console.log results
   c.methodResultFn(1)
   c.methodResultFn(2)
   c.methodResultFn(3)
 })
 
-it('methodLongArg', () => {
+it('should run a method with long args without throwing', () => {
   c.methodLongArg(5, 3, { a: 'a' }, { long: 'short' })
   c.methodLongArg(5, 3, { a: 'a' }, { long: 'longer longer value here' })
   c.methodLongArg([1, 2, 3])
   c.methodLongArg([1, 2, 3, 'long long looooooooooooooong'])
 })
 
-it('methodReturnsArray', () => {
+it('should run a method returning an array without throwing', () => {
   c.methodReturnsArray()
   c.methodReturnsArray()
   c.methodReturnsArray()
 })
 
-it('instanceId', () => {
+it('should run a method on an instance with an instanceId without throwing', () => {
   const c = new C() as C & InstanceId
   c.instanceId = 'instance_1'
   c.syncMethodSuccess()

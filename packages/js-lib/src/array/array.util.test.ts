@@ -54,7 +54,7 @@ import {
 } from './array.util.js'
 import { _range } from './range.js'
 
-it('_chunk', () => {
+it('should split an array into chunks of the given size, defaulting to 1', () => {
   const a = [1, 2, 3, 4, 5, 6]
 
   expect(_chunk(a)).toEqual([[1], [2], [3], [4], [5], [6]])
@@ -71,12 +71,12 @@ it('_chunk', () => {
   expect(_chunk([])).toEqual([])
 })
 
-it('_uniq', () => {
+it('should remove duplicates, keeping the first occurrence order', () => {
   const a = [1, 2, 2, 1, 3, 5, 3, 4]
   expect(_uniq(a)).toEqual([1, 2, 3, 5, 4])
 })
 
-it('_pushUniq', () => {
+it('should push only the items not present yet, mutating the array in place', () => {
   const a = [1, 2]
   expect(_pushUniq(a)).toEqual([1, 2])
   expect(_pushUniq(a)).toBe(a) // same reference
@@ -88,7 +88,7 @@ it('_pushUniq', () => {
   expect(_pushUniq(a, 3, 2, 1, 5)).toEqual([1, 2, 3, 5])
 })
 
-it('_uniqBy', () => {
+it('should remove items whose mapped key is a duplicate', () => {
   const a = [1, 2, 2, 1, 3, 5, 3, 4]
   expect(_uniqBy(a, a => a)).toEqual([1, 2, 3, 5, 4])
 
@@ -97,7 +97,7 @@ it('_uniqBy', () => {
   expect(_uniqBy([{ x: 1 }, { x: 2 }, { x: 1 }], r => r.x)).toEqual([{ x: 1 }, { x: 2 }])
 })
 
-it('_pushUniqBy', () => {
+it('should push only the items whose mapped key is not present yet', () => {
   const a = [1, 2]
   const floorMapper: Mapper<number, number> = n => Math.floor(n)
   expect(_pushUniqBy(a, floorMapper)).toEqual([1, 2])
@@ -105,7 +105,7 @@ it('_pushUniqBy', () => {
   expect(_pushUniqBy(a, floorMapper, 1.1, 1.2, 1.5, 1.9, 2, 2.3, 3.1, 3.2)).toEqual([1, 2, 3.1])
 })
 
-it('_by', () => {
+it('should index items by the mapped key into an object, skipping undefined keys', () => {
   // expect(_by(undefined, (r: any) => r.a)).toEqual({})
 
   const a = [{ a: 'aa' }, { a: 'ab' }, { b: 'bb' }]
@@ -122,7 +122,7 @@ it('_by', () => {
   })
 })
 
-it('_mapBy', () => {
+it('should index items by the mapped key into a Map, skipping undefined keys', () => {
   const a = [{ a: 'aa' }, { a: 'ab' }, { b: 'bb' }]
   expect(_mapBy(a, r => r.a)).toMatchInlineSnapshot(`
     Map {
@@ -147,46 +147,46 @@ it('_mapBy', () => {
   `)
 })
 
-it('_groupBy', () => {
+it('should group items by the mapped key', () => {
   expect(_groupBy(_range(5), n => (n % 2 ? 'odd' : 'even'))).toEqual({
     even: [0, 2, 4],
     odd: [1, 3],
   })
 })
 
-it('_find', () => {
+it('should return the first matching item, or undefined when the predicate returns END', () => {
   expect(_find([1, 2, 3, 4], n => n % 2 === 0)).toBe(2)
   expect(_find([1, 2, 3, 4], n => (n === 2 ? END : false))).toBeUndefined()
 })
 
-it('_findLast', () => {
+it('should return the last matching item, or undefined when the predicate returns END', () => {
   expect(_findLast([1, 2, 3, 4], n => n % 2 === 1)).toBe(3)
   expect(_findLast([1, 2, 3, 4], n => (n === 2 ? END : false))).toBeUndefined()
 })
 
-it('_takeWhile', () => {
+it('should take items from the start while the predicate holds', () => {
   expect(_takeWhile([1, 2, 3, 4, 5, 2, 1], v => v <= 3)).toEqual([1, 2, 3])
   expect(_takeWhile([1, 2, 3, 4, 5, 2, 1], v => v > 5)).toEqual([])
 })
 
-it('_takeRightWhile', () => {
+it('should take items from the end while the predicate holds, last item first', () => {
   expect(_takeRightWhile([1, 2, 3, 4, 5, 2, 1], v => v <= 3)).toEqual([1, 2])
   expect(_takeRightWhile([1, 2, 3, 4, 5, 2, 1], v => v > 5)).toEqual([])
 })
 
-it('_dropWhile', () => {
+it('should drop items from the start while the predicate holds', () => {
   expect(_dropWhile([1, 2, 3, 4, 5, 2, 1], v => v <= 3)).toEqual([4, 5, 2, 1])
   expect(_dropWhile([1, 2, 3, 4, 5, 2, 1], v => v > 5)).toEqual([1, 2, 3, 4, 5, 2, 1])
   expect(_dropWhile([1, 2, 3, 4, 5, 2, 1], v => v < 10)).toEqual([])
 })
 
-it('_dropRightWhile', () => {
+it('should drop items from the end while the predicate holds', () => {
   expect(_dropRightWhile([1, 2, 3, 4, 5, 2, 1], v => v <= 3)).toEqual([1, 2, 3, 4, 5])
   expect(_dropRightWhile([1, 2, 3, 4, 5, 2, 1], v => v > 5)).toEqual([1, 2, 3, 4, 5, 2, 1])
   expect(_dropRightWhile([1, 2, 3, 4, 5, 2, 1], v => v < 10)).toEqual([])
 })
 
-it('_count', () => {
+it('should count matches up to a limit with _count, _countAtLeast and _countLessThan', () => {
   const a = [1, 2, 3, 4, 5]
   const isEven: AbortablePredicate<number> = n => n % 2 === 0
 
@@ -218,7 +218,7 @@ it('_count', () => {
   expect(_count(c, isEven)).toBe(1)
 })
 
-it('_countBy', () => {
+it('should count items per mapped key', () => {
   expect(_countBy(['a', 'aa', 'aaa', 'aaa', 'aaaa'], r => r.length)).toEqual({
     1: 1,
     2: 1,
@@ -232,7 +232,7 @@ it('_countBy', () => {
   })
 })
 
-it('_intersection', () => {
+it('should return the items of the first array that are in the second array or Set', () => {
   const f = _intersection
   // expect(f()).toEqual([])
   // expect(f([1])).toEqual([1])
@@ -256,7 +256,7 @@ it('_intersection', () => {
   expect(f([2, 1], new Set([2, 3]))).toEqual([2])
 })
 
-it('_intersectsWith', () => {
+it('should tell whether an array shares an item with another array or Set', () => {
   const f = _intersectsWith
 
   expect(f([], [1])).toBe(false)
@@ -270,7 +270,7 @@ it('_intersectsWith', () => {
   expect(f([2, 1], new Set([2, 3]))).toBe(true)
 })
 
-it('_difference', () => {
+it('should return the items of the first array that are not in the second', () => {
   const f = _difference
   expect(f([1], [1])).toEqual([])
   expect(f([1], [1, 2])).toEqual([])
@@ -280,7 +280,7 @@ it('_difference', () => {
   expect(f([2, 4, 1], [2, 3])).toEqual([4, 1])
 })
 
-it('_arrayRemove', () => {
+it('should return a new array without any occurrence of the item', () => {
   // Basic removal
   expect(_arrayRemove([1, 2, 3], 2)).toEqual([1, 3])
   expect(_arrayRemove([1, 2, 3], 1)).toEqual([2, 3])
@@ -309,7 +309,7 @@ it('_arrayRemove', () => {
   expect(_arrayRemove([obj, { id: 2 }], obj)).toEqual([{ id: 2 }])
 })
 
-it('_arrayPushOrRemove', () => {
+it('should push a missing item in place when true, or return a copy without it when false', () => {
   // predicate=true: pushes item if not present
   const a = [1, 2, 3]
   const result = _arrayPushOrRemove(a, 4, true)
@@ -344,7 +344,7 @@ it('_arrayPushOrRemove', () => {
   expect(_arrayPushOrRemove([], 1, false)).toEqual([])
 })
 
-it('_mapToObject', () => {
+it('should map items to key-value pairs, skipping falsy mapper results', () => {
   expect(_mapToObject(_range(3), i => [i, i * 2])).toEqual({
     0: 0,
     1: 2,
@@ -364,7 +364,7 @@ it('_mapToObject', () => {
   })
 })
 
-it('_shuffle', () => {
+it('should shuffle into a new array by default, or in place with mutate', () => {
   const a = [1, 2, 3, 4, 5]
   Object.freeze(a) // should not be mutated
 
@@ -400,11 +400,11 @@ it.each([
   [[], 0],
   [[2], 2],
   [[-1, 4], 3],
-])('_sum %s == %s', (items: number[], result: number) => {
+])('should sum %s to %s', (items: number[], result: number) => {
   expect(_sum(items)).toBe(result)
 })
 
-it('_sumBy', () => {
+it('should sum the mapped values, skipping undefined', () => {
   const items = [
     { a: 1 },
     { a: 2 },
@@ -414,7 +414,7 @@ it('_sumBy', () => {
   expect(_sumBy(items, i => i.a)).toBe(3)
 })
 
-it('_last', () => {
+it('should return the last item, with _last throwing on an empty array', () => {
   expect(_lastOrUndefined([])).toBeUndefined()
   expect(_lastOrUndefined([undefined])).toBeUndefined()
   expect(_lastOrUndefined([1, undefined])).toBeUndefined()
@@ -432,7 +432,7 @@ it('_last', () => {
   expect(_last(ro)).toBe(3)
 })
 
-it('_firstLast', () => {
+it('should return the first and last items, with _firstLast throwing on an empty array', () => {
   expect(() => _firstLast([])).toThrowErrorMatchingInlineSnapshot(
     `[Error: _firstLast called on empty array]`,
   )
@@ -446,7 +446,7 @@ it('_firstLast', () => {
   expect(_firstLastOrUndefined([1, 2, 3])).toEqual([1, 3])
 })
 
-it('_first', () => {
+it('should return the first item, with _first throwing on an empty array', () => {
   expect(_firstOrUndefined([])).toBeUndefined()
   expect(_firstOrUndefined([undefined])).toBeUndefined()
   expect(_firstOrUndefined([undefined, 1])).toBeUndefined()
@@ -462,7 +462,7 @@ it('_first', () => {
   expect(_first([1])).toBe(1)
 })
 
-it('_firstFromIterable', () => {
+it('should return the first item of any iterable, with _firstFromIterable throwing when empty', () => {
   expect(_firstOrUndefinedFromIterable([])).toBeUndefined()
   expect(_firstOrUndefinedFromIterable([1, 2, 3])).toBe(1)
   expect(_firstOrUndefinedFromIterable(new Set([1, 2, 3]))).toBe(1)
@@ -499,7 +499,7 @@ it('_firstFromIterable', () => {
   expect(_firstFromIterable(new Set(['a']))).toBe('a')
 })
 
-it('_min', () => {
+it('should return the smallest value ignoring undefined, with _min throwing on an empty array', () => {
   expect(_minOrUndefined([])).toBeUndefined()
   expect(_minOrUndefined([3])).toBe(3)
   expect(_minOrUndefined([3, 2])).toBe(2)
@@ -524,7 +524,7 @@ it('_min', () => {
   expect(_min([undefined, 1, 2])).toBe(1)
 })
 
-it('_max', () => {
+it('should return the largest value, with _max throwing on an empty array', () => {
   expect(_maxOrUndefined([])).toBeUndefined()
   expect(_maxOrUndefined([3])).toBe(3)
   expect(_maxOrUndefined([3, 2])).toBe(3)
@@ -543,7 +543,7 @@ it('_max', () => {
   expect(_max(['1', '3', '2', '4'])).toBe('4')
 })
 
-it('_minMax', () => {
+it('should return [min, max] ignoring undefined, with _minMax throwing on an empty array', () => {
   expect(_minMaxOrUndefined([])).toBeUndefined()
   expect(_minMaxOrUndefined([3])).toEqual([3, 3])
   expect(_minMaxOrUndefined([3, 2])).toEqual([2, 3])
@@ -568,7 +568,7 @@ it('_minMax', () => {
   expect(_minMax([undefined, 1, 2])).toEqual([1, 2])
 })
 
-it('_maxBy, _minBy', () => {
+it('should return the item with the largest or smallest mapped value', () => {
   expect(_maxByOrUndefined([], () => 0)).toBeUndefined()
   expect(() => _maxBy([], () => 0)).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: _maxBy returned undefined]`,
@@ -588,7 +588,7 @@ it('_maxBy, _minBy', () => {
   })
 })
 
-it('_minMaxBy', () => {
+it('should return the items with the smallest and largest mapped values', () => {
   expect(_maxByOrUndefined([], () => 0)).toBeUndefined()
   expect(() => _minMaxBy([], () => 0)).toThrowErrorMatchingInlineSnapshot(
     `[Error: _minMaxBy called on empty array]`,
@@ -603,7 +603,7 @@ it('_minMaxBy', () => {
   ])
 })
 
-it('_zip', () => {
+it('should pair the items at the same index of two arrays', () => {
   const a1 = [1, 2, 3]
   const a2 = [2, 3, 4]
   expect(_zip(a1, a2)).toEqual([

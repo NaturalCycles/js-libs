@@ -31,7 +31,7 @@ const errorMapper = (chunk: ObjectWithId): ObjectWithId => {
 }
 
 // still don't know how to handle such errors. Domains?
-it.skip('unhandled transform error', async () => {
+it.skip('should reject when a transform throws synchronously', async () => {
   const data = _range(1, 6).map(n => ({ id: String(n) }))
 
   await expect(
@@ -39,7 +39,7 @@ it.skip('unhandled transform error', async () => {
   ).rejects.toThrow('error_in_transform')
 })
 
-it('handled transform error', async () => {
+it('should reject and keep the items before the error when a transform calls back with an error', async () => {
   const data = _range(1, 6).map(n => ({ id: String(n) }))
 
   const results: any[] = []
@@ -50,7 +50,7 @@ it('handled transform error', async () => {
   expect(results).toEqual(data.filter(r => r.id < '4'))
 })
 
-it('does map handle errors?', async () => {
+it('should reject when a Readable.map mapper throws', async () => {
   const data = _range(1, 6).map(n => ({ id: String(n) }))
   const readable = Readable.from(data)
 

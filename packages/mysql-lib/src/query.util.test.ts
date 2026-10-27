@@ -8,7 +8,7 @@ import {
   insertSQL,
 } from './query.util.js'
 
-it('dbQueryToSQLSelect', () => {
+it('should build SELECT with filters, NULL checks, IN lists, order and limit', () => {
   let sql = dbQueryToSQLSelect(new DBQuery('TBL1'))
   expect(sql).toMatchSnapshot()
 
@@ -40,7 +40,7 @@ it('dbQueryToSQLSelect', () => {
   expect(sql).toMatchSnapshot()
 })
 
-it('dbQueryToSQLDelete', () => {
+it('should build DELETE with and without a filter', () => {
   let sql = dbQueryToSQLDelete(new DBQuery('TBL1'))
   expect(sql).toMatchSnapshot()
 
@@ -48,14 +48,14 @@ it('dbQueryToSQLDelete', () => {
   expect(sql).toMatchSnapshot()
 })
 
-it('insertSQL', () => {
+it('should build one INSERT statement for a few rows', () => {
   const items = createTestItemsDBM(3)
   const [sql] = insertSQL(TEST_TABLE, items)
   // console.log(sql)
   expect(sql).toMatchSnapshot()
 })
 
-it('dbQueryToSQLUpdate', () => {
+it('should build UPDATE with and without a filter', () => {
   const item = createTestItemDBM()
 
   let sql = dbQueryToSQLUpdate(new DBQuery(TEST_TABLE), item)
@@ -67,7 +67,7 @@ it('dbQueryToSQLUpdate', () => {
   expect(sql).toMatchSnapshot()
 })
 
-it('large sql query split', () => {
+it('should split a large INSERT into several statements', () => {
   const items = createTestItemsDBM(10).map(r => ({ ...r, lng: 'xxx'.repeat(80000) }))
   const sqls = insertSQL(TEST_TABLE, items)
   // console.log(sqls)

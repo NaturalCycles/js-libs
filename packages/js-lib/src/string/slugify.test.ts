@@ -7,6 +7,6 @@ it.each([
   ['Klättermusen 2', 'klattermusen-2'],
   ["Moe's Tavern", 'moes-tavern'],
   ['Åhléns', 'ahlens'],
-])(`slugify %s => %s`, (input, expected) => {
+])('should slugify %s to %s', (input, expected) => {
   expect(_slugify(input)).toBe(expected)
 })

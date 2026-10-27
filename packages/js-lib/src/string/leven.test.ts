@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { _leven } from './leven.js'
 
-it('leven', () => {
+it('should compute the Levenshtein distance, capped at the limit', () => {
   expect(_leven('cat', 'cat')).toBe(0)
   expect(_leven('cat', 'bat')).toBe(1)
   expect(_leven('cat', 'octocat')).toBe(4)

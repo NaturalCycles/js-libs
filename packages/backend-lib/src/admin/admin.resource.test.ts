@@ -118,7 +118,7 @@ describe('login', () => {
     expect(err.data.responseStatusCode).toBe(401)
   })
 
-  it('login should set cookie', async () => {
+  it('should set the admin token cookie', async () => {
     const TOKEN = 'abcdef1'
 
     const { statusCode, fetchResponse } = await app.doFetch({
@@ -136,7 +136,7 @@ describe('login', () => {
     )
   })
 
-  it('logout should clear cookie', async () => {
+  it('should clear the admin token cookie on logout', async () => {
     const { statusCode, fetchResponse } = await app.doFetch({
       url: 'admin/login',
       method: 'POST',
@@ -166,7 +166,7 @@ describe('getAdminInfo', () => {
     expect(r).toMatchInlineSnapshot(`null`)
   })
 
-  it('admin1 should see its permissions', async () => {
+  it('should return the email and permissions of an admin', async () => {
     const r = await app.get('admin/info', {
       headers: {
         'x-admin-token': 'good',
@@ -183,7 +183,7 @@ describe('getAdminInfo', () => {
     `)
   })
 
-  it('second admin should see its permissions', async () => {
+  it('should return the permissions of the admin the token belongs to', async () => {
     const r = await app.get('admin/info', {
       headers: {
         'x-admin-token': 'second',
@@ -210,7 +210,7 @@ describe('createAdminMiddleware', () => {
     })
   })
 
-  it('AND-comparison requires that the user has ALL of the required permissions', async () => {
+  it('should require all permissions on AND-comparison', async () => {
     await app.get('admin/test-permission-and', {
       headers: {
         'x-admin-token': 'p1p2',
@@ -235,7 +235,7 @@ describe('createAdminMiddleware', () => {
     expect(err2.data.responseStatusCode).toBe(403)
   })
 
-  it('OR-comparison requires that the user has ONE OF the required permissions', async () => {
+  it('should accept any one of the permissions on OR-comparison', async () => {
     await app.get('admin/test-permission-or', {
       headers: {
         'x-admin-token': 'p1p2',
@@ -255,7 +255,7 @@ describe('createAdminMiddleware', () => {
     })
   })
 
-  it('sets the isAuthenticatedAdminRequest when the admin user is successfully authenicated', async () => {
+  it('should set isAuthenticatedAdminRequest when the admin is granted', async () => {
     const { success } = await app.get<{ success: boolean }>(
       'admin/set-isAuthenticatedAdminRequest-flag',
       {
@@ -268,7 +268,7 @@ describe('createAdminMiddleware', () => {
     expect(success).toBe(true)
   })
 
-  it('does not set the isAuthenticatedAdminRequest when the admin user is not successfully authenicated', async () => {
+  it('should not set isAuthenticatedAdminRequest when the admin lacks a permission', async () => {
     const { success } = await app.get<{ success: boolean }>(
       'admin/set-isAuthenticatedAdminRequest-flag',
       {
@@ -281,21 +281,21 @@ describe('createAdminMiddleware', () => {
     expect(success).toBe(false)
   })
 
-  it('sets the flag when the secure header matches', async () => {
+  it('should set isAuthenticatedAdminRequest when the secure header matches', async () => {
     const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
       headers: { 'x-secure-header': 'secret1' },
     })
     expect(success).toBe(true)
   })
 
-  it('does not set the flag when the secure header is wrong', async () => {
+  it('should not set isAuthenticatedAdminRequest when the secure header is wrong', async () => {
     const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
       headers: { 'x-secure-header': 'wrong' },
     })
     expect(success).toBe(false)
   })
 
-  it('sets the flag when there is no secure header but a valid admin token', async () => {
+  it('should set isAuthenticatedAdminRequest from a granted admin token without a secure header', async () => {
     const { success } = await app.get<{ success: boolean }>('admin/secure-header-flag', {
       headers: { 'x-admin-token': 'p1p2' },
     })

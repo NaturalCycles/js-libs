@@ -12,7 +12,7 @@ const tsDao = new CommonTimeSeriesDao({
   db,
 })
 
-it('test1', async () => {
+it('should save and query a time series', async () => {
   const points = createTestTimeSeries()
   await tsDao.saveBatch('lala', points)
 

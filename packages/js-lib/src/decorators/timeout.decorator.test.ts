@@ -15,7 +15,7 @@ class C {
   }
 }
 
-it('@_Timeout', async () => {
+it('should resolve within the timeout and reject with a TimeoutError after it', async () => {
   const c = new C(3)
 
   expect(await c.fn(10, 'hej')).toBe('hej')

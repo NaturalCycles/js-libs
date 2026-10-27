@@ -1,3 +1,3 @@
 import { it } from 'vitest'
 
-it('scriptTest', () => {})
+it('should run test files under scripts', () => {})

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { InMemoryWebStorage } from './web.js'
 
-it('InMemoryWebStorage', () => {
+it('should get, set, clear and stringify items as a localStorage polyfill', () => {
   expect(() => localStorage.getItem('a')).toThrowErrorMatchingInlineSnapshot(
     `[ReferenceError: localStorage is not defined]`,
   )

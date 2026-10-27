@@ -4,11 +4,11 @@ import type { Assertion } from 'vitest'
 import { expect, it } from 'vitest'
 import { _inspect } from '../index.js'
 
-it('_inspect', () => {
+it('should format values of every kind as readable strings', () => {
   expectResults(v => _inspect(v), mockAllKindsOfThings()).toMatchSnapshot()
 })
 
-it('_inspect should not throw on an object with a throwing getter named like an Error field', () => {
+it('should render a throwing getter named like an Error field as [Getter]', () => {
   const obj = {}
   Object.defineProperty(obj, 'name', {
     get() {
@@ -21,7 +21,7 @@ it('_inspect should not throw on an object with a throwing getter named like an 
   expect(_inspect(obj)).toBe('{ name: [Getter] }')
 })
 
-it('_inspect maxLen', () => {
+it('should truncate the middle of output longer than maxLen', () => {
   const obj = _range(1, 1000).join(',')
   expect(_inspect(obj, { maxLen: 100 })).toMatchInlineSnapshot(`
     "1,2,3,4,5,6,7,8,9,10,11,12,13,14,1

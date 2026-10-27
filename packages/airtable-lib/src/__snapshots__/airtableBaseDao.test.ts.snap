@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`getCache 1`] = `
+exports[`should lazy-load the cache without setting lastChanged 1`] = `
 {
   "categories": [
     {

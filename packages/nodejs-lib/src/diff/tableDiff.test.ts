@@ -1,7 +1,7 @@
 import { it } from 'vitest'
 import { tableDiff } from './tableDiff.js'
 
-it('tableDiff', () => {
+it('should not throw when diffing empty, changed, added and nested objects', () => {
   tableDiff({}, {}, { logEmpty: true })
   tableDiff({}, {})
 

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { AirtableLib } from './airtableLib.js'
 
-it('api', async () => {
+it('should return an Airtable API with a base factory', async () => {
   const airtableLib = new AirtableLib({
     apiKey: 'apiKey123',
   })

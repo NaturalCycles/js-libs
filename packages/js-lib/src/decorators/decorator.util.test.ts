@@ -10,7 +10,7 @@ class C implements InstanceId {
   }
 }
 
-it('getMethodSignature', () => {
+it('should build Class.method, adding the instanceId when set', () => {
   const c = new C()
   expect(_getMethodSignature(c, 'method1')).toBe('C.method1')
 
@@ -18,7 +18,7 @@ it('getMethodSignature', () => {
   expect(_getMethodSignature(c, 'method1')).toBe('C#instance_1.method1')
 })
 
-it('getArgsSignature', () => {
+it('should join args, serializing objects as JSON and replacing long args with ...', () => {
   expect(_getArgsSignature()).toBe('')
   expect(_getArgsSignature([])).toBe('')
   expect(_getArgsSignature([''])).toBe('')

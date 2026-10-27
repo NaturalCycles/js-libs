@@ -57,7 +57,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-it('_createPromiseDecorator', async () => {
+it('should pass the call context and result to thenFn and resolve with the result', async () => {
   const r = await c.run(2)
   expect(r).toBe(4)
 
