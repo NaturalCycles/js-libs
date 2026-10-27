@@ -61,6 +61,10 @@ describe.each([
 })
 
 it('should write the JSON file as shell exports next to it, unless saveEnvFile is false', async () => {
+  // CI runners set these, and json2env appends to them too
+  vi.stubEnv('BASH_ENV', '')
+  vi.stubEnv('GITHUB_ENV', '')
+  vi.stubEnv('GITHUB_OUTPUT', '')
   vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {})
   const jsonPath = `${testDir}/someFile.json`
 
