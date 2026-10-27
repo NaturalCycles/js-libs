@@ -487,11 +487,6 @@ function getNonRetryFetcher(opt?: FetcherCfg & FetcherOptions): Fetcher {
   })
 }
 
-async function expectCallsAfter(millis: number, calls: number): Promise<void> {
-  await vi.advanceTimersByTimeAsync(millis)
-  expect(Fetcher.callNativeFetch).toHaveBeenCalledTimes(calls)
-}
-
 it('should let the onError hook modify the error', async () => {
   mockFetcherWithError()
   const fetcher = getNonRetryFetcher()
@@ -670,7 +665,7 @@ it('should fail with the AbortError of the caller when it aborts before a long t
   expect(err.cause.message).toContain('user cancelled')
 })
 
-it('should fail with a TimeoutError cause when the timeout fires before the caller aborts', async () => {
+it('should fail with a TimeoutError cause when the timeout fires while the caller signal is open', async () => {
   const fetcher = getNonRetryFetcher({
     timeoutSeconds: 0.05,
   })
@@ -686,10 +681,7 @@ it('should fail with a TimeoutError cause when the timeout fires before the call
       }),
   )
 
-  const abortTimer = setTimeout(() => controller.abort(), 500)
-
   const { err } = await fetcher.doFetch({ url: 'https://example.com', signal: controller.signal })
-  clearTimeout(abortTimer)
   _assertIsError(err)
   _assertIsErrorObject(err.cause)
   expect(err.cause.name).toBe('TimeoutError')
@@ -1129,3 +1121,8 @@ it('should throw from fetchWithMeta on an http error', async () => {
 
   await expect(fetcher.fetchWithMeta({ url: 'someUrl' })).rejects.toThrow(HttpRequestError)
 })
+
+async function expectCallsAfter(millis: number, calls: number): Promise<void> {
+  await vi.advanceTimersByTimeAsync(millis)
+  expect(Fetcher.callNativeFetch).toHaveBeenCalledTimes(calls)
+}

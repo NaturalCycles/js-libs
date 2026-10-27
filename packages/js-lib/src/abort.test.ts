@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   abortSignalAny,
   abortSignalAnyOrUndefined,
@@ -8,6 +8,10 @@ import {
   polyfilledAbortSignalAny,
   polyfilledAbortSignalTimeout,
 } from './abort.js'
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 it('should create a signal that aborts itself via abort()', () => {
   class A {
@@ -64,14 +68,16 @@ describe('polyfilledAbortSignalTimeout', () => {
     expect(signal.aborted).toBe(false)
   })
 
-  it('should abort with a TimeoutError and fire the abort event after the given time', async () => {
+  it('should abort with a TimeoutError and fire the abort event after the given time', () => {
+    vi.useFakeTimers()
     const signal = polyfilledAbortSignalTimeout(50)
     const onAbort = vi.fn<() => void>()
     signal.addEventListener('abort', onAbort)
+
+    vi.advanceTimersByTime(49)
     expect(signal.aborted).toBe(false)
 
-    await new Promise(resolve => setTimeout(resolve, 100))
-
+    vi.advanceTimersByTime(1)
     expect(signal.aborted).toBe(true)
     expect(signal.reason).toBeInstanceOf(DOMException)
     expect(signal.reason.name).toBe('TimeoutError')

@@ -559,8 +559,8 @@ describe('string', () => {
       const testCases: string[] = [
         'david@nc.se',
         'paul-louis@nc.co.uk',
-        'kamalaharris@gmail.com',
-        'kamalaharris@gmail.com ', // trailing spaces should not cause an error, note: we can't mutate primitives
+        'jane.doe@example.com',
+        'jane.doe@example.com ', // trailing spaces should not cause an error, note: we can't mutate primitives
       ]
       const schema = j.string().email()
 
@@ -593,29 +593,29 @@ describe('string', () => {
     it('should trim the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
 
-      const [err1, value1] = schema1.getValidationResult({ email: '  kamalaharris@gmail.com ' }) // em space
+      const [err1, value1] = schema1.getValidationResult({ email: '  jane.doe@example.com ' }) // em space
       expect(err1).toBeNull()
-      expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
+      expect(value1).toEqual({ email: 'jane.doe@example.com' })
 
       const schema2 = j.array(j.string().email())
 
-      const [err2, value2] = schema2.getValidationResult(['kamalaharris@gmail.com ']) // em space
+      const [err2, value2] = schema2.getValidationResult(['jane.doe@example.com ']) // em space
       expect(err2).toBeNull()
-      expect(value2).toEqual(['kamalaharris@gmail.com'])
+      expect(value2).toEqual(['jane.doe@example.com'])
     })
 
     it('should lowercase the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
 
-      const [err1, value1] = schema1.getValidationResult({ email: 'KAMALAHARRIS@gmail.COM' })
+      const [err1, value1] = schema1.getValidationResult({ email: 'JANE.DOE@example.COM' })
       expect(err1).toBeNull()
-      expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
+      expect(value1).toEqual({ email: 'jane.doe@example.com' })
 
       const schema2 = j.array(j.string().email())
 
-      const [err2, value2] = schema2.getValidationResult(['KAMALAHARRIS@gmail.com'])
+      const [err2, value2] = schema2.getValidationResult(['JANE.DOE@example.com'])
       expect(err2).toBeNull()
-      expect(value2).toEqual(['kamalaharris@gmail.com'])
+      expect(value2).toEqual(['jane.doe@example.com'])
     })
 
     it('should produce a readable error message', () => {

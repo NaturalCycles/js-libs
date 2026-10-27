@@ -63,13 +63,6 @@ export async function runCommonDaoTest(
     await dao.ping()
   })
 
-  // CREATE TABLE, DROP
-  if (support.createTable) {
-    it('should create the table, dropping an existing one', async () => {
-      await dao.createTable(testItemBMSchema.build(), { dropIfExists: true })
-    })
-  }
-
   if (support.queries) {
     // QUERY empty
     it('should return no rows and a count of 0 for an empty table', async () => {

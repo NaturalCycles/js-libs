@@ -92,10 +92,10 @@ describe('ajvValidateRequest', () => {
 
     it('should trim surrounding whitespace from an email', async () => {
       const response = await app.post<TestResponse>('', {
-        json: { email: 'kamalaharris@gmail.com ' },
+        json: { email: 'jane.doe@example.com ' },
       })
 
-      expect(response).toMatchObject({ ok: 1, body: { email: 'kamalaharris@gmail.com' } })
+      expect(response).toMatchObject({ ok: 1, body: { email: 'jane.doe@example.com' } })
     })
 
     interface TestResponse {

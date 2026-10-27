@@ -34,6 +34,8 @@ it('should replace the console output methods with no-ops', () => {
   const methods = ['log', 'debug', 'info', 'warn', 'error', 'time', 'table'] as const
   const originalConsole = _pick(console, methods)
   const replacedMethods = methods.map(method => vi.spyOn(console, method))
+  vi.spyOn(process.stdout, 'write')
+  vi.spyOn(process.stderr, 'write')
 
   try {
     silentConsole()
@@ -47,4 +49,6 @@ it('should replace the console output methods with no-ops', () => {
   for (const replacedMethod of replacedMethods) {
     expect(replacedMethod).not.toHaveBeenCalled()
   }
+  expect(process.stdout.write).not.toHaveBeenCalled()
+  expect(process.stderr.write).not.toHaveBeenCalled()
 })

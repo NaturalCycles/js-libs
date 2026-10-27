@@ -1,3 +1,4 @@
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { EventLoopMonitor } from './eventLoop.util.js'
 import type { EventLoopStats } from './eventLoop.util.js'
@@ -5,7 +6,8 @@ import type { EventLoopStats } from './eventLoop.util.js'
 let monitor: EventLoopMonitor | undefined
 
 beforeEach(() => {
-  vi.useFakeTimers()
+  // Real setTimeout stays, so the event-loop delay histogram can record samples
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
 })
 
 afterEach(() => {
@@ -17,6 +19,8 @@ afterEach(() => {
 it('should call onStats with non-negative stats once per measureInterval', async () => {
   const onStats = vi.fn<(stats: EventLoopStats) => void>()
   monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
+  // Node < 24.19 samples the delay every 10 ms of real time; without a sample the mean is NaN
+  await pDelay(20)
 
   await vi.advanceTimersByTimeAsync(99)
   expect(onStats).not.toHaveBeenCalled()
