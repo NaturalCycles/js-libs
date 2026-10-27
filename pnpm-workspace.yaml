@@ -7,15 +7,16 @@ catalog:
   'typescript': ^7
   oxlint: ^1
   'oxlint-tsgolint': ^7
+allowBuilds:
+  esbuild: true
+  '@firebase/util': false
+  protobufjs: false
 autoDedupe: true
 auditConfig:
   ignoreGhsas:
     - GHSA-h755-8qp9-cq85
     - GHSA-67mh-4wv8-2f99
 ignoreWorkspaceCycles: true
-publicHoistPattern:
-  - typescript
-allowBuilds:
-  esbuild: true
-  '@firebase/util': false
-  protobufjs: false
+trustLockfile: true
+trustPolicyExcludePrune: true
+trustPolicy: no-downgrade
