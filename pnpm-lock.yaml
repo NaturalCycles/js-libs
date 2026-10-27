@@ -687,6 +687,8 @@ importers:
         specifier: 'catalog:'
         version: 7.0.2
 
+  packages/pnpm-config: {}
+
   packages/redis-lib:
     dependencies:
       '@naturalcycles/db-lib':

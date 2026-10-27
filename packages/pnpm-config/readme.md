@@ -31,6 +31,18 @@ include:
 The settings available for delegation are the ones defined in
 [pnpm.config.yaml](./pnpm.config.yaml).
 
+pnpm installs config dependencies before it loads their settings, so the `@naturalcycles/*` entry in
+this package's `minimumReleaseAgeExclude` cannot exempt the package itself. pnpm applies a one-day
+release age to config dependencies by default, so a fresh install (no `node_modules`, e.g. CI) fails
+with `ERR_PNPM_BAD_CONFIG_DEP` for a day after each release of this package. Either pin it as
+`version+integrity` (pins are not subject to the release age), or exempt it for the boot phase:
+
+```yaml
+bootConfig:
+  minimumReleaseAgeExclude:
+    - '@naturalcycles/*'
+```
+
 Each setting has exactly one owner: a delegated setting must not also be defined in your own
 `pnpm-workspace.yaml`, or pnpm fails with `ERR_PNPM_DUPLICATE_SETTING`. Settings that you do not
 delegate stay fully under your control.
