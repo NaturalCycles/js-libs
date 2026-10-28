@@ -63,10 +63,12 @@ export class LazyKeySortedMap<K, V> {
    */
   setMany(obj: Record<any, V>): this {
     for (const [k, v] of Object.entries(obj)) {
+      if (!this.map.has(k as K)) {
+        this.maybeSortedKeys.push(k as K)
+        this.keysAreSorted = false
+      }
       this.map.set(k as K, v)
-      this.maybeSortedKeys.push(k as K)
     }
-    this.keysAreSorted = false
     return this
   }
 
