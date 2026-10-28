@@ -112,7 +112,7 @@ class FS2 {
     this.outputFile(filePath, str)
   }
 
-  async outputPrettyAsync(filePath: string, data: any): Promise<void> {
+  async outputPrettyJsonAsync(filePath: string, data: any): Promise<void> {
     await this.outputJsonAsync(filePath, data, prettyJsonOptions)
   }
 
