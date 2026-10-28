@@ -5,6 +5,9 @@ import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
 import type { NumberOfSeconds, PositiveInteger } from '@naturalcycles/js-lib/types'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
+/**
+ * @deprecated use the `warmupSeconds` option of `transformMap`, see `transformWarmup`.
+ */
 export interface TransformWarmupOptions extends TransformOptions {
   /**
    * Target concurrency after warmup completes.

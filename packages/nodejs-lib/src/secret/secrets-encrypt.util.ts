@@ -25,7 +25,7 @@ export function secretsEncrypt(
   del = false,
   jsonMode = false,
 ): void {
-  // excluding already encoded, by filter: a `!**/*.enc` pattern only excludes files under the cwd
+  // Already encrypted files are filtered out: a `!**/*.enc` pattern only excludes them under the cwd
   const filenames = file
     ? globSync([file])
     : globSync(pattern).filter(filename => !filename.endsWith('.enc'))
