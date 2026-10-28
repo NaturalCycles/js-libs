@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Abba } from './abba.js'
 import { bucketDao } from './dao/bucket.dao.js'
 import { experimentDao } from './dao/experiment.dao.js'
+import type { GetAllExperimentsOpts } from './dao/experiment.dao.js'
 import { userAssignmentDao } from './dao/userAssignment.dao.js'
 import { mockBucket, mockExperiment, mockUserAssignment, mockUserId1 } from './test/mocks.js'
 import { AssignmentStatus, SegmentationRuleOperator } from './types.js'
@@ -427,15 +428,33 @@ describe('getAllExperimentsWithBucketsNoCache', () => {
       { ...experiment2, buckets: experiment2Buckets },
     ])
   })
+
+  it('should include soft-deleted experiments unless includeDeleted is false', async () => {
+    await experimentsDAO.save(mockExperiment({ key: 'live' }))
+    await experimentsDAO.save(mockExperiment({ key: 'gone', deleted: true }))
+
+    const getKeys = async (opts?: GetAllExperimentsOpts): Promise<string[]> =>
+      (await abba.getAllExperimentsWithBucketsNoCache(opts))
+        .map(experiment => experiment.key)
+        .sort()
+
+    expect(await getKeys()).toEqual(['gone', 'live'])
+    expect(await getKeys({ includeDeleted: true })).toEqual(['gone', 'live'])
+    expect(await getKeys({ includeDeleted: false })).toEqual(['live'])
+  })
 })
 
 describe('getUserExperiments', () => {
-  it('should request the experiments without deleted ones', async () => {
-    vi.spyOn(abba, 'getAllExperimentsWithBuckets')
+  it('should leave out soft-deleted experiments', async () => {
+    await experimentsDAO.save(mockExperiment({ key: 'live' }))
+    await experimentsDAO.save(mockExperiment({ key: 'gone', deleted: true }))
+    vi.spyOn(abba, 'getAllExperimentsWithBuckets').mockImplementation(opts =>
+      abba.getAllExperimentsWithBucketsNoCache(opts),
+    )
 
-    await abba.getUserExperiments(mockUserId1)
+    const experiments = await abba.getUserExperiments(mockUserId1)
 
-    expect(abba.getAllExperimentsWithBuckets).toHaveBeenCalledWith({ includeDeleted: false })
+    expect(experiments.map(experiment => experiment.key)).toEqual(['live'])
   })
 
   it('should attach user assignments to experiments', async () => {

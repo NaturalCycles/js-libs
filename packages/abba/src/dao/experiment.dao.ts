@@ -5,8 +5,9 @@ import type { IsoDate } from '@naturalcycles/js-lib/types'
 import type { BaseExperiment, Experiment } from '../types.js'
 
 export class ExperimentDao extends CommonDao<Experiment, ExperimentDBM> {
-  async getAllExperiments(opt?: GetAllExperimentsOpts): Promise<Experiment[]> {
-    if (!opt?.includeDeleted) {
+  async getAllExperiments(opt: GetAllExperimentsOpts = {}): Promise<Experiment[]> {
+    const { includeDeleted = true } = opt
+    if (includeDeleted) {
       return await this.getAll()
     }
 
@@ -59,5 +60,8 @@ type ExperimentDBM = BaseExperiment & {
 }
 
 export interface GetAllExperimentsOpts {
+  /**
+   * Defaults to true.
+   */
   includeDeleted?: boolean
 }
