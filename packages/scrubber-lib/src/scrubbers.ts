@@ -386,16 +386,17 @@ export type RandomEmailInContentScrubberFn = ScrubberFn<string, RandomEmailInCon
 
 export type RandomEmailInContentScrubberSQLFn = ScrubberSQLFn<RandomEmailInContentScrubberParams>
 
+// Email regex, allows letters
+const emailRegex = /[a-zA-Z0-9._+-]*@[a-zA-Z0-9._-]*\.[a-zA-Z_-]{2,63}/g
+
 export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   value,
   additionalParams,
 ) => {
   if (!value) return value
 
-  // Email regex, allows letters
-  const emailRegex = /[a-zA-Z0-9._-]*@[a-zA-Z0-9._-]*\.[a-zA-Z_-]{2,63}/g
   // Replace all matches with random email
-  return value.replaceAll(emailRegex, () => randomEmailScrubber(value, additionalParams))
+  return value.replaceAll(emailRegex, email => randomEmailScrubber(email, additionalParams))
 }
 
 export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn =
@@ -409,7 +410,7 @@ export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn 
     // A Snowflake string literal turns `\.` into `.`, so the regex dot is escaped as `\\.`
     return String.raw`REGEXP_REPLACE(
     ${sqlValueToReplace},
-    '[a-zA-Z0-9._-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
+    '[a-zA-Z0-9._+-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
     RANDSTR(${length}, ${randomGeneratorSeed}) || '${domain}'
   )`
   }

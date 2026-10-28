@@ -380,8 +380,8 @@ describe('randomEmailInContentScrubber', () => {
     expect(result).toContain('Foo bar baz ')
   })
 
-  it('should replace every email in the text', () => {
-    const text = 'From first@gmail.com to second@gmail.com'
+  it('should replace every email in the text, plus-addressed ones as a whole', () => {
+    const text = 'From first+tag@gmail.com to second@gmail.com'
     const result = randomEmailInContentScrubber(text, { alphabet: 'a', length: 5 })
     expect(result).toBe('From aaaaa@example.com to aaaaa@example.com')
   })
@@ -397,14 +397,14 @@ it('should build randomEmailInContentScrubberSQL with the default and a given le
   expect(randomEmailInContentScrubberSQL()).toMatchInlineSnapshot(String.raw`
     "REGEXP_REPLACE(
         VAL,
-        '[a-zA-Z0-9._-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
+        '[a-zA-Z0-9._+-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
         RANDSTR(16, HASH(RANDOM())) || '@example.com'
       )"
   `)
   expect(randomEmailInContentScrubberSQL({ length: 5 })).toMatchInlineSnapshot(String.raw`
     "REGEXP_REPLACE(
         VAL,
-        '[a-zA-Z0-9._-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
+        '[a-zA-Z0-9._+-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
         RANDSTR(5, HASH(RANDOM())) || '@example.com'
       )"
   `)
@@ -412,7 +412,7 @@ it('should build randomEmailInContentScrubberSQL with the default and a given le
     .toMatchInlineSnapshot(String.raw`
       "REGEXP_REPLACE(
           VAL,
-          '[a-zA-Z0-9._-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
+          '[a-zA-Z0-9._+-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
           RANDSTR(5, HASH(RANDOM())) || '@customdomain.com'
         )"
     `)
