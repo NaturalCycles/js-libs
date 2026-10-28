@@ -85,12 +85,12 @@ export async function runCannon(
 
   if (opt.writeSummary) {
     const summaryJsonPath = `${reportDirPath}/${opt.name}.summary.json`
-    fs2.writeJson(summaryJsonPath, summaries, { spaces: 2 })
+    fs2.writePrettyJson(summaryJsonPath, summaries)
     console.log(`saved ${dimGrey(summaryJsonPath)}`)
   }
 
   if (opt.writeRawSummary) {
-    fs2.writeJson(`${reportDirPath}/${opt.name}.rawSummary.json`, resultByProfile, { spaces: 2 })
+    fs2.writePrettyJson(`${reportDirPath}/${opt.name}.rawSummary.json`, resultByProfile)
   }
 
   // if (opt.writePlots) {

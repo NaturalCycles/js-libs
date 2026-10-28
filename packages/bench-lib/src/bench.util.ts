@@ -53,7 +53,7 @@ export async function runBench(opt: RunBenchOptions): Promise<HertzMap> {
 
     fs2.ensureDir(reportDirPath)
     const summaryJsonPath = `${reportDirPath}/${name}.json`
-    fs2.writeJson(summaryJsonPath, avg, { spaces: 2 })
+    fs2.writePrettyJson(summaryJsonPath, avg)
     console.log(`saved ${dimGrey(summaryJsonPath)}`)
   }
 

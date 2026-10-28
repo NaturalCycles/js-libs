@@ -42,7 +42,7 @@ runScript(async () => {
   // console.log(str)
   // str = str.replaceAll('"error"', '2').replaceAll('"warn"', '1').replaceAll('"off"', '0')
   // fs2.writeFile(outputPath, str)
-  fs2.writeJson(outputPath, _sortObjectDeep(r), { spaces: 2 })
+  fs2.writePrettyJson(outputPath, _sortObjectDeep(r))
 
   // const output2Path = `${testDir}/cfg/eslint.config.dump2.json`
   // fs2.writeJson(output2Path, require('../cfg/eslint.flat.config'), { spaces: 2 })

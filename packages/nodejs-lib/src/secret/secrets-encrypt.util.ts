@@ -44,7 +44,7 @@ export function secretsEncrypt(
 
       const json = encryptObject(fs2.readJson(filename), encKeyBuffer)
 
-      fs2.writeJson(encFilename, json, { spaces: 2 })
+      fs2.writePrettyJson(encFilename, json)
     } else {
       const plain = fs.readFileSync(filename)
       const enc = encryptRandomIVBuffer(plain, encKeyBuffer)

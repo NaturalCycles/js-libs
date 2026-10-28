@@ -30,6 +30,6 @@ export class AirtableJsonConnector<BASE = any> implements AirtableConnector<BASE
 
   async upload(base: BASE, baseDaoCfg: AirtableBaseDaoCfg<BASE>): Promise<void> {
     const jsonPath = `${this.cfg.cacheDir}/${baseDaoCfg.baseName}.json`
-    await fs2.outputJsonAsync(jsonPath, base, { spaces: 2 })
+    await fs2.outputPrettyJsonAsync(jsonPath, base)
   }
 }

@@ -22,7 +22,7 @@ runScript(async () => {
   // Normalize absolute paths to be stable across environments
   const json = fs2.readJson<any>(outputPath)
   json.jsPlugins = json.jsPlugins.map((p: string) => _substringAfter(p, '/dev-lib/'))
-  fs2.writeJson(outputPath, json, { spaces: 2 })
+  fs2.writePrettyJson(outputPath, json)
 
   exec2.spawn(`oxfmt ${outputPath}`)
 })

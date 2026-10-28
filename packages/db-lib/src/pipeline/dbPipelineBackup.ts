@@ -201,7 +201,7 @@ export async function dbPipelineBackup(opt: DBPipelineBackupOptions): Promise<ND
 
       if (emitSchemaFromDB) {
         const schema = await db.getTableSchema(table)
-        await fs2.writeJsonAsync(schemaFilePath, schema, { spaces: 2 })
+        await fs2.writePrettyJsonAsync(schemaFilePath, schema)
         console.log(`>> ${grey(schemaFilePath)} saved (generated from DB)`)
       }
 

@@ -49,7 +49,7 @@ export function secretsDecrypt(
 
       const json = decryptObject(fs2.readJson(filename), encKeyBuffer)
 
-      fs2.writeJson(plainFilename, json, { spaces: 2 })
+      fs2.writePrettyJson(plainFilename, json)
     } else {
       const enc = fs.readFileSync(filename)
       const plain = decryptRandomIVBuffer(enc, encKeyBuffer)

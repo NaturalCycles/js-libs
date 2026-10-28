@@ -196,7 +196,7 @@ function bumpPackageJsonVersion(dir: string, version: string): void {
   const packageJsonPath = `${dir}/package.json`
   const pkgJson = fs2.readJson<AnyObject>(packageJsonPath)
   pkgJson['version'] = version
-  fs2.writeJson(packageJsonPath, pkgJson, { spaces: 2 })
+  fs2.writePrettyJson(packageJsonPath, pkgJson)
 }
 
 /**
