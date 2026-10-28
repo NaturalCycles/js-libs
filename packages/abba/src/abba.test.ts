@@ -448,8 +448,8 @@ describe('getUserExperiments', () => {
   it('should leave out soft-deleted experiments', async () => {
     await experimentsDAO.save(mockExperiment({ key: 'live' }))
     await experimentsDAO.save(mockExperiment({ key: 'gone', deleted: true }))
-    vi.spyOn(abba, 'getAllExperimentsWithBuckets').mockImplementation(
-      async opts => await abba.getAllExperimentsWithBucketsNoCache(opts),
+    vi.spyOn(abba, 'getAllExperimentsWithBuckets').mockImplementation(opts =>
+      abba.getAllExperimentsWithBucketsNoCache(opts),
     )
 
     const experiments = await abba.getUserExperiments(mockUserId1)
