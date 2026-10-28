@@ -170,10 +170,17 @@ export function dbQueryToSQLUpdate(q: DBQuery<any>, patch: Record<any, any>): st
 
 /**
  * Objects and arrays are stored as JSON, as mysql.escape would turn an object into `key = value`
- * pairs and an array into a list of values. Buffer and Date are left to mysql.escape.
+ * pairs and an array into a list of values. Buffer, Date and raw SQL (toSqlString) are left to
+ * mysql.escape.
  */
 function mapValueToMySQL(v: any): any {
-  if (v && typeof v === 'object' && !Buffer.isBuffer(v) && !(v instanceof Date)) {
+  if (
+    v &&
+    typeof v === 'object' &&
+    !Buffer.isBuffer(v) &&
+    !(v instanceof Date) &&
+    typeof v.toSqlString !== 'function'
+  ) {
     return JSON.stringify(v)
   }
   return v
