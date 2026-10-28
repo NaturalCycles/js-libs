@@ -27,12 +27,12 @@ const cmdOk = `node -e "console.log('hello')"`
 const cmdError = `node -e "console.error('err'); process.exit(1)"`
 const cmdSignal = `node -e "process.kill(process.pid, 'SIGTERM')"`
 
-it('spawn ok', () => {
+it('should not throw when spawn exits with code 0', () => {
   exec2.spawn(cmdOk, { stdio: silent ? 'pipe' : 'inherit' })
   // no error
 })
 
-it('spawn error', () => {
+it('should throw with the exit code and command when spawn exits non-zero', () => {
   const err = _expectedErrorString(() =>
     exec2.spawn(cmdError, { stdio: silent ? 'pipe' : 'inherit' }),
   )
@@ -41,12 +41,12 @@ it('spawn error', () => {
   )
 })
 
-it('exec ok', () => {
+it('should return stdout from exec', () => {
   const s = exec2.exec(cmdOk)
   expect(s).toBe('hello')
 })
 
-it('exec error', () => {
+it('should throw with the exit code and command when exec exits non-zero', () => {
   const err = _expectedErrorString(() =>
     exec2.exec(cmdError, { stdio: silent ? 'pipe' : undefined }),
   )
@@ -55,12 +55,12 @@ it('exec error', () => {
   )
 })
 
-it('spawnAsync ok', async () => {
+it('should resolve when spawnAsync exits with code 0', async () => {
   await exec2.spawnAsync(cmdOk, { stdio: silent ? 'pipe' : 'inherit' })
   // no error
 })
 
-it('spawnAsync error', async () => {
+it('should reject with the exit code and command when spawnAsync exits non-zero', async () => {
   const err = await pExpectedError(
     exec2.spawnAsync(cmdError, { stdio: silent ? 'pipe' : 'inherit' }),
     Error,
@@ -70,7 +70,7 @@ it('spawnAsync error', async () => {
   )
 })
 
-it('spawnAsync signal', async () => {
+it('should reject when the spawnAsync process is killed by a signal', async () => {
   const err = await pExpectedError(
     exec2.spawnAsync(cmdSignal, { stdio: silent ? 'pipe' : 'inherit' }),
     Error,
@@ -78,14 +78,14 @@ it('spawnAsync signal', async () => {
   expect(isSignalTermination(_stringify(err))).toBe(true)
 })
 
-it('spawnAsyncAndReturn ok', async () => {
+it('should return the exit code, stdout and stderr from spawnAsyncAndReturn', async () => {
   const s = await exec2.spawnAsyncAndReturn(cmdOk, { printWhileRunning: !silent })
   expect(s.exitCode).toBe(0)
   expect(s.stderr).toBe('')
   expect(s.stdout).toBe('hello')
 })
 
-it('spawnAsyncAndReturn error with throw', async () => {
+it('should throw a SpawnError with exit code and output from spawnAsyncAndReturn on a non-zero exit', async () => {
   const err = await pExpectedError(
     exec2.spawnAsyncAndReturn(cmdError, { printWhileRunning: !silent }),
     SpawnError,
@@ -98,7 +98,7 @@ it('spawnAsyncAndReturn error with throw', async () => {
   expect(err.data.stderr).toBe('err')
 })
 
-it('spawnAsyncAndReturn error without throw', async () => {
+it('should return a non-zero exit code from spawnAsyncAndReturn when throwOnNonZeroCode is false', async () => {
   const { exitCode, stdout, stderr } = await exec2.spawnAsyncAndReturn(cmdError, {
     throwOnNonZeroCode: false,
     printWhileRunning: !silent,
@@ -108,7 +108,7 @@ it('spawnAsyncAndReturn error without throw', async () => {
   expect(stderr).toBe('err')
 })
 
-it('spawnAsyncAndReturn signal', async () => {
+it('should throw a SpawnError from spawnAsyncAndReturn when the process is killed by a signal', async () => {
   const err = await pExpectedError(
     exec2.spawnAsyncAndReturn(cmdSignal, { printWhileRunning: !silent }),
     SpawnError,

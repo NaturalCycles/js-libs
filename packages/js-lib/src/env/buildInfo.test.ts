@@ -10,7 +10,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-it('buildInfo', () => {
+it('should generate dev build info from the current time', () => {
   expect(generateBuildInfoDev()).toMatchInlineSnapshot(`
     {
       "branchName": "devBranch",

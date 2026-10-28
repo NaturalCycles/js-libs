@@ -3,7 +3,7 @@ import { createTestItemsBM, TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { expect, it } from 'vitest'
 import { jsonSchemaToMySQLDDL } from './mysql.schema.util.js'
 
-it('commonSchemaToMySQLDDL', async () => {
+it('should build CREATE TABLE DDL from a table schema', async () => {
   const items = createTestItemsBM(5)
 
   const db = new InMemoryDB()

@@ -38,7 +38,7 @@ import {
   _unset,
 } from './object.util.js'
 
-it('_pick', () => {
+it('should pick only the existing given props with _pick, mutating only when asked', () => {
   const f = _pick
 
   const obj = {
@@ -49,11 +49,11 @@ it('_pick', () => {
   }
 
   // empty fields
-  expect(f(obj, [])).toEqual({})
+  expect(f(obj, [])).toStrictEqual({})
 
   const fields = ['a', 'c', 'd', 'e'] as const
   const r = f(obj, fields as any)
-  expect(r).toEqual({ a: 1, c: 3, d: false })
+  expect(r).toStrictEqual({ a: 1, c: 3, d: false })
   expect('e' in r).toBe(false) // should not add more fields with 'undefined' value
   // should not mutate
   expect(obj.c).toBe(3)
@@ -61,13 +61,13 @@ it('_pick', () => {
 
   // should mutate
   const obj2 = f(obj, ['a'], { mutate: true })
-  expect(obj2).toEqual({
+  expect(obj2).toStrictEqual({
     a: 1,
   })
   expect(obj2).toBe(obj)
 })
 
-it('_pickWithUndefined', () => {
+it('should keep the given props with _pickWithUndefined, mutating only when asked', () => {
   const f = _pickWithUndefined
 
   const obj = {
@@ -78,7 +78,7 @@ it('_pickWithUndefined', () => {
   }
 
   // empty fields
-  expect(f(obj, [])).toEqual({
+  expect(f(obj, [])).toStrictEqual({
     a: undefined,
     b: undefined,
     c: undefined,
@@ -87,7 +87,7 @@ it('_pickWithUndefined', () => {
 
   const fields = ['a', 'c', 'd', 'e'] as const
   const r = f(obj, fields as any)
-  expect(r).toEqual({ a: 1, b: undefined, c: 3, d: false })
+  expect(r).toStrictEqual({ a: 1, b: undefined, c: 3, d: false })
   expect('e' in r).toBe(false) // should not add more fields with 'undefined' value
   // should not mutate
   expect(obj.c).toBe(3)
@@ -95,7 +95,7 @@ it('_pickWithUndefined', () => {
 
   // should mutate
   const obj2 = f(obj, ['a'], { mutate: true })
-  expect(obj2).toEqual({
+  expect(obj2).toStrictEqual({
     a: 1,
     b: undefined,
     c: undefined,
@@ -104,7 +104,7 @@ it('_pickWithUndefined', () => {
   expect(obj2).toBe(obj)
 })
 
-it('_omit', () => {
+it('should omit the given props from a frozen object with _omit', () => {
   const obj = {
     a: 1,
     b: 2,
@@ -116,21 +116,21 @@ it('_omit', () => {
   _deepFreeze(obj)
 
   // empty props
-  expect(_omit(obj, [])).toEqual(obj)
+  expect(_omit(obj, [])).toStrictEqual(obj)
 
-  expect(_omit(obj, ['b', 'c'])).toEqual({
+  expect(_omit(obj, ['b', 'c'])).toStrictEqual({
     a: 1,
     d: false,
     e: undefined,
   })
 
-  expect(_omit(obj, ['a', 'd', 'e'])).toEqual({
+  expect(_omit(obj, ['a', 'd', 'e'])).toStrictEqual({
     b: 2,
     c: 3,
   })
 })
 
-it('_omitWithUndefined', () => {
+it('should clear the given props of a frozen object with _omitWithUndefined', () => {
   const obj = {
     a: 1,
     b: 2,
@@ -142,9 +142,9 @@ it('_omitWithUndefined', () => {
   _deepFreeze(obj)
 
   // empty props
-  expect(_omitWithUndefined(obj, [])).toEqual(obj)
+  expect(_omitWithUndefined(obj, [])).toStrictEqual(obj)
 
-  expect(_omitWithUndefined(obj, ['b', 'c'])).toEqual({
+  expect(_omitWithUndefined(obj, ['b', 'c'])).toStrictEqual({
     a: 1,
     b: undefined,
     c: undefined,
@@ -152,7 +152,7 @@ it('_omitWithUndefined', () => {
     e: undefined,
   })
 
-  expect(_omit(obj, ['a', 'd', 'e'])).toEqual({
+  expect(_omitWithUndefined(obj, ['a', 'd', 'e'])).toStrictEqual({
     a: undefined,
     b: 2,
     c: 3,
@@ -161,7 +161,7 @@ it('_omitWithUndefined', () => {
   })
 })
 
-it('_omit mutate', () => {
+it('should omit the given props in place with _omit and mutate', () => {
   const obj = {
     a: 1,
     b: 2,
@@ -171,7 +171,7 @@ it('_omit mutate', () => {
   }
 
   const obj2 = _omit(obj, ['b', 'c'], { mutate: true })
-  expect(obj2).toEqual({
+  expect(obj2).toStrictEqual({
     a: 1,
     d: false,
     e: undefined,
@@ -179,7 +179,7 @@ it('_omit mutate', () => {
   expect(obj2).toBe(obj)
 })
 
-it('_omitWithUndefined mutating', () => {
+it('should clear the given props in place with _omitWithUndefined and mutate', () => {
   const obj = {
     a: 1,
     b: 2,
@@ -189,7 +189,7 @@ it('_omitWithUndefined mutating', () => {
   }
 
   const obj2 = _omitWithUndefined(obj, ['b', 'c'], { mutate: true })
-  expect(obj2).toEqual({
+  expect(obj2).toStrictEqual({
     a: 1,
     b: undefined,
     c: undefined,
@@ -199,7 +199,7 @@ it('_omitWithUndefined mutating', () => {
   expect(obj2).toBe(obj)
 })
 
-it('_mask', () => {
+it('should remove a nested path with _mask and ignore a missing one', () => {
   const o = {
     a: '1',
     b: {
@@ -222,7 +222,7 @@ it('_mask', () => {
   expect(_mask(o, ['c.0.0'])).toEqual(o)
 })
 
-it('_mask with mutation', () => {
+it('should remove a nested path in place with _mask and mutate', () => {
   const o = {
     a: '1',
     b: {
@@ -249,7 +249,7 @@ it('_mask with mutation', () => {
   expect(r).toBe(o)
 })
 
-it('_deepTrim', () => {
+it('should trim nested string values in place with _deepTrim', () => {
   const f = _deepTrim
   const o = {
     a: 'abc ',
@@ -287,7 +287,7 @@ it('_deepTrim', () => {
   })
 })
 
-it('_filterFalsyValues', () => {
+it('should drop falsy values with _filterFalsyValues, mutating only when asked', () => {
   const f = _filterFalsyValues
   const o = Object.freeze({
     a: 1,
@@ -310,7 +310,7 @@ it('_filterFalsyValues', () => {
   expect(o2.b).toBeUndefined()
 })
 
-it('_filterNullishValues', () => {
+it('should drop null and undefined values from a frozen object with _filterNullishValues', () => {
   const o = {
     a: 1,
     b: 0,
@@ -321,17 +321,15 @@ it('_filterNullishValues', () => {
   }
   _deepFreeze(o)
 
-  expect(_filterNullishValues(o)).toEqual({
+  expect(_filterNullishValues(o)).toStrictEqual({
     a: 1,
     b: 0,
     e: '',
     f: 'wer',
   })
-
-  const _ = _filterNullishValues(o)
 })
 
-it('_filterUndefinedValues', () => {
+it('should keep the defined values of a frozen object with _filterUndefinedValues', () => {
   const o = {
     a: 1,
     b: 0,
@@ -342,7 +340,7 @@ it('_filterUndefinedValues', () => {
   }
   _deepFreeze(o)
 
-  expect(_filterUndefinedValues(o)).toEqual({
+  expect(_filterUndefinedValues(o)).toStrictEqual({
     a: 1,
     b: 0,
     d: null,
@@ -351,13 +349,13 @@ it('_filterUndefinedValues', () => {
   })
 })
 
-it('_filterEmptyArrays', () => {
+it('should drop empty arrays with _filterEmptyArrays', () => {
   expect(_filterEmptyArrays({})).toEqual({})
   expect(_filterEmptyArrays({ a: 'a' })).toEqual({ a: 'a' })
   expect(_filterEmptyArrays({ a: 'a', b: [], c: 'c' })).toEqual({ a: 'a', c: 'c' })
 })
 
-it('_filterEmptyValues', () => {
+it('should drop empty strings, arrays, objects and sets with _filterEmptyValues', () => {
   expect(
     _filterEmptyValues({
       a: 0,
@@ -379,7 +377,7 @@ it('_filterEmptyValues', () => {
   })
 })
 
-it('_filterObject', () => {
+it('should drop entries failing the predicate in place with _filterObject and mutate', () => {
   // expect(_filterObject(1 as any, () => false)).toBe(1)
 
   const f = _filterObject
@@ -393,7 +391,7 @@ it('_filterObject', () => {
   expect(br.c).toBeUndefined()
 })
 
-it('_objectNullValuesToUndefined', () => {
+it('should turn null values into undefined with _objectNullValuesToUndefined', () => {
   const o = {
     a: undefined,
     b: null,
@@ -412,7 +410,7 @@ it('_objectNullValuesToUndefined', () => {
   expect(o).toEqual(o2)
 })
 
-it('_unset', () => {
+it('should remove a nested path and a top-level key with _unset', () => {
   expect(_unset(1 as any, 'a')).toBeUndefined()
 
   const o = {
@@ -435,7 +433,7 @@ it('_unset', () => {
   expect(o.b.c).toBeUndefined()
 })
 
-it('_deepCopy', () => {
+it('should return an equal object with new nested references from _deepCopy', () => {
   const o = {
     a: 1,
     b: {
@@ -443,10 +441,15 @@ it('_deepCopy', () => {
       d: 4,
     },
   }
-  expect(_deepCopy(o)).toEqual(o)
+
+  const copy = _deepCopy(o)
+
+  expect(copy).toStrictEqual(o)
+  expect(copy).not.toBe(o)
+  expect(copy.b).not.toBe(o.b)
 })
 
-it('_mergeObjects', () => {
+it('should merge objects with later values winning in _mergeObjects', () => {
   const obj1 = {
     a: 'a1',
     b: 'b1',
@@ -462,7 +465,7 @@ it('_mergeObjects', () => {
   })
 })
 
-it('_merge', () => {
+it('should deep merge objects with _merge', () => {
   expect(_merge(1 as any, 2)).toBe(1)
   expect(_merge({}, 2)).toEqual({})
 
@@ -513,7 +516,7 @@ it('_merge', () => {
     `)
 })
 
-it('_merge should not allow prototype pollution', () => {
+it('should not pollute the prototype with _merge', () => {
   const malicious = JSON.parse('{"__proto__":{"polluted":"yes"}}')
   _merge({}, malicious)
   expect(({} as any).polluted).toBeUndefined()
@@ -523,7 +526,7 @@ it('_merge should not allow prototype pollution', () => {
   expect(({} as any).polluted2).toBeUndefined()
 })
 
-it('_invert', () => {
+it('should swap keys and values with _invert', () => {
   const o = {
     a: 'ak',
     b: 'bk',
@@ -537,7 +540,7 @@ it('_invert', () => {
   })
 })
 
-it('_invertMap', () => {
+it('should swap keys and values of a Map with _invertMap', () => {
   const o = new Map([
     ['a', 'ak'],
     ['b', 'bk'],
@@ -550,7 +553,7 @@ it('_invertMap', () => {
   expect(_invertMap(o)).toEqual(inv)
 })
 
-it('_get, _has', () => {
+it('should read and check nested paths with _get and _has', () => {
   const o = {
     a: 'a',
     b: 'b',
@@ -604,12 +607,12 @@ it.each([
   [{ a: { b: ['b1'] } }, 'a.b.0', 'a1', { a: { b: ['a1'] } }],
   [{ a: { b: ['b1', 'b2'] } }, 'a.b.0', 'a1', { a: { b: ['a1', 'b2'] } }],
   [{ a: { b: ['b1', 'b2'] } }, 'a.b.1', 'a2', { a: { b: ['b1', 'a2'] } }],
-])('_set %s %s %s to be %s', (obj, path, value, expected) => {
+])('should set %s at path %s to %s, resulting in %s', (obj, path, value, expected) => {
   expect(_set(obj, path, value)).toEqual(expected)
   expect(obj).toEqual(expected)
 })
 
-it('_set should not allow prototype pollution', () => {
+it('should not pollute the prototype with _set', () => {
   _set({}, '__proto__.polluted', 'yes')
   expect(({} as any).polluted).toBeUndefined()
 
@@ -620,19 +623,19 @@ it('_set should not allow prototype pollution', () => {
   expect(({} as any).polluted3).toBeUndefined()
 })
 
-it('_unset should not allow prototype pollution', () => {
+it('should not pollute the prototype with _unset', () => {
   const origToString = Object.prototype.toString
   _unset({}, '__proto__.toString')
   expect(Object.prototype.toString).toBe(origToString)
 })
 
-it('_mapKeys', () => {
+it('should map keys with _mapKeys', () => {
   const o = { a: 1, b: 2 }
   _deepFreeze(o)
   expect(_mapKeys(o, (k, v) => k + v)).toEqual({ a1: 1, b2: 2 })
 })
 
-it('_mapValues', () => {
+it('should map the values of a frozen object with _mapValues', () => {
   const users = {
     fred: { user: 'fred', age: 40 },
     pebbles: { user: 'pebbles', age: 1 },
@@ -642,7 +645,7 @@ it('_mapValues', () => {
   expect(_mapValues(users, (_k, v) => v.age)).toEqual({ fred: 40, pebbles: 1 })
 })
 
-it('_mapValues StringMap', () => {
+it('should map the values of a StringMap with _mapValues', () => {
   const map: StringMap<number> = {
     a: 1,
     b: 2,
@@ -657,7 +660,7 @@ it('_mapValues StringMap', () => {
   })
 })
 
-it('_mapObject', () => {
+it('should map keys and values with _mapObject', () => {
   const o = { b: 2, c: 3, d: 4 }
   _deepFreeze(o)
 
@@ -666,7 +669,7 @@ it('_mapObject', () => {
   expect(mapped).toEqual({ 2: 'b', 3: 'c', 4: 'd' })
 })
 
-it('_findKeyByValue', () => {
+it('should find the key of a value with _findKeyByValue, or return undefined', () => {
   const o = { b: 2, c: 3, d: 4 }
   expect(_findKeyByValue(o, 2)).toBe('b')
   expect(_findKeyByValue(o, 3)).toBe('c')
@@ -689,7 +692,7 @@ it('_findKeyByValue', () => {
   expect(char).toBe(CHAR.B)
 })
 
-it('_firstKey', () => {
+it('should return the first key, integer keys first, with _firstKey and _firstKeyOrUndefined', () => {
   expect(_firstKeyOrUndefined({ a: 1, b: 2 })).toBe('a')
   expect(_firstKeyOrUndefined({ x: 1 })).toBe('x')
   expect(_firstKeyOrUndefined({})).toBeUndefined()
@@ -704,7 +707,7 @@ it('_firstKey', () => {
   expect(_firstKey({ 2: 'b', 1: 'a' })).toBe('1')
 })
 
-it('_firstValue', () => {
+it('should return the first value with _firstValue and _firstValueOrUndefined', () => {
   expect(_firstValueOrUndefined({ a: 1, b: 2 })).toBe(1)
   expect(_firstValueOrUndefined({ x: 'only' })).toBe('only')
   expect(_firstValueOrUndefined({})).toBeUndefined()
@@ -716,7 +719,7 @@ it('_firstValue', () => {
   expect(_firstValue({ a: 1, b: 2 })).toBe(1)
 })
 
-it('_firstEntry', () => {
+it('should return the first entry with _firstEntry and _firstEntryOrUndefined', () => {
   expect(_firstEntryOrUndefined({ a: 1, b: 2 })).toEqual(['a', 1])
   expect(_firstEntryOrUndefined({ x: 'only' })).toEqual(['x', 'only'])
   expect(_firstEntryOrUndefined({})).toBeUndefined()
@@ -728,7 +731,7 @@ it('_firstEntry', () => {
   expect(_firstEntry({ a: 1, b: 2 })).toEqual(['a', 1])
 })
 
-it('_deepFreeze', () => {
+it('should freeze nested objects with _deepFreeze', () => {
   const o = {
     a: {
       b: 'bb',
@@ -743,7 +746,7 @@ it('_deepFreeze', () => {
   )
 })
 
-it('_objectAssignExact', () => {
+it('should remove target keys missing from the source with _objectAssignExact', () => {
   interface T {
     a?: string
     b?: string
@@ -776,7 +779,7 @@ it('_objectAssignExact', () => {
   expect(target).not.toBe(source)
 })
 
-it('_hasProp', () => {
+it('should keep the objects that have the prop with _hasProp', () => {
   interface SubObj {
     c: string
   } // to get typescript to yell if not typed correctly

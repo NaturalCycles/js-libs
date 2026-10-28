@@ -40,7 +40,7 @@ afterAll(async () => {
   await app.close()
 })
 
-it('parses an uploaded file and populates req.body with form fields', async () => {
+it('should parse an uploaded file and populate req.body with form fields', async () => {
   const csvContent = 'a,b,c\n1,2,3'
   const form = new FormData()
   form.append('csv', new File([csvContent], 'test.csv', { type: 'text/csv' }))
@@ -57,7 +57,7 @@ it('parses an uploaded file and populates req.body with form fields', async () =
   expect(res.body).toMatchObject({ note: 'hello' })
 })
 
-it('returns every requested file', async () => {
+it('should return every requested file', async () => {
   const form = new FormData()
   form.append('a', new File(['aaa'], 'a.txt'))
   form.append('b', new File(['bbb'], 'b.txt'))
@@ -67,7 +67,7 @@ it('returns every requested file', async () => {
   expect(res).toEqual({ a: 'aaa', b: 'bbb' })
 })
 
-it('throws 400 when a requested file is missing', async () => {
+it('should throw 400 when a requested file is missing', async () => {
   const form = new FormData()
   form.append('note', 'no file here')
 
@@ -80,7 +80,7 @@ it('throws 400 when a requested file is missing', async () => {
   expect(res.error.message).toContain('Uploaded file "csv" is missing')
 })
 
-it('throws 400 when a requested file is empty', async () => {
+it('should throw 400 when a requested file is empty', async () => {
   const form = new FormData()
   form.append('csv', new File([], 'empty.csv', { type: 'text/csv' }))
 
@@ -93,7 +93,7 @@ it('throws 400 when a requested file is empty', async () => {
   expect(res.error.message).toContain('Uploaded file "csv" is empty')
 })
 
-it('accepts a file within the size limit', async () => {
+it('should accept a file within the size limit', async () => {
   const form = new FormData()
   form.append('csv', new File(['small'], 'small.csv', { type: 'text/csv' }))
 
@@ -102,7 +102,7 @@ it('accepts a file within the size limit', async () => {
   expect(res.name).toBe('small.csv')
 })
 
-it('returns an optional file when present', async () => {
+it('should return an optional file when present', async () => {
   const form = new FormData()
   form.append('csv', new File(['a,b'], 'test.csv', { type: 'text/csv' }))
   form.append('avatar', new File(['img'], 'me.png', { type: 'image/png' }))
@@ -112,7 +112,7 @@ it('returns an optional file when present', async () => {
   expect(res).toEqual({ csv: 'test.csv', avatar: 'me.png' })
 })
 
-it('returns undefined for an absent optional file', async () => {
+it('should return no file for an absent optional file', async () => {
   const form = new FormData()
   form.append('csv', new File(['a,b'], 'test.csv', { type: 'text/csv' }))
 
@@ -121,7 +121,7 @@ it('returns undefined for an absent optional file', async () => {
   expect(res).toEqual({ csv: 'test.csv', avatar: null })
 })
 
-it('treats an empty optional file as absent', async () => {
+it('should treat an empty optional file as absent', async () => {
   const form = new FormData()
   form.append('csv', new File(['a,b'], 'test.csv', { type: 'text/csv' }))
   form.append('avatar', new File([], 'empty.png', { type: 'image/png' }))
@@ -131,7 +131,7 @@ it('treats an empty optional file as absent', async () => {
   expect(res).toEqual({ csv: 'test.csv', avatar: null })
 })
 
-it('throws 413 when a requested file exceeds the size limit', async () => {
+it('should throw 413 when a requested file exceeds the size limit', async () => {
   const form = new FormData()
   form.append('csv', new File(['x'.repeat(2000)], 'big.csv', { type: 'text/csv' }))
 

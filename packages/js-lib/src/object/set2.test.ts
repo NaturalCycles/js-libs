@@ -5,7 +5,7 @@ import { Set2 } from './set2.js'
 
 /* oxlint-disable @typescript-eslint/no-base-to-string */
 
-it('set2', () => {
+it('should stringify its items and add many items at once', () => {
   const s = new Set([1, 2, 3])
   expect(JSON.stringify(s)).toBe('{}') // boring
   expect(s.toString()).toMatchInlineSnapshot(`"[object Set]"`) // sooo boring
@@ -34,7 +34,7 @@ it('set2', () => {
   expect(s2.toArray()).toEqual([1, 2, 3, 4, 5])
 })
 
-it('inspect', () => {
+it('should show the subclass name and items in node inspect', () => {
   const s2 = new Set2([1, 2, 3])
   // This specific output (Set2(3) [Set] ...) is built into Node's inspect
   // [Set] means we are a subclass of Set

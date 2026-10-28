@@ -3,7 +3,7 @@ import { AppError, ErrorMode, pTry } from '@naturalcycles/js-lib/error'
 import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
-it('transformMapSimple', async () => {
+it('should call the mapper for every item', async () => {
   const data = _range(1, 4).map(String)
   const data2: string[] = []
 
@@ -14,7 +14,7 @@ it('transformMapSimple', async () => {
   expect(data2).toEqual(data)
 })
 
-it('transformMapSimple error', async () => {
+it('should reject with the mapper error and stop at the failing item', async () => {
   const data = _range(100).map(String)
 
   const data2: string[] = []
@@ -36,7 +36,7 @@ it('transformMapSimple error', async () => {
   expect(data2).toEqual(data.slice(0, 50))
 })
 
-it('transformMapSimple suppressed error', async () => {
+it('should skip the failing item in SUPPRESS mode', async () => {
   const data = _range(100).map(String)
   const data2: string[] = []
   await Pipeline.fromArray(data)

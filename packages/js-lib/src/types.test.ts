@@ -42,7 +42,7 @@ interface ItemDBM extends Item {}
 
 const _ = '2021-01' as IsoMonth
 
-it('saved/unsaved', () => {
+it('should type the BaseDBEntity fields of Saved, Unsaved and UnsavedId entities', () => {
   const a = 1
   expectTypeOf(a).toEqualTypeOf<number>()
 
@@ -136,7 +136,7 @@ it('saved/unsaved', () => {
   }>()
 })
 
-it('types', () => {
+it('should return fixed results from the passthrough and noop helpers', () => {
   const _: Reviver = (_k, _v) => {}
 
   expect(_passthroughMapper('a', 1)).toBe('a')
@@ -155,7 +155,7 @@ it('types', () => {
   expectTypeOf(map['d']).toEqualTypeOf<string | undefined>()
 })
 
-it('_stringMapValues, _stringMapEntries', () => {
+it('should return typed values, entries and keys of a string map', () => {
   const o = { b: 2, c: 3, d: 4 }
   const b = o.b // number
   expectTypeOf(b).toEqualTypeOf<number>()
@@ -185,7 +185,7 @@ it('_stringMapValues, _stringMapEntries', () => {
   expect(_stringMapValuesSorted(o, v => v, 'desc')).toEqual([4, 3, 2])
 })
 
-it('_objectEntries with number Enum', () => {
+it('should type number enum keys as strings in _objectEntries', () => {
   enum A {
     k1 = 1,
     k2 = 2,
@@ -214,7 +214,7 @@ it('_objectEntries with number Enum', () => {
   `)
 })
 
-it('_objectEntries with string Enum', () => {
+it('should keep string enum keys in _objectEntries', () => {
   enum B {
     k1 = 'v1',
     k2 = 'v2',
@@ -243,7 +243,7 @@ it('_objectEntries with string Enum', () => {
   `)
 })
 
-it('_objectKeys with number Enum', () => {
+it('should type number enum keys as strings in _objectKeys', () => {
   enum A {
     k1 = 1,
     k2 = 2,
@@ -266,7 +266,7 @@ it('_objectKeys with number Enum', () => {
   `)
 })
 
-it('_objectKeys with string Enum', () => {
+it('should keep string enum keys in _objectKeys', () => {
   enum B {
     k1 = 'v1',
     k2 = 'v2',
@@ -289,7 +289,7 @@ it('_objectKeys with string Enum', () => {
   `)
 })
 
-it('_typeCast', () => {
+it('should narrow the type in place with _typeCast', () => {
   const err = _expectedError(() => {
     throw new Error('yo')
   })
@@ -307,7 +307,7 @@ it('_typeCast', () => {
   `)
 })
 
-it('_objectAssign', () => {
+it('should assign props and reject unknown ones at the type level with _objectAssign', () => {
   const item = {} as Item
 
   // No TypeScript error here
@@ -330,13 +330,18 @@ it('_objectAssign', () => {
   `)
 })
 
-it('Unsaved type', () => {
-  // expectTypeOf<Unsaved<any>>().toEqualTypeOf<any>()
+it('should type the optional BaseDBEntity fields of Unsaved of a generic object type', () => {
+  function getBaseFields<BM extends AnyObject>(bm: Unsaved<BM>): unknown[] {
+    expectTypeOf(bm.id).toEqualTypeOf<string | undefined>()
+    expectTypeOf(bm.created).toEqualTypeOf<UnixTimestamp | undefined>()
+    expectTypeOf(bm.updated).toEqualTypeOf<UnixTimestamp | undefined>()
+    return [bm.id, bm.created, bm.updated]
+  }
 
-  function _<BM extends AnyObject>(_a: Unsaved<BM>): void {}
+  expect(getBaseFields<Item>({ a: 1 })).toEqual([undefined, undefined, undefined])
 })
 
-it('branded', () => {
+it('should keep a branded string comparable and assignable to string', () => {
   type MyId = Branded<string, 'MyId'>
   const id = '123' as MyId
   const id2 = '124' as MyId
@@ -347,14 +352,15 @@ it('branded', () => {
   expect(s).toEqual(id)
 })
 
-it('UnixTimestamp branded type', () => {
+it('should allow a UnixTimestamp to be used as a number, but not a number as a UnixTimestamp', () => {
   const ts = 123 as UnixTimestamp
   const ts2: number = ts // compatible
-  const _: UnixTimestamp = ts2 as UnixTimestamp // needs casting
-  const __ = asUnixTimestamp(ts2) // casting with a helper function
+  // @ts-expect-error needs casting
+  const _: UnixTimestamp = ts2
+  expectTypeOf(asUnixTimestamp(ts2)).toEqualTypeOf<UnixTimestamp>() // casting with a helper function
 })
 
-it('NotPromise', () => {
+it('should resolve NotPromise to the type, or to never for promises', () => {
   // NotPromise resolves to T for non-promise types
   expectTypeOf<NotPromise<string>>().toEqualTypeOf<string>()
   expectTypeOf<NotPromise<number>>().toEqualTypeOf<number>()
@@ -370,7 +376,7 @@ it('NotPromise', () => {
   expectTypeOf<NotPromise<PromiseLike<number>>>().toEqualTypeOf<never>()
 })
 
-it('SyncFunction', () => {
+it('should accept sync functions and reject async ones as SyncFunction', () => {
   // Sync functions are assignable
   const syncFn: SyncFunction<string> = () => 'hello'
   expect(syncFn()).toBe('hello')
@@ -384,7 +390,7 @@ it('SyncFunction', () => {
   const __rejectAsync: SyncFunction<string> = asyncFn
 })
 
-it('AnySyncFunction', () => {
+it('should accept sync functions and reject async ones as AnySyncFunction', () => {
   // Sync functions with args are assignable
   const syncFn: AnySyncFunction<number> = (a: number, b: number) => a + b
   expect(syncFn(1, 2)).toBe(3)
@@ -395,7 +401,7 @@ it('AnySyncFunction', () => {
   const __rejectAsync: AnySyncFunction<number> = asyncFn
 })
 
-it('asUnixTimestamp2000', () => {
+it('should accept timestamps after 2000 and reject older ones and milliseconds', () => {
   const valid = localTime('2022-07-14' as IsoDate).unix
   const tooOld = localTime('1984-06-21' as IsoDate).unix
   const tsInMillis = localTime('2022-07-14' as IsoDate).unixMillis

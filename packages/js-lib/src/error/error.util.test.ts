@@ -70,12 +70,12 @@ const anyItems = [
   } as BackendErrorResponseObject,
 ]
 
-it('anyToErrorObject', () => {
+it('should match the snapshot for _anyToErrorObject on sample values', () => {
   // omitting stack only for snapshot determinism
   expectResults(v => _omit(_anyToErrorObject(v), ['stack']), anyItems).toMatchSnapshot()
 })
 
-it('anyToError', () => {
+it('should convert any value to an Error, keeping Errors as-is and the stack when repacking', () => {
   expectResults(v => _anyToError(v), anyItems).toMatchSnapshot()
 
   const httpError = new AppError('la la', {
@@ -120,7 +120,7 @@ it('anyToError', () => {
   expect(httpError4.stack).toBe(httpError.stack)
 })
 
-it('appErrorToErrorObject / errorObjectToAppError snapshot', () => {
+it('should convert an AppError to an ErrorObject with its name, message, data and stack', () => {
   const data = { a: 'b' }
   const err1 = new AppError('hello', data)
   const err2 = _errorLikeToErrorObject(err1)
@@ -133,23 +133,35 @@ it('appErrorToErrorObject / errorObjectToAppError snapshot', () => {
   })
 })
 
-it('isErrorObject', () => {
+it('should detect objects with string name and message and object data as ErrorObjects', () => {
   expectResults(v => _isErrorObject(v), anyItems).toMatchSnapshot()
 })
 
-it('isErrorLike', () => {
+it('should detect Errors and objects with a string name and message as error-like', () => {
   expectResults(v => _isErrorLike(v), anyItems).toMatchSnapshot()
 })
 
-it('isHttpRequestErrorObject', () => {
+it('should detect none of the sample values as an HttpRequestError object', () => {
   expectResults(v => _isHttpRequestErrorObject(v), anyItems).toMatchSnapshot()
 })
 
-it('isHttpErrorResponse', () => {
+it('should detect an HttpRequestError object only when data.requestUrl is a string', () => {
+  const name = 'HttpRequestError'
+  const message = 'http err msg'
+  expect(_isHttpRequestErrorObject({ name, message, data: { requestUrl: 'https://a.com' } })).toBe(
+    true,
+  )
+  expect(_isHttpRequestErrorObject({ name, message, data: { requestUrl: 1 } })).toBe(false)
+  expect(
+    _isHttpRequestErrorObject({ name: 'AppError', message, data: { requestUrl: 'https://a.com' } }),
+  ).toBe(false)
+})
+
+it('should detect backend error response objects', () => {
   expectResults(v => _isBackendErrorResponseObject(v), anyItems).toMatchSnapshot()
 })
 
-it('duck-typing checks should not throw on objects with throwing property getters', () => {
+it('should not throw in duck-typing checks on objects with throwing getters', () => {
   for (const prop of ['name', 'message', 'error', 'data']) {
     const o = {}
     Object.defineProperty(o, prop, {
@@ -168,7 +180,7 @@ it('duck-typing checks should not throw on objects with throwing property getter
   }
 })
 
-it('_errorObjectToError should not repack if already same error', () => {
+it('should repack an error only into a different class, keeping the stack', () => {
   const e = new AppError('yo', { backendResponseStatusCode: 400 })
   expect(_isErrorObject(e)).toBe(true)
   // HttpError not an ErrorObject, actually
@@ -190,7 +202,7 @@ it('_errorObjectToError should not repack if already same error', () => {
   expect(e4.stack).toBe(e.stack) // important to preserve the stack!
 })
 
-it('_errorDataAppend', () => {
+it('should merge data into the error data, keeping the existing data object', () => {
   const err = new Error('yo') as any
   const err_ = _errorDataAppend(err, { backendResponseStatusCode: 401 })
   expect(err_).toBe(err) // same object
@@ -225,7 +237,7 @@ it('_errorDataAppend', () => {
 `)
 })
 
-it('_errorDataAppend should not fail if input is not error', () => {
+it('should create an Error from a non-error input instead of throwing', () => {
   const err = _errorDataAppend(undefined, { a: 'a' })
   expect(err).toMatchInlineSnapshot(`[Error: undefined]`)
   expect((err as any).data).toEqual({ a: 'a' })
@@ -236,6 +248,6 @@ it('_errorDataAppend should not fail if input is not error', () => {
   _errorDataAppend(['abc'], { a: 'a' })
 })
 
-it('_errorSnippet', () => {
+it('should match the snapshot for _errorSnippet on sample values', () => {
   expectResults(v => _errorSnippet(v), anyItems).toMatchSnapshot()
 })

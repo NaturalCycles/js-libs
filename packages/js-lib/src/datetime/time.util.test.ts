@@ -12,12 +12,12 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-it('since', () => {
+it('should format the time elapsed between two timestamps', () => {
   expect(_since(1000 as UnixTimestampMillis, 1001 as UnixTimestampMillis)).toBe('1 ms')
   expect(_since(1000 as UnixTimestampMillis, 1010 as UnixTimestampMillis)).toBe('10 ms')
 })
 
-it('ms', () => {
+it('should format durations from milliseconds up to days', () => {
   const values = [
     1,
     10,
@@ -71,7 +71,7 @@ it('ms', () => {
   `)
 })
 
-it('log progression', () => {
+it('should format a geometric progression of durations', () => {
   const map = new Map<number, string>()
   let m = 700
   _range(1, 200).forEach(() => {

@@ -1,51 +1,53 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { _since } from '../datetime/index.js'
-import { pDelay } from '../promise/index.js'
-import type { AnyFunction, UnixTimestampMillis } from '../types.js'
-import { _asyncDebounce, _asyncThrottle, _debounce } from './debounce.js'
+import type { DebounceOptions, ThrottleOptions } from './debounce.js'
+import { _asyncDebounce, _asyncThrottle, _debounce, _throttle } from './debounce.js'
 
 afterEach(() => {
   vi.useRealTimers()
 })
 
-const originalFn = (started: UnixTimestampMillis, n: number): void =>
-  console.log(`#${n} after ${_since(started)}`)
-
-async function startTimer(fn: AnyFunction, interval: number, count: number): Promise<void> {
-  const started = Date.now() as UnixTimestampMillis
-
-  for (let i = 0; i < count; i++) {
-    await pDelay(interval)
-    fn(started, i + 1)
-  }
-
-  await pDelay(2000) // extra wait
-}
-
 describe('_debounce', () => {
-  it('should debounce calls with leading/trailing/maxWait', async () => {
-    vi.useFakeTimers()
+  it.each<{ opt: DebounceOptions; expected: number[] }>([
+    { opt: {}, expected: [10] },
+    { opt: { leading: true }, expected: [1, 10] },
+    { opt: { leading: true, trailing: false }, expected: [1] },
+    { opt: { trailing: false }, expected: [] },
+    { opt: { maxWait: 50 }, expected: [5, 10] },
+    { opt: { leading: true, maxWait: 50 }, expected: [1, 5, 10] },
+  ])(
+    'should invoke with $expected for $opt when called with 1 to 10 every 10 ms',
+    ({ opt, expected }) => {
+      vi.useFakeTimers()
+      const fn = vi.fn<(n: number) => void>()
 
-    const fn = _debounce(originalFn, 20, { leading: true, trailing: true, maxWait: 300 })
+      callTenTimesEvery10ms(_debounce(fn, 20, opt))
 
-    const promise = startTimer(fn, 10, 10)
-    await vi.runAllTimersAsync()
-    await promise
-  })
+      expect(fn.mock.calls).toEqual(expected.map(arg => [arg]))
+    },
+  )
+})
 
-  // Test cases:
-  // _debounce leading=1 trailing=0 (default)
-  // _debounce leading=1 trailing=1
-  // _debounce leading=0 trailing=1
-  // _debounce leading=0 trailing=0
-  // _throttle leading=1 trailing=1 (default)
-  // _throttle leading=1 trailing=0
-  // _throttle leading=0 trailing=1
-  // _throttle leading=0 trailing=0
+describe('_throttle', () => {
+  it.each<{ opt: ThrottleOptions; expected: number[] }>([
+    { opt: {}, expected: [1, 2, 4, 6, 8, 10] },
+    { opt: { trailing: false }, expected: [1, 3, 5, 7, 9] },
+    { opt: { leading: false }, expected: [2, 4, 6, 8, 10] },
+    { opt: { leading: false, trailing: false }, expected: [] },
+  ])(
+    'should invoke with $expected for $opt when called with 1 to 10 every 10 ms',
+    ({ opt, expected }) => {
+      vi.useFakeTimers()
+      const fn = vi.fn<(n: number) => void>()
+
+      callTenTimesEvery10ms(_throttle(fn, 20, opt))
+
+      expect(fn.mock.calls).toEqual(expected.map(arg => [arg]))
+    },
+  )
 })
 
 describe('_asyncDebounce', () => {
-  it('should return a real promise (never undefined) resolving with the invocation result', async () => {
+  it('should return a promise that resolves with the invocation result', async () => {
     let calls = 0
     const fn = _asyncDebounce(async (n: number) => {
       calls++
@@ -99,14 +101,16 @@ describe('_asyncDebounce', () => {
 })
 
 describe('_asyncThrottle', () => {
-  it('should invoke on the leading edge immediately', async () => {
+  it('should invoke the first call at once and resolve it with its result', async () => {
     let calls = 0
     const fn = _asyncThrottle(async (n: number) => {
       calls++
       return n
     }, 50)
 
-    expect(await fn(7)).toBe(7)
+    const promise = fn(7)
+    expect(calls).toBe(1)
+    expect(await promise).toBe(7)
     expect(calls).toBe(1)
   })
 
@@ -117,3 +121,11 @@ describe('_asyncThrottle', () => {
     expect(await fn(2)).toBeUndefined()
   })
 })
+
+function callTenTimesEvery10ms(fn: (n: number) => void): void {
+  for (let n = 1; n <= 10; n++) {
+    fn(n)
+    vi.advanceTimersByTime(10)
+  }
+  vi.advanceTimersByTime(100)
+}

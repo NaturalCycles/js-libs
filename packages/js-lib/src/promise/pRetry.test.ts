@@ -19,7 +19,7 @@ function createFn(succeedOnAttempt: number): AnyFunction {
   }
 }
 
-it('pRetryFn', async () => {
+it('should retry the wrapped function until it succeeds and pass the arguments', async () => {
   const fn = pRetryFn(createFn(3), {
     maxAttempts: 3,
     delay: 10,
@@ -33,7 +33,7 @@ it('pRetryFn', async () => {
   expect(r).toEqual([1, 2, 3])
 })
 
-it('pRetryFn should throw on fail', async () => {
+it('should throw the last error from pRetryFn after the max attempts', async () => {
   const fn = pRetryFn(createFn(3), {
     maxAttempts: 2, // so, it'll never succeed
     delay: 10,
@@ -43,7 +43,7 @@ it('pRetryFn should throw on fail', async () => {
   await expect(fn(1, 2, 3)).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: fail]`)
 })
 
-it('pRetry', async () => {
+it('should retry until the function succeeds and return its result', async () => {
   const r = await pRetry(
     async attempt => {
       if (attempt >= 3) return attempt
@@ -59,7 +59,7 @@ it('pRetry', async () => {
   expect(r).toBe(3)
 })
 
-it('pRetry with timeout', async () => {
+it('should retry to success with a timeout that is not hit', async () => {
   const r = await pRetry(
     async attempt => {
       if (attempt >= 3) return attempt
@@ -75,7 +75,7 @@ it('pRetry with timeout', async () => {
   expect(r).toBe(3)
 })
 
-it('pRetry should throw on fail and keep stack', async () => {
+it('should throw the last error with the caller stack after the max attempts', async () => {
   async function myFunction(): Promise<void> {
     await pRetry(
       async attempt => {
@@ -99,7 +99,7 @@ it('pRetry should throw on fail and keep stack', async () => {
   expect(err.stack).toContain('at myFunction')
 })
 
-it('pRetry timeout should not happen', async () => {
+it('should resolve when the function finishes within the timeout', async () => {
   await pRetry(async () => await pDelay(1), {
     timeout: 1000,
     logAll: true,
@@ -115,7 +115,7 @@ async function myFunction(): Promise<void> {
   })
 }
 
-it('pRetry should time out and keep stack', async () => {
+it('should throw a TimeoutError with the caller stack when every attempt times out', async () => {
   const err = await pExpectedError(myFunction())
   // console.log(err.stack)
 

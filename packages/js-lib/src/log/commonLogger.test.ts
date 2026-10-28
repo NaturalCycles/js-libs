@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import type { CommonLogger, LogEntry } from './commonLogger.js'
 import {
   commonLoggerCreate,
@@ -81,16 +81,33 @@ it('should let the methods be passed around unbound', () => {
   expect(entries).toStrictEqual([{ msg: 'hey', level: 'error' }])
 })
 
-it('should log to console', () => {
+it('should pass the message, error and fields to the console method of the level', () => {
+  vi.spyOn(console, 'log').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  const err = new Error('kaboom')
+
   consoleLogger.log('hey')
   consoleLogger.warn({ msg: 'hey', n: 1 })
-  consoleLogger.error(new Error('kaboom'))
+  consoleLogger.error(err)
   consoleLogger.child({ module: 'test' }).log('hey')
+
+  expect(vi.mocked(console.log).mock.calls).toStrictEqual([['hey'], ['hey', { module: 'test' }]])
+  expect(vi.mocked(console.warn).mock.calls).toStrictEqual([['hey', { n: 1 }]])
+  expect(vi.mocked(console.error).mock.calls).toStrictEqual([[err]])
 })
 
-it('should do nothing in the noop logger', () => {
+it('should return the noop logger as its own child, logging nothing', () => {
+  vi.spyOn(console, 'log').mockImplementation(() => {})
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+
+  const child = commonLoggerNoop.child({ a: 1 })
   commonLoggerNoop.log('hey')
-  commonLoggerNoop.child({ a: 1 }).error('hey')
+  child.error('hey')
+
+  expect(child).toBe(commonLoggerNoop)
+  expect(console.log).not.toHaveBeenCalled()
+  expect(console.error).not.toHaveBeenCalled()
 })
 
 it('should limit the logger to the minimum level', () => {

@@ -1,12 +1,23 @@
-import { expect, it } from 'vitest'
+import { afterAll, expect, it, vi } from 'vitest'
 import { isClientSide, isNode, isServerSide } from './env.js'
 
-// Skipped due to flakiness when run in the monorepo
-it.skip('isServerSide', () => {
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
+afterAll(() => {
+  vi.unstubAllGlobals()
+})
+
+it('should detect the server side when there is no window', () => {
+  vi.stubGlobal('window', undefined)
   expect(isServerSide()).toBe(true)
   expect(isClientSide()).toBe(false)
 })
 
-it('isNode', () => {
+it('should detect the client side when window has a document', () => {
+  vi.stubGlobal('window', { document: {} })
+  expect(isServerSide()).toBe(false)
+  expect(isClientSide()).toBe(true)
+})
+
+it('should detect Node', () => {
   expect(isNode()).toBe(true)
 })

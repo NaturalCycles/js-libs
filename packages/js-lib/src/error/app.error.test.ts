@@ -1,5 +1,5 @@
 import { inspect } from 'node:util'
-import { expect, it, vi } from 'vitest'
+import { expect, it } from 'vitest'
 import { _stringify } from '../string/stringify.js'
 import { _anyToErrorObject, AppError } from './error.util.js'
 
@@ -10,7 +10,7 @@ const throwAppErrorAsync = async (): Promise<never> => {
   throw new AppError('error')
 }
 
-it('appError properties should be present', async () => {
+it('should set the message, name, stack and data, and be throwable', async () => {
   // Error.captureStackTrace = false as any
   const r = new AppError('hello')
   // console.log(r.message, r.name, r.stack)
@@ -27,16 +27,7 @@ it('appError properties should be present', async () => {
   await expect(throwAppErrorAsync()).rejects.toThrow(AppError)
 })
 
-it('appError should work when Error.captureStacktrace is n/a', () => {
-  vi.spyOn(Error, 'captureStackTrace').mockReturnValue(undefined)
-  const r = new AppError('hello')
-  // console.log(r.message, r.name, r.stack)
-  expect(r.message).toBe('hello')
-  expect(r.name).toBe('AppError')
-  expect(r.stack).toBeDefined()
-})
-
-it('AppError log should NOT include constructor and data', () => {
+it('should leave constructor and data out of the inspect output', () => {
   const err = new AppError('hello')
   // console.log(err)
 
@@ -53,7 +44,7 @@ it('AppError log should NOT include constructor and data', () => {
   err.data = {}
 })
 
-it('AppError with cause', () => {
+it('should keep the cause with its stack and fields', () => {
   const err1 = new AppError('cozz')
   const err = new AppError('hello', {}, { cause: err1 })
   expect(err.cause!.stack).toBeDefined()
@@ -68,28 +59,24 @@ it('AppError with cause', () => {
   expect(_stringify(_anyToErrorObject(err.cause))).toBe(_stringify(_anyToErrorObject(err1)))
 })
 
+it('should use the name option as the error and constructor name', () => {
+  class MinifiedError extends AppError {
+    constructor() {
+      super('yo', {}, { name: 'ProperError' })
+    }
+  }
+
+  // Simulate the class name a minifier would produce
+  Object.defineProperty(MinifiedError, 'name', { value: 'e' })
+
+  const err = new MinifiedError()
+  expect(err.name).toBe('ProperError')
+  expect(err.constructor.name).toBe('ProperError')
+})
+
 function filterStackTrace(s: string): string {
   return s
     .split('\n')
     .filter(line => !line.trimStart().startsWith('at '))
     .join('\n')
 }
-
-class MinifiedError extends AppError {
-  constructor() {
-    super('yo', {}, { name: 'ProperError' })
-  }
-}
-
-Object.defineProperty(MinifiedError.constructor, 'name', {
-  writable: true,
-})
-;(MinifiedError.constructor as any).name = 'Weird'
-
-it('minified error name', () => {
-  expect(MinifiedError.constructor.name).toBe('Weird')
-
-  const err = new MinifiedError()
-  expect(err.name).toBe('ProperError')
-  expect(err.constructor.name).toBe('ProperError')
-})

@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { pDelay } from './pDelay.js'
 import { PGradualQueue } from './pGradualQueue.js'
 
-it('queued job rejection does not cause unhandledRejection', async () => {
+it('should reject a queued job without an unhandled rejection', async () => {
   const q = new PGradualQueue({ concurrency: 2, warmupSeconds: 0 })
   const unhandled: unknown[] = []
   const onUnhandled = (err: unknown): void => void unhandled.push(err)
@@ -26,7 +26,7 @@ it('queued job rejection does not cause unhandledRejection', async () => {
   expect(unhandled).toEqual([])
 })
 
-it('same function can be pushed multiple times', async () => {
+it('should run the same function each time it is pushed', async () => {
   const q = new PGradualQueue({ concurrency: 1, warmupSeconds: 0 })
   let n = 0
   const fn = async (): Promise<number> => {

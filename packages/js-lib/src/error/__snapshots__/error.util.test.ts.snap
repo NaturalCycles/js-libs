@@ -1,71 +1,17 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`_errorSnippet 1`] = `
-Map {
-  undefined => "undefined",
-  null => "null",
-  "" => "empty_string",
-  "hello a" => "hello a",
-  0 => "0",
-  1 => "1",
-  -5 => "-5",
-  [Function] => "function",
-  {} => "{}",
-  [] => "[]",
-  [
-    "a",
-  ] => "[ "a" ]",
-  {
-    "a": "aa",
-  } => "{ "a": "aa" }",
-  [Error: err msg] => "err msg",
-  {
-    "message": "yada",
-  } => "{ "message": "yada" }",
-  {
-    "data": {},
-    "message": "yada",
-  } => "{ "message": "yada", "data": {} }",
-  {
-    "data": {
-      "backendResponseStatusCode": 404,
-    },
-    "message": "yada",
-  } => "{ "message": "yada", "data": { "backendResponseStatusCode...",
-  {
-    "message": "yada",
-    "name": "Error",
-  } => "yada",
-  {
-    "data": {},
-    "message": "yada",
-    "name": "Error",
-  } => "yada",
-  {
-    "data": {
-      "backendResponseStatusCode": 404,
-    },
-    "message": "yada",
-    "name": "Error",
-  } => "yada",
-  [AppError: err msg] => "err msg",
-  [HttpRequestError: http err msg] => "http err msg
-Caused by Type error: la-la",
-  {
-    "error": {
-      "data": {
-        "a": "b
-c",
-        "backendResponseStatusCode": 400,
-      },
-      "message": "err msg",
-      "name": "HttpError",
-    },
-  } => "HttpError: err msg",
+exports[`should convert an AppError to an ErrorObject with its name, message, data and stack 1`] = `
+{
+  "data": {
+    "a": "b",
+  },
+  "message": "hello",
+  "name": "AppError",
+  "stack": StringContaining "AppError",
 }
 `;
 
-exports[`anyToError 1`] = `
+exports[`should convert any value to an Error, keeping Errors as-is and the stack when repacking 1`] = `
 Map {
   undefined => [Error: undefined],
   null => [Error: null],
@@ -143,7 +89,263 @@ c",
 }
 `;
 
-exports[`anyToErrorObject 1`] = `
+exports[`should detect Errors and objects with a string name and message as error-like 1`] = `
+Map {
+  undefined => false,
+  null => false,
+  "" => false,
+  "hello a" => false,
+  0 => false,
+  1 => false,
+  -5 => false,
+  [Function] => false,
+  {} => false,
+  [] => false,
+  [
+    "a",
+  ] => false,
+  {
+    "a": "aa",
+  } => false,
+  [Error: err msg] => true,
+  {
+    "message": "yada",
+  } => false,
+  {
+    "data": {},
+    "message": "yada",
+  } => false,
+  {
+    "data": {
+      "backendResponseStatusCode": 404,
+    },
+    "message": "yada",
+  } => false,
+  {
+    "message": "yada",
+    "name": "Error",
+  } => true,
+  {
+    "data": {},
+    "message": "yada",
+    "name": "Error",
+  } => true,
+  {
+    "data": {
+      "backendResponseStatusCode": 404,
+    },
+    "message": "yada",
+    "name": "Error",
+  } => true,
+  [AppError: err msg] => true,
+  [HttpRequestError: http err msg] => true,
+  {
+    "error": {
+      "data": {
+        "a": "b
+c",
+        "backendResponseStatusCode": 400,
+      },
+      "message": "err msg",
+      "name": "HttpError",
+    },
+  } => false,
+}
+`;
+
+exports[`should detect backend error response objects 1`] = `
+Map {
+  undefined => false,
+  null => false,
+  "" => false,
+  "hello a" => false,
+  0 => false,
+  1 => false,
+  -5 => false,
+  [Function] => false,
+  {} => false,
+  [] => false,
+  [
+    "a",
+  ] => false,
+  {
+    "a": "aa",
+  } => false,
+  [Error: err msg] => false,
+  {
+    "message": "yada",
+  } => false,
+  {
+    "data": {},
+    "message": "yada",
+  } => false,
+  {
+    "data": {
+      "backendResponseStatusCode": 404,
+    },
+    "message": "yada",
+  } => false,
+  {
+    "message": "yada",
+    "name": "Error",
+  } => false,
+  {
+    "data": {},
+    "message": "yada",
+    "name": "Error",
+  } => false,
+  {
+    "data": {
+      "backendResponseStatusCode": 404,
+    },
+    "message": "yada",
+    "name": "Error",
+  } => false,
+  [AppError: err msg] => false,
+  [HttpRequestError: http err msg] => false,
+  {
+    "error": {
+      "data": {
+        "a": "b
+c",
+        "backendResponseStatusCode": 400,
+      },
+      "message": "err msg",
+      "name": "HttpError",
+    },
+  } => true,
+}
+`;
+
+exports[`should detect none of the sample values as an HttpRequestError object 1`] = `
+Map {
+  undefined => false,
+  null => false,
+  "" => false,
+  "hello a" => false,
+  0 => false,
+  1 => false,
+  -5 => false,
+  [Function] => false,
+  {} => false,
+  [] => false,
+  [
+    "a",
+  ] => false,
+  {
+    "a": "aa",
+  } => false,
+  [Error: err msg] => false,
+  {
+    "message": "yada",
+  } => false,
+  {
+    "data": {},
+    "message": "yada",
+  } => false,
+  {
+    "data": {
+      "backendResponseStatusCode": 404,
+    },
+    "message": "yada",
+  } => false,
+  {
+    "message": "yada",
+    "name": "Error",
+  } => false,
+  {
+    "data": {},
+    "message": "yada",
+    "name": "Error",
+  } => false,
+  {
+    "data": {
+      "backendResponseStatusCode": 404,
+    },
+    "message": "yada",
+    "name": "Error",
+  } => false,
+  [AppError: err msg] => false,
+  [HttpRequestError: http err msg] => false,
+  {
+    "error": {
+      "data": {
+        "a": "b
+c",
+        "backendResponseStatusCode": 400,
+      },
+      "message": "err msg",
+      "name": "HttpError",
+    },
+  } => false,
+}
+`;
+
+exports[`should detect objects with string name and message and object data as ErrorObjects 1`] = `
+Map {
+  undefined => false,
+  null => false,
+  "" => false,
+  "hello a" => false,
+  0 => false,
+  1 => false,
+  -5 => false,
+  [Function] => false,
+  {} => false,
+  [] => false,
+  [
+    "a",
+  ] => false,
+  {
+    "a": "aa",
+  } => false,
+  [Error: err msg] => false,
+  {
+    "message": "yada",
+  } => false,
+  {
+    "data": {},
+    "message": "yada",
+  } => false,
+  {
+    "data": {
+      "backendResponseStatusCode": 404,
+    },
+    "message": "yada",
+  } => false,
+  {
+    "message": "yada",
+    "name": "Error",
+  } => false,
+  {
+    "data": {},
+    "message": "yada",
+    "name": "Error",
+  } => true,
+  {
+    "data": {
+      "backendResponseStatusCode": 404,
+    },
+    "message": "yada",
+    "name": "Error",
+  } => true,
+  [AppError: err msg] => true,
+  [HttpRequestError: http err msg] => true,
+  {
+    "error": {
+      "data": {
+        "a": "b
+c",
+        "backendResponseStatusCode": 400,
+      },
+      "message": "err msg",
+      "name": "HttpError",
+    },
+  } => false,
+}
+`;
+
+exports[`should match the snapshot for _anyToErrorObject on sample values 1`] = `
 Map {
   undefined => {
     "data": {},
@@ -322,67 +524,57 @@ c",
 }
 `;
 
-exports[`appErrorToErrorObject / errorObjectToAppError snapshot 1`] = `
-{
-  "data": {
-    "a": "b",
-  },
-  "message": "hello",
-  "name": "AppError",
-  "stack": StringContaining "AppError",
-}
-`;
-
-exports[`isErrorLike 1`] = `
+exports[`should match the snapshot for _errorSnippet on sample values 1`] = `
 Map {
-  undefined => false,
-  null => false,
-  "" => false,
-  "hello a" => false,
-  0 => false,
-  1 => false,
-  -5 => false,
-  [Function] => false,
-  {} => false,
-  [] => false,
+  undefined => "undefined",
+  null => "null",
+  "" => "empty_string",
+  "hello a" => "hello a",
+  0 => "0",
+  1 => "1",
+  -5 => "-5",
+  [Function] => "function",
+  {} => "{}",
+  [] => "[]",
   [
     "a",
-  ] => false,
+  ] => "[ "a" ]",
   {
     "a": "aa",
-  } => false,
-  [Error: err msg] => true,
+  } => "{ "a": "aa" }",
+  [Error: err msg] => "err msg",
   {
     "message": "yada",
-  } => false,
+  } => "{ "message": "yada" }",
   {
     "data": {},
     "message": "yada",
-  } => false,
+  } => "{ "message": "yada", "data": {} }",
   {
     "data": {
       "backendResponseStatusCode": 404,
     },
     "message": "yada",
-  } => false,
+  } => "{ "message": "yada", "data": { "backendResponseStatusCode...",
   {
     "message": "yada",
     "name": "Error",
-  } => true,
+  } => "yada",
   {
     "data": {},
     "message": "yada",
     "name": "Error",
-  } => true,
+  } => "yada",
   {
     "data": {
       "backendResponseStatusCode": 404,
     },
     "message": "yada",
     "name": "Error",
-  } => true,
-  [AppError: err msg] => true,
-  [HttpRequestError: http err msg] => true,
+  } => "yada",
+  [AppError: err msg] => "err msg",
+  [HttpRequestError: http err msg] => "http err msg
+Caused by Type error: la-la",
   {
     "error": {
       "data": {
@@ -393,198 +585,6 @@ c",
       "message": "err msg",
       "name": "HttpError",
     },
-  } => false,
-}
-`;
-
-exports[`isErrorObject 1`] = `
-Map {
-  undefined => false,
-  null => false,
-  "" => false,
-  "hello a" => false,
-  0 => false,
-  1 => false,
-  -5 => false,
-  [Function] => false,
-  {} => false,
-  [] => false,
-  [
-    "a",
-  ] => false,
-  {
-    "a": "aa",
-  } => false,
-  [Error: err msg] => false,
-  {
-    "message": "yada",
-  } => false,
-  {
-    "data": {},
-    "message": "yada",
-  } => false,
-  {
-    "data": {
-      "backendResponseStatusCode": 404,
-    },
-    "message": "yada",
-  } => false,
-  {
-    "message": "yada",
-    "name": "Error",
-  } => false,
-  {
-    "data": {},
-    "message": "yada",
-    "name": "Error",
-  } => true,
-  {
-    "data": {
-      "backendResponseStatusCode": 404,
-    },
-    "message": "yada",
-    "name": "Error",
-  } => true,
-  [AppError: err msg] => true,
-  [HttpRequestError: http err msg] => true,
-  {
-    "error": {
-      "data": {
-        "a": "b
-c",
-        "backendResponseStatusCode": 400,
-      },
-      "message": "err msg",
-      "name": "HttpError",
-    },
-  } => false,
-}
-`;
-
-exports[`isHttpErrorResponse 1`] = `
-Map {
-  undefined => false,
-  null => false,
-  "" => false,
-  "hello a" => false,
-  0 => false,
-  1 => false,
-  -5 => false,
-  [Function] => false,
-  {} => false,
-  [] => false,
-  [
-    "a",
-  ] => false,
-  {
-    "a": "aa",
-  } => false,
-  [Error: err msg] => false,
-  {
-    "message": "yada",
-  } => false,
-  {
-    "data": {},
-    "message": "yada",
-  } => false,
-  {
-    "data": {
-      "backendResponseStatusCode": 404,
-    },
-    "message": "yada",
-  } => false,
-  {
-    "message": "yada",
-    "name": "Error",
-  } => false,
-  {
-    "data": {},
-    "message": "yada",
-    "name": "Error",
-  } => false,
-  {
-    "data": {
-      "backendResponseStatusCode": 404,
-    },
-    "message": "yada",
-    "name": "Error",
-  } => false,
-  [AppError: err msg] => false,
-  [HttpRequestError: http err msg] => false,
-  {
-    "error": {
-      "data": {
-        "a": "b
-c",
-        "backendResponseStatusCode": 400,
-      },
-      "message": "err msg",
-      "name": "HttpError",
-    },
-  } => true,
-}
-`;
-
-exports[`isHttpRequestErrorObject 1`] = `
-Map {
-  undefined => false,
-  null => false,
-  "" => false,
-  "hello a" => false,
-  0 => false,
-  1 => false,
-  -5 => false,
-  [Function] => false,
-  {} => false,
-  [] => false,
-  [
-    "a",
-  ] => false,
-  {
-    "a": "aa",
-  } => false,
-  [Error: err msg] => false,
-  {
-    "message": "yada",
-  } => false,
-  {
-    "data": {},
-    "message": "yada",
-  } => false,
-  {
-    "data": {
-      "backendResponseStatusCode": 404,
-    },
-    "message": "yada",
-  } => false,
-  {
-    "message": "yada",
-    "name": "Error",
-  } => false,
-  {
-    "data": {},
-    "message": "yada",
-    "name": "Error",
-  } => false,
-  {
-    "data": {
-      "backendResponseStatusCode": 404,
-    },
-    "message": "yada",
-    "name": "Error",
-  } => false,
-  [AppError: err msg] => false,
-  [HttpRequestError: http err msg] => false,
-  {
-    "error": {
-      "data": {
-        "a": "b
-c",
-        "backendResponseStatusCode": 400,
-      },
-      "message": "err msg",
-      "name": "HttpError",
-    },
-  } => false,
+  } => "HttpError: err msg",
 }
 `;

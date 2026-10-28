@@ -3,24 +3,24 @@ import type { StandardJSONSchemaV1, StandardSchemaV1 } from '@standard-schema/sp
 import { expect, expectTypeOf, it } from 'vitest'
 import { j } from './jSchema.js'
 
-it('implements StandardSchemaV1 interface', () => {
+it('should implement the StandardSchemaV1 type', () => {
   const schema = j.string()
   expectTypeOf(schema).toMatchTypeOf<StandardSchemaV1<unknown, string>>()
 })
 
-it('~standard has correct version and vendor', () => {
+it('should expose version 1 and vendor j on ~standard', () => {
   const schema = j.string()
   expect(schema['~standard'].version).toBe(1)
   expect(schema['~standard'].vendor).toBe('j')
 })
 
-it('validate returns value on success', () => {
+it('should return the value from ~standard.validate on success', () => {
   const schema = j.string()
   const result = schema['~standard'].validate('hello')
   expect(result).toEqual({ value: 'hello' })
 })
 
-it('validate returns issues on failure', () => {
+it('should return issues from ~standard.validate on failure', () => {
   const schema = j.string()
   const result = schema['~standard'].validate(123)
   expect(result).toHaveProperty('issues')
@@ -34,7 +34,7 @@ interface TestObj {
   age: number
 }
 
-it('validate works with object schemas', () => {
+it('should validate an object schema through ~standard.validate', () => {
   const schema = j.object<TestObj>({
     name: j.string(),
     age: j.number(),
@@ -48,7 +48,7 @@ it('validate works with object schemas', () => {
   expect(invalid).toHaveProperty('issues')
 })
 
-it('validate strips unknown properties', () => {
+it('should strip unknown properties in ~standard.validate', () => {
   const schema = j.object<TestObj>({
     name: j.string(),
     age: j.number(),
@@ -57,12 +57,12 @@ it('validate strips unknown properties', () => {
   expect(result).toEqual({ value: { name: 'Alice', age: 30 } })
 })
 
-it('implements StandardJSONSchemaV1 interface', () => {
+it('should implement the StandardJSONSchemaV1 type', () => {
   const schema = j.string()
   expectTypeOf(schema).toMatchTypeOf<StandardJSONSchemaV1<unknown, string>>()
 })
 
-it('jsonSchema returns build() output', () => {
+it('should return the built schema from jsonSchema.input and output', () => {
   const schema = j.string().minLength(1).maxLength(10)
   const opts = { target: 'draft-07' as const }
   const input = schema['~standard'].jsonSchema.input(opts)
@@ -88,7 +88,7 @@ interface User {
   tags: string[]
 }
 
-it('nested object schema', () => {
+it('should validate a nested object and report invalid or missing nested values', () => {
   const schema = j.object<User>({
     name: j.string().minLength(1),
     email: j.string().email(),
@@ -152,7 +152,7 @@ interface Order {
   metadata: StringMap
 }
 
-it('object with optional fields, arrays of objects, and stringMap', () => {
+it('should accept an order and reject an invalid item in its array', () => {
   const schema = j.object<Order>({
     id: j.string().uuid(),
     created: j.number().unixTimestamp2000(),
@@ -202,7 +202,7 @@ interface Config {
   label: 'a' | 'b'
 }
 
-it('enum, isoDate, array, and literal union', () => {
+it('should accept a valid config and reject an unknown enum value, an invalid isoDate, an out-of-range score or an unlisted label', () => {
   const schema = j.object<Config>({
     status: j.enum(Status),
     date: j.string().isoDate(),
@@ -225,19 +225,39 @@ it('enum, isoDate, array, and literal union', () => {
     date: '2024-06-15',
     scores: [],
     label: 'a',
-  })
-  expect(invalidEnum).toHaveProperty('issues')
+  }) as StandardSchemaV1.FailureResult
+  expect(invalidEnum.issues[0]!.message).toMatch(
+    /^Object\.status must be equal to one of the allowed values/,
+  )
 
   const invalidDate = schema['~standard'].validate({
     status: 'active',
     date: 'not-a-date',
     scores: [],
     label: 'b',
-  })
-  expect(invalidDate).toHaveProperty('issues')
+  }) as StandardSchemaV1.FailureResult
+  expect(invalidDate.issues[0]!.message).toMatch(/^Object\.date is an invalid IsoDate/)
+
+  const invalidScore = schema['~standard'].validate({
+    status: 'active',
+    date: '2024-06-15',
+    scores: [80, 101],
+    label: 'a',
+  }) as StandardSchemaV1.FailureResult
+  expect(invalidScore.issues[0]!.message).toMatch(/^Object\.scores\[1\] must be <= 100/)
+
+  const invalidLabel = schema['~standard'].validate({
+    status: 'active',
+    date: '2024-06-15',
+    scores: [],
+    label: 'c',
+  }) as StandardSchemaV1.FailureResult
+  expect(invalidLabel.issues[0]!.message).toMatch(
+    /^Object\.label must be equal to one of the allowed values/,
+  )
 })
 
-it('nullable and optional fields', () => {
+it('should accept nullable and missing optional fields and reject null for a required one', () => {
   interface WithNullable {
     required: string
     nullable: string | null
@@ -273,7 +293,7 @@ it('nullable and optional fields', () => {
   expect(nullRequired).toHaveProperty('issues')
 })
 
-it('jsonSchema for nested object', () => {
+it('should expose nested object properties in jsonSchema.input', () => {
   const schema = j.object<{ name: string; address: Address }>({
     name: j.string(),
     address: j.object<Address>({
@@ -294,7 +314,7 @@ it('jsonSchema for nested object', () => {
   expect(props['address']['properties']).toHaveProperty('zip')
 })
 
-it('jsonSchema for array of objects', () => {
+it('should expose the array item schema in jsonSchema.input', () => {
   const schema = j.array(
     j.object.infer({
       id: j.number().integer(),
@@ -310,14 +330,14 @@ it('jsonSchema for array of objects', () => {
   expect(items['properties']).toHaveProperty('value')
 })
 
-it('~standard is cached after first access', () => {
+it('should cache ~standard after the first access', () => {
   const schema = j.string()
   const first = schema['~standard']
   const second = schema['~standard']
   expect(first).toBe(second)
 })
 
-it('vitest expect.schemaMatching works with JSchema', () => {
+it('should match a valid object with vitest expect.schemaMatching', () => {
   const userSchema = j.object<User>({
     name: j.string().minLength(1),
     email: j.string().email(),

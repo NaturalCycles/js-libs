@@ -15,7 +15,7 @@ afterAll(() => {
   resetGlobalStringifyFunction()
 })
 
-it('stringify default', () => {
+it('should stringify all kinds of values, with and without error data', () => {
   expectResults(v => _stringify(v), mockAllKindsOfThings()).toMatchSnapshot()
 
   expectResults(
@@ -27,7 +27,7 @@ it('stringify default', () => {
   ).toMatchSnapshot()
 })
 
-it('appError', () => {
+it('should include the AppError data only with includeErrorData', () => {
   const err = new AppError('la la', {
     backendResponseStatusCode: 409,
     userFriendly: true,
@@ -46,7 +46,7 @@ it('appError', () => {
   `)
 })
 
-it('appError with status 0', () => {
+it('should stringify an AppError with status code 0 as its message', () => {
   const err = new AppError('la la', {
     backendResponseStatusCode: 0,
     userFriendly: true,
@@ -56,7 +56,7 @@ it('appError with status 0', () => {
   expect(_stringify(err)).toMatchInlineSnapshot(`"AppError: la la"`)
 })
 
-it('backendErrorResponse', () => {
+it('should stringify a backend error response as its multiline message', () => {
   const err = new AppError('la la\nsecond line', {
     backendResponseStatusCode: 409,
     userFriendly: true,
@@ -77,7 +77,7 @@ it('backendErrorResponse', () => {
   // expect(_stringifyAny(resp, { includeErrorStack: true })).toMatchInlineSnapshot()
 })
 
-it('error with cause', () => {
+it('should append each cause of an error', () => {
   const err = new Error('err1', {
     cause: new AppError(
       'http_error1',
@@ -101,7 +101,7 @@ it('error with cause', () => {
   `)
 })
 
-it('AggregateError', async () => {
+it('should list the errors of an AggregateError', async () => {
   const err = await pExpectedError(
     Promise.any([
       new Promise((_, reject) => reject(new Error('err1'))),
@@ -123,7 +123,7 @@ const obj = {
   b: { c: 'c' },
 }
 
-it('simple object', () => {
+it('should stringify an object as indented JSON', () => {
   expect(_stringify(obj)).toMatchInlineSnapshot(`
     "{
       "a": "a",
@@ -134,7 +134,7 @@ it('simple object', () => {
   `)
 })
 
-it('setGlobalStringifyFunction', () => {
+it('should use the global stringify function once it is set', () => {
   setGlobalStringifyFunction(inspectStringifyFn)
 
   expect(_stringify(obj)).toMatchInlineSnapshot(`"{ a: 'a', b: { c: 'c' } }"`)

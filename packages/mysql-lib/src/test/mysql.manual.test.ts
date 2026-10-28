@@ -53,21 +53,21 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(db, { allowExtraPropertiesInResponse: false })
 })
 
-it('getTableSchema', async () => {
+it('should load a table schema matching the created one', async () => {
   // console.log(await db.getTables())
   const schema = await db.getTableSchema(TEST_TABLE)
   console.log(schema)
   expect(testItemBMSchema.build()).toMatchObject(schema)
 })
 
-it('saveBatch overwrite', async () => {
+it('should save the same batch twice without throwing', async () => {
   const items = createTestItemsDBM(1)
   // should not throw
   await db.saveBatch(TEST_TABLE, items)
   await db.saveBatch(TEST_TABLE, items)
 })
 
-it('null values', async () => {
+it('should save and load an item with a null value without throwing', async () => {
   const item3 = {
     ...createTestItemDBM(3),
     k2: null,
@@ -78,13 +78,13 @@ it('null values', async () => {
   // expect(item3Loaded.k2).toBe(null)
 })
 
-it('emojis', async () => {
+it('should save emoji values without throwing', async () => {
   const items = createTestItemsDBM(5).map(r => ({ ...r, k1: `😣` }))
   // should not throw
   await db.saveBatch(TEST_TABLE, items)
 })
 
-it('fieldName with dot', async () => {
+it('should save and load a field name containing dots', async () => {
   const fieldName = 'field.with.dot'
   const table = TEST_TABLE + '2'
 
@@ -99,7 +99,7 @@ it('fieldName with dot', async () => {
   expect(rows).toEqual(items)
 })
 
-it('buffer', async () => {
+it('should save and load Buffer values', async () => {
   const table = TEST_TABLE + '2'
 
   const extra = zip2.zstdCompressSync('hello buffer')
@@ -120,7 +120,7 @@ it('buffer', async () => {
   expect(rows).toEqual(items)
 })
 
-it('stringify objects', async () => {
+it('should store object values as JSON strings', async () => {
   const item = createTestItemsDBM(1)[0]!
   item.k1 = { some: 'obj', c: 'd', e: 5 } as any
 
@@ -134,20 +134,4 @@ it('stringify objects', async () => {
       k1: JSON.stringify(item.k1),
     },
   ])
-})
-
-it('boolean undefined', async () => {
-  const accs = await db.getByIds<any>('Account', [
-    '005734f1979f4ca890662c0b9f296dc2',
-    '0000a67c9c034e379a938f915766540b',
-    '0002ea1a93e84f12bbc12a306f452427',
-  ])
-  // console.log(accs.map(acc => acc.appConsent))
-  console.log(
-    accs.map(acc => ({
-      id: acc.id,
-      appConsent: acc.appConsent,
-    })),
-  )
-  // expect undefined, true, false
 })

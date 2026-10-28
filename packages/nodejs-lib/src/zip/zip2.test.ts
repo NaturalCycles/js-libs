@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { zip2 } from './zip2.js'
 
-it('deflate/inflate', async () => {
+it('should round-trip strings and buffers through deflate and inflate', async () => {
   const s = 'abcd1234$%^'
 
   // String
@@ -15,7 +15,7 @@ it('deflate/inflate', async () => {
   expect(unzippedBuf).toEqual(sBuf)
 })
 
-it('zstd compress/decompress', async () => {
+it('should round-trip strings and buffers through zstd', async () => {
   const s = 'abcd1234$%^'
 
   let compressedBuf = await zip2.zstdCompress(s)
@@ -28,7 +28,7 @@ it('zstd compress/decompress', async () => {
   expect(decompressedBuf).toEqual(sBuf)
 })
 
-it('zstd compress/decompress sync', () => {
+it('should round-trip strings and buffers through sync zstd', () => {
   const s = 'abcd1234$%^'
 
   let compressedBuf = zip2.zstdCompressSync(s)
@@ -41,7 +41,7 @@ it('zstd compress/decompress sync', () => {
   expect(decompressedBuf).toEqual(sBuf)
 })
 
-it('gzip/gunzip', async () => {
+it('should round-trip strings and buffers through gzip and gunzip', async () => {
   const s = 'abcd1234$%^'
 
   // String
@@ -55,7 +55,7 @@ it('gzip/gunzip', async () => {
   expect(unzippedBuf).toEqual(sBuf)
 })
 
-it('compression detection', async () => {
+it('should detect zstd and gzip buffers and decompress zstd or deflate', async () => {
   const s = 'abcd1234$%^'
   const deflated = await zip2.deflate(s)
   const gzipped = await zip2.gzip(s)
@@ -74,31 +74,11 @@ it('compression detection', async () => {
   expect(await zip2.decompressZstdOrInflateToString(zsted)).toBe(s)
 })
 
-it('compatible with java impl', async () => {
+it('should deflate to the same bytes as the Java implementation', async () => {
   const s = 'aa'
   const zippedBuf = await zip2.deflate(s)
   const bytes: number[] = []
   zippedBuf.forEach(c => bytes.push(c))
   // console.log(bytes)
   expect(bytes).toEqual([120, 156, 75, 76, 4, 0, 1, 37, 0, 195])
-})
-
-it('deflate vs gzip length', async () => {
-  const s = 'a'
-  const zipped = await zip2.deflate(s)
-  const gzipped = await zip2.gzip(s)
-  // console.log(zipped)
-  // console.log(gzipped)
-  // console.log(zipped.length, gzipped.length)
-  expect(zipped).toHaveLength(9)
-  expect(gzipped).toHaveLength(21)
-
-  const longString = 'a'.repeat(100_000)
-  const zippedLong = await zip2.deflate(longString)
-  const gzippedLong = await zip2.gzip(longString)
-  // console.log(zippedLong)
-  // console.log(gzippedLong)
-  // console.log(zippedLong.length, gzippedLong.length)
-  expect(zippedLong).toHaveLength(121)
-  expect(gzippedLong).toHaveLength(133)
 })

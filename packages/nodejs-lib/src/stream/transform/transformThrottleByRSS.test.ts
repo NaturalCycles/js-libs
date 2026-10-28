@@ -1,8 +1,12 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { expect, it, vi } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
-it('transformThrottleByRSS passthrough when below threshold', async () => {
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+it('should pass all items through when RSS is below maxRSS', async () => {
   const items = _range(1, 11).map(id => ({ id: String(id) }))
   const result = await Pipeline.fromArray(items)
     .throttleByRSS({
@@ -14,11 +18,13 @@ it('transformThrottleByRSS passthrough when below threshold', async () => {
   expect(result).toEqual(items)
 })
 
-it('transformThrottleByRSS pauses and resumes', async () => {
+it('should pause after the first item while RSS is above maxRSS and pass the rest once it drops', async () => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // 500 MB
   const lowRSS = 50 * 1024 * 1024 // 50 MB
   let callCount = 0
+  const rssCallCountOnEmit: number[] = []
 
   vi.spyOn(process.memoryUsage, 'rss').mockImplementation(() => {
     // First few calls return high RSS to trigger pause,
@@ -26,17 +32,22 @@ it('transformThrottleByRSS pauses and resumes', async () => {
     return ++callCount <= 3 ? highRSS : lowRSS
   })
 
-  const result = await Pipeline.fromArray(items)
+  const promise = Pipeline.fromArray(items)
     .throttleByRSS({
       maxRSS: 100, // 100 MB
       pollInterval: 10,
     })
+    .tapSync(() => {
+      rssCallCountOnEmit.push(callCount)
+    })
     .toArray()
+  await vi.advanceTimersByTimeAsync(30)
 
-  expect(result).toEqual(items)
-}, 10_000)
+  expect(await promise).toEqual(items)
+  expect(rssCallCountOnEmit).toEqual([1, 4, 4, 4, 4])
+})
 
-it('transformThrottleByRSS pollTimeout open-the-floodgates', async () => {
+it('should pass all items through after pollTimeout with open-the-floodgates', async () => {
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // always high
 
@@ -55,7 +66,7 @@ it('transformThrottleByRSS pollTimeout open-the-floodgates', async () => {
   expect(result).toEqual(items)
 }, 10_000)
 
-it('transformThrottleByRSS pollTimeout throw', async () => {
+it('should reject after pollTimeout with onPollTimeout throw', async () => {
   const items = _range(1, 6).map(id => ({ id: String(id) }))
   const highRSS = 500 * 1024 * 1024 // always high
 

@@ -15,7 +15,7 @@ it.each([
   'image/svg+xml',
   'image/x-icon',
   'font/ttf',
-])('compressible: %s', type => {
+])('should treat %s as compressible', type => {
   expect(compressible(type)).toBe(true)
 })
 
@@ -30,6 +30,6 @@ it.each([
   'application/pdf',
   'font/woff2',
   'application/x-unknown',
-])('not compressible: %s', type => {
+])('should not treat %s as compressible', type => {
   expect(compressible(type)).toBe(false)
 })

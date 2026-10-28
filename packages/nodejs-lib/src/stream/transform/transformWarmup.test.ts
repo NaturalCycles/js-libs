@@ -3,7 +3,7 @@ import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
-it('transformWarmup passes all items through', async () => {
+it('should pass all items through', async () => {
   const data = _range(1, 11).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)
@@ -16,7 +16,7 @@ it('transformWarmup passes all items through', async () => {
   expect(results).toEqual(data)
 })
 
-it('transformWarmup with warmupSeconds=0 is pure pass-through', async () => {
+it('should pass all items through with warmupSeconds 0', async () => {
   const data = _range(1, 101).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)
@@ -29,7 +29,7 @@ it('transformWarmup with warmupSeconds=0 is pure pass-through', async () => {
   expect(results).toEqual(data)
 })
 
-it('transformWarmup with concurrency=1 is pure pass-through', async () => {
+it('should pass all items through with concurrency 1', async () => {
   const data = _range(1, 21).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)
@@ -42,7 +42,7 @@ it('transformWarmup with concurrency=1 is pure pass-through', async () => {
   expect(results).toEqual(data)
 })
 
-it('transformWarmup limits concurrency during warmup', async () => {
+it('should start the first item alone during warmup', async () => {
   const concurrencyLog: number[] = []
   let currentConcurrency = 0
   let maxConcurrency = 0
@@ -72,7 +72,7 @@ it('transformWarmup limits concurrency during warmup', async () => {
   expect(concurrencyLog[0]).toBeLessThanOrEqual(2) // First item(s) should be low concurrency
 })
 
-it('transformWarmup reaches full concurrency after warmup', async () => {
+it('should raise the average concurrency above 1 after warmup', async () => {
   const concurrencyLog: number[] = []
   let currentConcurrency = 0
 
@@ -105,7 +105,7 @@ it('transformWarmup reaches full concurrency after warmup', async () => {
   expect(avgLastConcurrency).toBeGreaterThan(1)
 })
 
-it('transformWarmup works with Pipeline.map', async () => {
+it('should feed all items to a following Pipeline.map', async () => {
   const data = _range(1, 11).map(id => ({ id }))
 
   const results = await Pipeline.fromArray(data)

@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, expect, it, vi } from 'vitest'
 import { BotReason } from '../bot.model.js'
 import { BotDetectionService } from './bot.js'
 
@@ -8,12 +8,17 @@ beforeEach(() => {
   vi.stubGlobal('chrome', undefined)
 })
 
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
+afterAll(() => {
+  vi.unstubAllGlobals()
+})
+
 const botDetectionService = new BotDetectionService()
 
 const userAgentChrome = 'Innocent Chrome 998 Mozilla IE Trident All Good Windows 95'
 const userAgentSafari = 'Innocent Safari 21 Apple Cupertino 991 Next'
 
-it('serverSide script is not a bot', () => {
+it('should detect neither a bot nor CDP on the server side', () => {
   Object.assign(globalThis, {
     window: undefined,
   })
@@ -23,7 +28,7 @@ it('serverSide script is not a bot', () => {
   expect(botDetectionService.isBotOrCDP()).toBe(false)
 })
 
-it('innocent chrome is not a bot', () => {
+it('should not detect a bot for a regular Chrome user agent', () => {
   Object.assign(globalThis, {
     navigator: {
       userAgent: userAgentChrome,
@@ -33,7 +38,7 @@ it('innocent chrome is not a bot', () => {
   expect(botDetectionService.getBotReason()).toBeNull()
 })
 
-it('innocent safari is not a bot', () => {
+it('should not detect a bot for a regular Safari user agent', () => {
   Object.assign(globalThis, {
     navigator: {
       userAgent: userAgentSafari,
@@ -42,7 +47,7 @@ it('innocent safari is not a bot', () => {
   expect(botDetectionService.getBotReason()).toBeNull()
 })
 
-it('snapchat in-app-browser is not a bot', () => {
+it('should not detect a bot for the Snapchat in-app browser', () => {
   Object.assign(globalThis, {
     navigator: {
       userAgent:
@@ -52,43 +57,43 @@ it('snapchat in-app-browser is not a bot', () => {
   expect(botDetectionService.getBotReason()).toBeNull()
 })
 
-it('no navigator means bot', () => {
+it('should detect a bot when there is no navigator', () => {
   expect(botDetectionService.getBotReason()).toBe(BotReason.NoNavigator)
   expect(botDetectionService.isBot()).toBe(true)
   expect(botDetectionService.isBotOrCDP()).toBe(true)
 })
 
-it('no userAgent means bot', () => {
+it('should detect a bot when there is no userAgent', () => {
   globalThis.navigator = {} as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.NoUserAgent)
 })
 
-it('"bot" in userAgent means bot', () => {
+it('should detect a bot when the userAgent contains "bot"', () => {
   globalThis.navigator = { userAgent: 'KlaviyoBot' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-it('"headless" in userAgent means bot', () => {
+it('should detect a bot when the userAgent contains "headless"', () => {
   globalThis.navigator = { userAgent: 'HeadlessChrome' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-it('"electron" in userAgent means bot', () => {
+it('should detect a bot when the userAgent contains "electron"', () => {
   globalThis.navigator = { userAgent: 'I am Electron 99' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-it('"phantom" in userAgent means bot', () => {
+it('should detect a bot when the userAgent contains "phantom"', () => {
   globalThis.navigator = { userAgent: 'Phantom Menace' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-it('"slimer" in userAgent means bot', () => {
+it('should detect a bot when the userAgent contains "slimer"', () => {
   globalThis.navigator = { userAgent: 'Slimer than Slime' } as Navigator
   expect(botDetectionService.getBotReason()).toBe(BotReason.UserAgent)
 })
 
-it('disabled should return "not bot"', () => {
+it('should detect neither a bot nor CDP when disabled', () => {
   globalThis.navigator = { userAgent: 'HeadlessChrome' } as Navigator
   const service = new BotDetectionService({
     enabled: false,
@@ -98,7 +103,7 @@ it('disabled should return "not bot"', () => {
   expect(service.isBotOrCDP()).toBe(false)
 })
 
-it('navigator.webdriver means bot', () => {
+it('should detect a bot when navigator.webdriver is set', () => {
   globalThis.navigator = {
     userAgent: userAgentSafari,
     webdriver: true,
@@ -114,7 +119,7 @@ it('navigator.webdriver means bot', () => {
 //   expect(botDetectionService.isBot()).toBe(BotReason.ZeroPlugins)
 // })
 
-it('"" languages means bot', () => {
+it('should detect a bot when navigator.languages is an empty string', () => {
   globalThis.navigator = {
     userAgent: userAgentSafari,
     languages: '' as any,
@@ -129,27 +134,27 @@ it('"" languages means bot', () => {
 //   expect(botDetectionService.isBot()).toBe(BotReason.ChromeWithoutChrome)
 // })
 
-// This test helps with coverage, while not really testing anything useful
-it('cdp in jest looks like a bot, because it does error serialization', () => {
-  Object.assign(globalThis, {
-    window: globalThis,
+it('should detect CDP when console.debug reads the stack of the logged error', () => {
+  vi.stubGlobal('window', {
+    document: {},
+    Error,
+    Object,
+    console: { debug: (err: Error) => err.stack },
   })
-
-  // console.log('isBot', botDetectionService.isBot())
-  const isCDP = botDetectionService.isCDP()
-  // expect(isCDP).toBe(botDetectionService.isBotOrCDP())
-  expect(isCDP).toBeDefined()
-
-  // const runInIDE = process.argv.some(
-  //   a => a === '--runTestsByPath' || a.includes('IDEA') || a.includes('processChild.js'),
-  // )
-  // console.log({ runInIDE, argv: process.argv })
-  // When running in IntelliJ it is detected as CDP (involves Error.stack serialization somehow), while in Jest CLI it is not
-  // const expectedIsCDP = runInIDE
-  // expect(isCDP).toBe(expectedIsCDP)
+  expect(botDetectionService.isCDP()).toBe(true)
 })
 
-it('treatCDPAsBotReason', () => {
+it('should not detect CDP when console.debug does not read the stack of the logged error', () => {
+  vi.stubGlobal('window', {
+    document: {},
+    Error,
+    Object,
+    console: { debug: () => {} },
+  })
+  expect(botDetectionService.isCDP()).toBe(false)
+})
+
+it('should return the CDP reason when treatCDPAsBotReason is set and CDP is detected', () => {
   const botDetectionService = new BotDetectionService({
     treatCDPAsBotReason: true,
   })

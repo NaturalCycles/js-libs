@@ -33,7 +33,7 @@ export async function runCommonDBTest(
   quirks: CommonDBImplementationQuirks = {},
 ): Promise<void> {
   // this is because vitest cannot be "required" from cjs
-  const { expect, it } = await import('vitest')
+  const { afterAll, beforeAll, expect, it } = await import('vitest')
 
   const { support } = db
   const items = createTestItemsDBM(3)
@@ -42,20 +42,14 @@ export async function runCommonDBTest(
 
   const queryAll = (): DBQuery<TestItemDBM> => DBQuery.create<TestItemDBM>(TEST_TABLE)
 
-  it('ping', async () => {
-    await db.ping()
-  })
-
-  // CREATE TABLE, DROP
-  if (support.createTable) {
-    it('createTable, dropIfExists=true', async () => {
+  beforeAll(async () => {
+    // Tests in this suite are not isolated: a failed run can leave rows behind for the next run
+    if (support.createTable) {
       await db.createTable(TEST_TABLE, testItemBMSchema.build(), { dropIfExists: true })
-    })
-  }
+    }
 
-  if (support.queries) {
     // DELETE ALL initially
-    it('deleteByIds test items', async () => {
+    if (support.queries) {
       const { rows } = await db.runQuery(queryAll().select(['id']))
       await db.deleteByQuery(
         queryAll().filterIn(
@@ -63,33 +57,40 @@ export async function runCommonDBTest(
           rows.map(i => i.id),
         ),
       )
-    })
+    }
+  })
 
+  afterAll(async () => {
+    // CLEAN UP
+    if (support.queries) {
+      await db.deleteByQuery(queryAll())
+    }
+  })
+
+  it('should respond to ping', async () => {
+    await db.ping()
+  })
+
+  if (support.queries) {
     // QUERY empty
-    it('runQuery(all), runQueryCount should return empty', async () => {
+    it('should return no rows and a count of 0 for an empty table', async () => {
       expect((await db.runQuery(queryAll())).rows).toEqual([])
       expect(await db.runQueryCount(queryAll())).toBe(0)
     })
   }
 
   // GET empty
-  it('getByIds(item1.id) should return empty', async () => {
-    const [item1Loaded] = await db.getByIds(TEST_TABLE, [item1.id])
-    // console.log(a)
-    expect(item1Loaded).toBeUndefined()
+  it('should return an empty array for ids that are not saved', async () => {
+    expect(await db.getByIds(TEST_TABLE, [item1.id, 'abc', 'abcd'])).toEqual([])
   })
 
-  it('getByIds([]) should return []', async () => {
+  it('should return an empty array for getByIds without ids', async () => {
     expect(await db.getByIds(TEST_TABLE, [])).toEqual([])
-  })
-
-  it('getByIds(...) should return empty', async () => {
-    expect(await db.getByIds(TEST_TABLE, ['abc', 'abcd'])).toEqual([])
   })
 
   // TimeMachine
   if (support.timeMachine) {
-    it('getByIds(...) 10 minutes ago should return []', async () => {
+    it('should return an empty array for a read 10 minutes back in time', async () => {
       expect(
         await db.getByIds(TEST_TABLE, [item1.id, 'abc'], {
           readAt: localTime.now().minus(10, 'minute').unix,
@@ -114,7 +115,7 @@ export async function runCommonDBTest(
   }
 
   if (db.dbType === CommonDBType.document) {
-    it('undefined values should not be saved/loaded', async () => {
+    it('should not store properties with undefined values', async () => {
       const item3 = {
         ...createTestItemDBM(3),
         k2: undefined,
@@ -132,33 +133,33 @@ export async function runCommonDBTest(
   }
 
   if (support.updateSaveMethod) {
-    it('saveBatch UPDATE method should throw', async () => {
+    it('should throw on saveBatch with the update method when rows do not exist', async () => {
       await expect(db.saveBatch(TEST_TABLE, items, { saveMethod: 'update' })).rejects.toThrow()
     })
   }
 
-  it('saveBatch test items', async () => {
+  it('should save the test items', async () => {
     await db.saveBatch(TEST_TABLE, items)
   })
 
-  it('saveBatch should throw on null id', async () => {
+  it('should throw on saveBatch of a row with a null id', async () => {
     await expect(db.saveBatch(TEST_TABLE, [{ ...item1, id: null as any }])).rejects.toThrow()
   })
 
   if (support.insertSaveMethod) {
-    it('saveBatch INSERT method should throw', async () => {
+    it('should throw on saveBatch with the insert method when rows exist', async () => {
       await expect(db.saveBatch(TEST_TABLE, items, { saveMethod: 'insert' })).rejects.toThrow()
     })
   }
 
   if (support.updateSaveMethod) {
-    it('saveBatch UPDATE method should pass', async () => {
+    it('should save with the update method when rows exist', async () => {
       await db.saveBatch(TEST_TABLE, items, { saveMethod: 'update' })
     })
   }
 
   // GET not empty
-  it('getByIds all items', async () => {
+  it('should return all saved items by ids, skipping unknown ids', async () => {
     const rows = await db.getByIds<TestItemDBM>(TEST_TABLE, items.map(i => i.id).concat('abcd'))
     expectMatch(
       items,
@@ -169,14 +170,14 @@ export async function runCommonDBTest(
 
   // QUERY
   if (support.queries) {
-    it('runQuery(all) should return all items', async () => {
+    it('should return all items from a query without conditions', async () => {
       let { rows } = await db.runQuery(queryAll())
       rows = _sortBy(rows, r => r.id) // because query doesn't specify order here
       expectMatch(items, rows, quirks)
     })
 
     if (support.dbQueryFilter) {
-      it('query even=true', async () => {
+      it('should filter rows by equality', async () => {
         const q = new DBQuery<TestItemDBM>(TEST_TABLE).filter('even', '==', true)
         let { rows } = await db.runQuery(q)
         if (!support.dbQueryOrder) rows = _sortBy(rows, r => r.id)
@@ -189,7 +190,7 @@ export async function runCommonDBTest(
     }
 
     if (support.dbQueryOrder) {
-      it('query order by k1 desc', async () => {
+      it('should order rows descending', async () => {
         const q = new DBQuery<TestItemDBM>(TEST_TABLE).order('k1', true)
         const { rows } = await db.runQuery(q)
         expectMatch(items.toReversed(), rows, quirks)
@@ -197,7 +198,7 @@ export async function runCommonDBTest(
     }
 
     if (support.dbQuerySelectFields) {
-      it('projection query with only ids', async () => {
+      it('should select only the id', async () => {
         const q = new DBQuery<TestItemDBM>(TEST_TABLE).select(['id'])
         let { rows } = await db.runQuery(q)
         rows = _sortBy(rows, r => r.id) // cause order is not specified
@@ -208,7 +209,7 @@ export async function runCommonDBTest(
         )
       })
 
-      it('projection query without ids', async () => {
+      it('should select a property without the id', async () => {
         const q = new DBQuery<TestItemDBM>(TEST_TABLE).select(['k1'])
         let { rows } = await db.runQuery(q)
         rows = _sortBy(rows, r => r.k1) // cause order is not specified
@@ -219,7 +220,7 @@ export async function runCommonDBTest(
         )
       })
 
-      it('projection query empty fields (edge case)', async () => {
+      it('should return empty rows when selecting no properties', async () => {
         const q = new DBQuery<TestItemDBM>(TEST_TABLE).select([])
         const { rows } = await db.runQuery(q)
         expectMatch(
@@ -230,14 +231,14 @@ export async function runCommonDBTest(
       })
     }
 
-    it('runQueryCount should return 3', async () => {
+    it('should count all saved items', async () => {
       expect(await db.runQueryCount(new DBQuery(TEST_TABLE))).toBe(3)
     })
   }
 
   // STREAM
   if (support.streaming) {
-    it('streamQuery all', async () => {
+    it('should stream all items', async () => {
       let rows = await db.streamQuery(queryAll()).toArray()
 
       rows = _sortBy(rows, r => r.id) // cause order is not specified in DBQuery
@@ -246,22 +247,27 @@ export async function runCommonDBTest(
   }
 
   // getTables
-  it('getTables, getTableSchema (if supported)', async () => {
-    const tables = await db.getTables()
-    // console.log({ tables })
+  it('should resolve getTables to an array', async () => {
+    // Implementations differ in what they list (prefixed names, lazily updated stats, nothing),
+    // so only the shape is part of the shared contract
+    await expect(db.getTables()).resolves.toBeInstanceOf(Array)
+  })
 
-    if (support.tableSchemas) {
+  if (support.tableSchemas) {
+    it('should return a schema $id matching each listed table', async () => {
+      const tables = await db.getTables()
+
       await pMap(tables, async table => {
         const schema = await db.getTableSchema(table)
         // console.log(schema)
         expect(schema.$id).toBe(`${table}.schema.json`)
       })
-    }
-  })
+    })
+  }
 
   // DELETE BY
   if (support.queries && support.dbQueryFilter) {
-    it('deleteByQuery even=false', async () => {
+    it('should delete rows by a filter and return the deleted count', async () => {
       const q = new DBQuery<TestItemDBM>(TEST_TABLE).filter('even', '==', false)
       const deleted = await db.deleteByQuery(q)
       expect(deleted).toBe(items.filter(item => !item.even).length)
@@ -272,7 +278,7 @@ export async function runCommonDBTest(
 
   // BUFFER
   if (support.bufferValues) {
-    it('buffer values', async () => {
+    it('should save and load Buffer values', async () => {
       const s = 'helloWorld 1'
       const b1 = Buffer.from(s)
 
@@ -309,7 +315,7 @@ export async function runCommonDBTest(
       return itemsToSave
     }
 
-    it('transaction happy path', async () => {
+    it('should commit the saves and deletes made in runInTransaction', async () => {
       // cleanup
       await db.deleteByQuery(queryAll())
 
@@ -325,10 +331,14 @@ export async function runCommonDBTest(
 
       const { rows } = await db.runQuery(queryAll())
       const expected = [items[0], { ...items[2]!, k1: 'k1_mod' }]
-      expectMatch(expected, rows, quirks)
+      expectMatch(
+        expected,
+        _sortBy(rows, r => r.id),
+        quirks,
+      )
     })
 
-    it('createTransaction happy path', async () => {
+    it('should commit the saves and deletes made in a created transaction', async () => {
       // cleanup
       await db.deleteByQuery(queryAll())
 
@@ -340,10 +350,14 @@ export async function runCommonDBTest(
 
       const { rows } = await db.runQuery(queryAll())
       const expected = [items[0], { ...items[2]!, k1: 'k1_mod' }]
-      expectMatch(expected, rows, quirks)
+      expectMatch(
+        expected,
+        _sortBy(rows, r => r.id),
+        quirks,
+      )
     })
 
-    it('transaction rollback', async () => {
+    it('should roll back runInTransaction when an operation fails', async () => {
       const expected = await prepare()
 
       let err: any
@@ -361,12 +375,16 @@ export async function runCommonDBTest(
       expect(err).toBeDefined()
 
       const { rows } = await db.runQuery(queryAll())
-      expectMatch(expected, rows, quirks)
+      expectMatch(
+        expected,
+        _sortBy(rows, r => r.id),
+        quirks,
+      )
     })
   }
 
   if (support.patchByQuery) {
-    it('patchByQuery', async () => {
+    it('should patch the rows matching a query', async () => {
       // cleanup, reset initial data
       await db.deleteByQuery(queryAll())
       await db.saveBatch(TEST_TABLE, items)
@@ -385,12 +403,16 @@ export async function runCommonDBTest(
         }
         return r
       })
-      expectMatch(expected, rows, quirks)
+      expectMatch(
+        expected,
+        _sortBy(rows, r => r.id),
+        quirks,
+      )
     })
   }
 
   if (support.increment) {
-    it('incrementBatch', async () => {
+    it('should increment a property by a different amount per id', async () => {
       // cleanup, reset initial data
       await db.deleteByQuery(queryAll())
       await db.saveBatch(TEST_TABLE, items)
@@ -407,14 +429,11 @@ export async function runCommonDBTest(
         }
         return r
       })
-      expectMatch(expected, rows, quirks)
-    })
-  }
-
-  if (support.queries) {
-    it('cleanup', async () => {
-      // CLEAN UP
-      await db.deleteByQuery(queryAll())
+      expectMatch(
+        expected,
+        _sortBy(rows, r => r.id),
+        quirks,
+      )
     })
   }
 

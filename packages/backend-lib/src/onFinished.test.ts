@@ -7,7 +7,7 @@ import { onFinished } from './onFinished.js'
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => void
 
-it('invokes listener after response is finished, in the caller async context', async () => {
+it('should call the listener after the response finishes, in the async context of the caller', async () => {
   const als = new AsyncLocalStorage<string>()
   const { promise, resolve } = Promise.withResolvers<[Error | null, ServerResponse, string?]>()
 
@@ -28,7 +28,7 @@ it('invokes listener after response is finished, in the caller async context', a
   )
 })
 
-it('invokes listener asynchronously when response is already finished', async () => {
+it('should call the listener asynchronously when the response is already finished', async () => {
   const { promise, resolve } = Promise.withResolvers<Error | null>()
 
   await withServer(
@@ -49,7 +49,7 @@ it('invokes listener asynchronously when response is already finished', async ()
   )
 })
 
-it('multiple listeners share one set of stream listeners, each in its own async context', async () => {
+it('should share one set of stream listeners between listeners, each called in its own async context', async () => {
   const als = new AsyncLocalStorage<number>()
   const { promise, resolve } = Promise.withResolvers<number[]>()
   const calls: number[] = []
@@ -77,7 +77,7 @@ it('multiple listeners share one set of stream listeners, each in its own async 
   )
 })
 
-it('invokes listener with error when client aborts the request', async () => {
+it('should call the listener with an error when the client aborts the request', async () => {
   const { promise, resolve } = Promise.withResolvers<Error | null>()
   const ac = new AbortController()
 

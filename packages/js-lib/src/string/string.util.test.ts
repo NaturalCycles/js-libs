@@ -17,42 +17,42 @@ import {
   _upperFirst,
 } from './string.util.js'
 
-it('capitalize', () => {
+it('should uppercase the first letter and lowercase the rest with _capitalize', () => {
   expect(_capitalize('abc')).toBe('Abc')
   expect(_capitalize('aBc')).toBe('Abc')
 })
 
-it('toUppercase', () => {
+it('should uppercase a string with _toUpperCase', () => {
   expect(_toUpperCase('abc')).toBe('ABC')
   expect(_toUpperCase('aBc')).toBe('ABC')
 })
 
-it('toLowercase', () => {
+it('should lowercase a string with _toLowercase', () => {
   expect(_toLowercase('ABC')).toBe('abc')
   expect(_toLowercase('aBc')).toBe('abc')
 })
 
-it('upperFirst', () => {
+it('should uppercase only the first letter with _upperFirst', () => {
   expect(_upperFirst('abc')).toBe('Abc')
   expect(_upperFirst('aBc')).toBe('ABc')
 })
 
-it('lowerFirst', () => {
+it('should lowercase the first letter with _lowerFirst', () => {
   expect(_lowerFirst('Abc')).toBe('abc')
 })
 
-it('removeWhitespace', () => {
+it('should remove all whitespace with _removeWhitespace', () => {
   expect(_removeWhitespace(' 1 * A ')).toBe('1*A')
 })
 
-it('_split', () => {
+it('should split into at most the given number of parts with _split', () => {
   expect(_split('a b c', ' ', 1)).toEqual(['a b c'])
   expect(_split('a b c', ' ', 2)).toEqual(['a', 'b c'])
   expect(_split('a b c', ' ', 3)).toEqual(['a', 'b', 'c'])
   expect(_split('abc', '|', 3)).toEqual(['abc'])
 })
 
-it('substringBefore, substringAfter', () => {
+it('should take the substring before or after the first or last separator', () => {
   const s1 = 'someFile.test.ts'
   const s2 = '/Users/lalala/someFile.test.ts'
 
@@ -65,7 +65,7 @@ it('substringBefore, substringAfter', () => {
   expect(_substringAfterLast(s2, 'la')).toBe('/someFile.test.ts')
 })
 
-it('_substringBetweenLast', () => {
+it('should take the substring between the last separators with _substringBetweenLast', () => {
   const s = '/Users/lalala/someFile.test.ts'
   expect(_substringBetweenLast(s, '/', '.')).toBe('someFile')
 })
@@ -74,6 +74,6 @@ it.each([
   ['', ''],
   ['a', 'a'],
   ['a\nb', 'a<br>\nb'],
-])('_nl2br("%s") to be "%s"', (input, result) => {
+])('should turn "%s" into "%s" with _nl2br', (input, result) => {
   expect(_nl2br(input)).toBe(result)
 })

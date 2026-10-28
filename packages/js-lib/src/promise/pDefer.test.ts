@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { pDefer } from './pDefer.js'
 
-it('pDefer', async () => {
+it('should resolve and reject from outside', async () => {
   let p = pDefer<string>()
   p.resolve('a')
   expect(await p).toBe('a')

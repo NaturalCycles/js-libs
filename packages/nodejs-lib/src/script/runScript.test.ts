@@ -1,48 +1,37 @@
-import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import {
-  _stringify,
-  resetGlobalStringifyFunction,
-  setGlobalStringifyFunction,
-} from '@naturalcycles/js-lib/string'
+import { pDefer } from '@naturalcycles/js-lib/promise/pDefer.js'
+import { _stringify, resetGlobalStringifyFunction } from '@naturalcycles/js-lib/string'
 import { _noop } from '@naturalcycles/js-lib/types'
-import { afterAll, expect, it, vi } from 'vitest'
-import { inspectStringifyFn } from '../string/inspect.js'
+import { afterAll, afterEach, expect, it, vi } from 'vitest'
 import { runScript } from './runScript.js'
 
-const detectLeaks = process.argv.some(a => a.includes('detectLeaks'))
+afterEach(() => {
+  process.exitCode = undefined
+})
 
 afterAll(() => {
   resetGlobalStringifyFunction()
 })
 
-// skipped, because mocking process.exit no longer works
-it.skip('runScript', async () => {
-  if (detectLeaks) return // Somehow it fails with detect-leaks SOMETIMES
-  const processExit = vi.spyOn(process, 'exit').mockImplementation(_noop as any)
-  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
-  runScript(async () => {})
-  await pDelay() // because runScript is not actually async
-  expect(processExit).toHaveBeenCalledTimes(1)
-  expect(processExit).toHaveBeenCalledWith(0)
+it('should exit with code 0 on success and code 1 on error', async () => {
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+
+  expect(await runScriptAndGetExitCode(async () => {})).toBe(0)
   expect(process.exitCode).toBeUndefined()
-  expect(consoleError).toHaveBeenCalledTimes(0)
+  expect(console.error).not.toHaveBeenCalled()
 
-  vi.resetAllMocks() // resets counters
-
-  runScript(async () => {
-    throw new Error('bad')
-  })
-  await pDelay() // because runScript is not actually async
+  expect(
+    await runScriptAndGetExitCode(async () => {
+      throw new Error('bad')
+    }),
+  ).toBe(1)
   expect(process.exitCode).toBe(1)
-  expect(processExit).toHaveBeenCalledTimes(1)
-  expect(processExit).toHaveBeenCalledWith(1)
-  expect(consoleError).toHaveBeenCalledTimes(1)
+  expect(console.error).toHaveBeenCalledOnce()
 })
 
-it('setGlobalStringifyFunction', () => {
-  vi.spyOn(process, 'exit').mockImplementation(_noop as any)
+it('should set inspectStringifyFn as the global stringify function', () => {
+  resetGlobalStringifyFunction()
 
-  setGlobalStringifyFunction(inspectStringifyFn)
+  runScript(_noop, { noExit: true, registerUncaughtExceptionHandlers: false })
 
   expect(
     _stringify({
@@ -51,3 +40,10 @@ it('setGlobalStringifyFunction', () => {
     }),
   ).toMatchInlineSnapshot(`"{ hello: 'world', a: { b: 'c' } }"`)
 })
+
+async function runScriptAndGetExitCode(fn: () => Promise<void>): Promise<number | undefined> {
+  const exited = pDefer<number | undefined>()
+  vi.spyOn(process, 'exit').mockImplementation(code => exited.resolve(code as number) as never)
+  runScript(fn, { registerUncaughtExceptionHandlers: false })
+  return await exited
+}

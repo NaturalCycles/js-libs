@@ -23,7 +23,7 @@ const items: Item[] = _range(1, 11).map(i => ({
   n: i % 2 ? i : undefined,
 }))
 
-it('transformToCSV', async () => {
+it('should stream items as CSV with a header and only the given columns', async () => {
   const rows = await Pipeline.fromArray(items)
     .transform(
       transformToCSV({
@@ -49,7 +49,7 @@ it('transformToCSV', async () => {
   `)
 })
 
-it('arrayToCSVString', () => {
+it('should convert rows to a CSV string and return an empty string for no rows', () => {
   // Headers should not be printed on empty rows input
   expect(arrayToCSVString([])).toBe('')
 
@@ -97,7 +97,7 @@ it('arrayToCSVString', () => {
   `)
 })
 
-it('csvStringParse', () => {
+it('should parse a CSV string into rows of strings keyed by the header', () => {
   const str = `id,k,k2,n,b
 id1,k 1,"""yo 1""",1,false
 id2,k 2,"""yo 2""",,true

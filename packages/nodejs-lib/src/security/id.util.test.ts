@@ -17,6 +17,7 @@ const stringIdRegex = /^[a-z0-9]*$/
 const base62regex = /^[a-zA-Z0-9]*$/
 const base64regex = /^[a-zA-Z0-9+/]*$/
 const base64urlRegex = /^[a-zA-Z0-9-_]*$/
+const nonAmbiguousRegex = /^[2-9A-HJ-NP-Z]+$/
 
 const base62Schema = j.string().regex(BASE62_REGEX)
 const idBase62Schema = j.string().regex(BASE62_REGEX).minLength(8)
@@ -29,7 +30,7 @@ function validate(value: string, schema: JSchema<string, any>): void {
   schema.validate(value)
 }
 
-it('stringId', () => {
+it('should generate lowercase alphanumeric ids of 16 characters or the given size', () => {
   const id = stringId()
   expect(id).toHaveLength(16)
   expect(id.toLowerCase()).toBe(id)
@@ -41,7 +42,7 @@ it('stringId', () => {
   })
 })
 
-it('stringId mocked', () => {
+it('should return the mocked id until unmockStringId is called', () => {
   mockStringId('abc')
   expect(stringId()).toBe('abc')
   expect(stringId()).toBe('abc')
@@ -50,7 +51,7 @@ it('stringId mocked', () => {
   expect(stringId()).toHaveLength(16)
 })
 
-it('stringIdBase62', () => {
+it('should generate 16-character base62 ids', () => {
   const id = stringIdBase62()
   expect(id).toHaveLength(16)
   expect(id).not.toContain('=')
@@ -67,7 +68,7 @@ it('stringIdBase62', () => {
   })
 })
 
-it('stringIdBase64', () => {
+it('should generate base64 and base64url ids of the given length, 16 by default', () => {
   const id = stringIdBase64()
   expect(id).toHaveLength(16) // default
 
@@ -100,7 +101,7 @@ it('stringIdBase64', () => {
   })
 })
 
-it('stringIdBase64Url should have no padding', () => {
+it('should generate base64url ids without padding for odd lengths', () => {
   // intentionally using odd sizes
   const lengths = [3, 7, 9, 11, 13]
 
@@ -113,22 +114,13 @@ it('stringIdBase64Url should have no padding', () => {
 })
 
 describe('stringIdNonAmbiguous', () => {
-  it('default size', () => {
-    const id = stringIdNonAmbiguous()
-    expect(id).toHaveLength(16)
-    expect(id).not.toContain('0')
-    expect(id).not.toContain('O')
-    expect(id).not.toContain('I')
-    expect(id).not.toContain('l')
-  })
+  it('should generate 16 characters by default, or the given size, without 0, 1, I, O or lowercase letters', () => {
+    expect(stringIdNonAmbiguous()).toHaveLength(16)
+    expect(stringIdNonAmbiguous(100)).toHaveLength(100)
 
-  it('custom size', () => {
-    const id = stringIdNonAmbiguous(100)
-    expect(id).toHaveLength(100)
-    expect(id).not.toContain('0')
-    expect(id).not.toContain('O')
-    expect(id).not.toContain('1')
-    expect(id).not.toContain('I')
-    expect(id).not.toContain('l')
+    _range(100).forEach(() => {
+      expect(stringIdNonAmbiguous()).toMatch(nonAmbiguousRegex)
+      expect(stringIdNonAmbiguous(100)).toMatch(nonAmbiguousRegex)
+    })
   })
 })

@@ -1,8 +1,11 @@
+import { Datastore } from '@google-cloud/datastore'
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { afterAll, expect, it, vi } from 'vitest'
 import { DatastoreDB } from './datastore.db.js'
 
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
 afterAll(() => {
+  vi.unstubAllEnvs()
   process.env['APP_ENV'] = 'test' // restore original value
 })
 
@@ -22,10 +25,20 @@ it('should throw on missing id', async () => {
   )
 })
 
-it('can load datastore', async () => {
+it('should create the Datastore client on first use and reuse it', () => {
   vi.stubEnv('APP_ENV', 'abc') // to not throw on APP_ENV=test check
 
   const db = new DatastoreDB()
   const ds = db.ds()
-  expect(ds.KEY.description).toBe('KEY')
+  expect(ds).toBeInstanceOf(Datastore)
+  expect(db.ds()).toBe(ds)
+})
+
+it('should throw when APP_ENV is test', () => {
+  vi.stubEnv('APP_ENV', 'test')
+
+  const db = new DatastoreDB()
+  expect(() => db.ds()).toThrowErrorMatchingInlineSnapshot(
+    `[AssertionError: DatastoreDB cannot be used in Test env, please use InMemoryDB]`,
+  )
 })

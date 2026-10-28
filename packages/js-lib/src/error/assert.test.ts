@@ -12,7 +12,7 @@ import {
 import { AssertionError } from './error.util.js'
 import { _try } from './try.js'
 
-it('_assert', () => {
+it('should throw an AssertionError with a default or custom message on a false condition', () => {
   _assert(1 === 1) // should not throw
 
   const [err] = _try(() => _assert(1 * 1 === 2))
@@ -24,7 +24,7 @@ it('_assert', () => {
   expect(err2).toMatchInlineSnapshot('[AssertionError: Really should match]')
 })
 
-it('_assertEquals', () => {
+it('should throw an AssertionError with the expected and actual values when not equal', () => {
   // should not throw
   _assertEquals(1, 1)
   _assertEquals('s', 's')
@@ -45,7 +45,7 @@ got     : 1"
   )
 })
 
-it('_assertDeepEquals', () => {
+it('should throw an AssertionError when not deeply equal, ignoring key order', () => {
   // should not throw
   _assertDeepEquals(1, 1)
   _assertDeepEquals('s', 's')
@@ -64,7 +64,7 @@ it('_assertDeepEquals', () => {
   `)
 })
 
-it('_assertIsError', () => {
+it('should throw an AssertionError for a non-Error', () => {
   // should not throw
   _assertIsError(new Error('a'))
 
@@ -74,7 +74,7 @@ it('_assertIsError', () => {
   )
 })
 
-it('_assertIsString', () => {
+it('should throw an AssertionError for a non-string', () => {
   // should not throw
   _assertIsString('asd')
 
@@ -84,7 +84,7 @@ it('_assertIsString', () => {
   )
 })
 
-it('_assertIsNumber', () => {
+it('should throw an AssertionError for a non-number', () => {
   // should not throw
   _assertIsNumber(5)
 
@@ -94,7 +94,7 @@ it('_assertIsNumber', () => {
   )
 })
 
-it('AssertionError printability', () => {
+it('should leave constructor and data out of the inspect output', () => {
   const err = new AssertionError('error', { userFriendly: true })
   // console.log(err)
 

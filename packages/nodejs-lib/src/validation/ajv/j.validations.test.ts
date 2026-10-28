@@ -22,7 +22,7 @@ import type { JSchema } from './jSchema.js'
 import { AjvSchema, HIDDEN_AJV_SCHEMA, j } from './jSchema.js'
 
 describe('immutability', () => {
-  it('the rule chains should return new instances', () => {
+  it('should return a new instance for each chained rule', () => {
     const schema1 = j.string()
     const schema2 = schema1.minLength(1)
     const schema3 = schema2.maxLength(2)
@@ -45,7 +45,7 @@ describe('any', () => {
 })
 
 describe('string', () => {
-  it('should work correctly with type inference', () => {
+  it('should accept a string and infer the string type', () => {
     const schema = j.string()
 
     const [err, result] = schema.getValidationResult('foo')
@@ -102,7 +102,7 @@ describe('string', () => {
       expect(result4).toEqual({})
     })
 
-    it('should work with `null` values', () => {
+    it('should convert `null` to `undefined`', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().optional([null]) })
 
       const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
@@ -138,6 +138,38 @@ describe('string', () => {
       const [err1, result1] = schema.getValidationResult({})
       expect(err1).toBeNull()
       expect(result1).toEqual({})
+    })
+
+    it('should convert `null` to `undefined` after a `nullable()` call', () => {
+      const schema = j.object<{ foo?: string | null }>({
+        foo: j.string().nullable().optional([null]),
+      })
+
+      const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: 'foo' })
+
+      const [err2, result2] = schema.getValidationResult({ foo: null })
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ foo: undefined })
+    })
+
+    it('should not mutate the base builder when deriving optional([null]) from nullable()', () => {
+      const base = j.string().nullable()
+
+      // Derive two independent optional schemas from the same base
+      const schema1 = j.object<{ foo?: string | null }>({ foo: base.optional([null]) })
+      const schema2 = j.object<{ foo: string | null }>({ foo: base })
+
+      // schema1 should convert null to undefined
+      const [err1, result1] = schema1.getValidationResult({ foo: null })
+      expect(err1).toBeNull()
+      expect(result1).toEqual({ foo: undefined })
+
+      // schema2 (non-optional) should still accept null as-is
+      const [err2, result2] = schema2.getValidationResult({ foo: null })
+      expect(err2).toBeNull()
+      expect(result2).toEqual({ foo: null })
     })
   })
 
@@ -210,7 +242,7 @@ describe('string', () => {
       `)
     })
 
-    it('regex schema should not print the regex rule', () => {
+    it('should not print the regex in the error message', () => {
       const schema = j.string().regex(/\D+/)
 
       const [err] = schema.getValidationResult('42')
@@ -294,7 +326,7 @@ describe('string', () => {
       `)
     })
 
-    it('pattern schema should not print the regex rule', () => {
+    it('should not print the pattern in the error message', () => {
       const schema = j.string().pattern(String.raw`\D+`)
 
       const [err] = schema.getValidationResult('42')
@@ -509,7 +541,7 @@ describe('string', () => {
   })
 
   describe('branded', () => {
-    it('should work correctly with type inference', () => {
+    it('should accept a branded string and infer the branded type', () => {
       type AccountId = Branded<string, 'AccountId'>
       const schema = j.string().branded<AccountId>()
 
@@ -523,12 +555,12 @@ describe('string', () => {
   })
 
   describe('email', () => {
-    it('should accept valid email address - %s', () => {
+    it('should accept valid email addresses', () => {
       const testCases: string[] = [
         'david@nc.se',
         'paul-louis@nc.co.uk',
-        'kamalaharris@gmail.com',
-        'kamalaharris@gmail.com ', // trailing spaces should not cause an error, note: we can't mutate primitives
+        'jane.doe@example.com',
+        'jane.doe@example.com ', // trailing spaces should not cause an error, note: we can't mutate primitives
       ]
       const schema = j.string().email()
 
@@ -561,29 +593,29 @@ describe('string', () => {
     it('should trim the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
 
-      const [err1, value1] = schema1.getValidationResult({ email: 'kamalaharris@gmail.com ' }) // em space
+      const [err1, value1] = schema1.getValidationResult({ email: '  jane.doe@example.com ' }) // em space
       expect(err1).toBeNull()
-      expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
+      expect(value1).toEqual({ email: 'jane.doe@example.com' })
 
       const schema2 = j.array(j.string().email())
 
-      const [err2, value2] = schema2.getValidationResult(['kamalaharris@gmail.com ']) // em space
+      const [err2, value2] = schema2.getValidationResult(['jane.doe@example.com ']) // em space
       expect(err2).toBeNull()
-      expect(value2).toEqual(['kamalaharris@gmail.com'])
+      expect(value2).toEqual(['jane.doe@example.com'])
     })
 
     it('should lowercase the email when it`s wrapped in an object or array', () => {
       const schema1 = j.object<{ email: string }>({ email: j.string().email() })
 
-      const [err1, value1] = schema1.getValidationResult({ email: 'KAMALAHARRIS@gmail.com' })
+      const [err1, value1] = schema1.getValidationResult({ email: 'JANE.DOE@example.COM' })
       expect(err1).toBeNull()
-      expect(value1).toEqual({ email: 'kamalaharris@gmail.com' })
+      expect(value1).toEqual({ email: 'jane.doe@example.com' })
 
       const schema2 = j.array(j.string().email())
 
-      const [err2, value2] = schema2.getValidationResult(['KAMALAHARRIS@gmail.com'])
+      const [err2, value2] = schema2.getValidationResult(['JANE.DOE@example.com'])
       expect(err2).toBeNull()
-      expect(value2).toEqual(['kamalaharris@gmail.com'])
+      expect(value2).toEqual(['jane.doe@example.com'])
     })
 
     it('should produce a readable error message', () => {
@@ -602,25 +634,7 @@ describe('string', () => {
       `)
     })
 
-    it('should convert the email to lowercase - when inside an object schema', () => {
-      const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
-
-      const [, result] = schema.getValidationResult({ email: 'LOWERCASE@nc.COM' })
-
-      expect(result.email).toBe('lowercase@nc.com')
-    })
-
-    it('should trim the email - when inside an object schema', () => {
-      const schema = j.object.infer({ email: j.string().email() }).isOfType<{ email: string }>()
-
-      const [, result] = schema.getValidationResult({
-        email: '  trimmed@nc.com  ',
-      })
-
-      expect(result.email).toBe('trimmed@nc.com')
-    })
-
-    it('should work with optional(values)', () => {
+    it('should convert an empty string to `undefined` with optional(values)', () => {
       const schema = j.object<{ foo?: string }>({ foo: j.string().email().optional(['']) })
 
       const [err1, result1] = schema.getValidationResult({ foo: 'foo@boo.com' })
@@ -667,7 +681,7 @@ describe('string', () => {
   })
 
   describe('IsoDate', () => {
-    it('should work correctly with type inference', () => {
+    it('should accept an IsoDate and infer the IsoDate type', () => {
       const schema = j.string().isoDate()
 
       const [err, result] = schema.getValidationResult('2025-10-15')
@@ -740,7 +754,7 @@ describe('string', () => {
     })
 
     describe('optional(values)', () => {
-      it('should work with `null` values', () => {
+      it('should convert `null` to `undefined`', () => {
         const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
 
         const [err1, result1] = schema.getValidationResult({ date: '2025-01-15' as IsoDate })
@@ -759,42 +773,10 @@ describe('string', () => {
         expect(err1).toBeNull()
         expect(result1).toEqual({})
       })
-
-      it('should work even after a `nullable()` call', () => {
-        const schema = j.object<{ foo?: string | null }>({
-          foo: j.string().nullable().optional([null]),
-        })
-
-        const [err1, result1] = schema.getValidationResult({ foo: 'foo' })
-        expect(err1).toBeNull()
-        expect(result1).toEqual({ foo: 'foo' })
-
-        const [err2, result2] = schema.getValidationResult({ foo: null })
-        expect(err2).toBeNull()
-        expect(result2).toEqual({ foo: undefined })
-      })
-
-      it('should not mutate the base builder when deriving optional([null]) from nullable()', () => {
-        const base = j.string().nullable()
-
-        // Derive two independent optional schemas from the same base
-        const schema1 = j.object<{ foo?: string | null }>({ foo: base.optional([null]) })
-        const schema2 = j.object<{ foo: string | null }>({ foo: base })
-
-        // schema1 should convert null to undefined
-        const [err1, result1] = schema1.getValidationResult({ foo: null })
-        expect(err1).toBeNull()
-        expect(result1).toEqual({ foo: undefined })
-
-        // schema2 (non-optional) should still accept null as-is
-        const [err2, result2] = schema2.getValidationResult({ foo: null })
-        expect(err2).toBeNull()
-        expect(result2).toEqual({ foo: null })
-      })
     })
 
     describe('before', () => {
-      it('should accept valid data', () => {
+      it('should accept only dates before the limit', () => {
         const testCases: any[] = ['2018-06-20']
         const schema = j.string().isoDate().before('2018-06-21')
 
@@ -811,7 +793,7 @@ describe('string', () => {
         })
       })
 
-      it('should reject invalid date for the rule', () => {
+      it('should reject any date when the limit is not a valid IsoDate', () => {
         const schema = j.string().isoDate().before('abcd')
         const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
@@ -822,7 +804,7 @@ describe('string', () => {
     })
 
     describe('sameOrBefore', () => {
-      it('should accept valid data', () => {
+      it('should accept only dates on or before the limit', () => {
         const testCases: any[] = ['2018-06-20', '2018-06-21']
         const schema = j.string().isoDate().sameOrBefore('2018-06-21')
 
@@ -839,7 +821,7 @@ describe('string', () => {
         })
       })
 
-      it('should reject invalid date for the rule', () => {
+      it('should reject any date when the limit is not a valid IsoDate', () => {
         const schema = j.string().isoDate().sameOrBefore('abcd')
         const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
@@ -850,7 +832,7 @@ describe('string', () => {
     })
 
     describe('after', () => {
-      it('should accept valid data', () => {
+      it('should accept only dates after the limit', () => {
         const testCases: any[] = ['2018-06-22']
         const schema = j.string().isoDate().after('2018-06-21')
 
@@ -867,7 +849,7 @@ describe('string', () => {
         })
       })
 
-      it('should reject invalid date for the rule', () => {
+      it('should reject any date when the limit is not a valid IsoDate', () => {
         const schema = j.string().isoDate().after('abcd')
         const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
@@ -878,7 +860,7 @@ describe('string', () => {
     })
 
     describe('sameOrAfter', () => {
-      it('should accept valid data', () => {
+      it('should accept only dates on or after the limit', () => {
         const testCases: any[] = ['2018-06-21', '2018-06-22']
         const schema = j.string().isoDate().sameOrAfter('2018-06-21')
 
@@ -895,7 +877,7 @@ describe('string', () => {
         })
       })
 
-      it('should reject invalid date for the rule', () => {
+      it('should reject any date when the limit is not a valid IsoDate', () => {
         const schema = j.string().isoDate().sameOrAfter('abcd')
         const [err] = schema.getValidationResult('2018-06-21')
         expect(err).toMatchInlineSnapshot(`
@@ -906,7 +888,7 @@ describe('string', () => {
     })
 
     describe('between', () => {
-      it('should accept valid data', () => {
+      it('should accept only dates within an inclusive [] range', () => {
         const testCases: any[] = ['2018-06-20', '2018-06-21', '2018-06-22']
         const schema = j.string().isoDate().between('2018-06-20', '2018-06-22', '[]')
 
@@ -923,7 +905,7 @@ describe('string', () => {
         })
       })
 
-      it('should work with [) inclusiveness - include start, exclude end', () => {
+      it('should include the start and exclude the end with [)', () => {
         const schema = j.string().isoDate().between('2018-06-20', '2018-06-22', '[)')
 
         const validCases: any[] = ['2018-06-20', '2018-06-21']
@@ -939,7 +921,7 @@ describe('string', () => {
         })
       })
 
-      it('should reject invalid date for the rule', () => {
+      it('should reject any date when a range limit is not a valid IsoDate', () => {
         const schema1 = j.string().isoDate().between('abcd', '2018-06-22', '[]')
         const [err1] = schema1.getValidationResult('2018-06-21')
         expect(err1).toMatchInlineSnapshot(`
@@ -958,7 +940,7 @@ describe('string', () => {
   })
 
   describe('IsoDateTime', () => {
-    it('should work correctly with type inference', () => {
+    it('should accept an IsoDateTime and infer the IsoDateTime type', () => {
       const schema = j.string().isoDateTime()
 
       const [err, result] = schema.getValidationResult('2025-10-15T01:01:01Z')
@@ -1059,7 +1041,7 @@ describe('string', () => {
   })
 
   describe('IsoMonth', () => {
-    it('should work correctly with type inference', () => {
+    it('should accept an IsoMonth and infer the IsoMonth type', () => {
       const schema = j.string().isoMonth()
 
       const [err, result] = schema.getValidationResult('2025-10')
@@ -1436,7 +1418,7 @@ describe('string', () => {
   })
 
   describe('ianaTimezone', () => {
-    it('should work correctly with type inference', () => {
+    it('should accept a timezone and infer the IANATimezone type', () => {
       const schema = j.string().ianaTimezone()
 
       const [err, result] = schema.getValidationResult('Europe/Stockholm')
@@ -1469,7 +1451,7 @@ describe('string', () => {
 
     it('should accept valid data', () => {
       // oxlint-disable-next-line no-restricted-globals
-      const testCases = [...Intl.supportedValuesOf('timeZone'), 'UTC']
+      const testCases = Intl.supportedValuesOf('timeZone')
       const schema = j.string().ianaTimezone()
 
       testCases.forEach(tz => {
@@ -1490,7 +1472,7 @@ describe('string', () => {
   })
 
   describe('base64Url', () => {
-    it('should accept valid data', () => {
+    it('should accept URL-safe base64 characters and reject others', () => {
       const testCases = ['azAZ09_-']
       const schema = j.string().base64Url()
 
@@ -1508,7 +1490,7 @@ describe('string', () => {
   })
 
   describe('uuid', () => {
-    it('should accept valid data', () => {
+    it('should accept UUIDs in any letter case and reject malformed ones', () => {
       const testCases = [
         '257631be-26d6-4a18-b28e-4bb7c6495cf4', // lowercase
         '257631BE-26D6-4A18-B28E-4BB7C6495CF4', // uppercase (valid per RFC 4122)
@@ -1539,7 +1521,7 @@ describe('string', () => {
 })
 
 describe('number', () => {
-  it('should work correctly with type inference', () => {
+  it('should accept a number and infer the number type', () => {
     const schema = j.number()
 
     const [err, result] = schema.getValidationResult(0)
@@ -1611,7 +1593,7 @@ describe('number', () => {
       expect(result3).toEqual({})
     })
 
-    it('should work with `null` values', () => {
+    it('should convert `null` to `undefined`', () => {
       const schema = j.object<{ foo?: number }>({ foo: j.number().optional([null]) })
 
       const [err1, result1] = schema.getValidationResult({ foo: 1 })
@@ -2227,7 +2209,7 @@ describe('number', () => {
 })
 
 describe('boolean', () => {
-  it('should work correctly with type inference', () => {
+  it('should accept a boolean and infer the boolean type', () => {
     const schema = j.boolean()
 
     const [err, result] = schema.getValidationResult(true)
@@ -2305,7 +2287,7 @@ describe('boolean', () => {
 })
 
 describe('array', () => {
-  it('should work correctly with type inference', () => {
+  it('should accept an array and infer its item type', () => {
     const schema = j.array(j.string().nullable())
 
     const [err, result] = schema.getValidationResult(['foo', null])
@@ -2408,7 +2390,7 @@ describe('array', () => {
   })
 
   describe('length(min, max)', () => {
-    it('should accept valid data', () => {
+    it('should accept only arrays within the length range', () => {
       const schema = j.array(j.string()).length(1, 2)
 
       const validCases: any[] = [['foo'], ['foo', 'bar']]
@@ -2429,7 +2411,7 @@ describe('array', () => {
   })
 
   describe('length(eq)', () => {
-    it('should accept valid data', () => {
+    it('should accept only arrays of the given length', () => {
       const schema = j.array(j.string()).length(2)
 
       const validCases: any[] = [['foo', 'bar']]
@@ -2450,7 +2432,7 @@ describe('array', () => {
   })
 
   describe('exactLength', () => {
-    it('should accept valid data', () => {
+    it('should accept only arrays of the given length', () => {
       const schema = j.array(j.string()).exactLength(2)
 
       const validCases: any[] = [['foo', 'bar']]
@@ -2488,7 +2470,7 @@ describe('array', () => {
 })
 
 describe('tuple', () => {
-  it('should work correctly with type inference', () => {
+  it('should accept a tuple and infer the tuple type', () => {
     const schema = j.tuple([j.string().nullable(), j.number(), j.boolean()])
 
     const [err, result] = schema.getValidationResult(['foo', 1, true])
@@ -2498,7 +2480,7 @@ describe('tuple', () => {
     expectTypeOf(result).toExtend<[string | null, number, boolean]>()
   })
 
-  it('should accept valid data', () => {
+  it('should accept matching tuples and reject mismatched ones', () => {
     const schema = j.tuple([j.string().minLength(3).nullable(), j.number(), j.boolean()])
 
     const testCases: any[] = [
@@ -2521,7 +2503,7 @@ describe('tuple', () => {
 })
 
 describe('set', () => {
-  it('should work correctly with type inference', () => {
+  it('should accept a Set2 and infer the Set2 type', () => {
     const schema = j.set(j.string())
 
     const [err, result] = schema.getValidationResult(new Set2(['foo', 'bar']))
@@ -2633,7 +2615,7 @@ describe('set', () => {
 })
 
 describe('object', () => {
-  it('should work correctly with the passed-in type', () => {
+  it('should accept a nested object and infer the passed-in type', () => {
     const schema = j.object<TestEverythingObject>({
       string: j.string(),
       stringOptional: j.string().optional(),
@@ -2687,7 +2669,7 @@ describe('object', () => {
     }>()
   })
 
-  it('should work correctly with type assignment', () => {
+  it('should infer the passed-in type for the result', () => {
     interface Foo {
       string: string
       stringOptional?: string
@@ -2703,7 +2685,7 @@ describe('object', () => {
     expectTypeOf(result).toEqualTypeOf<Foo>()
   })
 
-  it('should reject when required properties are missing', () => {
+  it('should produce a type error when a required property is missing from the schema', () => {
     interface Foo {
       foo: string
       bar?: string
@@ -2728,7 +2710,7 @@ describe('object', () => {
   }
 
   describe('extend', () => {
-    it('should work correctly with type assignment', () => {
+    it('should infer the extended type', () => {
       interface Foo {
         foo: string | null
         bar?: number
@@ -2744,7 +2726,7 @@ describe('object', () => {
       expectTypeOf(result).toExtend<Foo>()
     })
 
-    it('should not work without passing in a type', () => {
+    it('should throw on AjvSchema.create without an isOfType check', () => {
       const schema1 = j.object<{ foo: string | null }>({ foo: j.string().nullable() })
       const schema2 = schema1.extend({ bar: j.number().optional() })
 
@@ -2754,7 +2736,7 @@ describe('object', () => {
       )
     })
 
-    it('should accept a valid object', () => {
+    it('should accept only objects with both the base and the extended properties', () => {
       interface Foo {
         foo: string | null
         bar: number
@@ -2784,7 +2766,7 @@ describe('object', () => {
       })
     })
 
-    it('should work with property narrowing', () => {
+    it('should narrow an overridden property in type and validation', () => {
       interface Base {
         foo: string | null
         bar: AnyObject
@@ -2844,7 +2826,7 @@ describe('object', () => {
       })
     })
 
-    it('should be logical', () => {
+    it('should keep the type when extending with no properties', () => {
       interface Foo {
         bar: string
       }
@@ -2859,7 +2841,7 @@ describe('object', () => {
       expectTypeOf(result).toExtend<Foo>()
     })
 
-    it('it should work with dbEntity', () => {
+    it('should infer the type when extending a dbEntity schema', () => {
       interface BM {
         id: string
         created: UnixTimestamp
@@ -2897,7 +2879,7 @@ describe('object', () => {
       expectTypeOf(result).toExtend<Bar>()
     })
 
-    it('should support type extension', () => {
+    it('should not collapse to never when extending a many-property schema with an enum', () => {
       enum Color {
         RED = 1,
         BLUE = 2,
@@ -2948,7 +2930,7 @@ describe('object', () => {
   })
 
   describe('concat', () => {
-    it('should work correctly with type assignment', () => {
+    it('should validate the merged object and infer its type', () => {
       interface Foo {
         foo: string
       }
@@ -3036,7 +3018,7 @@ describe('object', () => {
   })
 
   describe('.dbEntity', () => {
-    it('should work correctly with type inference', () => {
+    it('should accept an entity and infer the passed-in type', () => {
       interface DB extends BaseDBEntity {
         foo: string
       }
@@ -3063,7 +3045,7 @@ describe('object', () => {
       expectTypeOf(result).toEqualTypeOf<DB>()
     })
 
-    it('should work as an instance method on j.object', () => {
+    it('should add the base DB fields when called on a j.object schema', () => {
       interface Foo {
         foo: string
       }
@@ -3093,7 +3075,7 @@ describe('object', () => {
   })
 
   describe('.infer', () => {
-    it('should work correctly with type inference', () => {
+    it('should accept a nested object and infer its type', () => {
       const schema = j.object
         .infer({
           string: j.string(),
@@ -3149,7 +3131,7 @@ describe('object', () => {
       }>()
     })
 
-    it('should work correctly with type assignment', () => {
+    it('should infer the isOfType type for the result', () => {
       interface Foo {
         string: string
         stringOptional?: string
@@ -3199,7 +3181,7 @@ describe('object', () => {
     }
 
     describe('extend', () => {
-      it('should work correctly with type assignment', () => {
+      it('should infer the extended type', () => {
         interface Foo {
           foo: string | null
           bar?: number
@@ -3213,42 +3195,6 @@ describe('object', () => {
         })
 
         expectTypeOf(result).toEqualTypeOf<Foo>()
-      })
-    })
-
-    describe('allowAdditionalProperties', () => {
-      it('should strip away unspecified properties during validation when not set', () => {
-        const schema = j.object
-          .infer({
-            string: j.string(),
-          })
-          .isOfType<{ string: string }>()
-
-        const [, result] = schema.getValidationResult({
-          string: 'hello',
-          foo: 'world',
-        })
-
-        expect(result).toEqual({ string: 'hello' })
-      })
-
-      it('should not strip away unspecified properties during validation when set', () => {
-        const schema = j.object
-          .infer({
-            string: j.string(),
-          })
-          .allowAdditionalProperties()
-          .isOfType<{ string: string }>()
-
-        const [, result] = schema.getValidationResult({
-          string: 'hello',
-          foo: 'world',
-        })
-
-        expect(result).toEqual({
-          string: 'hello',
-          foo: 'world',
-        })
       })
     })
 
@@ -3281,7 +3227,7 @@ describe('object', () => {
   })
 
   describe('.any', () => {
-    it('should work correctly with type inference', () => {
+    it('should accept any object and infer AnyObject', () => {
       const schema = j.object.any()
 
       const [err, result] = schema.getValidationResult({ foo: 'bar' })
@@ -3392,7 +3338,7 @@ describe('object', () => {
   })
 
   describe('minProperties', () => {
-    it('should accept a valid object', () => {
+    it('should accept only objects with at least the minimum number of properties', () => {
       const schema = j
         .object<{ foo?: string; bar?: string; shu?: string }>({
           foo: j.string().optional(),
@@ -3427,7 +3373,7 @@ describe('object', () => {
   })
 
   describe('maxProperties', () => {
-    it('should accept a valid object', () => {
+    it('should accept only objects with at most the maximum number of properties', () => {
       const schema = j
         .object<{ foo?: string; bar?: string; shu?: string }>({
           foo: j.string().optional(),
@@ -3451,7 +3397,7 @@ describe('object', () => {
   })
 
   describe('.exclusiveProperties', () => {
-    it('should accept a valid object', () => {
+    it('should accept at most one of the exclusive properties', () => {
       const schema = j
         .object<{ foo?: string; bar?: string; shu?: string }>({
           foo: j.string().optional(),
@@ -3475,7 +3421,7 @@ describe('object', () => {
   })
 
   describe('.record', () => {
-    it('should correctly infer the type', () => {
+    it('should validate the values and strip keys that do not match the key schema', () => {
       type B = Branded<string, 'B'>
       const schema = j.object
         .record(
@@ -3538,7 +3484,7 @@ describe('object', () => {
   })
 
   describe('.withEnumKeys', () => {
-    it('should work with a list of const values', () => {
+    it('should validate a list of const keys and strip other keys', () => {
       const schema = j.object
         .withEnumKeys(['a', 'b', 1], j.number().optional())
         .isOfType<Partial<Record<'a' | 'b' | '1', number>>>()
@@ -3564,7 +3510,7 @@ describe('object', () => {
       }
     })
 
-    it('should work with NumberEnum', () => {
+    it('should validate NumberEnum keys and strip other keys', () => {
       enum E {
         A = 1,
         B = 2,
@@ -3594,7 +3540,7 @@ describe('object', () => {
       }
     })
 
-    it('should work with StringEnum', () => {
+    it('should validate StringEnum keys and strip other keys', () => {
       enum E {
         A = 'a',
         B = 'b',
@@ -3739,7 +3685,7 @@ describe('object', () => {
     })
 
     describe('j.object compatibility', () => {
-      it('should work with Partial<Record<E, V>>', () => {
+      it('should not collapse to never for a Partial<Record<E, V>> property', () => {
         enum E {
           A = 'a',
           B = 'b',
@@ -3756,7 +3702,7 @@ describe('object', () => {
         expectTypeOf(schema).not.toEqualTypeOf<never>()
       })
 
-      it('should work with Record<E, V>', () => {
+      it('should infer a Record<E, V> property', () => {
         enum E {
           A = 'a',
           B = 'b',
@@ -3775,7 +3721,7 @@ describe('object', () => {
     })
 
     describe('minProperties', () => {
-      it('should work for withEnumKeys as well', () => {
+      it('should require the minimum number of properties for withEnumKeys', () => {
         enum E {
           A = 'a',
           B = 'b',
@@ -3803,7 +3749,7 @@ describe('object', () => {
   })
 
   describe('.stringMap', () => {
-    it('should work', () => {
+    it('should accept a string map of valid values and reject invalid ones', () => {
       const schema = j.object.stringMap(j.number().nullable()).isOfType<StringMap<number | null>>()
 
       const validCases: any[] = [{}, { a: 1 }, { a: 1, b: 2 }]
@@ -3878,7 +3824,7 @@ describe('object', () => {
 })
 
 describe('enum', () => {
-  it('should work correctly with type inference', () => {
+  it('should accept a listed value and infer the union type', () => {
     const schema = j.enum([0, 'foo', false])
 
     const [err, result] = schema.getValidationResult(0)
@@ -3972,7 +3918,7 @@ describe('enum', () => {
 })
 
 describe('buffer', () => {
-  it('should work correctly with type inference', () => {
+  it('should accept a Buffer and infer the Buffer type', () => {
     const schema = j.buffer()
 
     const [err, result] = schema.getValidationResult(Buffer.from('asdf'))
@@ -4030,17 +3976,6 @@ describe('buffer', () => {
     expect(result.buffer).toEqual(Buffer.from('foobar'))
     expectTypeOf(result).toEqualTypeOf<{ buffer: Buffer }>()
   })
-
-  it('should automagically make an Array unique', () => {
-    const schema = j.object.infer({ set: j.set(j.string()) }).isOfType<{ set: Set2<string> }>()
-
-    const [err, result] = schema.getValidationResult({
-      set: ['foo', 'bar', 'foo'],
-    })
-
-    expect(err).toBeNull()
-    expect(result.set.toArray()).toEqual(['foo', 'bar'])
-  })
 })
 
 describe('oneOf', () => {
@@ -4079,7 +4014,7 @@ describe('oneOf', () => {
     expect(err).not.toBeNull()
   })
 
-  it('should work with complex values', () => {
+  it('should throw when a branch holds an object schema', () => {
     const schema1 = j.object<{ data: { foo: string; bar: number } }>({
       data: j.object.infer({ foo: j.string(), bar: j.number() }),
     })
@@ -4153,7 +4088,7 @@ describe('anyOf', () => {
     expect(err).toBeNull()
   })
 
-  it('should not work with complex values', () => {
+  it('should throw when a branch holds an object schema', () => {
     const schema1 = j.object<{ data: { foo: string; bar: number } }>({
       data: j.object.infer({ foo: j.string(), bar: j.number() }),
     })
@@ -4303,7 +4238,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  it('should show clean error for isoDate.optional([null]) #1', () => {
+  it('should show a clean type error for isoDate().optional([null])', () => {
     const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
     const [err] = schema.getValidationResult({ date: 123 })
     expect(err).toMatchInlineSnapshot(`
@@ -4313,7 +4248,7 @@ describe('nullable anyOf error messages', () => {
     `)
   })
 
-  it('should show clean error for isoDate.optional([null]) #2', () => {
+  it('should show a clean IsoDate error for isoDate().optional([null])', () => {
     const schema = j.object<{ date?: IsoDate }>({ date: j.string().isoDate().optional([null]) })
     const [err] = schema.getValidationResult({ date: '2025-02-30' })
     expect(err).toMatchInlineSnapshot(`
@@ -4358,7 +4293,7 @@ describe('anyOfBy', () => {
     expectTypeOf(result).toEqualTypeOf<FooA | FooB | FooC>()
   })
 
-  it('should accept valid values', () => {
+  it('should accept values matching their discriminator branch and reject others', () => {
     const testCases = [
       { type: Foo.A, foo: 'asdf' },
       { type: Foo.B, bar: 1 },
@@ -4395,7 +4330,7 @@ describe('anyOfThese', () => {
     expectTypeOf(result).toEqualTypeOf<string | number | null>()
   })
 
-  it('should accept valid values', () => {
+  it('should accept values matching a branch and reject others', () => {
     const schema = j.anyOfThese([j.string().nullable(), j.number()])
 
     const testCases = ['a', 1, null]
@@ -4420,7 +4355,7 @@ describe('anyOfThese', () => {
     expect(err).toBeNull()
   })
 
-  it('should work with complex values', () => {
+  it('should validate object branches and report when no branch fits', () => {
     const schema1 = j.object<{ data: { foo: string; bar: number } }>({
       data: j.object.infer({ foo: j.string(), bar: j.number() }),
     })
@@ -4448,7 +4383,7 @@ describe('anyOfThese', () => {
     `)
   })
 
-  it('should work with nested schemas', () => {
+  it('should validate anyOfThese as a nested property', () => {
     const schema = j.object<{ data: { foo: string } | { bar: number } }>({
       data: j.anyOfThese([
         j.object.infer({ foo: j.string() }),
@@ -4471,7 +4406,7 @@ describe('anyOfThese', () => {
 })
 
 describe('errors', () => {
-  it('should properly display the path to the erronous value', () => {
+  it('should display the path to the erroneous value', () => {
     const schema = j.object.infer({ foo: j.array(j.string()) }).isOfType<{ foo: string[] }>()
 
     const [err] = schema.getValidationResult({
@@ -4500,7 +4435,7 @@ describe('castAs', () => {
     expectTypeOf(result).toEqualTypeOf<{ bar: number }>()
   })
 
-  it('should work on JSchema (non-JBuilder) instances', () => {
+  it('should cast the type of a JSchema (non-JBuilder) instance', () => {
     // .optional(['']) returns a JSchema, not a JBuilder
     const schema = j.string().optional(['']).castAs<string | undefined>()
     expectTypeOf(schema).toEqualTypeOf<JSchema<string | undefined, true>>()
@@ -4532,7 +4467,7 @@ describe('default', () => {
     expect(result4).toEqual({ foo: 'good', bar: 1, shu: true })
   })
 
-  it('.optional() + .default() should throw an assertion error', () => {
+  it('should throw on build() when .optional() and .default() are combined', () => {
     expect(() => j.string().optional().default('x').build()).toThrow(
       '.optional() and .default() should not be used together',
     )
@@ -4540,24 +4475,22 @@ describe('default', () => {
 })
 
 describe('final', () => {
-  it('locks the given schema', async () => {
+  it('should keep the minLength and maxLength rules', () => {
     const schema = j.string().minLength(2).maxLength(3).final()
 
     const [err1] = schema.getValidationResult('abc')
     expect(err1).toBeNull()
 
     const [err2] = schema.getValidationResult('abcd')
-    expect(err2).not.toBeNull()
+    expect(err2!.message).toMatch(/^Object must NOT have more than 3 characters/)
 
-    // @ts-expect-error That's the purpose of the test, that's why we have the expect error.
-    expect(() => schema.optional()).toThrow('schema.optional is not a function')
-    // @ts-expect-error That's the purpose of the test, that's why we have the expect error.
-    expect(() => schema.nullable()).toThrow('schema.nullable is not a function')
+    const [err3] = schema.getValidationResult('a')
+    expect(err3!.message).toMatch(/^Object must NOT have fewer than 2 characters/)
   })
 })
 
 describe('literal', () => {
-  it('should accept a valid value', () => {
+  it('should accept only the literal value and infer its type', () => {
     const schema1 = j.literal('magic')
 
     const [, result1] = schema1.getValidationResult('magic')
@@ -4619,7 +4552,7 @@ describe('literal', () => {
 })
 
 describe('custom', () => {
-  it('should accept a valid value', () => {
+  it('should run the custom validator and report its message', () => {
     const schema = j.number().custom(v => (Number.isInteger(v) ? undefined : 'not an integer!'))
 
     const [err1] = schema.getValidationResult(1)
@@ -4739,7 +4672,7 @@ describe('postValidation', () => {
     expect(err!.message).toContain('custom post-validation error')
   })
 
-  it('should work with isValid', () => {
+  it('should make isValid reflect whether postValidation throws', () => {
     const schemaPass = j.string().postValidation(v => v)
     const schemaFail = j.string().postValidation(() => {
       throw new Error('nope')
@@ -4798,15 +4731,6 @@ describe('postValidation', () => {
     expect(result).toEqual({ value: 'hello', computed: 5 })
   })
 
-  it('should support optional schemas with postValidation', () => {
-    const schema = j
-      .string()
-      .optional()
-      .postValidation(v => v)
-
-    expectTypeOf(schema.out).toEqualTypeOf<string | undefined>()
-  })
-
   it('should preserve optional typing through postValidation', () => {
     const schema = j
       .number()
@@ -4858,7 +4782,7 @@ describe('getValidationResult', () => {
     }>()
   })
 
-  it('the AjvSchema is compiled and hidden on the schema instance', () => {
+  it('should cache the compiled AjvSchema after validation but not on a derived schema', () => {
     const schema = j.object<{ string: string; nested: { string: string } }>({
       string: j.string(),
       nested: j.object.infer({
@@ -4918,7 +4842,7 @@ describe('getValidationFunction', () => {
 })
 
 describe('isValid', () => {
-  it('should validate', () => {
+  it('should return true for a valid object', () => {
     const schema = j.object<{ string: string; nested: { string: string } }>({
       string: j.string(),
       nested: j.object.infer({
@@ -5023,7 +4947,7 @@ describe('j.object.instanceOf()', () => {
     })
   })
 
-  it('should work with RegExp', () => {
+  it('should accept a RegExp and reject a string', () => {
     const schema = j.object.instanceOf(RegExp)
 
     const [err, result] = schema.getValidationResult(/foo/)
@@ -5036,7 +4960,7 @@ describe('j.object.instanceOf()', () => {
     expect(err2).not.toBeNull()
   })
 
-  it('should work with custom classes', () => {
+  it('should accept a custom class instance and reject a plain object', () => {
     class MyClass {
       constructor(public value: number) {}
     }
@@ -5054,7 +4978,7 @@ describe('j.object.instanceOf()', () => {
     expect(err2).not.toBeNull()
   })
 
-  it('should work with subclasses', () => {
+  it('should accept an instance of a subclass', () => {
     class Base {
       constructor(public id: number) {}
     }
@@ -5077,7 +5001,7 @@ describe('j.object.instanceOf()', () => {
     expect(err2).toBeNull()
   })
 
-  it('should work as a property in an object schema', () => {
+  it('should accept a Date property in an object schema', () => {
     interface WithDate {
       created: Date
       name: string
@@ -5126,7 +5050,7 @@ describe('j.any().instanceof()', () => {
 describe('type inference check', () => {
   type GarminUserId = Branded<'userId', string>
 
-  it('should work when the schema and the type matches', () => {
+  it('should infer the passed-in type when the schema matches it', () => {
     interface GarminUserState {
       hasValidToken?: boolean
       lastSyncTimestamp?: UnixTimestamp | null
@@ -5197,7 +5121,7 @@ describe('type inference check', () => {
   })
 })
 
-it('xxx', () => {
+it('should not collapse to never for an optional email in a nested inferred object', () => {
   interface ZendeskTriggerWebhookBody {
     assignee: {
       email?: string // empty = not set

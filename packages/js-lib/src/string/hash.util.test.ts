@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { hashCode, hashCode16, hashCode36, hashCode64 } from './hash.util.js'
 
-it('hashCode', () => {
+it('should hash a string to stable numeric, hex, base36 and base64 values', () => {
   const obj = {
     a: 'a',
     b: 'b',

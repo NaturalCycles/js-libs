@@ -6,7 +6,7 @@ import { pDefer } from './pDefer.js'
 import { pDelay } from './pDelay.js'
 import { pProps } from './pProps.js'
 
-it('main', async () => {
+it('should resolve promises, deferreds, plain values and nested promises', async () => {
   const defer = pDefer<number>()
 
   const input = {
@@ -29,7 +29,7 @@ it('main', async () => {
   })
 })
 
-it('rejects if any of the input promises reject', async () => {
+it('should reject if any input promise rejects', async () => {
   await expect(
     pProps({
       foo: Promise.resolve(1),
@@ -38,7 +38,7 @@ it('rejects if any of the input promises reject', async () => {
   ).rejects.toThrow('bar')
 })
 
-it('handles empty object', async () => {
+it('should return an empty object for an empty input', async () => {
   expect(await pProps({})).toEqual({})
 })
 
@@ -68,7 +68,7 @@ it('should preserve stack', async () => {
   `)
 })
 
-it('expectType', async () => {
+it('should infer the resolved value types', async () => {
   const r = await pProps({
     a: pDelay(0, 'a'),
     b: pDelay(0, 42),

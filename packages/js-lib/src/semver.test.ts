@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { _expectedErrorString } from './error/try.js'
 import { _quickSemverCompare, semver2 } from './semver.js'
 
-it('basic', () => {
+it('should parse, format and compare a version', () => {
   const s = semver2('1.2.3')
   expect(s.toString()).toBe('1.2.3')
   expect(`${s}`).toBe('1.2.3')
@@ -28,7 +28,7 @@ it('basic', () => {
   )
 })
 
-it('min, max, sort', () => {
+it('should find the min and max and sort versions', () => {
   expect(semver2.min(['1.2.3', '1.2.4']).toString()).toBe('1.2.3')
   expect(semver2.min(['1.2.3', undefined]).toString()).toBe('1.2.3')
   expect(semver2.minOrUndefined(['1.2.3', '1.2.4'])?.toString()).toBe('1.2.3')
@@ -63,7 +63,7 @@ it.each([
   ['.a0.1a', '0.0.1'],
   ['.', '0.0.0'],
   ['x', '0.0.0'],
-])('parse', (str, expected) => {
+])('should parse %s as %s', (str, expected) => {
   expect(semver2.fromInputOrUndefined(str)?.toString()).toBe(expected)
 })
 
@@ -79,6 +79,6 @@ it.each([
   ['1.1.3', '1.1.51', -1],
   ['1.1.3', '1.1.11', -1],
   ['1.1.11', '1.1.3', 1],
-])('_quickSemverCompare "%s" "%s" is %s', (a, b, expected) => {
+])('should compare "%s" with "%s" as %s', (a, b, expected) => {
   expect(_quickSemverCompare(a, b)).toBe(expected)
 })

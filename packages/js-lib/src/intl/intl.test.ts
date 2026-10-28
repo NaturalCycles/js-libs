@@ -26,17 +26,17 @@ it('should return different instances for different options', () => {
   expect(a).not.toBe(b)
 })
 
-it('getTimezone', () => {
+it('should return the environment timezone', () => {
   expect(Intl2.getTimezone()).toBe('UTC')
 })
 
-it('DurationFormat', () => {
+it('should return a DurationFormat that formats hours and minutes', () => {
   const fmt = Intl2.DurationFormat('en-US', { style: 'long' })
   expect(fmt).toBeInstanceOf(Intl.DurationFormat)
   expect(fmt.format({ hours: 1, minutes: 30 })).toBe('1 hour, 30 minutes')
 })
 
-it('Segmenter', () => {
+it('should return a Segmenter that splits text into words', () => {
   const seg = Intl2.Segmenter('en-US', { granularity: 'word' })
   expect(seg).toBeInstanceOf(Intl.Segmenter)
   const words = Array.from(seg.segment('hello world')).filter(s => s.isWordLike)

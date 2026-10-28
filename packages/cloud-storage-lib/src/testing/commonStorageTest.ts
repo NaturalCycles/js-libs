@@ -39,13 +39,24 @@ export async function runCommonStorageTest(
   bucketName: string,
 ): Promise<void> {
   // this is because vitest cannot be "required" from cjs
-  const { expect, it } = await import('vitest')
+  const { afterAll, beforeAll, expect, it } = await import('vitest')
+
+  beforeAll(async () => {
+    await pMap(
+      TEST_FILES.map(f => f.filePath),
+      async filePath => await storage.deletePath(bucketName, filePath),
+    )
+  })
+
+  afterAll(async () => {
+    await storage.deletePath(bucketName, TEST_FOLDER)
+  })
 
   // test('createBucket', async () => {
   //   await storage.createBucket(bucketName)
   // })
 
-  it('ping', async () => {
+  it('should ping the bucket', async () => {
     await storage.ping(bucketName)
   })
 
@@ -59,38 +70,31 @@ export async function runCommonStorageTest(
   //   console.log(buckets)
   // })
 
-  it('prepare: clear bucket', async () => {
-    await pMap(
-      TEST_FILES.map(f => f.filePath),
-      async filePath => await storage.deletePath(bucketName, filePath),
-    )
-  })
-
   // test('listFileNames on root should return empty', async () => {
   //   const fileNames = await storage.getFileNames(bucketName)
   //   expect(fileNames).toEqual([])
   // })
 
-  it(`listFileNames on ${TEST_FOLDER} should return empty`, async () => {
+  it(`should list no file names under ${TEST_FOLDER} before saving`, async () => {
     const fileNames = await storage.getFileNames(bucketName, { prefix: TEST_FOLDER })
     expect(fileNames).toEqual([])
   })
 
-  it(`streamFileNames on ${TEST_FOLDER} should return empty`, async () => {
+  it(`should stream no file names under ${TEST_FOLDER} before saving`, async () => {
     const fileNames = await storage
       .getFileNamesStream(bucketName, { prefix: TEST_FOLDER })
       .toArray()
     expect(fileNames).toEqual([])
   })
 
-  it(`exists should return empty array`, async () => {
+  it(`should report the test files as missing before saving`, async () => {
     await pMap(TEST_FILES, async f => {
       const exists = await storage.fileExists(bucketName, f.filePath)
       expect(exists).toBe(false)
     })
   })
 
-  it(`saveFiles, then listFileNames, streamFileNames and getFiles should return just saved files`, async () => {
+  it(`should list, stream, read and find the saved files`, async () => {
     const testFilesMap = Object.fromEntries(TEST_FILES.map(f => [f.filePath, f.content]))
 
     // It's done in the same test to ensure "strong consistency"
@@ -126,7 +130,7 @@ export async function runCommonStorageTest(
     })
   })
 
-  it('saveFile with metadata, then getFileMetadata should return it', async () => {
+  it('should return saved metadata, drop it on a resave without it and return null for a missing file', async () => {
     const f = TEST_FILES[0]!
     const metadata = { hash: 'hash_1' }
 
@@ -143,10 +147,6 @@ export async function runCommonStorageTest(
     })
 
     expect(await storage.getFileMetadata(bucketName, `${TEST_FOLDER}/non_existing.json`)).toBeNull()
-  })
-
-  it('cleanup', async () => {
-    await storage.deletePath(bucketName, TEST_FOLDER)
   })
 
   // Cannot update access control for an object when uniform bucket-level access is enabled. Read more at https://cloud.google.com/storage/docs/uniform-bucket-level-access

@@ -1,11 +1,11 @@
 import { expect, it } from 'vitest'
 import { SortedArray, SortedNumberArray, SortedStringArray } from './sortedArray.js'
 
-it('isArray should be true', () => {
+it('should be recognized by Array.isArray', () => {
   expect(Array.isArray(new SortedArray())).toBe(true)
 })
 
-it('stringification', () => {
+it('should stringify and serialize to JSON like a native array', () => {
   const a = new SortedArray([1, 2, 3])
   const native = [1, 2, 3]
   expect(a.toString()).toMatchInlineSnapshot(`"1,2,3"`)
@@ -13,7 +13,7 @@ it('stringification', () => {
   expect(JSON.stringify(a)).toBe(JSON.stringify(native))
 })
 
-it('constructor sorts initial values', () => {
+it('should sort the initial values', () => {
   const arr = new SortedArray(['c', 'a', 'b'])
 
   expect(arr).toEqual(['a', 'b', 'c'])
@@ -21,7 +21,7 @@ it('constructor sorts initial values', () => {
   expect(arr.last()).toBe('c')
 })
 
-it('push keeps items sorted', () => {
+it('should keep items sorted after push', () => {
   const arr = new SortedArray(['b'])
 
   arr.push('d', 'a', 'c')
@@ -29,7 +29,7 @@ it('push keeps items sorted', () => {
   expect(arr).toEqual(['a', 'b', 'c', 'd'])
 })
 
-it('unshift and splice keep items sorted', () => {
+it('should keep items sorted after unshift and splice', () => {
   const arr = new SortedArray(['d'])
 
   arr.unshift('c')
@@ -38,7 +38,7 @@ it('unshift and splice keep items sorted', () => {
   arr.unshift('b', 'a')
   expect(arr).toEqual(['a', 'b', 'c', 'd'])
 
-  const removed = arr.splice(1, 0, 'aa')
+  const removed = arr.splice(0, 0, 'aa')
   expect(removed).toEqual([])
   expect(arr).toEqual(['a', 'aa', 'b', 'c', 'd'])
 
@@ -47,7 +47,7 @@ it('unshift and splice keep items sorted', () => {
   expect(arr).toEqual(['a', 'aa', 'c', 'd'])
 })
 
-it('respects custom comparator', () => {
+it('should sort with a custom comparator', () => {
   const arr = new SortedArray<number>([1, 3, 2], { comparator: (a, b) => b - a })
 
   expect(arr).toEqual([3, 2, 1])
@@ -56,7 +56,7 @@ it('respects custom comparator', () => {
   expect(arr).toEqual([4, 3, 2, 1])
 })
 
-it('SortedNumberArray sorts numerically', () => {
+it('should sort numbers numerically in SortedNumberArray', () => {
   const arr = new SortedNumberArray([10, 2, 1])
 
   expect(arr).toEqual([1, 2, 10])
@@ -65,7 +65,7 @@ it('SortedNumberArray sorts numerically', () => {
   expect(arr).toEqual([1, 2, 3, 10])
 })
 
-it('constructors remain identifiable', () => {
+it('should keep the subclass constructor names and report as an Array', () => {
   expect(new SortedArray().constructor.name).toBe('SortedArray')
   expect(new SortedStringArray().constructor.name).toBe('SortedStringArray')
   expect(new SortedNumberArray().constructor.name).toBe('SortedNumberArray')

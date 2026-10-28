@@ -4,7 +4,7 @@ import { expect, it } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 import type { ReadableTyped } from '../stream.model.js'
 
-it('transformFork', async () => {
+it('should pass items to both the main stream and the fork', async () => {
   const secondArray: string[] = []
 
   const firstArray = await Pipeline.from(new HonestReadable(3))
@@ -37,7 +37,7 @@ it('transformFork', async () => {
 })
 
 // unskip to test manually
-it.skip('source stream gets stuck', async () => {
+it.skip('should complete when the source stream stalls', async () => {
   await Pipeline.from(new HonestReadable(200, 500, 30))
     .mapSimple(n => n * 2)
     .fork(p => {
@@ -57,7 +57,7 @@ it.skip('source stream gets stuck', async () => {
 }, 120_000)
 
 // unskip to test manually
-it.skip('main stream consumer gets stuck', async () => {
+it.skip('should complete when the main stream consumer stalls', async () => {
   await Pipeline.from(new HonestReadable(200, 100))
     .mapSimple(n => n * 2, { highWaterMark: 1 })
     .fork(
@@ -95,7 +95,7 @@ it.skip('main stream consumer gets stuck', async () => {
 }, 120_000)
 
 // unskip to test manually
-it.skip('fork stream consumer gets stuck', async () => {
+it.skip('should complete when the fork stream consumer stalls', async () => {
   await Pipeline.from(new HonestReadable(200, 100))
     .mapSimple(n => n * 2, { highWaterMark: 1 })
     .fork(

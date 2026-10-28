@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { AccumulatingAverage } from './accumulatingAverage.js'
 
-it('simple', () => {
+it('should track the average, total and count, and reset them', () => {
   const aa = new AccumulatingAverage()
   expect(aa.average).toBe(0)
   expect(aa.total).toBe(0)

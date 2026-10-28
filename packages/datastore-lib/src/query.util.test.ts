@@ -4,7 +4,7 @@ import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
 import { expect, it } from 'vitest'
 import { dbQueryToDatastoreQuery } from './query.util.js'
 
-it('dbQueryToDatastoreQuery passes limit and offset', () => {
+it('should pass limit and offset to the Datastore query and none by default', () => {
   const ds = new Datastore()
 
   // no limit/offset by default

@@ -6,7 +6,7 @@ const traceId = '4bf92f3577b34da6a3ce929d0e0e4736'
 const spanId = '00f067aa0ba902b7'
 const traceparent = `00-${traceId}-${spanId}-01`
 
-it('parseTraceparent: parses the trace id, span id and sampled flag', () => {
+it('should parse the trace id, span id and sampled flag from traceparent', () => {
   expect(parseTraceparent(traceparent)).toEqual({ traceId, spanId, sampled: true })
   expect(parseTraceparent(`00-${traceId}-${spanId}-00`)).toEqual({
     traceId,
@@ -16,7 +16,7 @@ it('parseTraceparent: parses the trace id, span id and sampled flag', () => {
   expect(parseTraceparent(`01-${traceId}-${spanId}-03`)).toEqual({ traceId, spanId, sampled: true })
 })
 
-it('parseTraceparent: ignores the extra fields of a higher version', () => {
+it('should ignore the extra fields of a higher traceparent version', () => {
   expect(parseTraceparent(`01-${traceId}-${spanId}-01-extra`)).toEqual({
     traceId,
     spanId,
@@ -35,11 +35,11 @@ it.each([
   `ff-${traceId}-${spanId}-01`,
   `00-${traceId}-${spanId}-01-extra`,
   `01-${traceId}-${spanId}-01extra`,
-])('parseTraceparent: rejects %s', header => {
+])('should reject the traceparent %s', header => {
   expect(parseTraceparent(header)).toBeUndefined()
 })
 
-it('getRequestTraceContext: reads traceparent', () => {
+it('should read the trace context from the traceparent header', () => {
   expect(getRequestTraceContext(mockReq({ traceparent }))).toEqual({
     traceId,
     spanId,
@@ -48,7 +48,7 @@ it('getRequestTraceContext: reads traceparent', () => {
   expect(getRequestTraceContext(mockReq({}))).toBeUndefined()
 })
 
-it('getRequestTraceId: undefined without a valid traceparent', () => {
+it('should return no trace id without a valid traceparent', () => {
   expect(getRequestTraceId(mockReq({}))).toBeUndefined()
   expect(getRequestTraceId(mockReq({ traceparent: 'not-a-trace' }))).toBeUndefined()
   expect(
@@ -56,7 +56,7 @@ it('getRequestTraceId: undefined without a valid traceparent', () => {
   ).toBeUndefined()
 })
 
-it('getRequestTraceId: is cached per request', () => {
+it('should cache the trace id per request', () => {
   const req = mockReq({ traceparent })
 
   expect(getRequestTraceId(req)).toBe(traceId)

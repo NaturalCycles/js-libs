@@ -4,13 +4,13 @@ import { pExpectedError } from '../error/try.js'
 import { pDelay } from './pDelay.js'
 import { pTimeout, pTimeoutFn } from './pTimeout.js'
 
-it('pTimeoutFn happy case', async () => {
+it('should resolve with the result when pTimeoutFn finishes in time', async () => {
   const fn = async (name: string): Promise<string> => await pDelay(10, `hello ${name}`)
   const decoratedFn = pTimeoutFn(fn, { timeout: 100 })
   expect(await decoratedFn('world')).toBe('hello world')
 })
 
-it('pTimeoutFn default error', async () => {
+it('should reject with a TimeoutError named after the function from pTimeoutFn', async () => {
   const fn = (): Promise<void> => pDelay(100)
   const decoratedFn = pTimeoutFn(fn, { timeout: 10 })
   const err = await pExpectedError(decoratedFn(), TimeoutError)
@@ -18,7 +18,7 @@ it('pTimeoutFn default error', async () => {
   expect(err).toBeInstanceOf(TimeoutError)
 })
 
-it('pTimeoutFn options', async () => {
+it('should use the custom name and the onTimeout error or result in pTimeoutFn', async () => {
   const fn = (): Promise<void> => pDelay(100)
   const decoratedFn = pTimeoutFn(fn, { timeout: 10, name: 'custom name' })
   const err = await pExpectedError(decoratedFn(), TimeoutError)
@@ -37,17 +37,17 @@ it('pTimeoutFn options', async () => {
   expect(await pTimeoutFn(fn, { timeout: 10, onTimeout: () => 'all good' })()).toBe('all good')
 })
 
-it('pTimeout happy case', async () => {
+it('should resolve with the result when pTimeout finishes in time', async () => {
   const r = await pTimeout(() => pDelay(10, 'hello world'), { timeout: 100 })
   expect(r).toBe('hello world')
 })
 
-it('pTimeout 0 timeout direct execution', async () => {
-  const r = await pTimeout(async () => 'hi', { timeout: 0 })
+it('should run the function without a timeout when the timeout is 0', async () => {
+  const r = await pTimeout(() => pDelay(20, 'hi'), { timeout: 0 })
   expect(r).toBe('hi')
 })
 
-it('pTimeout stack', async () => {
+it('should keep the caller in the TimeoutError stack', async () => {
   const err = await pExpectedError(timeoutFail(), TimeoutError)
 
   console.log(err)
@@ -59,7 +59,7 @@ async function timeoutFail(): Promise<void> {
   await pTimeout(() => pDelay(100, 'hello world'), { timeout: 10 })
 }
 
-it('pTimeout signal is not aborted on success', async () => {
+it('should not abort the signal on success', async () => {
   let receivedSignal: AbortSignal | undefined
   await pTimeout(
     signal => {
@@ -72,7 +72,7 @@ it('pTimeout signal is not aborted on success', async () => {
   expect(receivedSignal!.aborted).toBe(false)
 })
 
-it('pTimeout signal is aborted on timeout', async () => {
+it('should abort the signal with a TimeoutError on timeout', async () => {
   let receivedSignal: AbortSignal | undefined
   await pExpectedError(
     pTimeout(
@@ -89,7 +89,7 @@ it('pTimeout signal is aborted on timeout', async () => {
   expect(receivedSignal!.reason).toBeInstanceOf(TimeoutError)
 })
 
-it('pTimeout signal abort reason matches the thrown error', async () => {
+it('should abort the signal with the thrown error as the reason', async () => {
   let receivedSignal: AbortSignal | undefined
   const err = await pExpectedError(
     pTimeout(
@@ -104,7 +104,7 @@ it('pTimeout signal abort reason matches the thrown error', async () => {
   expect(receivedSignal!.reason).toBe(err)
 })
 
-it('pTimeout fn can use signal to short-circuit', async () => {
+it('should reject with the TimeoutError when the function rejects on abort', async () => {
   const result = await pExpectedError(
     pTimeout(
       signal =>
@@ -119,7 +119,7 @@ it('pTimeout fn can use signal to short-circuit', async () => {
   expect(result).toMatchInlineSnapshot(`[TimeoutError: "pTimeout function" timed out after 10 ms]`)
 })
 
-it('pTimeout signal is provided but never aborted with timeout 0', async () => {
+it('should provide a signal that never aborts with a timeout of 0', async () => {
   let receivedSignal: AbortSignal | undefined
   const r = await pTimeout(
     signal => {
@@ -133,7 +133,7 @@ it('pTimeout signal is provided but never aborted with timeout 0', async () => {
   expect(receivedSignal!.aborted).toBe(false)
 })
 
-it('pTimeout signal is aborted on timeout with onTimeout', async () => {
+it('should abort the signal on timeout when onTimeout returns a fallback', async () => {
   let receivedSignal: AbortSignal | undefined
   const r = await pTimeout(
     signal => {

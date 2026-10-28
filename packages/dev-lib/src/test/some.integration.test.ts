@@ -1,3 +1,3 @@
 import { it } from 'vitest'
 
-it('some integration test', () => {})
+it('should run as an integration test', () => {})

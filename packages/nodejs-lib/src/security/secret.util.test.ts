@@ -1,7 +1,7 @@
-import { expect, it } from 'vitest'
+import { afterAll, expect, it } from 'vitest'
 
 // todo: mock properly
-// const originalProcessEnv = process.env
+const originalProcessEnv = process.env
 process.env = {
   A: 'AAA',
   B: 'BBB',
@@ -29,7 +29,11 @@ import {
   setSecretMap,
 } from './secret.util.js'
 
-it('secret', async () => {
+afterAll(() => {
+  process.env = originalProcessEnv
+})
+
+it('should load env secrets into a case-insensitive secret map', async () => {
   expect(() => secret('SECRET_A')).toThrow('not loaded')
   expect(() => getSecretMap()).toThrow('not loaded')
 
@@ -62,7 +66,7 @@ it('secret', async () => {
   expect(secret('a')).toBe('b')
 })
 
-it('loadSecretsFromEncryptedJsonFile', async () => {
+it('should load secrets from a plain or encrypted JSON file', async () => {
   setSecretMap({}) // reset
 
   loadSecretsFromEncryptedJsonFile(secretsJsonPath)
@@ -74,7 +78,7 @@ it('loadSecretsFromEncryptedJsonFile', async () => {
   expect(secret('very')).toBe('secretuous')
 })
 
-it('loadSecretsFromEncryptedJsonFileValues', async () => {
+it('should load secrets from a JSON file with encrypted values', async () => {
   setSecretMap({}) // reset
 
   loadSecretsFromEncryptedJsonFileValues(secrets2JsonPath, TEST_ENC_KEY)

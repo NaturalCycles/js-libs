@@ -3,7 +3,7 @@ import { _range } from '../array/range.js'
 import { pDelay, pMap } from './index.js'
 import { PQueue } from './pQueue.js'
 
-it('PQueue', async () => {
+it('should resolve the job results and reject with a job error', async () => {
   const q = new PQueue({
     concurrency: 1,
     logLevel: 'debug',
@@ -30,7 +30,7 @@ it('PQueue', async () => {
   await q.onIdle()
 })
 
-it('queued job rejection does not cause unhandledRejection', async () => {
+it('should reject a queued job without an unhandled rejection', async () => {
   const q = new PQueue({ concurrency: 2 })
   const unhandled: unknown[] = []
   const onUnhandled = (err: unknown): void => void unhandled.push(err)
@@ -55,7 +55,7 @@ it('queued job rejection does not cause unhandledRejection', async () => {
   expect(unhandled).toEqual([])
 })
 
-it('same function can be pushed multiple times', async () => {
+it('should run the same function each time it is pushed', async () => {
   const q = new PQueue({ concurrency: 1 })
   let n = 0
   const fn = async (): Promise<number> => {

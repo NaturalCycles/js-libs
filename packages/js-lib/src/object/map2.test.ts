@@ -5,7 +5,7 @@ import { Map2 } from './map2.js'
 
 /* oxlint-disable @typescript-eslint/no-base-to-string */
 
-it('map2', () => {
+it('should stringify its entries and convert to and from a plain object', () => {
   const m = new Map([
     ['a', 1],
     ['b', 2],
@@ -36,7 +36,7 @@ it('map2', () => {
   expect(m3.toObject()).toEqual({ a: 1, b: 2, c: 3 })
 })
 
-it('inspect', () => {
+it('should show the subclass name and entries in node inspect', () => {
   const m2 = new Map2([
     ['a', 1],
     ['b', 2],

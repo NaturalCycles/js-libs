@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`commonSchemaToMySQLDDL 1`] = `
+exports[`should build CREATE TABLE DDL from a table schema 1`] = `
 "CREATE TABLE \`TEST_TABLE\` (
 id VARCHAR(255) NOT NULL,
 \`k1\` LONGTEXT DEFAULT NULL,

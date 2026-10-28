@@ -1,6 +1,7 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { ErrorMode, pExpectedError } from '@naturalcycles/js-lib/error'
+import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import type { AsyncIndexedMapper } from '@naturalcycles/js-lib/types'
 import { afterAll, beforeAll, expect, it, vi } from 'vitest'
@@ -25,7 +26,7 @@ const mapperError3: AsyncIndexedMapper<Item, Item> = async item => {
   return item
 }
 
-it('transformMap simple', async () => {
+it('should call the mapper for every item', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2: Item[] = []
 
@@ -37,7 +38,7 @@ it('transformMap simple', async () => {
   // expect(readable.destroyed).toBe(true)
 })
 
-it('transformMap with mapping', async () => {
+it('should emit the mapped items', async () => {
   const data: Item[] = _range(1, 4).map(n => ({ id: String(n) }))
   const data2 = await Pipeline.fromArray(data)
     .map(async r => ({
@@ -48,13 +49,16 @@ it('transformMap with mapping', async () => {
   expect(data2).toEqual(data.map(r => ({ id: r.id + '!' })))
 })
 
-it('transformMap emit array as multiple items', async () => {
+it('should emit each mapped array as one item and await an async onDone with stats', async () => {
   let stats: TransformMapStats
   const data = _range(1, 4)
   const data2 = await Pipeline.fromArray(data)
     .map(async n => [n * 2, n * 2 + 1], {
       // async is to test that it's awaited
-      onDone: async s => (stats = s),
+      onDone: async s => {
+        await pDelay(10)
+        stats = s
+      },
     })
     .flatten()
     .toArray()
@@ -95,7 +99,7 @@ it('transformMap emit array as multiple items', async () => {
 //   expect(data2).toEqual(data)
 // })
 
-it('transformMap errorMode=THROW_IMMEDIATELY', async () => {
+it('should reject on the first mapper error in the default THROW_IMMEDIATELY mode', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -123,7 +127,7 @@ it('transformMap errorMode=THROW_IMMEDIATELY', async () => {
 `)
 })
 
-it('transformMap errorMode=THROW_AGGREGATED', async () => {
+it('should reject with an AggregateError after all items in THROW_AGGREGATED mode and summarize stats', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []
@@ -189,7 +193,7 @@ n1: 145"
 `)
 })
 
-it('transformMap errorMode=SUPPRESS', async () => {
+it('should skip failed items without rejecting in SUPPRESS mode', async () => {
   let stats: TransformMapStats
   const data: Item[] = _range(1, 5).map(n => ({ id: String(n) }))
   const data2: Item[] = []

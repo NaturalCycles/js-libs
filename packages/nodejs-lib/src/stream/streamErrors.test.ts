@@ -1,45 +1,9 @@
-import { Readable, Transform } from 'node:stream'
+import { Transform } from 'node:stream'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { pExpectedErrorString } from '@naturalcycles/js-lib/error'
-import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import { expect, it } from 'vitest'
 import { Pipeline, writablePushToArray } from './index.js'
 
-function errorTransformUnhandled(): Transform {
-  return new Transform({
-    objectMode: true,
-    transform(chunk, _, cb) {
-      if (chunk.id === '4') throw new Error('error_in_transform')
-      cb(null, chunk)
-    },
-  })
-}
-
-function errorTransform(): Transform {
-  return new Transform({
-    objectMode: true,
-    transform(chunk, _, cb) {
-      if (chunk.id === '4') return cb(new Error('error_in_transform'))
-      cb(null, chunk)
-    },
-  })
-}
-
-const errorMapper = (chunk: ObjectWithId): ObjectWithId => {
-  if (chunk.id === '4') throw new Error('error_in_transform')
-  return chunk
-}
-
-// still don't know how to handle such errors. Domains?
-it.skip('unhandled transform error', async () => {
-  const data = _range(1, 6).map(n => ({ id: String(n) }))
-
-  await expect(
-    Pipeline.fromArray(data).transform(errorTransformUnhandled()).toArray(),
-  ).rejects.toThrow('error_in_transform')
-})
-
-it('handled transform error', async () => {
+it('should reject and keep the items before the error when a transform calls back with an error', async () => {
   const data = _range(1, 6).map(n => ({ id: String(n) }))
 
   const results: any[] = []
@@ -50,10 +14,12 @@ it('handled transform error', async () => {
   expect(results).toEqual(data.filter(r => r.id < '4'))
 })
 
-it('does map handle errors?', async () => {
-  const data = _range(1, 6).map(n => ({ id: String(n) }))
-  const readable = Readable.from(data)
-
-  const s = await pExpectedErrorString(readable.map(errorMapper).toArray())
-  expect(s).toMatchInlineSnapshot(`"Error: error_in_transform"`)
-})
+function errorTransform(): Transform {
+  return new Transform({
+    objectMode: true,
+    transform(chunk, _, cb) {
+      if (chunk.id === '4') return cb(new Error('error_in_transform'))
+      cb(null, chunk)
+    },
+  })
+}

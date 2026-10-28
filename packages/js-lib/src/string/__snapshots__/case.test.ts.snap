@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`_camelCase 1`] = `
+exports[`should convert words and their snake_case form to camelCase 1`] = `
 Map {
   "Add data" => "addData",
   "directorOfTrackAndTrigger" => "directorOfTrackAndTrigger",
@@ -30,7 +30,7 @@ Map {
 }
 `;
 
-exports[`_kebabCase 1`] = `
+exports[`should convert words to kebab-case 1`] = `
 Map {
   "Add data" => "add-data",
   "directorOfTrackAndTrigger" => "director-of-track-and-trigger",
@@ -50,7 +50,7 @@ Map {
 }
 `;
 
-exports[`_snakeCase 1`] = `
+exports[`should convert words to snake_case 1`] = `
 Map {
   "Add data" => "add_data",
   "directorOfTrackAndTrigger" => "director_of_track_and_trigger",

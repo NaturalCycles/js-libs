@@ -3,7 +3,7 @@ import type { IsoDate } from '../types.js'
 import { DateInterval } from './dateInterval.js'
 import { localDate } from './localDate.js'
 
-it('basic', () => {
+it('should parse, compare and serialize intervals, throwing on invalid strings', () => {
   const str1 = '2022-02-24/2022-03-30'
   const int1 = DateInterval.parse(str1)
   expect(int1.toString()).toBe(str1)
@@ -39,7 +39,7 @@ it('basic', () => {
   )
 })
 
-it('includes', () => {
+it('should include both the start and the end date', () => {
   const int = DateInterval.parse('2022-02-24/2022-03-30')
   // oxlint-disable jest/prefer-to-contain
   expect(int.includes('2022-02-23' as IsoDate)).toBe(false)
@@ -54,7 +54,7 @@ it('includes', () => {
   expect(int.includes('2022-04-01' as IsoDate)).toBe(false)
 })
 
-it('getDays', () => {
+it('should list every day of the interval, both ends included', () => {
   const int = DateInterval.parse('2022-02-24/2022-03-01')
   expect(int.getDays()).toMatchInlineSnapshot(`
     [
@@ -68,7 +68,7 @@ it('getDays', () => {
   `)
 })
 
-it('intersects', () => {
+it('should intersect intervals that share at least one day', () => {
   const int = DateInterval.parse('2022-03-01/2022-03-31')
   expect(int.intersects('2022-03-01/2022-03-31')).toBe(true)
   expect(int.intersects('2022-03-02/2022-03-31')).toBe(true)

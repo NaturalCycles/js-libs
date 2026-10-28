@@ -6,7 +6,7 @@ import { onHeaders } from './onHeaders.js'
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => void
 
-it('fires once before implicit writeHead, can modify headers', async () => {
+it('should call the listener once before an implicit writeHead and let it modify headers', async () => {
   let calls = 0
   const res = await request((_req, res) => {
     onHeaders(res, function () {
@@ -23,7 +23,7 @@ it('fires once before implicit writeHead, can modify headers', async () => {
   expect(await res.text()).toBe('ab')
 })
 
-it('headers passed to writeHead are visible to (and modifiable by) the listener', async () => {
+it('should let the listener see and modify the headers passed to writeHead', async () => {
   const res = await request((_req, res) => {
     onHeaders(res, () => {
       expect(res.statusCode).toBe(201)
@@ -37,7 +37,7 @@ it('headers passed to writeHead are visible to (and modifiable by) the listener'
   expect(res.headers.has('x-remove')).toBe(false)
 })
 
-it('keeps the reason phrase, unless the listener changes statusCode', async () => {
+it('should keep the reason phrase unless the listener changes statusCode', async () => {
   const kept = await request((_req, res) => {
     onHeaders(res, () => {})
     res.writeHead(200, 'Custom OK', { 'X-A': '1' }).end()
@@ -53,7 +53,7 @@ it('keeps the reason phrase, unless the listener changes statusCode', async () =
   expect(changed.statusText).toBe('Accepted')
 })
 
-it('supports 2D and raw (1D, repeated keys) header arrays', async () => {
+it('should accept 2D and raw header arrays and throw on a malformed one', async () => {
   const res2d = await request((_req, res) => {
     onHeaders(res, () => expect(res.getHeader('X-A')).toBe('1'))
     res.writeHead(200, [['X-A', '1']] as any).end()

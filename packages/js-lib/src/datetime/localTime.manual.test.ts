@@ -36,7 +36,7 @@ const UNIT_RANGE: Record<LocalTimeUnit, number> = {
 
 const DAYJS_ISO_DATE = 'YYYY-MM-DD'
 
-it('add', () => {
+it('should add, subtract and round every unit like dayjs', () => {
   if (!isUTC()) return
   const starts = [
     '2022-05-31',
@@ -123,7 +123,7 @@ it('add', () => {
   })
 })
 
-it('diff', () => {
+it('should diff in every unit like dayjs', () => {
   if (!isUTC()) return
   const starts = [
     '2022-05-31',

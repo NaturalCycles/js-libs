@@ -725,7 +725,7 @@ function matrixToRows(
 }
 
 it.each(FIXTURES)(
-  'matches reference for $mode "$content" ecl=$ecl type=$typeNumber',
+  'should match the reference matrix for $mode "$content" ecl=$ecl type=$typeNumber',
   ({ content, mode, ecl, typeNumber, size, rows }) => {
     const qr = createQrCode(content, { mode, ecl, typeNumber })
     expect(qr.size).toBe(size)
@@ -733,19 +733,17 @@ it.each(FIXTURES)(
   },
 )
 
-it('auto-detects the encoding mode', () => {
-  // numeric is the most compact -> smallest matrix; byte the least
-  const numeric = createQrCode('12345')
-  const alnum = createQrCode('HELLO WORLD')
-  const byte = createQrCode('Hello, world!')
+it.each([
+  ['12345', 'numeric', 'alphanumeric'],
+  ['HELLO WORLD', 'alphanumeric', 'byte'],
+] as const)('should auto-detect %s as %s mode, not %s', (content, mode, wrongMode) => {
+  const detected = createQrCode(content).modules
 
-  // same payload, forced byte mode is never smaller than the auto-detected mode
-  expect(createQrCode('12345', { mode: 'numeric' }).size).toBe(numeric.size)
-  expect(createQrCode('HELLO WORLD', { mode: 'alphanumeric' }).size).toBe(alnum.size)
-  expect(byte.size).toBeGreaterThanOrEqual(21)
+  expect(detected).toEqual(createQrCode(content, { mode }).modules)
+  expect(detected).not.toEqual(createQrCode(content, { mode: wrongMode }).modules)
 })
 
-it('auto-selects the smallest fitting version, growing with payload', () => {
+it('should pick the smallest fitting version, growing with the payload and ECC level', () => {
   expect(createQrCode('a').size).toBe(21) // v1
   const big = createQrCode('a'.repeat(300))
   expect(big.size).toBeGreaterThan(21)
@@ -755,17 +753,18 @@ it('auto-selects the smallest fitting version, growing with payload', () => {
   )
 })
 
-it('encodes UTF-8 in byte mode (unlike the original Latin-1 behavior)', () => {
+it('should encode multibyte content as its UTF-8 bytes in byte mode', () => {
   // '€' is 3 UTF-8 bytes (0xE2 0x82 0xAC); a multibyte payload must still produce a valid matrix
-  const qr = createQrCode('Price: 5€ café 🎉')
-  expect(qr.size).toBeGreaterThanOrEqual(21)
+  const text = 'Price: 5€ café 🎉'
+  const qr = createQrCode(text)
+  expect(qr.modules).toEqual(createQrCode(new TextEncoder().encode(text)).modules)
   // matrix is fully populated with booleans
   expect(
     qr.modules.every(row => row.length === qr.size && row.every(v => typeof v === 'boolean')),
   ).toBe(true)
 })
 
-it('finder patterns are present in all three corners', () => {
+it('should draw finder patterns in the three corners', () => {
   const qr = createQrCode('HELLO')
   const n = qr.size
   // top-left finder: dark border ring around a 3x3 dark core
@@ -780,7 +779,7 @@ it('finder patterns are present in all three corners', () => {
   }
 })
 
-it('toSvg renders a scalable svg of the right pixel size', () => {
+it('should render an svg of the requested pixel size with toSvg', () => {
   const qr = createQrCode('HELLO', { ecl: 'M' })
   const svg = qr.toSvg({ scale: 8, border: 4 })
   const dimPx = (qr.size + 8) * 8
@@ -791,13 +790,13 @@ it('toSvg renders a scalable svg of the right pixel size', () => {
   expect(svg.endsWith('</svg>')).toBe(true)
 })
 
-it('toDataUrl produces a usable svg data url', () => {
+it('should produce an svg data url with toDataUrl', () => {
   const url = createQrCode('HELLO').toDataUrl()
   expect(url.startsWith('data:image/svg+xml,')).toBe(true)
   expect(decodeURIComponent(url.slice('data:image/svg+xml,'.length)).startsWith('<svg')).toBe(true)
 })
 
-it('toAscii renders a bordered block-character grid', () => {
+it('should render a bordered block-character grid with toAscii', () => {
   const qr = createQrCode('HELLO')
   const ascii = qr.toAscii({ border: 2 })
   const lines = ascii.split('\n')
@@ -809,11 +808,10 @@ it('toAscii renders a bordered block-character grid', () => {
   expect(qr.toString()).toBe(qr.toAscii())
 })
 
-it('accepts raw bytes directly', () => {
+it('should give raw bytes the same matrix as the same string in byte mode', () => {
   const bytes = new TextEncoder().encode('HELLO')
   const fromBytes = createQrCode(bytes, { ecl: 'M' })
   const fromString = createQrCode('HELLO', { mode: 'byte', ecl: 'M' })
-  expect(matrixToRows('HELLO', 'byte', 'M', 0)).toEqual(matrixToRows('HELLO', 'byte', 'M', 0))
   expect(fromBytes.size).toBe(fromString.size)
   // identical matrices
   for (let r = 0; r < fromBytes.size; r++) {
@@ -823,6 +821,6 @@ it('accepts raw bytes directly', () => {
   }
 })
 
-it('throws on illegal alphanumeric input', () => {
+it('should throw on lowercase input in alphanumeric mode', () => {
   expect(() => createQrCode('hello', { mode: 'alphanumeric' })).toThrow('illegal alphanumeric')
 })

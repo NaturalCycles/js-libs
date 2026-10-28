@@ -1,14 +1,15 @@
+import Airtable from 'airtable'
 import { expect, it } from 'vitest'
 import { AirtableLib } from './airtableLib.js'
 
-it('api', async () => {
+it('should configure the Airtable library with the API key and a 40 s request timeout', async () => {
   const airtableLib = new AirtableLib({
     apiKey: 'apiKey123',
   })
 
   const api = await airtableLib.api()
-  // console.log(api)
-  expect(api).toBeDefined()
-  expect(api.base).toBeDefined()
-  expect(typeof api.base).toBe('function')
+
+  expect(api).toBe(Airtable)
+  expect(Airtable.apiKey).toBe('apiKey123')
+  expect(Airtable.requestTimeout).toBe(40_000)
 })

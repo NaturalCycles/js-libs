@@ -9,7 +9,7 @@ const repo: RepoInfo = {
   url: 'https://github.com/NaturalCycles/js-libs',
 }
 
-it('generateReleaseNotes: full example', () => {
+it('should group commits into release note sections with links, skipping chores', () => {
   const commits = [
     { hash: 'a'.repeat(40), subject: 'feat(array): add _chunk', body: '' },
     { hash: 'b'.repeat(40), subject: 'fix: resolve crash', body: '' },
@@ -52,13 +52,13 @@ it('generateReleaseNotes: full example', () => {
 `)
 })
 
-it('generateReleaseNotes: first release has no compare link', () => {
+it('should omit the compare link on the first release', () => {
   const commits = [{ hash: 'a'.repeat(40), subject: 'feat: initial', body: '' }].map(parseCommit)
   const notes = generateReleaseNotes({ repo, commits, nextTag: 'v1.0.0', date: '2026-07-06' })
   expect(notes.startsWith('## v1.0.0 (2026-07-06)')).toBe(true)
 })
 
-it('generateReleaseNotes: revert section', () => {
+it('should list reverts in a Reverts section', () => {
   const commits = [{ hash: 'a'.repeat(40), subject: 'Revert "feat: broken thing"', body: '' }].map(
     parseCommit,
   )

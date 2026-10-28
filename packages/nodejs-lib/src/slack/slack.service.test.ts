@@ -1,12 +1,12 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
-import { pExpectedError } from '@naturalcycles/js-lib/error'
+import { HttpRequestError, pExpectedError } from '@naturalcycles/js-lib/error'
 import { Fetcher } from '@naturalcycles/js-lib/http'
 import { commonLoggerNoop } from '@naturalcycles/js-lib/log'
 import { _stringify } from '@naturalcycles/js-lib/string/stringify.js'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { slackDefaultMessagePrefixHook, SlackService } from './slack.service.js'
 
-let slackService = new SlackService({
+const slackService = new SlackService({
   webhookUrl: 'https://dummyhook.com',
   logger: commonLoggerNoop,
   // defaults: {
@@ -37,7 +37,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-it('basic test', async () => {
+it('should post a timestamped webhook body with items, kv fields and mentions', async () => {
   await slackService.log('hey')
   expect(lastBody).toMatchSnapshot()
 
@@ -65,27 +65,38 @@ it('basic test', async () => {
   // await expect(slackService.send({items: 'hey', throwOnError: true})).rejects.toThrow('Network request forbidden')
 })
 
-it('no webhookUrl', async () => {
-  slackService = new SlackService({
+it('should not post anything without a webhookUrl', async () => {
+  const slackServiceWithoutUrl = new SlackService({
     logger: commonLoggerNoop,
   })
-  await slackService.log('anything')
+  await slackServiceWithoutUrl.log('anything')
   expect(lastBody).toBeNull() // should be unchanged
 })
 
-it('error', async () => {
-  slackService = new SlackService({
-    webhookUrl: 'wrongUrl',
+it('should log a failed post without throwing, and throw an HttpRequestError with throwOnError', async () => {
+  vi.spyOn(console, 'log').mockImplementation(() => {})
+  const failingSlackService = new SlackService({
+    webhookUrl: 'https://error.com',
     logger: commonLoggerNoop,
   })
 
   // This should NOT throw, because errors are suppressed
-  await slackService.log('yo')
+  await failingSlackService.log('yo')
+  expect(lastBody).not.toBeNull()
+  expect(console.log).toHaveBeenCalledExactlyOnceWith(expect.any(HttpRequestError))
+
+  const wrongUrlSlackService = new SlackService({
+    webhookUrl: 'wrongUrl',
+    logger: commonLoggerNoop,
+  })
 
   // this unmocks Fetcher and lets Slack fail
   vi.restoreAllMocks()
 
-  const err = await pExpectedError(slackService.send({ items: 'yo', throwOnError: true }))
+  const err = await pExpectedError(
+    wrongUrlSlackService.send({ items: 'yo', throwOnError: true }),
+    HttpRequestError,
+  )
   expect(_stringify(err)).toMatchInlineSnapshot(`
     "HttpRequestError: POST wrongUrl
     Caused by: TypeError: Failed to parse URL from wrongUrl
@@ -93,7 +104,7 @@ it('error', async () => {
   `)
 })
 
-it('user group mentions use subteam format', async () => {
+it('should format user group mentions in the subteam format', async () => {
   await slackService.send({
     items: 'alert',
     mentions: ['U123456', 'S789012'], // user ID and user group ID
@@ -101,18 +112,18 @@ it('user group mentions use subteam format', async () => {
   expect(lastBody).toMatchSnapshot()
 })
 
-it('messagePrefixHook returning null should NOT be sent', async () => {
-  slackService = new SlackService({
+it('should not send a message when messagePrefixHook returns null', async () => {
+  const filteringSlackService = new SlackService({
     webhookUrl: 'https://valid.com',
     messagePrefixHook: () => null,
     logger: commonLoggerNoop,
   })
 
-  await slackService.log('yo')
+  await filteringSlackService.log('yo')
   expect(lastBody).toBeNull()
 
   // revert to default hook
-  slackService.cfg.messagePrefixHook = slackDefaultMessagePrefixHook
-  await slackService.log('yo')
+  filteringSlackService.cfg.messagePrefixHook = slackDefaultMessagePrefixHook
+  await filteringSlackService.log('yo')
   expect(lastBody).not.toBeNull()
 })

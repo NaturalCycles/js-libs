@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`stringify default 1`] = `
+exports[`should stringify all kinds of values, with and without error data 1`] = `
 Map {
   undefined => "undefined",
   null => "null",
@@ -85,7 +85,7 @@ code: auth/forbidden",
 }
 `;
 
-exports[`stringify default 2`] = `
+exports[`should stringify all kinds of values, with and without error data 2`] = `
 Map {
   undefined => "undefined",
   null => "null",

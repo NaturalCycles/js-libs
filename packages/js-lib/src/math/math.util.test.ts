@@ -32,14 +32,15 @@ it.each([
   [[1, 2], 1.5],
   [[1, 2, 3], 2],
   [[2, 3, 10], 5],
-])('_average(%s) === %s', (numbers, result) => {
+])('should compute _average(%s) as %s', (numbers, result) => {
   expect(_average(numbers)).toBe(result)
 })
 
-it('_averageOrNull', () => {
+it('should throw on an empty array, and return null for an empty or nullish input from _averageOrNull', () => {
   expect(() => _average([])).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: _average is called on empty array]`,
   )
+  expect(_averageOrNull([])).toBeNull()
   expect(_averageOrNull(undefined)).toBeNull()
   expect(_averageOrNull(null)).toBeNull()
   expect(_averageOrNull([1])).toBe(1)
@@ -50,20 +51,21 @@ it.each([
   [[1, 1, 1], 0],
   [[2, 4, 4, 4, 5, 5, 7, 9], 2],
   [[1, 2, 3, 4, 5], Math.sqrt(2)],
-])('_stdDev(%s) === %s', (numbers, result) => {
+])('should compute _stdDev(%s) as %s', (numbers, result) => {
   expect(_stdDev(numbers)).toBe(result)
 })
 
-it('_stdDevOrNull', () => {
+it('should throw on an empty array, and return null for an empty or nullish input from _stdDevOrNull', () => {
   expect(() => _stdDev([])).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: _stdDev is called on empty array]`,
   )
+  expect(_stdDevOrNull([])).toBeNull()
   expect(_stdDevOrNull(undefined)).toBeNull()
   expect(_stdDevOrNull(null)).toBeNull()
   expect(_stdDevOrNull([1])).toBe(0)
 })
 
-it('_averageWeighted', () => {
+it('should compute the weighted average', () => {
   expect(_averageWeighted([1, 2], [3, 1])).toMatchInlineSnapshot('1.25')
 
   const weights = numbers.map((_, i) => 1 + 0.1 * i)
@@ -88,11 +90,11 @@ it.each([
   [[0, 1, 2, 3, 4, 5], 60, 3],
   [[0, 1, 2, 3, 4, 5], 80, 4],
   [[0, 1, 2, 3, 4, 5], 100, 5],
-])('_percentile(%s, %s) === %s', (numbers, pc, result) => {
+])('should compute _percentile(%s, %s) as %s', (numbers, pc, result) => {
   expect(_percentile(numbers, pc)).toBe(result)
 })
 
-it('_percentile', () => {
+it('should interpolate percentiles linearly between two numbers', () => {
   const numbers = [1200, 1400]
 
   const pcs = _mapToObject(_range(0, 101, 10), pc => [pc, _percentile(numbers, pc)])
@@ -115,7 +117,7 @@ it('_percentile', () => {
   `)
 })
 
-it('_percentiles', () => {
+it('should return the requested percentiles keyed by percentile', () => {
   const numbers = [1200, 1400]
 
   const pcs = _percentiles(numbers, [50, 90, 99])
@@ -128,7 +130,7 @@ it('_percentiles', () => {
   `)
 })
 
-it('_median', () => {
+it('should return the median without mutating the input', () => {
   expect(_median([1, 2, 3])).toBe(2)
   expect(_median([1, 2, 3, 4])).toBe(2.5)
   expect(_median([5])).toBe(5)

@@ -48,7 +48,7 @@ const noSchemaService = new JWTService({
   algorithm: 'ES256',
 })
 
-it('jwtService all operations', async () => {
+it('should sign, decode and verify a token', async () => {
   const token1 = await jwtService.sign(data1, { expiresAt: null })
   // Byte-identical to what legacy JWTService (jsonwebtoken) produces
   expect(
@@ -80,14 +80,14 @@ it('jwtService all operations', async () => {
   expect(verified2).toStrictEqual(data1)
 })
 
-it('expiresAt', async () => {
+it('should set the exp claim from expiresAt', async () => {
   const expiresAt = localTime.now().plus(1, 'hour').unix
   const token1 = await noSchemaService.sign(data1, { expiresAt })
   const { exp } = await noSchemaService.verify<Data & { exp: number }>(token1)
   expect(exp).toBe(expiresAt)
 })
 
-it('expired token throws JWTExpiredError', async () => {
+it('should throw a JWTExpiredError exposing the payload for an expired token', async () => {
   const expiredToken = await jwtService.sign(data1, {
     expiresAt: localTime.now().minus(2, 'minute').unix,
   })
@@ -102,7 +102,7 @@ it('expired token throws JWTExpiredError', async () => {
   expect(err.payload).toStrictEqual({ ...data1, exp: expect.any(Number) })
 })
 
-it('not-yet-valid token throws JWTNotYetValidError', async () => {
+it('should throw a JWTNotYetValidError exposing the payload before notBefore', async () => {
   const token1 = await jwtService.sign(data1, {
     expiresAt: null,
     notBefore: localTime.now().plus(1, 'hour').unix,
@@ -114,7 +114,7 @@ it('not-yet-valid token throws JWTNotYetValidError', async () => {
   expect(err.payload).toStrictEqual({ ...data1, nbf: expect.any(Number) })
 })
 
-it('tryToVerify', async () => {
+it('should return the payload from tryToVerify only for a valid token', async () => {
   // valid token: no error, trusted payload
   const token1 = await jwtService.sign(data1, { expiresAt: null })
   expect(await jwtService.tryToVerify(token1)).toEqual([null, data1])
@@ -132,7 +132,7 @@ it('tryToVerify', async () => {
   expect(await jwtService.tryToVerify('yabadabadoo')).toEqual([expect.any(JWTInvalidError), null])
 })
 
-it('tryToVerifyOrDecode', async () => {
+it('should return the payload from tryToVerifyOrDecode whenever the token decodes', async () => {
   // valid token: no error, trusted payload
   const token1 = await jwtService.sign(data1, { expiresAt: null })
   expect(await jwtService.tryToVerifyOrDecode(token1)).toEqual([null, data1])
@@ -166,7 +166,7 @@ it('tryToVerifyOrDecode', async () => {
   expect(payload5).toBeNull()
 })
 
-it('error subclasses are directly constructible, e.g for test mocks', () => {
+it('should allow constructing the JWT error subclasses directly', () => {
   const err = new JWTExpiredError('jwt expired')
   expect(err.name).toBe('JWTExpiredError')
   expect(err.data.code).toBe('JWT_EXPIRED')
@@ -177,7 +177,7 @@ it('error subclasses are directly constructible, e.g for test mocks', () => {
   expect(err2.data.code).toBe('JWT_INVALID')
 })
 
-it('verifyOptions: now and clockTolerance', async () => {
+it('should accept an expired token with the now or clockTolerance verify options', async () => {
   const expiresAt = localTime.now().minus(2, 'minute').unix
   const expiredToken = await jwtService.sign(data1, { expiresAt })
 
@@ -197,7 +197,7 @@ it('verifyOptions: now and clockTolerance', async () => {
   await pExpectedError(jwtService.verify(expiredToken), JWTExpiredError)
 })
 
-it('malformed and tampered tokens throw JWTInvalidError', async () => {
+it('should reject malformed and tampered tokens on verify and only malformed ones on decode', async () => {
   const token1 = await jwtService.sign(data1, { expiresAt: null })
   const malformedToken = token1.slice(1)
   const tamperedToken = token1.slice(0, -3) + 'AAA'
@@ -216,7 +216,7 @@ it('malformed and tampered tokens throw JWTInvalidError', async () => {
   expect(decoded.payload).toStrictEqual(data1)
 })
 
-it('cfg.errorData is merged into JWTError data', async () => {
+it('should merge cfg.errorData into the JWTError data', async () => {
   const service = new JWTService({
     privateKey,
     publicKey: privateKey,
@@ -237,7 +237,7 @@ it('cfg.errorData is merged into JWTError data', async () => {
   })
 })
 
-it('standard claim signOptions', async () => {
+it('should sign and verify standard claims and reject a mismatched issuer', async () => {
   const issuedAt = localTime.nowUnix()
   const token1 = await noSchemaService.sign(data1, {
     expiresAt: null,
@@ -263,7 +263,7 @@ it('standard claim signOptions', async () => {
   await pExpectedError(noSchemaService.verify(token1, { issuer: 'other-issuer' }), JWTInvalidError)
 })
 
-it('cfg.signOptions are applied to every sign', async () => {
+it('should apply cfg.signOptions when signing', async () => {
   const service = new JWTService({
     privateKey,
     publicKey: privateKey,
@@ -280,7 +280,7 @@ it('cfg.signOptions are applied to every sign', async () => {
   expect(payload.iss).toBe('cfg-issuer')
 })
 
-it('schema: cfg-level, opt-level override, claim stripping', async () => {
+it('should validate payloads with the cfg or opt schema and strip standard claims', async () => {
   // cfg.schema validates on sign: invalid payload rejects with a validation error, not JWTError
   const invalidData = { accountId: 'x' } as Data
   const err1 = await pExpectedError(jwtService.sign(invalidData, { expiresAt: null }))
@@ -322,7 +322,7 @@ it('schema: cfg-level, opt-level override, claim stripping', async () => {
   expect(verified).toStrictEqual(data1)
 })
 
-it('verifyAlgorithms: one verifier accepting multiple key types', async () => {
+it('should verify EC and RSA tokens with verifyAlgorithms and reject a key type mismatch', async () => {
   const rsa = generateKeyPairSync('rsa', { modulusLength: 2048 })
   const rsaPrivatePem = rsa.privateKey.export({ type: 'pkcs8', format: 'pem' })
   const rsaPublicPem = rsa.publicKey.export({ type: 'spki', format: 'pem' })
@@ -353,7 +353,7 @@ it('verifyAlgorithms: one verifier accepting multiple key types', async () => {
   )
 })
 
-it('kid header option', async () => {
+it('should set the kid header only when the kid option is given', async () => {
   const token1 = await noSchemaService.sign(data1, { expiresAt: null, kid: 'key-id-1' })
   expect(jwtDecode(token1).header).toEqual({ alg: 'ES256', typ: 'JWT', kid: 'key-id-1' })
 
@@ -362,7 +362,7 @@ it('kid header option', async () => {
   expect(jwtDecode(token2).header).toEqual({ alg: 'ES256', typ: 'JWT' })
 })
 
-it('standalone jwtDecode', async () => {
+it('should decode with standalone jwtDecode and throw JWTInvalidError on a malformed token', async () => {
   const token1 = await jwtService.sign(data1, { expiresAt: null })
 
   const decoded = jwtDecode<Data>(token1)

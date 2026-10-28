@@ -1,10 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { _range } from './array/range.js'
 import { DeviceIdService } from './deviceIdService.js'
 import { InMemoryWebStorage } from './web.js'
 
+// unstubGlobals/unstubEnvs run before each test, so the last test's stubs would leak into the next file
+afterAll(() => {
+  vi.unstubAllGlobals()
+})
+
 describe('when run in Node', () => {
-  it('deviceId should be null', () => {
+  it('should have a null deviceId and select no device', () => {
     const deviceIdService = new DeviceIdService()
     expect(deviceIdService.deviceId).toBeNull()
     expect(deviceIdService.select(0.9)).toBe(false)
@@ -23,7 +28,7 @@ describe('when run in Browser', () => {
     })
   })
 
-  it('deviceId should be generated, and then persisted', () => {
+  it('should generate a deviceId, persist it and remove it on clearPersistence', () => {
     const deviceIdService = new DeviceIdService()
     expect(deviceIdService.deviceId).not.toBeNull()
     expect(deviceIdService.deviceId?.length).toBe(21)
@@ -36,7 +41,7 @@ describe('when run in Browser', () => {
     expect(localStorage.getItem(deviceIdService.cfg.localStorageKey)).toBeNull()
   })
 
-  it('selection rate should be close to the target', () => {
+  it('should select a share of devices close to the target rate', () => {
     const devices = 100_000
     const rate = 0.25
     let selected = 0

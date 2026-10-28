@@ -17,7 +17,7 @@ it.each([
       other: 'too',
     },
   ],
-])('_parseQueryString %s to equal %s', (search, result) => {
+])('should parse the query string %s into %s', (search, result) => {
   expect(_parseQueryString(search)).toEqual(result)
 
   // Just checking that the same can be achieved with URLSearchParams
@@ -44,7 +44,7 @@ it.each([
   // No url or base
   [[undefined], null],
   [[undefined, undefined], null],
-] as const)('_toUrlOrNull %s to equal %s', ([url, base], result) => {
+] as const)('should parse %s into %s with _toUrlOrNull', ([url, base], result) => {
   const parsed = _toUrlOrNull(url, base)
   if (result === null) {
     expect(parsed).toBeNull()

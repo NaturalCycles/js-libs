@@ -3,7 +3,7 @@ import { nanoidBrowser, nanoidBrowserCustomAlphabet } from './nanoid.js'
 
 const base64urlAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 
-it('should return a string of required length', () => {
+it('should return a base64url id of the requested length, 21 by default', () => {
   const id = nanoidBrowser()
   expect(typeof id).toBe('string')
   expect(id).toHaveLength(21)
@@ -16,11 +16,11 @@ it('should return a string of required length', () => {
   expect(nanoidBrowser(300)).toHaveLength(300)
 })
 
-it('should be random, 2 values should not be equal', () => {
+it('should return a different id on each call', () => {
   expect(nanoidBrowser()).not.toBe(nanoidBrowser())
 })
 
-it('customAlphabet id all characters should be from the alphabet', () => {
+it('should use only characters from a custom alphabet', () => {
   const alphabet = 'abcdefgh'
   const fn = nanoidBrowserCustomAlphabet(alphabet)
   let id = fn()

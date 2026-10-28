@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`error handling > logs errors by default 1`] = `
+exports[`error handling > should log scrubber errors by default 1`] = `
 [MockFunction log] {
   "calls": [
     [
@@ -17,7 +17,13 @@ exports[`error handling > logs errors by default 1`] = `
 }
 `;
 
-exports[`scrubs different types of data 1`] = `
+exports[`should hash the email with the config initializationVector and append the domain 1`] = `
+{
+  "email": "67a830fc650cb5c7f643db46c275f73f3c892d705be571e982826296b1c34019@example.com.br",
+}
+`;
+
+exports[`should match the snapshot for mixed value types 1`] = `
 [
   {
     "array": [
@@ -54,13 +60,7 @@ exports[`scrubs different types of data 1`] = `
 ]
 `;
 
-exports[`supplying an initializationVector in config of saltedHashEmailScrubber should produce consistent results 1`] = `
-{
-  "email": "67a830fc650cb5c7f643db46c275f73f3c892d705be571e982826296b1c34019@example.com.br",
-}
-`;
-
-exports[`supplying an initializationVector in config should take precedence 1`] = `
+exports[`should prefer the config initializationVector over the constructor one 1`] = `
 {
   "id": "56f968eb428383c987ee241cb9b84ee9e1c131b9c4e5370e38cce6f399d4cecd",
 }

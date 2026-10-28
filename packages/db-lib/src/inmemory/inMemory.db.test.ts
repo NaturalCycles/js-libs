@@ -12,7 +12,7 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(db)
 })
 
-it('saveBatch clones and restores top-level Buffers, isolated from the caller', async () => {
+it('should save top-level Buffers as isolated copies and load them as Buffers', async () => {
   const buf = Buffer.from('zstd-compressed-data-here')
   const row = { id: 'id1', __compressed: buf, other: 'field' }
 
@@ -33,7 +33,7 @@ it('saveBatch clones and restores top-level Buffers, isolated from the caller', 
   expect(loaded2!.__compressed.toString()).toBe('zstd-compressed-data-here')
 })
 
-it('saveBatch stores nested Buffers and Buffer-shaped plain objects in their json form', async () => {
+it('should store nested Buffers and Buffer-shaped objects in their JSON form', async () => {
   // Known accepted limitation: only top-level Buffers are preserved as Buffers.
   // Nested Buffers, and plain objects shaped like a serialized Buffer,
   // are stored in Buffer's json form (no bufferReviver applied).
@@ -57,7 +57,7 @@ interface PatchTestRow {
   b: number
 }
 
-it('patchById patches existing row and throws on missing row', async () => {
+it('should patch an existing row by id and throw on a missing row', async () => {
   await db.saveBatch(TEST_TABLE, [{ id: 'id3', a: 1, b: 2 }])
 
   await db.patchById<PatchTestRow>(TEST_TABLE, 'id3', { b: 3 })
@@ -91,7 +91,7 @@ it('patchById patches existing row and throws on missing row', async () => {
 //   await db.flushToDisk()
 // })
 
-it('clear removes all tables, including tables outside of tablesPrefix', async () => {
+it('should remove all tables on clear, including tables outside the prefix', async () => {
   const prefixedDB = new InMemoryDB({ tablesPrefix: 'ns1_' })
   await prefixedDB.saveBatch(TEST_TABLE, [{ id: 'id1' }])
   prefixedDB.data['ns2_table'] = { id2: { id: 'id2' } }

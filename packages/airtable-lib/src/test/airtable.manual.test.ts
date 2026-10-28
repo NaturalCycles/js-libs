@@ -1,7 +1,6 @@
 import { _omit } from '@naturalcycles/js-lib/object'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { expect, it } from 'vitest'
-import { AirtableDB } from '../airtableDB.js'
 import { AirtableLib } from '../airtableLib.js'
 import { AIRTABLE_CONNECTOR_JSON, AIRTABLE_CONNECTOR_REMOTE } from '../index.js'
 import {
@@ -24,19 +23,7 @@ const airtableLib = new AirtableLib({
   apiKey: AIRTABLE_API_KEY,
 })
 
-it('getByIds', async () => {
-  const db = new AirtableDB({
-    apiKey: AIRTABLE_API_KEY,
-    baseId: AIRTABLE_BASE_ID,
-    // tableCfgMap: {},
-    noAttachmentQueryString: true,
-  })
-
-  const r = await db.getByIds('users', ['user1', 'user4'])
-  console.log(r)
-})
-
-it('delete, create, update, get', async () => {
+it('should create, get and delete records', async () => {
   const records = mockTable1()
   const rec1 = records[0]!
 
@@ -69,7 +56,7 @@ it('delete, create, update, get', async () => {
   expect(recordsLoaded).toEqual(recordsCreated)
 })
 
-it('getById', async () => {
+it('should get records by a custom id field without throwing', async () => {
   const tableDao = mockTableDao1(airtableLib, AIRTABLE_BASE_ID)
 
   // const v = await tableDao.getRecordById('name_1', {idField: 'name'})
@@ -78,7 +65,7 @@ it('getById', async () => {
   console.log(v)
 })
 
-it('integration: table1, table2', async () => {
+it('should replace the records of two tables without throwing', async () => {
   const mocks1 = mockTable1()
   const mocks2 = mockTable2()
 
@@ -92,13 +79,7 @@ it('integration: table1, table2', async () => {
   const __records2 = await tableDao2.createRecords(mocks2)
 })
 
-it('fetchRemoteBase', async () => {
-  const baseDao = mockBaseDao(airtableLib, AIRTABLE_BASE_ID)
-  const base = await baseDao.fetch(AIRTABLE_CONNECTOR_REMOTE)
-  console.log(JSON.stringify(base, null, 2))
-})
-
-it('fetchRemoteBasesToJson', async () => {
+it('should fetch remote bases and save them as JSON without throwing', async () => {
   const basesDao = mockBasesDao(airtableLib, AIRTABLE_BASE_ID)
   await basesDao.fetchAll(AIRTABLE_CONNECTOR_REMOTE)
   await basesDao.uploadAll(AIRTABLE_CONNECTOR_JSON)
@@ -108,13 +89,13 @@ it('fetchRemoteBasesToJson', async () => {
   console.log(JSON.stringify(baseMap, null, 2))
 })
 
-it('uploadJsonToRemoteBases', async () => {
+it('should upload JSON bases to the remote without throwing', async () => {
   const basesDao = mockBasesDao(airtableLib, AIRTABLE_BASE_ID)
   await basesDao.fetchAll(AIRTABLE_CONNECTOR_JSON)
   await basesDao.uploadAll(AIRTABLE_CONNECTOR_REMOTE, { deleteAllOnUpload: false, upsert: true })
 }, 120000)
 
-it('getAirtableCacheFromJson', async () => {
+it('should get a record by id from a base loaded from JSON', async () => {
   const baseDao = mockBaseDao(airtableLib, AIRTABLE_BASE_ID)
   await baseDao.fetch(AIRTABLE_CONNECTOR_JSON)
 

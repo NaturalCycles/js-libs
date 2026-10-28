@@ -3,7 +3,7 @@ import { expect, it } from 'vitest'
 import { runBench } from './bench.util.js'
 import { tmpDir } from './test/paths.cnst.js'
 
-it('runBench', async () => {
+it('should return a result per function and write a summary file', async () => {
   const reportDirPath = `${tmpDir}/benchTest`
   fs2.emptyDir(reportDirPath)
 

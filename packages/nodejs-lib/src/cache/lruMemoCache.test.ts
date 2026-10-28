@@ -16,7 +16,7 @@ class A {
   }
 }
 
-it('memoCache a', () => {
+it('should call the memoized method once per argument set with LRUMemoCache', () => {
   const a = new A()
   vi.spyOn(a, 'func').mockImplementation(() => {})
 
@@ -33,7 +33,9 @@ it('memoCache a', () => {
   expect(r).toBe(12)
 
   // to be called once per set of arguments (2)
-  expect(a.func).toMatchSnapshot()
+  expect(a.func).toHaveBeenCalledTimes(2)
+  expect(a.func).toHaveBeenNthCalledWith(1, 6)
+  expect(a.func).toHaveBeenNthCalledWith(2, 12)
 })
 
 class B {
@@ -52,7 +54,7 @@ class B {
   }
 }
 
-it('LRUAsyncMemoCache with _AsyncMemo should call the method on a miss and cache the result', async () => {
+it('should call the async method on a miss and cache the result with LRUAsyncMemoCache', async () => {
   const b = new B()
 
   expect(await b.square(3)).toBe(9)
@@ -60,7 +62,7 @@ it('LRUAsyncMemoCache with _AsyncMemo should call the method on a miss and cache
   expect(b.calls).toBe(1)
 })
 
-it('LRUAsyncMemoCache with _AsyncMemo should return a cached undefined as a hit', async () => {
+it('should return a cached undefined as a hit with LRUAsyncMemoCache', async () => {
   const b = new B()
 
   expect(await b.nothing(1)).toBeUndefined()

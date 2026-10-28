@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import type { UnixTimestamp } from '../types.js'
 import { TimeInterval } from './timeInterval.js'
 
-it('basic', () => {
+it('should parse, compare and serialize intervals, throwing on invalid strings', () => {
   const str1 = '1649267185/1649267187'
   const int1 = TimeInterval.parse(str1)
   expect(int1.toString()).toBe(str1)

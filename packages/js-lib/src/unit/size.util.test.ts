@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
 import { _gb, _hb, _hc, _kb, _mb } from './size.util.js'
 
-it('_hb', () => {
+it('should format zero bytes and convert bytes to Kb, Mb and Gb', () => {
   expect(_hb()).toBe('0 byte(s)')
   expect(_hb(0)).toBe('0 byte(s)')
   expect(_kb(1000)).toBe(1)
@@ -9,7 +9,7 @@ it('_hb', () => {
   expect(_gb(1024 ** 3)).toBe(1)
 })
 
-it('_hb log', () => {
+it('should format byte counts with the right unit across magnitudes', () => {
   const map = new Map<number, string>()
   for (let n = 2; n < 10 ** 15; n *= 1.3) {
     map.set(Math.round(n), _hb(n))
@@ -150,7 +150,7 @@ it('_hb log', () => {
   `)
 })
 
-it('_hc log', () => {
+it('should format counts with K, M, B and T suffixes and round small numbers to 0', () => {
   const map = new Map<number, string>()
   for (let n = 2; n < 10 ** 15; n *= 1.3) {
     map.set(Math.round(n), _hc(n))

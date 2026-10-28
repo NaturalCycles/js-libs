@@ -4,10 +4,11 @@ import { requireEnvKeys } from '../index.js'
 import { srcDir } from '../test/paths.cnst.js'
 
 afterAll(() => {
+  vi.unstubAllEnvs()
   process.env['APP_ENV'] = 'test' // restore
 })
 
-it('requireEnvKeys', () => {
+it('should return required env keys and throw on missing or empty ones', () => {
   expect(() => requireEnvKeys('NON_EXISTING')).toThrowErrorMatchingInlineSnapshot(
     `[Error: NON_EXISTING env variable is required, but missing]`,
   )
@@ -29,7 +30,7 @@ it('requireEnvKeys', () => {
   })
 })
 
-it('requireFileToExist', async () => {
+it('should throw only when the required file does not exist', async () => {
   // should not throw
   fs2.requireFileToExist(`${srcDir}/util/env.util.ts`)
 

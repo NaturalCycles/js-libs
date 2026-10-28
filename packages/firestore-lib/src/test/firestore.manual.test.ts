@@ -12,7 +12,7 @@ describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(firestoreDB)
 })
 
-it('undefined value', async () => {
+it('should save and load an item with an undefined field without throwing', async () => {
   const testItem: TestItemDBM = {
     id: '123',
     k1: 'k11',
@@ -30,7 +30,7 @@ it('undefined value', async () => {
   console.log(r)
 })
 
-it('experimentalCursorStream', async () => {
+it('should stream a query with experimentalCursorStream without throwing', async () => {
   const testItem: TestItemDBM = {
     id: '123',
     k1: 'k11',

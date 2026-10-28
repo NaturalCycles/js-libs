@@ -8,7 +8,7 @@ import {
 } from './define.js'
 import type { AnyObject, Lazy } from './types.js'
 
-it('_lazyValue', () => {
+it('should compute the lazy value once and return it on every call', () => {
   const fn = vi.fn<() => number>(() => 42)
 
   const value = _lazyValue(fn)
@@ -24,7 +24,7 @@ interface Obj {
   v: number
 }
 
-it('_defineLazyProperty', () => {
+it('should compute the lazy property once on first access', () => {
   const fn = vi.fn<() => number>(() => 42)
 
   const obj = {} as Obj
@@ -43,7 +43,7 @@ it('_defineLazyProperty', () => {
   expect(obj2.v).toBe(42)
 })
 
-it('_defineLazyProps', () => {
+it('should compute each lazy prop once on first access', () => {
   const fn1 = vi.fn<() => number>(() => 42)
   const fn2 = vi.fn<() => number>(() => 48)
 
@@ -70,39 +70,8 @@ it('_defineLazyProps', () => {
   expect(fn2).toHaveBeenCalledTimes(1)
 })
 
-it('_defineProperty', () => {
-  const obj: AnyObject = { v: 42 }
-  expect(Object.getOwnPropertyDescriptor(obj, 'v')).toMatchInlineSnapshot(`
-    {
-      "configurable": true,
-      "enumerable": true,
-      "value": 42,
-      "writable": true,
-    }
-  `)
-
-  // define over existing property - looks like it doesn't change anything
-  Object.defineProperty(obj, 'v', {})
-
-  expect(Object.getOwnPropertyDescriptor(obj, 'v')).toMatchInlineSnapshot(`
-    {
-      "configurable": true,
-      "enumerable": true,
-      "value": 42,
-      "writable": true,
-    }
-  `)
-
-  // New property defaults
-  Object.defineProperty(obj, 'v2', {})
-  expect(Object.getOwnPropertyDescriptor(obj, 'v2')).toMatchInlineSnapshot(`
-    {
-      "configurable": false,
-      "enumerable": false,
-      "value": undefined,
-      "writable": false,
-    }
-  `)
+it('should define a writable, enumerable and configurable property, with overrides', () => {
+  const obj: AnyObject = {}
 
   // Define with undefined value
   _defineProperty(obj, 'v3', {})
@@ -130,7 +99,7 @@ it('_defineProperty', () => {
   `)
 })
 
-it('_defineProps', () => {
+it('should define each property as writable, enumerable and configurable, with overrides', () => {
   const obj: AnyObject = {}
 
   _defineProps(obj, {
