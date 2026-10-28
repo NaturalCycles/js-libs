@@ -2,8 +2,6 @@ import { expect, it } from 'vitest'
 import { comparators } from '../array/sort.js'
 import { KeySortedMap } from './keySortedMap.js'
 
-// todo: stringification test
-
 it('should sort the constructor entries by key and keep the last value of a duplicate key', () => {
   const map = new KeySortedMap([
     ['beta', 1],
@@ -20,6 +18,7 @@ it('should sort the constructor entries by key and keep the last value of a dupl
     ['beta', 3],
   ])
   expect(Object.prototype.toString.call(map)).toBe('[object KeySortedMap]')
+  expect(String(map)).toBe('KeySortedMap(2) {"alpha":2,"beta":3}')
 })
 
 it('should insert set keys in sorted order and expose sorted views', () => {

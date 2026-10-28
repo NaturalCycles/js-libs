@@ -143,8 +143,7 @@ export class KeySortedMap<K, V> {
   }
 
   toString(): string {
-    console.log('toString called !!!!!!!!!!!!!!!!!!!!!')
-    return 'abc'
+    return `KeySortedMap(${this.size}) ${JSON.stringify(this.toObject())}`
   }
 
   readonly [Symbol.toStringTag] = 'KeySortedMap'
@@ -237,7 +236,7 @@ export class KeySortedMap<K, V> {
   }
 
   /**
-   * lowerBound: first index i s.t. keys[i] >= target
+   * lowerBound: first index i s.t. keys[i] >= target, in comparator order
    */
   private lowerBound(target: K): number {
     const comparator = this.#comparator
