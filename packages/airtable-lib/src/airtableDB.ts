@@ -86,6 +86,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
     transactions: false,
     insertSaveMethod: false,
     updateSaveMethod: false,
+    timeMachine: false,
   }
 
   constructor(public cfg: AirtableDBCfg) {

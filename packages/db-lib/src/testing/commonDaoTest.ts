@@ -86,17 +86,6 @@ export async function runCommonDaoTest(
     expect(await dao.getByIds(['abc', 'abcd'])).toEqual([])
   })
 
-  // TimeMachine
-  if (support.timeMachine) {
-    it('should return an empty array for a read 10 minutes back in time', async () => {
-      expect(
-        await dao.getByIds([item1.id, 'abc'], {
-          readAt: localTime.now().minus(10, 'minute').unix,
-        }),
-      ).toEqual([])
-    })
-  }
-
   // SAVE
   if (support.nullValues) {
     it('should allow to save and load null values', async () => {
@@ -183,6 +172,15 @@ export async function runCommonDaoTest(
       quirks,
     )
   })
+
+  // TimeMachine
+  if (support.timeMachine) {
+    it('should not return the saved items when reading 10 minutes back in time', async () => {
+      const ids = items.map(i => i.id)
+      const readAt = localTime.now().minus(10, 'minute').unix
+      expect(await dao.getByIds(ids, { readAt })).toEqual([])
+    })
+  }
 
   // QUERY
   if (support.queries) {

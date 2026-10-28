@@ -30,6 +30,8 @@ export class HttpDB extends BaseCommonDB implements CommonDB {
     transactions: false,
     patchByQuery: false,
     increment: false,
+    // httpDBRequestHandler's options schema strips readAt
+    timeMachine: false,
   }
 
   constructor(public cfg: HttpDBCfg) {

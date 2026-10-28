@@ -27,6 +27,8 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     ...commonDBFullSupport,
     transactions: false,
     increment: false,
+    // Cache hits are served regardless of readAt
+    timeMachine: false,
   }
 
   constructor(cfg: CacheDBCfg) {

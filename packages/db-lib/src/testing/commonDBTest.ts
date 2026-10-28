@@ -88,17 +88,6 @@ export async function runCommonDBTest(
     expect(await db.getByIds(TEST_TABLE, [])).toEqual([])
   })
 
-  // TimeMachine
-  if (support.timeMachine) {
-    it('should return an empty array for a read 10 minutes back in time', async () => {
-      expect(
-        await db.getByIds(TEST_TABLE, [item1.id, 'abc'], {
-          readAt: localTime.now().minus(10, 'minute').unix,
-        }),
-      ).toEqual([])
-    })
-  }
-
   // SAVE
   if (support.nullValues) {
     it('should allow to save and load null values', async () => {
@@ -167,6 +156,15 @@ export async function runCommonDBTest(
       quirks,
     )
   })
+
+  // TimeMachine
+  if (support.timeMachine) {
+    it('should not return the saved items when reading 10 minutes back in time', async () => {
+      const ids = items.map(i => i.id)
+      const readAt = localTime.now().minus(10, 'minute').unix
+      expect(await db.getByIds(TEST_TABLE, ids, { readAt })).toEqual([])
+    })
+  }
 
   // QUERY
   if (support.queries) {

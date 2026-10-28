@@ -44,6 +44,7 @@ export class FileDB extends BaseCommonDB implements CommonDB {
     createTable: false,
     transactions: false, // todo
     increment: false,
+    timeMachine: false,
   }
 
   constructor(cfg: FileDBCfg) {
