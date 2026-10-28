@@ -112,6 +112,12 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
     expect(results).toEqual([])
   })
 
+  if (support.count) {
+    it('should count 0 entries after deleting them', async () => {
+      expect(await db.count(TEST_TABLE)).toBe(0)
+    })
+  }
+
   if (support.increment) {
     const id = 'nonExistingField'
     const id2 = 'nonExistingField2'
