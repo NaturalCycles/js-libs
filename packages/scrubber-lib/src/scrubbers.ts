@@ -302,7 +302,7 @@ export const keepCharsFromLeftScrubberSQL: KeepCharsFromLeftScrubberSQLFn = (
     return `IFF(LEN(${sqlValueToReplace}) > ${count}, SUBSTR(${sqlValueToReplace}, 0, ${count}) || '${replacement}', ${sqlValueToReplace})`
   }
   // keep $count chars and fill out with $replacement if string was longer
-  return `SUBSTR(${sqlValueToReplace}, 0, ${count}) || REPEAT('${replacement}', LEAST(0, LEN(${sqlValueToReplace})-${count})`
+  return `SUBSTR(${sqlValueToReplace}, 0, ${count}) || REPEAT('${replacement}', GREATEST(0, LEN(${sqlValueToReplace}) - ${count}))`
 }
 
 /*
@@ -390,18 +390,12 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   value,
   additionalParams,
 ) => {
-  // Email regex, allows letters
-  const emailRegex = /([a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,63})/
-  const matches = emailRegex.exec(value)
-  if (!matches) {
-    // No email found, return as is
-    return value
-  }
-  // Replace all matches with random email
-  const match = matches.pop()!
-  value = value.replace(match, randomEmailScrubber(value, additionalParams))
+  if (!value) return value
 
-  return value
+  // Email regex, allows letters
+  const emailRegex = /[a-zA-Z0-9._-]*@[a-zA-Z0-9._-]*\.[a-zA-Z_-]{2,63}/g
+  // Replace all matches with random email
+  return value.replaceAll(emailRegex, () => randomEmailScrubber(value, additionalParams))
 }
 
 export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn =
@@ -412,11 +406,12 @@ export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn 
       domain: '@example.com',
       ...additionalParams,
     }
+    // A Snowflake string literal turns `\.` into `.`, so the regex dot is escaped as `\\.`
     return String.raw`REGEXP_REPLACE(
     ${sqlValueToReplace},
-    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,63}',
-    RANDSTR(${length}, ${randomGeneratorSeed})
-  ) || '${domain}'`
+    '[a-zA-Z0-9._-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
+    RANDSTR(${length}, ${randomGeneratorSeed}) || '${domain}'
+  )`
   }
 
 /*
