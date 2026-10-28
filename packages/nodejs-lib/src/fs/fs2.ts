@@ -77,9 +77,17 @@ class FS2 {
     await fsp.writeFile(filePath, data, opt)
   }
 
+  writePrettyJson(filePath: string, data: any): void {
+    this.writeJson(filePath, data, prettyJsonOptions)
+  }
+
   writeJson(filePath: string, data: any, opt?: JsonOptions): void {
     const str = stringify(data, opt)
     fs.writeFileSync(filePath, str)
+  }
+
+  async writePrettyJsonAsync(filePath: string, data: any): Promise<void> {
+    await this.writeJsonAsync(filePath, data, prettyJsonOptions)
   }
 
   async writeJsonAsync(filePath: string, data: any, opt?: JsonOptions): Promise<void> {
@@ -95,9 +103,17 @@ class FS2 {
     await fsp.appendFile(filePath, data)
   }
 
+  outputPrettyJson(filePath: string, data: any): void {
+    this.outputJson(filePath, data, prettyJsonOptions)
+  }
+
   outputJson(filePath: string, data: any, opt?: JsonOptions): void {
     const str = stringify(data, opt)
     this.outputFile(filePath, str)
+  }
+
+  async outputPrettyAsync(filePath: string, data: any): Promise<void> {
+    await this.outputJsonAsync(filePath, data, prettyJsonOptions)
   }
 
   async outputJsonAsync(filePath: string, data: any, opt?: JsonOptions): Promise<void> {
@@ -310,6 +326,8 @@ class FS2 {
 }
 
 export const fs2 = new FS2()
+
+const prettyJsonOptions: JsonOptions = { spaces: 2 }
 
 export interface JsonOptions {
   spaces?: number
