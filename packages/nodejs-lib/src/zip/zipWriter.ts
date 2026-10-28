@@ -62,7 +62,7 @@ const deflateRawAsync = promisify(zlib.deflateRaw.bind(zlib))
  *
  * Each input path may be a file (added directly) or a directory (walked
  * recursively; all nested files are added). By default an entry's name is its
- * path relative to its input's parent directory, so `zipFiles(['./photos'], 'out.zip')`
+ * path relative to its input's parent directory, so `zipPaths(['./photos'], 'out.zip')`
  * stores entries under `photos/...`. Override the base via {@link ZipPathsOptions.baseDir}.
  *
  * Files discovered by walking a directory are added in deterministic (sorted)

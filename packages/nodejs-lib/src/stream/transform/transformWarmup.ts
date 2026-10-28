@@ -19,14 +19,11 @@ export interface TransformWarmupOptions extends TransformOptions {
 }
 
 /**
- * Transform that gradually increases concurrency from 1 to the configured maximum
- * over a warmup period. Useful for scenarios where you want to avoid overwhelming
- * a system at startup (e.g., database connections, API rate limits).
+ * Passes items through unchanged and in order. It doesn't limit how many items the next step runs at
+ * once: a Transform can't see when the next step finishes an item.
  *
- * During warmup: limits concurrent items based on elapsed time.
- * After warmup: passes items through immediately with zero overhead.
- *
- * @experimental
+ * @deprecated use the `warmupSeconds` option of `transformMap` (or `Pipeline.map`), which limits
+ * how many items the mapper runs at once.
  */
 export function transformWarmup<T>(opt: TransformWarmupOptions): TransformTyped<T, T> {
   const { concurrency, warmupSeconds, objectMode = true, highWaterMark = 1 } = opt

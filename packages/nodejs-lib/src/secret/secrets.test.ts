@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import { globSync } from 'tinyglobby'
 import { expect, it } from 'vitest'
 import { fs2 } from '../fs/fs2.js'
@@ -20,7 +21,7 @@ const encFiles = plainFiles.map(file => `${file}.enc`)
 
 it('should decrypt a secrets dir and encrypt it back, deleting the source files with del', () => {
   fs2.ensureDir(tmpDir)
-  // Under the cwd, like the default `./secret/**` pattern: `!**/*.enc` doesn't exclude paths outside it
+  // Under the cwd, like the default `./secret/**` pattern
   const dir = fs.mkdtempSync(`${tmpDir}/secrets-`)
   try {
     fs2.copyPath(secretDir, dir)
@@ -41,6 +42,19 @@ it('should decrypt a secrets dir and encrypt it back, deleting the source files 
 
     secretsDecrypt([dir], undefined, encKeyBuffer)
     expectPlainContent(dir)
+  } finally {
+    fs2.removePath(dir)
+  }
+})
+
+it('should skip already encrypted files when encrypting a dir outside the cwd', () => {
+  const dir = fs.mkdtempSync(`${os.tmpdir()}/secrets-`)
+  try {
+    fs2.copyPath(secretDir, dir)
+
+    secretsEncrypt([`${dir}/**`], undefined, encKeyBuffer)
+
+    expect(listFiles(dir)).toEqual(encFiles)
   } finally {
     fs2.removePath(dir)
   }
