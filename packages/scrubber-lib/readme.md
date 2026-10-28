@@ -110,7 +110,7 @@ key deliberately excluded.
 
 ## Limitations
 
-- Objects of types `Map`, `Set`, `Buffer` and `Date` are currently not traversed or modified
+- Objects of types `Map`, `Set`, `Buffer`, and `Date` are currently not traversed or modified
 
 ## Vocabulary
 
