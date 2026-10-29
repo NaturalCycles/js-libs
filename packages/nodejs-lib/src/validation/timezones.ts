@@ -1,4 +1,5 @@
 import { _uniq } from '@naturalcycles/js-lib/array'
+import { Intl2 } from '@naturalcycles/js-lib/intl'
 import type { IANATimezone } from '@naturalcycles/js-lib/types'
 
 // List extracted from Wikipedia (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
@@ -603,8 +604,7 @@ const TIMEZONES_FROM_WIKI = [
   'Zulu',
 ] as IANATimezone[]
 
-// oxlint-disable-next-line no-restricted-globals
-const TIMEZONES_FROM_JS = Intl.supportedValuesOf('timeZone') as IANATimezone[]
+const TIMEZONES_FROM_JS = Intl2.getSupportedTimezones()
 
 /**
  * A complicated merge of timezones from the underlying Javascript engine

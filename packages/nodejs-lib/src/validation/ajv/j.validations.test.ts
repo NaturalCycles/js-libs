@@ -3,6 +3,7 @@
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _enum } from '@naturalcycles/js-lib'
 import { localDate, localTime } from '@naturalcycles/js-lib/datetime'
+import { Intl2 } from '@naturalcycles/js-lib/intl'
 import { Set2 } from '@naturalcycles/js-lib/object'
 import { _stringify } from '@naturalcycles/js-lib/string'
 import type {
@@ -1450,8 +1451,7 @@ describe('string', () => {
     })
 
     it('should accept valid data', () => {
-      // oxlint-disable-next-line no-restricted-globals
-      const testCases = Intl.supportedValuesOf('timeZone')
+      const testCases = Intl2.getSupportedTimezones()
       const schema = j.string().ianaTimezone()
 
       testCases.forEach(tz => {
