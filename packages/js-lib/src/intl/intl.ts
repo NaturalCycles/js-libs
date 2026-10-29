@@ -17,6 +17,20 @@ import type { AnyObject, IANATimezone } from '../types.js'
  */
 class MemoizedIntl {
   /**
+   * Escape hatch: for when you want to use native Intl, but linter screams at you - then you can use
+   * Intl2.Intl.*
+   *
+   * Prefer the memoized methods of Intl2 for creating formatters; use this for static functions
+   * (e.g `getCanonicalLocales`), `instanceof` checks, and cheap objects like Locale.
+   *
+   * Intl.Locale is not wrapped consciously: it was benchmarked and does NOT benefit from memoization.
+   * It's cheap to create (~1.3µs raw vs ~0.2µs cache hit, so ~1µs saved), while its tag often comes
+   * from runtime data (e.g request language), which would grow the never-evicted cache unboundedly.
+   * Use `new Intl2.Intl.Locale(tag)` instead.
+   */
+  readonly Intl = Intl
+
+  /**
    * Returns the IANA timezone e.g `Europe/Stockholm`.
    * https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
    *

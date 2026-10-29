@@ -69,3 +69,17 @@ it('should return the same instance regardless of options key order', () => {
   const b = Intl2.DateTimeFormat('en-US', { month: 'long', year: 'numeric' })
   expect(a).toBe(b)
 })
+
+it('should expose the native Intl as an escape hatch', () => {
+  expect(Intl2.Intl).toBe(Intl)
+  expect(Intl2.Intl.getCanonicalLocales('EN-us')).toEqual(['en-US'])
+  expect(Intl2.DateTimeFormat('en-US', {})).toBeInstanceOf(Intl2.Intl.DateTimeFormat)
+  expect(new Intl2.Intl.Locale('sv').maximize().region).toBe('SE')
+})
+
+it('should not cache instances created via the escape hatch', () => {
+  const a = new Intl2.Intl.NumberFormat('en-US', {})
+  const b = new Intl2.Intl.NumberFormat('en-US', {})
+  expect(a).not.toBe(b)
+  expect(a).not.toBe(Intl2.NumberFormat('en-US', {}))
+})
