@@ -3,7 +3,7 @@ name: ci
 on: [push, workflow_dispatch]
 
 env:
-  NODE_OPTIONS: --max-old-space-size=5000 --max-semi-space-size=64
+  NODE_OPTIONS: --max-old-space-size-percentage=75 --max-semi-space-size=64
 
 jobs:
   check:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
       # Node comes from the runner's toolcache (no download); pnpm/setup installs only pnpm
-      - { uses: actions/setup-node@v7, with: { node-version: '24' } }
+      - { uses: actions/setup-node@v7, with: { node-version: '26' } }
       - { uses: pnpm/setup@v3, with: { cache: true } }
       - run: pnpm build
       - run: pnpm lint:ci
@@ -33,7 +33,7 @@ jobs:
       pull-requests: write
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
-      - { uses: actions/setup-node@v7, with: { node-version: '24' } }
+      - { uses: actions/setup-node@v7, with: { node-version: '26' } }
       - { uses: pnpm/setup@v3, with: { cache: true } }
       - run: pnpm build
       - run: pnpm release
@@ -46,7 +46,7 @@ jobs:
     if: github.ref_name == 'main' && false
     steps:
       - { uses: actions/checkout@v7, with: { persist-credentials: false } }
-      - { uses: actions/setup-node@v7, with: { node-version: '24' } }
+      - { uses: actions/setup-node@v7, with: { node-version: '26' } }
       - { uses: pnpm/setup@v3, with: { cache: true } }
       - run: pnpm docs:build
       - name: publish docs to github pages
