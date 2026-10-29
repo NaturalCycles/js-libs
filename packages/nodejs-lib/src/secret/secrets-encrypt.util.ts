@@ -25,13 +25,10 @@ export function secretsEncrypt(
   del = false,
   jsonMode = false,
 ): void {
-  const patterns = file
-    ? [file]
-    : [
-        ...pattern,
-        `!**/*.enc`, // excluding already encoded
-      ]
-  const filenames = globSync(patterns)
+  // Already encrypted files are filtered out: a `!**/*.enc` pattern only excludes them under the cwd
+  const filenames = file
+    ? globSync([file])
+    : globSync(pattern).filter(filename => !filename.endsWith('.enc'))
   let encFilename: string
 
   filenames.forEach(filename => {

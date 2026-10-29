@@ -188,11 +188,8 @@ class FS2 {
       }
     } catch (err) {
       // If the stat call above failed because the directory doesn't exist, create it
-      if ((err as any)?.code === 'ENOENT') {
-        this.ensureDir(dir)
-        return
-      }
-      throw err
+      if ((err as any)?.code !== 'ENOENT') throw err
+      this.ensureDir(dir)
     }
 
     fs.writeFileSync(filePath, '')
@@ -214,8 +211,8 @@ class FS2 {
       }
     } catch (err) {
       // If the stat call above failed because the directory doesn't exist, create it
-      if ((err as any)?.code === 'ENOENT') return await this.ensureDirAsync(dir)
-      throw err
+      if ((err as any)?.code !== 'ENOENT') throw err
+      await this.ensureDirAsync(dir)
     }
 
     await fsp.writeFile(filePath, '')

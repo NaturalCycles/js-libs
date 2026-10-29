@@ -258,7 +258,11 @@ export class Pipeline<T = unknown> {
   }
 
   /**
-   * @experimental to be removed after transformMap2 is stable
+   * Passes items through unchanged. It doesn't limit how many items the next step runs at once,
+   * see `transformWarmup`.
+   *
+   * @deprecated use the `warmupSeconds` option of `map` or `forEach`, which limits how many items
+   * the mapper runs at once.
    */
   warmup(opt: TransformWarmupOptions): this {
     this.transforms.push(transformWarmup(opt))

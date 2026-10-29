@@ -56,6 +56,18 @@ it('should create missing dirs with ensureDir, and empty files without overwriti
   }
 })
 
+it('should create the missing parent dirs and the empty file with ensureFile and ensureFileAsync', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fs2-'))
+  try {
+    fs2.ensureFile(`${dir}/a/b/sync.txt`)
+    await fs2.ensureFileAsync(`${dir}/c/d/async.txt`)
+    expect(fs2.readText(`${dir}/a/b/sync.txt`)).toBe('')
+    expect(fs2.readText(`${dir}/c/d/async.txt`)).toBe('')
+  } finally {
+    fs2.removePath(dir)
+  }
+})
+
 it('should expose native fs functions such as createWriteStream', () => {
   expect(fs2.createWriteStream).toBe(fs.createWriteStream)
 })
