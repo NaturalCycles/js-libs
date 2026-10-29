@@ -66,12 +66,16 @@ export class KeySortedMap<K, V> {
    * Allows to set multiple key-value pairs at once.
    */
   setMany(obj: Record<any, V>): this {
+    let hasNewKeys = false
     for (const [k, v] of Object.entries(obj)) {
+      if (!this.map.has(k as K)) {
+        this.#sortedKeys.push(k as K)
+        hasNewKeys = true
+      }
       this.map.set(k as K, v)
-      this.#sortedKeys.push(k as K)
     }
     // Resort all at once
-    this.sortKeys()
+    if (hasNewKeys) this.sortKeys()
     return this
   }
 
@@ -139,8 +143,7 @@ export class KeySortedMap<K, V> {
   }
 
   toString(): string {
-    console.log('toString called !!!!!!!!!!!!!!!!!!!!!')
-    return 'abc'
+    return `KeySortedMap(${this.size}) ${JSON.stringify(this.toObject())}`
   }
 
   readonly [Symbol.toStringTag] = 'KeySortedMap'
@@ -233,15 +236,17 @@ export class KeySortedMap<K, V> {
   }
 
   /**
-   * lowerBound: first index i s.t. keys[i] >= target
+   * lowerBound: first index i s.t. keys[i] >= target, in comparator order
    */
   private lowerBound(target: K): number {
+    const comparator = this.#comparator
     let lo = 0
     let hi = this.#sortedKeys.length
     while (lo < hi) {
       // oxlint-disable-next-line no-bitwise
       const mid = (lo + hi) >>> 1
-      if (this.#sortedKeys[mid]! < target) {
+      const key = this.#sortedKeys[mid]!
+      if (comparator ? comparator(key, target) < 0 : key < target) {
         lo = mid + 1
       } else {
         hi = mid

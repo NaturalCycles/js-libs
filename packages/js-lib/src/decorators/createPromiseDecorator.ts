@@ -22,8 +22,9 @@ export interface PromiseDecoratorCfg<RES = any, PARAMS = any> {
    * which will most likely be "unhandledRejection" (unless there's another higher-level @Decorator that will catch it).
    * If `catchFn` is present - it's responsible for handling or re-throwing the error.
    * Whatever `catchFn` returns - passed to the original output.
+   * If Promise is returned - it will be awaited.
    */
-  catchFn?: (r: PromiseDecoratorResp<PARAMS> & { err: any }) => RES
+  catchFn?: (r: PromiseDecoratorResp<PARAMS> & { err: any }) => RES | Promise<RES>
 
   /**
    * Fires AFTER thenFn / catchFn, like a usual Promise.finally().
@@ -122,20 +123,18 @@ export function _createPromiseDecorator<RES = any, PARAMS = any>(
           started,
         }
 
-        let handled = false
+        if (!cfg.catchFn) {
+          cfg.finallyFn?.(resp)
+          throw err // rethrow
+        }
 
-        if (cfg.catchFn) {
-          cfg.catchFn({
+        try {
+          return await cfg.catchFn({
             ...resp,
             err,
           })
-          handled = true
-        }
-
-        cfg.finallyFn?.(resp)
-
-        if (!handled) {
-          throw err // rethrow
+        } finally {
+          cfg.finallyFn?.(resp)
         }
       }
     }

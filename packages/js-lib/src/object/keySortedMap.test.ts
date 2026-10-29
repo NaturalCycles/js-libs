@@ -2,8 +2,6 @@ import { expect, it } from 'vitest'
 import { comparators } from '../array/sort.js'
 import { KeySortedMap } from './keySortedMap.js'
 
-// todo: stringification test
-
 it('should sort the constructor entries by key and keep the last value of a duplicate key', () => {
   const map = new KeySortedMap([
     ['beta', 1],
@@ -20,6 +18,7 @@ it('should sort the constructor entries by key and keep the last value of a dupl
     ['beta', 3],
   ])
   expect(Object.prototype.toString.call(map)).toBe('[object KeySortedMap]')
+  expect(String(map)).toBe('KeySortedMap(2) {"alpha":2,"beta":3}')
 })
 
 it('should insert set keys in sorted order and expose sorted views', () => {
@@ -66,6 +65,25 @@ it('should sort numeric keys numerically with the numericAsc comparator', () => 
   ])
 })
 
+it('should keep set and delete in the order of a custom comparator', () => {
+  const map = new KeySortedMap<number, string>(
+    [
+      [1, 'one'],
+      [3, 'three'],
+    ],
+    { comparator: comparators.numericDesc },
+  )
+
+  map.set(2, 'two')
+  map.set(4, 'four')
+  map.set(0, 'zero')
+  map.delete(3)
+
+  expect(map.keys().toArray()).toEqual([4, 2, 1, 0])
+  expect(map.firstEntry()).toEqual([4, 'four'])
+  expect(map.lastEntry()).toEqual([0, 'zero'])
+})
+
 it('should build a map from object entries with of()', () => {
   const map = KeySortedMap.of({ beta: 2, alpha: 1 })
 
@@ -83,6 +101,19 @@ it('should insert setMany entries in sorted order', () => {
 
   expect(Array.from(map.keys())).toEqual(['alpha', 'bravo', 'charlie', 'delta'])
   expect(Array.from(map.values())).toEqual([1, 2, 3, 4])
+})
+
+it('should update existing keys passed to setMany without duplicating them in the key order', () => {
+  const map = new KeySortedMap<string, number>([
+    ['bravo', 2],
+    ['delta', 4],
+  ])
+
+  map.setMany({ delta: 40, charlie: 3, bravo: 20, alpha: 1 })
+
+  expect(map.size).toBe(4)
+  expect(map.keys().toArray()).toEqual(['alpha', 'bravo', 'charlie', 'delta'])
+  expect(map.values().toArray()).toEqual([1, 20, 3, 40])
 })
 
 it('should convert to a plain object with toObject, toJSON and JSON.stringify', () => {

@@ -63,10 +63,12 @@ export class LazyKeySortedMap<K, V> {
    */
   setMany(obj: Record<any, V>): this {
     for (const [k, v] of Object.entries(obj)) {
+      if (!this.map.has(k as K)) {
+        this.maybeSortedKeys.push(k as K)
+        this.keysAreSorted = false
+      }
       this.map.set(k as K, v)
-      this.maybeSortedKeys.push(k as K)
     }
-    this.keysAreSorted = false
     return this
   }
 
@@ -120,7 +122,7 @@ export class LazyKeySortedMap<K, V> {
     return this.entries()
   }
 
-  readonly [Symbol.toStringTag] = 'KeySortedMap'
+  readonly [Symbol.toStringTag] = 'LazyKeySortedMap'
 
   /**
    * Zero-allocation callbacks over sorted data (faster than spreading to arrays).
@@ -148,9 +150,9 @@ export class LazyKeySortedMap<K, V> {
   }
 
   lastKey(): K {
-    const k = this.lastKeyOrUndefined()
-    _assert(k, 'Map.lastKey called on empty map')
-    return k
+    _assert(this.maybeSortedKeys.length, 'Map.lastKey called on empty map')
+    const keys = this.getSortedKeys()
+    return keys[keys.length - 1]!
   }
 
   firstValueOrUndefined(): V | undefined {
@@ -159,9 +161,8 @@ export class LazyKeySortedMap<K, V> {
   }
 
   firstValue(): V {
-    const v = this.firstValueOrUndefined()
-    _assert(v, 'Map.firstValue called on empty map')
-    return v
+    _assert(this.maybeSortedKeys.length, 'Map.firstValue called on empty map')
+    return this.map.get(this.getSortedKeys()[0]!)!
   }
 
   lastValueOrUndefined(): V | undefined {
@@ -171,9 +172,9 @@ export class LazyKeySortedMap<K, V> {
   }
 
   lastValue(): V {
-    const v = this.lastValueOrUndefined()
-    _assert(v, 'Map.lastValue called on empty map')
-    return v
+    _assert(this.maybeSortedKeys.length, 'Map.lastValue called on empty map')
+    const keys = this.getSortedKeys()
+    return this.map.get(keys[keys.length - 1]!)!
   }
 
   firstEntryOrUndefined(): [K, V] | undefined {
@@ -196,7 +197,7 @@ export class LazyKeySortedMap<K, V> {
   }
 
   lastEntry(): [K, V] {
-    const e = this.firstEntryOrUndefined()
+    const e = this.lastEntryOrUndefined()
     _assert(e, 'Map.lastEntry called on empty map')
     return e
   }
