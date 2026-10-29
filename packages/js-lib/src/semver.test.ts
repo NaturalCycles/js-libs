@@ -23,6 +23,22 @@ it('should parse, format and compare a version', () => {
   expect(semver2('1.5.4').isSame('1.5.4')).toBe(true)
   expect(semver2('1.5.4').isSame(semver2('1.5.4'))).toBe(true)
 
+  const s3 = semver2.fromInput('1.2.3.0')
+  expect(s.compare(s3)).toBe(0)
+  expect(s.isAfter(s3)).toBe(false)
+  expect(s.isSameOrAfter(s3)).toBe(true)
+  expect(s.isBefore(s3)).toBe(false)
+  expect(s.isSameOrBefore(s3)).toBe(true)
+  expect(s.isSame(s3)).toBe(true)
+
+  const s4 = semver2.fromInput('1.2.3.4')
+  expect(s.compare(s4)).toBe(0)
+  expect(s.isAfter(s4)).toBe(false)
+  expect(s.isSameOrAfter(s4)).toBe(true)
+  expect(s.isBefore(s4)).toBe(false)
+  expect(s.isSameOrBefore(s4)).toBe(true)
+  expect(s.isSame(s4)).toBe(true)
+
   expect(_expectedErrorString(() => semver2(''))).toMatchInlineSnapshot(
     `"AssertionError: Cannot parse "" into Semver"`,
   )

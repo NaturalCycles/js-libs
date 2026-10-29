@@ -20,6 +20,8 @@ export type SemverTokens = [major: number, minor: number, patch: number]
  *
  * _semver('1').toString() === '1.0.0'
  *
+ * 4-part strings are treated as equal to 3-part strings, e.g.: '1.2.3.4' === '1.2.3'
+ *
  * @experimental
  */
 export class Semver {
