@@ -24,7 +24,7 @@ it('should decrypt a secrets dir and encrypt it back, deleting the source files 
   // Under the cwd, like the default `./secret/**` pattern
   const dir = fs.mkdtempSync(`${tmpDir}/secrets-`)
   try {
-    fs2.copyPath(secretDir, dir)
+    copyEncryptedSecrets(dir)
 
     secretsDecrypt([dir], undefined, encKeyBuffer)
     expect(listFiles(dir)).toEqual([...plainFiles, ...encFiles].sort())
@@ -50,7 +50,7 @@ it('should decrypt a secrets dir and encrypt it back, deleting the source files 
 it('should skip already encrypted files when encrypting a dir outside the cwd', () => {
   const dir = fs.mkdtempSync(`${os.tmpdir()}/secrets-`)
   try {
-    fs2.copyPath(secretDir, dir)
+    copyEncryptedSecrets(dir)
 
     secretsEncrypt([`${dir}/**`], undefined, encKeyBuffer)
 
@@ -59,6 +59,15 @@ it('should skip already encrypted files when encrypting a dir outside the cwd', 
     fs2.removePath(dir)
   }
 })
+
+/**
+ * Copies only the committed *.enc fixtures, ignoring decrypted (gitignored) files that may exist locally.
+ */
+function copyEncryptedSecrets(dir: string): void {
+  fs2.copyPath(secretDir, dir, {
+    filter: src => src.endsWith('.enc') || fs.statSync(src).isDirectory(),
+  })
+}
 
 function expectPlainContent(dir: string): void {
   expect(fs2.readJson(`${dir}/secret1.json`)).toEqual({ very: 'secret' })
