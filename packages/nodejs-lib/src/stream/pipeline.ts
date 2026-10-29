@@ -54,8 +54,6 @@ import { transformThrottle } from './transform/transformThrottle.js'
 import type { TransformThrottleOptions } from './transform/transformThrottle.js'
 import { transformThrottleByRSS } from './transform/transformThrottleByRSS.js'
 import type { TransformThrottleByRSSOptions } from './transform/transformThrottleByRSS.js'
-import { transformWarmup } from './transform/transformWarmup.js'
-import type { TransformWarmupOptions } from './transform/transformWarmup.js'
 import { writablePushToArray } from './writable/writablePushToArray.js'
 import { writableVoid } from './writable/writableVoid.js'
 
@@ -254,18 +252,6 @@ export class Pipeline<T = unknown> {
 
   throttleByRSS(opt: TransformThrottleByRSSOptions): this {
     this.transforms.push(transformThrottleByRSS(opt))
-    return this
-  }
-
-  /**
-   * Passes items through unchanged. It doesn't limit how many items the next step runs at once,
-   * see `transformWarmup`.
-   *
-   * @deprecated use the `warmupSeconds` option of `map` or `forEach`, which limits how many items
-   * the mapper runs at once.
-   */
-  warmup(opt: TransformWarmupOptions): this {
-    this.transforms.push(transformWarmup(opt))
     return this
   }
 
