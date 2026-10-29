@@ -45,6 +45,7 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
     transactions: false,
     patchByQuery: false,
     increment: false,
+    timeMachine: false,
   }
 
   constructor(cfg: MongoDBCfg) {

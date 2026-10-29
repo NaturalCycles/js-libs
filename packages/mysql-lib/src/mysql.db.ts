@@ -94,6 +94,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
     updateSaveMethod: false, // todo: can be implemented
     transactions: false, // todo: can be implemented
     increment: false, // todo: can be implemented
+    timeMachine: false,
   }
 
   constructor(cfg: MysqlDBCfg = {}) {
