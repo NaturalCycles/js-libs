@@ -47,11 +47,11 @@ class FS2 {
     return await fsp.readFile(filePath, 'utf8')
   }
 
-  readBuffer(filePath: string): Buffer {
+  readBuffer(filePath: string): Buffer<ArrayBuffer> {
     return fs.readFileSync(filePath)
   }
 
-  async readBufferAsync(filePath: string): Promise<Buffer> {
+  async readBufferAsync(filePath: string): Promise<Buffer<ArrayBuffer>> {
     return await fsp.readFile(filePath)
   }
 
@@ -65,13 +65,13 @@ class FS2 {
     return _jsonParse(str)
   }
 
-  writeFile(filePath: string, data: string | Buffer, opt?: WriteFileOptions): void {
+  writeFile(filePath: string, data: string | Uint8Array, opt?: WriteFileOptions): void {
     fs.writeFileSync(filePath, data, opt)
   }
 
   async writeFileAsync(
     filePath: string,
-    data: string | Buffer,
+    data: string | Uint8Array,
     opt?: WriteFileOptions,
   ): Promise<void> {
     await fsp.writeFile(filePath, data, opt)
@@ -95,11 +95,11 @@ class FS2 {
     await fsp.writeFile(filePath, str)
   }
 
-  appendFile(filePath: string, data: string | Buffer): void {
+  appendFile(filePath: string, data: string | Uint8Array): void {
     fs.appendFileSync(filePath, data)
   }
 
-  async appendFileAsync(filePath: string, data: string | Buffer): Promise<void> {
+  async appendFileAsync(filePath: string, data: string | Uint8Array): Promise<void> {
     await fsp.appendFile(filePath, data)
   }
 
@@ -121,7 +121,7 @@ class FS2 {
     await this.outputFileAsync(filePath, str)
   }
 
-  outputFile(filePath: string, data: string | Buffer): void {
+  outputFile(filePath: string, data: string | Uint8Array): void {
     const dirPath = path.dirname(filePath)
     if (!fs.existsSync(dirPath)) {
       this.ensureDir(dirPath)
@@ -130,7 +130,7 @@ class FS2 {
     fs.writeFileSync(filePath, data)
   }
 
-  async outputFileAsync(filePath: string, data: string | Buffer): Promise<void> {
+  async outputFileAsync(filePath: string, data: string | Uint8Array): Promise<void> {
     const dirPath = path.dirname(filePath)
     if (!(await this.pathExistsAsync(dirPath))) {
       await this.ensureDirAsync(dirPath)

@@ -72,7 +72,7 @@ export interface CommonStorage {
   saveFile: (
     bucketName: string,
     filePath: string,
-    content: Buffer,
+    content: Uint8Array,
     opt?: CommonStorageSaveOptions,
   ) => Promise<void>
 

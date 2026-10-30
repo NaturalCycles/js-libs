@@ -3,7 +3,9 @@ import {
   base64,
   base64ToBuffer,
   base64ToString,
+  base64Url,
   bufferToBase64,
+  bufferToBase64Url,
   md5,
   md5AsBuffer,
   sha256,
@@ -104,4 +106,17 @@ it('should convert strings and buffers to and from base64', () => {
   expect(bufferToBase64(buf)).toBe(hash)
   expect(base64ToString(enc)).toBe(plain)
   expect(base64ToBuffer(enc)).toEqual(buf)
+})
+
+it('should accept plain Uint8Array (not Buffer)', () => {
+  const plain = 'hello!@#123'
+  const u8 = new TextEncoder().encode(plain)
+  expect(Buffer.isBuffer(u8)).toBe(false)
+  expect(base64(u8)).toBe('aGVsbG8hQCMxMjM=')
+  expect(bufferToBase64(u8)).toBe('aGVsbG8hQCMxMjM=')
+  // base64url omits padding, same as Buffer
+  expect(base64Url(u8)).toBe('aGVsbG8hQCMxMjM')
+  expect(bufferToBase64Url(u8)).toBe(Buffer.from(plain).toString('base64url'))
+  expect(md5(u8)).toBe(md5(plain))
+  expect(sha256(u8)).toBe(sha256(plain))
 })

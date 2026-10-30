@@ -106,7 +106,11 @@ export class CommonStorageBucket {
     ).filter(Boolean)
   }
 
-  async saveFile(filePath: string, content: Buffer, opt?: CommonStorageSaveOptions): Promise<void> {
+  async saveFile(
+    filePath: string,
+    content: Uint8Array,
+    opt?: CommonStorageSaveOptions,
+  ): Promise<void> {
     await this.cfg.storage.saveFile(this.cfg.bucketName, filePath, content, opt)
   }
 
@@ -119,7 +123,7 @@ export class CommonStorageBucket {
    * await saveFile
    * await setFileVisibility
    */
-  async savePublicFile(filePath: string, content: Buffer): Promise<void> {
+  async savePublicFile(filePath: string, content: Uint8Array): Promise<void> {
     await this.cfg.storage.saveFile(this.cfg.bucketName, filePath, content)
     await this.cfg.storage.setFileVisibility(this.cfg.bucketName, filePath, true)
   }

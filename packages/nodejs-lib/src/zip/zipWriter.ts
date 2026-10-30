@@ -105,7 +105,7 @@ export async function zipPaths(
  *
  * For large archives or streamed inputs prefer {@link createZip} / {@link ZipWriter}.
  */
-export async function createZipBuffer(entries: ZipFileEntry[]): Promise<Buffer> {
+export async function createZipBuffer(entries: ZipFileEntry[]): Promise<Buffer<ArrayBuffer>> {
   const chunks: Buffer[] = []
   const sink = new Writable({
     write(chunk: Buffer, _enc, cb) {
@@ -176,7 +176,11 @@ export class ZipWriter implements AsyncDisposable {
    * Add an in-memory buffer as a file entry.
    * The CRC-32 and sizes are computed up front and written inline (no data descriptor).
    */
-  async addBuffer(data: Buffer, fileName: string, opt: ZipWriterEntryOptions = {}): Promise<void> {
+  async addBuffer(
+    data: Uint8Array,
+    fileName: string,
+    opt: ZipWriterEntryOptions = {},
+  ): Promise<void> {
     this.assertWritable()
     const entry = this.createEntry(fileName, false, opt)
     entry.crc32 = zlib.crc32(data)
@@ -325,7 +329,7 @@ export class ZipWriter implements AsyncDisposable {
   }
 
   /** Write an entry whose CRC and sizes are already known: header, name, data, no descriptor. */
-  private async writeKnownEntry(entry: WriteEntry, data: Buffer): Promise<void> {
+  private async writeKnownEntry(entry: WriteEntry, data: Uint8Array): Promise<void> {
     entry.relativeOffsetOfLocalHeader = this.offset
     await this.write(buildLocalFileHeader(entry))
     await this.write(entry.nameBuf)
@@ -389,7 +393,7 @@ export class ZipWriter implements AsyncDisposable {
   }
 
   /** Write a buffer to the output, tracking the byte offset and respecting backpressure. */
-  private async write(buf: Buffer): Promise<void> {
+  private async write(buf: Uint8Array): Promise<void> {
     if (this.streamError) throw this.streamError
     if (buf.length === 0) return
     this.offset += buf.length

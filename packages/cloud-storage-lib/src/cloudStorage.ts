@@ -203,7 +203,7 @@ export class CloudStorage implements CommonStorage {
   async saveFile(
     bucketName: string,
     filePath: string,
-    content: Buffer,
+    content: Uint8Array,
     opt: CommonStorageSaveOptions = {},
   ): Promise<void> {
     await this.storage

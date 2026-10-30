@@ -112,7 +112,7 @@ export class SqliteKeyValueDB implements CommonKeyValueDB, CommonSyncKeyValueDB,
     const sql = `SELECT id,v FROM ${table} where id in (${ids.map(id => `'${id}'`).join(',')})`
     if (this.cfg.debug) this.cfg.logger.log(sql)
     const rows = this.db.prepare(sql).all() as any as KeyValueObject[]
-    return rows.map(r => [r.id, Buffer.from(r.v)])
+    return rows.map(r => [r.id, toBufferView(r.v)])
   }
 
   async saveBatch(table: string, entries: KeyValueDBTuple[]): Promise<void> {
@@ -156,8 +156,8 @@ export class SqliteKeyValueDB implements CommonKeyValueDB, CommonSyncKeyValueDB,
     }
 
     return Pipeline.fromIterable(
-      this.db.prepare(sql).iterate() as IterableIterator<{ v: Buffer }>,
-    ).mapSync(row => Buffer.from(row.v))
+      this.db.prepare(sql).iterate() as IterableIterator<{ v: Uint8Array }>,
+    ).mapSync(row => toBufferView(row.v))
   }
 
   streamEntries(table: string, limit?: number): Pipeline<KeyValueDBTuple> {
@@ -167,8 +167,8 @@ export class SqliteKeyValueDB implements CommonKeyValueDB, CommonSyncKeyValueDB,
     }
 
     return Pipeline.fromIterable(
-      this.db.prepare(sql).iterate() as IterableIterator<{ id: string; v: Buffer }>,
-    ).mapSync(row => [row.id, Buffer.from(row.v)])
+      this.db.prepare(sql).iterate() as IterableIterator<{ id: string; v: Uint8Array }>,
+    ).mapSync(row => [row.id, toBufferView(row.v)])
   }
 
   /**
@@ -229,5 +229,13 @@ export interface NodeSQLiteKeyValueDBCfg {
 
 interface KeyValueObject {
   id: string
-  v: Buffer
+  v: Uint8Array
+}
+
+/**
+ * node:sqlite returns BLOBs as plain Uint8Array.
+ * Wraps it as a Buffer without copying the bytes (unlike `Buffer.from(u8)`, which copies).
+ */
+function toBufferView(v: Uint8Array): Buffer {
+  return Buffer.from(v.buffer, v.byteOffset, v.byteLength)
 }

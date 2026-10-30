@@ -69,6 +69,13 @@ it('should detect zstd and gzip buffers and decompress zstd or deflate', async (
   expect(zip2.isGzipBuffer(gzipped)).toBe(true)
   expect(zip2.isGzipBuffer(zsted)).toBe(false)
 
+  // plain Uint8Array (not Buffer) is supported too
+  const zstedU8 = new Uint8Array(zsted)
+  expect(zip2.isZstdBuffer(zstedU8)).toBe(true)
+  expect(zip2.isZstdBuffer(new Uint8Array(0))).toBe(false)
+  expect(await zip2.decompressZstdOrInflateToString(zstedU8)).toBe(s)
+  expect(zip2.decompressZstdOrInflateToStringSync(new Uint8Array(deflated))).toBe(s)
+
   expect(await zip2.decompressZstdOrInflateToString(deflated)).toBe(s)
   // expect(await decompressZstdOrInflateToString(gzipped)).toBe(s) // gzip is not supported
   expect(await zip2.decompressZstdOrInflateToString(zsted)).toBe(s)

@@ -54,11 +54,14 @@ export class InMemoryCommonStorage implements CommonStorage {
   async saveFile(
     bucketName: string,
     filePath: string,
-    content: Buffer,
+    content: Uint8Array,
     opt: CommonStorageSaveOptions = {},
   ): Promise<void> {
     this.data[bucketName] ||= {}
-    this.data[bucketName][filePath] = content
+    // Zero-copy Buffer view, so that getFile keeps returning a Buffer
+    this.data[bucketName][filePath] = Buffer.isBuffer(content)
+      ? content
+      : Buffer.from(content.buffer, content.byteOffset, content.byteLength)
     this.setFileMetadata(bucketName, filePath, opt.metadata)
   }
 

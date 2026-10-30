@@ -136,7 +136,7 @@ export interface UploadedFile {
   /** Content-Transfer-Encoding of the file part. */
   encoding: string
   /** File contents. */
-  data: Buffer
+  data: Buffer<ArrayBuffer>
   /** Size of `data` in bytes. */
   size: NumberOfBytes
 }

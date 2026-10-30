@@ -16,11 +16,11 @@ const zstdCompressAsync = promisify(zlib.zstdCompress.bind(zlib))
 const zstdDecompressAsync = promisify(zlib.zstdDecompress.bind(zlib))
 
 class Zip2 {
-  async decompressZstdOrInflateToString(buf: Buffer): Promise<string> {
+  async decompressZstdOrInflateToString(buf: Uint8Array): Promise<string> {
     return (await this.decompressZstdOrInflate(buf)).toString()
   }
 
-  decompressZstdOrInflateToStringSync(buf: Buffer): string {
+  decompressZstdOrInflateToStringSync(buf: Uint8Array): string {
     return this.decompressZstdOrInflateSync(buf).toString()
   }
 
@@ -28,14 +28,14 @@ class Zip2 {
    * Detects if Buffer is zstd-compressed.
    * Otherwise attempts to Inflate.
    */
-  async decompressZstdOrInflate(buf: Buffer): Promise<Buffer<ArrayBuffer>> {
+  async decompressZstdOrInflate(buf: Uint8Array): Promise<Buffer<ArrayBuffer>> {
     if (this.isZstdBuffer(buf)) {
       return await zstdDecompressAsync(buf)
     }
     return await inflateAsync(buf)
   }
 
-  decompressZstdOrInflateSync(buf: Buffer): Buffer<ArrayBuffer> {
+  decompressZstdOrInflateSync(buf: Uint8Array): Buffer<ArrayBuffer> {
     if (this.isZstdBuffer(buf)) {
       return zlib.zstdDecompressSync(buf)
     }
@@ -46,7 +46,10 @@ class Zip2 {
    * deflateBuffer uses `deflate`.
    * It's 9 bytes shorter than `gzip`.
    */
-  async deflate(input: string | Buffer, options: ZlibOptions = {}): Promise<Buffer<ArrayBuffer>> {
+  async deflate(
+    input: string | Uint8Array,
+    options: ZlibOptions = {},
+  ): Promise<Buffer<ArrayBuffer>> {
     return await deflateAsync(input, options)
   }
 
@@ -54,23 +57,23 @@ class Zip2 {
    * deflateSync uses `deflate`.
    * It's 9 bytes shorter than `gzip`.
    */
-  deflateSync(input: string | Buffer, options?: ZlibOptions): Buffer<ArrayBuffer> {
+  deflateSync(input: string | Uint8Array, options?: ZlibOptions): Buffer<ArrayBuffer> {
     return zlib.deflateSync(input, options)
   }
 
-  async inflate(buf: Buffer, options: ZlibOptions = {}): Promise<Buffer<ArrayBuffer>> {
+  async inflate(buf: Uint8Array, options: ZlibOptions = {}): Promise<Buffer<ArrayBuffer>> {
     return await inflateAsync(buf, options)
   }
 
-  inflateSync(buf: Buffer, options: ZlibOptions = {}): Buffer<ArrayBuffer> {
+  inflateSync(buf: Uint8Array, options: ZlibOptions = {}): Buffer<ArrayBuffer> {
     return zlib.inflateSync(buf, options)
   }
 
-  async inflateToString(buf: Buffer, options?: ZlibOptions): Promise<string> {
+  async inflateToString(buf: Uint8Array, options?: ZlibOptions): Promise<string> {
     return (await this.inflate(buf, options)).toString()
   }
 
-  inflateToStringSync(buf: Buffer, options?: ZlibOptions): string {
+  inflateToStringSync(buf: Uint8Array, options?: ZlibOptions): string {
     return zlib.inflateSync(buf, options).toString()
   }
 
@@ -78,7 +81,7 @@ class Zip2 {
    * gzipBuffer uses `gzip`
    * It's 9 bytes longer than `deflate`.
    */
-  async gzip(input: string | Buffer, options: ZlibOptions = {}): Promise<Buffer<ArrayBuffer>> {
+  async gzip(input: string | Uint8Array, options: ZlibOptions = {}): Promise<Buffer<ArrayBuffer>> {
     return await gzipAsync(input, options)
   }
 
@@ -86,28 +89,28 @@ class Zip2 {
    * gzipBuffer uses `gzip`
    * It's 9 bytes longer than `deflate`.
    */
-  gzipSync(input: string | Buffer, options: ZlibOptions = {}): Buffer<ArrayBuffer> {
+  gzipSync(input: string | Uint8Array, options: ZlibOptions = {}): Buffer<ArrayBuffer> {
     return zlib.gzipSync(input, options)
   }
 
-  async gunzip(buf: Buffer, options: ZlibOptions = {}): Promise<Buffer<ArrayBuffer>> {
+  async gunzip(buf: Uint8Array, options: ZlibOptions = {}): Promise<Buffer<ArrayBuffer>> {
     return await gunzipAsync(buf, options)
   }
 
-  gunzipSync(buf: Buffer, options: ZlibOptions = {}): Buffer<ArrayBuffer> {
+  gunzipSync(buf: Uint8Array, options: ZlibOptions = {}): Buffer<ArrayBuffer> {
     return zlib.gunzipSync(buf, options)
   }
 
-  async gunzipToString(buf: Buffer, options?: ZlibOptions): Promise<string> {
+  async gunzipToString(buf: Uint8Array, options?: ZlibOptions): Promise<string> {
     return (await this.gunzip(buf, options)).toString()
   }
 
-  gunzipToStringSync(buf: Buffer, options?: ZlibOptions): string {
+  gunzipToStringSync(buf: Uint8Array, options?: ZlibOptions): string {
     return zlib.gunzipSync(buf, options).toString()
   }
 
   async zstdCompress(
-    input: Buffer | string,
+    input: Uint8Array | string,
     level?: Integer, // defaults to 3
     options: ZstdOptions = {},
   ): Promise<Buffer<ArrayBuffer>> {
@@ -115,7 +118,7 @@ class Zip2 {
   }
 
   zstdCompressSync(
-    input: Buffer | string,
+    input: Uint8Array | string,
     level?: Integer, // defaults to 3
     options: ZstdOptions = {},
   ): Buffer<ArrayBuffer> {
@@ -134,33 +137,34 @@ class Zip2 {
     }
   }
 
-  async zstdDecompressToString(input: Buffer, options: ZstdOptions = {}): Promise<string> {
+  async zstdDecompressToString(input: Uint8Array, options: ZstdOptions = {}): Promise<string> {
     return (await zstdDecompressAsync(input, options)).toString()
   }
 
   /**
    * Warning! It leaks memory severely. Prefer sync.
    */
-  async zstdDecompress(input: Buffer, options: ZstdOptions = {}): Promise<Buffer<ArrayBuffer>> {
+  async zstdDecompress(input: Uint8Array, options: ZstdOptions = {}): Promise<Buffer<ArrayBuffer>> {
     return await zstdDecompressAsync(input, options)
   }
 
   /**
    * Warning! It leaks memory severely. Prefer sync.
    */
-  zstdDecompressToStringSync(input: Buffer, options: ZstdOptions = {}): string {
+  zstdDecompressToStringSync(input: Uint8Array, options: ZstdOptions = {}): string {
     return zlib.zstdDecompressSync(input, options).toString()
   }
 
-  zstdDecompressSync(input: Buffer, options: ZstdOptions = {}): Buffer<ArrayBuffer> {
+  zstdDecompressSync(input: Uint8Array, options: ZstdOptions = {}): Buffer<ArrayBuffer> {
     return zlib.zstdDecompressSync(input, options)
   }
 
-  isZstdBuffer(input: Buffer): boolean {
-    return input.readUInt32LE(0) === ZSTD_MAGIC_NUMBER
+  isZstdBuffer(input: Uint8Array): boolean {
+    // zstd magic number 0xFD2FB528, stored little-endian
+    return input[0] === 0x28 && input[1] === 0xb5 && input[2] === 0x2f && input[3] === 0xfd
   }
 
-  isGzipBuffer(input: Buffer): boolean {
+  isGzipBuffer(input: Uint8Array): boolean {
     return input[0] === 0x1f && input[1] === 0x8b
   }
 
@@ -211,11 +215,9 @@ class Zip2 {
    *
    * For large archives or streamed inputs prefer {@link createZip} / {@link ZipWriter}.
    */
-  async createZipBuffer(entries: ZipFileEntry[]): Promise<Buffer> {
+  async createZipBuffer(entries: ZipFileEntry[]): Promise<Buffer<ArrayBuffer>> {
     return await createZipBuffer(entries)
   }
 }
 
 export const zip2 = new Zip2()
-
-const ZSTD_MAGIC_NUMBER = 0xfd2fb528

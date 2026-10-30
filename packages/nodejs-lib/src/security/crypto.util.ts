@@ -8,7 +8,10 @@ const algorithm = 'aes-256-cbc'
 /**
  * Using aes-256-cbc.
  */
-export function encryptRandomIVBuffer(input: Buffer, secretKeyBuffer: Buffer): Buffer {
+export function encryptRandomIVBuffer(
+  input: Uint8Array,
+  secretKeyBuffer: Uint8Array,
+): Buffer<ArrayBuffer> {
   // sha256 to match aes-256 key length
   const key = sha256AsBuffer(secretKeyBuffer)
 
@@ -22,7 +25,10 @@ export function encryptRandomIVBuffer(input: Buffer, secretKeyBuffer: Buffer): B
 /**
  * Using aes-256-cbc.
  */
-export function decryptRandomIVBuffer(input: Buffer, secretKeyBuffer: Buffer): Buffer {
+export function decryptRandomIVBuffer(
+  input: Uint8Array,
+  secretKeyBuffer: Uint8Array,
+): Buffer<ArrayBuffer> {
   // sha256 to match aes-256 key length
   const key = sha256AsBuffer(secretKeyBuffer)
 
@@ -39,7 +45,10 @@ export function decryptRandomIVBuffer(input: Buffer, secretKeyBuffer: Buffer): B
  * Decrypts all object values (base64 strings).
  * Returns object with decrypted values (utf8 strings).
  */
-export function decryptObject(obj: StringMap<Base64String>, secretKeyBuffer: Buffer): StringMap {
+export function decryptObject(
+  obj: StringMap<Base64String>,
+  secretKeyBuffer: Uint8Array,
+): StringMap {
   const { key, iv } = getCryptoParams(secretKeyBuffer)
 
   const r: StringMap = {}
@@ -54,7 +63,10 @@ export function decryptObject(obj: StringMap<Base64String>, secretKeyBuffer: Buf
  * Encrypts all object values (utf8 strings).
  * Returns object with encrypted values (base64 strings).
  */
-export function encryptObject(obj: StringMap, secretKeyBuffer: Buffer): StringMap<Base64String> {
+export function encryptObject(
+  obj: StringMap,
+  secretKeyBuffer: Uint8Array,
+): StringMap<Base64String> {
   const { key, iv } = getCryptoParams(secretKeyBuffer)
 
   const r: StringMap = {}
@@ -71,7 +83,7 @@ export function encryptObject(obj: StringMap, secretKeyBuffer: Buffer): StringMa
  * Input is base64 string.
  * Output is utf8 string.
  */
-export function decryptString(str: Base64String, secretKeyBuffer: Buffer): string {
+export function decryptString(str: Base64String, secretKeyBuffer: Uint8Array): string {
   const { key, iv } = getCryptoParams(secretKeyBuffer)
   const decipher = crypto.createDecipheriv(algorithm, key, iv)
   return decipher.update(str, 'base64', 'utf8') + decipher.final('utf8')
@@ -83,13 +95,13 @@ export function decryptString(str: Base64String, secretKeyBuffer: Buffer): strin
  * Input is utf8 string.
  * Output is base64 string.
  */
-export function encryptString(str: string, secretKeyBuffer: Buffer): Base64String {
+export function encryptString(str: string, secretKeyBuffer: Uint8Array): Base64String {
   const { key, iv } = getCryptoParams(secretKeyBuffer)
   const cipher = crypto.createCipheriv(algorithm, key, iv)
   return cipher.update(str, 'utf8', 'base64') + cipher.final('base64')
 }
 
-function getCryptoParams(secretKeyBuffer: Buffer): { key: Buffer; iv: Buffer } {
+function getCryptoParams(secretKeyBuffer: Uint8Array): { key: Buffer; iv: Buffer } {
   const key = sha256AsBuffer(secretKeyBuffer)
   const iv = md5AsBuffer(Buffer.concat([secretKeyBuffer, key]))
   return { key, iv }
