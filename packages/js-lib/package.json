@@ -40,6 +40,8 @@
     "./array/*.js": "./dist/array/*.js",
     "./browser": "./dist/browser/index.js",
     "./browser/*.js": "./dist/browser/*.js",
+    "./buffer": "./dist/buffer/index.js",
+    "./buffer/*.js": "./dist/buffer/*.js",
     "./datetime": "./dist/datetime/index.js",
     "./datetime/*.js": "./dist/datetime/*.js",
     "./decorators": "./dist/decorators/index.js",
