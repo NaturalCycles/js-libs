@@ -1,4 +1,3 @@
-export * from './buffer/buffer.util.js'
 export * from './diff/tableDiff.js'
 export * from './infra/process.util.js'
 export * from './log/log.util.js'
