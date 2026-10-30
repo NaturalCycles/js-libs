@@ -42,7 +42,7 @@
     "directory": "packages/scrubber-lib"
   },
   "engines": {
-    "node": ">=24.10.0"
+    "node": ">=26.0.0"
   },
   "version": "0.0.0",
   "description": "Scrub data in JavaScript plain objects by using rules defined in a configuration object",
