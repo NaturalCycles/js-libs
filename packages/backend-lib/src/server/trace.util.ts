@@ -26,6 +26,7 @@ export function getRequestTraceId(req: BackendRequest): string | undefined {
   return traceIdByRequest.getOrInsertComputed(req, getRequestTraceIdOrNull) ?? undefined
 }
 
+// Passed by reference, so the per-log-line call allocates no closure
 function getRequestTraceIdOrNull(req: BackendRequest): string | null {
   return getRequestTraceContext(req)?.traceId ?? null
 }
