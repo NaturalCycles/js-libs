@@ -93,7 +93,7 @@
     "vitest": "^5"
   },
   "engines": {
-    "node": ">=24.15.0"
+    "node": ">=26.12.1"
   },
-  "packageManager": "pnpm@12.16.0"
+  "packageManager": "pnpm@12.16.1"
 }
