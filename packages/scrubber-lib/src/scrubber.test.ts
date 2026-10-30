@@ -199,6 +199,12 @@ it('should match the snapshot for mixed value types', () => {
   expect(result).toMatchSnapshot()
 })
 
+it('should keep a Date value as it is', () => {
+  const date = new Date(0)
+  const result = scrub({ date })
+  expect(result.date).toBe(date)
+})
+
 it('should pass the same initializationVector to scrubbers on every scrub', () => {
   const mockScrubber = vi.fn<ScrubberFn>(() => 'modified')
   const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }

@@ -99,6 +99,7 @@ export class Scrubber {
         if (
           dataCopy[key] instanceof Map ||
           dataCopy[key] instanceof Set ||
+          dataCopy[key] instanceof Date ||
           Buffer.isBuffer(dataCopy[key])
         ) {
           continue
