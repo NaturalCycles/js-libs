@@ -266,7 +266,7 @@ export class Fetcher {
   /**
    * Returns response body as Uint8Array.
    */
-  async getBytes(url: string, opt?: FetcherOptions): Promise<Uint8Array> {
+  async getBytes(url: string, opt?: FetcherOptions): Promise<Uint8Array<ArrayBuffer>> {
     return await this.fetch({
       url,
       responseType: 'bytes',
