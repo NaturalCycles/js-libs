@@ -79,7 +79,7 @@ export function insertSQL(
   ].join(' ')
 
   const valueRows = rows.map(rec => {
-    return `(` + fields.map(k => mysql.escape(rec[k])).join(',') + `)`
+    return `(` + fields.map(k => mysql.escape(mapValueToMySQL(rec[k]))).join(',') + `)`
   })
 
   const full = start + valueRows.join(',\n')
@@ -162,7 +162,28 @@ export function dbQueryToSQLUpdate(q: DBQuery<any>, patch: Record<any, any>): st
     ...whereTokens,
   ]
 
-  return mysql.format(tokens.join(' '), Object.values(patch))
+  return mysql.format(
+    tokens.join(' '),
+    Object.values(patch).map(v => mapValueToMySQL(v)),
+  )
+}
+
+/**
+ * Objects and arrays are stored as JSON, as mysql.escape would turn an object into `key = value`
+ * pairs and an array into a list of values. Buffer, Date and raw SQL (toSqlString) are left to
+ * mysql.escape.
+ */
+function mapValueToMySQL(v: any): any {
+  if (
+    v &&
+    typeof v === 'object' &&
+    !Buffer.isBuffer(v) &&
+    !(v instanceof Date) &&
+    typeof v.toSqlString !== 'function'
+  ) {
+    return JSON.stringify(v)
+  }
+  return v
 }
 
 function selectTokens(q: DBQuery<any>): string[] {
