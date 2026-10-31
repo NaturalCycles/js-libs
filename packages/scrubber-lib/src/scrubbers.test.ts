@@ -282,10 +282,10 @@ describe('keepCharsFromLeftScrubber', () => {
 
 it('should build keepCharsFromLeftScrubberSQL with and without replaceFull', () => {
   expect(keepCharsFromLeftScrubberSQL({ count: 2, replacement: 'X' })).toMatchInlineSnapshot(
-    `"SUBSTR(VAL, 0, 2) || REPEAT('X', LEAST(0, LEN(VAL)-2)"`,
+    `"SUBSTR(VAL, 0, 2) || REPEAT('X', GREATEST(0, LEN(VAL) - 2))"`,
   )
   expect(keepCharsFromLeftScrubberSQL({ count: 5, replacement: 'X' })).toMatchInlineSnapshot(
-    `"SUBSTR(VAL, 0, 5) || REPEAT('X', LEAST(0, LEN(VAL)-5)"`,
+    `"SUBSTR(VAL, 0, 5) || REPEAT('X', GREATEST(0, LEN(VAL) - 5))"`,
   )
   expect(
     keepCharsFromLeftScrubberSQL({ count: 2, replacement: 'X', replaceFull: true }),
@@ -379,30 +379,42 @@ describe('randomEmailInContentScrubber', () => {
     expect(result).not.toContain('ge grault') // not matching the full email
     expect(result).toContain('Foo bar baz ')
   })
+
+  it('should replace every email in the text, plus-addressed ones as a whole', () => {
+    const text = 'From first+tag@gmail.com to second@gmail.com'
+    const result = randomEmailInContentScrubber(text, { alphabet: 'a', length: 5 })
+    expect(result).toBe('From aaaaa@example.com to aaaaa@example.com')
+  })
+
+  it('should replace an email containing a 0 as a whole', () => {
+    const text = 'Contact jane.doe90@gmail.com today'
+    const result = randomEmailInContentScrubber(text, { alphabet: 'a', length: 5 })
+    expect(result).toBe('Contact aaaaa@example.com today')
+  })
 })
 
 it('should build randomEmailInContentScrubberSQL with the default and a given length and domain', () => {
   expect(randomEmailInContentScrubberSQL()).toMatchInlineSnapshot(String.raw`
     "REGEXP_REPLACE(
         VAL,
-        '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,63}',
-        RANDSTR(16, HASH(RANDOM()))
-      ) || '@example.com'"
+        '[a-zA-Z0-9._+-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
+        RANDSTR(16, HASH(RANDOM())) || '@example.com'
+      )"
   `)
   expect(randomEmailInContentScrubberSQL({ length: 5 })).toMatchInlineSnapshot(String.raw`
     "REGEXP_REPLACE(
         VAL,
-        '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,63}',
-        RANDSTR(5, HASH(RANDOM()))
-      ) || '@example.com'"
+        '[a-zA-Z0-9._+-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
+        RANDSTR(5, HASH(RANDOM())) || '@example.com'
+      )"
   `)
   expect(randomEmailInContentScrubberSQL({ length: 5, domain: '@customdomain.com' }))
     .toMatchInlineSnapshot(String.raw`
       "REGEXP_REPLACE(
           VAL,
-          '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,63}',
-          RANDSTR(5, HASH(RANDOM()))
-        ) || '@customdomain.com'"
+          '[a-zA-Z0-9._+-]*@[a-zA-Z0-9._-]*\\.[a-zA-Z_-]{2,63}',
+          RANDSTR(5, HASH(RANDOM())) || '@customdomain.com'
+        )"
     `)
 })
 
