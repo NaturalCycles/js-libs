@@ -82,3 +82,64 @@ it('should not call onStats after stop', async () => {
 
   expect(onStats).not.toHaveBeenCalled()
 })
+
+it('should record a synchronous stall while sampling', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
+
+  await stallInTimerCallback(50)
+  await pDelay(20)
+
+  await vi.advanceTimersByTimeAsync(100)
+  expect(onStats.mock.calls[0]![0].max).toBeGreaterThanOrEqual(40)
+})
+
+it('should not record a stall that ended with resume() in the same loop iteration', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
+  const { pause, resume } = bind(monitor)
+
+  pause()
+  // Emulates a CPU-throttled idle instance woken by a request: the stall and the wake-up
+  // event that resumes sampling happen in the same loop iteration
+  await stallInTimerCallback(50, resume)
+  await pDelay(20) // let sampled iterations happen
+
+  await vi.advanceTimersByTimeAsync(100)
+  expect(onStats.mock.calls[0]![0].max).toBeLessThan(40)
+})
+
+it('should keep the samples recorded before pause() after resume()', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
+
+  await stallInTimerCallback(50)
+  await pDelay(20)
+  monitor.pause()
+  monitor.resume()
+  monitor.resume() // no-op when not paused
+
+  await vi.advanceTimersByTimeAsync(100)
+  expect(onStats.mock.calls[0]![0].max).toBeGreaterThanOrEqual(40)
+})
+
+function bind(m: EventLoopMonitor): { pause: () => void; resume: () => void } {
+  return { pause: () => m.pause(), resume: () => m.resume() }
+}
+
+/**
+ * Blocks the event loop for `ms` inside a (real) setTimeout callback,
+ * then calls `after` in the same callback.
+ */
+async function stallInTimerCallback(ms: number, after?: () => void): Promise<void> {
+  await new Promise<void>(resolve => {
+    setTimeout(() => {
+      const start = performance.now()
+      while (performance.now() - start < ms) {
+        // busy wait
+      }
+      after?.()
+      resolve()
+    }, 1)
+  })
+}

@@ -36,8 +36,10 @@ import type {
  * reported by older interval-based sampling.
  *
  * Beware of CPU-throttled processes (e.g. idle CloudRun instances with request-based billing):
- * the interval timer fires late there, and the time the process spent runnable-but-unscheduled
- * is recorded as event loop delay. Use `intervalMs` to detect such intervals.
+ * the time the process spent runnable-but-unscheduled is recorded as event loop delay,
+ * and the interval timer fires late (see `intervalMs`).
+ * Use `pause()` / `resume()` to keep such periods out of the delay samples,
+ * e.g. pause when the last in-flight request finishes and resume when the next one arrives.
  */
 export class EventLoopMonitor {
   constructor(cfg: EventLoopMonitorCfg = {}) {
@@ -113,6 +115,7 @@ export class EventLoopMonitor {
   private eld: ELDHistogram
   private lastElu: EventLoopUtilization
   private lastReportedAt: NumberOfMilliseconds
+  private paused = false
   /**
    * Undefined until the first interval has completed.
    */
@@ -125,6 +128,31 @@ export class EventLoopMonitor {
     clearInterval(this.interval)
     this.eld.disable()
     this.po.disconnect()
+  }
+
+  /**
+   * Stops sampling event loop delay until `resume()` is called.
+   * GC and ELU keep being tracked, and the samples recorded so far are kept.
+   *
+   * Meant for periods when the process is known to be CPU-throttled, e.g. a CloudRun instance
+   * (request-based billing) with no request in flight: a delay recorded there measures
+   * the throttling, not the application.
+   */
+  pause(): void {
+    this.paused = true
+    this.eld.disable()
+  }
+
+  /**
+   * Resumes sampling event loop delay after `pause()`.
+   * Safe to call from within the event that ended the throttled period (e.g. the middleware of
+   * the request that woke the instance): the histogram restarts its clock from this moment,
+   * so the stall that preceded it in the same loop iteration is not sampled.
+   */
+  resume(): void {
+    if (!this.paused) return
+    this.paused = false
+    this.eld.enable()
   }
 
   // cfg: Required<EventLoopMonitorCfg>
