@@ -20,6 +20,7 @@ import type {
   IsoDateTime,
   IsoMonth,
   Enum,
+  NonEmptyArray,
   NumberEnum,
   StringEnum,
   StringMap,
@@ -1290,7 +1291,7 @@ export class JObjectInfer<
   }
 }
 
-export class JArray<OUT, Opt> extends JBuilder<OUT[], Opt> {
+export class JArray<OUT, Opt, ARR extends OUT[] = OUT[]> extends JBuilder<ARR, Opt> {
   constructor(itemsSchema: JSchema<OUT, Opt>) {
     super({
       type: 'array',
@@ -1315,6 +1316,13 @@ export class JArray<OUT, Opt> extends JBuilder<OUT[], Opt> {
 
   exactLength(length: number): this {
     return this.minLength(length).maxLength(length)
+  }
+
+  /**
+   * Same as `minLength(1)`, but also narrows the output type to `NonEmptyArray`.
+   */
+  nonEmpty(): JArray<OUT, Opt, NonEmptyArray<OUT>> {
+    return this.minLength(1) as any as JArray<OUT, Opt, NonEmptyArray<OUT>>
   }
 
   unique(): this {

@@ -14,6 +14,7 @@ import type {
   IsoDate,
   IsoDateTime,
   IsoMonth,
+  NonEmptyArray,
   StringMap,
   UnixTimestamp,
   UnixTimestampMillis,
@@ -2361,6 +2362,37 @@ describe('array', () => {
 
         expect(err, String(input)).not.toBeNull()
       })
+    })
+  })
+
+  describe('nonEmpty', () => {
+    it('should accept valid data and infer NonEmptyArray', () => {
+      const testCases: any[] = [['foo'], ['foo', 'bar']]
+      const schema = j.array(j.string()).nonEmpty()
+
+      testCases.forEach(input => {
+        const [err, result] = schema.getValidationResult(input)
+
+        expect(err, String(input)).toBeNull()
+        expect(result).toEqual(input)
+        expectTypeOf(result).toEqualTypeOf<NonEmptyArray<string>>()
+      })
+    })
+
+    it('should reject invalid data', () => {
+      const testCases: any[] = [[], 0, 'foo', {}, true]
+      const schema = j.array(j.string()).nonEmpty()
+
+      testCases.forEach(input => {
+        const [err] = schema.getValidationResult(input)
+
+        expect(err, String(input)).not.toBeNull()
+      })
+    })
+
+    it('should keep the NonEmptyArray type through chaining', () => {
+      const schema = j.array(j.string()).nonEmpty().maxLength(3).unique().optional()
+      expectTypeOf(schema.out).toEqualTypeOf<NonEmptyArray<string> | undefined>()
     })
   })
 
