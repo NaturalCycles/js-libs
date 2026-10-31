@@ -1,11 +1,13 @@
 import { inspect } from 'node:util'
-import { expect, it } from 'vitest'
+import { expect, expectTypeOf, it } from 'vitest'
 import { _stringify } from '../string/stringify.js'
+import type { NonEmptyArray } from '../types.js'
 import {
   _assert,
   _assertDeepEquals,
   _assertEquals,
   _assertIsError,
+  _assertIsNonEmptyArray,
   _assertIsNumber,
   _assertIsString,
 } from './assert.js'
@@ -92,6 +94,24 @@ it('should throw an AssertionError for a non-number', () => {
   expect(err).toMatchInlineSnapshot(
     '[AssertionError: Expected typeof number, actual typeof: string]',
   )
+})
+
+it('should throw an AssertionError for an empty array, narrowing a non-empty one', () => {
+  const arr: number[] = [1, 2]
+  _assertIsNonEmptyArray(arr)
+  expectTypeOf(arr).toEqualTypeOf<NonEmptyArray<number>>()
+  expectTypeOf(arr[0]).toEqualTypeOf<number>()
+
+  const readonlyArr: readonly number[] = [1, 2]
+  _assertIsNonEmptyArray(readonlyArr)
+  expectTypeOf(readonlyArr).toEqualTypeOf<readonly [number, ...number[]]>()
+  expectTypeOf(readonlyArr[0]).toEqualTypeOf<number>()
+
+  const [err] = _try(() => _assertIsNonEmptyArray([]))
+  expect(err).toMatchInlineSnapshot('[AssertionError: Expected non-empty array]')
+
+  const [err2] = _try(() => _assertIsNonEmptyArray([], 'items are required'))
+  expect(err2).toMatchInlineSnapshot('[AssertionError: items are required]')
 })
 
 it('should leave constructor and data out of the inspect output', () => {

@@ -1,6 +1,6 @@
 import { _deepEquals } from '../object/deepEquals.js'
 import { _stringify } from '../string/stringify.js'
-import type { Class, UnixTimestamp } from '../types.js'
+import type { Class, NonEmptyArray, UnixTimestamp } from '../types.js'
 import type { BackendErrorResponseObject, ErrorData, ErrorObject } from './error.model.js'
 import { _isBackendErrorResponseObject, _isErrorObject, AssertionError } from './error.util.js'
 
@@ -132,6 +132,24 @@ export function _assertIsString(v: any, message?: string): asserts v is string {
 
 export function _assertIsNumber(v: any, message?: string): asserts v is number {
   _assertTypeOf<number>(v, 'number', message)
+}
+
+/**
+ * Asserts that the array has at least one element, narrowing it to NonEmptyArray.
+ * Readonly arrays are narrowed to `Readonly<NonEmptyArray<T>>`.
+ */
+export function _assertIsNonEmptyArray<T>(
+  arr: T[],
+  message?: string,
+): asserts arr is NonEmptyArray<T>
+export function _assertIsNonEmptyArray<T>(
+  arr: readonly T[],
+  message?: string,
+): asserts arr is Readonly<NonEmptyArray<T>>
+export function _assertIsNonEmptyArray(arr: readonly unknown[], message?: string): void {
+  if (!arr.length) {
+    throw new AssertionError(message || 'Expected non-empty array')
+  }
 }
 
 export function _assertTypeOf<T>(v: any, expectedType: string, message?: string): asserts v is T {
