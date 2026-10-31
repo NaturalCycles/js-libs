@@ -78,20 +78,22 @@ class FS2 {
   }
 
   writePrettyJson(filePath: string, data: any): void {
-    this.writeJson(filePath, data, prettyJsonOptions)
+    const str = stringifyPretty(data)
+    fs.writeFileSync(filePath, str)
   }
 
-  writeJson(filePath: string, data: any, opt?: JsonOptions): void {
-    const str = stringify(data, opt)
+  writeJson(filePath: string, data: any): void {
+    const str = JSON.stringify(data)
     fs.writeFileSync(filePath, str)
   }
 
   async writePrettyJsonAsync(filePath: string, data: any): Promise<void> {
-    await this.writeJsonAsync(filePath, data, prettyJsonOptions)
+    const str = stringifyPretty(data)
+    await fsp.writeFile(filePath, str)
   }
 
-  async writeJsonAsync(filePath: string, data: any, opt?: JsonOptions): Promise<void> {
-    const str = stringify(data, opt)
+  async writeJsonAsync(filePath: string, data: any): Promise<void> {
+    const str = JSON.stringify(data)
     await fsp.writeFile(filePath, str)
   }
 
@@ -104,20 +106,22 @@ class FS2 {
   }
 
   outputPrettyJson(filePath: string, data: any): void {
-    this.outputJson(filePath, data, prettyJsonOptions)
+    const str = stringifyPretty(data)
+    this.outputFile(filePath, str)
   }
 
-  outputJson(filePath: string, data: any, opt?: JsonOptions): void {
-    const str = stringify(data, opt)
+  outputJson(filePath: string, data: any): void {
+    const str = JSON.stringify(data)
     this.outputFile(filePath, str)
   }
 
   async outputPrettyJsonAsync(filePath: string, data: any): Promise<void> {
-    await this.outputJsonAsync(filePath, data, prettyJsonOptions)
+    const str = stringifyPretty(data)
+    await this.outputFileAsync(filePath, str)
   }
 
-  async outputJsonAsync(filePath: string, data: any, opt?: JsonOptions): Promise<void> {
-    const str = stringify(data, opt)
+  async outputJsonAsync(filePath: string, data: any): Promise<void> {
+    const str = JSON.stringify(data)
     await this.outputFileAsync(filePath, str)
   }
 
@@ -324,13 +328,7 @@ class FS2 {
 
 export const fs2 = new FS2()
 
-const prettyJsonOptions: JsonOptions = { spaces: 2 }
-
-export interface JsonOptions {
-  spaces?: number
-}
-
-function stringify(data: any, opt?: JsonOptions): string {
-  // If pretty-printing is enabled (spaces) - also add a newline at the end (to match our prettier config)
-  return JSON.stringify(data, null, opt?.spaces) + (opt?.spaces ? '\n' : '')
+function stringifyPretty(data: any): string {
+  // Add a newline at the end (to match our prettier config)
+  return JSON.stringify(data, null, 2) + '\n'
 }
