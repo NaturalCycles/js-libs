@@ -4,6 +4,7 @@ import type {
   FalsyValue,
   Mapper,
   MutateOptions,
+  NonEmptyArray,
   Predicate,
   StringMap,
 } from '../types.js'
@@ -21,12 +22,12 @@ import { END } from '../types.js'
  *
  * Based on: https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore#_chunk
  */
-export function _chunk<T>(array: readonly T[], size = 1): T[][] {
+export function _chunk<T>(array: readonly T[], size = 1): NonEmptyArray<T>[] {
   const a: T[][] = []
   for (let i = 0; i < array.length; i += size) {
     a.push(array.slice(i, i + size))
   }
-  return a
+  return a as NonEmptyArray<T>[]
 }
 
 /**
@@ -158,13 +159,20 @@ export function _mapBy<ITEM, KEY>(
  *
  * Returning `undefined` from the Mapper will EXCLUDE the item.
  */
-export function _groupBy<T>(items: readonly T[], mapper: Mapper<T, any>): StringMap<T[]> {
-  const map: StringMap<T[]> = {}
+export function _groupBy<T>(
+  items: readonly T[],
+  mapper: Mapper<T, any>,
+): StringMap<NonEmptyArray<T>> {
+  const map: StringMap<NonEmptyArray<T>> = {}
 
   for (const item of items) {
     const key = mapper(item)
-    if (key !== undefined) {
-      ;(map[key] ||= []).push(item)
+    if (key === undefined) continue
+    const group = map[key]
+    if (group) {
+      group.push(item)
+    } else {
+      map[key] = [item]
     }
   }
   return map
@@ -466,6 +474,16 @@ export function _first<T>(array: readonly T[]): T {
  */
 export function _firstOrUndefined<T>(array: readonly T[]): T | undefined {
   return array[0]
+}
+
+/**
+ * Type guard that narrows an array to NonEmptyArray (array with at least one element).
+ * Readonly arrays are narrowed to `Readonly<NonEmptyArray<T>>`.
+ */
+export function _isNonEmptyArray<T>(array: T[]): array is NonEmptyArray<T>
+export function _isNonEmptyArray<T>(array: readonly T[]): array is Readonly<NonEmptyArray<T>>
+export function _isNonEmptyArray(array: readonly unknown[]): boolean {
+  return array.length > 0
 }
 
 /**

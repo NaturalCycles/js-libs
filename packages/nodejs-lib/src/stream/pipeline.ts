@@ -14,6 +14,7 @@ import type {
   END,
   IndexedMapper,
   Integer,
+  NonEmptyArray,
   NonNegativeInteger,
   PositiveInteger,
   Predicate,
@@ -162,7 +163,7 @@ export class Pipeline<T = unknown> {
     return this
   }
 
-  chunk(chunkSize: PositiveInteger, opt?: TransformOptions): Pipeline<T[]> {
+  chunk(chunkSize: PositiveInteger, opt?: TransformOptions): Pipeline<NonEmptyArray<T>> {
     this.transforms.push(transformChunk(chunkSize, opt))
     return this as any
   }

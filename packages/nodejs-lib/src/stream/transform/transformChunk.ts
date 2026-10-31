@@ -1,5 +1,5 @@
 import { Transform } from 'node:stream'
-import type { PositiveInteger } from '@naturalcycles/js-lib/types'
+import type { NonEmptyArray, PositiveInteger } from '@naturalcycles/js-lib/types'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
 
 /**
@@ -13,7 +13,8 @@ import type { TransformOptions, TransformTyped } from '../stream.model.js'
 export function transformChunk<IN = any>(
   chunkSize: PositiveInteger,
   opt?: TransformOptions,
-): TransformTyped<IN, IN[]> {
+): TransformTyped<IN, NonEmptyArray<IN>> {
+  // Only non-empty buffers are emitted
   let buf: IN[] = []
 
   return new Transform({

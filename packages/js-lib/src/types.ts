@@ -226,6 +226,18 @@ export interface BatchResult<RES = any, ERR = Error> {
 export type ValuesOf<T extends readonly any[]> = T[number]
 
 /**
+ * Array with at least one element.
+ * Index 0 is typed as `T` (not `T | undefined`) under `noUncheckedIndexedAccess`.
+ *
+ * Use `_isNonEmptyArray` to narrow a regular array to it.
+ *
+ * Caveats:
+ * - Mutating methods (pop, shift, splice, `length = 0`) can empty it without the type noticing.
+ * - Non-emptiness is lost after map, filter, slice, concat (they return `T[]`). Spread preserves it.
+ */
+export type NonEmptyArray<T> = [T, ...T[]]
+
+/**
  * Based on: https://stackoverflow.com/a/49286056/4919972
  *
  * @example

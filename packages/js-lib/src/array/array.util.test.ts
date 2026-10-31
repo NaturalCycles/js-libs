@@ -1,6 +1,6 @@
-import { expect, it, vi } from 'vitest'
+import { expect, expectTypeOf, it, vi } from 'vitest'
 import { _createDeterministicRandom } from '../number/createDeterministicRandom.js'
-import type { AbortablePredicate, Mapper } from '../types.js'
+import type { AbortablePredicate, Mapper, NonEmptyArray, StringMap } from '../types.js'
 import { END } from '../types.js'
 import {
   _arrayPushOrRemove,
@@ -25,6 +25,7 @@ import {
   _groupBy,
   _intersection,
   _intersectsWith,
+  _isNonEmptyArray,
   _last,
   _lastOrUndefined,
   _mapBy,
@@ -69,6 +70,7 @@ it('should split an array into chunks of the given size, defaulting to 1', () =>
   expect(_chunk(b, 2)).toEqual([[1, 2], [3]])
 
   expect(_chunk([])).toEqual([])
+  expectTypeOf(_chunk(a)).toEqualTypeOf<NonEmptyArray<number>[]>()
 })
 
 it('should remove duplicates, keeping the first occurrence order', () => {
@@ -152,6 +154,7 @@ it('should group items by the mapped key', () => {
     even: [0, 2, 4],
     odd: [1, 3],
   })
+  expectTypeOf(_groupBy(_range(5), n => n)).toEqualTypeOf<StringMap<NonEmptyArray<number>>>()
 })
 
 it('should return the first matching item, or undefined when the predicate returns END', () => {
@@ -460,6 +463,36 @@ it('should return the first item, with _first throwing on an empty array', () =>
   expect(_first([1, undefined])).toBe(1)
   expect(_first([1, 2])).toBe(1)
   expect(_first([1])).toBe(1)
+})
+
+it('should narrow to NonEmptyArray with _isNonEmptyArray', () => {
+  expect(_isNonEmptyArray([])).toBe(false)
+  expect(_isNonEmptyArray([undefined])).toBe(true)
+  expect(_isNonEmptyArray([1, 2])).toBe(true)
+
+  const arr: number[] = [1, 2]
+  expectTypeOf(arr[0]).toEqualTypeOf<number | undefined>()
+  if (_isNonEmptyArray(arr)) {
+    expectTypeOf(arr).toEqualTypeOf<NonEmptyArray<number>>()
+    expectTypeOf(arr[0]).toEqualTypeOf<number>()
+    // Still usable where a regular array is expected
+    const plain: number[] = arr
+    expect(plain).toBe(arr)
+  }
+
+  const readonlyArr: readonly number[] = [1, 2]
+  if (_isNonEmptyArray(readonlyArr)) {
+    expectTypeOf(readonlyArr).toEqualTypeOf<readonly [number, ...number[]]>()
+    expectTypeOf(readonlyArr[0]).toEqualTypeOf<number>()
+    // @ts-expect-error readonly stays readonly
+    readonlyArr.push(3)
+  }
+
+  // Literals are assignable directly, empty literal is not
+  const ok: NonEmptyArray<number> = [1]
+  expect(ok).toEqual([1])
+  // @ts-expect-error empty array is not a NonEmptyArray
+  const __bad: NonEmptyArray<number> = []
 })
 
 it('should return the first item of any iterable, with _firstFromIterable throwing when empty', () => {
