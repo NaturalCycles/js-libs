@@ -1126,3 +1126,10 @@ async function expectCallsAfter(millis: number, calls: number): Promise<void> {
   await vi.advanceTimersByTimeAsync(millis)
   expect(Fetcher.callNativeFetch).toHaveBeenCalledTimes(calls)
 }
+
+it('should strip trailing slash from baseUrl without mutating the input cfg', () => {
+  const cfg: FetcherCfg = { baseUrl: 'https://example.com/', logger: commonLoggerNoop }
+  const fetcher = getFetcher(cfg)
+  expect(fetcher.cfg.baseUrl).toBe('https://example.com')
+  expect(cfg.baseUrl).toBe('https://example.com/')
+})

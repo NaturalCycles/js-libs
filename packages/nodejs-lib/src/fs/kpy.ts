@@ -47,7 +47,7 @@ export interface KpyOptions {
 export async function kpy(opt: KpyOptions): Promise<void> {
   const started = localTime.nowUnixMillis()
 
-  kpyPrepare(opt)
+  opt = kpyPrepare(opt)
 
   const filenames = await glob(opt.inputPatterns!, {
     cwd: opt.baseDir,
@@ -86,7 +86,7 @@ export async function kpy(opt: KpyOptions): Promise<void> {
 export function kpySync(opt: KpyOptions): void {
   const started = localTime.nowUnixMillis()
 
-  kpyPrepare(opt)
+  opt = kpyPrepare(opt)
 
   const filenames = globSync(opt.inputPatterns!, {
     cwd: opt.baseDir,
@@ -118,17 +118,22 @@ export function kpySync(opt: KpyOptions): void {
   kpyLogResult(opt, filenames, started)
 }
 
-function kpyPrepare(opt: KpyOptions): void {
-  // Default pattern
-  if (!opt.inputPatterns?.length) opt.inputPatterns = ['**']
-
-  // default to cwd
-  opt.baseDir ||= '.'
-  opt.outputDir ||= '.'
+/**
+ * Returns normalized copy of the options. Does not mutate the input options.
+ */
+function kpyPrepare(inputOpt: KpyOptions): KpyOptions {
+  const opt = {
+    ...inputOpt,
+    // Default pattern
+    inputPatterns: inputOpt.inputPatterns?.length ? inputOpt.inputPatterns.slice() : ['**'],
+    // default to cwd
+    baseDir: inputOpt.baseDir || '.',
+    outputDir: inputOpt.outputDir || '.',
+  }
 
   if (!fs2.pathExists(opt.baseDir)) {
     console.log(`kpy: baseDir doesn't exist: ${boldWhite(opt.baseDir)}`)
-    return
+    return opt
   }
 
   fs2.ensureDir(opt.outputDir)
@@ -147,6 +152,7 @@ function kpyPrepare(opt: KpyOptions): void {
     console.log({ extraPatterns })
   }
   opt.inputPatterns.push(...extraPatterns)
+  return opt
 }
 
 function kpyLogFilenames(opt: KpyOptions, filenames: readonly string[]): void {

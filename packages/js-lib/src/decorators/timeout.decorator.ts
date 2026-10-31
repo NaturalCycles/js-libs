@@ -14,8 +14,11 @@ export function _Timeout(opt: PTimeoutOptions): MethodDecorator {
 
     descriptor.value = async function (this: typeof _target, ...args: any[]) {
       const ctx = this
-      opt.name ||= _getMethodSignature(ctx, keyStr)
-      return await pTimeout(() => originalFn.apply(this, args), opt)
+      // Not mutating the shared decorator options, as the name depends on the instance (ctx)
+      return await pTimeout(() => originalFn.apply(this, args), {
+        ...opt,
+        name: opt.name || _getMethodSignature(ctx, keyStr),
+      })
     } as any
 
     return descriptor

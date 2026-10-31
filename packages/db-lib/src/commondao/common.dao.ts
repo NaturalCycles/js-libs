@@ -217,8 +217,7 @@ export class CommonDao<
     q: DBQuery<DBM>,
     opt: CommonDaoReadOptions = {},
   ): Promise<RunQueryResult<BM>> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
     const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
     const rows = isPartialQuery ? rawRows : this.storageRowsToDBM(rawRows)
@@ -238,8 +237,7 @@ export class CommonDao<
     q: DBQuery<DBM>,
     opt: CommonDaoReadOptions = {},
   ): Promise<RunQueryResult<DBM>> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
     const { rows: rawRows, ...queryResult } = await this.cfg.db.runQuery<DBM>(q, opt)
     const isPartialQuery = !!q._selectedFieldNames
     const rows = isPartialQuery ? rawRows : this.storageRowsToDBM(rawRows)
@@ -248,14 +246,12 @@ export class CommonDao<
   }
 
   async runQueryCount(q: DBQuery<DBM>, opt: CommonDaoReadOptions = {}): Promise<number> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
     return await this.cfg.db.runQueryCount(q, opt)
   }
 
   streamQueryAsDBM(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<DBM> = {}): Pipeline<DBM> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
     if (this.cfg.compress?.keys.length) {
@@ -265,15 +261,17 @@ export class CommonDao<
     const isPartialQuery = !!q._selectedFieldNames
     if (isPartialQuery) return pipeline
 
-    opt.skipValidation ??= true
-    opt.errorMode ||= ErrorMode.SUPPRESS
+    opt = {
+      ...opt,
+      skipValidation: opt.skipValidation ?? true,
+      errorMode: opt.errorMode || ErrorMode.SUPPRESS,
+    }
 
     return pipeline.mapSync(dbm => this.anyToDBM(dbm, opt), { errorMode: opt.errorMode })
   }
 
   streamQuery(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<BM> = {}): Pipeline<BM> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
     let pipeline = this.cfg.db.streamQuery<DBM>(q, opt)
 
     if (this.cfg.compress?.keys.length) {
@@ -283,25 +281,28 @@ export class CommonDao<
     const isPartialQuery = !!q._selectedFieldNames
     if (isPartialQuery) return pipeline as any as Pipeline<BM>
 
-    opt.skipValidation ??= true
-    opt.errorMode ||= ErrorMode.SUPPRESS
+    opt = {
+      ...opt,
+      skipValidation: opt.skipValidation ?? true,
+      errorMode: opt.errorMode || ErrorMode.SUPPRESS,
+    }
 
     return pipeline.mapSync(dbm => this.dbmToBM(dbm, opt), { errorMode: opt.errorMode })
   }
 
   async queryIds(q: DBQuery<DBM>, opt: CommonDaoReadOptions = {}): Promise<ID[]> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
-    const { rows } = await this.cfg.db.runQuery(q.select(['id']), opt)
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
+    const { rows } = await this.cfg.db.runQuery(q.clone().select(['id']), opt)
     return rows.map(r => r.id as ID)
   }
 
   streamQueryIds(q: DBQuery<DBM>, opt: CommonDaoStreamOptions<ID> = {}): Pipeline<ID> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
-    q.table = opt.table || q.table
-    opt.errorMode ||= ErrorMode.SUPPRESS
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
+    opt = { ...opt, errorMode: opt.errorMode || ErrorMode.SUPPRESS }
 
-    return this.cfg.db.streamQuery(q.select(['id']), opt).mapSync((r: ObjectWithId) => r.id as ID)
+    return this.cfg.db
+      .streamQuery(q.clone().select(['id']), opt)
+      .mapSync((r: ObjectWithId) => r.id as ID)
   }
 
   /**
@@ -596,8 +597,11 @@ export class CommonDao<
     this.requireWriteAccess()
 
     const table = opt.table || this.cfg.table
-    opt.skipValidation ??= true
-    opt.errorMode ||= ErrorMode.SUPPRESS
+    opt = {
+      ...opt,
+      skipValidation: opt.skipValidation ?? true,
+      errorMode: opt.errorMode || ErrorMode.SUPPRESS,
+    }
 
     const saveOptions = this.prepareSaveOptions(opt)
     const { beforeSave } = this.cfg.hooks!
@@ -658,17 +662,16 @@ export class CommonDao<
     q: DBQuery<DBM>,
     opt: CommonDaoStreamDeleteOptions<DBM> = {},
   ): Promise<number> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
-    q.table = opt.table || q.table
     let deleted = 0
 
     if (opt.chunkSize) {
       const { chunkSize, chunkConcurrency = 8 } = opt
 
       await this.cfg.db
-        .streamQuery<DBM>(q.select(['id']), opt)
+        .streamQuery<DBM>(q.clone().select(['id']), opt)
         .mapSync(r => r.id)
         .chunk(chunkSize)
         .map(
@@ -712,11 +715,10 @@ export class CommonDao<
     patch: Partial<DBM>,
     opt: CommonDaoOptions = {},
   ): Promise<number> {
-    this.validateQuery(q) // throws if query uses `excludeFromIndexes` property
+    q = this.prepareQuery(q, opt) // throws if query uses `excludeFromIndexes` property
     this.assertNotCompressed(Object.keys(patch), 'patchByQuery')
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
-    q.table = opt.table || q.table
     return await this.cfg.db.patchByQuery(q, patch, opt)
   }
 
@@ -1239,6 +1241,19 @@ export class CommonDao<
     _assert(!this.cfg.immutable || opt.allowMutability, DBLibError.OBJECT_IS_IMMUTABLE, {
       table: this.cfg.table,
     })
+  }
+
+  /**
+   * Validates the query (throws if it uses `excludeFromIndexes` or compressed properties),
+   * and applies `opt.table` override (if any).
+   * The table override is applied on a clone, to not mutate the input query.
+   */
+  private prepareQuery(q: DBQuery<DBM>, opt: CommonDaoOptions): DBQuery<DBM> {
+    this.validateQuery(q)
+    if (!opt.table || opt.table === q.table) return q
+    const q2 = q.clone()
+    q2.table = opt.table
+    return q2
   }
 
   private validateQuery(q: DBQuery<DBM>): void {

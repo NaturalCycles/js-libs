@@ -47,7 +47,7 @@ export interface PTimeoutOptions {
  * If the Function rejects - passes this rejection further.
  */
 export function pTimeoutFn<T extends AnyAsyncFunction>(fn: T, opt: PTimeoutOptions): T {
-  opt.name ||= fn.name
+  opt = { ...opt, name: opt.name || fn.name } // copy, to not mutate the input options
 
   if (!opt.timeout) {
     return fn

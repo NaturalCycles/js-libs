@@ -1539,3 +1539,20 @@ describe('auto compression', () => {
 async function getEven(): Promise<TestItemBM[]> {
   return await dao.query().filterEq('even', true).runQuery()
 }
+
+it('should not mutate the input query or options', async () => {
+  await dao.saveBatch(createTestItemsBM(3))
+
+  const q = dao.query()
+  const opt: CommonDaoOptions = {}
+
+  expect(await dao.queryIds(q, opt)).toHaveLength(3)
+  await dao.streamQuery(q, opt).toArray()
+  await dao.streamQueryIds(q, opt).toArray()
+  expect(q._selectedFieldNames).toBeUndefined()
+  expect(opt).toEqual({})
+
+  // table override is applied to a clone of the query
+  await dao.runQuery(q, { table: TEST_TABLE_2 })
+  expect(q.table).toBe(TEST_TABLE)
+})

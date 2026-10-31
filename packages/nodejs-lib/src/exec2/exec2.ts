@@ -66,9 +66,9 @@ class Exec2 {
       stdio = 'inherit',
       maxBuffer = defaultMaxBuffer,
     } = opt
-    opt.log ??= true // by default log should be true, as we are printing the output
-    opt.logStart ??= opt.log
-    opt.logFinish ??= opt.log
+    const log = opt.log ?? true // by default log should be true, as we are printing the output
+    // Copy, to not mutate the input options
+    opt = { ...opt, log, logStart: opt.logStart ?? log, logFinish: opt.logFinish ?? log }
     const started = Date.now() as UnixTimestampMillis
     this.logStart(cmd, opt)
 
@@ -112,8 +112,12 @@ class Exec2 {
    */
   exec(cmd: string, opt: ExecOptions = {}): string {
     const { cwd, env, passProcessEnv = true, timeout, stdio, maxBuffer = defaultMaxBuffer } = opt
-    opt.logStart ??= opt.log ?? false
-    opt.logFinish ??= opt.log ?? false
+    // Copy, to not mutate the input options
+    opt = {
+      ...opt,
+      logStart: opt.logStart ?? opt.log ?? false,
+      logFinish: opt.logFinish ?? opt.log ?? false,
+    }
     const started = Date.now() as UnixTimestampMillis
     this.logStart(cmd, opt)
 
@@ -170,9 +174,9 @@ class Exec2 {
       forceColor = hasColors,
       stdio = 'inherit',
     } = opt
-    opt.log ??= true // by default log should be true, as we are printing the output
-    opt.logStart ??= opt.log
-    opt.logFinish ??= opt.log
+    const log = opt.log ?? true // by default log should be true, as we are printing the output
+    // Copy, to not mutate the input options
+    opt = { ...opt, log, logStart: opt.logStart ?? log, logFinish: opt.logFinish ?? log }
     const started = Date.now() as UnixTimestampMillis
     this.logStart(cmd, opt)
 
@@ -238,9 +242,9 @@ class Exec2 {
       passProcessEnv = true,
       forceColor = hasColors,
     } = opt
-    opt.log ??= printWhileRunning // by default log should be true, as we are printing the output
-    opt.logStart ??= opt.log
-    opt.logFinish ??= opt.log
+    const log = opt.log ?? printWhileRunning // by default log should be true, as we are printing the output
+    // Copy, to not mutate the input options
+    opt = { ...opt, log, logStart: opt.logStart ?? log, logFinish: opt.logFinish ?? log }
     const started = Date.now() as UnixTimestampMillis
     this.logStart(cmd, opt)
     let stdout = ''

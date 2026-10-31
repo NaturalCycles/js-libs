@@ -848,11 +848,6 @@ export class Fetcher {
   private normalizeCfg(cfg: FetcherCfg & FetcherOptions): FetcherNormalizedCfg {
     const { debug = false, logger = consoleLogger } = cfg
 
-    if (cfg.baseUrl?.endsWith('/')) {
-      logger.warn(`Fetcher: baseUrl should not end with slash: ${cfg.baseUrl}`)
-      cfg.baseUrl = cfg.baseUrl.slice(0, cfg.baseUrl.length - 1)
-    }
-
     const norm: FetcherNormalizedCfg = _merge(
       {
         baseUrl: '',
@@ -893,6 +888,12 @@ export class Fetcher {
     )
 
     norm.init.headers = _mapKeys(norm.init.headers, k => k.toLowerCase())
+
+    // Normalizing `norm`, not the input `cfg`, to not mutate the input
+    if (norm.baseUrl.endsWith('/')) {
+      logger.warn(`Fetcher: baseUrl should not end with slash: ${norm.baseUrl}`)
+      norm.baseUrl = norm.baseUrl.slice(0, -1)
+    }
 
     return norm
   }
