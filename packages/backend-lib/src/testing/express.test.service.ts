@@ -7,6 +7,8 @@ import { createDefaultApp } from '../express/createDefaultApp.js'
 import type { BackendRequestHandlerCfg, DefaultAppCfg } from '../express/createDefaultApp.js'
 import type { BackendApplication } from '../server/server.model.js'
 
+const TEST_SERVER_HOST = '127.0.0.1'
+
 const nativeFetchFn: FetchFunction = async (url, init) => await globalThis.fetch(url, init)
 
 export interface ExpressApp extends Fetcher, AsyncDisposable {
@@ -14,7 +16,7 @@ export interface ExpressApp extends Fetcher, AsyncDisposable {
 }
 
 // Example:
-// const app = expressTestService.createApp([ debugResource ])
+// const app = await expressTestService.createAppFromResource(debugResource)
 // afterAll(async () => {
 //   await app.close()
 // })
@@ -46,10 +48,10 @@ class ExpressTestService {
     )
   }
 
-  createApp(app: BackendApplication, opt?: FetcherOptions): ExpressApp {
-    const server = this.createTestServer(app)
+  async createApp(app: BackendApplication, opt?: FetcherOptions): Promise<ExpressApp> {
+    const server = await this.createTestServer(app)
     const { port } = server.address() as AddressInfo
-    const baseUrl = `http://127.0.0.1:${port}`
+    const baseUrl = `http://${TEST_SERVER_HOST}:${port}`
 
     const fetcher = getFetcher({
       baseUrl,
@@ -95,14 +97,22 @@ class ExpressTestService {
    * const { port } = server.address() as AddressInfo
    * const url = `http://127.0.0.1:${port}`
    */
-  private createTestServer(app: BackendApplication): Server {
+  private async createTestServer(app: BackendApplication): Promise<Server> {
     // Important!
-    // Only with this syntax `app.listen(0)` it allocates a port synchronously
-    // Trying to specify a hostname will make server.address() return null.
-    // This is how `supertest` is doing it.
-    const server = app.listen(0)
+    // Listening on the same host that the Fetcher connects to.
+    // `app.listen(0)` (without a hostname) listens on all interfaces (`::`), and the OS (e.g macOS)
+    // may give it a port that some other process (e.g IntelliJ on 63342) already listens on
+    // at 127.0.0.1. Requests to 127.0.0.1 would then reach that other process instead.
+    // Listening on 127.0.0.1 makes the OS pick a port that is free on 127.0.0.1.
+    // The downside is that the port is only known after the async `listening` callback
+    // (server.address() returns null until then).
     // enableDestroy(server)
-    return server
+    return await new Promise<Server>((resolve, reject) => {
+      const server = app.listen(0, TEST_SERVER_HOST, (err?: Error) => {
+        if (err) return reject(err)
+        resolve(server)
+      })
+    })
   }
 }
 

@@ -95,9 +95,9 @@ it('should call the listener with an error when the client aborts the request', 
 
 async function withServer(handler: Handler, fn: (url: string) => Promise<void>): Promise<void> {
   const server = createServer(handler)
-  await new Promise<void>(resolve => server.listen(0, resolve))
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
   try {
-    await fn(`http://localhost:${(server.address() as AddressInfo).port}`)
+    await fn(`http://127.0.0.1:${(server.address() as AddressInfo).port}`)
   } finally {
     server.closeAllConnections()
     await new Promise(resolve => server.close(resolve))

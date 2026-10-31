@@ -76,9 +76,9 @@ it('should accept 2D and raw header arrays and throw on a malformed one', async 
 
 async function request(handler: Handler): Promise<Response> {
   const server = createServer(handler)
-  await new Promise<void>(resolve => server.listen(0, resolve))
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve))
   try {
-    const res = await fetch(`http://localhost:${(server.address() as AddressInfo).port}`)
+    const res = await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}`)
     await res.clone().arrayBuffer()
     return res
   } finally {

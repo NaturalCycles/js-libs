@@ -42,7 +42,7 @@ streamedExpressApp.use(compressionMiddleware({ syncMaxBytes: 0 }))
 streamedExpressApp.get('/', (_req, res) => {
   res.json(largeData)
 })
-const streamedApp = expressTestService.createApp(streamedExpressApp)
+const streamedApp = await expressTestService.createApp(streamedExpressApp)
 
 afterAll(async () => {
   await app.close()
