@@ -12,6 +12,8 @@ allowBuilds:
   '@firebase/util': false
   protobufjs: false
 autoDedupe: true
+lockfile:
+  includeResolutionSettings: true
 auditConfig:
   ignoreGhsas:
     - GHSA-h755-8qp9-cq85
