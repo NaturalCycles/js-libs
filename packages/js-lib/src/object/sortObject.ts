@@ -5,7 +5,7 @@ import type { AnyObject } from '../types.js'
  * All keys that are not listed in `keyOrder` go last.
  * Does not mutate original object.
  */
-export function _sortObject<T extends AnyObject>(obj: T, keyOrder: (keyof T)[]): T {
+export function _sortObject<T extends AnyObject>(obj: T, keyOrder: readonly (keyof T)[]): T {
   const r = {} as T
 
   // First, go over ordered keys

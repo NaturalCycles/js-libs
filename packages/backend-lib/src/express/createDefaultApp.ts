@@ -147,7 +147,10 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
   return app
 }
 
-function useHandlers(app: BackendApplication, handlers: BackendRequestHandlerCfg[] = []): void {
+function useHandlers(
+  app: BackendApplication,
+  handlers: readonly BackendRequestHandlerCfg[] = [],
+): void {
   handlers
     .map<BackendRequestHandlerWithPath>(cfg => {
       if (typeof cfg === 'function') {

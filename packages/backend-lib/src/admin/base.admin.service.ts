@@ -70,7 +70,7 @@ export class BaseAdminService {
    */
   async hasPermissions(
     req: BackendRequest,
-    reqPermissions: string[] = [],
+    reqPermissions: readonly string[] = [],
     meta: AnyObject = {},
   ): Promise<AdminInfo | undefined> {
     if (!this.cfg.authEnabled) return adminInfoDisabled()
@@ -93,7 +93,7 @@ export class BaseAdminService {
 
   async requirePermissions(
     req: BackendRequest,
-    reqPermissions: string[] = [],
+    reqPermissions: readonly string[] = [],
     meta: AnyObject = {},
     andComparison = true,
   ): Promise<AdminInfo> {
@@ -128,7 +128,7 @@ export class BaseAdminService {
    */
   checkPermissions(
     admin: ResolvedAdmin,
-    reqPermissions: string[] = [],
+    reqPermissions: readonly string[] = [],
     opt: CheckPermissionsOptions = {},
   ): CheckPermissionsResult {
     const { andComparison = true } = opt
@@ -254,7 +254,7 @@ export class BaseAdminService {
   protected async onPermissionCheck(
     req: BackendRequest,
     email: string,
-    reqPermissions: string[],
+    reqPermissions: readonly string[],
     required: boolean,
     granted: boolean,
     meta: AnyObject = {},
@@ -366,7 +366,7 @@ export interface CheckPermissionsResult {
   email?: string
   isAdmin: boolean
   granted: boolean
-  reqPermissions: string[]
-  grantedPermissions: string[]
+  reqPermissions: readonly string[]
+  grantedPermissions: readonly string[]
   authDisabled: boolean
 }

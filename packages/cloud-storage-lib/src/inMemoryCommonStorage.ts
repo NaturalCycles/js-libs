@@ -79,7 +79,7 @@ export class InMemoryCommonStorage implements CommonStorage {
     await this.deletePaths(bucketName, [prefix])
   }
 
-  async deletePaths(bucketName: string, prefixes: string[]): Promise<void> {
+  async deletePaths(bucketName: string, prefixes: readonly string[]): Promise<void> {
     Object.keys(this.data[bucketName] || {}).forEach(filePath => {
       if (prefixes.some(prefix => filePath.startsWith(prefix))) {
         delete this.data[bucketName]![filePath]
@@ -88,7 +88,7 @@ export class InMemoryCommonStorage implements CommonStorage {
     })
   }
 
-  async deleteFiles(bucketName: string, filePaths: string[]): Promise<void> {
+  async deleteFiles(bucketName: string, filePaths: readonly string[]): Promise<void> {
     if (!this.data[bucketName]) return
     filePaths.forEach(filePath => {
       delete this.data[bucketName]![filePath]
@@ -216,7 +216,7 @@ export class InMemoryCommonStorage implements CommonStorage {
 
   async combineFiles(
     bucketName: string,
-    filePaths: string[],
+    filePaths: readonly string[],
     toPath: string,
     toBucket?: string,
   ): Promise<void> {

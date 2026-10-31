@@ -19,7 +19,7 @@ export interface EncryptCLIOptions {
  * Using provided encKey.
  */
 export function secretsEncrypt(
-  pattern: string[],
+  pattern: readonly string[],
   file: string | undefined,
   encKeyBuffer: Buffer,
   del = false,

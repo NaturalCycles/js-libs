@@ -45,7 +45,7 @@ export class MySQLKeyValueDB implements CommonKeyValueDB {
     await this.db.runSQL({ sql })
   }
 
-  async getByIds(table: string, ids: string[]): Promise<KeyValueDBTuple[]> {
+  async getByIds(table: string, ids: readonly string[]): Promise<KeyValueDBTuple[]> {
     if (!ids.length) return []
 
     const sql = `SELECT id,v FROM ${table} where id in (${ids.map(id => `"${id}"`).join(',')})`
@@ -62,13 +62,13 @@ export class MySQLKeyValueDB implements CommonKeyValueDB {
     await this.db.runSQL({ sql: `DROP TABLE IF EXISTS ${table}` })
   }
 
-  async deleteByIds(table: string, ids: string[]): Promise<void> {
+  async deleteByIds(table: string, ids: readonly string[]): Promise<void> {
     const sql = `DELETE FROM ${table} WHERE id in (${ids.map(id => `"${id}"`).join(',')})`
     if (this.cfg.logSQL) this.db.cfg.logger.log(sql)
     await this.db.runSQL({ sql })
   }
 
-  async saveBatch(table: string, entries: KeyValueDBTuple[]): Promise<void> {
+  async saveBatch(table: string, entries: readonly KeyValueDBTuple[]): Promise<void> {
     const statements: QueryOptions[] = entries.map(([id, buf]) => {
       return {
         sql: `INSERT INTO ${table} (id, v) VALUES (?, ?)`,
@@ -126,7 +126,10 @@ export class MySQLKeyValueDB implements CommonKeyValueDB {
     return rows[0]!.cnt
   }
 
-  async incrementBatch(_table: string, _entries: IncrementTuple[]): Promise<IncrementTuple[]> {
+  async incrementBatch(
+    _table: string,
+    _entries: readonly IncrementTuple[],
+  ): Promise<IncrementTuple[]> {
     throw new AppError('MySQLKeyValueDB.incrementBatch() is not implemented')
   }
 }

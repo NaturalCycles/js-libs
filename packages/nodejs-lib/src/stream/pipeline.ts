@@ -93,7 +93,7 @@ export class Pipeline<T = unknown> {
    * Technically same as `fromIterable` (since Array is Iterable),
    * but named a bit friendlier.
    */
-  static fromArray<T>(input: T[]): Pipeline<T> {
+  static fromArray<T>(input: readonly T[]): Pipeline<T> {
     return new Pipeline(Readable.from(input))
   }
 
@@ -265,7 +265,7 @@ export class Pipeline<T = unknown> {
    * Helper method to add multiple transforms at once.
    * Not type safe! Prefer using singular `transform()` multiple times for type safety.
    */
-  transformMany<TO>(transforms: Transform[]): Pipeline<TO> {
+  transformMany<TO>(transforms: readonly Transform[]): Pipeline<TO> {
     this.transforms.push(...transforms)
     return this as any
   }

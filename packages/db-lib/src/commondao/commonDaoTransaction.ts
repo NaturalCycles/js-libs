@@ -51,7 +51,7 @@ export class CommonDaoTransaction {
 
   async getByIds<BM extends BaseDBEntity, DBM extends BaseDBEntity, ID extends string = BM['id']>(
     dao: CommonDao<BM, DBM, ID>,
-    ids: ID[],
+    ids: readonly ID[],
     opt?: CommonDaoReadOptions,
   ): Promise<BM[]> {
     return await dao.getByIds(ids, { ...opt, tx: this.tx })
@@ -81,7 +81,7 @@ export class CommonDaoTransaction {
 
   async saveBatch<BM extends BaseDBEntity, DBM extends BaseDBEntity>(
     dao: CommonDao<BM, DBM>,
-    bms: Unsaved<BM>[],
+    bms: readonly Unsaved<BM>[],
     opt?: CommonDaoSaveBatchOptions<DBM>,
   ): Promise<BM[]> {
     return await dao.saveBatch(bms, { ...opt, tx: this.tx })
@@ -116,7 +116,7 @@ export class CommonDaoTransaction {
 
   async deleteByIds<DAO extends AnyDao>(
     dao: DAO,
-    ids: InferID<DAO>[],
+    ids: readonly InferID<DAO>[],
     opt?: CommonDaoOptions,
   ): Promise<number> {
     return await dao.deleteByIds(ids, { ...opt, tx: this.tx })

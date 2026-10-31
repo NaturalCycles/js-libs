@@ -18,12 +18,12 @@ import type { TransformOptions } from '../stream.model.js'
  * @experimental
  */
 export class ReadableCombined<T> extends Readable implements ReadableTyped<T> {
-  static create<T>(inputs: Readable[], opt: TransformOptions = {}): ReadableCombined<T> {
+  static create<T>(inputs: readonly Readable[], opt: TransformOptions = {}): ReadableCombined<T> {
     return new ReadableCombined<T>(inputs, opt)
   }
 
   private constructor(
-    public inputs: Readable[],
+    public inputs: readonly Readable[],
     opt: TransformOptions,
   ) {
     const { objectMode = true, highWaterMark } = opt

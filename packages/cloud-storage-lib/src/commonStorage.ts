@@ -83,12 +83,12 @@ export interface CommonStorage {
    */
   deletePath: (bucketName: string, prefix: string) => Promise<void>
 
-  deletePaths: (bucketName: string, prefixes: string[]) => Promise<void>
+  deletePaths: (bucketName: string, prefixes: readonly string[]) => Promise<void>
 
   /**
    * Should delete all files by their paths.
    */
-  deleteFiles: (bucketName: string, filePaths: string[]) => Promise<void>
+  deleteFiles: (bucketName: string, filePaths: readonly string[]) => Promise<void>
 
   /**
    * Returns an array of strings which are file paths.
@@ -160,7 +160,7 @@ export interface CommonStorage {
    */
   combineFiles: (
     bucketName: string,
-    filePaths: string[],
+    filePaths: readonly string[],
     toPath: string,
     toBucket?: string,
   ) => Promise<void>

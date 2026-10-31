@@ -100,7 +100,7 @@ export class ZipReader implements AsyncDisposable {
      * All entries (files and directories) found in the archive,
      * in central-directory order.
      */
-    readonly entries: ZipEntry[],
+    readonly entries: readonly ZipEntry[],
     /**
      * Archive-level comment (empty string if none).
      */
@@ -160,7 +160,7 @@ export class ZipReader implements AsyncDisposable {
    * Extract all entries into `destDir`, streaming each file to disk.
    * See {@link extractZip}.
    */
-  async extractAll(destDir: string): Promise<ZipEntry[]> {
+  async extractAll(destDir: string): Promise<readonly ZipEntry[]> {
     const root = path.resolve(destDir)
     for (const entry of this.entries) {
       const targetPath = assertPathInside(root, entry.fileName)
@@ -402,7 +402,7 @@ function parseExtraFields(buf: Buffer): ExtraField[] {
 }
 
 function readZip64ExtraField(
-  extraFields: ExtraField[],
+  extraFields: readonly ExtraField[],
   uncompressedSize: number,
   compressedSize: number,
   relativeOffsetOfLocalHeader: number,
@@ -431,7 +431,7 @@ function readZip64ExtraField(
 function decodeFileName(
   generalPurposeBitFlag: number,
   fileNameRaw: Buffer,
-  extraFields: ExtraField[],
+  extraFields: readonly ExtraField[],
 ): string {
   // Info-ZIP Unicode Path Extra Field (0x7075): an authoritative UTF-8 name,
   // used only if its stored CRC-32 matches the raw name. See yauzl#33.
@@ -449,7 +449,11 @@ function decodeFileName(
   return normalizeZipEntryName(decodeBuffer(fileNameRaw, hasUtf8Flag))
 }
 
-function parseLastModified(date: number, time: number, extraFields: ExtraField[]): UnixTimestamp {
+function parseLastModified(
+  date: number,
+  time: number,
+  extraFields: readonly ExtraField[],
+): UnixTimestamp {
   // Prefer the Info-ZIP "UT" extended timestamp (0x5455) if it carries mtime.
   // Its payload is already a Unix timestamp in seconds.
   const ut = extraFields.find(f => f.id === 0x5455)

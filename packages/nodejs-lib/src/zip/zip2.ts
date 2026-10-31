@@ -177,7 +177,10 @@ class Zip2 {
    *
    * Returns the list of extracted entries.
    */
-  async extractZipFileToDirectory(zipFilePath: string, destDir: string): Promise<ZipEntry[]> {
+  async extractZipFileToDirectory(
+    zipFilePath: string,
+    destDir: string,
+  ): Promise<readonly ZipEntry[]> {
     const zip = await openZip(zipFilePath)
     try {
       return await zip.extractAll(destDir)
@@ -189,7 +192,11 @@ class Zip2 {
   /**
    * Create a zip archive on disk from a list of files and/or directories.
    */
-  async zipPaths(paths: string[], outputZipFilePath: string, opt?: ZipPathsOptions): Promise<void> {
+  async zipPaths(
+    paths: readonly string[],
+    outputZipFilePath: string,
+    opt?: ZipPathsOptions,
+  ): Promise<void> {
     return await zipPaths(paths, outputZipFilePath, opt)
   }
 
@@ -215,7 +222,7 @@ class Zip2 {
    *
    * For large archives or streamed inputs prefer {@link createZip} / {@link ZipWriter}.
    */
-  async createZipBuffer(entries: ZipFileEntry[]): Promise<Buffer<ArrayBuffer>> {
+  async createZipBuffer(entries: readonly ZipFileEntry[]): Promise<Buffer<ArrayBuffer>> {
     return await createZipBuffer(entries)
   }
 }

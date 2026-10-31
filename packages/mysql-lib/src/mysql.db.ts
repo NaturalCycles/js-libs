@@ -192,7 +192,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
   // GET
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: MysqlDBOptions = {},
   ): Promise<ROW[]> {
     if (!ids.length) return []
@@ -291,7 +291,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
   // SAVE
   override async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rowsInput: ROW[],
+    rowsInput: readonly ROW[],
     opt: MysqlDBSaveOptions<ROW> = {},
   ): Promise<void> {
     if (!rowsInput.length) return
@@ -358,7 +358,11 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
   /**
    * Limitation: always returns [], regardless of which rows are actually deleted
    */
-  override async deleteByIds(table: string, ids: string[], _opt?: MysqlDBOptions): Promise<number> {
+  override async deleteByIds(
+    table: string,
+    ids: readonly string[],
+    _opt?: MysqlDBOptions,
+  ): Promise<number> {
     if (!ids.length) return 0
     const sql = dbQueryToSQLDelete(new DBQuery(table).filterEq('id', ids))
     if (!sql) return 0

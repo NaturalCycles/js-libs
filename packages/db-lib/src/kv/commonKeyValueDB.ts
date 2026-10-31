@@ -29,13 +29,13 @@ export interface CommonKeyValueDB {
    *
    * Currently it is NOT required to maintain the same order as input `ids`.
    */
-  getByIds: (table: string, ids: string[]) => Promise<KeyValueDBTuple[]>
+  getByIds: (table: string, ids: readonly string[]) => Promise<KeyValueDBTuple[]>
 
-  deleteByIds: (table: string, ids: string[]) => Promise<void>
+  deleteByIds: (table: string, ids: readonly string[]) => Promise<void>
 
   saveBatch: (
     table: string,
-    entries: KeyValueDBTuple[],
+    entries: readonly KeyValueDBTuple[],
     opt?: CommonKeyValueDBSaveBatchOptions,
   ) => Promise<void>
 
@@ -60,7 +60,7 @@ export interface CommonKeyValueDB {
    *
    * @experimental
    */
-  incrementBatch: (table: string, entries: IncrementTuple[]) => Promise<IncrementTuple[]>
+  incrementBatch: (table: string, entries: readonly IncrementTuple[]) => Promise<IncrementTuple[]>
 }
 
 export type KeyValueDBTuple = [key: string, value: Buffer]

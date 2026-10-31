@@ -51,7 +51,7 @@ export const randomService = new RandomService()
 /**
  * Determines a users assignment for this experiment. Returns null if they are not considered to be in the sampling group
  */
-export function determineAssignment(sampling: number, buckets: Bucket[]): Bucket | null {
+export function determineAssignment(sampling: number, buckets: readonly Bucket[]): Bucket | null {
   // Should this person be considered for the experiment?
   if (randomService.rollDie() > sampling) {
     return null
@@ -64,7 +64,7 @@ export function determineAssignment(sampling: number, buckets: Bucket[]): Bucket
 /**
  * Determines which bucket a user assignment will recieve
  */
-export function determineBucket(buckets: Bucket[]): Bucket {
+export function determineBucket(buckets: readonly Bucket[]): Bucket {
   const bucketRoll = randomService.rollDie()
   let range: [number, number] | undefined
   const bucket = buckets.find(b => {
@@ -89,7 +89,9 @@ export function determineBucket(buckets: Bucket[]): Bucket {
 /**
  * Validate the total ratio of the buckets equals 100
  */
-export function validateTotalBucketRatio(buckets: (Unsaved<Bucket> | BucketInput)[]): void {
+export function validateTotalBucketRatio(
+  buckets: readonly (Unsaved<Bucket> | BucketInput)[],
+): void {
   const bucketSum = buckets.reduce((sum, current) => sum + current.ratio, 0)
   _assert(
     bucketSum === 100,
@@ -106,7 +108,7 @@ export function validateTotalBucketRatio(buckets: (Unsaved<Bucket> | BucketInput
  * @returns
  */
 export function validateSegmentationRules(
-  rules: SegmentationRule[],
+  rules: readonly SegmentationRule[],
   segmentationData: SegmentationData,
 ): boolean {
   for (const rule of rules) {
@@ -175,7 +177,7 @@ export function canGenerateNewAssignments(
  * Returns an object that includes keys of all experimentIds a user should not be assigned to
  * based on a combination of existing assignments and mutual exclusion configuration
  */
-export function getUserExclusionSet(experiments: UserExperiment[]): ExclusionSet {
+export function getUserExclusionSet(experiments: readonly UserExperiment[]): ExclusionSet {
   const exclusionSet: ExclusionSet = new Set()
   experiments.forEach(experiment => {
     const { userAssignment } = experiment

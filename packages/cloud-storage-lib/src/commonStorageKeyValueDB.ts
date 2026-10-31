@@ -56,14 +56,14 @@ export class CommonStorageKeyValueDB implements CommonKeyValueDB {
     }
   }
 
-  async deleteByIds(table: string, ids: string[]): Promise<void> {
+  async deleteByIds(table: string, ids: readonly string[]): Promise<void> {
     const { bucketName, prefix } = this.getBucketAndPrefix(table)
     await pMap(ids, async id => {
       await this.cfg.storage.deletePath(bucketName, [prefix, id].join('/'))
     })
   }
 
-  async getByIds(table: string, ids: string[]): Promise<KeyValueDBTuple[]> {
+  async getByIds(table: string, ids: readonly string[]): Promise<KeyValueDBTuple[]> {
     const { bucketName, prefix } = this.getBucketAndPrefix(table)
 
     const map: StringMap<Buffer> = {}
@@ -76,7 +76,7 @@ export class CommonStorageKeyValueDB implements CommonKeyValueDB {
     return ids.map(id => [id, map[id]] as KeyValueDBTuple).filter(t => t[1])
   }
 
-  async saveBatch(table: string, entries: KeyValueDBTuple[]): Promise<void> {
+  async saveBatch(table: string, entries: readonly KeyValueDBTuple[]): Promise<void> {
     const { bucketName, prefix } = this.getBucketAndPrefix(table)
 
     await pMap(entries, async ([id, content]) => {
@@ -110,7 +110,10 @@ export class CommonStorageKeyValueDB implements CommonKeyValueDB {
     return (await this.cfg.storage.getFileNames(bucketName, { prefix })).length
   }
 
-  async incrementBatch(_table: string, _entries: IncrementTuple[]): Promise<IncrementTuple[]> {
+  async incrementBatch(
+    _table: string,
+    _entries: readonly IncrementTuple[],
+  ): Promise<IncrementTuple[]> {
     throw new AppError('CommonStorageKeyValueDB.incrementBatch() is not implemented')
   }
 }

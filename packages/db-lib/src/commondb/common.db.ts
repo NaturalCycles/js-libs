@@ -63,7 +63,7 @@ export interface CommonDB {
    */
   getByIds: <ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt?: CommonDBReadOptions,
   ) => Promise<ROW[]>
 
@@ -113,7 +113,7 @@ export interface CommonDB {
    */
   saveBatch: <ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt?: CommonDBSaveOptions<ROW>,
   ) => Promise<void>
 
@@ -156,7 +156,11 @@ export interface CommonDB {
    * Returns number of deleted items.
    * Not supported by all implementations (e.g Datastore will always return same number as number of ids).
    */
-  deleteByIds: (table: string, ids: string[], opt?: CommonDBOptions) => Promise<NonNegativeInteger>
+  deleteByIds: (
+    table: string,
+    ids: readonly string[],
+    opt?: CommonDBOptions,
+  ) => Promise<NonNegativeInteger>
 
   /**
    * Deletes rows from multiple tables at once.

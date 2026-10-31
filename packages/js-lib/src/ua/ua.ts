@@ -379,7 +379,7 @@ function mergeMapEntries(
 function rgxMapper(
   target: UABrowser | UACpu | UADevice | UAEngine | UAOS,
   ua: string,
-  arrays: UARegexMapEntry[],
+  arrays: readonly UARegexMapEntry[],
 ): void {
   const t = target as unknown as Record<string, string | undefined>
   let matches: RegExpExecArray | null = null

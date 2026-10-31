@@ -36,7 +36,11 @@ export interface PupaOptions {
 /**
  * API: https://github.com/sindresorhus/pupa
  */
-export function pupa(template: string, data: any[] | AnyObject, opt: PupaOptions = {}): string {
+export function pupa(
+  template: string,
+  data: readonly any[] | AnyObject,
+  opt: PupaOptions = {},
+): string {
   if (typeof template !== 'string') {
     throw new TypeError(`Expected a \`string\` in the first argument, got \`${typeof template}\``)
   }

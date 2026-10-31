@@ -87,7 +87,7 @@ export class Scrubber {
     return this.applyScrubbers(data, this.rootType ? [this.rootType] : undefined)
   }
 
-  private applyScrubbers<T>(data: T, parents: string[] = []): T {
+  private applyScrubbers<T>(data: T, parents: readonly string[] = []): T {
     const isArray = Array.isArray(data)
     const dataCopy: any = Array.isArray(data) ? data.slice() : { ...data }
 
@@ -144,7 +144,10 @@ export class Scrubber {
    * parent path beats a shorter one. This is what lets a catch-all be narrowed - point the
    * qualified key at `excludeScrubber` to carve that field out of it.
    */
-  private resolveFieldCfg(key: string, parents: string[]): ScrubberFieldConfig | undefined {
+  private resolveFieldCfg(
+    key: string,
+    parents: readonly string[],
+  ): ScrubberFieldConfig | undefined {
     const fieldCfg = this.resolveMostSpecificFieldCfg(key, parents)
     // An excluded field behaves as if no rule matched it, so nested values below it are still traversed
     if (fieldCfg?.scrubber === EXCLUDE_SCRUBBER) return undefined
@@ -153,7 +156,7 @@ export class Scrubber {
 
   private resolveMostSpecificFieldCfg(
     key: string,
-    parents: string[],
+    parents: readonly string[],
   ): ScrubberFieldConfig | undefined {
     const parentCfgs = this.cfg.splitFields?.[key]
     if (!parentCfgs) return this.cfg.fields[key]
@@ -237,7 +240,10 @@ export class Scrubber {
    * returns true if all entries in b are equal to the end of entries of a. a may be longer than b.
    * Supports objects inside of arrays by removing any integer entries from a before comparing
    */
-  private arrayContainsInOrder(a: any[] | undefined, b: any[] | undefined): boolean {
+  private arrayContainsInOrder(
+    a: readonly any[] | undefined,
+    b: readonly any[] | undefined,
+  ): boolean {
     if (!a || !b) return false
     if (a === b) return true
     if (a.length < b.length) return false

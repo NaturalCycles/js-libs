@@ -34,7 +34,7 @@ export function _getTargetMethodSignature(target: AnyObject, keyStr: string): st
  * returns:
  * a, b, c
  */
-export function _getArgsSignature(args: any[] = [], logArgs = true): string {
+export function _getArgsSignature(args: readonly any[] = [], logArgs = true): string {
   if (!logArgs) return ''
 
   return args

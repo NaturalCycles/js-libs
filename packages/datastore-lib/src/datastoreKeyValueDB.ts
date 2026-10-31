@@ -34,15 +34,15 @@ export class DatastoreKeyValueDB implements CommonKeyValueDB {
 
   async createTable(): Promise<void> {}
 
-  async getByIds(table: string, ids: string[]): Promise<KeyValueDBTuple[]> {
+  async getByIds(table: string, ids: readonly string[]): Promise<KeyValueDBTuple[]> {
     return (await this.db.getByIds<KVObject>(table, ids)).map(r => [r.id, r.v])
   }
 
-  async deleteByIds(table: string, ids: string[]): Promise<void> {
+  async deleteByIds(table: string, ids: readonly string[]): Promise<void> {
     await this.db.deleteByIds(table, ids)
   }
 
-  async saveBatch(table: string, entries: KeyValueDBTuple[]): Promise<void> {
+  async saveBatch(table: string, entries: readonly KeyValueDBTuple[]): Promise<void> {
     await this.db.saveBatch<KVObject>(
       table,
       entries.map(([id, v]) => ({ id, v })),
@@ -83,7 +83,10 @@ export class DatastoreKeyValueDB implements CommonKeyValueDB {
     return await this.db.runQueryCount(q)
   }
 
-  async incrementBatch(_table: string, _entries: IncrementTuple[]): Promise<IncrementTuple[]> {
+  async incrementBatch(
+    _table: string,
+    _entries: readonly IncrementTuple[],
+  ): Promise<IncrementTuple[]> {
     throw new AppError('DatastoreKeyValueDB.incrementBatch() is not implemented')
   }
 }

@@ -34,7 +34,7 @@ export class AuthService<CTX = AnyObject> {
 
   private createHandler(
     cfg: AuthMiddlewareCfg<CTX>,
-    reqPermissions: string[] = [],
+    reqPermissions: readonly string[] = [],
     loginHref?: string,
   ): BackendRequestHandler {
     const {
@@ -100,7 +100,7 @@ export class AuthService<CTX = AnyObject> {
    */
   require(
     resolved: ResolvedAuth | undefined,
-    reqPermissions: string[] = [],
+    reqPermissions: readonly string[] = [],
     opt: AuthCheckOptions<CTX> = {},
   ): PermissionInfo {
     if (!this.cfg.authEnabled) return { subject: 'authDisabled', permissions: [] }
@@ -120,9 +120,9 @@ export class AuthService<CTX = AnyObject> {
 
   private checkSubject(
     resolved: AuthenticatedAuth,
-    reqPermissions: string[],
+    reqPermissions: readonly string[],
     opt: AuthCheckOptions<CTX>,
-  ): string[] | undefined {
+  ): readonly string[] | undefined {
     const { subject, permissions, alwaysAuthorized = false } = resolved
     const { andComparison = true, ctx } = opt
 
@@ -160,8 +160,8 @@ export class AuthService<CTX = AnyObject> {
 
   private assertGranted(
     subject: string,
-    grantedPermissions: string[] | undefined,
-    reqPermissions: string[],
+    grantedPermissions: readonly string[] | undefined,
+    reqPermissions: readonly string[],
   ): asserts grantedPermissions is string[] {
     _assert(grantedPermissions, `Permissions required: [${reqPermissions.join(', ')}]`, {
       permissionsRequired: reqPermissions,
@@ -175,8 +175,8 @@ export class AuthService<CTX = AnyObject> {
    * undefined - not granted.
    */
   private getGrantedPermissions(
-    permissions: string[] | undefined,
-    reqPermissions: string[],
+    permissions: readonly string[] | undefined,
+    reqPermissions: readonly string[],
     andComparison: boolean,
   ): string[] | undefined {
     if (!permissions) return
@@ -242,9 +242,9 @@ export interface AuthCheck {
   subject: string
   granted: boolean
   alwaysAuthorized: boolean
-  reqPermissions: string[]
+  reqPermissions: readonly string[]
   /** The granted permissions, or reqPermissions if denied */
-  checkedPermissions: string[]
+  checkedPermissions: readonly string[]
 }
 
 export interface AuthLoginRedirectMiddlewareCfg<CTX> extends AuthMiddlewareCfg<CTX> {

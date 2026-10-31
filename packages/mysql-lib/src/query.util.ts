@@ -54,7 +54,7 @@ export function dbQueryToSQLDelete(q: DBQuery<any>): string | null {
  */
 export function insertSQL(
   table: string,
-  rows: Record<any, any>[],
+  rows: readonly Record<any, any>[],
   verb: 'INSERT' | 'REPLACE' = 'INSERT',
   logger: CommonLogger = consoleLogger,
 ): string[] {

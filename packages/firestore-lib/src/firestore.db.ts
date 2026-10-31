@@ -59,7 +59,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   // GET
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: FirestoreDBReadOptions = {},
   ): Promise<ROW[]> {
     if (!ids.length) return []
@@ -218,7 +218,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
   // SAVE
   override async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt: FirestoreDBSaveOptions<ROW> = {},
   ): Promise<void> {
     const { firestore } = this.cfg
@@ -371,7 +371,7 @@ export class FirestoreDB extends BaseCommonDB implements CommonDB {
 
   override async deleteByIds(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: FirestoreDBOptions = {},
   ): Promise<number> {
     const { firestore } = this.cfg
@@ -524,7 +524,7 @@ export class FirestoreDBTransaction implements DBTransaction {
 
   async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt?: CommonDBOptions,
   ): Promise<ROW[]> {
     return await this.db.getByIds(table, ids, { ...opt, tx: this })
@@ -532,13 +532,13 @@ export class FirestoreDBTransaction implements DBTransaction {
 
   async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt?: CommonDBSaveOptions<ROW>,
   ): Promise<void> {
     await this.db.saveBatch(table, rows, { ...opt, tx: this })
   }
 
-  async deleteByIds(table: string, ids: string[], opt?: CommonDBOptions): Promise<number> {
+  async deleteByIds(table: string, ids: readonly string[], opt?: CommonDBOptions): Promise<number> {
     return await this.db.deleteByIds(table, ids, { ...opt, tx: this })
   }
 }

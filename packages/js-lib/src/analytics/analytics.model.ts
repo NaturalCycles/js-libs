@@ -70,7 +70,7 @@ export interface AnalyticsClientEvent {
 }
 
 /** Canonical utm parameters. */
-export const CANONICAL_UTM_PARAMS = [
+export const CANONICAL_UTM_PARAMS: readonly string[] = [
   'utm_source',
   'utm_medium',
   'utm_campaign',

@@ -114,7 +114,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
 
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: AirtableDBOptions = {},
   ): Promise<ROW[]> {
     if (!ids.length) return []
@@ -136,7 +136,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
 
   override async deleteByIds(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: AirtableDBOptions = {},
   ): Promise<number> {
     if (!ids.length) return 0
@@ -177,7 +177,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
    */
   override async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt?: AirtableDBSaveOptions<ROW>,
   ): Promise<void> {
     // db-lib requires `undefined` values to not be saved/loaded

@@ -188,7 +188,7 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
     return (await this.getTableIdIndex())[table]?.[id!] as T
   }
 
-  async getByIds<T extends AirtableRecord>(table: string, ids: string[]): Promise<T[]> {
+  async getByIds<T extends AirtableRecord>(table: string, ids: readonly string[]): Promise<T[]> {
     const index = (await this.getTableIdIndex())[table]
 
     return ids.map(id => index?.[id]) as T[]
@@ -202,7 +202,10 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
     return r
   }
 
-  async requireByIds<T extends AirtableRecord>(table: string, ids: string[]): Promise<T[]> {
+  async requireByIds<T extends AirtableRecord>(
+    table: string,
+    ids: readonly string[],
+  ): Promise<T[]> {
     const index = (await this.getTableIdIndex())[table]
 
     return ids.map(id => {
@@ -226,12 +229,16 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
     return r
   }
 
-  async getByAirtableIds<T extends AirtableRecord>(airtableIds: string[] = []): Promise<T[]> {
+  async getByAirtableIds<T extends AirtableRecord>(
+    airtableIds: readonly string[] = [],
+  ): Promise<T[]> {
     const index = await this.getAirtableIndex()
     return airtableIds.map(id => index[id]) as T[]
   }
 
-  async requireByAirtableIds<T extends AirtableRecord>(airtableIds: string[] = []): Promise<T[]> {
+  async requireByAirtableIds<T extends AirtableRecord>(
+    airtableIds: readonly string[] = [],
+  ): Promise<T[]> {
     const index = await this.getAirtableIndex()
 
     return airtableIds.map(id => {

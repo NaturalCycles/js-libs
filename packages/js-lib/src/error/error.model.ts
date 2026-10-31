@@ -94,7 +94,7 @@ export interface ErrorData {
   /**
    * Used in e.g http 403 error.
    */
-  adminPermissionsRequired?: string[]
+  adminPermissionsRequired?: readonly string[]
 
   /**
    * Open-ended.

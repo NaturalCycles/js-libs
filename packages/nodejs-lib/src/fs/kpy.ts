@@ -149,7 +149,7 @@ function kpyPrepare(opt: KpyOptions): void {
   opt.inputPatterns.push(...extraPatterns)
 }
 
-function kpyLogFilenames(opt: KpyOptions, filenames: string[]): void {
+function kpyLogFilenames(opt: KpyOptions, filenames: readonly string[]): void {
   if (opt.silent) return
 
   // console.log({filenames})
@@ -160,7 +160,11 @@ function kpyLogFilenames(opt: KpyOptions, filenames: string[]): void {
   )
 }
 
-function kpyLogResult(opt: KpyOptions, filenames: string[], started: UnixTimestampMillis): void {
+function kpyLogResult(
+  opt: KpyOptions,
+  filenames: readonly string[],
+  started: UnixTimestampMillis,
+): void {
   if (opt.silent || filenames.length === 0) return
 
   console.log(

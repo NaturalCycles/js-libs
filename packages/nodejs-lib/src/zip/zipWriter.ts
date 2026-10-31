@@ -76,7 +76,7 @@ const deflateRawAsync = promisify(zlib.deflateRaw.bind(zlib))
  * On failure the partially-written archive is removed.
  */
 export async function zipPaths(
-  paths: string[],
+  paths: readonly string[],
   outputZipFilePath: string,
   opt: ZipPathsOptions = {},
 ): Promise<void> {
@@ -105,7 +105,9 @@ export async function zipPaths(
  *
  * For large archives or streamed inputs prefer {@link createZip} / {@link ZipWriter}.
  */
-export async function createZipBuffer(entries: ZipFileEntry[]): Promise<Buffer<ArrayBuffer>> {
+export async function createZipBuffer(
+  entries: readonly ZipFileEntry[],
+): Promise<Buffer<ArrayBuffer>> {
   const chunks: Buffer[] = []
   const sink = new Writable({
     write(chunk: Buffer, _enc, cb) {
@@ -684,7 +686,10 @@ interface FileToZip {
  * Expand input paths (files and/or directories) into a flat list of files to add,
  * resolving each entry's archive name relative to `baseDir` (or each input's parent).
  */
-async function collectFiles(inputs: string[], baseDir: string | undefined): Promise<FileToZip[]> {
+async function collectFiles(
+  inputs: readonly string[],
+  baseDir: string | undefined,
+): Promise<FileToZip[]> {
   const files: FileToZip[] = []
   for (const input of inputs) {
     const stats = await fsp.stat(input)

@@ -34,7 +34,7 @@ export function createSecureHeaderMiddleware(cfg: SecureHeaderMiddlewareCfg): Ad
 
 function requireSecureHeaderOrAdmin(
   cfg: SecureHeaderMiddlewareCfg,
-  reqPermissions?: string[],
+  reqPermissions?: readonly string[],
 ): BackendRequestHandler {
   const { secureHeaderKey = 'Authorization', secureHeaderValue } = cfg
 

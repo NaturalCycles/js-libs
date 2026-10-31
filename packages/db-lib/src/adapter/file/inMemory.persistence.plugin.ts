@@ -23,7 +23,7 @@ export class InMemoryPersistencePlugin implements FileDBPersistencePlugin {
     return Object.values(this.data[table] || ({} as any))
   }
 
-  async saveFiles(ops: DBSaveBatchOperation<any>[]): Promise<void> {
+  async saveFiles(ops: readonly DBSaveBatchOperation<any>[]): Promise<void> {
     ops.forEach(op => {
       this.data[op.table] = _by(op.rows, r => r.id)
     })

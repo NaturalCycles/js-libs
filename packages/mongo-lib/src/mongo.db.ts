@@ -119,7 +119,7 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
 
   override async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt: MongoDBSaveOptions<ROW> = {},
   ): Promise<void> {
     if (!rows.length) return
@@ -148,7 +148,7 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
 
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     _opt?: CommonDBOptions,
   ): Promise<ROW[]> {
     if (!ids.length) return []
@@ -168,7 +168,7 @@ export class MongoDB extends BaseCommonDB implements CommonDB, AsyncDisposable {
 
   override async deleteByIds(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: MongoDBOptions = {},
   ): Promise<number> {
     if (!ids.length) return 0

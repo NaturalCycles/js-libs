@@ -116,7 +116,7 @@ export class CloudStorage implements CommonStorage {
     await this.deletePaths(bucketName, [prefix])
   }
 
-  async deletePaths(bucketName: string, prefixes: string[]): Promise<void> {
+  async deletePaths(bucketName: string, prefixes: readonly string[]): Promise<void> {
     const bucket = this.storage.bucket(bucketName)
 
     await pMap(prefixes, async prefix => {
@@ -302,7 +302,7 @@ export class CloudStorage implements CommonStorage {
       })
   }
 
-  async deleteFiles(bucketName: string, filePaths: string[]): Promise<void> {
+  async deleteFiles(bucketName: string, filePaths: readonly string[]): Promise<void> {
     await pMap(filePaths, async filePath => {
       await this.storage.bucket(bucketName).file(filePath).delete()
     })
@@ -310,7 +310,7 @@ export class CloudStorage implements CommonStorage {
 
   async combineFiles(
     bucketName: string,
-    filePaths: string[],
+    filePaths: readonly string[],
     toPath: string,
     toBucket?: string,
     currentRecursionDepth = 0, // not to be set publicly, only used internally
@@ -338,7 +338,8 @@ export class CloudStorage implements CommonStorage {
     if (filePaths.length <= BATCH_SIZE) {
       await this.storage
         .bucket(bucketName)
-        .combine(filePaths, this.storage.bucket(toBucket || bucketName).file(toPath))
+        // GCS typings require a mutable array, but it is only read
+        .combine(filePaths as string[], this.storage.bucket(toBucket || bucketName).file(toPath))
 
       if (debug) {
         logger.log(`[${currentRecursionDepth}] Composed into ${toPath}!`)

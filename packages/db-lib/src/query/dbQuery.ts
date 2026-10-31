@@ -42,7 +42,7 @@ export type DBQueryFilterOperator =
   | 'array-contains'
   | 'array-contains-any'
 
-export const dbQueryFilterOperatorValues: DBQueryFilterOperator[] = [
+export const dbQueryFilterOperatorValues: readonly DBQueryFilterOperator[] = [
   '<',
   '<=',
   '==',
@@ -118,7 +118,7 @@ export class DBQuery<ROW extends ObjectWithId> {
     return this
   }
 
-  filterIn(name: keyof ROW, val: any[]): this {
+  filterIn(name: keyof ROW, val: readonly any[]): this {
     this._filters.push({ name, op: 'in', val })
     return this
   }
@@ -144,13 +144,13 @@ export class DBQuery<ROW extends ObjectWithId> {
     return this
   }
 
-  select(fieldNames: (keyof ROW)[]): this {
-    this._selectedFieldNames = fieldNames
+  select(fieldNames: readonly (keyof ROW)[]): this {
+    this._selectedFieldNames = fieldNames.slice()
     return this
   }
 
-  groupBy(fieldNames: (keyof ROW)[]): this {
-    this._groupByFieldNames = fieldNames
+  groupBy(fieldNames: readonly (keyof ROW)[]): this {
+    this._groupByFieldNames = fieldNames.slice()
     return this
   }
 

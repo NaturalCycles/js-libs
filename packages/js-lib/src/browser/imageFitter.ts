@@ -74,7 +74,7 @@ export class ImageFitter {
     this.resizeObserver.disconnect()
   }
 
-  private update(entries: ResizeObserverEntry[]): void {
+  private update(entries: readonly ResizeObserverEntry[]): void {
     const width = Math.floor(entries[0]!.contentRect.width)
     if (width === this.containerWidth) return // we're only interested in width changes
     this.containerWidth = width

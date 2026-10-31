@@ -155,14 +155,14 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
     return r[1]
   }
 
-  async getByIds(ids: K[]): Promise<KeyValueTuple<string, V>[]> {
+  async getByIds(ids: readonly K[]): Promise<KeyValueTuple<string, V>[]> {
     const entries = await this.cfg.db.getByIds(this.cfg.table, ids)
     if (!this.cfg.transformer) return entries as any
 
     return entries.map(([id, raw]) => [id, this.cfg.transformer!.bufferToValue(raw)])
   }
 
-  async getByIdsAsBuffer(ids: K[]): Promise<KeyValueDBTuple[]> {
+  async getByIdsAsBuffer(ids: readonly K[]): Promise<KeyValueDBTuple[]> {
     return await this.cfg.db.getByIds(this.cfg.table, ids)
   }
 
@@ -171,7 +171,7 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
   }
 
   async saveBatch(
-    entries: KeyValueTuple<K, V>[],
+    entries: readonly KeyValueTuple<K, V>[],
     opt?: CommonKeyValueDaoSaveOptions,
   ): Promise<void> {
     const { transformer } = this.cfg
@@ -186,7 +186,7 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
     await this.cfg.db.saveBatch(this.cfg.table, rawEntries, opt)
   }
 
-  async deleteByIds(ids: K[]): Promise<void> {
+  async deleteByIds(ids: readonly K[]): Promise<void> {
     await this.cfg.db.deleteByIds(this.cfg.table, ids)
   }
 
@@ -255,7 +255,7 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
     return t![1]
   }
 
-  async incrementBatch(entries: IncrementTuple[]): Promise<IncrementTuple[]> {
+  async incrementBatch(entries: readonly IncrementTuple[]): Promise<IncrementTuple[]> {
     return await this.cfg.db.incrementBatch(this.cfg.table, entries)
   }
 }

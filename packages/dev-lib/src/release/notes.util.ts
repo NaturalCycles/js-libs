@@ -63,7 +63,7 @@ export function generateReleaseNotes(input: {
 function addSection(
   sections: string[],
   title: string,
-  commits: ParsedCommit[],
+  commits: readonly ParsedCommit[],
   repo: RepoInfo,
 ): void {
   if (!commits.length) return

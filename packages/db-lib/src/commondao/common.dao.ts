@@ -141,18 +141,18 @@ export class CommonDao<
     return this.anyToDBM(row, opt)
   }
 
-  async getByIds(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<BM[]> {
+  async getByIds(ids: readonly ID[], opt: CommonDaoReadOptions = {}): Promise<BM[]> {
     const dbms = await this.loadByIds(ids, opt)
     return this.dbmsToBM(dbms, opt)
   }
 
-  async getByIdsAsDBM(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<DBM[]> {
+  async getByIdsAsDBM(ids: readonly ID[], opt: CommonDaoReadOptions = {}): Promise<DBM[]> {
     const rows = await this.loadByIds(ids, opt)
     return this.anyToDBMs(rows)
   }
 
   // DRY private method
-  private async loadByIds(ids: ID[], opt: CommonDaoReadOptions = {}): Promise<DBM[]> {
+  private async loadByIds(ids: readonly ID[], opt: CommonDaoReadOptions = {}): Promise<DBM[]> {
     if (!ids.length) return []
     const table = opt.table || this.cfg.table
     const rows = await (opt.tx || this.cfg.db).getByIds<DBM>(table, ids, opt)
@@ -203,7 +203,10 @@ export class CommonDao<
    * Does deduplication by id.
    * Order is not guaranteed, as queries run in parallel.
    */
-  async runUnionQueries(queries: DBQuery<DBM>[], opt?: CommonDaoReadOptions): Promise<BM[]> {
+  async runUnionQueries(
+    queries: readonly DBQuery<DBM>[],
+    opt?: CommonDaoReadOptions,
+  ): Promise<BM[]> {
     const results = (
       await pMap(queries, async q => (await this.runQueryExtended(q, opt)).rows)
     ).flat()
@@ -501,7 +504,10 @@ export class CommonDao<
     return validDbm
   }
 
-  async saveBatch(bms: Unsaved<BM>[], opt: CommonDaoSaveBatchOptions<DBM> = {}): Promise<BM[]> {
+  async saveBatch(
+    bms: readonly Unsaved<BM>[],
+    opt: CommonDaoSaveBatchOptions<DBM> = {},
+  ): Promise<BM[]> {
     if (!bms.length) return []
     this.requireWriteAccess()
     bms.forEach(bm => this.assignIdCreatedUpdated(bm, opt))
@@ -523,7 +529,7 @@ export class CommonDao<
   }
 
   async saveBatchAsDBM(
-    dbms: Unsaved<DBM>[],
+    dbms: readonly Unsaved<DBM>[],
     opt: CommonDaoSaveBatchOptions<DBM> = {},
   ): Promise<DBM[]> {
     if (!dbms.length) return []
@@ -635,7 +641,7 @@ export class CommonDao<
     return await this.deleteByIds([id], opt)
   }
 
-  async deleteByIds(ids: ID[], opt: CommonDaoOptions = {}): Promise<number> {
+  async deleteByIds(ids: readonly ID[], opt: CommonDaoOptions = {}): Promise<number> {
     if (!ids.length) return 0
     this.requireWriteAccess()
     this.requireObjectMutability(opt)
@@ -691,7 +697,11 @@ export class CommonDao<
     return deleted
   }
 
-  async patchByIds(ids: ID[], patch: Partial<DBM>, opt: CommonDaoOptions = {}): Promise<number> {
+  async patchByIds(
+    ids: readonly ID[],
+    patch: Partial<DBM>,
+    opt: CommonDaoOptions = {},
+  ): Promise<number> {
     if (!ids.length) return 0
     this.assertNotCompressed(Object.keys(patch), 'patchByIds')
     return await this.patchByQuery(this.query().filterIn('id', ids), patch, opt)
@@ -761,7 +771,7 @@ export class CommonDao<
     return this.validateAndConvert(bm, 'load', opt)
   }
 
-  dbmsToBM(dbms: DBM[], opt: CommonDaoOptions = {}): BM[] {
+  dbmsToBM(dbms: readonly DBM[], opt: CommonDaoOptions = {}): BM[] {
     return dbms.map(dbm => this.dbmToBM(dbm, opt))
   }
 
@@ -783,7 +793,7 @@ export class CommonDao<
     return dbm
   }
 
-  bmsToDBM(bms: BM[], opt: CommonDaoOptions = {}): DBM[] {
+  bmsToDBM(bms: readonly BM[], opt: CommonDaoOptions = {}): DBM[] {
     return bms.map(bm => this.bmToDBM(bm, opt))
   }
 
@@ -812,7 +822,7 @@ export class CommonDao<
   /**
    * Converts multiple DBMs to storage rows.
    */
-  async dbmsToStorageRows(dbms: DBM[]): Promise<ObjectWithId[]> {
+  async dbmsToStorageRows(dbms: readonly DBM[]): Promise<readonly ObjectWithId[]> {
     if (!this.cfg.compress?.keys.length) return dbms
     return await pMap(dbms, async dbm => {
       const row = { ...dbm }
@@ -840,7 +850,7 @@ export class CommonDao<
   /**
    * Converts multiple storage rows to DBMs.
    */
-  storageRowsToDBM(rows: ObjectWithId[]): DBM[] {
+  storageRowsToDBM(rows: readonly ObjectWithId[]): DBM[] {
     if (!this.cfg.compress?.keys.length) return rows as DBM[]
     return rows.map(row => {
       const dbm = { ...(row as DBM) }
@@ -883,7 +893,7 @@ export class CommonDao<
     Object.assign(dbm, properties)
   }
 
-  private assertNotCompressed(keys: (keyof DBM | string)[] | undefined, op: string): void {
+  private assertNotCompressed(keys: readonly (keyof DBM | string)[] | undefined, op: string): void {
     if (!keys) return
 
     const compressKeys = this.cfg.compress?.keys
@@ -911,7 +921,7 @@ export class CommonDao<
     return dbm
   }
 
-  anyToDBMs(rows: DBM[], opt: CommonDaoOptions = {}): DBM[] {
+  anyToDBMs(rows: readonly DBM[], opt: CommonDaoOptions = {}): DBM[] {
     return rows.map(entity => this.anyToDBM(entity, opt))
   }
 
@@ -980,14 +990,14 @@ export class CommonDao<
     }
   }
 
-  withIds(ids: ID[]): DaoWithIds<CommonDao<BM, DBM, ID>> {
+  withIds(ids: readonly ID[]): DaoWithIds<CommonDao<BM, DBM, ID>> {
     return {
       dao: this,
       ids,
     }
   }
 
-  withRowsToSave(rows: Unsaved<BM>[]): DaoWithRows<CommonDao<BM, DBM, ID>> {
+  withRowsToSave(rows: readonly Unsaved<BM>[]): DaoWithRows<CommonDao<BM, DBM, ID>> {
     return {
       dao: this,
       rows: rows as any,
@@ -1109,7 +1119,7 @@ export class CommonDao<
    * @experimental
    */
   static async multiDelete(
-    inputs: (DaoWithId<AnyDao> | DaoWithIds<AnyDao>)[],
+    inputs: readonly (DaoWithId<AnyDao> | DaoWithIds<AnyDao>)[],
     opt: CommonDaoOptions = {},
   ): Promise<NonNegativeInteger> {
     if (!inputs.length) return 0
@@ -1133,7 +1143,7 @@ export class CommonDao<
   }
 
   static async multiSave(
-    inputs: (DaoWithRows<AnyDao> | DaoWithRow<AnyDao>)[],
+    inputs: readonly (DaoWithRows<AnyDao> | DaoWithRow<AnyDao>)[],
     opt: CommonDaoSaveBatchOptions<any> = {},
   ): Promise<void> {
     if (!inputs.length) return
@@ -1295,7 +1305,7 @@ export type CommonDaoTransactionFn<T = void> = (tx: CommonDaoTransaction) => Pro
 
 export interface DaoWithIds<DAO extends AnyDao> {
   dao: DAO
-  ids: string[]
+  ids: readonly string[]
 }
 
 export interface DaoWithId<DAO extends AnyDao> {
@@ -1305,7 +1315,7 @@ export interface DaoWithId<DAO extends AnyDao> {
 
 export interface DaoWithRows<DAO extends AnyDao, BM = InferBM<DAO>> {
   dao: DAO
-  rows: Unsaved<BM>[]
+  rows: readonly Unsaved<BM>[]
 }
 
 export interface DaoWithRow<DAO extends AnyDao, BM = InferBM<DAO>> {

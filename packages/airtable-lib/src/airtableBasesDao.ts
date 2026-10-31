@@ -8,7 +8,7 @@ import type { AirtableBaseDao } from './airtableBaseDao.js'
  * Allows to perform operations with MANY bases at once, e.g fetch from all bases, upload all bases, etc.
  */
 export class AirtableBasesDao<BASE_MAP extends AnyObject = any> {
-  constructor(public baseDaos: AirtableBaseDao<any>[]) {}
+  constructor(public baseDaos: readonly AirtableBaseDao<any>[]) {}
 
   getDao<BASE extends AnyObject = any>(baseName: string): AirtableBaseDao<BASE> {
     const dao = this.baseDaos.find(dao => dao.cfg.baseName === baseName)

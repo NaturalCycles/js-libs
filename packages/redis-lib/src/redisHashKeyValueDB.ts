@@ -36,21 +36,21 @@ export class RedisHashKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
     await this.cfg.client.disconnect()
   }
 
-  async getByIds(table: string, ids: string[]): Promise<KeyValueDBTuple[]> {
+  async getByIds(table: string, ids: readonly string[]): Promise<KeyValueDBTuple[]> {
     if (!ids.length) return []
     // we assume that the order of returned values is the same as order of input ids
     const bufs = await this.cfg.client.hmgetBuffer(table, ids)
     return bufs.map((buf, i) => [ids[i], buf] as KeyValueDBTuple).filter(([_k, v]) => v !== null)
   }
 
-  async deleteByIds(table: string, ids: string[]): Promise<void> {
+  async deleteByIds(table: string, ids: readonly string[]): Promise<void> {
     if (!ids.length) return
     await this.cfg.client.hdel(table, ids)
   }
 
   async saveBatch(
     table: string,
-    entries: KeyValueDBTuple[],
+    entries: readonly KeyValueDBTuple[],
     opt?: CommonKeyValueDBSaveBatchOptions,
   ): Promise<void> {
     if (!entries.length) return
@@ -113,7 +113,10 @@ export class RedisHashKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
     return await this.cfg.client.hscanCount(table)
   }
 
-  async incrementBatch(table: string, increments: IncrementTuple[]): Promise<IncrementTuple[]> {
+  async incrementBatch(
+    table: string,
+    increments: readonly IncrementTuple[],
+  ): Promise<IncrementTuple[]> {
     return await this.cfg.client.hincrBatch(table, increments)
   }
 

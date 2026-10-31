@@ -40,3 +40,18 @@ it('should fill every slot with zero', () => {
   const stack = new Stack(5).fill(0)
   expect(stack.items).toEqual([0, 0, 0, 0, 0])
 })
+
+it('percentile should not reorder the underlying buffer', () => {
+  const stack = new NumberStack(3)
+  ;[3, 1, 2, 5].forEach(n => stack.push(n))
+  expect(stack.itemsOrdered).toEqual([1, 2, 5])
+
+  expect(stack.percentile(50)).toBe(2)
+  expect(stack.percentiles([0, 100])).toEqual({ 0: 1, 100: 5 })
+  expect(stack.median()).toBe(2)
+
+  // Order is preserved, and the next push overwrites the oldest item (1)
+  expect(stack.itemsOrdered).toEqual([1, 2, 5])
+  stack.push(7)
+  expect(stack.itemsOrdered).toEqual([2, 5, 7])
+})

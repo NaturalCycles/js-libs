@@ -41,7 +41,7 @@ export interface ReadingTimeResult extends ReadingTimeStats {
 
 type WordBoundFunction = (char: string) => boolean
 
-function codeIsInRanges(num: number, arrayOfRanges: number[][]): boolean {
+function codeIsInRanges(num: number, arrayOfRanges: readonly number[][]): boolean {
   return arrayOfRanges.some(([lowerBound, upperBound]) => lowerBound! <= num && num <= upperBound!)
 }
 

@@ -71,7 +71,7 @@ export class TranslationService {
    * Loads locale(s) (if not already cached) via configured TranslationLoader.
    * Resolves promise when done (ready to be used).
    */
-  async loadLocale(locale: string | string[]): Promise<void> {
+  async loadLocale(locale: string | readonly string[]): Promise<void> {
     const locales = Array.isArray(locale) ? locale : [locale]
 
     await pMap(locales, async locale => {

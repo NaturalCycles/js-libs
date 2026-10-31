@@ -78,7 +78,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
 
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: CacheDBSaveOptions<ROW> = {},
   ): Promise<ROW[]> {
     const resultMap: StringMap<ROW> = {}
@@ -124,7 +124,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
 
   override async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt: CacheDBSaveOptions<ROW> = {},
   ): Promise<void> {
     if (!opt.onlyCache && !this.cfg.onlyCache) {

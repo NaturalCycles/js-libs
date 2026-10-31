@@ -422,8 +422,8 @@ export async function runTypecheck(): Promise<void> {
  * Use 'src' to indicate root.
  */
 export async function runTSCInFolders(
-  dirs: string[],
-  args: string[] = [],
+  dirs: readonly string[],
+  args: readonly string[] = [],
   parallel = true,
 ): Promise<void> {
   if (parallel) {
@@ -438,7 +438,7 @@ export async function runTSCInFolders(
 /**
  * Pass 'src' to run in root.
  */
-async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
+async function runTSCInFolder(dir: string, args: readonly string[] = []): Promise<void> {
   let configDir = dir
   if (dir === 'src') {
     configDir = ''
@@ -461,7 +461,7 @@ async function runTSCInFolder(dir: string, args: string[] = []): Promise<void> {
   })
 }
 
-export function runTSCProd(args: string[] = []): void {
+export function runTSCProd(args: readonly string[] = []): void {
   const tsconfigPath = [`./tsconfig.prod.json`].find(p => fs2.pathExists(p)) || 'tsconfig.json'
 
   const tscPath = findPackageBinPath('typescript', 'tsc')

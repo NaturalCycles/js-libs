@@ -142,7 +142,7 @@ export function createCommonLoggerAtLevel(
 /**
  * Creates a "proxy" CommonLogger that pipes log entries to all provided sub-loggers.
  */
-export function commonLoggerPipe(loggers: CommonLogger[]): CommonLogger {
+export function commonLoggerPipe(loggers: readonly CommonLogger[]): CommonLogger {
   return {
     debug: (...args) => loggers.forEach(logger => logger.debug(...args)),
     log: (...args) => loggers.forEach(logger => logger.log(...args)),

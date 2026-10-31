@@ -11,7 +11,7 @@ import type { ReadableTyped } from '../stream.model.js'
  * For simple cases use Readable.from(...) (Node.js 12+)
  */
 export function readableFromArray<IN, OUT>(
-  items: IN[],
+  items: readonly IN[],
   mapper: AbortableAsyncMapper<IN, OUT> = _passthroughMapper,
   opt?: ReadableOptions,
 ): ReadableTyped<OUT> {

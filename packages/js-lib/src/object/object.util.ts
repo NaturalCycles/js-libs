@@ -101,7 +101,11 @@ export function _omitWithUndefined<T extends AnyObject, K extends keyof T>(
  *  'account.updated',
  * ])
  */
-export function _mask<T extends AnyObject>(obj: T, props: string[], opt: MutateOptions = {}): T {
+export function _mask<T extends AnyObject>(
+  obj: T,
+  props: readonly string[],
+  opt: MutateOptions = {},
+): T {
   const r = opt.mutate ? obj : _deepCopy(obj)
   for (const k of props) {
     _unset(r, k)

@@ -107,14 +107,14 @@ export type DBOperation = DBSaveBatchOperation<any> | DBDeleteByIdsOperation
 export interface DBSaveBatchOperation<ROW extends ObjectWithId> {
   type: 'saveBatch'
   table: string
-  rows: ROW[]
+  rows: readonly ROW[]
   opt?: CommonDBSaveOptions<ROW>
 }
 
 export interface DBDeleteByIdsOperation {
   type: 'deleteByIds'
   table: string
-  ids: string[]
+  ids: readonly string[]
   opt?: CommonDBOptions
 }
 

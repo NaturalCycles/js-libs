@@ -456,7 +456,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     errors: false,
     schemaType: 'array',
     validate: function validate(
-      optionalValues: (string | number | boolean)[],
+      optionalValues: readonly (string | number | boolean)[],
       data: string | number | boolean,
       _schema,
       ctx,
@@ -549,7 +549,12 @@ export function createAjv(opt?: Options): Ajv2020 {
     modifying: false,
     errors: true,
     schemaType: 'array',
-    validate: function validate(exclusiveProperties: string[][], data: AnyObject, _schema, ctx) {
+    validate: function validate(
+      exclusiveProperties: readonly string[][],
+      data: AnyObject,
+      _schema,
+      ctx,
+    ) {
       if (typeof data !== 'object') return true
 
       for (const props of exclusiveProperties) {
@@ -619,7 +624,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     modifying: true,
     errors: true,
     schemaType: 'array',
-    compile(schemas: JSchema<any, any>[], _parentSchema, _it) {
+    compile(schemas: readonly JSchema<any, any>[], _parentSchema, _it) {
       const validators = schemas.map(schema => ajv.compile(schema))
 
       function validate(data: AnyObject, ctx: any): boolean {
@@ -689,7 +694,12 @@ export function createAjv(opt?: Options): Ajv2020 {
     modifying: false,
     errors: true,
     schemaType: 'array',
-    validate: function validate(customValidations: CustomValidatorFn[], data: any, _schema, ctx) {
+    validate: function validate(
+      customValidations: readonly CustomValidatorFn[],
+      data: any,
+      _schema,
+      ctx,
+    ) {
       if (!customValidations?.length) return true
 
       for (const validator of customValidations) {
@@ -715,7 +725,7 @@ export function createAjv(opt?: Options): Ajv2020 {
     errors: false,
     schemaType: 'array',
     validate: function validate(
-      customConversions: CustomConverterFn<any>[],
+      customConversions: readonly CustomConverterFn<any>[],
       data: any,
       _schema,
       ctx,

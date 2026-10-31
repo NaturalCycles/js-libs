@@ -67,7 +67,7 @@ export function polyfilledAbortSignalTimeout(ms: NumberOfMilliseconds): AbortSig
  * otherwise undefined.
  */
 export function abortSignalAnyOrUndefined(
-  signals: (AbortSignal | undefined)[],
+  signals: readonly (AbortSignal | undefined)[],
 ): AbortSignal | undefined {
   const filtered = signals.filter(_isTruthy)
   return filtered.length ? abortSignalAny(filtered) : undefined
@@ -82,17 +82,17 @@ export function abortSignalAnyOrUndefined(
  *
  * If only 1 signal is passed in the input array - that Signal is returned as-is.
  */
-export function abortSignalAny(signals: AbortSignal[]): AbortSignal {
+export function abortSignalAny(signals: readonly AbortSignal[]): AbortSignal {
   if (signals.length === 1) {
     return signals[0]!
   }
 
   return typeof AbortSignal.any === 'function'
-    ? AbortSignal.any(signals)
+    ? AbortSignal.any(signals as AbortSignal[]) // lib.dom types require a mutable array, but it is only read
     : polyfilledAbortSignalAny(signals)
 }
 
-export function polyfilledAbortSignalAny(signals: AbortSignal[]): AbortSignal {
+export function polyfilledAbortSignalAny(signals: readonly AbortSignal[]): AbortSignal {
   const ac = new AbortController()
 
   for (const signal of signals) {

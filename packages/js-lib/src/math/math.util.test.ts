@@ -141,3 +141,10 @@ it('should return the median without mutating the input', () => {
   _median(input)
   expect(input).toEqual([3, 1, 2])
 })
+
+it('_percentile and _percentiles should not mutate the input array', () => {
+  const values = [3, 1, 2]
+  expect(_percentile(values, 50)).toBe(2)
+  expect(_percentiles(values, [0, 100])).toEqual({ 0: 1, 100: 3 })
+  expect(values).toEqual([3, 1, 2])
+})

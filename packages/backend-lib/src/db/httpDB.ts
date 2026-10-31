@@ -63,7 +63,7 @@ export class HttpDB extends BaseCommonDB implements CommonDB {
 
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: ROW['id'][],
+    ids: readonly ROW['id'][],
     opt?: CommonDBOptions,
   ): Promise<ROW[]> {
     return await this.fetcher.put(`getByIds`, {
@@ -101,7 +101,7 @@ export class HttpDB extends BaseCommonDB implements CommonDB {
 
   override async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt?: CommonDBSaveOptions<ROW>,
   ): Promise<void> {
     await this.fetcher.putVoid(`saveBatch`, {
@@ -113,7 +113,11 @@ export class HttpDB extends BaseCommonDB implements CommonDB {
     })
   }
 
-  override async deleteByIds(table: string, ids: string[], opt?: CommonDBOptions): Promise<number> {
+  override async deleteByIds(
+    table: string,
+    ids: readonly string[],
+    opt?: CommonDBOptions,
+  ): Promise<number> {
     return await this.fetcher.put(`deleteByIds`, {
       json: {
         table,

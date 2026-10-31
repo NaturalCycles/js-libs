@@ -134,7 +134,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
 
   override async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: DatastoreDBReadOptions = {},
   ): Promise<ROW[]> {
     if (!ids.length) return []
@@ -321,7 +321,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
    */
   override async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt: DatastoreDBSaveOptions<ROW> = {},
   ): Promise<void> {
     const ds = this.ds()
@@ -332,7 +332,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     const method = methodMap[opt.saveMethod || 'upsert'] || 'save'
 
     const save = pRetryFn(
-      async (batch: DatastorePayload<ROW>[]) => {
+      async (batch: readonly DatastorePayload<ROW>[]) => {
         await ((opt.tx as DatastoreDBTransaction)?.tx || ds)[method](batch)
       },
       this.getPRetryOptions(`DatastoreLib.saveBatch(${table})`),
@@ -394,7 +394,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
    */
   override async deleteByIds(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt: DatastoreDBOptions = {},
   ): Promise<number> {
     const ds = this.ds()
@@ -702,7 +702,7 @@ export class DatastoreDBTransaction implements DBTransaction {
 
   async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt?: CommonDBReadOptions,
   ): Promise<ROW[]> {
     return await this.db.getByIds(table, ids, { ...opt, tx: this })
@@ -710,13 +710,13 @@ export class DatastoreDBTransaction implements DBTransaction {
 
   async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt?: CommonDBSaveOptions<ROW>,
   ): Promise<void> {
     await this.db.saveBatch(table, rows, { ...opt, tx: this })
   }
 
-  async deleteByIds(table: string, ids: string[], opt?: CommonDBOptions): Promise<number> {
+  async deleteByIds(table: string, ids: readonly string[], opt?: CommonDBOptions): Promise<number> {
     return await this.db.deleteByIds(table, ids, { ...opt, tx: this })
   }
 }

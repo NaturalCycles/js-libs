@@ -413,7 +413,7 @@ function compressSync(method: string, body: Buffer, opts: CodecOptions): Buffer 
 function addListeners(
   stream: any,
   on: (type: string, listener: (...args: any[]) => void) => void,
-  listeners: [string, (...args: any[]) => void][],
+  listeners: readonly [string, (...args: any[]) => void][],
 ): void {
   for (const [type, listener] of listeners) {
     on.call(stream, type, listener)

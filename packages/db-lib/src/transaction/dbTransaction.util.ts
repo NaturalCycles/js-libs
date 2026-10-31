@@ -103,7 +103,7 @@ export class FakeDBTransaction implements DBTransaction {
 
   async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt?: CommonDBOptions,
   ): Promise<ROW[]> {
     return await this.db.getByIds(table, ids, opt)
@@ -117,13 +117,13 @@ export class FakeDBTransaction implements DBTransaction {
   // }
   async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt?: CommonDBSaveOptions<ROW>,
   ): Promise<void> {
     await this.db.saveBatch(table, rows, opt)
   }
 
-  async deleteByIds(table: string, ids: string[], opt?: CommonDBOptions): Promise<number> {
+  async deleteByIds(table: string, ids: readonly string[], opt?: CommonDBOptions): Promise<number> {
     return await this.db.deleteByIds(table, ids, opt)
   }
 }

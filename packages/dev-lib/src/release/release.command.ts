@@ -111,8 +111,8 @@ export async function releaseCommand(): Promise<void> {
  */
 export function resolveChannel(
   branch: string,
-  stableBranches: string[],
-  prereleaseBranches: string[],
+  stableBranches: readonly string[],
+  prereleaseBranches: readonly string[],
 ): ReleaseChannel | undefined {
   if (stableBranches.includes(branch)) {
     return { distTag: 'latest' }
@@ -129,7 +129,7 @@ export function resolveChannel(
 
 function planPackageRelease(
   pkg: ReleasePackage,
-  tags: string[],
+  tags: readonly string[],
   channel: ReleaseChannel,
   repo: RepoInfo,
 ): ReleasePlan | null {

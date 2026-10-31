@@ -5,7 +5,7 @@ export function transformFlatten<T>(): TransformTyped<T[], T> {
   return new Transform({
     objectMode: true,
     highWaterMark: 1,
-    transform(chunk: T[], _, cb) {
+    transform(chunk: readonly T[], _, cb) {
       for (const item of chunk) {
         this.push(item)
       }
@@ -18,7 +18,7 @@ export function transformFlattenIfNeeded<T>(): TransformTyped<T[], T> {
   return new Transform({
     objectMode: true,
     highWaterMark: 1,
-    transform(chunk: T[], _, cb) {
+    transform(chunk: readonly T[], _, cb) {
       if (Array.isArray(chunk)) {
         for (const item of chunk) {
           this.push(item)

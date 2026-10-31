@@ -2,7 +2,7 @@ import { _mb } from '@naturalcycles/js-lib'
 import { _sum } from '@naturalcycles/js-lib/array/array.util.js'
 import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
-import { _percentile } from '@naturalcycles/js-lib/math/math.util.js'
+import { _percentiles } from '@naturalcycles/js-lib/math/math.util.js'
 import { NumberStack } from '@naturalcycles/js-lib/math/stack.util.js'
 import { _get, _mapValues } from '@naturalcycles/js-lib/object/object.util.js'
 import { htmlEscape } from '@naturalcycles/js-lib/string/escape.js'
@@ -51,6 +51,7 @@ export const serverStatsHTMLHandler: BackendRequestHandler = (req, res) => {
     s.pc = _mapValues(s.stack.percentiles(percentiles), (_k, v) => Math.round(v), { mutate: true })
   })
   const allLatencies = _stringMapValues(serverStatsMap).flatMap(s => s.stack.items)
+  const allPercentiles = _percentiles(allLatencies, percentiles)
   const all2xx = _sum(_stringMapValues(serverStatsMap).flatMap(s => s['2xx']))
   const all4xx = _sum(_stringMapValues(serverStatsMap).flatMap(s => s['4xx']))
   const all5xx = _sum(_stringMapValues(serverStatsMap).flatMap(s => s['5xx']))
@@ -79,7 +80,7 @@ export const serverStatsHTMLHandler: BackendRequestHandler = (req, res) => {
     `<td align="right"><pre>${all4xx}</pre></td>`,
     `<td align="right"><pre>${all5xx}</pre></td>`,
     ...percentiles.map(
-      pc => `<td align="right"><pre>${Math.round(_percentile(allLatencies, pc))}</pre></td>`,
+      pc => `<td align="right"><pre>${Math.round(allPercentiles[pc]!)}</pre></td>`,
     ),
     `</tr>`,
     ..._sortBy(_stringMapEntries(serverStatsMap), ([_, stat]) => _get(stat, sortBy) as string, {

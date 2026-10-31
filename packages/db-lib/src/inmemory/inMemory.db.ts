@@ -135,7 +135,7 @@ export class InMemoryDB implements CommonDB {
 
   async getByIds<ROW extends ObjectWithId>(
     _table: string,
-    ids: string[],
+    ids: readonly string[],
     _opt?: CommonDBOptions,
   ): Promise<ROW[]> {
     const table = this.cfg.tablesPrefix + _table
@@ -159,7 +159,7 @@ export class InMemoryDB implements CommonDB {
 
   async saveBatch<ROW extends ObjectWithId>(
     _table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt: CommonDBSaveOptions<ROW> = {},
   ): Promise<void> {
     const table = this.cfg.tablesPrefix + _table
@@ -220,7 +220,11 @@ export class InMemoryDB implements CommonDB {
     return await this.deleteByIds(q.table, ids)
   }
 
-  async deleteByIds(_table: string, ids: string[], _opt?: CommonDBOptions): Promise<number> {
+  async deleteByIds(
+    _table: string,
+    ids: readonly string[],
+    _opt?: CommonDBOptions,
+  ): Promise<number> {
     const table = this.cfg.tablesPrefix + _table
     if (!this.data[table]) return 0
 
@@ -335,7 +339,7 @@ export class InMemoryDBTransaction implements DBTransaction {
 
   async getByIds<ROW extends ObjectWithId>(
     table: string,
-    ids: string[],
+    ids: readonly string[],
     opt?: CommonDBOptions,
   ): Promise<ROW[]> {
     if (this.db.cfg.forbidTransactionReadAfterWrite) {
@@ -350,7 +354,7 @@ export class InMemoryDBTransaction implements DBTransaction {
 
   async saveBatch<ROW extends ObjectWithId>(
     table: string,
-    rows: ROW[],
+    rows: readonly ROW[],
     opt?: CommonDBSaveOptions<ROW>,
   ): Promise<void> {
     _assert(
@@ -368,7 +372,7 @@ export class InMemoryDBTransaction implements DBTransaction {
     })
   }
 
-  async deleteByIds(table: string, ids: string[], opt?: CommonDBOptions): Promise<number> {
+  async deleteByIds(table: string, ids: readonly string[], opt?: CommonDBOptions): Promise<number> {
     _assert(
       !this.opt.readOnly,
       `InMemoryDBTransaction: deleteByIds(${table}) called in readOnly mode`,

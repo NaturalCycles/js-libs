@@ -105,9 +105,10 @@ export class RedisClient implements CommonClient {
     await redis.ping()
   }
 
-  async del(keys: string[]): Promise<number> {
+  async del(keys: readonly string[]): Promise<number> {
     const redis = await this.redis()
-    return await redis.del(keys)
+    // ioredis typings require a mutable array, but it is only read
+    return await redis.del(keys as string[])
   }
 
   async get(key: string): Promise<NullableString> {
@@ -120,14 +121,14 @@ export class RedisClient implements CommonClient {
     return await redis.getBuffer(key)
   }
 
-  async mget(keys: string[]): Promise<NullableString[]> {
+  async mget(keys: readonly string[]): Promise<NullableString[]> {
     const redis = await this.redis()
-    return await redis.mget(keys)
+    return await redis.mget(keys as string[])
   }
 
-  async mgetBuffer(keys: string[]): Promise<NullableBuffer[]> {
+  async mgetBuffer(keys: readonly string[]): Promise<NullableBuffer[]> {
     const redis = await this.redis()
-    return await redis.mgetBuffer(keys)
+    return await redis.mgetBuffer(keys as string[])
   }
 
   async set(key: string, value: string | number | Buffer): Promise<void> {
@@ -154,17 +155,17 @@ export class RedisClient implements CommonClient {
     await redis.hset(key, value)
   }
 
-  async hdel(key: string, fields: string[]): Promise<void> {
+  async hdel(key: string, fields: readonly string[]): Promise<void> {
     const redis = await this.redis()
     await redis.hdel(key, ...fields)
   }
 
-  async hmget(key: string, fields: string[]): Promise<NullableString[]> {
+  async hmget(key: string, fields: readonly string[]): Promise<NullableString[]> {
     const redis = await this.redis()
     return await redis.hmget(key, ...fields)
   }
 
-  async hmgetBuffer(key: string, fields: string[]): Promise<NullableBuffer[]> {
+  async hmgetBuffer(key: string, fields: readonly string[]): Promise<NullableBuffer[]> {
     const redis = await this.redis()
     return await redis.hmgetBuffer(key, ...fields)
   }
@@ -174,7 +175,10 @@ export class RedisClient implements CommonClient {
     return await redis.hincrby(key, field, increment)
   }
 
-  async hincrBatch(key: string, incrementTuples: [string, number][]): Promise<[string, number][]> {
+  async hincrBatch(
+    key: string,
+    incrementTuples: readonly [string, number][],
+  ): Promise<[string, number][]> {
     const results: StringMap<number | undefined> = {}
 
     await this.withPipeline(async pipeline => {
@@ -257,7 +261,7 @@ export class RedisClient implements CommonClient {
   /**
    * For counters that are supposed to expire, use {@link incrBatchWithTTL} instead.
    */
-  async incrBatch(incrementTuples: [string, number][]): Promise<[string, number][]> {
+  async incrBatch(incrementTuples: readonly [string, number][]): Promise<[string, number][]> {
     const results: StringMap<number | undefined> = {}
 
     await this.withPipeline(async pipeline => {
@@ -282,7 +286,7 @@ export class RedisClient implements CommonClient {
    * Requires Redis 7.0+
    */
   async incrBatchWithTTL(
-    incrementTuples: [string, number][],
+    incrementTuples: readonly [string, number][],
     expireAt: UnixTimestamp,
   ): Promise<[string, number][]> {
     const redis = await this.redis()
@@ -372,7 +376,7 @@ export class RedisClient implements CommonClient {
     // todo: implement more efficiently, e.g via LUA?
     let count = 0
 
-    await redis.scanStream(opt).forEach((keys: string[]) => {
+    await redis.scanStream(opt).forEach((keys: readonly string[]) => {
       count += keys.length
     })
 
@@ -392,7 +396,7 @@ export class RedisClient implements CommonClient {
     const redis = await this.redis()
     const stream = redis.hscanStream(key, opt)
 
-    await stream.forEach((keyValueList: string[]) => {
+    await stream.forEach((keyValueList: readonly string[]) => {
       count += keyValueList.length / 2
     })
 

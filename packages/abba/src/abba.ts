@@ -126,7 +126,7 @@ export class Abba {
    */
   async createExperiment(
     input: ExperimentInput,
-    buckets: BucketInput[],
+    buckets: readonly BucketInput[],
   ): Promise<ExperimentWithBuckets> {
     if (input.status === AssignmentStatus.Active) {
       validateTotalBucketRatio(buckets)
@@ -158,7 +158,7 @@ export class Abba {
    */
   async saveExperiment(
     experiment: Experiment,
-    buckets: (Unsaved<Bucket> | BucketInput)[],
+    buckets: readonly (Unsaved<Bucket> | BucketInput)[],
   ): Promise<ExperimentWithBuckets> {
     if (experiment.status === AssignmentStatus.Active) {
       validateTotalBucketRatio(buckets)
@@ -183,7 +183,10 @@ export class Abba {
   /**
    * Ensures that mutual exclusions are maintained
    */
-  private async updateExclusions(experimentId: string, updatedExclusions: string[]): Promise<void> {
+  private async updateExclusions(
+    experimentId: string,
+    updatedExclusions: readonly string[],
+  ): Promise<void> {
     const experiments = await this.experimentDao.getAll()
 
     const requiresUpdating: Experiment[] = []

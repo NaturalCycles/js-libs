@@ -25,7 +25,7 @@ export interface DecryptCLIOptions {
  * Using provided encKey.
  */
 export function secretsDecrypt(
-  dir: string[],
+  dir: readonly string[],
   file: string | undefined,
   encKeyBuffer: Buffer,
   del = false,

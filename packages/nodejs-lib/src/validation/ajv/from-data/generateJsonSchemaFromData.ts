@@ -12,12 +12,12 @@ type Type = PrimitiveType | 'array' | 'object'
  * `additionalProperties` is set to `true`, cause it's safer.
  */
 export function generateJsonSchemaFromData<T extends AnyObject = AnyObject>(
-  rows: AnyObject[],
+  rows: readonly AnyObject[],
 ): JsonSchema<T> {
   return objectToJsonSchema<T>(rows)
 }
 
-function objectToJsonSchema<T extends AnyObject>(rows: AnyObject[]): JsonSchema<T> {
+function objectToJsonSchema<T extends AnyObject>(rows: readonly AnyObject[]): JsonSchema<T> {
   const typesByKey: StringMap<Set<Type>> = {}
 
   rows.forEach(r => {
@@ -48,7 +48,7 @@ function objectToJsonSchema<T extends AnyObject>(rows: AnyObject[]): JsonSchema<
   return s
 }
 
-function mergeTypes(types: Type[], samples: any[]): JsonSchema | undefined {
+function mergeTypes(types: readonly Type[], samples: readonly any[]): JsonSchema | undefined {
   // skip "undefined" types
   types = types.filter(t => t !== 'undefined')
 

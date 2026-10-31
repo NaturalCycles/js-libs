@@ -9,7 +9,7 @@ export function _randomInt(minIncl: number, maxIncl: number): number {
  * Should be used on non-empty arrays! (otherwise will return undefined,
  * which is not reflected in the output type)
  */
-export function _randomArrayItem<T>(array: T[]): T {
+export function _randomArrayItem<T>(array: readonly T[]): T {
   return array[_randomInt(0, array.length - 1)]!
 }
 

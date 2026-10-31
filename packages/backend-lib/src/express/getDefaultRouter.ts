@@ -4,7 +4,9 @@ import type { BackendRequestHandler, BackendRouter } from '../server/server.mode
 /**
  * Convenience method.
  */
-export function getDefaultRouter(defaultHandlers: BackendRequestHandler[] = []): BackendRouter {
+export function getDefaultRouter(
+  defaultHandlers: readonly BackendRequestHandler[] = [],
+): BackendRouter {
   const router = Router()
 
   // Use default handlers

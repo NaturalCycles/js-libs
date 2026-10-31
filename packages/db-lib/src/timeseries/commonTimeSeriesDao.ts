@@ -35,7 +35,7 @@ export class CommonTimeSeriesDao {
     await this.saveBatch(series, [[tsMillis, value]])
   }
 
-  async saveBatch(series: string, dataPoints: TimeSeriesDataPoint[]): Promise<void> {
+  async saveBatch(series: string, dataPoints: readonly TimeSeriesDataPoint[]): Promise<void> {
     if (!dataPoints.length) return
 
     const rows: ObjectWithId[] = dataPoints.map(([ts, v]) => ({
@@ -50,7 +50,7 @@ export class CommonTimeSeriesDao {
   /**
    * All ops are executed as a single CommonDB Transaction.
    */
-  async commitTransaction(ops: TimeSeriesSaveBatchOp[]): Promise<void> {
+  async commitTransaction(ops: readonly TimeSeriesSaveBatchOp[]): Promise<void> {
     if (!ops.length) return
 
     await this.cfg.db.runInTransaction(async tx => {
@@ -70,7 +70,7 @@ export class CommonTimeSeriesDao {
     await this.deleteByIds(series, [tsMillis])
   }
 
-  async deleteByIds(series: string, ids: number[]): Promise<void> {
+  async deleteByIds(series: string, ids: readonly number[]): Promise<void> {
     // Save to _RAW table with v=null
     await this.saveBatch(
       series,

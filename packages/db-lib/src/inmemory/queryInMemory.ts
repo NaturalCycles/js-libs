@@ -11,10 +11,10 @@ const FILTER_FNS: Record<DBQueryFilterOperator, FilterFn> = {
   '<=': (v, val) => v <= val,
   '>': (v, val) => v > val,
   '>=': (v, val) => v >= val,
-  in: (v, val?: any[]) => (val || []).includes(v),
-  'not-in': (v, val?: any[]) => !(val || []).includes(v),
-  'array-contains': (v?: any[], val?: any) => (v || []).includes(val),
-  'array-contains-any': (v?: any[], val?: any[]) =>
+  in: (v, val?: readonly any[]) => (val || []).includes(v),
+  'not-in': (v, val?: readonly any[]) => !(val || []).includes(v),
+  'array-contains': (v?: readonly any[], val?: any) => (v || []).includes(val),
+  'array-contains-any': (v?: readonly any[], val?: readonly any[]) =>
     (v && val && v.some(item => val.includes(item))) || false,
 }
 
@@ -39,7 +39,7 @@ export function queryInMemory<ROW extends ObjectWithId>(q: DBQuery<ROW>, rows: R
   const [order] = q._orders
   if (order) {
     const { name, descending } = order
-    rows = rows.sort(
+    rows = rows.toSorted(
       comparators.by(r => r[name] as string | number, { dir: descending ? 'desc' : 'asc' }),
     )
   }

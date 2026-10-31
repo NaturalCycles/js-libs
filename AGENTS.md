@@ -61,6 +61,19 @@ When changing code - DON'T remove pre-existing code comments, preserve them inst
 - **Concatenation/append is not a copy:** `[...a, x]` and `[...a, ...b]` are not "shallow copy"
   patterns — leave them as spread.
 
+## Readonly Arrays & Argument Mutation
+
+- **Never mutate arguments** unless the function name (e.g `_pushUniq`) or an explicit option (e.g
+  `opt.mutate`) says so. E.g sort a copy (`arr.toSorted(cmp)`), not the input (`arr.sort(cmp)`).
+- **Exported functions and interface methods** that take an array they don't mutate should type it
+  as `readonly T[]` (it accepts both mutable and readonly arrays, and documents the contract).
+- **Private helpers** can use plain `T[]` - don't add `readonly` noise there.
+- **Return types:** use `readonly T[]` only when returning internal state (or the input as-is);
+  return plain `T[]` for freshly created arrays.
+- **Performance exception:** mutable arrays (and in-place mutation of arrays the function owns) are
+  fine where they measurably improve performance, e.g avoiding a copy in a hot path. Performance
+  wins over readonly purity - but document the mutation if it's visible to the caller.
+
 ## Sort Comparators
 
 Reuse the shared `comparators` object from `@naturalcycles/js-lib/array/sort.js` instead of inlining

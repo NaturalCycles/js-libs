@@ -49,11 +49,11 @@ export class LocalFilePersistencePlugin implements FileDBPersistencePlugin {
     return await Pipeline.fromNDJsonFile<ROW>(filePath).toArray()
   }
 
-  async saveFiles(ops: DBSaveBatchOperation<any>[]): Promise<void> {
+  async saveFiles(ops: readonly DBSaveBatchOperation<any>[]): Promise<void> {
     await pMap(ops, async op => await this.saveFile(op.table, op.rows), { concurrency: 32 })
   }
 
-  async saveFile<ROW extends ObjectWithId>(table: string, rows: ROW[]): Promise<void> {
+  async saveFile<ROW extends ObjectWithId>(table: string, rows: readonly ROW[]): Promise<void> {
     await fs2.ensureDirAsync(this.cfg.storagePath)
     const ext = `ndjson${this.cfg.zst ? '.zst' : ''}`
     const filePath = `${this.cfg.storagePath}/${table}.${ext}`

@@ -5,7 +5,7 @@ import type { LastRelease, ReleaseChannel, ReleaseType } from './release.model.j
  * Extract versions from git tags matching the package's tag prefix.
  * Non-semver tags (and tags of other packages) are ignored.
  */
-export function getVersionsFromTags(tags: string[], tagPrefix: string): string[] {
+export function getVersionsFromTags(tags: readonly string[], tagPrefix: string): string[] {
   const versions: string[] = []
   for (const tag of tags) {
     if (!tag.startsWith(tagPrefix)) continue
@@ -25,7 +25,7 @@ export function getVersionsFromTags(tags: string[], tagPrefix: string): string[]
  *   e.g. `7.660.0-beta-x.4` belongs to channel `beta-x`)
  */
 export function getLastRelease(
-  versions: string[],
+  versions: readonly string[],
   tagPrefix: string,
   channel: ReleaseChannel,
 ): LastRelease | undefined {

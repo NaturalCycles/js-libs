@@ -8,4 +8,4 @@ export type HttpStatusFamily = 5 | 4 | 3 | 2 | 1
  */
 export type HttpStatusCode = number
 
-export const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD']
+export const HTTP_METHODS: readonly HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD']

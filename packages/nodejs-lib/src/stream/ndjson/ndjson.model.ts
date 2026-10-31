@@ -11,7 +11,7 @@ export class NDJsonStats {
     return new NDJsonStats()
   }
 
-  static createCombined(stats: NDJsonStats[]): NDJsonStats {
+  static createCombined(stats: readonly NDJsonStats[]): NDJsonStats {
     // oxlint-disable-next-line unicorn/no-array-reduce
     return stats.reduce((statsTotal, stats) => statsTotal.add(stats), new NDJsonStats())
   }

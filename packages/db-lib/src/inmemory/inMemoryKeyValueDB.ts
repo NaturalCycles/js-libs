@@ -24,19 +24,19 @@ export class InMemoryKeyValueDB implements CommonKeyValueDB {
 
   async createTable(_table: string, _opt?: CommonDBCreateOptions): Promise<void> {}
 
-  async deleteByIds(table: string, ids: string[]): Promise<void> {
+  async deleteByIds(table: string, ids: readonly string[]): Promise<void> {
     this.data[table] ||= {}
     for (const id of ids) {
       delete this.data[table][id]
     }
   }
 
-  async getByIds(table: string, ids: string[]): Promise<KeyValueDBTuple[]> {
+  async getByIds(table: string, ids: readonly string[]): Promise<KeyValueDBTuple[]> {
     this.data[table] ||= {}
     return ids.map(id => [id, this.data[table]![id]!] as KeyValueDBTuple).filter(e => e[1])
   }
 
-  async saveBatch(table: string, entries: KeyValueDBTuple[]): Promise<void> {
+  async saveBatch(table: string, entries: readonly KeyValueDBTuple[]): Promise<void> {
     this.data[table] ||= {}
     for (const [id, v] of entries) {
       this.data[table][id] = v
@@ -60,7 +60,10 @@ export class InMemoryKeyValueDB implements CommonKeyValueDB {
     return Object.keys(this.data[table]).length
   }
 
-  async incrementBatch(table: string, entries: IncrementTuple[]): Promise<IncrementTuple[]> {
+  async incrementBatch(
+    table: string,
+    entries: readonly IncrementTuple[],
+  ): Promise<IncrementTuple[]> {
     this.data[table] ||= {}
 
     return entries.map(([id, by]) => {

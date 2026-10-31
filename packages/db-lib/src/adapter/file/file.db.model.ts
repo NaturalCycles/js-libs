@@ -7,7 +7,7 @@ export interface FileDBPersistencePlugin {
   ping: () => Promise<void>
   getTables: () => Promise<string[]>
   loadFile: <ROW extends ObjectWithId>(table: string) => Promise<ROW[]>
-  saveFiles: (ops: DBSaveBatchOperation<any>[]) => Promise<void>
+  saveFiles: (ops: readonly DBSaveBatchOperation<any>[]) => Promise<void>
 }
 
 export interface FileDBCfg {

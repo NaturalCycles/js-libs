@@ -76,7 +76,7 @@ export function jsonSchemaToMySQLDDL(
 
 export function mysqlTableStatsToJsonSchemaField<T extends AnyObject = any>(
   table: string,
-  stats: MySQLTableStats[],
+  stats: readonly MySQLTableStats[],
   logger: CommonLogger,
 ): JsonSchema<T> {
   const s: JsonSchema<T> = {

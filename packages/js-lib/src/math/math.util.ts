@@ -9,7 +9,7 @@ import { _assert } from '../error/assert.js'
  * _average([1, 2, 3, 4])
  * // 2.5
  */
-export function _average(values: number[]): number {
+export function _average(values: readonly number[]): number {
   _assert(values.length, '_average is called on empty array')
   let total = 0
   for (const n of values) total += n
@@ -19,7 +19,7 @@ export function _average(values: number[]): number {
 /**
  * Same as _average, but safely returns null if input array is empty or nullish.
  */
-export function _averageOrNull(values: number[] | undefined | null): number | null {
+export function _averageOrNull(values: readonly number[] | undefined | null): number | null {
   return values?.length ? _average(values) : null
 }
 
@@ -31,7 +31,7 @@ export function _averageOrNull(values: number[] | undefined | null): number | nu
  * _stdDev([2, 4, 4, 4, 5, 5, 7, 9])
  * // 2
  */
-export function _stdDev(values: number[]): number {
+export function _stdDev(values: readonly number[]): number {
   _assert(values.length, '_stdDev is called on empty array')
   const avg = _average(values)
   let sumSquaredDiff = 0
@@ -45,14 +45,14 @@ export function _stdDev(values: number[]): number {
 /**
  * Same as _stdDev, but safely returns null if input array is empty or nullish.
  */
-export function _stdDevOrNull(values: number[] | undefined | null): number | null {
+export function _stdDevOrNull(values: readonly number[] | undefined | null): number | null {
   return values?.length ? _stdDev(values) : null
 }
 
 /**
  * valuesArray and weightsArray length is expected to be the same.
  */
-export function _averageWeighted(values: number[], weights: number[]): number {
+export function _averageWeighted(values: readonly number[], weights: readonly number[]): number {
   let numerator = 0
   let denominator = 0
   for (let i = 0; i < values.length; i++) {
@@ -74,8 +74,8 @@ export function _averageWeighted(values: number[], weights: number[]): number {
  * _percentile([1, 2, 3], 100)
  * // 3
  */
-export function _percentile(values: number[], pc: number): number {
-  const sorted = values.sort(comparators.numericAsc)
+export function _percentile(values: readonly number[], pc: number): number {
+  const sorted = values.toSorted(comparators.numericAsc)
 
   // Floating pos in the range of [0; length - 1]
   const pos = ((values.length - 1) * pc) / 100
@@ -89,10 +89,13 @@ export function _percentile(values: number[], pc: number): number {
 /**
  * A tiny bit more efficient function than calling _percentile individually.
  */
-export function _percentiles(values: number[], pcs: number[]): Record<number, number> {
+export function _percentiles(
+  values: readonly number[],
+  pcs: readonly number[],
+): Record<number, number> {
   const r = {} as Record<number, number>
 
-  const sorted = values.sort(comparators.numericAsc)
+  const sorted = values.toSorted(comparators.numericAsc)
 
   for (const pc of pcs) {
     // Floating pos in the range of [0; length - 1]
@@ -116,7 +119,7 @@ export function _percentiles(values: number[], pcs: number[]): Record<number, nu
  * _median([1, 2, 3, 4])
  * // 2.5
  */
-export function _median(values: number[]): number {
+export function _median(values: readonly number[]): number {
   const sorted = values.toSorted(comparators.numericAsc)
   const len = sorted.length
   const mid = Math.floor(len / 2)

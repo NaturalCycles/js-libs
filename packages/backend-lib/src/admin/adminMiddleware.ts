@@ -42,7 +42,7 @@ export interface RequireAdminCfg {
  * @deprecated Use `AuthMiddleware`.
  */
 export type AdminMiddleware = (
-  reqPermissions?: string[],
+  reqPermissions?: readonly string[],
   cfg?: RequireAdminCfg,
 ) => BackendRequestHandler
 
@@ -70,7 +70,7 @@ export function createAdminMiddleware(
  */
 export function requireAdminPermissions(
   adminService: BaseAdminService,
-  reqPermissions: string[] = [],
+  reqPermissions: readonly string[] = [],
   cfg: RequireAdminCfg = {},
 ): BackendRequestHandler {
   const {

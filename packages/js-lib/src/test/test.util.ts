@@ -72,6 +72,6 @@ export function isUTC(): boolean {
   return process.env['TZ'] === 'UTC'
 }
 
-export function expectResults(fn: (...args: any[]) => any, values: any[]): Assertion {
+export function expectResults(fn: (...args: any[]) => any, values: readonly any[]): Assertion {
   return expect(new Map(values.map(v => [v, fn(v)])))
 }

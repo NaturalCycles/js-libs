@@ -44,7 +44,7 @@ export class GithubApi {
    * Failures are logged, not thrown - comments are not worth failing a published release over.
    */
   async commentOnReleasedPrs(
-    commits: ParsedCommit[],
+    commits: readonly ParsedCommit[],
     input: { tag: string; releaseUrl: string },
   ): Promise<void> {
     const { repo } = this

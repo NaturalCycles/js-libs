@@ -29,7 +29,7 @@ export class KeySortedMap<K, V> {
   private readonly map: Map<K, V>
   readonly #sortedKeys: K[]
 
-  constructor(entries: [K, V][] = [], opt: KeySortedMapOptions<K> = {}) {
+  constructor(entries: readonly [K, V][] = [], opt: KeySortedMapOptions<K> = {}) {
     this.#comparator = opt.comparator
     this.map = new Map(entries)
     this.#sortedKeys = Array.from(this.map.keys())

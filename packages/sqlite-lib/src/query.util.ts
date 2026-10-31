@@ -4,7 +4,7 @@ import { SQL } from 'sql-template-strings'
 
 export type SQLWithParams = [sql: string, params: any[]]
 
-export function insertSQL(table: string, rows: Record<string, any>[]): SQLWithParams[] {
+export function insertSQL(table: string, rows: readonly Record<string, any>[]): SQLWithParams[] {
   return rows.map(r => {
     return [
       `INSERT INTO ${table} (${Object.keys(r).join(', ')}) VALUES (${Object.values(r)
@@ -15,7 +15,7 @@ export function insertSQL(table: string, rows: Record<string, any>[]): SQLWithPa
   })
 }
 
-export function insertSQL2(table: string, rows: Record<string, any>[]): SQLStatement[] {
+export function insertSQL2(table: string, rows: readonly Record<string, any>[]): SQLStatement[] {
   return rows.map(r => {
     return SQL`INSERT INTO ${table} (${Object.keys(r).join(', ')}) VALUES (${Object.values(r).join(
       ', ',
@@ -23,17 +23,17 @@ export function insertSQL2(table: string, rows: Record<string, any>[]): SQLState
   })
 }
 
-export function deleteByIdsSQL(table: string, ids: string[]): string {
+export function deleteByIdsSQL(table: string, ids: readonly string[]): string {
   return `DELETE FROM ${table} WHERE id in (${ids.map(id => `"${id}"`).join(',')})`
 }
 
-export function insertKVSQL(table: string, entries: KeyValueDBTuple[]): SQLWithParams[] {
+export function insertKVSQL(table: string, entries: readonly KeyValueDBTuple[]): SQLWithParams[] {
   return entries.map(([id, buf]) => {
     return [`INSERT INTO ${table} (id, v) VALUES (?, ?)`, [id, buf]]
   })
 }
 
-export function selectKVSQL(table: string, ids: string[]): string {
+export function selectKVSQL(table: string, ids: readonly string[]): string {
   return `SELECT id,v FROM ${table} where id in (${ids.map(id => `"${id}"`).join(',')})`
 }
 

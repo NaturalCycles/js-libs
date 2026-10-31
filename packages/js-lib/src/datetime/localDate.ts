@@ -730,7 +730,7 @@ class LocalDateFactory {
   /**
    * Returns the earliest (min) LocalDate from the array, or undefined if the array is empty.
    */
-  minOrUndefined(items: LocalDateInputNullable[]): LocalDate | undefined {
+  minOrUndefined(items: readonly LocalDateInputNullable[]): LocalDate | undefined {
     let min: LocalDate | undefined
     for (const item of items) {
       if (!item) continue
@@ -746,7 +746,7 @@ class LocalDateFactory {
    * Returns the earliest LocalDate from the array.
    * Throws if the array is empty.
    */
-  min(items: LocalDateInputNullable[]): LocalDate {
+  min(items: readonly LocalDateInputNullable[]): LocalDate {
     const min = this.minOrUndefined(items)
     _assert(min, 'localDate.min called on empty array')
     return min
@@ -755,7 +755,7 @@ class LocalDateFactory {
   /**
    * Returns the latest (max) LocalDate from the array, or undefined if the array is empty.
    */
-  maxOrUndefined(items: LocalDateInputNullable[]): LocalDate | undefined {
+  maxOrUndefined(items: readonly LocalDateInputNullable[]): LocalDate | undefined {
     let max: LocalDate | undefined
     for (const item of items) {
       if (!item) continue
@@ -771,7 +771,7 @@ class LocalDateFactory {
    * Returns the latest LocalDate from the array.
    * Throws if the array is empty.
    */
-  max(items: LocalDateInputNullable[]): LocalDate {
+  max(items: readonly LocalDateInputNullable[]): LocalDate {
     const max = this.maxOrUndefined(items)
     _assert(max, 'localDate.max called on empty array')
     return max

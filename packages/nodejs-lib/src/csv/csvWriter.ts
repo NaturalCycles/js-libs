@@ -31,7 +31,7 @@ export class CSVWriter {
 
   cfg: CSVWriterConfig & { delimiter: string }
 
-  writeRows(rows: AnyObject[]): string {
+  writeRows(rows: readonly AnyObject[]): string {
     let s = ''
 
     // Detect columns based on content, if not defined upfront
@@ -68,7 +68,7 @@ export class CSVWriter {
   }
 }
 
-export function arrayToCSVString(arr: AnyObject[], cfg: CSVWriterConfig = {}): string {
+export function arrayToCSVString(arr: readonly AnyObject[], cfg: CSVWriterConfig = {}): string {
   const writer = new CSVWriter(cfg)
   return writer.writeRows(arr)
 }
@@ -76,7 +76,7 @@ export function arrayToCSVString(arr: AnyObject[], cfg: CSVWriterConfig = {}): s
 /**
  * Iterates over the whole array and notes all possible columns.
  */
-export function arrayToCSVColumns(arr: AnyObject[]): string[] {
+export function arrayToCSVColumns(arr: readonly AnyObject[]): string[] {
   const cols = new Set<string>()
   for (const row of arr) {
     for (const col of Object.keys(row)) {

@@ -31,7 +31,7 @@ const REDACTED = 'REDACTED'
 /**
  * Mutates error
  */
-function redact(redactPaths: string[], obj: any, error: Error): void {
+function redact(redactPaths: readonly string[], obj: any, error: Error): void {
   redactPaths
     .map(path => _get(obj, path) as string)
     .filter(Boolean)

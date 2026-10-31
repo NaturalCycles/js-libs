@@ -73,7 +73,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
   }
 
   async getByIds(
-    ids: string[],
+    ids: readonly string[],
     opt: AirtableDaoOptions = {},
     selectOpts: AirtableApiSelectOpts<T> = {},
   ): Promise<T[]> {
@@ -109,7 +109,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
    */
   @_LogMethod()
   async createRecords(
-    records: Exclude<T, 'airtableId'>[],
+    records: readonly Exclude<T, 'airtableId'>[],
     opt: AirtableDaoOptions = {},
   ): Promise<T[]> {
     const concurrency = opt.concurrency || (opt.skipPreservingOrder ? 4 : 1)
@@ -165,7 +165,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
   }
 
   @_LogMethod()
-  async replaceRecords(records: T[], opt: AirtableDaoOptions = {}): Promise<T[]> {
+  async replaceRecords(records: readonly T[], opt: AirtableDaoOptions = {}): Promise<T[]> {
     const concurrency = opt.concurrency || 4
     return await pMap(
       records,

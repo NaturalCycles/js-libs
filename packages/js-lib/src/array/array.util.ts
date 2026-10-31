@@ -302,7 +302,7 @@ export function _countBy<T>(items: Iterable<T>, mapper: Mapper<T, any>): StringM
  * _intersection([2, 1], [2, 3])
  * // [2]
  */
-export function _intersection<T>(a1: T[], a2: T[] | Set<T>): T[] {
+export function _intersection<T>(a1: readonly T[], a2: readonly T[] | Set<T>): T[] {
   const a2set = a2 instanceof Set ? a2 : new Set(a2)
   return a1.filter(v => a2set.has(v))
 }
@@ -315,7 +315,7 @@ export function _intersection<T>(a1: T[], a2: T[] | Set<T>): T[] {
  *
  * Passing second array as Set is more performant (it'll skip turning the array into Set in-place).
  */
-export function _intersectsWith<T>(a1: T[], a2: T[] | Set<T>): boolean {
+export function _intersectsWith<T>(a1: readonly T[], a2: readonly T[] | Set<T>): boolean {
   const a2set = a2 instanceof Set ? a2 : new Set(a2)
   return a1.some(v => a2set.has(v))
 }
@@ -329,7 +329,7 @@ export function _intersectsWith<T>(a1: T[], a2: T[] | Set<T>): boolean {
  *
  * Passing second array as Set is more performant (it'll skip turning the array into Set in-place).
  */
-export function _difference<T>(a1: T[], a2: T[] | Set<T>): T[] {
+export function _difference<T>(a1: readonly T[], a2: readonly T[] | Set<T>): T[] {
   const a2set = a2 instanceof Set ? a2 : new Set(a2)
   return a1.filter(v => !a2set.has(v))
 }
@@ -337,7 +337,7 @@ export function _difference<T>(a1: T[], a2: T[] | Set<T>): T[] {
 /**
  * Does NOT mutate the array, returns a filtered array instead.
  */
-export function _arrayRemove<T>(a: T[], itemToRemove: T): T[] {
+export function _arrayRemove<T>(a: readonly T[], itemToRemove: T): T[] {
   return a.filter(r => r !== itemToRemove)
 }
 

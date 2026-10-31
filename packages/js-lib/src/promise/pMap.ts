@@ -166,7 +166,7 @@ export async function pMap<IN, OUT>(
  pMap with serial (non-concurrent) execution.
  */
 async function pMap1<IN, OUT>(
-  items: IN[],
+  items: readonly IN[],
   mapper: AbortableAsyncMapper<IN, OUT>,
   errorMode: ErrorMode,
   logger: CommonLogger | null,
@@ -202,7 +202,7 @@ async function pMap1<IN, OUT>(
  pMap with fully concurrent execution, like Promise.all
  */
 async function pMapAll<IN, OUT>(
-  items: IN[],
+  items: readonly IN[],
   mapper: AbortableAsyncMapper<IN, OUT>,
   errorMode: ErrorMode,
   logger: CommonLogger | null,

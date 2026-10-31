@@ -30,21 +30,21 @@ export class RedisKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
     await this.cfg.client.disconnect()
   }
 
-  async getByIds(table: string, ids: string[]): Promise<KeyValueDBTuple[]> {
+  async getByIds(table: string, ids: readonly string[]): Promise<KeyValueDBTuple[]> {
     if (!ids.length) return []
     // we assume that the order of returned values is the same as order of input ids
     const bufs = await this.cfg.client.mgetBuffer(this.idsToKeys(table, ids))
     return bufs.map((buf, i) => [ids[i], buf] as KeyValueDBTuple).filter(([_k, v]) => v !== null)
   }
 
-  async deleteByIds(table: string, ids: string[]): Promise<void> {
+  async deleteByIds(table: string, ids: readonly string[]): Promise<void> {
     if (!ids.length) return
     await this.cfg.client.del(this.idsToKeys(table, ids))
   }
 
   async saveBatch(
     table: string,
-    entries: KeyValueDBTuple[],
+    entries: readonly KeyValueDBTuple[],
     opt?: CommonKeyValueDBSaveBatchOptions,
   ): Promise<void> {
     if (!entries.length) return
@@ -115,7 +115,10 @@ export class RedisKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
     })
   }
 
-  async incrementBatch(table: string, increments: IncrementTuple[]): Promise<IncrementTuple[]> {
+  async incrementBatch(
+    table: string,
+    increments: readonly IncrementTuple[],
+  ): Promise<IncrementTuple[]> {
     const incrementTuplesWithInternalKeys = increments.map(
       ([id, v]) => [this.idToKey(table, id), v] as [string, number],
     )
@@ -132,7 +135,7 @@ export class RedisKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
     await this.cfg.client.dropTable(table)
   }
 
-  private idsToKeys(table: string, ids: string[]): string[] {
+  private idsToKeys(table: string, ids: readonly string[]): string[] {
     return ids.map(id => this.idToKey(table, id))
   }
 
@@ -140,7 +143,7 @@ export class RedisKeyValueDB implements CommonKeyValueDB, AsyncDisposable {
     return `${table}:${id}`
   }
 
-  private keysToIds(table: string, keys: string[]): string[] {
+  private keysToIds(table: string, keys: readonly string[]): string[] {
     return keys.map(key => this.keyToId(table, key))
   }
 

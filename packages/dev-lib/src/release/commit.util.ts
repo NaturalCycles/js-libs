@@ -7,7 +7,7 @@ import type { ParsedCommit, RawCommit, ReleaseType } from './release.model.js'
  * Rules follow the `@semantic-release/commit-analyzer` defaults (conventional commits only):
  * breaking change => major, feat => minor, fix/perf/revert => patch, everything else => no release.
  */
-export function analyzeCommits(commits: ParsedCommit[]): ReleaseType | null {
+export function analyzeCommits(commits: readonly ParsedCommit[]): ReleaseType | null {
   let result: ReleaseType | null = null
 
   for (const commit of commits) {

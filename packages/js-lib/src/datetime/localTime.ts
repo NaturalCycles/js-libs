@@ -1024,7 +1024,7 @@ class LocalTimeFactory {
     return opt.mutate ? items.sort(cmp) : items.toSorted(cmp)
   }
 
-  minOrUndefined(items: LocalTimeInputNullable[]): LocalTime | undefined {
+  minOrUndefined(items: readonly LocalTimeInputNullable[]): LocalTime | undefined {
     let min: LocalTime | undefined
     for (const item of items) {
       if (!item) continue
@@ -1036,13 +1036,13 @@ class LocalTimeFactory {
     return min
   }
 
-  min(items: LocalTimeInputNullable[]): LocalTime {
+  min(items: readonly LocalTimeInputNullable[]): LocalTime {
     const min = this.minOrUndefined(items)
     _assert(min, 'localTime.min called on empty array')
     return min
   }
 
-  maxOrUndefined(items: LocalTimeInputNullable[]): LocalTime | undefined {
+  maxOrUndefined(items: readonly LocalTimeInputNullable[]): LocalTime | undefined {
     let max: LocalTime | undefined
     for (const item of items) {
       if (!item) continue
@@ -1054,7 +1054,7 @@ class LocalTimeFactory {
     return max
   }
 
-  max(items: LocalTimeInputNullable[]): LocalTime {
+  max(items: readonly LocalTimeInputNullable[]): LocalTime {
     const max = this.maxOrUndefined(items)
     _assert(max, 'localTime.max called on empty array')
     return max

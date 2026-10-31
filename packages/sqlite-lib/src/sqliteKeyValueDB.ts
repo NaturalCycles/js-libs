@@ -90,17 +90,17 @@ export class SqliteKeyValueDB implements CommonKeyValueDB, CommonSyncKeyValueDB,
     this.db.exec(`DROP TABLE IF EXISTS ${table}`)
   }
 
-  async deleteByIds(table: string, ids: string[]): Promise<void> {
+  async deleteByIds(table: string, ids: readonly string[]): Promise<void> {
     this.deleteByIdsSync(table, ids)
   }
 
-  deleteByIdsSync(table: string, ids: string[]): void {
+  deleteByIdsSync(table: string, ids: readonly string[]): void {
     const sql = `DELETE FROM ${table} WHERE id in (${ids.map(id => `'${id}'`).join(',')})`
     if (this.cfg.debug) this.cfg.logger.log(sql)
     this.db.prepare(sql).run()
   }
 
-  async getByIds(table: string, ids: string[]): Promise<KeyValueDBTuple[]> {
+  async getByIds(table: string, ids: readonly string[]): Promise<KeyValueDBTuple[]> {
     return this.getByIdsSync(table, ids)
   }
 
@@ -108,18 +108,18 @@ export class SqliteKeyValueDB implements CommonKeyValueDB, CommonSyncKeyValueDB,
    * API design note:
    * Here in the array of rows we have no way to map row to id (it's an opaque Buffer).
    */
-  getByIdsSync(table: string, ids: string[]): KeyValueDBTuple[] {
+  getByIdsSync(table: string, ids: readonly string[]): KeyValueDBTuple[] {
     const sql = `SELECT id,v FROM ${table} where id in (${ids.map(id => `'${id}'`).join(',')})`
     if (this.cfg.debug) this.cfg.logger.log(sql)
     const rows = this.db.prepare(sql).all() as any as KeyValueObject[]
     return rows.map(r => [r.id, toBufferView(r.v)])
   }
 
-  async saveBatch(table: string, entries: KeyValueDBTuple[]): Promise<void> {
+  async saveBatch(table: string, entries: readonly KeyValueDBTuple[]): Promise<void> {
     this.saveBatchSync(table, entries)
   }
 
-  saveBatchSync(table: string, entries: KeyValueDBTuple[]): void {
+  saveBatchSync(table: string, entries: readonly KeyValueDBTuple[]): void {
     const sql = `INSERT INTO ${table} (id, v) VALUES (?, ?)`
     if (this.cfg.debug) this.cfg.logger.log(sql)
 
@@ -187,11 +187,14 @@ export class SqliteKeyValueDB implements CommonKeyValueDB, CommonSyncKeyValueDB,
     return cnt
   }
 
-  async incrementBatch(table: string, entries: IncrementTuple[]): Promise<IncrementTuple[]> {
+  async incrementBatch(
+    table: string,
+    entries: readonly IncrementTuple[],
+  ): Promise<IncrementTuple[]> {
     return this.incrementBatchSync(table, entries)
   }
 
-  incrementBatchSync(table: string, entries: IncrementTuple[]): IncrementTuple[] {
+  incrementBatchSync(table: string, entries: readonly IncrementTuple[]): IncrementTuple[] {
     const upsert = this.db.prepare(
       `INSERT INTO ${table} (id, v) VALUES (?, ?)
        ON CONFLICT(id) DO UPDATE SET v = CAST(v AS INTEGER) + excluded.v`,

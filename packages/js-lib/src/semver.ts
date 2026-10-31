@@ -88,7 +88,7 @@ class SemverFactory {
   /**
    * Returns the highest (max) Semver from the array, or undefined if the array is empty.
    */
-  maxOrUndefined(items: SemverInputNullable[]): Semver | undefined {
+  maxOrUndefined(items: readonly SemverInputNullable[]): Semver | undefined {
     let max: Semver | undefined
     for (const item of items) {
       const input = this.fromInputOrUndefined(item)
@@ -103,7 +103,7 @@ class SemverFactory {
    * Returns the highest Semver from the array.
    * Throws if the array is empty.
    */
-  max(items: SemverInputNullable[]): Semver {
+  max(items: readonly SemverInputNullable[]): Semver {
     const max = this.maxOrUndefined(items)
     _assert(max, 'semver.max called on empty array')
     return max
@@ -112,7 +112,7 @@ class SemverFactory {
   /**
    * Returns the lowest (min) Semver from the array, or undefined if the array is empty.
    */
-  minOrUndefined(items: SemverInputNullable[]): Semver | undefined {
+  minOrUndefined(items: readonly SemverInputNullable[]): Semver | undefined {
     let min: Semver | undefined
     for (const item of items) {
       const input = this.fromInputOrUndefined(item)
@@ -127,7 +127,7 @@ class SemverFactory {
    * Returns the lowest Semver from the array.
    * Throws if the array is empty.
    */
-  min(items: SemverInputNullable[]): Semver {
+  min(items: readonly SemverInputNullable[]): Semver {
     const min = this.minOrUndefined(items)
     _assert(min, 'semver.min called on empty array')
     return min

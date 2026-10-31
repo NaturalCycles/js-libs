@@ -3,7 +3,7 @@ import { _filterNullishValues } from '@naturalcycles/js-lib/object'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from './jSchema.js'
 
-export const JSON_SCHEMA_ORDER = [
+export const JSON_SCHEMA_ORDER: readonly string[] = [
   '$schema',
   '$id',
   'title',
@@ -79,21 +79,21 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
   return _filterNullishValues(s1, { mutate: true })
 }
 
-export function isEveryItemString(arr: any[]): boolean {
+export function isEveryItemString(arr: readonly any[]): boolean {
   for (const item of arr) {
     if (typeof item !== 'string') return false
   }
   return true
 }
 
-export function isEveryItemNumber(arr: any[]): boolean {
+export function isEveryItemNumber(arr: readonly any[]): boolean {
   for (const item of arr) {
     if (typeof item !== 'number') return false
   }
   return true
 }
 
-export function isEveryItemPrimitive(arr: any[]): boolean {
+export function isEveryItemPrimitive(arr: readonly any[]): boolean {
   for (const item of arr) {
     if (typeof item !== 'number' && typeof item !== 'string' && typeof item !== 'symbol') {
       return false

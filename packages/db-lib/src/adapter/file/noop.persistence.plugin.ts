@@ -13,5 +13,5 @@ export class NoopPersistencePlugin implements FileDBPersistencePlugin {
     return []
   }
 
-  async saveFiles(_ops: DBSaveBatchOperation<any>[]): Promise<void> {}
+  async saveFiles(_ops: readonly DBSaveBatchOperation<any>[]): Promise<void> {}
 }

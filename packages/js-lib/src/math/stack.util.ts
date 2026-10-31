@@ -16,10 +16,18 @@ export class Stack<T> {
    */
   private nextIndex = 0
 
-  readonly items: T[] = []
+  private readonly buffer: T[] = []
+
+  /**
+   * Raw "items buffer" as-is (not ordered properly).
+   * Readonly, because mutating it (e.g sorting in-place) would corrupt the Stack.
+   */
+  get items(): readonly T[] {
+    return this.buffer
+  }
 
   push(item: T): this {
-    this.items[this.nextIndex] = item
+    this.buffer[this.nextIndex] = item
     this.nextIndex = this.nextIndex === this.size - 1 ? 0 : this.nextIndex + 1
     return this
   }
@@ -29,7 +37,7 @@ export class Stack<T> {
    */
   fill(item: T): this {
     for (let i = 0; i < this.size; i++) {
-      this.items[i] = item
+      this.buffer[i] = item
     }
     return this
   }
@@ -38,14 +46,14 @@ export class Stack<T> {
    * Returns last items in the right order.
    * Unlike raw `items` property that returns "items buffer" as-is (not ordered properly).
    */
-  get itemsOrdered(): T[] {
-    if (this.items.length < this.size) {
+  get itemsOrdered(): readonly T[] {
+    if (this.buffer.length < this.size) {
       // Buffer is not filled yet, just return it as-is
-      return this.items
+      return this.buffer
     }
 
     // Buffer was filled and started to "overwrite itself", will need to return 2 slices
-    return [...this.items.slice(this.nextIndex), ...this.items.slice(0, this.nextIndex)]
+    return [...this.buffer.slice(this.nextIndex), ...this.buffer.slice(0, this.nextIndex)]
   }
 }
 
@@ -90,7 +98,7 @@ export class NumberStack extends Stack<number> {
     return this.items.length === 0 ? null : _percentile(this.items, pc)
   }
 
-  percentiles(pcs: number[]): Record<number, number> {
+  percentiles(pcs: readonly number[]): Record<number, number> {
     return _percentiles(this.items, pcs)
   }
 }

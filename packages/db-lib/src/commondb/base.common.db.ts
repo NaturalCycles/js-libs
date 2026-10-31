@@ -43,7 +43,10 @@ export class BaseCommonDB implements CommonDB {
     // no-op
   }
 
-  async getByIds<ROW extends ObjectWithId>(_table: string, _ids: string[]): Promise<ROW[]> {
+  async getByIds<ROW extends ObjectWithId>(
+    _table: string,
+    _ids: readonly string[],
+  ): Promise<ROW[]> {
     throw new Error('getByIds is not implemented')
   }
 
@@ -78,7 +81,7 @@ export class BaseCommonDB implements CommonDB {
 
   async saveBatch<ROW extends ObjectWithId>(
     _table: string,
-    _rows: ROW[],
+    _rows: readonly ROW[],
     _opt?: CommonDBSaveOptions<ROW>,
   ): Promise<void> {
     throw new Error('saveBatch is not implemented')
@@ -88,7 +91,11 @@ export class BaseCommonDB implements CommonDB {
     throw new Error('streamQuery is not implemented')
   }
 
-  async deleteByIds(_table: string, _ids: string[], _opt?: CommonDBOptions): Promise<number> {
+  async deleteByIds(
+    _table: string,
+    _ids: readonly string[],
+    _opt?: CommonDBOptions,
+  ): Promise<number> {
     throw new Error('deleteByIds is not implemented')
   }
 

@@ -68,7 +68,7 @@ export class CommonStorageBucket {
     })
   }
 
-  async getFileContents(paths: string[]): Promise<Buffer[]> {
+  async getFileContents(paths: readonly string[]): Promise<Buffer[]> {
     return (
       await pMap(
         paths,
@@ -77,7 +77,7 @@ export class CommonStorageBucket {
     ).filter(Boolean)
   }
 
-  async getFileContentsAsJson<T = any>(paths: string[]): Promise<T[]> {
+  async getFileContentsAsJson<T = any>(paths: readonly string[]): Promise<T[]> {
     return (
       await pMap(paths, async filePath => {
         const buf = await this.cfg.storage.getFile(this.cfg.bucketName, filePath)
@@ -86,7 +86,7 @@ export class CommonStorageBucket {
     ).filter(Boolean)
   }
 
-  async getFileEntries(paths: string[]): Promise<FileEntry[]> {
+  async getFileEntries(paths: readonly string[]): Promise<FileEntry[]> {
     return (
       await pMap(paths, async filePath => {
         const content = await this.cfg.storage.getFile(this.cfg.bucketName, filePath)
@@ -96,7 +96,7 @@ export class CommonStorageBucket {
   }
 
   async getFileEntriesAsJson<T = any>(
-    paths: string[],
+    paths: readonly string[],
   ): Promise<{ filePath: string; content: T }[]> {
     return (
       await pMap(paths, async filePath => {
@@ -140,7 +140,7 @@ export class CommonStorageBucket {
     )
   }
 
-  async saveFiles(entries: FileEntry[]): Promise<void> {
+  async saveFiles(entries: readonly FileEntry[]): Promise<void> {
     await pMap(entries, async f => {
       await this.cfg.storage.saveFile(this.cfg.bucketName, f.filePath, f.content)
     })
@@ -153,7 +153,7 @@ export class CommonStorageBucket {
     return await this.cfg.storage.deletePath(this.cfg.bucketName, prefix)
   }
 
-  async deletePaths(prefixes: string[]): Promise<void> {
+  async deletePaths(prefixes: readonly string[]): Promise<void> {
     await pMap(prefixes, async prefix => {
       return await this.cfg.storage.deletePath(this.cfg.bucketName, prefix)
     })

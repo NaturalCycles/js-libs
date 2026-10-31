@@ -15,7 +15,7 @@ export class UserAssignmentDao extends CommonDao<UserAssignment> {
 
   async getUserAssigmentsByExperimentIds(
     userId: string,
-    experimentIds: string[],
+    experimentIds: readonly string[],
   ): Promise<UserAssignment[]> {
     const query = this.query().filterEq('userId', userId).filterIn('experimentId', experimentIds)
     return await this.runQuery(query)
@@ -27,8 +27,8 @@ export class UserAssignmentDao extends CommonDao<UserAssignment> {
    * filter the result by the specific (userId, experimentId) pairs they care about.
    */
   async getByUserIdsAndExperimentIds(
-    userIds: string[],
-    experimentIds: string[],
+    userIds: readonly string[],
+    experimentIds: readonly string[],
   ): Promise<UserAssignment[]> {
     if (!userIds.length || !experimentIds.length) return []
     const query = this.query().filterIn('userId', userIds).filterIn('experimentId', experimentIds)
@@ -47,7 +47,7 @@ export class UserAssignmentDao extends CommonDao<UserAssignment> {
     return await this.query().filterEq('bucketId', bucketId).runQueryCount()
   }
 
-  async getUserIdsByBucketIds(bucketIds: string[]): Promise<string[]> {
+  async getUserIdsByBucketIds(bucketIds: readonly string[]): Promise<string[]> {
     if (!bucketIds.length) return []
 
     const userIds = await this.query()
