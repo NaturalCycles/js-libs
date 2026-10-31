@@ -36,12 +36,15 @@ it('should call onStats with non-negative stats once per measureInterval', async
     'gcCPU',
     'gcCount',
     'gcTotalTime',
+    'intervalMs',
     'max',
     'mean',
     'p50',
     'p90',
     'p99',
   ])
+  // intervalMs is the real elapsed time (at least the 20 ms delay above), not the faked 100 ms
+  expect(stats.intervalMs).toBeGreaterThanOrEqual(15)
   expect(monitor.lastStats).toBe(stats)
 
   await vi.advanceTimersByTimeAsync(100)
@@ -58,7 +61,11 @@ it('should report the gc stats of an interval and reset them for the next one', 
   const firstStats = onStats.mock.calls[0]![0]
   expect(firstStats.gcCount).toBeGreaterThanOrEqual(1000)
   expect(firstStats.gcTotalTime).toBeGreaterThanOrEqual(50)
-  expect(firstStats.gcCPU).toBe(Math.round((firstStats.gcTotalTime / 100) * 10_000))
+  // gcCPU is relative to the actual elapsed time, not the nominal measureInterval
+  expect(firstStats.intervalMs).toBeGreaterThanOrEqual(1)
+  expect(firstStats.gcCPU).toBe(
+    Math.round((firstStats.gcTotalTime / firstStats.intervalMs) * 10_000),
+  )
 
   await vi.advanceTimersByTimeAsync(100)
   const secondStats = onStats.mock.calls[1]![0]

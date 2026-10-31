@@ -35,7 +35,9 @@ import type {
  * expect p50/mean near 0 on a healthy service, instead of the ~`resolution` baseline
  * reported by older interval-based sampling.
  *
- * @experimental
+ * Beware of CPU-throttled processes (e.g. idle CloudRun instances with request-based billing):
+ * the interval timer fires late there, and the time the process spent runnable-but-unscheduled
+ * is recorded as event loop delay. Use `intervalMs` to detect such intervals.
  */
 export class EventLoopMonitor {
   constructor(cfg: EventLoopMonitorCfg = {}) {
@@ -52,6 +54,7 @@ export class EventLoopMonitor {
     this.eld.enable()
 
     this.lastElu = performance.eventLoopUtilization()
+    this.lastReportedAt = performance.now()
 
     this.po = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
@@ -71,12 +74,19 @@ export class EventLoopMonitor {
       const max = Math.round(eld.max / 1e6)
       const mean = Math.round(eld.mean / 1e6)
 
+      // Actual wall-clock length of this interval, as opposed to the nominal `measureInterval`.
+      // Timers fire late when the process is starved of CPU, so this can be much longer.
+      // Floored at 1 to never divide by zero (only reachable with fake timers).
+      const now = performance.now()
+      const intervalMs = Math.max(1, Math.round(now - this.lastReportedAt))
+      this.lastReportedAt = now
+
       const currentElu = performance.eventLoopUtilization()
       const deltaElu = performance.eventLoopUtilization(this.lastElu, currentElu)
       this.lastElu = currentElu
 
       const elu = Math.round(deltaElu.utilization * 100)
-      const gcCPU = Math.round((gcTotalTime / measureInterval) * 10_000)
+      const gcCPU = Math.round((gcTotalTime / intervalMs) * 10_000)
 
       this.lastStats = {
         p50,
@@ -88,6 +98,7 @@ export class EventLoopMonitor {
         gcCount,
         gcTotalTime,
         gcCPU,
+        intervalMs,
       }
 
       cfg.onStats?.(this.lastStats)
@@ -101,6 +112,7 @@ export class EventLoopMonitor {
   private interval: NodeJS.Timeout
   private eld: ELDHistogram
   private lastElu: EventLoopUtilization
+  private lastReportedAt: NumberOfMilliseconds
   /**
    * Undefined until the first interval has completed.
    */
@@ -146,15 +158,15 @@ export interface EventLoopStats {
    */
   elu: NumberOfPercent
   /**
-   * Number of times gc ran during the last `measureInterval`
+   * Number of times gc ran during the last interval
    */
   gcCount: NonNegativeInteger
   /**
-   * Total time spent on gc during the last `measureInterval`
+   * Total time spent on gc during the last interval
    */
   gcTotalTime: NumberOfMilliseconds
   /**
-   * CPU time spent on GC in the last `measureInterval`.
+   * CPU time spent on GC in the last interval, relative to `intervalMs`.
    * In "basis points", 100 basis points == 1%.
    * E.g 125 means 1.25% of CPU spent on GC.
    * It's reported in BPS to be able to do more accurate aggregate reporting
@@ -162,4 +174,12 @@ export interface EventLoopStats {
    * too "lossy")
    */
   gcCPU: Integer
+  /**
+   * Actual wall-clock duration of the interval covered by these stats.
+   * Normally equals `measureInterval`, but is longer when the timer fired late,
+   * e.g. on a CloudRun instance that was CPU-throttled while idle (request-based billing).
+   * An interval much longer than `measureInterval` means the delay stats are dominated
+   * by that throttling rather than by the application.
+   */
+  intervalMs: NumberOfMilliseconds
 }
