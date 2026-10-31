@@ -1,5 +1,6 @@
 import { DBQuery } from '@naturalcycles/db-lib'
 import { createTestItemDBM, createTestItemsDBM, TEST_TABLE } from '@naturalcycles/db-lib/testing'
+import * as mysql from 'mysql'
 import { expect, it } from 'vitest'
 import {
   dbQueryToSQLDelete,
@@ -67,6 +68,26 @@ it('should build UPDATE with and without a filter', () => {
   expect(sql).toMatchSnapshot()
 })
 
+it('should write object and array values as JSON strings in INSERT', () => {
+  const [sql] = insertSQL(TEST_TABLE, [{ id: 'id1', ...createValuesOfEveryKind() }])
+  expect(sql).toBe(
+    'INSERT INTO `TEST_TABLE` (`id`,`nested`,`list`,`buf`,`date`,`raw`,`empty`) VALUES\n' +
+      `('id1','{\\"foo\\":1}','[\\"a\\",\\"b\\"]',X'6869','2018-06-21 12:30:00.000',NOW(),NULL)`,
+  )
+})
+
+it('should write object and array values as JSON strings in UPDATE', () => {
+  const sql = dbQueryToSQLUpdate(
+    new DBQuery<any>(TEST_TABLE).filterEq('id', 'id1'),
+    createValuesOfEveryKind(),
+  )
+  expect(sql).toBe(
+    `UPDATE \`TEST_TABLE\` SET \`nested\` = '{\\"foo\\":1}', \`list\` = '[\\"a\\",\\"b\\"]', ` +
+      `\`buf\` = X'6869', \`date\` = '2018-06-21 12:30:00.000', \`raw\` = NOW(), \`empty\` = NULL ` +
+      `WHERE \`id\` = 'id1'`,
+  )
+})
+
 it('should split a large INSERT into several statements', () => {
   const items = createTestItemsDBM(10).map(r => ({ ...r, lng: 'xxx'.repeat(80000) }))
   const sqls = insertSQL(TEST_TABLE, items)
@@ -74,3 +95,14 @@ it('should split a large INSERT into several statements', () => {
   console.log(sqls.length)
   expect(sqls.length).toBeGreaterThan(1)
 })
+
+function createValuesOfEveryKind(): Record<string, any> {
+  return {
+    nested: { foo: 1 },
+    list: ['a', 'b'],
+    buf: Buffer.from('hi'),
+    date: new Date(2018, 5, 21, 12, 30),
+    raw: mysql.raw('NOW()'),
+    empty: null,
+  }
+}
