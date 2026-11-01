@@ -1,5 +1,10 @@
-import type { ELDHistogram, EventLoopMonitorOptions, EventLoopUtilization } from 'node:perf_hooks'
-import { monitorEventLoopDelay, performance, PerformanceObserver } from 'node:perf_hooks'
+import type {
+  ELDHistogram,
+  EventLoopMonitorOptions,
+  EventLoopUtilization,
+  PerformanceEntry,
+} from 'node:perf_hooks'
+import { constants, monitorEventLoopDelay, performance, PerformanceObserver } from 'node:perf_hooks'
 import type {
   Integer,
   NonNegativeInteger,
@@ -40,10 +45,17 @@ import type {
  * and the interval timer fires late (see `intervalMs`).
  * Use `pause()` / `resume()` to keep such periods out of the delay samples,
  * e.g. pause when the last in-flight request finishes and resume when the next one arrives.
+ *
+ * Besides the delay histogram, a watchdog timer measures the largest stall of each interval
+ * together with the CPU the event loop thread consumed across it (`stallMs` / `stallCpuMs`),
+ * which tells a stall caused by own work (sync code, GC) from one caused by the thread not
+ * being scheduled.
+ * The longest single GC pause is reported too (`gcMaxTime` / `gcMaxKind`).
  */
 export class EventLoopMonitor {
   constructor(cfg: EventLoopMonitorCfg = {}) {
-    const { measureInterval = 60_000 } = cfg
+    const { measureInterval = 60_000, watchdogInterval = 1000 } = cfg
+    this.watchdogInterval = watchdogInterval
 
     const eldOptions: EventLoopMonitorOptions = {
       // Node >=24.19 / >=26.5: sample once per event loop iteration (uv_prepare/uv_check hooks),
@@ -62,14 +74,20 @@ export class EventLoopMonitor {
       for (const entry of list.getEntries()) {
         this.gcCount++
         this.gcTotalTime += entry.duration
+        if (entry.duration > this.gcMaxTime) {
+          this.gcMaxTime = entry.duration
+          this.gcMaxKind = getGcKind(entry)
+        }
       }
     })
 
     this.po.observe({ entryTypes: ['gc'] })
 
+    this.startWatchdog()
+
     this.interval = setInterval(() => {
       // Delay stats are reported in **nanoseconds**
-      const { eld, gcCount, gcTotalTime } = this
+      const { eld, gcCount, gcTotalTime, gcMaxKind } = this
       const p50 = Math.round(eld.percentile(50) / 1e6)
       const p90 = Math.round(eld.percentile(90) / 1e6)
       const p99 = Math.round(eld.percentile(99) / 1e6)
@@ -89,6 +107,9 @@ export class EventLoopMonitor {
 
       const elu = Math.round(deltaElu.utilization * 100)
       const gcCPU = Math.round((gcTotalTime / intervalMs) * 10_000)
+      const gcMaxTime = Math.round(this.gcMaxTime)
+      const stallMs = Math.round(this.maxStallMs)
+      const stallCpuMs = Math.round(this.maxStallCpuMs)
 
       this.lastStats = {
         p50,
@@ -100,6 +121,10 @@ export class EventLoopMonitor {
         gcCount,
         gcTotalTime,
         gcCPU,
+        gcMaxTime,
+        gcMaxKind,
+        stallMs,
+        stallCpuMs,
         intervalMs,
       }
 
@@ -108,6 +133,10 @@ export class EventLoopMonitor {
       eld.reset()
       this.gcCount = 0
       this.gcTotalTime = 0
+      this.gcMaxTime = 0
+      this.gcMaxKind = undefined
+      this.maxStallMs = 0
+      this.maxStallCpuMs = 0
     }, measureInterval)
   }
 
@@ -116,6 +145,17 @@ export class EventLoopMonitor {
   private lastElu: EventLoopUtilization
   private lastReportedAt: NumberOfMilliseconds
   private paused = false
+  private readonly watchdogInterval: NumberOfMilliseconds
+  private watchdog?: NodeJS.Timeout
+  /**
+   * performance.now() and process CPU (microseconds) at the last watchdog tick.
+   */
+  private watchdogAt = 0
+  private watchdogCpuUs = 0
+  private maxStallMs = 0
+  private maxStallCpuMs = 0
+  private gcMaxTime = 0
+  private gcMaxKind?: GcKind
   /**
    * Undefined until the first interval has completed.
    */
@@ -126,12 +166,13 @@ export class EventLoopMonitor {
 
   stop(): void {
     clearInterval(this.interval)
+    this.stopWatchdog()
     this.eld.disable()
     this.po.disconnect()
   }
 
   /**
-   * Stops sampling event loop delay until `resume()` is called.
+   * Stops sampling event loop delay (and the stall watchdog) until `resume()` is called.
    * GC and ELU keep being tracked, and the samples recorded so far are kept.
    *
    * Meant for periods when the process is known to be CPU-throttled, e.g. a CloudRun instance
@@ -141,28 +182,87 @@ export class EventLoopMonitor {
   pause(): void {
     this.paused = true
     this.eld.disable()
+    this.stopWatchdog()
   }
 
   /**
    * Resumes sampling event loop delay after `pause()`.
    * Safe to call from within the event that ended the throttled period (e.g. the middleware of
-   * the request that woke the instance): the histogram restarts its clock from this moment,
-   * so the stall that preceded it in the same loop iteration is not sampled.
+   * the request that woke the instance): the histogram and the watchdog restart their clocks
+   * from this moment, so the stall that preceded it in the same loop iteration is not sampled.
    */
   resume(): void {
     if (!this.paused) return
     this.paused = false
     this.eld.enable()
+    this.startWatchdog()
+  }
+
+  private startWatchdog(): void {
+    this.watchdogAt = performance.now()
+    this.watchdogCpuUs = getCpuUs()
+    this.watchdog = setInterval(() => this.onWatchdogTick(), this.watchdogInterval)
+    // Must not keep the process alive on its own (the main interval already does, until `stop()`)
+    this.watchdog.unref()
+  }
+
+  private stopWatchdog(): void {
+    clearInterval(this.watchdog)
+    this.watchdog = undefined
+  }
+
+  /**
+   * A tick that fires late means the loop could not turn in between: a long synchronous callback,
+   * a long GC pause, or the process not being scheduled at all. The CPU consumed across the gap
+   * tells these apart. Node reschedules a late interval from the actual fire time, so one stall
+   * produces exactly one late tick.
+   */
+  private onWatchdogTick(): void {
+    const now = performance.now()
+    const cpuUs = getCpuUs()
+    const stallMs = now - this.watchdogAt - this.watchdogInterval
+    if (stallMs > this.maxStallMs) {
+      this.maxStallMs = stallMs
+      this.maxStallCpuMs = (cpuUs - this.watchdogCpuUs) / 1000
+    }
+    this.watchdogAt = now
+    this.watchdogCpuUs = cpuUs
   }
 
   // cfg: Required<EventLoopMonitorCfg>
 }
+
+function getGcKind(entry: PerformanceEntry): GcKind {
+  // `detail` is only declared on Node's PerformanceNodeEntry type, which getEntries() doesn't return
+  const kind = (entry as { detail?: { kind?: number } }).detail?.kind
+  if (kind === constants.NODE_PERFORMANCE_GC_MAJOR) return 'major'
+  if (kind === constants.NODE_PERFORMANCE_GC_MINOR) return 'minor'
+  if (kind === constants.NODE_PERFORMANCE_GC_INCREMENTAL) return 'incremental'
+  if (kind === constants.NODE_PERFORMANCE_GC_WEAKCB) return 'weakcb'
+  return 'unknown'
+}
+
+/**
+ * CPU time of the current (event loop) thread in microseconds, so that worker threads,
+ * the libuv threadpool and parallel GC helpers don't count.
+ */
+function getCpuUs(): number {
+  const { user, system } = process.threadCpuUsage()
+  return user + system
+}
+
+export type GcKind = 'major' | 'minor' | 'incremental' | 'weakcb' | 'unknown'
 
 export interface EventLoopMonitorCfg {
   /**
    * Defaults to 60_000 ms
    */
   measureInterval?: NumberOfMilliseconds
+  /**
+   * Period of the stall watchdog timer, see `EventLoopStats.stallMs`.
+   * Defaults to 1000 ms.
+   */
+  watchdogInterval?: NumberOfMilliseconds
   /**
    * Callback to be invoked with EventLoopStats.
    * Called every `measureInterval` milliseconds.
@@ -202,6 +302,29 @@ export interface EventLoopStats {
    * too "lossy")
    */
   gcCPU: Integer
+  /**
+   * Longest single GC pause in the last interval.
+   */
+  gcMaxTime: NumberOfMilliseconds
+  /**
+   * Kind of the longest GC pause. Undefined when no GC ran in the interval.
+   */
+  gcMaxKind: GcKind | undefined
+  /**
+   * Largest stall of the interval, as seen by the watchdog timer: how late its tick fired,
+   * 0 when every tick was on time. Covers anything that kept the loop from turning:
+   * a long synchronous callback, a long GC pause, or the process not being scheduled at all.
+   * Underestimates the stall by up to `watchdogInterval` (the tick may have been due anywhere
+   * within its period when the stall began). Not measured while paused.
+   */
+  stallMs: NumberOfMilliseconds
+  /**
+   * CPU time of the event loop thread consumed between the watchdog tick before the largest
+   * stall and the late tick that measured it.
+   * Close to `stallMs` means the thread was running (own code or GC, see `gcMaxTime`),
+   * close to 0 means it was not scheduled (platform pause, CPU throttling).
+   */
+  stallCpuMs: NumberOfMilliseconds
   /**
    * Actual wall-clock duration of the interval covered by these stats.
    * Normally equals `measureInterval`, but is longer when the timer fired late,

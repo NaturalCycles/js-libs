@@ -29,12 +29,14 @@ it('should call onStats with non-negative stats once per measureInterval', async
   expect(onStats).toHaveBeenCalledTimes(1)
   const stats = onStats.mock.calls[0]![0]
   for (const value of Object.values(stats)) {
-    expect(value).toBeGreaterThanOrEqual(0)
+    if (typeof value === 'number') expect(value).toBeGreaterThanOrEqual(0)
   }
   expect(Object.keys(stats).sort()).toEqual([
     'elu',
     'gcCPU',
     'gcCount',
+    'gcMaxKind',
+    'gcMaxTime',
     'gcTotalTime',
     'intervalMs',
     'max',
@@ -42,6 +44,8 @@ it('should call onStats with non-negative stats once per measureInterval', async
     'p50',
     'p90',
     'p99',
+    'stallCpuMs',
+    'stallMs',
   ])
   // intervalMs is the real elapsed time (at least the 20 ms delay above), not the faked 100 ms
   expect(stats.intervalMs).toBeGreaterThanOrEqual(15)
@@ -96,7 +100,7 @@ it('should record a synchronous stall while sampling', async () => {
 
 it('should not record a stall that ended with resume() in the same loop iteration', async () => {
   const onStats = vi.fn<(stats: EventLoopStats) => void>()
-  monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
+  monitor = new EventLoopMonitor({ measureInterval: 100, watchdogInterval: 10, onStats })
   const { pause, resume } = bind(monitor)
 
   pause()
@@ -106,7 +110,54 @@ it('should not record a stall that ended with resume() in the same loop iteratio
   await pDelay(20) // let sampled iterations happen
 
   await vi.advanceTimersByTimeAsync(100)
-  expect(onStats.mock.calls[0]![0].max).toBeLessThan(40)
+  const stats = onStats.mock.calls[0]![0]
+  expect(stats.max).toBeLessThan(40)
+  expect(stats.stallMs).toBeLessThan(40)
+})
+
+it('should measure a synchronous stall and the CPU it consumed', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, watchdogInterval: 10, onStats })
+
+  await stallInTimerCallback(50) // busy wait: the stall is CPU work
+  await vi.advanceTimersByTimeAsync(100)
+
+  const stats = onStats.mock.calls[0]![0]
+  expect(stats.stallMs).toBeGreaterThanOrEqual(35)
+  expect(stats.stallCpuMs).toBeGreaterThanOrEqual(25)
+})
+
+it('should measure a stall during which the process was not running, with near-zero CPU', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, watchdogInterval: 10, onStats })
+
+  await blockWithoutCpuInTimerCallback(50)
+  await vi.advanceTimersByTimeAsync(100)
+
+  const stats = onStats.mock.calls[0]![0]
+  expect(stats.stallMs).toBeGreaterThanOrEqual(35)
+  expect(stats.stallCpuMs).toBeLessThan(stats.stallMs / 2)
+
+  // The next interval starts from zero
+  await vi.advanceTimersByTimeAsync(100)
+  expect(onStats.mock.calls[1]![0].stallMs).toBeLessThan(10)
+})
+
+it('should report the longest gc pause and its kind', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
+
+  // Enough garbage to trigger at least one collection
+  let garbage: unknown[] = []
+  for (let i = 0; i < 300_000; i++) garbage.push({ i, s: `x${i}` })
+  garbage = []
+  await pDelay(30) // gc entries reach the observer asynchronously
+
+  await vi.advanceTimersByTimeAsync(100)
+  const stats = onStats.mock.calls[0]![0]
+  expect(stats.gcCount).toBeGreaterThanOrEqual(1)
+  expect(stats.gcMaxTime).toBeLessThanOrEqual(Math.ceil(stats.gcTotalTime))
+  expect(['major', 'minor', 'incremental', 'weakcb', 'unknown']).toContain(stats.gcMaxKind)
 })
 
 it('should keep the samples recorded before pause() after resume()', async () => {
@@ -125,6 +176,19 @@ it('should keep the samples recorded before pause() after resume()', async () =>
 
 function bind(m: EventLoopMonitor): { pause: () => void; resume: () => void } {
   return { pause: () => m.pause(), resume: () => m.resume() }
+}
+
+/**
+ * Blocks the thread for `ms` inside a (real) setTimeout callback without consuming CPU,
+ * like a process that is not being scheduled.
+ */
+async function blockWithoutCpuInTimerCallback(ms: number): Promise<void> {
+  await new Promise<void>(resolve => {
+    setTimeout(() => {
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+      resolve()
+    }, 1)
+  })
 }
 
 /**
