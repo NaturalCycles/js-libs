@@ -48,7 +48,7 @@ export function writableChunk<T>(
       }
 
       if (splitPredicate(chunk, ++indexWritten)) {
-        logger.log(`WritableChunk(${splitIndex}): splitting to ${splitIndex + 1}`)
+        logger.debug(`WritableChunk(${splitIndex}): splitting to ${splitIndex + 1}`)
         splitIndex++
         fork.push(null)
         lock?.resolve()
@@ -60,7 +60,7 @@ export function writableChunk<T>(
       cb()
     },
     async final(cb) {
-      logger.log(`WritableChunk: final`)
+      logger.debug(`WritableChunk: final`)
 
       // Pushing null "closes"/ends the secondary pipeline correctly
       fork.push(null)
@@ -84,7 +84,7 @@ export function writableChunk<T>(
     })
 
     void fn(Pipeline.from<T>(readable), currentSplitIndex).then(() => {
-      logger.log(`WritableChunk(${currentSplitIndex}): done`)
+      logger.debug(`WritableChunk(${currentSplitIndex}): done`)
     })
 
     return readable

@@ -78,7 +78,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
           const millisSinceLastRead = Date.now() - this.lastReadTimestamp
 
           if (millisSinceLastRead < maxWait * 1000) {
-            logger.log(
+            logger.debug(
               `!! ${this.table} millisSinceLastRead(${millisSinceLastRead}) < maxWait*1000`,
             )
             return
