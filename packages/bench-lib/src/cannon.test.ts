@@ -7,7 +7,7 @@ import { tmpDir } from './test/paths.cnst.js'
 
 it('should write a summary with request stats for each profile', async () => {
   const reportDirPath = `${tmpDir}/cannonTest`
-  fs2.emptyDir(reportDirPath)
+  fs2.ensureEmptyDir(reportDirPath)
 
   await runCannon(
     {

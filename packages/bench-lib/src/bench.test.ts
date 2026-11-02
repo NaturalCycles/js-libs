@@ -5,7 +5,7 @@ import { tmpDir } from './test/paths.cnst.js'
 
 it('should return a result per function and write a summary file', async () => {
   const reportDirPath = `${tmpDir}/benchTest`
-  fs2.emptyDir(reportDirPath)
+  fs2.ensureEmptyDir(reportDirPath)
 
   const r = await runBench({
     fns: {
