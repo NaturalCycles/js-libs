@@ -23,12 +23,12 @@ const traceIdByRequest = new WeakMap<BackendRequest, string | null>()
  * every log line.
  */
 export function getRequestTraceId(req: BackendRequest): string | undefined {
-  let traceId = traceIdByRequest.get(req)
-  if (traceId === undefined) {
-    traceId = getRequestTraceContext(req)?.traceId ?? null
-    traceIdByRequest.set(req, traceId)
-  }
-  return traceId ?? undefined
+  return traceIdByRequest.getOrInsertComputed(req, getRequestTraceIdOrNull) ?? undefined
+}
+
+// Passed by reference, so the per-log-line call allocates no closure
+function getRequestTraceIdOrNull(req: BackendRequest): string | null {
+  return getRequestTraceContext(req)?.traceId ?? null
 }
 
 export function getRequestTraceContext(req: BackendRequest): TraceContext | undefined {
