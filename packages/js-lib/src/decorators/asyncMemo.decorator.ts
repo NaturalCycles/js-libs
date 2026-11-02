@@ -1,19 +1,22 @@
 import { _assert, _assertTypeOf } from '../error/assert.js'
 import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
-import type { AnyAsyncFunction, AnyFunction, AnyObject, MaybeParameters } from '../types.js'
+import type { AnyFunction, AnyObject, MaybeParameters } from '../types.js'
 import { _objectAssign, MISS } from '../types.js'
 import type { MethodDecorator } from './decorator.util.js'
 import { _getTargetMethodSignature } from './decorator.util.js'
 import type { AsyncMemoCache } from './memo.util.js'
-import { jsonMemoSerializer } from './memo.util.js'
+import { jsonMemoSerializer, MapAsyncMemoCache } from './memo.util.js'
 
 export interface AsyncMemoOptions<FN> {
   /**
    * Provide a custom implementation of AsyncMemoCache.
    * Function that creates an instance of `AsyncMemoCache`.
+   * Defaults to in-memory `MapAsyncMemoCache`, which never expires.
+   * e.g `LRUAsyncMemoCache` (ttl, max) from `@naturalcycles/nodejs-lib`,
+   * or `CommonKeyValueDaoMemoCache` (persisted in a DB) from `@naturalcycles/db-lib`.
    */
-  cacheFactory: () => AsyncMemoCache
+  cacheFactory?: () => AsyncMemoCache
 
   /**
    * Provide a custom implementation of CacheKey function.
@@ -34,19 +37,25 @@ export interface AsyncMemoInstance {
 
   getInstanceCache: () => Map<AnyObject, AsyncMemoCache>
 
-  getCache: (instance: AnyAsyncFunction) => AsyncMemoCache | undefined
+  getCache: (instance: AnyObject) => AsyncMemoCache | undefined
 }
 
 /**
- * Like `@_Memo`, but allowing async MemoCache implementation.
+ * Like `@_Memo`, but awaits the method and caches the resolved **value**, not the Promise:
+ *
+ * - A rejection is NOT cached, so the next call retries the method.
+ *   `@_Memo` caches the Promise as-is, so it serves a rejection to every caller until the key is evicted.
+ * - The cache is async (`AsyncMemoCache`), so it can be backed by e.g Redis or Datastore
+ *   and survive a process restart.
+ * - Parallel calls with the same key share one in-flight Promise, also while the cache lookup is pending.
+ *
+ * Cache errors (`get`/`set`) are logged and treated as a cache miss, they never fail the method.
  *
  * Implementation is more complex than `@_Memo`, because it needs to handle "in-flight" Promises
  * while waiting for cache to resolve, to prevent "async swarm" issue.
- *
- * @experimental consider normal `@_Memo` for most of the cases, it's stable and predictable
  */
 export const _AsyncMemo =
-  <FN>(opt: AsyncMemoOptions<FN>): MethodDecorator<FN> =>
+  <FN>(opt: AsyncMemoOptions<FN> = {}): MethodDecorator<FN> =>
   (target, key, descriptor) => {
     _assertTypeOf<AnyFunction>(
       descriptor.value,
@@ -65,7 +74,11 @@ export const _AsyncMemo =
     // After it's resolved - it's evicted from the cache and moved to the "proper" `instanceCache`
     const instancePromiseCache = new Map<AnyObject, Map<any, Promise<any>>>()
 
-    const { logger = consoleLogger, cacheFactory, cacheKeyFn = jsonMemoSerializer } = opt
+    const {
+      logger = consoleLogger,
+      cacheFactory = () => new MapAsyncMemoCache(),
+      cacheKeyFn = jsonMemoSerializer,
+    } = opt
 
     const keyStr = String(key)
     const methodSignature = _getTargetMethodSignature(target, keyStr)

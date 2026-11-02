@@ -115,3 +115,22 @@ it('should call an async method once for parallel calls', async () => {
 
   expect(c.calls).toBe(1)
 })
+
+class D {
+  calls = 0
+
+  @_Memo()
+  async fail(): Promise<void> {
+    this.calls++
+    throw new Error('fail')
+  }
+}
+
+it('should cache the rejected Promise of an async method (unlike @_AsyncMemo)', async () => {
+  // The Promise is cached as-is, rejection included, so the method is not retried
+  const d = new D()
+
+  await expect(d.fail()).rejects.toThrow('fail')
+  await expect(d.fail()).rejects.toThrow('fail')
+  expect(d.calls).toBe(1)
+})

@@ -1,5 +1,4 @@
 import { _isPrimitive } from '../is.util.js'
-import { pDelay } from '../promise/pDelay.js'
 import type { UnixTimestamp } from '../types.js'
 import { MISS } from '../types.js'
 
@@ -123,27 +122,25 @@ export class MapMemoCache<KEY = any, VALUE = any> implements MemoCache<KEY, VALU
 
 /**
  * Implementation of AsyncMemoCache backed by a synchronous Map.
- * Doesn't have a practical use except testing,
- * because the point of AsyncMemoCache is to have an **async** backed cache.
+ * The default cache of `@_AsyncMemo`: in-memory, never expires.
+ * Use it over `@_Memo` when a rejection should not be cached (e.g an `init()` that may fail and
+ * should be retried). For an **async** backed cache (Redis, Datastore) use another implementation.
  */
 export class MapAsyncMemoCache<KEY = any, VALUE = any> implements AsyncMemoCache<KEY, VALUE> {
-  constructor(private delay = 0) {}
-
   private m = new Map<KEY, VALUE>()
 
   async get(k: KEY): Promise<VALUE | typeof MISS> {
-    await pDelay(this.delay)
-    if (!this.m.has(k)) return MISS
-    return this.m.get(k)!
+    const v = this.m.get(k)
+    // `undefined` is a valid VALUE, only then `has` tells it apart from a miss
+    if (v === undefined && !this.m.has(k)) return MISS
+    return v!
   }
 
   async set(k: KEY, v: VALUE): Promise<void> {
-    await pDelay(this.delay)
     this.m.set(k, v)
   }
 
   async clear(): Promise<void> {
-    await pDelay(this.delay)
     this.m.clear()
   }
 }

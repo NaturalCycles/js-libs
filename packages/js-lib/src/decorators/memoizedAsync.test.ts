@@ -1,4 +1,6 @@
-import { beforeEach, expect, it } from 'vitest'
+import { beforeEach, expect, it, vi } from 'vitest'
+import { commonLoggerNoop } from '../log/commonLogger.js'
+import type { CommonLogFunction } from '../log/commonLogger.js'
 import { MapAsyncMemoCache } from './memo.util.js'
 import { _memoizedAsync } from './memoizedAsync.js'
 
@@ -55,4 +57,42 @@ it('should call the function once per set of args until the cache is cleared', a
   await fn()
   expectedCallTimes++
   expect(calledTimes).toBe(expectedCallTimes)
+})
+
+it('should default to MapAsyncMemoCache', async () => {
+  let calls = 0
+  const double = _memoizedAsync(async (n: number) => {
+    calls++
+    return n * 2
+  })
+
+  expect(await double(2)).toBe(4)
+  expect(await double(2)).toBe(4)
+  expect(calls).toBe(1)
+  expect(double.cache).toBeInstanceOf(MapAsyncMemoCache)
+})
+
+it('should call the function when the cache get fails', async () => {
+  let calls = 0
+  const error = vi.fn<CommonLogFunction>()
+  const count = _memoizedAsync(
+    async () => {
+      calls++
+      return calls
+    },
+    {
+      cacheFactory: () => ({
+        get: async () => {
+          throw new Error('cache get failed')
+        },
+        set: async () => {},
+        clear: async () => {},
+      }),
+      logger: { ...commonLoggerNoop, error },
+    },
+  )
+
+  expect(await count()).toBe(1)
+  expect(await count()).toBe(2)
+  expect(error).toHaveBeenCalledTimes(2)
 })

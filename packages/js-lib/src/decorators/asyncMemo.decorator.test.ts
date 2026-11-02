@@ -1,7 +1,10 @@
 import { expect, it, vi } from 'vitest'
 import { _range } from '../array/range.js'
+import { commonLoggerNoop } from '../log/commonLogger.js'
+import type { CommonLogFunction, CommonLogger } from '../log/commonLogger.js'
 import { pDelay } from '../promise/pDelay.js'
 import { _AsyncMemo, _getAsyncMemo } from './asyncMemo.decorator.js'
+import type { AsyncMemoCache } from './memo.util.js'
 import { MapAsyncMemoCache } from './memo.util.js'
 
 class A {
@@ -9,7 +12,7 @@ class A {
     console.log(`func ${n}`)
   }
 
-  @_AsyncMemo({ cacheFactory: () => new MapAsyncMemoCache() })
+  @_AsyncMemo() // default cacheFactory: MapAsyncMemoCache
   async a(a1: number, a2: number): Promise<number> {
     const n = a1 * a2
     this.func(n)
@@ -37,6 +40,8 @@ it('should call the method once per set of arguments', async () => {
   expect(a.func).toHaveBeenCalledTimes(2)
   expect(a.func).toHaveBeenNthCalledWith(1, 6)
   expect(a.func).toHaveBeenNthCalledWith(2, 12)
+
+  expect(_getAsyncMemo(a.a).getCache(a)).toBeInstanceOf(MapAsyncMemoCache)
 
   // cleanup for the next tests
   await _getAsyncMemo(a.a).clear()
@@ -92,11 +97,27 @@ it('should cache a call with default args apart from one passing the default exp
   expect(b.cacheMisses).toBe(3)
 })
 
+/**
+ * Simulates the latency of an async backed cache (Redis, Datastore),
+ * so that parallel callers arrive while the cache lookup is still pending.
+ */
+class SlowAsyncMemoCache extends MapAsyncMemoCache {
+  override async get(k: any): Promise<any> {
+    await pDelay(10)
+    return await super.get(k)
+  }
+
+  override async set(k: any, v: any): Promise<void> {
+    await pDelay(10)
+    await super.set(k, v)
+  }
+}
+
 class C {
   calls = 0
 
   @_AsyncMemo({
-    cacheFactory: () => new MapAsyncMemoCache(10),
+    cacheFactory: () => new SlowAsyncMemoCache(),
   })
   async fn(): Promise<void> {
     this.calls++
@@ -117,4 +138,71 @@ it('should call the method once for parallel calls and serve later calls from th
   await pDelay(150)
   await Promise.all(_range(3).map(() => c.fn()))
   expect(c.calls).toBe(1)
+})
+
+class D {
+  calls = 0
+
+  @_AsyncMemo()
+  async failOnce(): Promise<string> {
+    this.calls++
+    await pDelay(10)
+    if (this.calls === 1) throw new Error('first call fails')
+    return 'ok'
+  }
+}
+
+it('should not cache a rejection, so the next call retries the method', async () => {
+  const d = new D()
+
+  // parallel callers share the one in-flight call, so they all get its rejection
+  const results = await Promise.allSettled(_range(3).map(() => d.failOnce()))
+  expect(results.map(r => r.status)).toEqual(['rejected', 'rejected', 'rejected'])
+  expect(d.calls).toBe(1)
+
+  // the rejection was not cached: miss, the method is called again
+  expect(await d.failOnce()).toBe('ok')
+  // hit
+  expect(await d.failOnce()).toBe('ok')
+  expect(d.calls).toBe(2)
+})
+
+class BrokenAsyncMemoCache implements AsyncMemoCache {
+  async get(): Promise<never> {
+    throw new Error('cache get failed')
+  }
+
+  async set(): Promise<never> {
+    throw new Error('cache set failed')
+  }
+
+  async clear(): Promise<void> {}
+}
+
+const error = vi.fn<CommonLogFunction>()
+const logger: CommonLogger = { ...commonLoggerNoop, error }
+
+class E {
+  calls = 0
+
+  @_AsyncMemo({ cacheFactory: () => new BrokenAsyncMemoCache(), logger })
+  async fn(): Promise<string> {
+    this.calls++
+    return 'ok'
+  }
+}
+
+it('should log cache errors and treat them as a miss, never failing the method', async () => {
+  const e = new E()
+
+  expect(await e.fn()).toBe('ok')
+  await pDelay(0) // let the background cache `set` settle
+  expect(error.mock.calls.map(([input]) => (input as { err: Error }).err.message)).toEqual([
+    'cache get failed',
+    'cache set failed',
+  ])
+
+  // nothing could be cached, so the method is called again
+  expect(await e.fn()).toBe('ok')
+  expect(e.calls).toBe(2)
 })

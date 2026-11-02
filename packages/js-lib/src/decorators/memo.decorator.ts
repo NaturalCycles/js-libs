@@ -35,7 +35,7 @@ export interface MemoInstance {
 
   getInstanceCache: () => Map<AnyObject, MemoCache>
 
-  getCache: (instance: AnyFunction) => MemoCache | undefined
+  getCache: (instance: AnyObject) => MemoCache | undefined
 }
 
 /**
@@ -46,6 +46,10 @@ export interface MemoInstance {
  * If origin function throws an Error - it is NOT cached.
  * So, error-throwing functions will be called multiple times.
  * Therefor, if the origin function can possibly throw - it should try to be idempotent.
+ *
+ * For an async method it's the returned **Promise** that is cached, so a rejected Promise IS cached:
+ * every caller gets the same rejection until the key is evicted from the cache.
+ * Use `@_AsyncMemo` to cache only the resolved value and retry the method on rejection.
  *
  * Cache is stored **per instance** - separate cache for separate instances of the class.
  * If you don't want it that way - you can use a static method, then there will be only one "instance".

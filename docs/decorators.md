@@ -82,6 +82,34 @@ memory leaks.
 async someMethod() {}
 ```
 
+For an async method it's the returned **Promise** that is cached, so a rejected Promise is cached
+too: every caller gets the same rejection until the key is evicted. Use
+[@\_AsyncMemo](#asyncmemo) if a failed call should be retried instead.
+
+## @\_AsyncMemo
+
+Like `@_Memo`, but awaits the method and caches the resolved **value**, not the Promise:
+
+- A rejection is not cached, so the next call retries the method (e.g an `init()` that may fail).
+- Parallel calls with the same arguments share one in-flight Promise (no "async swarm").
+- The cache is async (`AsyncMemoCache`), so it can be backed by e.g Redis or Datastore
+  (`CommonKeyValueDaoMemoCache` from `db-lib`) and survive a process restart.
+
+Defaults to the in-memory `MapAsyncMemoCache`, which never expires:
+
+```ts
+class C {
+  @_AsyncMemo()
+  async init() { ... }
+
+  // LRUAsyncMemoCache from nodejs-lib: ttl and max size
+  @_AsyncMemo({ cacheFactory: () => new LRUAsyncMemoCache({ ttl: 60_000 }) })
+  async getConfig() { ... }
+}
+```
+
+Cache errors (`get`/`set`) are logged and treated as a miss, they never fail the method.
+
 ## @\_Retry
 
 Wrapper around [pRetry](./promise.md#pretry).
