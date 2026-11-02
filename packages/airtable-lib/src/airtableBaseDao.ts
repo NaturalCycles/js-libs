@@ -86,11 +86,15 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
       if (this.loadingDataPromise) return await this.loadingDataPromise
       this.loadingDataPromise = this.getConnector(this.cfg.primaryConnector).fetch(this.cfg)
 
-      const base = await this.loadingDataPromise
-      this.setCache(base, {
-        preserveLastChanged: true,
-      })
-      this.loadingDataPromise = undefined
+      try {
+        const base = await this.loadingDataPromise
+        this.setCache(base, {
+          preserveLastChanged: true,
+        })
+      } finally {
+        // Cleared on failure too, otherwise every later call would get the same rejection
+        this.loadingDataPromise = undefined
+      }
     }
 
     return this._cache!

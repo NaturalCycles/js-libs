@@ -56,5 +56,17 @@ it('should notify cache listeners only when the cache content changes', async ()
   expect(updatedTimes).toBe(3)
 })
 
+it('should retry the lazy load after a failed fetch instead of caching the rejection', async () => {
+  const baseDao = mockBaseDao(airtableLib, 'baseId')
+  const [jsonConnector] = baseDao.cfg.connectors
+  vi.spyOn(jsonConnector!, 'fetch').mockRejectedValueOnce(new Error('KV down'))
+
+  await expect(baseDao.getCache()).rejects.toThrow('KV down')
+
+  const cache = await baseDao.getCache()
+  expect(cache.users).toHaveLength(6)
+  expect(jsonConnector!.fetch).toHaveBeenCalledTimes(2)
+})
+
 // todo: getById should lazyLoad
 // todo: getTableRecords should lazyLoad
