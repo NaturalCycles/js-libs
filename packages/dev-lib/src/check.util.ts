@@ -409,7 +409,7 @@ export function getActionLintVersion(): SemVerString | undefined {
 }
 
 export function buildProd(): void {
-  // fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
+  // fs2.ensureEmptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
   buildCopy()
   runTSCProd()
 }

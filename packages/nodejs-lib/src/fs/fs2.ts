@@ -230,11 +230,17 @@ class FS2 {
     await fsp.rm(fileOrDirPath, { recursive: true, force: true, ...opt })
   }
 
-  emptyDir(dirPath: string): void {
+  /**
+   * Ensures that the directory exists and is empty.
+   * Creates it (recursively) if it doesn't exist, otherwise deletes all its contents.
+   * The directory itself is not deleted.
+   */
+  ensureEmptyDir(dirPath: string): void {
     let items: string[]
     try {
       items = fs.readdirSync(dirPath)
-    } catch {
+    } catch (err) {
+      if ((err as any)?.code !== 'ENOENT') throw err
       this.ensureDir(dirPath)
       return
     }
@@ -244,11 +250,17 @@ class FS2 {
     }
   }
 
-  async emptyDirAsync(dirPath: string): Promise<void> {
+  /**
+   * Ensures that the directory exists and is empty.
+   * Creates it (recursively) if it doesn't exist, otherwise deletes all its contents.
+   * The directory itself is not deleted.
+   */
+  async ensureEmptyDirAsync(dirPath: string): Promise<void> {
     let items: string[]
     try {
       items = await fsp.readdir(dirPath)
-    } catch {
+    } catch (err) {
+      if ((err as any)?.code !== 'ENOENT') throw err
       return await this.ensureDirAsync(dirPath)
     }
 

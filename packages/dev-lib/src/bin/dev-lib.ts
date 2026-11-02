@@ -206,5 +206,5 @@ async function cleanBuild(): Promise<void> {
 }
 
 function cleanDist(): void {
-  fs2.emptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
+  fs2.ensureEmptyDir('./dist') // it doesn't delete the dir itself, to prevent IDE jumping
 }
