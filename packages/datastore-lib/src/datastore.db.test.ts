@@ -1,5 +1,6 @@
 import { Datastore } from '@google-cloud/datastore'
 import { TEST_TABLE } from '@naturalcycles/db-lib/testing'
+import { TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
 import { afterAll, expect, it, vi } from 'vitest'
 import { DatastoreDB } from './datastore.db.js'
 
@@ -41,4 +42,15 @@ it('should throw when APP_ENV is test', () => {
   expect(() => db.ds()).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: DatastoreDB cannot be used in Test env, please use InMemoryDB]`,
   )
+})
+
+it('should retry on TimeoutError and on known transient errors only', () => {
+  const db = new DatastoreDB()
+  const { predicate } = (db as any).getRetryOptions('test')
+
+  expect(predicate(new TimeoutError('"datastore.getByIds(KV)" timed out after 10000 ms'))).toBe(
+    true,
+  )
+  expect(predicate(new Error('14 UNAVAILABLE: Connection dropped'))).toBe(true)
+  expect(predicate(new Error('7 PERMISSION_DENIED'))).toBe(false)
 })

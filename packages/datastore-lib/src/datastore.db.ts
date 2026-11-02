@@ -16,16 +16,14 @@ import type {
 } from '@naturalcycles/db-lib'
 import { BaseCommonDB, commonDBFullSupport } from '@naturalcycles/db-lib'
 import { _chunk } from '@naturalcycles/js-lib/array/array.util.js'
-import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { _errorDataAppend, TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
+import { TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
 import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
 import type { PRetryOptions } from '@naturalcycles/js-lib/promise'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { pRetry, pRetryFn } from '@naturalcycles/js-lib/promise/pRetry.js'
-import { pTimeout } from '@naturalcycles/js-lib/promise/pTimeout.js'
 import { _stringMapEntries, _stringMapValues } from '@naturalcycles/js-lib/types'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
@@ -45,6 +43,9 @@ import { DatastoreType } from './datastore.model.js'
 import { DatastoreStreamReadable } from './datastoreStreamReadable.js'
 import { dbQueryToDatastoreQuery, getRunQueryOptions } from './query.util.js'
 
+const { K_SERVICE } = process.env
+const isCloudRun = !!K_SERVICE
+
 // Datastore (also Firestore and other Google APIs) supports max 500 of items when saving/deleting, etc.
 const MAX_ITEMS = 500
 // It's an empyrical value, but anything less than infinity is better than infinity
@@ -63,7 +64,21 @@ const RETRY_ON = [
 // Examples of errors:
 // UNKNOWN: Stream removed
 
-const DATASTORE_TIMEOUT = 'DATASTORE_TIMEOUT'
+// const DATASTORE_TIMEOUT = 'DATASTORE_TIMEOUT'
+
+const DEFAULT_RETRY_OPTIONS: PRetryOptions = {
+  // TimeoutError says "timed out", which RETRY_ON does not match, so it is retried explicitly
+  predicate: err =>
+    err instanceof TimeoutError || RETRY_ON.some(s => err?.message?.toLowerCase()?.includes(s)),
+  // On Cloud Run we are bound by the request timing constraints, so we fail faster.
+  // Elsewhere (e.g CI) we can afford to wait longer.
+  timeout: isCloudRun ? 20_000 : 60_000,
+  maxAttempts: isCloudRun ? 3 : 5,
+  delay: isCloudRun ? 1000 : 5000,
+  delayMultiplier: 1.5,
+  logFirstAttempt: false,
+  logFailures: true,
+}
 
 const methodMap: Record<CommonDBSaveMethod, string> = {
   insert: 'insert',
@@ -89,6 +104,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     this.cfg = {
       logger: consoleLogger,
       ...cfg,
+      retry: { ...DEFAULT_RETRY_OPTIONS, ...cfg.retry },
     }
   }
 
@@ -138,64 +154,16 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     opt: DatastoreDBReadOptions = {},
   ): Promise<ROW[]> {
     if (!ids.length) return []
-    let ds = this.ds()
+    const ds = this.ds()
     const keys = ids.map(id => this.key(ds, table, id))
-    let rows: any[]
 
     const dsOpt = getRunQueryOptions(opt)
 
-    if (this.cfg.timeout) {
-      // First try
-      try {
-        const r = await pTimeout(
-          () => ((opt.tx as DatastoreDBTransaction)?.tx || ds).get(keys, dsOpt),
-          {
-            timeout: this.cfg.timeout,
-            name: `datastore.getByIds(${table})`,
-          },
-        )
-        rows = r[0]
-      } catch (err) {
-        if (!(err instanceof TimeoutError)) {
-          // Not a timeout error, re-throw
-          throw err
-        }
-
-        this.cfg.logger.log(
-          `datastore recreated on timeout (${_ms(this.cfg.timeout)}) while loading ${table}`,
-        )
-
-        // This is to debug "GCP Datastore Timeout issue"
-        ds = this.cachedDatastore = new Datastore(this.cfg)
-
-        // Second try (will throw)
-        try {
-          const r = await pRetry(
-            () => ((opt.tx as DatastoreDBTransaction)?.tx || ds).get(keys, dsOpt),
-            {
-              ...this.getPRetryOptions(`datastore.getByIds(${table}) second try`),
-              maxAttempts: 3,
-              timeout: this.cfg.timeout,
-            },
-          )
-          rows = r[0]
-        } catch (err) {
-          if (err instanceof TimeoutError) {
-            _errorDataAppend(err, {
-              fingerprint: DATASTORE_TIMEOUT,
-            })
-          }
-          throw err
-        }
-      }
-    } else {
-      rows = await pRetry(
-        async () => {
-          return (await ds.get(keys, dsOpt))[0]
-        },
-        this.getPRetryOptions(`datastore.getByIds(${table})`),
-      )
-    }
+    const r = await pRetry(
+      () => ((opt.tx as DatastoreDBTransaction)?.tx || ds).get(keys, dsOpt),
+      this.getRetryOptions(`DatastoreDB.getByIds(${table})`),
+    )
+    const rows: any[] = r[0]
 
     return (
       rows
@@ -335,7 +303,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       async (batch: readonly DatastorePayload<ROW>[]) => {
         await ((opt.tx as DatastoreDBTransaction)?.tx || ds)[method](batch)
       },
-      this.getPRetryOptions(`DatastoreLib.saveBatch(${table})`),
+      this.getRetryOptions(`DatastoreDB.saveBatch(${table})`),
     )
 
     try {
@@ -349,15 +317,8 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
         })
       }
     } catch (err) {
-      if (err instanceof TimeoutError) {
-        _errorDataAppend(err, {
-          fingerprint: DATASTORE_TIMEOUT,
-        })
-      }
-
-      // console.log(`datastore.save ${kind}`, { obj, entity })
       this.cfg.logger.error({
-        msg: `error in DatastoreLib.saveBatch for ${table} (${rows.length} rows)`,
+        msg: `error in DatastoreDB.saveBatch for ${table} (${rows.length} rows)`,
         err,
       })
 
@@ -400,7 +361,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     const ds = this.ds()
     const keys = ids.map(id => this.key(ds, table, id))
 
-    const retryOptions = this.getPRetryOptions(`DatastoreLib.deleteByIds(${table})`)
+    const retryOptions = this.getRetryOptions(`DatastoreDB.deleteByIds(${table})`)
 
     await pMap(
       _chunk(keys, MAX_ITEMS),
@@ -427,7 +388,7 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
       keys.push(...ids.map(id => this.key(ds, table, id)))
     }
 
-    const retryOptions = this.getPRetryOptions(`DatastoreLib.multiDeleteByIds`)
+    const retryOptions = this.getRetryOptions(`DatastoreDB.multiDeleteByIds`)
 
     await pMap(
       _chunk(keys, MAX_ITEMS),
@@ -645,22 +606,11 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
     return s
   }
 
-  private getPRetryOptions(name: string): PRetryOptions {
+  private getRetryOptions(name: string): PRetryOptions {
     return {
-      predicate: err => RETRY_ON.some(s => err?.message?.toLowerCase()?.includes(s)),
-      name,
-      timeout: 20_000,
-      maxAttempts: 5,
-      delay: 5000,
-      delayMultiplier: 1.5,
-      logFirstAttempt: false,
-      logFailures: true,
-      // logAll: true,
       logger: this.cfg.logger,
-      // not appending fingerprint here, otherwise it would just group all kinds of errors, not just Timeout errors
-      // errorData: {
-      //   fingerprint: DATASTORE_TIMEOUT,
-      // },
+      ...this.cfg.retry,
+      name,
     }
   }
 

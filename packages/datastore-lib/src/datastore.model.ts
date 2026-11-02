@@ -5,6 +5,7 @@ import type {
   CommonDBSaveOptions,
 } from '@naturalcycles/db-lib'
 import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
+import type { PRetryOptions } from '@naturalcycles/js-lib/promise'
 import type { NumberOfSeconds, ObjectWithId, PositiveInteger } from '@naturalcycles/js-lib/types'
 
 export interface DatastorePayload<T = any> {
@@ -47,12 +48,20 @@ export interface DatastoreDBCfg extends DatastoreOptions {
   logLevel?: CommonLogLevel
 
   /**
-   * Experimental option, currently only applies to `getByIds`.
-   * Applies pTimeout to Datastore operation, re-creates Datastore on any error.
+   * Overrides the retry options that DatastoreDB applies to every Datastore operation
+   * (getByIds, saveBatch, deleteByIds, etc). Merged over the defaults, so only the keys
+   * you want to change need to be passed.
    *
-   * @experimental
+   * Defaults depend on the environment:
+   * - on Cloud Run (bound by the request timing constraints):
+   *   `{ timeout: 20_000, maxAttempts: 3, delay: 1000 }`
+   * - elsewhere (e.g CI, where we can afford to wait longer):
+   *   `{ timeout: 60_000, maxAttempts: 5, delay: 5000 }`
+   *
+   * Common for both: `delayMultiplier: 1.5`, retries on TimeoutError and on known transient
+   * Datastore errors (UNAVAILABLE, DEADLINE_EXCEEDED, ABORTED, etc).
    */
-  timeout?: number
+  retry?: Partial<PRetryOptions>
 }
 
 export interface DatastoreCredentials {
