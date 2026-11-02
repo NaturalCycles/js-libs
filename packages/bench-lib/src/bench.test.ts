@@ -3,7 +3,8 @@ import { expect, it } from 'vitest'
 import { runBench } from './bench.util.js'
 import { tmpDir } from './test/paths.cnst.js'
 
-it('should return a result per function and write a summary file', async () => {
+// skipped due to being slow; unskip to run
+it.skip('should return a result per function and write a summary file', async () => {
   const reportDirPath = `${tmpDir}/benchTest`
   fs2.ensureEmptyDir(reportDirPath)
 

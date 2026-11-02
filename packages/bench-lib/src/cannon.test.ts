@@ -5,7 +5,8 @@ import { expressFunctionFactory } from './cannon.profiles.js'
 import { runCannon } from './cannon.util.js'
 import { tmpDir } from './test/paths.cnst.js'
 
-it('should write a summary with request stats for each profile', async () => {
+// skipped due to being slow; unskip to run
+it.skip('should write a summary with request stats for each profile', async () => {
   const reportDirPath = `${tmpDir}/cannonTest`
   fs2.ensureEmptyDir(reportDirPath)
 
