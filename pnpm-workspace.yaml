@@ -12,6 +12,7 @@ allowBuilds:
   '@firebase/util': false
   protobufjs: false
 autoDedupe: true
+engineStrict: true
 lockfile:
   includeResolutionSettings: true
 auditConfig:
