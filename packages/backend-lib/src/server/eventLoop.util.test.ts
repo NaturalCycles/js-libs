@@ -174,6 +174,24 @@ it('should keep the samples recorded before pause() after resume()', async () =>
   expect(onStats.mock.calls[0]![0].max).toBeGreaterThanOrEqual(40)
 })
 
+it('should not count a gc pause that ran while paused towards gcMaxTime', async () => {
+  const onStats = vi.fn<(stats: EventLoopStats) => void>()
+  monitor = new EventLoopMonitor({ measureInterval: 100, onStats })
+  monitor.pause()
+
+  let garbage: unknown[] = []
+  for (let i = 0; i < 300_000; i++) garbage.push({ i, s: `x${i}` })
+  garbage = []
+  await pDelay(30) // gc entries reach the observer while still paused
+  monitor.resume()
+
+  await vi.advanceTimersByTimeAsync(100)
+  const stats = onStats.mock.calls[0]![0]
+  expect(stats.gcCount).toBeGreaterThanOrEqual(1)
+  expect(stats.gcMaxTime).toBe(0)
+  expect(stats.gcMaxKind).toBeUndefined()
+})
+
 function bind(m: EventLoopMonitor): { pause: () => void; resume: () => void } {
   return { pause: () => m.pause(), resume: () => m.resume() }
 }

@@ -69,11 +69,15 @@ export class EventLoopMonitor {
 
     this.lastElu = performance.eventLoopUtilization()
     this.lastReportedAt = performance.now()
+    this.resumedAt = this.lastReportedAt
 
     this.po = new PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         this.gcCount++
         this.gcTotalTime += entry.duration
+        // A pause overlapping a paused (CPU-throttled) period is stretched by the throttling and
+        // says nothing about GC: only pauses that ran while sampling was active compete for the max
+        if (this.paused || entry.startTime < this.resumedAt) continue
         if (entry.duration > this.gcMaxTime) {
           this.gcMaxTime = entry.duration
           this.gcMaxKind = getGcKind(entry)
@@ -145,6 +149,11 @@ export class EventLoopMonitor {
   private lastElu: EventLoopUtilization
   private lastReportedAt: NumberOfMilliseconds
   private paused = false
+  /**
+   * performance.now() of the last resume() (or construction), to tell gc pauses that overlapped
+   * a paused period from those that ran while sampling was active.
+   */
+  private resumedAt: NumberOfMilliseconds
   private readonly watchdogInterval: NumberOfMilliseconds
   private watchdog?: NodeJS.Timeout
   /**
@@ -194,6 +203,7 @@ export class EventLoopMonitor {
   resume(): void {
     if (!this.paused) return
     this.paused = false
+    this.resumedAt = performance.now()
     this.eld.enable()
     this.startWatchdog()
   }
@@ -303,11 +313,13 @@ export interface EventLoopStats {
    */
   gcCPU: Integer
   /**
-   * Longest single GC pause in the last interval.
+   * Longest single GC pause in the last interval, among the pauses that ran while sampling was
+   * active (a pause overlapping a paused, CPU-throttled period is stretched by the throttling).
+   * `gcCount` and `gcTotalTime` are not gated.
    */
   gcMaxTime: NumberOfMilliseconds
   /**
-   * Kind of the longest GC pause. Undefined when no GC ran in the interval.
+   * Kind of the longest GC pause. Undefined when no such GC pause ran in the interval.
    */
   gcMaxKind: GcKind | undefined
   /**
