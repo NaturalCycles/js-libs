@@ -34,6 +34,10 @@ export class LRUMemoCache<KEY = any, VALUE = any> implements MemoCache<KEY, VALU
     this.lru.set(k, v)
   }
 
+  delete(k: any): void {
+    this.lru.delete(k)
+  }
+
   clear(): void {
     this.lru.clear()
   }
@@ -67,6 +71,10 @@ export class LRUAsyncMemoCache<KEY = any, VALUE = any> implements AsyncMemoCache
 
   async set(k: any, v: any): Promise<void> {
     this.lru.set(k, v === undefined ? UNDEFINED : v)
+  }
+
+  async delete(k: any): Promise<void> {
+    this.lru.delete(k)
   }
 
   async clear(): Promise<void> {

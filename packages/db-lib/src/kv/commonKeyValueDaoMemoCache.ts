@@ -36,6 +36,10 @@ export class CommonKeyValueDaoMemoCache<VALUE> implements AsyncMemoCache<string,
     await this.cfg.dao.save(k, v, opt)
   }
 
+  async delete(k: string): Promise<void> {
+    await this.cfg.dao.deleteById(k)
+  }
+
   async clear(): Promise<void> {
     throw new Error(
       'CommonKeyValueDaoMemoCache.clear is not supported, because cache is expected to be persistent',

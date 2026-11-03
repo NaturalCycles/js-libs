@@ -41,6 +41,19 @@ export function _memoized<FN extends AnyFunction>(
       logger.error({ err })
     }
 
+    if (value instanceof Promise) {
+      // Don't cache a rejection: evict it, so the next call retries the function.
+      // The derived Promise is handled, so it adds no unhandled rejection.
+      value.catch(() => {
+        try {
+          // Only if the key still holds this very Promise (and not a newer one, cached after an eviction)
+          if (cache.get(cacheKey) === value) cache.delete(cacheKey)
+        } catch (err) {
+          logger.error({ err })
+        }
+      })
+    }
+
     return value
   }
 

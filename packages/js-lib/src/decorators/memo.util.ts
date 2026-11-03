@@ -28,7 +28,7 @@ export interface MemoCache<KEY = any, VALUE = any> {
    */
   get: (k: KEY) => VALUE
   set: (k: KEY, v: VALUE, opt?: MemoCacheOptions) => void
-
+  delete: (k: KEY) => void
   /**
    * Clear is only called when `_getMemoCache().clear()` is called.
    * Otherwise the Cache is "persistent" (never cleared).
@@ -46,6 +46,7 @@ export interface AsyncMemoCache<KEY = any, VALUE = any> {
    */
   get: (k: KEY) => Promise<VALUE | typeof MISS>
   set: (k: KEY, v: VALUE, opt?: MemoCacheOptions) => Promise<void>
+  delete: (k: KEY) => Promise<void>
 
   /**
    * Clear is only called when `_getAsyncMemo().clear()` is called.
@@ -115,6 +116,10 @@ export class MapMemoCache<KEY = any, VALUE = any> implements MemoCache<KEY, VALU
     this.m.set(k, v)
   }
 
+  delete(k: KEY): void {
+    this.m.delete(k)
+  }
+
   clear(): void {
     this.m.clear()
   }
@@ -123,8 +128,7 @@ export class MapMemoCache<KEY = any, VALUE = any> implements MemoCache<KEY, VALU
 /**
  * Implementation of AsyncMemoCache backed by a synchronous Map.
  * The default cache of `@_AsyncMemo`: in-memory, never expires.
- * Use it over `@_Memo` when a rejection should not be cached (e.g an `init()` that may fail and
- * should be retried). For an **async** backed cache (Redis, Datastore) use another implementation.
+ * For an **async** backed cache (Redis, Datastore) use another implementation.
  */
 export class MapAsyncMemoCache<KEY = any, VALUE = any> implements AsyncMemoCache<KEY, VALUE> {
   private m = new Map<KEY, VALUE>()
@@ -138,6 +142,10 @@ export class MapAsyncMemoCache<KEY = any, VALUE = any> implements AsyncMemoCache
 
   async set(k: KEY, v: VALUE): Promise<void> {
     this.m.set(k, v)
+  }
+
+  async delete(k: KEY): Promise<void> {
+    this.m.delete(k)
   }
 
   async clear(): Promise<void> {

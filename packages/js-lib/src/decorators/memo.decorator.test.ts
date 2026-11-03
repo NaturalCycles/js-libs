@@ -120,17 +120,63 @@ class D {
   calls = 0
 
   @_Memo()
-  async fail(): Promise<void> {
-    this.calls++
-    throw new Error('fail')
+  async failOnce(): Promise<string> {
+    if (++this.calls === 1) throw new Error('fail')
+    return 'ok'
   }
 }
 
-it('should cache the rejected Promise of an async method (unlike @_AsyncMemo)', async () => {
-  // The Promise is cached as-is, rejection included, so the method is not retried
+it('should not cache a rejected Promise by default, so the next call retries the method', async () => {
   const d = new D()
 
-  await expect(d.fail()).rejects.toThrow('fail')
-  await expect(d.fail()).rejects.toThrow('fail')
+  // Parallel callers share the in-flight Promise, so they all get the rejection
+  const results = await Promise.allSettled(_range(3).map(() => d.failOnce()))
+  expect(results.map(r => r.status)).toEqual(['rejected', 'rejected', 'rejected'])
   expect(d.calls).toBe(1)
+
+  // The rejection was evicted: the method is retried, and the resolved Promise is cached
+  expect(await d.failOnce()).toBe('ok')
+  expect(await d.failOnce()).toBe('ok')
+  expect(d.calls).toBe(2)
+})
+
+class E {
+  calls = 0
+
+  @_Memo()
+  async fn(): Promise<number> {
+    const call = ++this.calls
+    await pDelay(10)
+    if (call === 1) throw new Error('fail')
+    return call
+  }
+
+  @_Memo()
+  throwOnce(): string {
+    if (++this.calls === 1) throw new Error('fail')
+    return 'ok'
+  }
+}
+
+it('should only evict the rejected Promise, not a newer one cached under the same key', async () => {
+  const e = new E()
+
+  const p1 = e.fn() // call 1, rejects
+  _getMemo(e.fn).getCache(e)!.clear() // e.g a ttl expiry
+  const p2 = e.fn() // call 2, resolves, cached under the same key
+
+  await expect(p1).rejects.toThrow('fail')
+  expect(e.fn()).toBe(p2) // p2 is still cached
+  expect(await p2).toBe(2)
+  expect(e.calls).toBe(2)
+})
+
+it('should not cache a sync Error either, so the next call retries the method', () => {
+  // The throw escapes before `cache.set`, so there is nothing to evict
+  const e = new E()
+
+  expect(() => e.throwOnce()).toThrow('fail')
+  expect(e.throwOnce()).toBe('ok')
+  expect(e.throwOnce()).toBe('ok')
+  expect(e.calls).toBe(2)
 })

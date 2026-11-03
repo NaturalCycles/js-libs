@@ -1,5 +1,6 @@
 import { _AsyncMemo } from '@naturalcycles/js-lib/decorators/asyncMemo.decorator.js'
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
+import { MISS } from '@naturalcycles/js-lib/types'
 import { expect, it, vi } from 'vitest'
 import { LRUAsyncMemoCache, LRUMemoCache } from './lruMemoCache.js'
 
@@ -68,4 +69,34 @@ it('should return a cached undefined as a hit with LRUAsyncMemoCache', async () 
   expect(await b.nothing(1)).toBeUndefined()
   expect(await b.nothing(1)).toBeUndefined()
   expect(b.calls).toBe(1)
+})
+
+class C {
+  calls = 0
+
+  @_Memo({ cacheFactory: () => new LRUMemoCache({ max: 100 }) })
+  async failOnce(): Promise<string> {
+    if (++this.calls === 1) throw new Error('fail')
+    return 'ok'
+  }
+}
+
+it('should evict a rejected Promise from LRUMemoCache, so the next call retries', async () => {
+  const c = new C()
+
+  await expect(c.failOnce()).rejects.toThrow('fail')
+  expect(await c.failOnce()).toBe('ok')
+  expect(await c.failOnce()).toBe('ok')
+  expect(c.calls).toBe(2)
+})
+
+it('should delete one key from LRUAsyncMemoCache', async () => {
+  const cache = new LRUAsyncMemoCache<string, number>({ max: 100 })
+  await cache.set('a', 1)
+  await cache.set('b', 2)
+
+  await cache.delete('a')
+
+  expect(await cache.get('a')).toBe(MISS)
+  expect(await cache.get('b')).toBe(2)
 })

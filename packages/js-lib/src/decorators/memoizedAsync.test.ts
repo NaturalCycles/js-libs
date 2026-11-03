@@ -86,6 +86,7 @@ it('should call the function when the cache get fails', async () => {
           throw new Error('cache get failed')
         },
         set: async () => {},
+        delete: async () => {},
         clear: async () => {},
       }),
       logger: { ...commonLoggerNoop, error },

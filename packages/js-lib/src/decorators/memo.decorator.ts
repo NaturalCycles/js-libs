@@ -47,9 +47,10 @@ export interface MemoInstance {
  * So, error-throwing functions will be called multiple times.
  * Therefor, if the origin function can possibly throw - it should try to be idempotent.
  *
- * For an async method it's the returned **Promise** that is cached, so a rejected Promise IS cached:
- * every caller gets the same rejection until the key is evicted from the cache.
- * Use `@_AsyncMemo` to cache only the resolved value and retry the method on rejection.
+ * For an async method it's the returned **Promise** that is cached, so parallel calls with the same key
+ * share one in-flight Promise. A rejected Promise is evicted from the cache, so the next call retries
+ * the method, same as for a thrown Error.
+ * Use `@_AsyncMemo` for an async-backed cache (e.g Redis), which stores the resolved value instead.
  *
  * Cache is stored **per instance** - separate cache for separate instances of the class.
  * If you don't want it that way - you can use a static method, then there will be only one "instance".
@@ -113,6 +114,19 @@ export const _Memo =
         cache.set(cacheKey, value)
       } catch (err) {
         logger.error({ err })
+      }
+
+      if (value instanceof Promise) {
+        // Don't cache a rejection: evict it, so the next call retries the method.
+        // The derived Promise is handled, so it adds no unhandled rejection.
+        value.catch(() => {
+          try {
+            // Only if the key still holds this very Promise (and not a newer one, cached after an eviction)
+            if (cache.get(cacheKey) === value) cache.delete(cacheKey)
+          } catch (err) {
+            logger.error({ err })
+          }
+        })
       }
 
       return value

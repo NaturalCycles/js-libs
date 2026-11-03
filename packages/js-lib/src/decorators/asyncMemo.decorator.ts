@@ -43,10 +43,9 @@ export interface AsyncMemoInstance {
 /**
  * Like `@_Memo`, but awaits the method and caches the resolved **value**, not the Promise:
  *
- * - A rejection is NOT cached, so the next call retries the method.
- *   `@_Memo` caches the Promise as-is, so it serves a rejection to every caller until the key is evicted.
  * - The cache is async (`AsyncMemoCache`), so it can be backed by e.g Redis or Datastore
- *   and survive a process restart.
+ *   and survive a process restart. That's the reason to use it over `@_Memo`.
+ * - A rejection is NOT cached, so the next call retries the method (same as `@_Memo`).
  * - Parallel calls with the same key share one in-flight Promise, also while the cache lookup is pending.
  *
  * Cache errors (`get`/`set`) are logged and treated as a cache miss, they never fail the method.

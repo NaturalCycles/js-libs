@@ -3,6 +3,7 @@ import { _range } from '../array/range.js'
 import { commonLoggerNoop } from '../log/commonLogger.js'
 import type { CommonLogFunction, CommonLogger } from '../log/commonLogger.js'
 import { pDelay } from '../promise/pDelay.js'
+import { MISS } from '../types.js'
 import { _AsyncMemo, _getAsyncMemo } from './asyncMemo.decorator.js'
 import type { AsyncMemoCache } from './memo.util.js'
 import { MapAsyncMemoCache } from './memo.util.js'
@@ -176,6 +177,8 @@ class BrokenAsyncMemoCache implements AsyncMemoCache {
     throw new Error('cache set failed')
   }
 
+  async delete(): Promise<void> {}
+
   async clear(): Promise<void> {}
 }
 
@@ -205,4 +208,15 @@ it('should log cache errors and treat them as a miss, never failing the method',
   // nothing could be cached, so the method is called again
   expect(await e.fn()).toBe('ok')
   expect(e.calls).toBe(2)
+})
+
+it('should delete one key from MapAsyncMemoCache', async () => {
+  const cache = new MapAsyncMemoCache<string, number>()
+  await cache.set('a', 1)
+  await cache.set('b', 2)
+
+  await cache.delete('a')
+
+  expect(await cache.get('a')).toBe(MISS)
+  expect(await cache.get('b')).toBe(2)
 })

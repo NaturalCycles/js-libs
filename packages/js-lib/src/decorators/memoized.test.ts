@@ -53,3 +53,16 @@ it('should call the function once per set of args until the cache is cleared', (
   expectedCallTimes++
   expect(calledTimes).toBe(expectedCallTimes)
 })
+
+it('should not cache a rejected Promise', async () => {
+  let calls = 0
+  const memoFn = _memoized(async () => {
+    if (++calls === 1) throw new Error('fail')
+    return 'ok'
+  })
+
+  await expect(memoFn()).rejects.toThrow('fail')
+  expect(await memoFn()).toBe('ok')
+  expect(await memoFn()).toBe('ok')
+  expect(calls).toBe(2)
+})

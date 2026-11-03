@@ -82,18 +82,20 @@ memory leaks.
 async someMethod() {}
 ```
 
-For an async method it's the returned **Promise** that is cached, so a rejected Promise is cached
-too: every caller gets the same rejection until the key is evicted. Use
-[@\_AsyncMemo](#asyncmemo) if a failed call should be retried instead.
+For an async method it's the returned **Promise** that is cached, so parallel calls with the same
+arguments share one in-flight Promise (no "async swarm"). A rejected Promise is evicted from the
+cache, so the next call retries the method (e.g an `init()` that may fail). Same as a thrown Error,
+which is never cached.
 
 ## @\_AsyncMemo
 
 Like `@_Memo`, but awaits the method and caches the resolved **value**, not the Promise:
 
-- A rejection is not cached, so the next call retries the method (e.g an `init()` that may fail).
-- Parallel calls with the same arguments share one in-flight Promise (no "async swarm").
 - The cache is async (`AsyncMemoCache`), so it can be backed by e.g Redis or Datastore
-  (`CommonKeyValueDaoMemoCache` from `db-lib`) and survive a process restart.
+  (`CommonKeyValueDaoMemoCache` from `db-lib`) and survive a process restart. That's the reason to
+  use it over `@_Memo`, which is simpler and serves a cache hit synchronously.
+- A rejection is not cached, so the next call retries the method (same as `@_Memo`).
+- Parallel calls with the same arguments share one in-flight Promise (no "async swarm").
 
 Defaults to the in-memory `MapAsyncMemoCache`, which never expires:
 
