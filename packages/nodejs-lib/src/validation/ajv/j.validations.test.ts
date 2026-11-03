@@ -1103,6 +1103,74 @@ describe('string', () => {
     })
   })
 
+  describe('UtcOffset', () => {
+    it('should reject with proper error message', () => {
+      const schema = j.string().utcOffset()
+
+      const [err] = schema.getValidationResult('+25:00')
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object is an invalid UtcOffset
+        Input: +25:00]
+      `)
+    })
+
+    it('should accept valid data', () => {
+      const testCases = ['+00:00', '-00:00', '+02:00', '-05:30', '+05:45', '+14:00', '-12:00']
+      const schema = j.string().utcOffset()
+      const schemaWithZ = j.string().utcOffset({ allowZ: true })
+
+      testCases.forEach(offset => {
+        const [err, result] = schema.getValidationResult(offset)
+        expect(err, offset).toBeNull()
+        expect(result).toBe(offset)
+        expect(schemaWithZ.getValidationResult(offset)[0], offset).toBeNull()
+      })
+    })
+
+    it('should accept Z only with the allowZ option', () => {
+      const [err] = j.string().utcOffset().getValidationResult('Z')
+      const [errWithZ, result] = j.string().utcOffset({ allowZ: true }).getValidationResult('Z')
+      expect(err).not.toBeNull()
+      expect(errWithZ).toBeNull()
+      expect(result).toBe('Z')
+    })
+
+    it('should reject invalid data', () => {
+      const invalidCases: any[] = [
+        '',
+        'z',
+        'UTC',
+        '+0200',
+        '+02',
+        '02:00',
+        '+2:00',
+        '+02:00:00',
+        ' +02:00',
+        '+02:00 ',
+        '+1/:00',
+        '+01:3/',
+        '+05:60',
+        '+15:00',
+        '-13:00',
+        '+14:01',
+        '-12:01',
+        0,
+        false,
+        {},
+        [],
+      ]
+      const schema = j.string().utcOffset()
+      const schemaWithZ = j.string().utcOffset({ allowZ: true })
+
+      invalidCases.forEach(offset => {
+        const [err] = schema.getValidationResult(offset)
+        expect(err, String(offset)).not.toBeNull()
+        expect(schemaWithZ.getValidationResult(offset)[0], String(offset)).not.toBeNull()
+      })
+    })
+  })
+
   describe('jwt', () => {
     it('should accept string with valid JWT format', () => {
       const testCases = [

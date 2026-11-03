@@ -821,6 +821,14 @@ export class JString<
     })
   }
 
+  utcOffset(opt?: Partial<JsonSchemaUtcOffsetOptions>): this {
+    const defaultOptions: JsonSchemaUtcOffsetOptions = { allowZ: false }
+    return this.cloneAndUpdateSchema({
+      format: 'UtcOffset',
+      UtcOffset: { ...defaultOptions, ...opt },
+    })
+  }
+
   /**
    * Validates the string format to be JWT.
    * Expects the JWT to be signed!
@@ -945,6 +953,10 @@ export interface JsonSchemaIsoDateOptions {
 }
 
 export interface JsonSchemaIsoMonthOptions {}
+
+export interface JsonSchemaUtcOffsetOptions {
+  allowZ: boolean
+}
 
 export class JNumber<
   OUT extends number | undefined = number,
@@ -2128,6 +2140,7 @@ export interface JsonSchema<OUT = unknown> {
   IsoDate?: JsonSchemaIsoDateOptions
   IsoDateTime?: true
   IsoMonth?: JsonSchemaIsoMonthOptions
+  UtcOffset?: JsonSchemaUtcOffsetOptions
   instanceof?: string | string[]
   transform?: { trim?: true; toLowerCase?: true; toUpperCase?: true; truncate?: number }
   errorMessages?: StringMap<string>

@@ -95,6 +95,22 @@ describe('string', () => {
     })
   })
 
+  describe('utcOffset', () => {
+    it('should keep the string type', () => {
+      const schema1 = j.string().utcOffset()
+      expectTypeOf(schema1.out).toEqualTypeOf<string>()
+    })
+
+    it('should emit the UtcOffset format', () => {
+      expect(j.string().utcOffset().build().format).toBe('UtcOffset')
+    })
+
+    it('should disallow Z by default', () => {
+      expect(j.string().utcOffset().build().UtcOffset).toEqual({ allowZ: false })
+      expect(j.string().utcOffset({ allowZ: true }).build().UtcOffset).toEqual({ allowZ: true })
+    })
+  })
+
   describe('isoDate', () => {
     it('should correctly infer the type', () => {
       const schema1 = j.string().isoDate()

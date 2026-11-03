@@ -115,5 +115,6 @@ export const jFormats = [
   'IsoMonth',
   'UnixTimestamp',
   'UnixTimestampMillis',
+  'UtcOffset',
 ] as const
 export type JFormat = (typeof jFormats)[number]

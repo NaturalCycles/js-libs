@@ -13,6 +13,7 @@ import type {
   JsonSchemaIsoDateOptions,
   JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
+  JsonSchemaUtcOffsetOptions,
 } from './jSchema.js'
 import { jFormats } from './jsonSchemaBuilder.util.js'
 
@@ -421,6 +422,25 @@ export function createAjv(opt?: Options): Ajv2020 {
         {
           instancePath: ctx?.instancePath ?? '',
           message: `is an invalid IsoMonth`,
+        },
+      ]
+      return false
+    },
+  })
+
+  ajv.addKeyword({
+    keyword: 'UtcOffset',
+    type: 'string',
+    modifying: false,
+    errors: true,
+    schemaType: 'object',
+    validate: function validate(opt: JsonSchemaUtcOffsetOptions, data: string, _schema, ctx) {
+      const isValid = data === 'Z' ? opt.allowZ : data !== '' && isIsoTimezoneValid(data)
+      if (isValid) return true
+      ;(validate as any).errors = [
+        {
+          instancePath: ctx?.instancePath ?? '',
+          message: `is an invalid UtcOffset`,
         },
       ]
       return false
