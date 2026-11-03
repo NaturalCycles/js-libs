@@ -20,10 +20,11 @@ const EVALUATED_ARGUMENTS = new Set([
   'YieldExpression',
   'UpdateExpression',
   'AssignmentExpression',
+  'SpreadElement',
 ])
 // Test files and test helpers throw plain errors on purpose (mocks, fakes). Checked here rather than in
 // a shared `overrides` entry, because `defineOxlintConfig` lets a consumer's `overrides` replace it
-const TEST_FILE_PATTERN = /\.(?:test\.tsx?|spec\.ts)$|\/(?:test|testing)\//
+const TEST_FILE_PATTERN = /\.(?:test|spec)\.[cm]?[jt]sx?$|\/(?:test|testing)\//
 
 // No `fix`/`suggest`: dev-lib runs oxlint with --fix-dangerously, which would apply them and leave
 // `_assert` unimported
@@ -59,8 +60,7 @@ const preferAssertRule = {
           error.type !== 'NewExpression' ||
           error.callee.type !== 'Identifier' ||
           !ASSERTABLE_ERRORS.has(error.callee.name) ||
-          error.arguments.length > 2 ||
-          error.arguments.some(argument => argument.type === 'SpreadElement') ||
+          error.arguments.length > maxArguments(error.callee.name) ||
           error.arguments.some(argument => containsEvaluation(argument))
         ) {
           return
@@ -72,6 +72,11 @@ const preferAssertRule = {
       },
     }
   },
+}
+
+// A second `Error` argument is `{ cause }`, which `_assert` would store as data and lose as a cause
+function maxArguments(errorName) {
+  return errorName === 'Error' ? 1 : 2
 }
 
 function isAssertableTest(test) {
