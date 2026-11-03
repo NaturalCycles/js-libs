@@ -435,7 +435,7 @@ export function _shuffle<T>(array: T[], opt: MutateOptions = {}): T[] {
 }
 
 export function _firstLast<T>(array: readonly T[]): [first: T, last: T] {
-  if (!array.length) throw new Error('_firstLast called on empty array')
+  _assert(array.length, '_firstLast called on empty array')
   return [array[0]!, array[array.length - 1]!]
 }
 
@@ -449,7 +449,7 @@ export function _firstLastOrUndefined<T>(array: readonly T[]): [first: T, last: 
  * Throws if array is empty.
  */
 export function _last<T>(array: readonly T[]): T {
-  if (!array.length) throw new Error('_last called on empty array')
+  _assert(array.length, '_last called on empty array')
   return array[array.length - 1]!
 }
 
@@ -465,7 +465,7 @@ export function _lastOrUndefined<T>(array: readonly T[]): T | undefined {
  * Throws if array is empty.
  */
 export function _first<T>(array: readonly T[]): T {
-  if (!array.length) throw new Error('_first called on empty array')
+  _assert(array.length, '_first called on empty array')
   return array[0]!
 }
 
@@ -561,7 +561,7 @@ export function _minBy<T>(array: readonly T[], mapper: Mapper<T, number | string
 }
 
 export function _minMax<T>(array: readonly T[]): [min: NonNullable<T>, max: NonNullable<T>] {
-  if (!array.length) throw new Error('_minMax called on empty array')
+  _assert(array.length, '_minMax called on empty array')
   const result = _minMaxOrUndefined(array)
   _assert(result !== undefined, '_minBy returned undefined')
   return result
@@ -592,7 +592,7 @@ export function _minMaxBy<T>(
   array: readonly T[],
   mapper: Mapper<T, number | string | undefined>,
 ): [min: NonNullable<T>, max: NonNullable<T>] {
-  if (!array.length) throw new Error('_minMaxBy called on empty array')
+  _assert(array.length, '_minMaxBy called on empty array')
   const result = _minMaxByOrUndefined(array, mapper)
   _assert(result !== undefined, '_minMaxBy returned undefined')
   return result

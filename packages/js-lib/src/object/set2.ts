@@ -1,3 +1,5 @@
+import { _assert } from '../error/assert.js'
+
 /**
  * Like Set, but serializes to JSON as an array.
  *
@@ -22,7 +24,7 @@ export class Set2<T = any> extends Set<T> {
   }
 
   first(): T {
-    if (!this.size) throw new Error('Set.first called on empty set')
+    _assert(this.size, 'Set.first called on empty set')
     return this.firstOrUndefined()!
   }
 

@@ -424,7 +424,9 @@ it('should return the last item, with _last throwing on an empty array', () => {
   expect(_lastOrUndefined([1, 2])).toBe(2)
   expect(_lastOrUndefined([1])).toBe(1)
 
-  expect(() => _last([])).toThrowErrorMatchingInlineSnapshot(`[Error: _last called on empty array]`)
+  expect(() => _last([])).toThrowErrorMatchingInlineSnapshot(
+    `[AssertionError: _last called on empty array]`,
+  )
   expect(_last([undefined])).toBeUndefined()
   expect(_last([1, undefined])).toBeUndefined()
   expect(_last([1, 2])).toBe(2)
@@ -437,7 +439,7 @@ it('should return the last item, with _last throwing on an empty array', () => {
 
 it('should return the first and last items, with _firstLast throwing on an empty array', () => {
   expect(() => _firstLast([])).toThrowErrorMatchingInlineSnapshot(
-    `[Error: _firstLast called on empty array]`,
+    `[AssertionError: _firstLast called on empty array]`,
   )
   expect(_firstLast([1])).toEqual([1, 1])
   expect(_firstLast([1, 2])).toEqual([1, 2])
@@ -457,7 +459,7 @@ it('should return the first item, with _first throwing on an empty array', () =>
   expect(_firstOrUndefined([1])).toBe(1)
 
   expect(() => _first([])).toThrowErrorMatchingInlineSnapshot(
-    `[Error: _first called on empty array]`,
+    `[AssertionError: _first called on empty array]`,
   )
   expect(_first([undefined])).toBeUndefined()
   expect(_first([1, undefined])).toBe(1)
@@ -583,7 +585,7 @@ it('should return [min, max] ignoring undefined, with _minMax throwing on an emp
   expect(_minMaxOrUndefined([1, 3, 2])).toEqual([1, 3])
 
   expect(() => _minMax([])).toThrowErrorMatchingInlineSnapshot(
-    `[Error: _minMax called on empty array]`,
+    `[AssertionError: _minMax called on empty array]`,
   )
   expect(_minMax([3])).toEqual([3, 3])
   expect(_minMax([3, 2])).toEqual([2, 3])
@@ -624,7 +626,7 @@ it('should return the item with the largest or smallest mapped value', () => {
 it('should return the items with the smallest and largest mapped values', () => {
   expect(_minMaxByOrUndefined([], () => 0)).toBeUndefined()
   expect(() => _minMaxBy([], () => 0)).toThrowErrorMatchingInlineSnapshot(
-    `[Error: _minMaxBy called on empty array]`,
+    `[AssertionError: _minMaxBy called on empty array]`,
   )
   expect(_minMaxByOrUndefined([{ age: 20 }, { age: 18 }, { age: 30 }], u => u.age)).toEqual([
     { age: 18 },

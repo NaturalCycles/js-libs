@@ -151,7 +151,5 @@ export function setSecretMap(map: StringMap): void {
 }
 
 function requireLoaded(): void {
-  if (!loaded) {
-    throw new Error(`Secrets were not loaded! Call loadSecrets() before accessing secrets.`)
-  }
+  _assert(loaded, `Secrets were not loaded! Call loadSecrets() before accessing secrets.`)
 }

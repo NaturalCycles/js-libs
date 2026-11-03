@@ -6,7 +6,7 @@ import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { abortSignalAnyOrUndefined, abortSignalTimeoutOrUndefined } from '../abort.js'
 import { _ms, _since } from '../datetime/time.util.js'
 import { isServerSide } from '../env.js'
-import { _assertErrorClassOrRethrow, _assertIsError } from '../error/assert.js'
+import { _assert, _assertErrorClassOrRethrow, _assertIsError } from '../error/assert.js'
 import type { ErrorLike, ErrorObject } from '../error/error.model.js'
 import {
   _anyToError,
@@ -560,10 +560,8 @@ export class Fetcher {
     } else if (responseType === 'readableStream') {
       res.body = res.fetchResponse.body
 
-      if (res.body === null) {
-        // Error is to be handled upstream
-        throw new Error('fetchResponse.body is null')
-      }
+      // Error is to be handled upstream
+      _assert(res.body !== null, 'fetchResponse.body is null')
     }
 
     res.retryStatus.retryStopped = true

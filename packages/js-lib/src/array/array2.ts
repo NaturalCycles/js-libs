@@ -1,3 +1,4 @@
+import { _assert } from '../error/assert.js'
 import { _shuffle } from './array.util.js'
 
 /**
@@ -20,7 +21,7 @@ export class Array2<T> extends Array<T> {
   }
 
   first(): T {
-    if (!this.length) throw new Error('Array.first called on empty array')
+    _assert(this.length, 'Array.first called on empty array')
     return this[0]!
   }
 
@@ -30,7 +31,7 @@ export class Array2<T> extends Array<T> {
 
   last(): T {
     const { length } = this
-    if (!length) throw new Error('Array.last called on empty array')
+    _assert(length, 'Array.last called on empty array')
     return this[length - 1]!
   }
 

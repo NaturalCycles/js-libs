@@ -1,12 +1,11 @@
 const started = Date.now()
 import { inspect } from 'node:util'
 import { workerData, parentPort } from 'node:worker_threads'
+import { _assert } from '@naturalcycles/js-lib/error'
 
 const { workerFile, workerIndex, logEvery = 1000, metric = 'worker', silent } = workerData || {}
 
-if (!workerFile) {
-  throw new Error('workerData.workerFile is required!')
-}
+_assert(workerFile, 'workerData.workerFile is required!')
 
 // console.log(`worker#${workerIndex} created`)
 

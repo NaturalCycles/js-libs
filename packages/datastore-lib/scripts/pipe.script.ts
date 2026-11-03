@@ -1,5 +1,6 @@
 import { Readable, Writable } from 'node:stream'
 import { finished } from 'node:stream/promises'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { runScript } from '@naturalcycles/nodejs-lib/runScript'
 import { transformMapSimple } from '@naturalcycles/nodejs-lib/stream'
@@ -25,10 +26,8 @@ runScript(async () => {
         objectMode: true,
         write(v, _, cb) {
           console.log('writable: ' + v)
-          if (v === 'c') {
-            // cb(new Error('oopsie from writable'))
-            throw new Error('oopsie from writable')
-          }
+          // cb(new Error('oopsie from writable'))
+          _assert(v !== 'c', 'oopsie from writable')
           cb()
         },
       }),
