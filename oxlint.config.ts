@@ -19,12 +19,5 @@ export default defineOxlintConfig({
         'typescript/prefer-for-of': 0,
       },
     },
-    {
-      // `_assert` itself is implemented by throwing `AssertionError` in an if
-      files: ['packages/js-lib/src/error/assert.ts'],
-      rules: {
-        'nc/prefer-assert': 0,
-      },
-    },
   ],
 })

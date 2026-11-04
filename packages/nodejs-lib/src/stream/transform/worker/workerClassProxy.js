@@ -1,11 +1,14 @@
 const started = Date.now()
 import { inspect } from 'node:util'
 import { workerData, parentPort } from 'node:worker_threads'
-import { _assert } from '@naturalcycles/js-lib/error'
 
 const { workerFile, workerIndex, logEvery = 1000, metric = 'worker', silent } = workerData || {}
 
-_assert(workerFile, 'workerData.workerFile is required!')
+// The worker entry stays dependency-free, so no `_assert` here
+// oxlint-disable-next-line nc/prefer-assert
+if (!workerFile) {
+  throw new Error('workerData.workerFile is required!')
+}
 
 // console.log(`worker#${workerIndex} created`)
 

@@ -1,3 +1,5 @@
+// `_assert` and friends are implemented by throwing in an if
+// oxlint-disable nc/prefer-assert
 import { _deepEquals } from '../object/deepEquals.js'
 import { _stringify } from '../string/stringify.js'
 import type { Class, NonEmptyArray, UnixTimestamp } from '../types.js'
