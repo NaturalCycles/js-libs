@@ -13,6 +13,7 @@ import { queryInMemory } from '@naturalcycles/db-lib/inmemory'
 import { _by } from '@naturalcycles/js-lib/array/array.util.js'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { _mapValues, _omit } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
@@ -270,9 +271,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
     let { baseId } = this.cfg
 
     if (!baseId) {
-      if (!table.includes('.')) {
-        throw new Error(`"table" should include baseId, e.g "BaseId1.TABLE1"`)
-      }
+      _assert(table.includes('.'), `"table" should include baseId, e.g "BaseId1.TABLE1"`)
 
       const a = table.split('.', 2)
       baseId = a[0]!

@@ -27,6 +27,7 @@ import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { promisify } from 'node:util'
 import zlib from 'node:zlib'
+import { _assert } from '@naturalcycles/js-lib/error'
 import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import {
   assertSafeZipEntryName,
@@ -283,12 +284,11 @@ async function readEndOfCentralDirectory(source: ZipSource): Promise<EndOfCentra
     if (locatorIndex >= 0 && buf.readUInt32LE(locatorIndex) === ZIP64_EOCDL_SIG) {
       const zip64EocdrOffset = readUInt64LE(buf, locatorIndex + 8)
       const zip64 = await source.read(zip64EocdrOffset, ZIP64_EOCDR_SIZE)
-      if (zip64.readUInt32LE(0) !== ZIP64_EOCDR_SIG) {
-        throw new Error('invalid zip64 end of central directory record signature')
-      }
-      if (zip64.readUInt32LE(16) !== 0) {
-        throw new Error('multi-disk zip files are not supported')
-      }
+      _assert(
+        zip64.readUInt32LE(0) === ZIP64_EOCDR_SIG,
+        'invalid zip64 end of central directory record signature',
+      )
+      _assert(zip64.readUInt32LE(16) === 0, 'multi-disk zip files are not supported')
       entryCount = readUInt64LE(zip64, 32)
       centralDirectoryOffset = readUInt64LE(zip64, 48)
       centralDirectoryEnd = zip64EocdrOffset

@@ -31,6 +31,7 @@ import { finished, pipeline } from 'node:stream/promises'
 import { promisify } from 'node:util'
 import zlib from 'node:zlib'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { glob } from 'tinyglobby'
 import {
@@ -250,9 +251,10 @@ export class ZipWriter implements AsyncDisposable {
     }
     // A comment containing this signature would confuse readers that scan
     // backwards for the end-of-central-directory record.
-    if (comment.includes(EOCDR_SIG_BYTES)) {
-      throw new Error('archive comment must not contain the end-of-central-directory signature')
-    }
+    _assert(
+      !comment.includes(EOCDR_SIG_BYTES),
+      'archive comment must not contain the end-of-central-directory signature',
+    )
     this.finalized = true
 
     const centralDirectoryOffset = this.offset
@@ -282,7 +284,7 @@ export class ZipWriter implements AsyncDisposable {
 
   private assertWritable(): void {
     if (this.streamError) throw this.streamError
-    if (this.finalized) throw new Error('ZipWriter has already been finalized')
+    _assert(!this.finalized, 'ZipWriter has already been finalized')
   }
 
   /** Build the in-memory representation of an entry from its name and options. */
@@ -659,7 +661,7 @@ function buildEndRecords(input: EndRecordsInput): Buffer {
 }
 
 function normalizeAndValidateEntryName(fileName: string, isDirectory: boolean): string {
-  if (!fileName) throw new Error('zip entry name must not be empty')
+  _assert(fileName, 'zip entry name must not be empty')
   let name = normalizeZipEntryName(fileName)
   if (isDirectory) {
     if (!name.endsWith('/')) name += '/'

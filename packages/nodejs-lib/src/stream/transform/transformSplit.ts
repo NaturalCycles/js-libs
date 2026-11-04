@@ -1,4 +1,5 @@
 import { Transform } from 'node:stream'
+import { _assert } from '@naturalcycles/js-lib/error'
 import type { TransformTyped } from '../stream.model.js'
 
 // The code below is carefully adopted from: https://github.com/max-mapper/binary-split
@@ -26,9 +27,7 @@ export function transformSplitOnNewline(): TransformTyped<Buffer, Buffer> {
  */
 export function transformSplit(separator = '\n'): TransformTyped<Buffer, Buffer> {
   const matcher = Buffer.from(separator)
-  if (matcher.length === 0) {
-    throw new Error('transformSplit: separator must not be empty')
-  }
+  _assert(matcher.length !== 0, 'transformSplit: separator must not be empty')
   const matcherLength = matcher.length
   // indexOf with a byte value is much faster than with a 1-byte Buffer, which matters for short lines
   const needle = matcherLength === 1 ? matcher[0]! : matcher
