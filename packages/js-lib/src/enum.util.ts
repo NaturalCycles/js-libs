@@ -284,6 +284,7 @@ export function _numberEnumKey<T extends NumberEnum>(
 ): keyof T {
   const key = (en as any)[v]
   // This prevents passing a Key (not a Value) of enum here, which returns unexpected result (number, not string)
+  // oxlint-disable-next-line unicorn/prefer-type-error
   if (typeof key !== 'string') throw new Error(`_numberEnumKey not found for: ${v}`)
   return key
 }

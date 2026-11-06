@@ -2,7 +2,8 @@ import { defineVitestMonorepoConfig } from '@naturalcycles/dev-lib/cfg/vitest.co
 
 export default defineVitestMonorepoConfig({
   test: {
-    projects: ['./packages/*'],
+    // pnpm-config has no tests (and no vitest.config.ts), so it would get Vitest defaults (isolate: true)
+    projects: ['./packages/*', '!./packages/pnpm-config'],
     // fileParallelism: false, // uncomment to debug
     // detectAsyncLeaks: true, // uncomment to debug
     experimental: {
