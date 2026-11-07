@@ -72,7 +72,7 @@ export const sharedConfig = {
       { blankLine: 'always', prev: '*', next: 'class' },
     ],
     '@stylistic/lines-between-class-members': [2, 'always', { exceptAfterSingleLine: true }],
-    'nc/prefer-assert': 0, // opt-in (set to 2): flags `if (cond) throw new Error(...)` that could be `_assert(...)`
+    'nc/prefer-assert': 2,
     complexity: [2, { max: 40 }],
     'logical-assignment-operators': [
       2,
@@ -96,8 +96,10 @@ export const sharedConfig = {
     'object-shorthand': 2,
     'valid-expect': 0,
     'valid-title': 0,
-    'vitest/valid-title': 0,
+    'vitest/valid-title': [2, { mustMatch: { it: '^should ' } }],
     'valid-describe-callback': 0,
+    // Options arguments and variables are `opt`, never `opts`
+    'id-denylist': [2, 'opts'],
     // 'id-denylist': [
     //   0, // actually not useful
     //   'any',
@@ -146,6 +148,7 @@ export const sharedConfig = {
         name: 'Intl',
         message: 'Use Intl2 instead.',
       },
+      { name: 'Date', message: 'Use localTime / localDate from @naturalcycles/js-lib/datetime.' },
     ],
     'no-unused-expressions': 2,
     'no-var': 2,
@@ -462,13 +465,7 @@ export const sharedConfig = {
     'vitest/prefer-called-exactly-once-with': 2,
     'vitest/consistent-test-filename': 2,
     'vitest/warn-todo': 0,
-    'vitest/consistent-test-it': [
-      2,
-      {
-        fn: 'test',
-        withinDescribe: 'test',
-      },
-    ],
+    'vitest/consistent-test-it': [2, { fn: 'it', withinDescribe: 'it' }],
     'vitest/max-nested-describe': [0, { max: 4 }], // not good
     'vitest/no-alias-methods': 2,
     'vitest/no-restricted-vi-methods': [

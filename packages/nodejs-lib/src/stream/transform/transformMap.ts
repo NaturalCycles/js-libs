@@ -1,7 +1,7 @@
 import { Transform } from 'node:stream'
 import { _hc } from '@naturalcycles/js-lib'
 import type { AbortableSignal } from '@naturalcycles/js-lib'
-import { _since } from '@naturalcycles/js-lib/datetime'
+import { _since, nowUnixMillis } from '@naturalcycles/js-lib/datetime'
 import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { DeferredPromise } from '@naturalcycles/js-lib/promise'
@@ -141,7 +141,7 @@ export function transformMap<IN = any, OUT = IN>(
     async transform(this: Transform, chunk: IN, _, cb) {
       // Initialize start time on first item
       if (started === 0) {
-        started = Date.now() as UnixTimestampMillis
+        started = nowUnixMillis()
         lastWarmupCheck = started
       }
 
@@ -262,7 +262,7 @@ export function transformMap<IN = any, OUT = IN>(
   })
 
   function updateConcurrency(): void {
-    const now = Date.now()
+    const now = nowUnixMillis()
     if (now - lastWarmupCheck < WARMUP_CHECK_INTERVAL_MS) return
     lastWarmupCheck = now
 

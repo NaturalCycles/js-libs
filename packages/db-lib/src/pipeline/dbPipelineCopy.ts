@@ -122,7 +122,7 @@ export async function dbPipelineCopy(opt: DBPipelineCopyOptions): Promise<NDJson
       const saveOptions: CommonDBSaveOptions<any> = saveOptionsPerTable[table] || {}
       const mapper = mapperPerTable[table] || _passthroughMapper
 
-      const started = Date.now()
+      const started = localTime.nowUnixMillis()
       let rows = 0
 
       await dbInput
@@ -145,7 +145,7 @@ export async function dbPipelineCopy(opt: DBPipelineCopyOptions): Promise<NDJson
         })
 
       const stats = NDJsonStats.create({
-        tookMillis: Date.now() - started,
+        tookMillis: localTime.nowUnixMillis() - started,
         rows,
         sizeBytes: 0, // n/a
       })

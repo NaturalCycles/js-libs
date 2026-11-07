@@ -2,6 +2,7 @@ import { FieldPath, Timestamp } from '@google-cloud/firestore'
 import type { Query, WhereFilterOp } from '@google-cloud/firestore'
 import type { CommonDBReadOptions, DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import { _round } from '@naturalcycles/js-lib'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 
 export function readAtToReadTime(opt: CommonDBReadOptions): Timestamp | undefined {
@@ -9,7 +10,7 @@ export function readAtToReadTime(opt: CommonDBReadOptions): Timestamp | undefine
 
   // Same logic as Datastore: round to whole minutes, guard against future
   let readTimeMs = _round(opt.readAt, 60) * 1000
-  if (readTimeMs >= Date.now() - 1000) {
+  if (readTimeMs >= nowUnixMillis() - 1000) {
     readTimeMs -= 60_000
   }
 

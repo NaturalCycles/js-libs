@@ -1,4 +1,4 @@
-import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnix } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _LogMethod } from '@naturalcycles/js-lib/decorators/logMethod.decorator.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _omit } from '@naturalcycles/js-lib/object'
@@ -154,7 +154,7 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
 
     // Update
     if (!opt.preserveLastChanged && cacheWasDefined) {
-      this.lastChanged = localTime.nowUnix()
+      this.lastChanged = nowUnix()
     }
     this.cacheUpdatedListeners.forEach(fn => fn(this._cache))
   }
@@ -289,7 +289,7 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
     }
 
     if (!opt.preserveLastFetched) {
-      this.lastFetchedMap.set(connectorType, localTime.nowUnix())
+      this.lastFetchedMap.set(connectorType, nowUnix())
     }
 
     this.setCache(base, opt)

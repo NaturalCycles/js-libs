@@ -1,3 +1,4 @@
+import { nowUnixMillis } from './datetime/localTime.js'
 import { consoleLogger } from './log/commonLogger.js'
 import type { CommonLogger } from './log/commonLogger.js'
 import type { NumberOfMilliseconds } from './types.js'
@@ -32,7 +33,7 @@ class AsyncManagerImpl {
     if (!size) return
     const { logger } = this
 
-    const started = Date.now()
+    const started = nowUnixMillis()
     if (timeout) {
       const result = await Promise.race([
         Promise.allSettled(this.pendingOps),
@@ -47,7 +48,7 @@ class AsyncManagerImpl {
     } else {
       await Promise.allSettled(this.pendingOps)
     }
-    logger.log(`AsyncManager.allDone for ${size} op(s) in ${Date.now() - started} ms`)
+    logger.log(`AsyncManager.allDone for ${size} op(s) in ${nowUnixMillis() - started} ms`)
   }
 
   reset(): void {

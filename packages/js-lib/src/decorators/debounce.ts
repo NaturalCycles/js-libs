@@ -1,3 +1,4 @@
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { _anyToError } from '../error/error.util.js'
 import { pDefer } from '../promise/pDefer.js'
 import type { DeferredPromise } from '../promise/pDefer.js'
@@ -43,7 +44,7 @@ export function _debounce<T extends AnyFunction>(
   }
 
   function timerExpired(): void {
-    const time = Date.now()
+    const time = nowUnixMillis()
     if (shouldInvoke(time, state)) {
       trailingEdge(time)
       return
@@ -74,7 +75,7 @@ export function _debounce<T extends AnyFunction>(
   }
 
   function flush(): ReturnType<T> {
-    return timerId === undefined ? result : trailingEdge(Date.now())
+    return timerId === undefined ? result : trailingEdge(nowUnixMillis())
   }
 
   function pending(): boolean {
@@ -82,7 +83,7 @@ export function _debounce<T extends AnyFunction>(
   }
 
   function debounced(this: ThisParameterType<T>, ...args: Parameters<T>): ReturnType<T> {
-    const time = Date.now()
+    const time = nowUnixMillis()
     const isInvoking = shouldInvoke(time, state)
 
     lastArgs = args
@@ -189,7 +190,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
   }
 
   function timerExpired(): void {
-    const time = Date.now()
+    const time = nowUnixMillis()
     if (shouldInvoke(time, state)) {
       void trailingEdge(time)
       return
@@ -237,7 +238,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
     }
     const d = deferred
     cancelTimer(timerId)
-    await trailingEdge(Date.now())
+    await trailingEdge(nowUnixMillis())
     return d
   }
 
@@ -249,7 +250,7 @@ export function _asyncDebounce<T extends AnyAsyncFunction>(
     this: ThisParameterType<T>,
     ...args: Parameters<T>
   ): Promise<Awaited<ReturnType<T>> | undefined> {
-    const time = Date.now()
+    const time = nowUnixMillis()
     const isInvoking = shouldInvoke(time, state)
 
     lastArgs = args

@@ -17,11 +17,6 @@
 - actionlint
 - lint-staged
 
-The shared oxlint config ships an opt-in `nc/prefer-assert` rule, off by default. It flags an `if`
-whose only statement is `throw new Error(...)` (or `AppError`, `AssertionError`) that reads better
-as `_assert(condition, message, data)` from `@naturalcycles/js-lib/error`. Test files are exempt.
-Turn it on in your `oxlint.config.ts` with `rules: { 'nc/prefer-assert': 2 }`.
-
 ## How to use
 
 Install it:

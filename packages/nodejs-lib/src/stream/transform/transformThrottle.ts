@@ -73,7 +73,7 @@ export function transformThrottle<T>(opt: TransformThrottleOptions): TransformTy
         // console.log('pausing now after', {item, count})
         lock = pDefer()
         logger.log(
-          `${localTime.now().toPretty()} transformThrottle activated: ${count} items passed in ${_since(start)}, will pause for ${_ms(interval * 1000 - (Date.now() - start))}`,
+          `${localTime.now().toPretty()} transformThrottle activated: ${count} items passed in ${_since(start)}, will pause for ${_ms(interval * 1000 - (localTime.nowUnixMillis() - start))}`,
         )
       }
 

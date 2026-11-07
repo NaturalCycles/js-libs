@@ -1,13 +1,12 @@
 import type { InspectOptions } from 'node:util'
 import { inspect } from 'node:util'
-import { _ms, _since } from '@naturalcycles/js-lib/datetime'
+import { _ms, _since, nowUnixMillis } from '@naturalcycles/js-lib/datetime'
 import { getFetcher } from '@naturalcycles/js-lib/http'
 import {
   _filterFalsyValues,
   _filterUndefinedValues,
 } from '@naturalcycles/js-lib/object/object.util.js'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
-import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import type { CliOptions } from '@naturalcycles/nodejs-lib/args'
 import { dimGrey, red } from '@naturalcycles/nodejs-lib/colors'
 import { coloredHttpCode } from '../server/request.log.util.js'
@@ -95,7 +94,7 @@ export async function deployHealthCheck(
 
     console.log([`>>`, dimGrey(url), inspect({ attempt }, inspectOpt)].join(' '))
 
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
 
     const { err, statusCode = 0 } = await fetcher.doFetch(
       _filterUndefinedValues({

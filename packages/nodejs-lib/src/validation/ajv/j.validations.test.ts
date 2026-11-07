@@ -981,7 +981,7 @@ describe('string', () => {
         '2026-08-27T06:24:01.231263Z',
         '2001-01-01T01:01:01.123456789Z',
         '2001-01-01T01:01:01.123456789+14:00',
-        new Date('2001-01-01T01:01:01Z').toISOString(),
+        '2001-01-01T01:01:01.000Z', // Date#toISOString() format
       ]
       const t = localTime.fromIsoDateTimeString('2001-01-01T01:01:01Z' as IsoDateTime)
       for (let i = 1; i < 366; ++i) {
@@ -5010,6 +5010,7 @@ describe('getOriginalInput option', () => {
   })
 })
 
+// oxlint-disable no-restricted-globals -- these tests validate native Date instances
 describe('j.object.instanceOf()', () => {
   it('should validate Date instances', () => {
     const schema = j.object.instanceOf(Date)
@@ -5146,6 +5147,7 @@ describe('j.any().instanceof()', () => {
     })
   })
 })
+// oxlint-enable no-restricted-globals
 
 describe('type inference check', () => {
   type GarminUserId = Branded<'userId', string>

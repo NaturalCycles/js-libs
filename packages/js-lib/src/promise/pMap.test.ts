@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { _range } from '../array/index.js'
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { AppError, ErrorMode, pExpectedError } from '../error/index.js'
 import { _randomInt } from '../index.js'
 import { END, SKIP } from '../types.js'
@@ -43,24 +44,24 @@ const mapper: AsyncMapper = async ([val, ms]) => {
 
 it('should map concurrently and keep the input order', async () => {
   vi.useFakeTimers()
-  const started = Date.now()
+  const started = nowUnixMillis()
 
   const promise = pMap(input, mapper)
   await vi.runAllTimersAsync()
 
   expect(await promise).toEqual([10, 20, 30])
-  expect(Date.now() - started).toBe(30)
+  expect(nowUnixMillis() - started).toBe(30)
 })
 
 it('should map one item at a time with concurrency 1', async () => {
   vi.useFakeTimers()
-  const started = Date.now()
+  const started = nowUnixMillis()
 
   const promise = pMap(input, mapper, { concurrency: 1 })
   await vi.runAllTimersAsync()
 
   expect(await promise).toEqual([10, 20, 30])
-  expect(Date.now() - started).toBe(60)
+  expect(nowUnixMillis() - started).toBe(60)
 })
 
 it('should never run more than 4 mappers at once with concurrency 4', async () => {

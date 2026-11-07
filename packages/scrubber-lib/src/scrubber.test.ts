@@ -192,6 +192,7 @@ it('should match the snapshot for mixed value types', () => {
       map: new Map([['b', 'c']]),
       set: new Set([1, 2, 3, 4]),
       buffer: Buffer.from('data'),
+      // oxlint-disable-next-line no-restricted-globals -- tests how a native Date value is handled
       date: new Date(0),
     },
   ])
@@ -200,6 +201,7 @@ it('should match the snapshot for mixed value types', () => {
 })
 
 it('should keep a Date value as it is', () => {
+  // oxlint-disable-next-line no-restricted-globals -- tests how a native Date value is handled
   const date = new Date(0)
   const result = scrub({ date })
   expect(result.date).toBe(date)

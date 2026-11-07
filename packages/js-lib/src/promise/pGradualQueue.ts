@@ -1,3 +1,4 @@
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { ErrorMode } from '../error/errorMode.js'
 import { createCommonLoggerAtLevel } from '../log/commonLogger.js'
 import type { CommonLogger, CommonLogLevel } from '../log/commonLogger.js'
@@ -73,7 +74,7 @@ export class PGradualQueue {
     // Fast-path: warmup complete
     if (this.warmupComplete) return this.cfg.concurrency
 
-    const elapsed = Date.now() - this.startTime
+    const elapsed = nowUnixMillis() - this.startTime
     if (elapsed >= this.warmupMs) {
       this.warmupComplete = true
       this.logger.debug('warmup complete')
@@ -92,7 +93,7 @@ export class PGradualQueue {
   async push<R>(fn: AsyncFunction<R>): Promise<R> {
     // Initialize start time on first push
     if (this.startTime === 0) {
-      this.startTime = Date.now()
+      this.startTime = nowUnixMillis()
     }
 
     const job: PGradualQueueJob<R> = { fn, defer: pDefer<R>() }

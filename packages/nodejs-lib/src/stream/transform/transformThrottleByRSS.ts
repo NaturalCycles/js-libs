@@ -87,7 +87,7 @@ export function transformThrottleByRSS<T>(
 
       if (!disabled && lastRSS > maxRSSBytes && !lock) {
         lock = pDefer()
-        pausedSince = Date.now()
+        pausedSince = localTime.nowUnixMillis()
         logger.log(
           `${localTime.now().toPretty()} transformThrottleByRSS paused: RSS ${_mb(lastRSS)} > ${maxRSS} MB`,
         )
@@ -122,7 +122,7 @@ export function transformThrottleByRSS<T>(
       )
       lock!.resolve()
       lock = undefined
-    } else if (pollTimeout && Date.now() - pausedSince >= pollTimeout) {
+    } else if (pollTimeout && localTime.nowUnixMillis() - pausedSince >= pollTimeout) {
       clearTimeout(rssCheckTimer)
       if (onPollTimeout === 'throw') {
         lock!.reject(

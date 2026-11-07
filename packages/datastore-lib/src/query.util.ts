@@ -3,6 +3,7 @@ import type { Query } from '@google-cloud/datastore'
 import type { Operator, RunQueryOptions } from '@google-cloud/datastore/build/src/query.js'
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import { _round } from '@naturalcycles/js-lib'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { DatastoreDBReadOptions } from './datastore.model.js'
 
@@ -81,7 +82,7 @@ export function getRunQueryOptions(opt: DatastoreDBReadOptions): RunQueryOptions
   // Datastore expects UnixTimestamp in milliseconds
   // Datastore requires the timestamp to be rounded to the whole minutes
   let readTime = _round(opt.readAt, 60) * 1000
-  if (readTime >= Date.now() - 1000) {
+  if (readTime >= nowUnixMillis() - 1000) {
     // To avoid the error of: The requested 'read_time' cannot be in the future
     readTime -= 60_000
   }

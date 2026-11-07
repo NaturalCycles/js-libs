@@ -1,6 +1,7 @@
 import { _mb } from '@naturalcycles/js-lib'
 import { _sum } from '@naturalcycles/js-lib/array/array.util.js'
 import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _percentiles } from '@naturalcycles/js-lib/math/math.util.js'
 import { NumberStack } from '@naturalcycles/js-lib/math/stack.util.js'
@@ -106,13 +107,13 @@ export const serverStatsHTMLHandler: BackendRequestHandler = (req, res) => {
  * Unlocks serverStatsHTMLHandler
  */
 export function serverStatsMiddleware(): BackendRequestHandler {
-  let lastCleanup = Date.now()
+  let lastCleanup = nowUnixMillis()
 
   return function serverStatsHandler(req, res, next) {
-    const started = Date.now()
+    const started = nowUnixMillis()
 
     onFinished(res, () => {
-      const now = Date.now()
+      const now = nowUnixMillis()
       const latency = now - started
 
       // Only requests that matched a route are recorded by their route pattern.

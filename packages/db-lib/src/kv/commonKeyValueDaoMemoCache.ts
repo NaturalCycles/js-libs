@@ -1,4 +1,4 @@
-import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnix } from '@naturalcycles/js-lib/datetime/localTime.js'
 import type { AsyncMemoCache } from '@naturalcycles/js-lib/decorators'
 import type { NumberOfSeconds, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { MISS } from '@naturalcycles/js-lib/types'
@@ -29,9 +29,7 @@ export class CommonKeyValueDaoMemoCache<VALUE> implements AsyncMemoCache<string,
   }
 
   async set(k: string, v: VALUE): Promise<void> {
-    const opt = this.cfg.ttl
-      ? { expireAt: (localTime.nowUnix() + this.cfg.ttl) as UnixTimestamp }
-      : undefined
+    const opt = this.cfg.ttl ? { expireAt: (nowUnix() + this.cfg.ttl) as UnixTimestamp } : undefined
 
     await this.cfg.dao.save(k, v, opt)
   }

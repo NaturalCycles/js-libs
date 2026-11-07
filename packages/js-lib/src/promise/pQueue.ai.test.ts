@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest'
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { ErrorMode } from '../error/errorMode.js'
 import { commonLoggerCreate } from '../log/commonLogger.js'
 import { pDefer } from './pDefer.js'
@@ -268,9 +269,9 @@ it('should wait in onIdle for the running job', async () => {
   await pDelay(5) // Ensure job started
   expect(queue.inFlight).toBe(1)
 
-  const start = Date.now()
+  const start = nowUnixMillis()
   await queue.onIdle()
-  expect(Date.now() - start).toBeGreaterThanOrEqual(40)
+  expect(nowUnixMillis() - start).toBeGreaterThanOrEqual(40)
   expect(queue.inFlight).toBe(0)
 })
 
@@ -284,9 +285,9 @@ it('should wait in onIdle for the queued jobs', async () => {
   await pDelay(5)
   expect(queue.queueSize).toBe(2)
 
-  const start = Date.now()
+  const start = nowUnixMillis()
   await queue.onIdle()
-  expect(Date.now() - start).toBeGreaterThanOrEqual(50)
+  expect(nowUnixMillis() - start).toBeGreaterThanOrEqual(50)
 })
 
 it('should resolve every onIdle listener', async () => {
@@ -619,6 +620,7 @@ it('should resolve a job with the same object reference it returns', async () =>
   const complexResult = {
     nested: { value: 42, arr: [1, 2, 3] },
     fn: () => 'hello',
+    // oxlint-disable-next-line no-restricted-globals -- a native Date is part of the complex result
     date: new Date('2024-01-01'),
   }
 

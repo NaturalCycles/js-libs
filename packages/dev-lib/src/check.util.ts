@@ -4,6 +4,7 @@ import { findPackageJSON } from 'node:module'
 import path from 'node:path'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _filterFalsyValues } from '@naturalcycles/js-lib/object/object.util.js'
@@ -14,7 +15,6 @@ import type {
   NumberOfMilliseconds,
   SemVerString,
   StringMap,
-  UnixTimestampMillis,
 } from '@naturalcycles/js-lib/types'
 import { _parseArgs } from '@naturalcycles/nodejs-lib/args'
 import { dimGrey, white } from '@naturalcycles/nodejs-lib/colors'
@@ -62,7 +62,7 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
     typecheck = false,
     test = true,
   } = opt
-  const started = Date.now() as UnixTimestampMillis
+  const started = nowUnixMillis()
   let s: number
   const timings: StringMap<NumberOfMilliseconds> = {}
   // const { commitOnChanges, failOnChanges } = _yargs().options({
@@ -91,14 +91,14 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
   if (fastLinters) {
     // Fast linters (that run in <1 second) go first
 
-    s = Date.now()
+    s = nowUnixMillis()
     if (runActionLint()) {
-      timings['actionlint'] = Date.now() - s
+      timings['actionlint'] = nowUnixMillis() - s
     }
 
-    s = Date.now()
+    s = nowUnixMillis()
     if (runOxlint(fix)) {
-      timings['oxlint'] = Date.now() - s
+      timings['oxlint'] = nowUnixMillis() - s
     }
   }
 
@@ -106,9 +106,9 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
 
   if (eslint) {
     // We run eslint BEFORE Prettier, because eslint can delete e.g unused imports.
-    s = Date.now()
+    s = nowUnixMillis()
     if (eslintAll({ fix })) {
-      timings['eslint'] = Date.now() - s
+      timings['eslint'] = nowUnixMillis() - s
     }
   }
 
@@ -117,36 +117,36 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
     hasDependencyInNodeModules('stylelint') &&
     hasDependencyInNodeModules('stylelint-config-standard-scss')
   ) {
-    s = Date.now()
+    s = nowUnixMillis()
     if (stylelintAll(fix)) {
-      timings['stylelint'] = Date.now() - s
+      timings['stylelint'] = nowUnixMillis() - s
     }
   }
 
   if (oxfmt) {
-    s = Date.now()
+    s = nowUnixMillis()
     if (runOxfmt(fix)) {
-      timings['oxfmt'] = Date.now() - s
+      timings['oxfmt'] = nowUnixMillis() - s
     }
   }
 
   if (ktlint) {
-    s = Date.now()
+    s = nowUnixMillis()
     if (await runKTLint(fix)) {
-      timings['ktlint'] = Date.now() - s
+      timings['ktlint'] = nowUnixMillis() - s
     }
   }
 
   if (typecheck) {
-    s = Date.now()
+    s = nowUnixMillis()
     await runTypecheck()
-    timings['tsc'] = Date.now() - s
+    timings['tsc'] = nowUnixMillis() - s
   }
 
   if (test) {
-    s = Date.now()
+    s = nowUnixMillis()
     if (runTest()) {
-      timings['test'] = Date.now() - s
+      timings['test'] = nowUnixMillis() - s
     }
   }
 

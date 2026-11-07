@@ -8,7 +8,7 @@ import { consoleLogger } from '@naturalcycles/js-lib/log'
 import { _mapValues } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
-import type { StringMap, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
+import type { StringMap } from '@naturalcycles/js-lib/types'
 import { SKIP } from '@naturalcycles/js-lib/types'
 import type { WritableTyped } from '@naturalcycles/nodejs-lib/stream'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
@@ -355,7 +355,7 @@ export class CloudStorage implements CommonStorage {
       return
     }
 
-    const started = Date.now() as UnixTimestampMillis
+    const started = localTime.nowUnixMillis()
     await pMap(_chunk(filePaths, BATCH_SIZE), async (fileBatch, i) => {
       if (debug) {
         logger.log(`[${currentRecursionDepth}] Composing batch ${i + 1}...`)

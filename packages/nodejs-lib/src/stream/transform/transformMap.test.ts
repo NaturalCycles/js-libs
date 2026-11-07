@@ -1,5 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { ErrorMode } from '@naturalcycles/js-lib/error'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { SKIP } from '@naturalcycles/js-lib/types'
@@ -33,7 +34,7 @@ it('should pass all items through with warmup', async () => {
 
 it('should run one item at a time in the first second of a 2s warmup, 4 in the next, and 8 after it', async () => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
-  const started = Date.now()
+  const started = nowUnixMillis()
   const maxInFlightBySecond: number[] = []
   let inFlight = 0
 
@@ -42,7 +43,7 @@ it('should run one item at a time in the first second of a 2s warmup, 4 in the n
       transformMap(
         async item => {
           inFlight++
-          const second = Math.floor((Date.now() - started) / 1000)
+          const second = Math.floor((nowUnixMillis() - started) / 1000)
           maxInFlightBySecond[second] = Math.max(maxInFlightBySecond[second] ?? 0, inFlight)
           await pDelay(100)
           inFlight--

@@ -2,7 +2,7 @@ import { expect, it } from 'vitest'
 import { DBQuery } from '../query/dbQuery.js'
 import { queryInMemory } from './queryInMemory.js'
 
-it('queryInMemory should not mutate the input rows array when sorting', () => {
+it('should not mutate the input rows array when sorting', () => {
   const rows = [
     { id: 'b', n: 2 },
     { id: 'a', n: 1 },

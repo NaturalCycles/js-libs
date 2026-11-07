@@ -1,3 +1,4 @@
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { _getTargetMethodSignature } from './decorator.util.js'
 
 export interface PromiseDecoratorCfg<RES = any, PARAMS = any> {
@@ -72,7 +73,7 @@ export function _createPromiseDecorator<RES = any, PARAMS = any>(
 
     pd.value = async function (this: typeof target, ...args: any[]): Promise<any> {
       // console.log(`@${cfg.decoratorName} called inside function`)
-      const started = Date.now()
+      const started = nowUnixMillis()
 
       try {
         // Before function

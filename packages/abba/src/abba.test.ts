@@ -433,10 +433,8 @@ describe('getAllExperimentsWithBucketsNoCache', () => {
     await experimentsDAO.save(mockExperiment({ key: 'live' }))
     await experimentsDAO.save(mockExperiment({ key: 'gone', deleted: true }))
 
-    const getKeys = async (opts?: GetAllExperimentsOpts): Promise<string[]> =>
-      (await abba.getAllExperimentsWithBucketsNoCache(opts))
-        .map(experiment => experiment.key)
-        .sort()
+    const getKeys = async (opt?: GetAllExperimentsOpts): Promise<string[]> =>
+      (await abba.getAllExperimentsWithBucketsNoCache(opt)).map(experiment => experiment.key).sort()
 
     expect(await getKeys()).toEqual(['gone', 'live'])
     expect(await getKeys({ includeDeleted: true })).toEqual(['gone', 'live'])
@@ -448,8 +446,8 @@ describe('getUserExperiments', () => {
   it('should leave out soft-deleted experiments', async () => {
     await experimentsDAO.save(mockExperiment({ key: 'live' }))
     await experimentsDAO.save(mockExperiment({ key: 'gone', deleted: true }))
-    vi.spyOn(abba, 'getAllExperimentsWithBuckets').mockImplementation(opts =>
-      abba.getAllExperimentsWithBucketsNoCache(opts),
+    vi.spyOn(abba, 'getAllExperimentsWithBuckets').mockImplementation(opt =>
+      abba.getAllExperimentsWithBucketsNoCache(opt),
     )
 
     const experiments = await abba.getUserExperiments(mockUserId1)

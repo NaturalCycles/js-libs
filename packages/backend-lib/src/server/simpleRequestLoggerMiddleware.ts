@@ -1,5 +1,5 @@
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
-import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { boldGrey, dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { onFinished } from '../onFinished.js'
 import { logRequestWithColors } from './request.log.util.js'
@@ -23,7 +23,7 @@ export function simpleRequestLoggerMiddleware(
   const { logStart = false, logFinish = true } = cfg
 
   return (req, res, next) => {
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
 
     if (logStart) {
       req.log(['>>', req.method, boldGrey(req.url)].join(' '))

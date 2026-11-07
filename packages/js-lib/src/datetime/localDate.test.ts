@@ -7,6 +7,8 @@ import type { IsoDate } from '../types.js'
 import type { LocalDateFormatter, LocalDateUnit } from './localDate.js'
 import { localDate } from './localDate.js'
 
+// oxlint-disable no-restricted-globals -- tests interop with the native Date
+
 afterEach(() => {
   vi.useRealTimers()
 })

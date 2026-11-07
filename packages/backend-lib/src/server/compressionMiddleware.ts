@@ -89,15 +89,13 @@ const cacheControlNoTransformRegExp = /(?:^|,)\s*?no-transform\s*?(?:,|$)/i
  *
  * Encoding preference order: zstd > br > gzip > deflate
  */
-export function compressionMiddleware(options?: CompressionOptions): BackendRequestHandler {
-  const opts = options || {}
-
+export function compressionMiddleware(opt: CompressionOptions = {}): BackendRequestHandler {
   // Brotli options
   const optsBrotli: zlib.BrotliOptions = {
-    ...opts.brotli,
+    ...opt.brotli,
     params: {
       [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
-      ...opts.brotli?.params,
+      ...opt.brotli?.params,
     },
   }
 
@@ -107,27 +105,27 @@ export function compressionMiddleware(options?: CompressionOptions): BackendRequ
   // stream holds ~850 KB of native memory per in-flight response vs ~150 KB at level 1.
   // That per-response allocation churn is what MALLOC_ARENA_MAX=2 works around on Cloud Run.
   const optsZstd: zlib.ZstdOptions = {
-    ...opts.zstd,
+    ...opt.zstd,
     params: {
       [zlib.constants.ZSTD_c_compressionLevel]: 1,
-      ...opts.zstd?.params,
+      ...opt.zstd?.params,
     },
   }
 
   // General zlib options for gzip/deflate
   const zlibOpts: zlib.ZlibOptions = {}
-  if (opts.level !== undefined) zlibOpts.level = opts.level
-  if (opts.memLevel !== undefined) zlibOpts.memLevel = opts.memLevel
-  if (opts.strategy !== undefined) zlibOpts.strategy = opts.strategy
-  if (opts.windowBits !== undefined) zlibOpts.windowBits = opts.windowBits
-  if (opts.chunkSize !== undefined) zlibOpts.chunkSize = opts.chunkSize
+  if (opt.level !== undefined) zlibOpts.level = opt.level
+  if (opt.memLevel !== undefined) zlibOpts.memLevel = opt.memLevel
+  if (opt.strategy !== undefined) zlibOpts.strategy = opt.strategy
+  if (opt.windowBits !== undefined) zlibOpts.windowBits = opt.windowBits
+  if (opt.chunkSize !== undefined) zlibOpts.chunkSize = opt.chunkSize
 
   const codecOpts: CodecOptions = { zstd: optsZstd, brotli: optsBrotli, zlib: zlibOpts }
 
-  const filter = opts.filter || shouldCompress
-  const threshold = parseBytes(opts.threshold) ?? 1024
-  const syncMaxBytes = parseBytes(opts.syncMaxBytes) ?? 128 * 1024
-  const enforceEncoding = opts.enforceEncoding || 'identity'
+  const filter = opt.filter || shouldCompress
+  const threshold = parseBytes(opt.threshold) ?? 1024
+  const syncMaxBytes = parseBytes(opt.syncMaxBytes) ?? 128 * 1024
+  const enforceEncoding = opt.enforceEncoding || 'identity'
 
   return function compression(req, res, next) {
     let ended = false
@@ -403,11 +401,11 @@ interface CodecOptions {
  * Compresses a whole body in one call, on the event loop.
  * Same codec options as the streams, so the output is identical to the streamed one.
  */
-function compressSync(method: string, body: Buffer, opts: CodecOptions): Buffer {
-  if (method === 'zstd') return zlib.zstdCompressSync(body, opts.zstd)
-  if (method === 'br') return zlib.brotliCompressSync(body, opts.brotli)
-  if (method === 'gzip') return zlib.gzipSync(body, opts.zlib)
-  return zlib.deflateSync(body, opts.zlib)
+function compressSync(method: string, body: Buffer, opt: CodecOptions): Buffer {
+  if (method === 'zstd') return zlib.zstdCompressSync(body, opt.zstd)
+  if (method === 'br') return zlib.brotliCompressSync(body, opt.brotli)
+  if (method === 'gzip') return zlib.gzipSync(body, opt.zlib)
+  return zlib.deflateSync(body, opt.zlib)
 }
 
 function addListeners(

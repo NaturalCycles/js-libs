@@ -31,6 +31,7 @@ import { finished, pipeline } from 'node:stream/promises'
 import { promisify } from 'node:util'
 import zlib from 'node:zlib'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
+import { nowUnix } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { glob } from 'tinyglobby'
@@ -297,7 +298,7 @@ export class ZipWriter implements AsyncDisposable {
     if (nameBuf.length > MAX_COMMENT_SIZE) {
       throw new Error(`zip entry name is too long: ${nameBuf.length} > ${MAX_COMMENT_SIZE} bytes`)
     }
-    const mtime = opt.mtime ?? (Math.floor(Date.now() / 1000) as UnixTimestamp)
+    const mtime = opt.mtime ?? nowUnix()
     const { date, time } = unixToDosDateTime(mtime)
     const mode = opt.mode ?? (isDirectory ? DEFAULT_DIR_MODE : DEFAULT_FILE_MODE)
     if ((mode & 0xffff) !== mode) {

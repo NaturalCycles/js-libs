@@ -1,8 +1,9 @@
 import { Transform } from 'node:stream'
 import type { AbortableSignal } from '@naturalcycles/js-lib'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
-import type { IndexedMapper, Predicate, UnixTimestampMillis } from '@naturalcycles/js-lib/types'
+import type { IndexedMapper, Predicate } from '@naturalcycles/js-lib/types'
 import { END, SKIP } from '@naturalcycles/js-lib/types'
 import { yellow } from '../../colors/colors.js'
 import type { TransformOptions, TransformTyped } from '../stream.model.js'
@@ -78,7 +79,7 @@ export function transformMapSync<IN = any, OUT = IN>(
     signal,
   } = opt
 
-  const started = Date.now() as UnixTimestampMillis
+  const started = nowUnixMillis()
   let index = -1
   let countOut = 0
   let isSettled = false

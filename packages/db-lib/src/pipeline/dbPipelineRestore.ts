@@ -177,7 +177,7 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
       const filePath = `${inputDirPath}/${table}.ndjson` + (zst ? '.zst' : '')
       const saveOptions: CommonDBSaveOptions<any> = saveOptionsPerTable[table] || {}
 
-      const started = Date.now()
+      const started = localTime.nowUnixMillis()
       let rows = 0
 
       const sizeBytes = sizeByTable[table]
@@ -205,7 +205,7 @@ export async function dbPipelineRestore(opt: DBPipelineRestoreOptions): Promise<
         })
 
       const stats = NDJsonStats.create({
-        tookMillis: Date.now() - started,
+        tookMillis: localTime.nowUnixMillis() - started,
         rows,
         sizeBytes,
       })

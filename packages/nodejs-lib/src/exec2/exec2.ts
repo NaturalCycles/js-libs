@@ -1,5 +1,6 @@
 import { execSync, spawn, spawnSync } from 'node:child_process'
 import type { StdioOptions } from 'node:child_process'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string/string.util.js'
@@ -69,7 +70,7 @@ class Exec2 {
     const log = opt.log ?? true // by default log should be true, as we are printing the output
     // Copy, to not mutate the input options
     opt = { ...opt, log, logStart: opt.logStart ?? log, logFinish: opt.logFinish ?? log }
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
     this.logStart(cmd, opt)
 
     const r = spawnSync(cmd, opt.args, {
@@ -118,7 +119,7 @@ class Exec2 {
       logStart: opt.logStart ?? opt.log ?? false,
       logFinish: opt.logFinish ?? opt.log ?? false,
     }
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
     this.logStart(cmd, opt)
 
     try {
@@ -177,7 +178,7 @@ class Exec2 {
     const log = opt.log ?? true // by default log should be true, as we are printing the output
     // Copy, to not mutate the input options
     opt = { ...opt, log, logStart: opt.logStart ?? log, logFinish: opt.logFinish ?? log }
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
     this.logStart(cmd, opt)
 
     await new Promise<void>((resolve, reject) => {
@@ -245,7 +246,7 @@ class Exec2 {
     const log = opt.log ?? printWhileRunning // by default log should be true, as we are printing the output
     // Copy, to not mutate the input options
     opt = { ...opt, log, logStart: opt.logStart ?? log, logFinish: opt.logFinish ?? log }
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
     this.logStart(cmd, opt)
     let stdout = ''
     let stderr = ''

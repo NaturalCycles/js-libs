@@ -4,6 +4,7 @@
 
 import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { abortSignalAnyOrUndefined, abortSignalTimeoutOrUndefined } from '../abort.js'
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { _ms, _since } from '../datetime/time.util.js'
 import { isServerSide } from '../env.js'
 import { _assert, _assertErrorClassOrRethrow, _assertIsError } from '../error/assert.js'
@@ -31,12 +32,7 @@ import { pDelaySignal } from '../promise/pDelay.js'
 import { pTimeout } from '../promise/pTimeout.js'
 import { _toUrlOrNull } from '../string/index.js'
 import { _jsonParse, _jsonParseIfPossible } from '../string/json.util.js'
-import type {
-  AnyObject,
-  ErrorDataTuple,
-  NumberOfMilliseconds,
-  UnixTimestampMillis,
-} from '../types.js'
+import type { AnyObject, ErrorDataTuple, NumberOfMilliseconds } from '../types.js'
 import type {
   FetcherAfterResponseHook,
   FetcherBeforeRequestHook,
@@ -250,7 +246,7 @@ export class Fetcher {
         requestSignature: res.signature,
         requestName: res.req.requestName,
         fetcherName: this.cfg.name,
-        requestDuration: Date.now() - res.req.started,
+        requestDuration: nowUnixMillis() - res.req.started,
       })
     }
 
@@ -400,7 +396,7 @@ export class Fetcher {
     } as FetcherResponse<any>
 
     while (!res.retryStatus.retryStopped) {
-      req.started = Date.now() as UnixTimestampMillis
+      req.started = nowUnixMillis()
       res.body = undefined
 
       req.init.signal = abortSignalAnyOrUndefined([
@@ -653,7 +649,7 @@ export class Fetcher {
         requestSignature: res.signature,
         requestName: res.req.requestName,
         fetcherName: this.cfg.name,
-        requestDuration: Date.now() - res.req.started,
+        requestDuration: nowUnixMillis() - res.req.started,
       }),
       {
         cause,
@@ -746,14 +742,15 @@ export class Fetcher {
           if (retryAfterNumber > 10 ** 9) {
             // Value is too large to be a "seconds from now" delay,
             // treat it as a UnixTimestamp instead (e.g GitHub sends `x-ratelimit-reset` like that)
-            timeout = retryAfterNumber * 1000 - Date.now()
+            timeout = retryAfterNumber * 1000 - nowUnixMillis()
           } else {
             timeout = retryAfterNumber * 1000
           }
         } else {
+          // oxlint-disable-next-line no-restricted-globals -- parses an HTTP-date, which localTime doesn't support
           const date = new Date(retryAfterStr)
           if (!Number.isNaN(date.getTime())) {
-            timeout = date.getTime() - Date.now()
+            timeout = date.getTime() - nowUnixMillis()
           }
         }
 
@@ -928,7 +925,7 @@ export class Fetcher {
         'fetchFn',
         'overrideFetchFn',
       ]),
-      started: Date.now() as UnixTimestampMillis,
+      started: nowUnixMillis(),
       ..._omit(opt, ['method', 'headers', 'credentials']),
       inputUrl: opt.url || '',
       fullUrl: opt.url || '',

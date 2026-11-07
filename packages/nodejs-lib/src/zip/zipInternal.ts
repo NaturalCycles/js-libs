@@ -11,6 +11,8 @@ entry-name normalization/validation.
 
 import type { UnixTimestamp } from '@naturalcycles/js-lib/types'
 
+// oxlint-disable no-restricted-globals -- DOS date/time fields are local-time components, converted via the native Date
+
 // oxlint-disable no-bitwise -- the ZIP format packs DOS date/time into bit fields
 
 // Compression methods.

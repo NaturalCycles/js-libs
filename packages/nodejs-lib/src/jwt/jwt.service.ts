@@ -263,6 +263,7 @@ export class JWTService<T extends AnyObject = AnyObject> {
       const { payload } = await jwtVerify(token, key, {
         algorithms: this.cfg.verifyAlgorithms || [this.cfg.algorithm],
         ...joseOpt,
+        // oxlint-disable-next-line no-restricted-globals -- jose expects a Date
         currentDate: now === undefined ? undefined : new Date(now * 1000),
       })
       data = payload as TT

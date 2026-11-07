@@ -302,6 +302,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
         if (v && typeof v === 'object' && !Buffer.isBuffer(v)) {
           // This is to avoid implicit Date stringification and mismatch: it gets saved as Date, but loaded as String
           _assert(
+            // oxlint-disable-next-line no-restricted-globals -- detects Date values to reject them
             !(v instanceof Date),
             'mysql-lib does not support Date values, please stringify them before passing',
           )

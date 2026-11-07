@@ -25,6 +25,7 @@
     "for-direction": "warn",
     "getter-return": "warn",
     "guard-for-in": "deny",
+    "id-denylist": ["deny", ["opts"]],
     "id-match": [
       "deny",
       [
@@ -128,6 +129,10 @@
         {
           "name": "Intl",
           "message": "Use Intl2 instead."
+        },
+        {
+          "name": "Date",
+          "message": "Use localTime / localDate from @naturalcycles/js-lib/datetime."
         }
       ]
     ],
@@ -574,8 +579,8 @@
       "deny",
       [
         {
-          "fn": "test",
-          "withinDescribe": "test"
+          "fn": "it",
+          "withinDescribe": "it"
         }
       ]
     ],
@@ -630,7 +635,16 @@
     "vitest/valid-describe-callback": "allow",
     "vitest/valid-expect": "allow",
     "vitest/valid-expect-in-promise": "warn",
-    "vitest/valid-title": "allow",
+    "vitest/valid-title": [
+      "deny",
+      [
+        {
+          "mustMatch": {
+            "it": "^should "
+          }
+        }
+      ]
+    ],
     "vitest/warn-todo": "allow"
   },
   "settings": {

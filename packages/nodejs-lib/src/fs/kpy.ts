@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { _since, localTime } from '@naturalcycles/js-lib/datetime'
+import { _since, nowUnixMillis } from '@naturalcycles/js-lib/datetime'
 import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { glob, globSync } from 'tinyglobby'
 import { boldWhite, dimGrey, grey, yellow } from '../colors/colors.js'
@@ -45,7 +45,7 @@ export interface KpyOptions {
 }
 
 export async function kpy(opt: KpyOptions): Promise<void> {
-  const started = localTime.nowUnixMillis()
+  const started = nowUnixMillis()
 
   opt = kpyPrepare(opt)
 
@@ -84,7 +84,7 @@ export async function kpy(opt: KpyOptions): Promise<void> {
 }
 
 export function kpySync(opt: KpyOptions): void {
-  const started = localTime.nowUnixMillis()
+  const started = nowUnixMillis()
 
   opt = kpyPrepare(opt)
 

@@ -1,4 +1,5 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { afterEach, expect, it, vi } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 
@@ -8,7 +9,7 @@ afterEach(() => {
 
 it('should pass at most throughput items per interval', async () => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
-  const started = Date.now()
+  const started = nowUnixMillis()
   const passedAfterMillis: number[] = []
 
   // super-fast producer
@@ -22,7 +23,7 @@ it('should pass at most throughput items per interval', async () => {
       // debug: true,
     })
     .tapSync(() => {
-      passedAfterMillis.push(Date.now() - started)
+      passedAfterMillis.push(nowUnixMillis() - started)
     })
     .run()
   await vi.advanceTimersByTimeAsync(3000)

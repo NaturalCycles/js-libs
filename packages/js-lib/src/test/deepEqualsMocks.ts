@@ -1,3 +1,5 @@
+// oxlint-disable no-restricted-globals -- native Date instances are among the fixtures
+
 const date1 = new Date('2024-03-28T14:47:11.520Z')
 const date11 = new Date('2024-03-28T14:47:11.520Z')
 const date2 = new Date('2024-03-28T14:44:12.520Z')

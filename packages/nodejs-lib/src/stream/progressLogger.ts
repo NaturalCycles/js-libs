@@ -168,8 +168,8 @@ export class ProgressLogger<T> implements Disposable {
   private peakRSS!: number
 
   private start(): void {
-    this.started = Date.now() as UnixTimestampMillis
-    this.lastSecondStarted = Date.now() as UnixTimestampMillis
+    this.started = localTime.nowUnixMillis()
+    this.lastSecondStarted = localTime.nowUnixMillis()
     this.sma = new SimpleMovingAverage(10)
     this.processedLastSecond = 0
     this.progress = 0
@@ -213,7 +213,7 @@ export class ProgressLogger<T> implements Disposable {
 
     const mem = process.memoryUsage()
 
-    const now = Date.now() as UnixTimestampMillis
+    const now = localTime.nowUnixMillis()
     const batchedProgress = this.progress * chunkSize
     const lastRPS =
       (this.processedLastSecond * chunkSize) / ((now - this.lastSecondStarted) / 1000) || 0

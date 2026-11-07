@@ -2,7 +2,7 @@ import { Readable } from 'node:stream'
 import { FieldPath } from '@google-cloud/firestore'
 import type { Query, QuerySnapshot } from '@google-cloud/firestore'
 import type { DBQuery } from '@naturalcycles/db-lib'
-import { localTime } from '@naturalcycles/js-lib/datetime'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
@@ -107,7 +107,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
     const { logger, table } = this
 
     if (this.lastQueryDoneByShard[shard]) {
-      this.totalWait += Date.now() - this.lastQueryDoneByShard[shard]
+      this.totalWait += nowUnixMillis() - this.lastQueryDoneByShard[shard]
     }
 
     this.queryIsRunningByShard[shard] = true
@@ -151,7 +151,7 @@ export class FirestoreShardedReadable<T extends ObjectWithId = any>
 
     this.cursorByShard[shard] = lastDocId
     this.queryIsRunningByShard[shard] = false // ready to take more _reads
-    this.lastQueryDoneByShard[shard] = localTime.nowUnixMillis()
+    this.lastQueryDoneByShard[shard] = nowUnixMillis()
 
     for (const row of rows) {
       this.push(row)

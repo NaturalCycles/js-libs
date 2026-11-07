@@ -1,9 +1,10 @@
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { _since } from '../datetime/time.util.js'
 import type { ErrorData } from '../error/error.model.js'
 import { _errorDataAppend } from '../error/error.util.js'
 import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
-import type { AnyAsyncFunction, UnixTimestampMillis } from '../types.js'
+import type { AnyAsyncFunction } from '../types.js'
 import { pDelay } from './pDelay.js'
 import { pTimeout } from './pTimeout.js'
 
@@ -141,7 +142,7 @@ export async function pRetry<T>(
   let attempt = 0
 
   while (true) {
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
 
     try {
       attempt++

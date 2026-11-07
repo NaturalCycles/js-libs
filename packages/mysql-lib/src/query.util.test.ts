@@ -101,6 +101,7 @@ function createValuesOfEveryKind(): Record<string, any> {
     nested: { foo: 1 },
     list: ['a', 'b'],
     buf: Buffer.from('hi'),
+    // oxlint-disable-next-line no-restricted-globals -- tests how a native Date value is handled
     date: new Date(2018, 5, 21, 12, 30),
     raw: mysql.raw('NOW()'),
     empty: null,

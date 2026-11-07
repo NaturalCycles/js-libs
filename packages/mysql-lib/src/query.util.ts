@@ -178,6 +178,7 @@ function mapValueToMySQL(v: any): any {
     v &&
     typeof v === 'object' &&
     !Buffer.isBuffer(v) &&
+    // oxlint-disable-next-line no-restricted-globals -- Date values are left to the mysql driver to escape
     !(v instanceof Date) &&
     typeof v.toSqlString !== 'function'
   ) {

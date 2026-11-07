@@ -99,6 +99,7 @@ export class Scrubber {
         if (
           dataCopy[key] instanceof Map ||
           dataCopy[key] instanceof Set ||
+          // oxlint-disable-next-line no-restricted-globals -- Date values are kept as-is, not traversed
           dataCopy[key] instanceof Date ||
           Buffer.isBuffer(dataCopy[key])
         ) {

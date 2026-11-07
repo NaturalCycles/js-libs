@@ -14,6 +14,8 @@ import type {
 import type { LocalTimeFormatter, LocalTimeUnit } from './localTime.js'
 import { ISODayOfWeek, localTime } from './localTime.js'
 
+// oxlint-disable no-restricted-globals -- tests interop with the native Date
+
 // Set en-gb by default, to have e.g Monday as fdow
 // This "loads" the locale:
 dayjs.locale(enGB, {}, true)

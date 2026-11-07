@@ -192,7 +192,7 @@ export async function dbPipelineBackup(opt: DBPipelineBackupOptions): Promise<ND
         throw new AppError(`dbPipelineBackup: output file exists: ${filePath}`)
       }
 
-      const started = Date.now()
+      const started = localTime.nowUnixMillis()
       let rows = 0
 
       fs2.ensureFile(filePath)
@@ -224,7 +224,7 @@ export async function dbPipelineBackup(opt: DBPipelineBackupOptions): Promise<ND
       const { size: sizeBytes } = await fs2.statAsync(filePath)
 
       const stats = NDJsonStats.create({
-        tookMillis: Date.now() - started,
+        tookMillis: localTime.nowUnixMillis() - started,
         rows,
         sizeBytes,
       })

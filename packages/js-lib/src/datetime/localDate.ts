@@ -14,6 +14,8 @@ import type {
 import type { DateObject, ISODayOfWeek, LocalTime } from './localTime.js'
 import { localTime, VALID_DAYS_OF_WEEK } from './localTime.js'
 
+// oxlint-disable no-restricted-globals -- LocalDate wraps the native Date
+
 export type LocalDateUnit = LocalDateUnitStrict | 'week'
 export type LocalDateUnitStrict = 'year' | 'month' | 'day'
 

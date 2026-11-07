@@ -4,7 +4,7 @@ import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { Agent, fetch as undiciFetch } from 'undici'
 import { expect, expectTypeOf, it } from 'vitest'
-import { _since, localTime } from '../datetime/index.js'
+import { _since, nowUnixMillis } from '../datetime/index.js'
 import { HttpRequestError, TimeoutError } from '../error/error.util.js'
 import { pExpectedError } from '../error/try.js'
 import { objectToFormData } from '../form.util.js'
@@ -214,7 +214,7 @@ it('should make requests through a custom undici Agent and undici fetch', async 
     connect: {
       async lookup(hostname, opt, cb) {
         console.log('dns lookup:', hostname)
-        const started = localTime.nowUnixMillis()
+        const started = nowUnixMillis()
         const address = await dns.lookup(hostname, opt)
         console.log(`dns lookup of ${hostname} resolved in ${_since(started)}`)
         console.log({ address })

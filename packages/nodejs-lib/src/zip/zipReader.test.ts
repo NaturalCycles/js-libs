@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import type { Readable } from 'node:stream'
 import zlib from 'node:zlib'
+import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { expect, it } from 'vitest'
 import { zip2 } from './zip2.js'
 import { openZip, openZipBuffer } from './zipReader.js'
@@ -23,7 +24,9 @@ it('should read entry metadata from a buffer', async () => {
   expect(hello!.compressionMethod).toBe(0)
   expect(hello!.uncompressedSize).toBe(13)
   expect(hello!.isDirectory).toBe(false)
-  expect(hello!.lastModified).toBe(Math.floor(new Date(2020, 0, 1, 12, 0, 0).getTime() / 1000))
+  expect(hello!.lastModified).toBe(
+    localTime.fromDateTimeObject({ year: 2020, month: 1, day: 1, hour: 12 }).unix,
+  )
   expect(data!.compressionMethod).toBe(8)
   expect(dir!.isDirectory).toBe(true)
 

@@ -1,7 +1,8 @@
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { _since } from '../datetime/time.util.js'
 import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
-import type { AnyFunction, UnixTimestampMillis } from '../types.js'
+import type { AnyFunction } from '../types.js'
 import { _anyToError } from './error.util.js'
 
 export interface TryCatchOptions {
@@ -41,7 +42,7 @@ export function _tryCatch<T extends AnyFunction>(fn: T, opt: TryCatchOptions = {
   const fname = fn.name || 'anonymous'
 
   return async function (this: any, ...args: any[]) {
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
 
     try {
       const r = await fn.apply(this, args)

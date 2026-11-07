@@ -1,6 +1,6 @@
 import { Readable } from 'node:stream'
 import { _by, _sortBy } from '@naturalcycles/js-lib/array'
-import { _since, localTime } from '@naturalcycles/js-lib/datetime'
+import { _since, nowUnixMillis } from '@naturalcycles/js-lib/datetime'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { consoleLogger } from '@naturalcycles/js-lib/log'
 import { _deepEquals, _filterUndefinedValues, _sortObjectDeep } from '@naturalcycles/js-lib/object'
@@ -236,7 +236,7 @@ export class FileDB extends BaseCommonDB implements CommonDB {
     if (this.cfg.logStarted) {
       this.cfg.logger?.log(`>> ${op}`)
     }
-    return localTime.nowUnixMillis()
+    return nowUnixMillis()
   }
 
   private logFinished(started: UnixTimestampMillis, op: string): void {

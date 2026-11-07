@@ -262,14 +262,14 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
     return value
   }
 
-  private mapToAirtableRecord(r: AirtableApiRecord<T>, opts: AirtableDaoOptions = {}): T {
+  private mapToAirtableRecord(r: AirtableApiRecord<T>, opt: AirtableDaoOptions = {}): T {
     const o = this.validate(
       {
         // @ts-expect-error airtableId may not exist on T
         airtableId: r.id,
         ...r.fields,
       },
-      opts,
+      opt,
     )
 
     if (this.cfg.noAttachmentQueryString) {

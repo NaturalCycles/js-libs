@@ -12,7 +12,7 @@ import { AssignmentStatus } from '../types.js'
 
 export const mockUserId1 = 'mockUserId1'
 
-export function mockExperiment(opts?: Partial<Experiment>): Experiment {
+export function mockExperiment(opt?: Partial<Experiment>): Experiment {
   return {
     id: stringId(),
     key: 'MOCK_EXPERIMENT',
@@ -27,7 +27,7 @@ export function mockExperiment(opts?: Partial<Experiment>): Experiment {
     updated: 0 as UnixTimestamp,
     data: null,
     deleted: false,
-    ...opts,
+    ...opt,
   }
 }
 
@@ -35,7 +35,7 @@ export function mockBucket(
   experimentId: string,
   key: string,
   ratio: number,
-  opts?: Partial<Bucket>,
+  opt?: Partial<Bucket>,
 ): Bucket {
   return {
     id: stringId(),
@@ -45,14 +45,14 @@ export function mockBucket(
     data: null,
     created: 0 as UnixTimestamp,
     updated: 0 as UnixTimestamp,
-    ...opts,
+    ...opt,
   }
 }
 
 export function mockUserAssignment(
   experimentId: string,
   bucketId: string | null,
-  opts?: Partial<UserAssignment>,
+  opt?: Partial<UserAssignment>,
 ): UserAssignment {
   return {
     id: stringId(),
@@ -61,20 +61,20 @@ export function mockUserAssignment(
     bucketId,
     created: 0 as UnixTimestamp,
     updated: 0 as UnixTimestamp,
-    ...opts,
+    ...opt,
   }
 }
 
-export function mockUserExperiment(opts?: Partial<UserExperiment>): UserExperiment {
+export function mockUserExperiment(opt?: Partial<UserExperiment>): UserExperiment {
   return {
     ...mockExperiment(),
     buckets: [],
-    ...opts,
+    ...opt,
   }
 }
 
 export function mockDecoratedUserAssignment(
-  opts?: Partial<DecoratedUserAssignment>,
+  opt?: Partial<DecoratedUserAssignment>,
 ): DecoratedUserAssignment {
   const experiment = mockExperiment()
   return {
@@ -83,6 +83,6 @@ export function mockDecoratedUserAssignment(
     experimentData: null,
     bucketKey: null,
     bucketData: null,
-    ...opts,
+    ...opt,
   }
 }

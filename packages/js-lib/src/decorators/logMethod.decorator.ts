@@ -1,3 +1,4 @@
+import { nowUnixMillis } from '../datetime/localTime.js'
 import { _ms } from '../datetime/time.util.js'
 import { _assert } from '../error/assert.js'
 import { consoleLogger } from '../log/commonLogger.js'
@@ -100,7 +101,7 @@ export function _LogMethod(opt: LogMethodOptions = {}): MethodDecorator {
     let count = 0
 
     descriptor.value = function (this: typeof _target, ...args: any[]) {
-      const started = Date.now()
+      const started = nowUnixMillis()
       const ctx = this
 
       // e.g `NameOfYourClass.methodName`
@@ -148,7 +149,7 @@ function logFinished(
   res?: any,
   err?: any,
 ): void {
-  const millis = Date.now() - started
+  const millis = nowUnixMillis() - started
 
   const t = ['<<', callSignature, 'took', _ms(millis)]
 

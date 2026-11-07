@@ -21,6 +21,8 @@ import { _ms } from './time.util.js'
 // oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { WallTime } from './wallTime.js'
 
+// oxlint-disable no-restricted-globals -- LocalTime wraps the native Date
+
 export type LocalTimeUnit = 'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second'
 
 export enum ISODayOfWeek {
@@ -814,16 +816,20 @@ class LocalTimeFactory {
   /**
    Convenience function to return current Unix timestamp in seconds.
    Like Date.now(), but in seconds.
+
+   Import nowUnix function individually in places where importing localTime is too heavy.
    */
   nowUnix(): UnixTimestamp {
-    return Math.floor(Date.now() / 1000) as UnixTimestamp
+    return nowUnix()
   }
 
   /**
    Convenience function that retuns the same as Date.now(), but with proper type of UnixTimestampMillis.
+
+   Import nowUnixMillis function individually in places where importing localTime is too heavy.
    */
   nowUnixMillis(): UnixTimestampMillis {
-    return Date.now() as UnixTimestampMillis
+    return nowUnixMillis()
   }
 
   /**
@@ -1213,3 +1219,29 @@ export const localTime = localTimeFactory.fromInput.bind(localTimeFactory) as Lo
 // The line below is the blackest of black magic I have ever written in 2024.
 // And probably 2023 as well.
 Object.setPrototypeOf(localTime, localTimeFactory)
+
+/**
+ * Can be used instead of `oxlint-disable ...` in places where Date is intentionally needed
+ */
+export function newDate(): Date {
+  return new Date()
+}
+
+/**
+ Convenience function to return current Unix timestamp in seconds.
+ Like Date.now(), but in seconds.
+
+ Import nowUnix function individually in places where importing localTime is too heavy.
+ */
+export function nowUnix(): UnixTimestamp {
+  return Math.floor(Date.now() / 1000) as UnixTimestamp
+}
+
+/**
+ Convenience function that retuns the same as Date.now(), but with proper type of UnixTimestampMillis.
+
+ Import nowUnixMillis function individually in places where importing localTime is too heavy.
+ */
+export function nowUnixMillis(): UnixTimestampMillis {
+  return Date.now() as UnixTimestampMillis
+}

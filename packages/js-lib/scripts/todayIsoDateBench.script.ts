@@ -7,6 +7,8 @@ pn tsx scripts/todayIsoDateBench
 import { runBenchScript } from '@naturalcycles/bench-lib'
 import type { IsoDate } from '../src/types.js'
 
+// oxlint-disable no-restricted-globals -- benchmarks against the native Date
+
 runBenchScript({
   fns: {
     v1: () => {

@@ -153,6 +153,7 @@ export type UnixTimestampScrubberSQLFn = ScrubberSQLFn<UnixTimestampScrubberPara
 export const unixTimestampScrubber: UnixTimestampScrubberFn = (value, params = {}) => {
   if (!value) return
 
+  // oxlint-disable-next-line no-restricted-globals -- scrubs local-time fields via the Date setters
   const date = new Date((value as number) * 1000)
 
   if (value && params.excludeTime) {

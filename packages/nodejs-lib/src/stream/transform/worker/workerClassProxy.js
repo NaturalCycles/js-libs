@@ -1,3 +1,4 @@
+// oxlint-disable-next-line no-restricted-globals -- the worker entry stays dependency-free
 const started = Date.now()
 import { inspect } from 'node:util'
 import { workerData, parentPort } from 'node:worker_threads'
@@ -20,6 +21,7 @@ try {
 const { WorkerClass } = await import(workerFile)
 const worker = new WorkerClass(workerData)
 
+// oxlint-disable-next-line no-restricted-globals -- the worker entry stays dependency-free
 log(`${metric}#${workerIndex} loaded in ${Date.now() - started} ms`)
 
 let errors = 0

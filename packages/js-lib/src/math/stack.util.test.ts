@@ -41,7 +41,7 @@ it('should fill every slot with zero', () => {
   expect(stack.items).toEqual([0, 0, 0, 0, 0])
 })
 
-it('percentile should not reorder the underlying buffer', () => {
+it('should not reorder the underlying buffer when computing percentiles', () => {
   const stack = new NumberStack(3)
   ;[3, 1, 2, 5].forEach(n => stack.push(n))
   expect(stack.itemsOrdered).toEqual([1, 2, 5])

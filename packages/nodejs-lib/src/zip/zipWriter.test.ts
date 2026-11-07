@@ -111,7 +111,7 @@ it('should preserve utf-8 file names', async () => {
 })
 
 it('should round-trip mtime via the Info-ZIP extended timestamp', async () => {
-  const mtime = Math.floor(new Date('2021-06-15T10:30:45.000Z').getTime() / 1000) as UnixTimestamp
+  const mtime = 1623753045 as UnixTimestamp // 2021-06-15T10:30:45Z
   const buf = await createZipBuffer([{ name: 'x.txt', content: Buffer.from('x'), mtime }])
   const zip = await openZipBuffer(buf)
   expect(zip.entries[0]!.lastModified).toBe(mtime)

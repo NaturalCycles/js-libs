@@ -1,14 +1,14 @@
 import { commonLoggerNoop } from '@naturalcycles/js-lib/log'
 import type { BackendRequest } from '../server/server.model.js'
 
-export function mockBackendRequest(opts: Partial<BackendRequest> = {}): BackendRequest {
-  const headers = opts.headers || {}
+export function mockBackendRequest(opt: Partial<BackendRequest> = {}): BackendRequest {
+  const headers = opt.headers || {}
 
   const req: Partial<BackendRequest> = {
     ...commonLoggerNoop,
     cookies: {},
     header: ((name: string) => headers[name.toLowerCase()]) as BackendRequest['header'],
-    ...opts,
+    ...opt,
     headers,
   }
 

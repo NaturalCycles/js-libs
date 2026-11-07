@@ -49,6 +49,7 @@ export function experimentDao(db: CommonDB): ExperimentDao {
  */
 function parseMySQLDate(date: string): IsoDate {
   // @ts-expect-error MySQL may return Date instead of string
+  // oxlint-disable-next-line no-restricted-globals -- the MySQL driver may return a Date
   if (date instanceof Date) return localDate(date).toISODate()
   return date as IsoDate
 }

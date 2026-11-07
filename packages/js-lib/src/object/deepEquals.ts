@@ -112,6 +112,7 @@ export function _deepJsonEquals<T>(a: T, b: T): boolean {
   } else if (typeof a === 'function') {
     ;(a as any) = undefined
   } else if (a && typeof a === 'object') {
+    // oxlint-disable-next-line no-restricted-globals -- Date instances are compared by value
     if (a instanceof Date) {
       ;(a as any) = a.valueOf()
     } else if ('toJSON' in a) {
@@ -123,6 +124,7 @@ export function _deepJsonEquals<T>(a: T, b: T): boolean {
   } else if (typeof b === 'function') {
     ;(b as any) = undefined
   } else if (b && typeof b === 'object') {
+    // oxlint-disable-next-line no-restricted-globals -- Date instances are compared by value
     if (b instanceof Date) {
       ;(b as any) = b.valueOf()
     } else if ('toJSON' in b) {

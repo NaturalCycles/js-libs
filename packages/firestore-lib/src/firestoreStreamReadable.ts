@@ -7,7 +7,7 @@ import type {
   Timestamp,
 } from '@google-cloud/firestore'
 import type { DBQuery } from '@naturalcycles/db-lib'
-import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
@@ -125,9 +125,9 @@ export class FirestoreStreamReadable<T extends ObjectWithId = any>
     //   paused: this.paused,
     // })
 
-    const started = localTime.nowUnixMillis()
+    const started = nowUnixMillis()
     const qs = await this.runQuery(q)
-    const queryTook = Date.now() - started
+    const queryTook = nowUnixMillis() - started
     if (!qs) {
       // error already emitted in runQuery
       return

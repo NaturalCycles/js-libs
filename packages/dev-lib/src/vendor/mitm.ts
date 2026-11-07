@@ -32,7 +32,7 @@ export interface BypassableSocket extends NetType.Socket {
   bypassed?: boolean
 }
 
-export type ConnectCallback = (socket: BypassableSocket, opts: SocketOptions) => void
+export type ConnectCallback = (socket: BypassableSocket, opt: SocketOptions) => void
 
 export interface Mitm {
   on: (event: 'connect', callback: ConnectCallback) => void
@@ -59,7 +59,7 @@ export function createMitm(): Mitm {
 
   function connect(
     orig: (...args: unknown[]) => NetType.Socket,
-    opts: SocketOptions,
+    opt: SocketOptions,
     done?: () => void,
   ): NetType.Socket {
     // Create a bypassable socket that we'll pass to listeners
@@ -71,12 +71,12 @@ export function createMitm(): Mitm {
 
     // Emit connect event to all listeners
     for (const listener of listeners) {
-      listener(socket, opts)
+      listener(socket, opt)
     }
 
     // If bypassed, call the original connect function
     if (socket.bypassed) {
-      return orig.call(Net, opts, done)
+      return orig.call(Net, opt, done)
     }
 
     // Not bypassed - return the socket that will never actually connect.
@@ -86,18 +86,18 @@ export function createMitm(): Mitm {
 
   function normalizeArgs(
     args: unknown[],
-  ): [opts: SocketOptions, callback: (() => void) | undefined] {
+  ): [opt: SocketOptions, callback: (() => void) | undefined] {
     // Handle the various signatures of Net.connect:
     // connect(port, host?, callback?)
     // connect(options, callback?)
     // connect(path, callback?) - Unix socket
     if (typeof args[0] === 'number') {
-      const opts: SocketOptions = { port: args[0] }
+      const opt: SocketOptions = { port: args[0] }
       if (typeof args[1] === 'string') {
-        opts.host = args[1]
-        return [opts, args[2] as (() => void) | undefined]
+        opt.host = args[1]
+        return [opt, args[2] as (() => void) | undefined]
       }
-      return [opts, args[1] as (() => void) | undefined]
+      return [opt, args[1] as (() => void) | undefined]
     }
     if (typeof args[0] === 'object' && args[0] !== null) {
       return [args[0] as SocketOptions, args[1] as (() => void) | undefined]
@@ -108,19 +108,15 @@ export function createMitm(): Mitm {
 
   function createNetConnect(orig: typeof Net.connect): typeof Net.connect {
     return function (...args: Parameters<typeof Net.connect>): NetType.Socket {
-      const [opts, done] = normalizeArgs(args)
-      return connect(orig as (...a: unknown[]) => NetType.Socket, opts, done)
+      const [opt, done] = normalizeArgs(args)
+      return connect(orig as (...a: unknown[]) => NetType.Socket, opt, done)
     } as typeof Net.connect
   }
 
   function createTlsConnect(orig: typeof Tls.connect): typeof Tls.connect {
     return function (...args: Parameters<typeof Tls.connect>): TlsType.TLSSocket {
-      const [opts, done] = normalizeArgs(args)
-      return connect(
-        orig as (...a: unknown[]) => TlsType.TLSSocket,
-        opts,
-        done,
-      ) as TlsType.TLSSocket
+      const [opt, done] = normalizeArgs(args)
+      return connect(orig as (...a: unknown[]) => TlsType.TLSSocket, opt, done) as TlsType.TLSSocket
     } as typeof Tls.connect
   }
 

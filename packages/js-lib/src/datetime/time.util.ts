@@ -10,6 +10,7 @@ import type { NumberOfMilliseconds, UnixTimestampMillis } from '../types.js'
  * @experimental
  */
 export function _blockTimer(name?: string): Disposable {
+  // oxlint-disable-next-line no-restricted-globals -- localTime imports this module, so it can't import localTime back
   const started = Date.now() as UnixTimestampMillis
   return {
     [Symbol.dispose](): void {
@@ -23,6 +24,7 @@ export function _blockTimer(name?: string): Disposable {
  */
 export function _since(
   from: UnixTimestampMillis,
+  // oxlint-disable-next-line no-restricted-globals -- localTime imports this module, so it can't import localTime back
   until: UnixTimestampMillis = Date.now() as UnixTimestampMillis,
 ): string {
   return _ms(until - from)

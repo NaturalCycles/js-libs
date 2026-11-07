@@ -1,5 +1,5 @@
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
-import type { UnixTimestampMillis } from '@naturalcycles/js-lib/types'
 import { onFinished } from '../onFinished.js'
 import type { BackendRequest, BackendRequestHandler } from './server.model.js'
 
@@ -32,7 +32,7 @@ export function requestLoggerMiddleware(
       return next()
     }
 
-    const started = Date.now() as UnixTimestampMillis
+    const started = nowUnixMillis()
 
     let url = req.originalUrl.split('?')[0]!
     if (removeUrlPrefix && url.startsWith(removeUrlPrefix)) {

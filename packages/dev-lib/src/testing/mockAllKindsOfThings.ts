@@ -46,6 +46,7 @@ export const mockAllKindsOfThings = (): any[] => {
       k1: 'v1',
     }),
     Symbol('a_am_symbol'),
+    // oxlint-disable-next-line no-restricted-globals -- a native Date is one of the kinds of things
     new Date(1984, 5, 21),
   ]
 }

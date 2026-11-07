@@ -5,7 +5,7 @@ import type {
   RunQueryOptions,
   RunQueryResponse,
 } from '@google-cloud/datastore/build/src/query.js'
-import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { TimeoutError } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
@@ -75,7 +75,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
 
       this.maxWaitInterval = setInterval(
         () => {
-          const millisSinceLastRead = Date.now() - this.lastReadTimestamp
+          const millisSinceLastRead = nowUnixMillis() - this.lastReadTimestamp
 
           if (millisSinceLastRead < maxWait * 1000) {
             logger.debug(
@@ -101,7 +101,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
   }
 
   override _read(): void {
-    this.lastReadTimestamp = localTime.nowUnixMillis()
+    this.lastReadTimestamp = nowUnixMillis()
 
     // console.log(`_read called ${++this.count}, wasRunning: ${this.running}`) // debugging
     this.countReads++
@@ -134,7 +134,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
     const { logger, table } = this
 
     if (this.lastQueryDone) {
-      const now = Date.now()
+      const now = nowUnixMillis()
       this.totalWait += now - this.lastQueryDone
     }
 
@@ -153,9 +153,9 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
       q = q.start(this.endCursor).offset(0)
     }
 
-    const started = localTime.nowUnixMillis()
+    const started = nowUnixMillis()
     const res = await this.runQuery(q)
-    const queryTook = Date.now() - started
+    const queryTook = nowUnixMillis() - started
     if (!res) {
       // error already emitted in runQuery
       return
@@ -172,7 +172,7 @@ export class DatastoreStreamReadable<T = any> extends Readable implements Readab
 
     this.endCursor = info.endCursor
     this.queryIsRunning = false // ready to take more _reads
-    this.lastQueryDone = Date.now()
+    this.lastQueryDone = nowUnixMillis()
     let shouldContinue = false
 
     for (const row of rows) {

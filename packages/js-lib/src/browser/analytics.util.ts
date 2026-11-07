@@ -1,3 +1,4 @@
+import { newDate, nowUnixMillis } from '../datetime/localTime.js'
 import { isServerSide } from '../env.js'
 import { loadScript } from './script.util.js'
 
@@ -17,7 +18,7 @@ export async function loadGTag(gtagId: string, enabled = true): Promise<void> {
   globalThis.gtag ||= function gtag() {
     globalThis.dataLayer.push(arguments)
   }
-  globalThis.gtag('js', new Date())
+  globalThis.gtag('js', newDate())
   globalThis.gtag('config', gtagId)
 
   if (!enabled) return
@@ -30,7 +31,7 @@ export async function loadGTM(gtmId: string, enabled = true): Promise<void> {
 
   globalThis.dataLayer ||= []
   globalThis.dataLayer.push({
-    'gtm.start': Date.now(),
+    'gtm.start': nowUnixMillis(),
     event: 'gtm.js',
   })
 

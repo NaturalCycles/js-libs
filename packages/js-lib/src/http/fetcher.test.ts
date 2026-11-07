@@ -322,6 +322,7 @@ it('should retry a 429 after its retry-after delay and return the final response
 
 it('should retry a 429 at its retry-after date and return the final response', async () => {
   // A whole second, since the retry-after date has second precision
+  // oxlint-disable-next-line no-restricted-globals -- a UTC instant for the fake timers
   vi.useFakeTimers({ now: new Date('2024-06-21T00:00:00Z') })
   const fetcher = getFetcher({
     debug: true,
@@ -894,7 +895,7 @@ it('should stop retrying when retry-after exceeds maxRetryAfter', async () => {
 it('should wait until an x-ratelimit-reset unix timestamp before retrying', async () => {
   vi.useFakeTimers()
   let attempts = 0
-  const resetAt = Math.floor(Date.now() / 1000) + 10 // 10 seconds from now
+  const resetAt = localTime.nowUnix() + 10 // 10 seconds from now
   const fetcher = getFetcher({
     logger: commonLoggerNoop,
     retry: { count: 1, timeout: 1000, timeoutMax: 30_000, timeoutMultiplier: 2 },
@@ -928,11 +929,11 @@ it('should stop without another attempt when aborted during the retry backoff', 
   })
 
   setTimeout(() => controller.abort(), 20)
-  const started = Date.now()
+  const started = localTime.nowUnixMillis()
   const { err } = await fetcher.doFetch({ url: 'someUrl', signal: controller.signal })
   _assertIsError(err, HttpRequestError)
   expect(attempts).toBe(1)
-  expect(Date.now() - started).toBeLessThan(5000)
+  expect(localTime.nowUnixMillis() - started).toBeLessThan(5000)
 })
 
 it('should return the body as a Uint8Array from getBytes', async () => {

@@ -64,9 +64,9 @@ it('should implement the StandardJSONSchemaV1 type', () => {
 
 it('should return the built schema from jsonSchema.input and output', () => {
   const schema = j.string().minLength(1).maxLength(10)
-  const opts = { target: 'draft-07' as const }
-  const input = schema['~standard'].jsonSchema.input(opts)
-  const output = schema['~standard'].jsonSchema.output(opts)
+  const opt = { target: 'draft-07' as const }
+  const input = schema['~standard'].jsonSchema.input(opt)
+  const output = schema['~standard'].jsonSchema.output(opt)
   expect(input).toEqual({ type: 'string', minLength: 1, maxLength: 10 })
   expect(output).toEqual({ type: 'string', minLength: 1, maxLength: 10 })
 })

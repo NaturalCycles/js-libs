@@ -1,3 +1,4 @@
+import { localDate } from '@naturalcycles/js-lib/datetime/localDate.js'
 import type { ParsedCommit, RepoInfo } from './release.model.js'
 
 /**
@@ -16,7 +17,7 @@ export function generateReleaseNotes(input: {
   date?: string
 }): string {
   const { repo, commits, lastTag, nextTag } = input
-  const date = input.date || new Date().toISOString().slice(0, 10)
+  const date = input.date || localDate.todayInUTC().toISODate()
 
   const header = lastTag
     ? `## [${nextTag}](${repo.url}/compare/${lastTag}...${nextTag}) (${date})`

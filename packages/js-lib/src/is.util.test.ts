@@ -1,6 +1,7 @@
 import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
 import { expect, expectTypeOf, it } from 'vitest'
 import { _sum } from './array/array.util.js'
+import { newDate } from './datetime/localTime.js'
 import {
   _isEmpty,
   _isEmptyObject,
@@ -91,7 +92,7 @@ it('should accept only object literals and null-prototype objects as plain objec
     's',
     1,
     new Error('e'),
-    new Date(),
+    newDate(),
     new Obj(),
     /re/,
     () => {},

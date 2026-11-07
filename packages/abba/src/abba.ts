@@ -54,18 +54,18 @@ export class Abba {
    */
   @_Memo({ cacheFactory: () => new LRUMemoCache({ ttl: CACHE_TTL, max: 1 }) })
   async getAllExperimentsWithBuckets(
-    opts?: GetAllExperimentsOpts,
+    opt?: GetAllExperimentsOpts,
   ): Promise<ExperimentWithBuckets[]> {
-    return await this.getAllExperimentsWithBucketsNoCache(opts)
+    return await this.getAllExperimentsWithBucketsNoCache(opt)
   }
 
   /**
    * Returns all experiments.
    */
   async getAllExperimentsWithBucketsNoCache(
-    opts?: GetAllExperimentsOpts,
+    opt?: GetAllExperimentsOpts,
   ): Promise<ExperimentWithBuckets[]> {
-    const experiments = await this.experimentDao.getAllExperiments(opts)
+    const experiments = await this.experimentDao.getAllExperiments(opt)
     const buckets = await this.bucketDao.getAll()
 
     return experiments.map(experiment => ({
