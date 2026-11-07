@@ -4,8 +4,8 @@ import { consoleLogger } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { AnyObjectWithId } from '@naturalcycles/js-lib/types'
 import { white, yellow } from '@naturalcycles/nodejs-lib/colors'
-import type { QueryOptions } from 'mysql'
-import * as mysql from 'mysql'
+import type { QueryOptions } from 'mysql2/promise'
+import * as mysql from 'mysql2/promise'
 import { mapNameToMySQL } from './schema/mysql.schema.util.js'
 
 const MAX_PACKET_SIZE = 1024 * 1024 // 1Mb

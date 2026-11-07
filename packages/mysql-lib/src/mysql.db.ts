@@ -1,4 +1,3 @@
-import { promisify } from 'node:util'
 import type {
   CommonDB,
   CommonDBCreateOptions,
@@ -19,14 +18,14 @@ import { white } from '@naturalcycles/nodejs-lib/colors'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   Connection,
-  OkPacket,
   Pool,
-  PoolConfig,
   PoolConnection,
+  PoolOptions,
   QueryOptions,
+  ResultSetHeader,
   TypeCast,
-} from 'mysql'
-import * as mysql from 'mysql'
+} from 'mysql2/promise'
+import * as mysql from 'mysql2/promise'
 import {
   dbQueryToSQLDelete,
   dbQueryToSQLSelect,
@@ -46,7 +45,7 @@ export interface MysqlDBSaveOptions<ROW extends ObjectWithId> extends CommonDBSa
 /**
  * @default false / undefined
  */
-export interface MysqlDBCfg extends PoolConfig {
+export interface MysqlDBCfg extends PoolOptions {
   /**
    * If true - will log all produced SQL queries.
    */
@@ -101,6 +100,11 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
     super()
     this.cfg = {
       typeCast,
+      // mysql2 defaults that differ from the `mysql` package, set back to what `mysql` did:
+      // utf8 (not utf8mb4) connection charset, JSON columns as strings, DECIMAL as numbers
+      charset: 'UTF8_GENERAL_CI',
+      jsonStrings: true,
+      decimalNumbers: true,
       // charset: 'utf8mb4', // for emoji support
       // host: 'localhost',
       // user: MYSQL_USER,
@@ -120,7 +124,8 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
 
   @_Memo()
   pool(): Pool {
-    const pool = mysql.createPool(this.cfg)
+    // mysql2 warns on options it doesn't know, so our own ones are left out
+    const pool = mysql.createPool(_omit(this.cfg, ['logSQL', 'debugConnections', 'logger']))
     const { host, database, logger } = this.cfg
     logger.log(`connected to ${white(host + '/' + database)}`)
 
@@ -142,17 +147,11 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
       })
     }
 
-    pool.on('error', err => {
-      logger.error(err)
-    })
-
     return pool
   }
 
   async close(): Promise<void> {
-    const pool = this.pool()
-
-    await promisify(pool.end.bind(pool))()
+    await this.pool().end()
     this.cfg.logger.log('closed')
   }
 
@@ -160,8 +159,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
    * Be careful to always call `con.release()` when you get connection with this method.
    */
   async getConnection(): Promise<PoolConnection> {
-    const pool = this.pool()
-    return await promisify(pool.getConnection.bind(pool))()
+    return await this.pool().getConnection()
   }
 
   /**
@@ -169,8 +167,9 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
    * Be careful to manage this connection yourself (open, release, etc).
    */
   async createSingleConnection(): Promise<Connection> {
-    const con = mysql.createConnection(this.cfg)
-    await promisify(con.connect.bind(con))()
+    const con = await mysql.createConnection(
+      _omit(this.cfg, ['logSQL', 'debugConnections', 'logger']),
+    )
     const { threadId } = con
 
     if (this.cfg.debugConnections) {
@@ -237,12 +236,8 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
       this.cfg.logger.log(_filterUndefinedValues({ msg: q.sql, values: q.values }))
     }
 
-    return await new Promise<RESULT>((resolve, reject) => {
-      this.pool().query(q, (err, res) => {
-        if (err) return reject(err)
-        resolve(res)
-      })
-    })
+    const [result] = await this.pool().query(q)
+    return result as RESULT
   }
 
   /**
@@ -277,15 +272,20 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
       return Pipeline.fromArray([])
     }
 
+    return this.streamSQL<ROW>(sql).mapSync(row => _filterUndefinedValues(row, { mutate: true }))
+  }
+
+  /**
+   * Streaming is not part of the mysql2 promise API, so it goes through the underlying callback pool.
+   */
+  streamSQL<ROW>(sql: string): Pipeline<ROW> {
     if (this.cfg.logSQL) this.cfg.logger.log(`stream: ${sql}`)
 
-    // todo: this is nice, but `mysql` package uses `readable-stream@2` which is not compatible with `node:stream` iterable helpers
-    // return (this.pool().query(sql).stream() as ReadableTyped<ROW>).map(row =>
+    // todo: mysql2 streams are `node:stream` Readables (unlike `mysql`'s `readable-stream@2`), so this can now use iterable helpers:
+    // return (this.pool().pool.query(sql).stream() as ReadableTyped<ROW>).map(row =>
     //   _filterUndefinedValues(row, true),
     // )
-    return Pipeline.from<ROW>(this.pool().query(sql).stream()).mapSync(row =>
-      _filterUndefinedValues(row, { mutate: true }),
-    )
+    return Pipeline.from<ROW>(this.pool().pool.query(sql).stream())
   }
 
   // SAVE
@@ -325,7 +325,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
         } else {
           // Create new
           const sql = insertSQL(table, [row], 'INSERT', this.cfg.logger)[0]!
-          const { insertId } = await this.runSQL<OkPacket>({ sql })
+          const { insertId } = await this.runSQL<ResultSetHeader>({ sql })
 
           // Mutate the input row with insertIt
           rowsInput[i]!.id = insertId as any // this is because we no longer support number ids in CommonDB
@@ -368,7 +368,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
     const sql = dbQueryToSQLDelete(new DBQuery(table).filterEq('id', ids))
     if (!sql) return 0
 
-    const { affectedRows } = await this.runSQL<OkPacket>({ sql })
+    const { affectedRows } = await this.runSQL<ResultSetHeader>({ sql })
     return affectedRows
   }
 
@@ -378,7 +378,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
   ): Promise<number> {
     const sql = dbQueryToSQLDelete(q)
     if (!sql) return 0
-    const { affectedRows } = await this.runSQL<OkPacket>({ sql })
+    const { affectedRows } = await this.runSQL<ResultSetHeader>({ sql })
     return affectedRows
   }
 
@@ -424,7 +424,7 @@ export class MysqlDB extends BaseCommonDB implements CommonDB {
     const sql = dbQueryToSQLUpdate(q, patch)
     if (!sql) return 0
 
-    const { affectedRows } = await this.runSQL<OkPacket>({ sql })
+    const { affectedRows } = await this.runSQL<ResultSetHeader>({ sql })
     return affectedRows
   }
 }

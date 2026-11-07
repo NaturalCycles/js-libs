@@ -1,7 +1,7 @@
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
-import * as mysql from 'mysql'
+import * as mysql from 'mysql2/promise'
 
 export interface MySQLTableStats {
   Field: string // created

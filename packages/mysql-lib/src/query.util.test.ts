@@ -1,6 +1,6 @@
 import { DBQuery } from '@naturalcycles/db-lib'
 import { createTestItemDBM, createTestItemsDBM, TEST_TABLE } from '@naturalcycles/db-lib/testing'
-import * as mysql from 'mysql'
+import * as mysql from 'mysql2/promise'
 import { expect, it } from 'vitest'
 import {
   dbQueryToSQLDelete,
