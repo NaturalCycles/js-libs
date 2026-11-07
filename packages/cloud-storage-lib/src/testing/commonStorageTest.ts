@@ -130,6 +130,26 @@ export async function runCommonStorageTest(
     })
   })
 
+  it('should only list the files within startOffset and endOffset', async () => {
+    const [file1, file2, file3] = TEST_FILES.map(f => f.filePath)
+
+    const fromSecond = await storage.getFileNames(bucketName, {
+      prefix: TEST_FOLDER,
+      startOffset: file2,
+    })
+    expect(fromSecond.sort()).toEqual([file2, file3])
+
+    const beforeThird = await storage
+      .getFileNamesStream(bucketName, { prefix: TEST_FOLDER, endOffset: file3 })
+      .toArray()
+    expect(beforeThird.sort()).toEqual([file1, file2])
+
+    const onlySecond = await storage
+      .getFilesStream(bucketName, { prefix: TEST_FOLDER, startOffset: file2, endOffset: file3 })
+      .toArray()
+    expect(onlySecond.map(f => f.filePath)).toEqual([file2])
+  })
+
   it('should return saved metadata, drop it on a resave without it and return null for a missing file', async () => {
     const f = TEST_FILES[0]!
     const metadata = { hash: 'hash_1' }

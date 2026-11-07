@@ -97,25 +97,25 @@ export class InMemoryCommonStorage implements CommonStorage {
   }
 
   async getFileNames(bucketName: string, opt: CommonStorageGetOptions = {}): Promise<string[]> {
-    const { prefix = '', fullPaths = true } = opt
+    const { fullPaths = true } = opt
     return Object.keys(this.data[bucketName] || {})
-      .filter(filePath => filePath.startsWith(prefix))
+      .filter(filePath => isListed(filePath, opt))
       .map(f => (fullPaths ? f : _substringAfterLast(f, '/')))
   }
 
   getFileNamesStream(bucketName: string, opt: CommonStorageGetOptions = {}): Pipeline<string> {
-    const { prefix = '', fullPaths = true } = opt
+    const { fullPaths = true } = opt
 
     return Pipeline.fromArray(
       Object.keys(this.data[bucketName] || {})
-        .filter(filePath => filePath.startsWith(prefix))
+        .filter(filePath => isListed(filePath, opt))
         .slice(0, opt.limit)
         .map(n => (fullPaths ? n : _substringAfterLast(n, '/'))),
     )
   }
 
   getFilesStream(bucketName: string, opt: CommonStorageGetOptions = {}): Pipeline<FileEntry> {
-    const { prefix = '', fullPaths = true } = opt
+    const { fullPaths = true } = opt
 
     return Pipeline.fromArray(
       _stringMapEntries(this.data[bucketName] || {})
@@ -123,7 +123,7 @@ export class InMemoryCommonStorage implements CommonStorage {
           filePath,
           content,
         }))
-        .filter(f => f.filePath.startsWith(prefix))
+        .filter(f => isListed(f.filePath, opt))
         .slice(0, opt.limit)
         .map(f => (fullPaths ? f : { ...f, filePath: _substringAfterLast(f.filePath, '/') })),
     )
@@ -255,4 +255,16 @@ export class InMemoryCommonStorage implements CommonStorage {
     this.metadata[bucketName] ||= {}
     this.metadata[bucketName][filePath] = { ...metadata }
   }
+}
+
+/**
+ * Mirrors Cloud Storage listing: `prefix`, inclusive `startOffset` and exclusive `endOffset`.
+ */
+function isListed(filePath: string, opt: CommonStorageGetOptions): boolean {
+  const { prefix = '', startOffset, endOffset } = opt
+  return (
+    filePath.startsWith(prefix) &&
+    (!startOffset || filePath >= startOffset) &&
+    (!endOffset || filePath < endOffset)
+  )
 }

@@ -134,9 +134,11 @@ export class CloudStorage implements CommonStorage {
   }
 
   async getFileNames(bucketName: string, opt: CommonStorageGetOptions = {}): Promise<string[]> {
-    const { prefix, fullPaths = true } = opt
+    const { prefix, fullPaths = true, startOffset, endOffset } = opt
     const [files] = await this.storage.bucket(bucketName).getFiles({
       prefix,
+      startOffset: startOffset || undefined,
+      endOffset: endOffset || undefined,
     })
 
     if (fullPaths) {
@@ -149,23 +151,27 @@ export class CloudStorage implements CommonStorage {
   }
 
   getFileNamesStream(bucketName: string, opt: CommonStorageGetOptions = {}): Pipeline<string> {
-    const { prefix, fullPaths = true } = opt
+    const { prefix, fullPaths = true, startOffset, endOffset } = opt
 
     return Pipeline.from<File>(
       this.storage.bucket(bucketName).getFilesStream({
         prefix,
         maxResults: opt.limit || undefined,
+        startOffset: startOffset || undefined,
+        endOffset: endOffset || undefined,
       }),
     ).mapSync(f => this.normalizeFilename(f.name, fullPaths))
   }
 
   getFilesStream(bucketName: string, opt: CommonStorageGetOptions = {}): Pipeline<FileEntry> {
-    const { prefix, fullPaths = true } = opt
+    const { prefix, fullPaths = true, startOffset, endOffset } = opt
 
     return Pipeline.from<File>(
       this.storage.bucket(bucketName).getFilesStream({
         prefix,
         maxResults: opt.limit || undefined,
+        startOffset: startOffset || undefined,
+        endOffset: endOffset || undefined,
       }),
     ).map(
       async f => {

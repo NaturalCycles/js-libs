@@ -34,6 +34,18 @@ export interface CommonStorageGetOptions {
    * 0 is treated as `undefined`.
    */
   limit?: number
+
+  /**
+   * Only returns files whose full path is lexicographically equal to or after `startOffset`.
+   * Combines with `prefix`. Empty string is treated as `undefined`.
+   */
+  startOffset?: string
+
+  /**
+   * Only returns files whose full path is lexicographically before `endOffset` (exclusive).
+   * Combines with `prefix`. Empty string is treated as `undefined`.
+   */
+  endOffset?: string
 }
 
 export interface CommonStorageSaveOptions {
