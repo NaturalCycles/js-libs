@@ -1,4 +1,4 @@
-import { nowUnixMillis } from '../datetime/localTime.js'
+import { nowUnixMillis } from '../datetime/time.util.js'
 import { _anyToError } from '../error/error.util.js'
 import { pDefer } from '../promise/pDefer.js'
 import type { DeferredPromise } from '../promise/pDefer.js'

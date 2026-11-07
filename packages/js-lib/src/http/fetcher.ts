@@ -4,8 +4,7 @@
 
 import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { abortSignalAnyOrUndefined, abortSignalTimeoutOrUndefined } from '../abort.js'
-import { nowUnixMillis } from '../datetime/localTime.js'
-import { _ms, _since } from '../datetime/time.util.js'
+import { _ms, _since, nowUnixMillis } from '../datetime/time.util.js'
 import { isServerSide } from '../env.js'
 import { _assert, _assertErrorClassOrRethrow, _assertIsError } from '../error/assert.js'
 import type { ErrorLike, ErrorObject } from '../error/error.model.js'
@@ -30,8 +29,8 @@ import {
 } from '../object/object.util.js'
 import { pDelaySignal } from '../promise/pDelay.js'
 import { pTimeout } from '../promise/pTimeout.js'
-import { _toUrlOrNull } from '../string/index.js'
 import { _jsonParse, _jsonParseIfPossible } from '../string/json.util.js'
+import { _toUrlOrNull } from '../string/url.util.js'
 import type { AnyObject, ErrorDataTuple, NumberOfMilliseconds } from '../types.js'
 import type {
   FetcherAfterResponseHook,
@@ -56,6 +55,8 @@ import type {
 import type { HttpStatusFamily } from './http.model.js'
 import { HTTP_METHODS } from './http.model.js'
 
+const FETCHER_VERSION = 5
+
 /**
  * Experimental wrapper around Fetch.
  * Works in both Browser and Node, using `globalThis.fetch`.
@@ -67,18 +68,15 @@ export class Fetcher {
    *
    * Version is to be incremented every time a difference in behaviour (or a bugfix) is done.
    */
-  static readonly VERSION = 5
+  static readonly VERSION = FETCHER_VERSION
   /**
    * userAgent is statically exposed as Fetcher.userAgent.
    * It can be modified globally, and will be used (read) at the start of every request.
    */
-  static userAgent = isServerSide() ? `fetcher/${this.VERSION}` : undefined
+  // Pure, and not reading `this.VERSION`, so bundlers can drop Fetcher when unused (see treeshake.test.ts)
+  static userAgent = /* @__PURE__ */ isServerSide() ? `fetcher/${FETCHER_VERSION}` : undefined
 
   private constructor(cfg: FetcherCfg & FetcherOptions = {}) {
-    if (typeof globalThis.fetch !== 'function') {
-      throw new TypeError('globalThis.fetch is not available')
-    }
-
     this.cfg = this.normalizeCfg(cfg)
 
     // Dynamically create all helper methods

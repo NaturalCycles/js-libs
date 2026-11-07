@@ -1,7 +1,6 @@
 import { execSync, spawn, spawnSync } from 'node:child_process'
 import type { StdioOptions } from 'node:child_process'
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
-import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _since, nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string/string.util.js'
 import type {

@@ -5,8 +5,7 @@ import type {
   RunQueryOptions,
   RunQueryResponse,
 } from '@google-cloud/datastore/build/src/query.js'
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
-import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _ms, nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { TimeoutError } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'

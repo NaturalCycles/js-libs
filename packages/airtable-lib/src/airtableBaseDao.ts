@@ -1,4 +1,4 @@
-import { nowUnix } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnix } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _LogMethod } from '@naturalcycles/js-lib/decorators/logMethod.decorator.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { _omit } from '@naturalcycles/js-lib/object'

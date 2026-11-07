@@ -82,7 +82,7 @@ const createCanvas = () => {
 export const topbar = {
   config(opts: TopBarOptions) {
     for (const key in opts) {
-      if (options.hasOwnProperty(key)) {
+      if (Object.hasOwn(options, key)) {
         // @ts-expect-error
         options[key] = opts[key]
       }

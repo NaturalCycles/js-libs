@@ -1,6 +1,6 @@
 import { Transform } from 'node:stream'
 import type { AbortableSignal } from '@naturalcycles/js-lib'
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _anyToError, _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { IndexedMapper, Predicate } from '@naturalcycles/js-lib/types'

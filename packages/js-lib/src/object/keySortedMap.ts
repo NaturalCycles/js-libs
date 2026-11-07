@@ -1,4 +1,4 @@
-import { _assert } from '../error/index.js'
+import { _assert } from '../error/assert.js'
 import type { Comparator } from '../types.js'
 
 export interface KeySortedMapOptions<K> {

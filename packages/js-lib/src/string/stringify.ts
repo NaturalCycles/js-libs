@@ -1,13 +1,11 @@
+import type { ErrorLike } from '../error/error.model.js'
 // oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { _isBackendErrorResponseObject, _isErrorLike, _isErrorObject } from '../error/error.util.js'
-import type { ErrorLike } from '../error/index.js'
 import type { Reviver } from '../types.js'
 // oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { _jsonParseIfPossible } from './json.util.js'
 import { _safeJsonStringify } from './safeJsonStringify.js'
 import { _truncateMiddle } from './string.util.js'
-
-const supportsAggregateError = typeof globalThis.AggregateError === 'function'
 
 let globalStringifyFunction: JsonStringifyFunction = _safeJsonStringify
 
@@ -184,7 +182,7 @@ function stringifyErrorLike(obj: Error | ErrorLike, opt: StringifyOptions): stri
     s = [s, ...obj.stack.split('\n').slice(sLines)].join('\n')
   }
 
-  if (supportsAggregateError && obj instanceof AggregateError && obj.errors.length) {
+  if (obj instanceof AggregateError && obj.errors.length) {
     s = [
       s,
       `${obj.errors.length} error(s):`,

@@ -1,5 +1,5 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { afterEach, expect, it, vi } from 'vitest'
 import { Pipeline } from '../pipeline.js'
 

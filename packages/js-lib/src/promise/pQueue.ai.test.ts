@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { nowUnixMillis } from '../datetime/localTime.js'
+import { nowUnixMillis } from '../datetime/time.util.js'
 import { ErrorMode } from '../error/errorMode.js'
 import { commonLoggerCreate } from '../log/commonLogger.js'
 import { pDefer } from './pDefer.js'

@@ -1,4 +1,4 @@
-import { nowUnixMillis } from '../datetime/localTime.js'
+import { nowUnixMillis } from '../datetime/time.util.js'
 import { _getTargetMethodSignature } from './decorator.util.js'
 
 export interface PromiseDecoratorCfg<RES = any, PARAMS = any> {

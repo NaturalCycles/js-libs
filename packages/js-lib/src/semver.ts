@@ -147,13 +147,17 @@ interface SemverFn extends SemverFactory {
   (input: SemverInput): Semver
 }
 
-const semverFactory = new SemverFactory()
+// Built inside a function, so the whole construct can be marked pure and tree-shaken (see treeshake.test.ts)
+export const semver2 = /* @__PURE__ */ createSemverFn()
 
-export const semver2 = semverFactory.fromInput.bind(semverFactory) as SemverFn
-
-// The line below is the blackest of black magic I have ever written in 2024.
-// And probably 2023 as well.
-Object.setPrototypeOf(semver2, semverFactory)
+function createSemverFn(): SemverFn {
+  const semverFactory = new SemverFactory()
+  const fn = semverFactory.fromInput.bind(semverFactory) as SemverFn
+  // The line below is the blackest of black magic I have ever written in 2024.
+  // And probably 2023 as well.
+  Object.setPrototypeOf(fn, semverFactory)
+  return fn
+}
 
 /**
  * Returns 1 if a > b

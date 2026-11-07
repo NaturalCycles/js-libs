@@ -29,6 +29,7 @@
     "@naturalcycles/dev-lib": "workspace:*",
     "@types/node": "catalog:",
     "@types/semver": "^7",
+    "rolldown": "^1",
     "typescript": "catalog:",
     "dayjs": "^1"
   },
@@ -47,6 +48,7 @@
     "./decorators": "./dist/decorators/index.js",
     "./decorators/*.js": "./dist/decorators/*.js",
     "./deviceIdService": "./dist/deviceIdService.js",
+    "./env/*.js": "./dist/env/*.js",
     "./error": "./dist/error/index.js",
     "./error/*.js": "./dist/error/*.js",
     "./http": "./dist/http/index.js",

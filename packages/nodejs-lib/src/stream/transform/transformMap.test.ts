@@ -1,6 +1,6 @@
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { ErrorMode } from '@naturalcycles/js-lib/error'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { SKIP } from '@naturalcycles/js-lib/types'

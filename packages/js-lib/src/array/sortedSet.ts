@@ -1,4 +1,4 @@
-import { Set2 } from '../object/index.js'
+import { Set2 } from '../object/set2.js'
 import type { Comparator } from '../types.js'
 
 export interface SortedSetOptions<T> {

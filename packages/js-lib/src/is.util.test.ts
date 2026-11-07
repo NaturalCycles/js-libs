@@ -1,7 +1,7 @@
 import { mockAllKindsOfThings } from '@naturalcycles/dev-lib/testing'
 import { expect, expectTypeOf, it } from 'vitest'
 import { _sum } from './array/array.util.js'
-import { newDate } from './datetime/localTime.js'
+import { newDate } from './datetime/time.util.js'
 import {
   _isEmpty,
   _isEmptyObject,

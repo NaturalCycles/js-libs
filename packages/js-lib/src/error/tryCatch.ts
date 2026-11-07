@@ -1,5 +1,4 @@
-import { nowUnixMillis } from '../datetime/localTime.js'
-import { _since } from '../datetime/time.util.js'
+import { _since, nowUnixMillis } from '../datetime/time.util.js'
 import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'
 import type { AnyFunction } from '../types.js'

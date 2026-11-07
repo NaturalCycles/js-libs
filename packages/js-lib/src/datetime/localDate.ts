@@ -853,10 +853,14 @@ interface LocalDateFn extends LocalDateFactory {
   (d: LocalDateInput): LocalDate
 }
 
-const localDateFactory = new LocalDateFactory()
+// Built inside a function, so the whole construct can be marked pure and tree-shaken (see treeshake.test.ts)
+export const localDate = /* @__PURE__ */ createLocalDateFn()
 
-export const localDate = localDateFactory.fromInput.bind(localDateFactory) as LocalDateFn
-
-// The line below is the blackest of black magic I have ever written in 2024.
-// And probably 2023 as well.
-Object.setPrototypeOf(localDate, localDateFactory)
+function createLocalDateFn(): LocalDateFn {
+  const localDateFactory = new LocalDateFactory()
+  const fn = localDateFactory.fromInput.bind(localDateFactory) as LocalDateFn
+  // The line below is the blackest of black magic I have ever written in 2024.
+  // And probably 2023 as well.
+  Object.setPrototypeOf(fn, localDateFactory)
+  return fn
+}

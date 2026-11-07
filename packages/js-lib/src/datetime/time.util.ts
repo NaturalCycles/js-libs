@@ -1,4 +1,4 @@
-import type { NumberOfMilliseconds, UnixTimestampMillis } from '../types.js'
+import type { NumberOfMilliseconds, UnixTimestamp, UnixTimestampMillis } from '../types.js'
 
 /**
  * using _ = blockTimer()
@@ -10,8 +10,7 @@ import type { NumberOfMilliseconds, UnixTimestampMillis } from '../types.js'
  * @experimental
  */
 export function _blockTimer(name?: string): Disposable {
-  // oxlint-disable-next-line no-restricted-globals -- localTime imports this module, so it can't import localTime back
-  const started = Date.now() as UnixTimestampMillis
+  const started = nowUnixMillis()
   return {
     [Symbol.dispose](): void {
       console.log(`${name ? name + ' ' : ''}took ${_since(started)}`)
@@ -24,8 +23,7 @@ export function _blockTimer(name?: string): Disposable {
  */
 export function _since(
   from: UnixTimestampMillis,
-  // oxlint-disable-next-line no-restricted-globals -- localTime imports this module, so it can't import localTime back
-  until: UnixTimestampMillis = Date.now() as UnixTimestampMillis,
+  until: UnixTimestampMillis = nowUnixMillis(),
 ): string {
   return _ms(until - from)
 }
@@ -73,4 +71,33 @@ export function _ms(millis: NumberOfMilliseconds): string {
 
   const days = Math.floor(hrs / 24)
   return `${days} days`
+}
+
+/**
+ * Can be used instead of `oxlint-disable ...` in places where Date is intentionally needed
+ */
+export function newDate(): Date {
+  // oxlint-disable-next-line no-restricted-globals -- the one sanctioned way to get a native Date
+  return new Date()
+}
+
+/**
+ Convenience function to return current Unix timestamp in seconds.
+ Like Date.now(), but in seconds.
+
+ Lives here rather than in localTime.ts, so importing it doesn't pull LocalTime into browser bundles.
+ */
+export function nowUnix(): UnixTimestamp {
+  // oxlint-disable-next-line no-restricted-globals -- the one sanctioned way to read the clock
+  return Math.floor(Date.now() / 1000) as UnixTimestamp
+}
+
+/**
+ Convenience function that retuns the same as Date.now(), but with proper type of UnixTimestampMillis.
+
+ Lives here rather than in localTime.ts, so importing it doesn't pull LocalTime into browser bundles.
+ */
+export function nowUnixMillis(): UnixTimestampMillis {
+  // oxlint-disable-next-line no-restricted-globals -- the one sanctioned way to read the clock
+  return Date.now() as UnixTimestampMillis
 }

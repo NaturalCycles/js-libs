@@ -1,4 +1,4 @@
-import { nowUnixMillis } from '../datetime/localTime.js'
+import { nowUnixMillis } from '../datetime/time.util.js'
 import { ErrorMode } from '../error/errorMode.js'
 import { createCommonLoggerAtLevel } from '../log/commonLogger.js'
 import type { CommonLogger, CommonLogLevel } from '../log/commonLogger.js'

@@ -55,7 +55,7 @@ class Comparators {
   }
 }
 
-export const comparators = new Comparators()
+export const comparators = /* @__PURE__ */ new Comparators()
 
 interface ComparatorByOptions {
   /**

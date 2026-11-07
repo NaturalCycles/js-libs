@@ -7,8 +7,7 @@ import type {
   Timestamp,
 } from '@google-cloud/firestore'
 import type { DBQuery } from '@naturalcycles/db-lib'
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
-import { _ms } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _ms, nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { TimeoutError } from '@naturalcycles/js-lib/error/error.util.js'
 import { createCommonLoggerAtLevel } from '@naturalcycles/js-lib/log'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'

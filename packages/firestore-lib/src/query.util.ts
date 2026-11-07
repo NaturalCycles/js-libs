@@ -2,7 +2,7 @@ import { FieldPath, Timestamp } from '@google-cloud/firestore'
 import type { Query, WhereFilterOp } from '@google-cloud/firestore'
 import type { CommonDBReadOptions, DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import { _round } from '@naturalcycles/js-lib'
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 
 export function readAtToReadTime(opt: CommonDBReadOptions): Timestamp | undefined {

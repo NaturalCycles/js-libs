@@ -119,6 +119,7 @@
     "no-new-wrappers": "deny",
     "no-nonoctal-decimal-escape": "warn",
     "no-obj-calls": "warn",
+    "no-prototype-builtins": "deny",
     "no-regex-spaces": "deny",
     "no-restricted-globals": [
       "deny",
@@ -187,6 +188,7 @@
         }
       ]
     ],
+    "prefer-object-has-own": "deny",
     "prefer-spread": "deny",
     "preserve-caught-error": "deny",
     "require-yield": "warn",

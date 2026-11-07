@@ -39,27 +39,7 @@ export function createAbortableSignal(): AbortableSignal {
 export function abortSignalTimeoutOrUndefined(
   ms: NumberOfMilliseconds | undefined,
 ): AbortSignal | undefined {
-  return ms ? abortSignalTimeout(ms) : undefined
-}
-
-/**
- * Returns an AbortSignal that aborts after the given number of milliseconds.
- * Uses native `AbortSignal.timeout()` when available, falls back to a polyfill.
- *
- * The abort reason is a DOMException with name "TimeoutError".
- */
-export function abortSignalTimeout(ms: NumberOfMilliseconds): AbortSignal {
-  return typeof AbortSignal.timeout === 'function'
-    ? AbortSignal.timeout(ms)
-    : polyfilledAbortSignalTimeout(ms)
-}
-
-export function polyfilledAbortSignalTimeout(ms: NumberOfMilliseconds): AbortSignal {
-  const ac = new AbortController()
-  setTimeout(() => {
-    ac.abort(new DOMException('The operation was aborted due to timeout', 'TimeoutError'))
-  }, ms)
-  return ac.signal
+  return ms ? AbortSignal.timeout(ms) : undefined
 }
 
 /**
@@ -87,6 +67,7 @@ export function abortSignalAny(signals: readonly AbortSignal[]): AbortSignal {
     return signals[0]!
   }
 
+  // AbortSignal.any needs Chrome 116+ / Safari 17.4+, above our browser floor (Chrome 110, iOS 16.7)
   return typeof AbortSignal.any === 'function'
     ? AbortSignal.any(signals as AbortSignal[]) // lib.dom types require a mutable array, but it is only read
     : polyfilledAbortSignalAny(signals)

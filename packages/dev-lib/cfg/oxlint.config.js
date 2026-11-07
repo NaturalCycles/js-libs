@@ -154,6 +154,8 @@ export const sharedConfig = {
     'no-var': 2,
     'unicode-bom': 2,
     'no-extend-native': 2,
+    'no-prototype-builtins': 2,
+    'prefer-object-has-own': 2,
     'no-extra-bind': 2,
     'no-duplicate-imports': [
       0, // disabled until auto-fix is there

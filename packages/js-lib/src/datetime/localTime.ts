@@ -17,7 +17,7 @@ import type {
 // oxlint-disable-next-line import/no-cycle -- intentional cycle
 import type { LocalDate } from './localDate.js'
 import { localDate } from './localDate.js'
-import { _ms } from './time.util.js'
+import { _ms, nowUnix, nowUnixMillis } from './time.util.js'
 // oxlint-disable-next-line import/no-cycle -- intentional cycle
 import { WallTime } from './wallTime.js'
 
@@ -817,7 +817,7 @@ class LocalTimeFactory {
    Convenience function to return current Unix timestamp in seconds.
    Like Date.now(), but in seconds.
 
-   Import nowUnix function individually in places where importing localTime is too heavy.
+   Import nowUnix from time.util.js in places where importing localTime is too heavy.
    */
   nowUnix(): UnixTimestamp {
     return nowUnix()
@@ -826,7 +826,7 @@ class LocalTimeFactory {
   /**
    Convenience function that retuns the same as Date.now(), but with proper type of UnixTimestampMillis.
 
-   Import nowUnixMillis function individually in places where importing localTime is too heavy.
+   Import nowUnixMillis from time.util.js in places where importing localTime is too heavy.
    */
   nowUnixMillis(): UnixTimestampMillis {
     return nowUnixMillis()
@@ -1212,36 +1212,14 @@ interface LocalTimeFn extends LocalTimeFactory {
   (d: LocalTimeInput): LocalTime
 }
 
-const localTimeFactory = new LocalTimeFactory()
+// Built inside a function, so the whole construct can be marked pure and tree-shaken (see treeshake.test.ts)
+export const localTime = /* @__PURE__ */ createLocalTimeFn()
 
-export const localTime = localTimeFactory.fromInput.bind(localTimeFactory) as LocalTimeFn
-
-// The line below is the blackest of black magic I have ever written in 2024.
-// And probably 2023 as well.
-Object.setPrototypeOf(localTime, localTimeFactory)
-
-/**
- * Can be used instead of `oxlint-disable ...` in places where Date is intentionally needed
- */
-export function newDate(): Date {
-  return new Date()
-}
-
-/**
- Convenience function to return current Unix timestamp in seconds.
- Like Date.now(), but in seconds.
-
- Import nowUnix function individually in places where importing localTime is too heavy.
- */
-export function nowUnix(): UnixTimestamp {
-  return Math.floor(Date.now() / 1000) as UnixTimestamp
-}
-
-/**
- Convenience function that retuns the same as Date.now(), but with proper type of UnixTimestampMillis.
-
- Import nowUnixMillis function individually in places where importing localTime is too heavy.
- */
-export function nowUnixMillis(): UnixTimestampMillis {
-  return Date.now() as UnixTimestampMillis
+function createLocalTimeFn(): LocalTimeFn {
+  const localTimeFactory = new LocalTimeFactory()
+  const fn = localTimeFactory.fromInput.bind(localTimeFactory) as LocalTimeFn
+  // The line below is the blackest of black magic I have ever written in 2024.
+  // And probably 2023 as well.
+  Object.setPrototypeOf(fn, localTimeFactory)
+  return fn
 }

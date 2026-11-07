@@ -1,5 +1,4 @@
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
-import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _since, nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { boldGrey, dimGrey } from '@naturalcycles/nodejs-lib/colors'
 import { onFinished } from '../onFinished.js'
 import { logRequestWithColors } from './request.log.util.js'

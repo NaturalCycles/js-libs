@@ -1,6 +1,6 @@
 import { _isTruthy } from '@naturalcycles/js-lib'
 import { _uniqBy } from '@naturalcycles/js-lib/array/array.util.js'
-import { nowUnix } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnix } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { _assert, ErrorMode } from '@naturalcycles/js-lib/error'
 import { consoleLogger } from '@naturalcycles/js-lib/log'
 import { _deepJsonEquals } from '@naturalcycles/js-lib/object/deepEquals.js'

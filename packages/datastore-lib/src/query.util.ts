@@ -3,7 +3,7 @@ import type { Query } from '@google-cloud/datastore'
 import type { Operator, RunQueryOptions } from '@google-cloud/datastore/build/src/query.js'
 import type { DBQuery, DBQueryFilterOperator } from '@naturalcycles/db-lib'
 import { _round } from '@naturalcycles/js-lib'
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import type { DatastoreDBReadOptions } from './datastore.model.js'
 

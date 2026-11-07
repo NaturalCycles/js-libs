@@ -1,5 +1,4 @@
-import { nowUnixMillis } from '@naturalcycles/js-lib/datetime/localTime.js'
-import { _since } from '@naturalcycles/js-lib/datetime/time.util.js'
+import { _since, nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 
 /* oxlint-disable unicorn/no-anonymous-default-export */
 export default async (): Promise<void> => {

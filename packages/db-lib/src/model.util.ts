@@ -1,4 +1,4 @@
-import { nowUnix } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { nowUnix } from '@naturalcycles/js-lib/datetime/time.util.js'
 import type { CreatedUpdated, CreatedUpdatedId } from '@naturalcycles/js-lib/types'
 import { stringId } from '@naturalcycles/nodejs-lib'
 

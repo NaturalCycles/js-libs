@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { _range } from '../array/index.js'
-import { nowUnixMillis } from '../datetime/localTime.js'
+import { nowUnixMillis } from '../datetime/time.util.js'
 import { AppError, ErrorMode, pExpectedError } from '../error/index.js'
 import { _randomInt } from '../index.js'
 import { END, SKIP } from '../types.js'

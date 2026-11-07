@@ -195,9 +195,7 @@ export function _find<T>(items: readonly T[], predicate: AbortablePredicate<T>):
 /**
  * Similar to `Array.findLast`, but the `predicate` may return `END` to stop the iteration early.
  *
- * Use `Array.findLast` if you don't need to stop the iteration early, which is supported:
- * - in Node since 18+
- * - in iOS Safari since 15.4
+ * Use `Array.findLast` if you don't need to stop the iteration early.
  */
 export function _findLast<T>(items: readonly T[], predicate: AbortablePredicate<T>): T | undefined {
   return _find(items.toReversed(), predicate)

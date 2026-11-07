@@ -1,4 +1,4 @@
-import { nowUnixMillis } from './datetime/localTime.js'
+import { nowUnixMillis } from './datetime/time.util.js'
 import { consoleLogger } from './log/commonLogger.js'
 import type { CommonLogger } from './log/commonLogger.js'
 import type { NumberOfMilliseconds } from './types.js'
@@ -93,9 +93,9 @@ class AsyncManagerImpl {
  *
  * @experimental
  */
-export const AsyncManager = new AsyncManagerImpl()
+export const AsyncManager = /* @__PURE__ */ new AsyncManagerImpl()
 
 // Shorthand alias
-export const runInBackground = AsyncManager.runInBackground.bind(AsyncManager)
+export const runInBackground = /* @__PURE__ */ AsyncManager.runInBackground.bind(AsyncManager)
 
 export type OnErrorHook = (err: Error) => any

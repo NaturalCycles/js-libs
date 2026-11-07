@@ -452,7 +452,7 @@ export function _unset<T extends AnyObject>(obj: T, prop: string): void {
     return
   }
 
-  if (obj.hasOwnProperty(prop)) {
+  if (Object.hasOwn(obj, prop)) {
     delete obj[prop]
     return
   }
@@ -599,7 +599,7 @@ export function _deepFreeze(o: any): void {
 
   Object.getOwnPropertyNames(o).forEach(prop => {
     if (
-      o.hasOwnProperty(prop) &&
+      Object.hasOwn(o, prop) &&
       o[prop] !== null &&
       (typeof o[prop] === 'object' || typeof o[prop] === 'function') &&
       !Object.isFrozen(o[prop])

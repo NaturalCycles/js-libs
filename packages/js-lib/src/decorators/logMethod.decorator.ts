@@ -1,5 +1,4 @@
-import { nowUnixMillis } from '../datetime/localTime.js'
-import { _ms } from '../datetime/time.util.js'
+import { _ms, nowUnixMillis } from '../datetime/time.util.js'
 import { _assert } from '../error/assert.js'
 import { consoleLogger } from '../log/commonLogger.js'
 import type { CommonLogger } from '../log/commonLogger.js'

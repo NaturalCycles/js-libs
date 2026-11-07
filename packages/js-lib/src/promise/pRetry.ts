@@ -1,5 +1,4 @@
-import { nowUnixMillis } from '../datetime/localTime.js'
-import { _since } from '../datetime/time.util.js'
+import { _since, nowUnixMillis } from '../datetime/time.util.js'
 import type { ErrorData } from '../error/error.model.js'
 import { _errorDataAppend } from '../error/error.util.js'
 import { consoleLogger } from '../log/commonLogger.js'

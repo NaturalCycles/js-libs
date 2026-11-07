@@ -1,4 +1,4 @@
-import { newDate } from '@naturalcycles/js-lib/datetime/localTime.js'
+import { newDate } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { expect, it } from 'vitest'
 
 it('should use the real clock by default', () => {

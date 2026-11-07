@@ -2,11 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   abortSignalAny,
   abortSignalAnyOrUndefined,
-  abortSignalTimeout,
   abortSignalTimeoutOrUndefined,
   createAbortableSignal,
   polyfilledAbortSignalAny,
-  polyfilledAbortSignalTimeout,
 } from './abort.js'
 
 afterEach(() => {
@@ -27,25 +25,6 @@ it('should create a signal that aborts itself via abort()', () => {
   expect(a.signal.aborted).toBe(true)
 })
 
-describe('abortSignalTimeout', () => {
-  it('should return a signal that is not aborted yet', () => {
-    const signal = abortSignalTimeout(1000)
-    expect(signal).toBeInstanceOf(AbortSignal)
-    expect(signal.aborted).toBe(false)
-  })
-
-  it('should abort with a TimeoutError after the given time', async () => {
-    const signal = abortSignalTimeout(50)
-    expect(signal.aborted).toBe(false)
-
-    await new Promise(resolve => setTimeout(resolve, 100))
-
-    expect(signal.aborted).toBe(true)
-    expect(signal.reason).toBeInstanceOf(DOMException)
-    expect(signal.reason.name).toBe('TimeoutError')
-  })
-})
-
 describe('abortSignalTimeoutOrUndefined', () => {
   it('should return an AbortSignal when ms is defined', () => {
     const signal = abortSignalTimeoutOrUndefined(1000)
@@ -58,30 +37,6 @@ describe('abortSignalTimeoutOrUndefined', () => {
 
   it('should return undefined when ms is 0', () => {
     expect(abortSignalTimeoutOrUndefined(0)).toBeUndefined()
-  })
-})
-
-describe('polyfilledAbortSignalTimeout', () => {
-  it('should return a signal that is not aborted yet', () => {
-    const signal = polyfilledAbortSignalTimeout(1000)
-    expect(signal).toBeInstanceOf(AbortSignal)
-    expect(signal.aborted).toBe(false)
-  })
-
-  it('should abort with a TimeoutError and fire the abort event after the given time', () => {
-    vi.useFakeTimers()
-    const signal = polyfilledAbortSignalTimeout(50)
-    const onAbort = vi.fn<() => void>()
-    signal.addEventListener('abort', onAbort)
-
-    vi.advanceTimersByTime(49)
-    expect(signal.aborted).toBe(false)
-
-    vi.advanceTimersByTime(1)
-    expect(signal.aborted).toBe(true)
-    expect(signal.reason).toBeInstanceOf(DOMException)
-    expect(signal.reason.name).toBe('TimeoutError')
-    expect(onAbort).toHaveBeenCalledOnce()
   })
 })
 
@@ -120,7 +75,7 @@ describe('abortSignalAny', () => {
 
   it('should abort on a caller abort before a long timeout fires', () => {
     const controller = new AbortController()
-    const combined = abortSignalAny([abortSignalTimeout(10_000), controller.signal])
+    const combined = abortSignalAny([AbortSignal.timeout(10_000), controller.signal])
 
     controller.abort(new DOMException('user cancelled', 'AbortError'))
 
@@ -191,7 +146,7 @@ describe('polyfilledAbortSignalAny', () => {
 
   it('should abort with a TimeoutError when combined with a timeout signal', async () => {
     const controller = new AbortController()
-    const combined = polyfilledAbortSignalAny([polyfilledAbortSignalTimeout(50), controller.signal])
+    const combined = polyfilledAbortSignalAny([AbortSignal.timeout(50), controller.signal])
 
     expect(combined.aborted).toBe(false)
 

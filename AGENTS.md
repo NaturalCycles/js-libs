@@ -44,6 +44,17 @@ function foo() {
 
 When changing code - DON'T remove pre-existing code comments, preserve them instead.
 
+## Runtime Support
+
+js-lib also runs in browsers, with a support floor of iOS Safari 16.7+ and Chrome 110+. The other
+packages are Node-only (see `engines.node`).
+
+- Use APIs available at the floor directly, without feature detection or fallbacks (e.g.
+  `AggregateError`, `AbortSignal.timeout`, `Object.hasOwn`, `structuredClone`, `Array#toSorted`).
+- APIs newer than the floor need a fallback in js-lib: e.g. `AbortSignal.any`, `Array.fromAsync`,
+  `Response#bytes`, `Promise.withResolvers`, `Object.groupBy`, Set methods, iterator helpers,
+  `Symbol.dispose`. TypeScript won't catch these, as `lib` is `esnext`.
+
 ## Array & Iterable Patterns
 
 - **Shallow array copy:** prefer `arr.slice()` over `[...arr]`. Slice uses an optimized internal
