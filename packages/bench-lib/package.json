@@ -13,7 +13,7 @@
   "dependencies": {
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
-    "autocannon": "^8",
+    "autocannon": "^9",
     "benchmark": "^2",
     "hdr-histogram-js": "^3",
     "tslib": "^2"
