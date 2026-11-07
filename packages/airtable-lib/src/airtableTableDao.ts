@@ -1,10 +1,9 @@
 import { _Memo } from '@naturalcycles/js-lib/decorators'
 import { _LogMethod } from '@naturalcycles/js-lib/decorators/logMethod.decorator.js'
-import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
+import { _anyToError, AppError, HttpRequestError } from '@naturalcycles/js-lib/error/error.util.js'
 import { _mapValues } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { InstanceId } from '@naturalcycles/js-lib/types'
-import { _inspect } from '@naturalcycles/nodejs-lib'
 import type { AirtableApiRecord, AirtableApiSelectOpts, AirtableApiTable } from './airtable.api.js'
 import type { AirtableDaoOptions, AirtableRecord, AirtableTableCfg } from './airtable.model.js'
 import { AirtableErrorCode } from './airtable.model.js'
@@ -25,9 +24,8 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
   instanceId!: string
 
   @_Memo()
-  private async table(): Promise<AirtableApiTable<T>> {
-    const api = await this.airtableLib.api()
-    return api.base(this.baseId)<T>(this.tableName)
+  private table(): AirtableApiTable<T> {
+    return this.airtableLib.api().base(this.baseId)<T>(this.tableName)
   }
 
   /**
@@ -40,7 +38,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
   ): Promise<T[]> {
     const { sort, idField } = this.cfg
 
-    const table = await this.table()
+    const table = this.table()
     const records = await table
       .select({
         // defaults
@@ -64,7 +62,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
 
   @_LogMethod()
   async getRecord(airtableId: string, opt: AirtableDaoOptions = {}): Promise<T | undefined> {
-    const table = await this.table()
+    const table = this.table()
     const record = await table
       .find(airtableId)
       .catch(err => this.onErrorOrUndefined(err, { airtableId }))
@@ -96,7 +94,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
   @_LogMethod()
   async createRecord(record: Exclude<T, 'airtableId'>, opt: AirtableDaoOptions = {}): Promise<T> {
     // pre-save validation is skipped, cause we'll need to "omit" the `airtableId` from schema
-    const table = await this.table()
+    const table = this.table()
     const raw = await table.create(record as Partial<T>).catch(err => this.onError(err, { record }))
 
     return this.mapToAirtableRecord(raw, opt)
@@ -118,7 +116,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
       records,
       async record => {
         // pre-save validation is skipped
-        const table = await this.table()
+        const table = this.table()
         const raw = await table
           .create(record as Partial<T>)
           .catch(err => this.onError(err, { record }))
@@ -138,7 +136,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
     opt: AirtableDaoOptions = {},
   ): Promise<T> {
     // console.log('updateRecord', {airtableId, patch})
-    const table = await this.table()
+    const table = this.table()
     const raw = await table
       .update(airtableId, patch)
       .catch(err => this.onError(err, { airtableId, patch }))
@@ -156,7 +154,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
     record: Exclude<T, 'airtableId'>,
     opt: AirtableDaoOptions = {},
   ): Promise<T> {
-    const table = await this.table()
+    const table = this.table()
     const raw = await table
       .replace(airtableId, record as Partial<T>)
       .catch(err => this.onError(err, { record }))
@@ -171,7 +169,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
       records,
       async r => {
         const { airtableId, ...record } = r
-        const table = await this.table()
+        const table = this.table()
         const raw = await table
           .replace(airtableId, record as T)
           .catch(err => this.onError(err, { record: r }))
@@ -186,7 +184,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
    */
   @_LogMethod()
   async deleteRecord(airtableId: string): Promise<boolean> {
-    const table = await this.table()
+    const table = this.table()
     return await table
       .destroy(airtableId)
       .catch(err => this.onErrorOrUndefined(err, { airtableId }))
@@ -211,7 +209,7 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
    */
   @_LogMethod()
   async deleteAllRecords(concurrency = 4): Promise<string[]> {
-    const table = await this.table()
+    const table = this.table()
     // Using low level commands to include empty records too
     const airtableIds = (
       await table
@@ -279,25 +277,26 @@ export class AirtableTableDao<T extends AirtableRecord = any> implements Instanc
     return o
   }
 
-  onErrorOrUndefined(err: any, airtableInput?: any): undefined | never {
+  onErrorOrUndefined(err: unknown, airtableInput?: any): undefined | never {
     // Turn 404 error into `undefined`
-    if (err?.statusCode === 404) {
+    if (err instanceof HttpRequestError && err.data.responseStatusCode === 404) {
       return
     }
 
     this.onError(err, airtableInput)
   }
 
-  private onError(err: any, airtableInput?: any): never {
+  private onError(err: unknown, airtableInput?: any): never {
     // Wrap as AppError with code
-    // Don't keep stack, cause `err` from Airtable is not instance of Error (hence no native stack)
-    // console.error('onError', err)
     const { tableName } = this
-    const msg = `${tableName}: ${_inspect(err)}`
-    throw new AppError(msg, {
-      code: AirtableErrorCode.AIRTABLE_ERROR,
-      airtableTableName: tableName,
-      airtableInput,
-    })
+    throw new AppError(
+      `${tableName}: ${_anyToError(err).message}`,
+      {
+        code: AirtableErrorCode.AIRTABLE_ERROR,
+        airtableTableName: tableName,
+        airtableInput,
+      },
+      { cause: err },
+    )
   }
 }

@@ -1,3 +1,4 @@
+import { testOnline } from '@naturalcycles/dev-lib/testing/testOffline'
 import { _omit } from '@naturalcycles/js-lib/object'
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { expect, it } from 'vitest'
@@ -12,6 +13,7 @@ import {
   mockTableDao2,
 } from './airtable.mock.js'
 
+testOnline()
 loadEnvFileIfExists()
 
 const { AIRTABLE_API_KEY, AIRTABLE_BASE_ID } = requireEnvKeys(

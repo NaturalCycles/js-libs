@@ -14,11 +14,10 @@ import { _by } from '@naturalcycles/js-lib/array/array.util.js'
 import { comparators } from '@naturalcycles/js-lib/array/sort.js'
 import { _Memo } from '@naturalcycles/js-lib/decorators/memo.decorator.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
+import { _anyToError, AppError, HttpRequestError } from '@naturalcycles/js-lib/error/error.util.js'
 import { _mapValues, _omit } from '@naturalcycles/js-lib/object'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { AnyObject, ObjectWithId } from '@naturalcycles/js-lib/types'
-import { _inspect } from '@naturalcycles/nodejs-lib'
 import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import type {
   AirtableApi,
@@ -26,6 +25,7 @@ import type {
   AirtableApiSelectOpts,
   AirtableApiTable,
 } from './airtable.api.js'
+import { createAirtableApi } from './airtable.api.js'
 import type { AirtableRecord } from './airtable.model.js'
 import { AirtableErrorCode } from './airtable.model.js'
 import { stripQueryStringFromAttachments } from './airtable.util.js'
@@ -95,18 +95,11 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
   }
 
   @_Memo()
-  async api(): Promise<AirtableApi> {
-    // lazy-loading the library
-    const airtableApi = (await import('airtable')).default as any as AirtableApi
-
-    airtableApi.configure({
-      // endpointURL: 'https://api.airtable.com',
+  api(): AirtableApi {
+    return createAirtableApi({
       apiKey: this.cfg.apiKey,
-      // Default is 5 minutes, we override the default to 40 seconds
       requestTimeout: this.cfg.requestTimeout || 40_000,
     })
-
-    return airtableApi
   }
 
   override async ping(): Promise<void> {
@@ -150,7 +143,8 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
       await this.queryAirtableRecords<AirtableRecord & ObjectWithId>(
         table,
         {
-          fields: [], // no fields, just airtableIds
+          // only the idField: rows without it are filtered out as empty
+          fields: [idField as keyof (AirtableRecord & ObjectWithId)],
           filterByFormula,
         },
         opt,
@@ -158,7 +152,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
     ).map(r => r.airtableId)
 
     // step 2: delete by airtableIds
-    const tableApi = await this.tableApi<ObjectWithId>(table)
+    const tableApi = this.tableApi<ObjectWithId>(table)
 
     await pMap(
       airtableIds,
@@ -239,7 +233,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
   ): Promise<number> {
     const { rows } = await this.runQuery<ROW & AirtableRecord>(q.select([]), opt)
 
-    const tableApi = await this.tableApi<ObjectWithId>(q.table)
+    const tableApi = this.tableApi<ObjectWithId>(q.table)
 
     await pMap(
       rows.map(r => r.airtableId),
@@ -267,7 +261,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
     })
   }
 
-  private async tableApi<ROW extends ObjectWithId>(table: string): Promise<AirtableApiTable<ROW>> {
+  private tableApi<ROW extends ObjectWithId>(table: string): AirtableApiTable<ROW> {
     let { baseId } = this.cfg
 
     if (!baseId) {
@@ -278,8 +272,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
       table = a[1]!
     }
 
-    const api = await this.api()
-    return api.base(baseId)<ROW>(table)
+    return this.api().base(baseId)<ROW>(table)
   }
 
   private async queryAirtableRecords<ROW extends ObjectWithId>(
@@ -288,7 +281,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
     opt: AirtableDBOptions,
     q?: DBQuery<ROW>,
   ): Promise<ROW[]> {
-    const tableApi = await this.tableApi<ROW>(table)
+    const tableApi = this.tableApi<ROW>(table)
     const records = await tableApi
       .select({
         // defaults
@@ -328,7 +321,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
 
   async createRecord<ROW extends ObjectWithId>(table: string, record: Partial<ROW>): Promise<ROW> {
     // pre-save validation is skipped, cause we'll need to "omit" the `airtableId` from schema
-    const tableApi = await this.tableApi<ROW>(table)
+    const tableApi = this.tableApi<ROW>(table)
     const raw = await tableApi
       .create(_omit(record, ['airtableId'] as any))
       .catch(err => this.onError(err, table, { record }))
@@ -341,7 +334,7 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
     airtableId: string,
     patch: Partial<ROW>,
   ): Promise<ROW> {
-    const tableApi = await this.tableApi<ROW>(table)
+    const tableApi = this.tableApi<ROW>(table)
     const raw = await tableApi
       .update(airtableId, _omit(patch, ['airtableId'] as any))
       .catch(err => this.onError(err, table, { airtableId, patch }))
@@ -356,22 +349,22 @@ export class AirtableDB extends BaseCommonDB implements CommonDB {
   //     .then(r => !!r)
   // }
 
-  private onError(err: any, table: string, airtableInput?: any): never {
+  private onError(err: unknown, table: string, airtableInput?: any): never {
     // Wrap as AppError with code
-    // Don't keep stack, cause `err` from Airtable is not instance of Error (hence no native stack)
-    // console.error('onError', err)
-    const msg = `${table}: ${_inspect(err)}`
-    throw new AppError(msg, {
-      code: AirtableErrorCode.AIRTABLE_ERROR,
-      airtableTableName: table,
-      airtableInput,
-      // todo: extend the stack of original error
-    })
+    throw new AppError(
+      `${table}: ${_anyToError(err).message}`,
+      {
+        code: AirtableErrorCode.AIRTABLE_ERROR,
+        airtableTableName: table,
+        airtableInput,
+      },
+      { cause: err },
+    )
   }
 
-  private onErrorOrUndefined(err: any, table: string, airtableInput?: any): undefined | never {
+  private onErrorOrUndefined(err: unknown, table: string, airtableInput?: any): undefined | never {
     // Turn 404 error into `undefined`
-    if (err?.statusCode === 404) {
+    if (err instanceof HttpRequestError && err.data.responseStatusCode === 404) {
       return
     }
 
