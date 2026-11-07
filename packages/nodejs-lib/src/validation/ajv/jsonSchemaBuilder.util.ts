@@ -62,11 +62,12 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
   })
 
   // Merge `patternProperties`
-  Object.entries(s2.patternProperties || {}).forEach(([k, v]) => {
-    s1.patternProperties[k] = v
-  })
+  if (s2.patternProperties) {
+    s1.patternProperties = { ...s1.patternProperties, ...s2.patternProperties }
+  }
 
   s1.propertyNames = s2.propertyNames || s1.propertyNames
+  s1.keySchema = s2.keySchema || s1.keySchema
   s1.minProperties = s2.minProperties ?? s1.minProperties
   s1.maxProperties = s2.maxProperties ?? s1.maxProperties
 
@@ -74,7 +75,10 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
   s1.required.push(...s2.required)
   s1.required = _uniq(s1.required).sort()
 
-  // `additionalProperties` remains the same
+  // `additionalProperties` remains the same, unless s2 is a string map (schema-valued)
+  if (typeof s2.additionalProperties === 'object') {
+    s1.additionalProperties = s2.additionalProperties
+  }
 
   return _filterNullishValues(s1, { mutate: true })
 }

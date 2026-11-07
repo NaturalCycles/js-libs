@@ -939,6 +939,14 @@ describe('string', () => {
         `)
       })
     })
+
+    it('should enforce every chained rule', () => {
+      const schema = j.string().isoDate().after('2018-06-20').before('2018-06-22')
+
+      expect(schema.isValid('2018-06-21')).toBe(true)
+      expect(schema.isValid('2018-06-20')).toBe(false)
+      expect(schema.isValid('2018-06-22')).toBe(false)
+    })
   })
 
   describe('IsoDateTime', () => {
@@ -3581,6 +3589,32 @@ describe('object', () => {
         expect(result, _stringify(data)).toEqual(data)
       }
     })
+
+    it('should report only the value error for an invalid optional value', () => {
+      const schema = j.object
+        .record(j.string(), j.number().optional())
+        .isOfType<Partial<Record<string, number>>>()
+
+      const [err] = schema.getValidationResult({ a: 'x' })
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object.a must be number
+        Got: x
+        Input: { a: 'x' }]
+      `)
+    })
+
+    it('should keep the key and value schemas when concatenated to an object', () => {
+      const schema = j
+        .object<{ name: string }>({ name: j.string() })
+        .concat(j.object.record(j.string().regex(/^\d+$/), j.number()))
+        .isOfType<{ name: string } & Record<string, number>>()
+
+      const [err, result] = schema.getValidationResult({ name: 'x', '1': 1, a: 2 })
+      expect(err).toBeNull()
+      expect(result).toEqual({ name: 'x', '1': 1 })
+      expect(schema.isValid({ name: 'x', '1': '1' })).toBe(false)
+    })
   })
 
   describe('.withEnumKeys', () => {
@@ -3892,6 +3926,54 @@ describe('object', () => {
         expect(result, _stringify(data)).toEqual(data)
       }
     })
+
+    it('should report the key of an invalid value', () => {
+      const schema = j.object<{ dates: StringMap<IsoDate> }>({
+        dates: j.object.stringMap(j.string().isoDate()),
+      })
+
+      const [err] = schema.getValidationResult({ dates: { a: '2025-01-01', b: '2025-02-30' } })
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object.dates.b is an invalid IsoDate
+        Got: 2025-02-30
+        Input: { dates: { a: '2025-01-01', b: '2025-02-30' } }]
+      `)
+    })
+
+    it('should keep validating the values after allowAdditionalProperties', () => {
+      const schema = j.object
+        .stringMap(j.number())
+        .allowAdditionalProperties()
+        .isOfType<StringMap<number>>()
+
+      expect(schema.isValid({ a: 1 })).toBe(true)
+      expect(schema.isValid({ a: '1' })).toBe(false)
+    })
+
+    it('should keep validating the values when concatenated to an empty object', () => {
+      const schema = j
+        .object<AnyObject>({})
+        .concat(j.object.stringMap(j.number()))
+        .isOfType<StringMap<number>>()
+
+      const [err, result] = schema.getValidationResult({ a: 1, b: 2 })
+      expect(err).toBeNull()
+      expect(result).toEqual({ a: 1, b: 2 })
+      expect(schema.isValid({ a: '1' })).toBe(false)
+    })
+
+    it('should report only the value error for an invalid optional value', () => {
+      const schema = j.object.stringMap(j.number().optional()).isOfType<StringMap<number>>()
+
+      const [err] = schema.getValidationResult({ a: 'x' })
+
+      expect(err).toMatchInlineSnapshot(`
+        [AjvValidationError: Object.a must be number
+        Got: x
+        Input: { a: 'x' }]
+      `)
+    })
   })
 
   describe('.withRegexKeys', () => {
@@ -3901,6 +3983,18 @@ describe('object', () => {
       const [err, result] = schema.getValidationResult({ '123': 1, '1234': 2, abc: 3 })
       expect(err).toBeNull()
       expect(result).toEqual({ '123': 1, '1234': 2 })
+    })
+
+    it('should keep the pattern when concatenated to an object', () => {
+      const schema = j
+        .object<{ name: string }>({ name: j.string() })
+        .concat(j.object.withRegexKeys(/^\d+$/, j.number()))
+        .isOfType<{ name: string } & StringMap<number>>()
+
+      const [err, result] = schema.getValidationResult({ name: 'x', '1': 1, a: 2 })
+      expect(err).toBeNull()
+      expect(result).toEqual({ name: 'x', '1': 1 })
+      expect(schema.isValid({ name: 'x', '1': '1' })).toBe(false)
     })
 
     it('should reject invalid value types', () => {

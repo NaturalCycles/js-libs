@@ -89,16 +89,16 @@ export const j = {
       const isValueOptional = schema.getSchema().optionalField
       const builtSchema = schema.build()
       const finalValueSchema: JsonSchema = isValueOptional
-        ? { anyOf: [{ isUndefined: true }, builtSchema] }
+        ? { ifDefined: builtSchema }
         : builtSchema
 
+      // `additionalProperties` instead of `patternProperties: { '^.+$': ... }`, which made Ajv
+      // regex-test every key twice (once more for `additionalProperties: false`)
       return new JObject<StringMap<SchemaOut<S>>>(
         {},
         {
           hasIsOfTypeCheck: false,
-          patternProperties: {
-            '^.+$': finalValueSchema,
-          },
+          additionalProperties: finalValueSchema,
         },
       )
     },
@@ -917,31 +917,30 @@ export class JIsoDate<Opt extends boolean = false> extends JBuilder<IsoDate, Opt
   }
 
   before(date: string): this {
-    return this.cloneAndUpdateSchema({ IsoDate: { before: date } })
+    return this.addRules({ before: date })
   }
 
   sameOrBefore(date: string): this {
-    return this.cloneAndUpdateSchema({ IsoDate: { sameOrBefore: date } })
+    return this.addRules({ sameOrBefore: date })
   }
 
   after(date: string): this {
-    return this.cloneAndUpdateSchema({ IsoDate: { after: date } })
+    return this.addRules({ after: date })
   }
 
   sameOrAfter(date: string): this {
-    return this.cloneAndUpdateSchema({ IsoDate: { sameOrAfter: date } })
+    return this.addRules({ sameOrAfter: date })
   }
 
   between(fromDate: string, toDate: string, incl: Inclusiveness): this {
-    let schemaPatch: Partial<JsonSchema> = {}
-
     if (incl === '[)') {
-      schemaPatch = { IsoDate: { sameOrAfter: fromDate, before: toDate } }
-    } else if (incl === '[]') {
-      schemaPatch = { IsoDate: { sameOrAfter: fromDate, sameOrBefore: toDate } }
+      return this.addRules({ sameOrAfter: fromDate, before: toDate })
     }
+    return this.addRules({ sameOrAfter: fromDate, sameOrBefore: toDate })
+  }
 
-    return this.cloneAndUpdateSchema(schemaPatch)
+  private addRules(rules: JsonSchemaIsoDateOptions): this {
+    return this.cloneAndUpdateSchema({ IsoDate: { ...this.schema.IsoDate, ...rules } })
   }
 }
 
@@ -1108,7 +1107,7 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
       type: 'object',
       properties: {},
       required: [],
-      additionalProperties: false,
+      additionalProperties: opt?.additionalProperties ?? false,
       hasIsOfTypeCheck: opt?.hasIsOfTypeCheck ?? true,
       patternProperties: opt?.patternProperties ?? undefined,
       keySchema: opt?.keySchema ?? undefined,
@@ -1122,6 +1121,8 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
    */
 
   allowAdditionalProperties(): this {
+    // A string map already accepts every property, validated by its value schema
+    if (typeof this.schema.additionalProperties === 'object') return this.clone()
     return this.cloneAndUpdateSchema({ additionalProperties: true })
   }
 
@@ -1207,6 +1208,10 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
 
 interface JObjectOpts {
   hasIsOfTypeCheck?: false
+  /**
+   * Schema for every property not listed in `properties`, e.g the values of a string map.
+   */
+  additionalProperties?: JsonSchema<any>
   patternProperties?: StringMap<JsonSchema<any>>
   keySchema?: JsonSchema
 }
@@ -1477,17 +1482,14 @@ function record<
   const isValueOptional = (valueSchema as JSchema<any, any>).getSchema().optionalField
   const valueJsonSchema = valueSchema.build()
 
-  // When value schema is optional, wrap in anyOf to allow undefined values
   const finalValueSchema: JsonSchema = isValueOptional
-    ? { anyOf: [{ isUndefined: true }, valueJsonSchema] }
+    ? { ifDefined: valueJsonSchema }
     : valueJsonSchema
 
   return new JObject([], {
     hasIsOfTypeCheck: false,
     keySchema: keyJsonSchema,
-    patternProperties: {
-      ['^.*$']: finalValueSchema,
-    },
+    additionalProperties: finalValueSchema,
   }) as any
 }
 
@@ -2086,7 +2088,7 @@ export interface JsonSchema<OUT = unknown> {
   }
   patternProperties?: StringMap<JsonSchema<any>>
   required?: string[]
-  additionalProperties?: boolean
+  additionalProperties?: boolean | JsonSchema<any>
   minProperties?: number
   maxProperties?: number
 
@@ -2146,6 +2148,10 @@ export interface JsonSchema<OUT = unknown> {
   errorMessages?: StringMap<string>
   optionalValues?: (string | number | boolean | null)[]
   keySchema?: JsonSchema
+  /**
+   * Validates the value against the given schema only when it's defined.
+   */
+  ifDefined?: JsonSchema
   isUndefined?: true
   minProperties2?: number
   exclusiveProperties?: (readonly string[])[]

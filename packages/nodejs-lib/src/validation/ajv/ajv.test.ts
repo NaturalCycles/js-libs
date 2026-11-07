@@ -471,6 +471,28 @@ describe('fingerprint for different keywords', () => {
       data: { items: [{ name: 'ok' }, { name: 123 }] },
       fingerprint: 'List.items.name type:string',
     },
+    {
+      inputName: 'Event',
+      schema: {
+        type: 'object',
+        properties: { date: { type: 'string', format: 'IsoDate', IsoDate: {} } },
+        required: ['date'],
+      },
+      data: { date: '2025-02-30' },
+      fingerprint: 'Event.date IsoDate',
+    },
+    {
+      inputName: 'Event',
+      schema: {
+        type: 'object',
+        properties: {
+          date: { type: 'string', format: 'IsoDate', IsoDate: { before: '2020-01-01' } },
+        },
+        required: ['date'],
+      },
+      data: { date: '2020-01-01' },
+      fingerprint: 'Event.date IsoDate:2020-01-01',
+    },
   ]
 
   it.each(testCases)(

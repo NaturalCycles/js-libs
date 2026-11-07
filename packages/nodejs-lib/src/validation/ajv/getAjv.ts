@@ -3,15 +3,14 @@ import { _assert } from '@naturalcycles/js-lib/error'
 import { _deepCopy, _mapObject, Set2 } from '@naturalcycles/js-lib/object'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
-import type { Options, ValidateFunction } from 'ajv/dist/2020.js'
-import { Ajv2020 } from 'ajv/dist/2020.js'
+import type { Code, KeywordCxt, Options, ValidateFunction } from 'ajv/dist/2020.js'
+import { _, Ajv2020, str } from 'ajv/dist/2020.js'
 import { validTLDs } from '../tlds.js'
 import type {
   CustomConverterFn,
   CustomValidatorFn,
   JSchema,
   JsonSchemaIsoDateOptions,
-  JsonSchemaIsoMonthOptions,
   JsonSchemaStringEmailOptions,
   JsonSchemaUtcOffsetOptions,
 } from './jSchema.js'
@@ -310,140 +309,79 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
+  // The date/time keywords are `code` keywords, which Ajv inlines into the compiled validator.
+  // A `validate` keyword is a function call with a context object, whose instancePath Ajv builds
+  // on every call (escaping the key of every map entry), even for valid data.
   ajv.addKeyword({
     keyword: 'IsoDate',
     type: 'string',
-    modifying: false,
-    errors: true,
     schemaType: 'object',
-    validate: function validate(opt: JsonSchemaIsoDateOptions, data: string, _schema, ctx) {
-      const hasOptions = Object.keys(opt).length > 0
+    error: {
+      message: ({ params }) =>
+        params['rule']
+          ? str`is not ${isoDateRuleLabels[params['rule'] as IsoDateRule]} ${params['limit']}`
+          : str`is an invalid IsoDate`,
+      params: ({ params }) => (params['rule'] ? _`{${params['rule']}: ${params['limit']}}` : _`{}`),
+    },
+    code(cxt: KeywordCxt) {
+      const { gen, data } = cxt
+      const opt: JsonSchemaIsoDateOptions = cxt.schema
+      const isValid = gen.scopeValue('func', { ref: isIsoDateValid })
 
-      const isValid = isIsoDateValid(data)
-      if (!isValid) {
-        ;(validate as any).errors = [
-          {
-            instancePath: ctx?.instancePath ?? '',
-            message: `is an invalid IsoDate`,
-          },
-        ]
+      gen.if(
+        _`!${isValid}(${data})`,
+        () => cxt.error(),
+        () => {
+          for (const rule of isoDateRules) {
+            const limit = opt[rule]
+            if (!limit) continue
 
-        return false
-      }
-
-      if (!hasOptions) return true
-
-      const { before, sameOrBefore, after, sameOrAfter } = opt
-      const errors: any[] = []
-
-      if (before) {
-        const isParamValid = isIsoDateValid(before)
-        const isRuleValid = isParamValid && before > data
-
-        if (!isRuleValid) {
-          errors.push({
-            instancePath: ctx?.instancePath ?? '',
-            message: `is not before ${before}`,
-          })
-        }
-      }
-
-      if (sameOrBefore) {
-        const isParamValid = isIsoDateValid(sameOrBefore)
-        const isRuleValid = isParamValid && sameOrBefore >= data
-
-        if (!isRuleValid) {
-          errors.push({
-            instancePath: ctx?.instancePath ?? '',
-            message: `is not the same or before ${sameOrBefore}`,
-          })
-        }
-      }
-
-      if (after) {
-        const isParamValid = isIsoDateValid(after)
-        const isRuleValid = isParamValid && after < data
-
-        if (!isRuleValid) {
-          errors.push({
-            instancePath: ctx?.instancePath ?? '',
-            message: `is not after ${after}`,
-          })
-        }
-      }
-
-      if (sameOrAfter) {
-        const isParamValid = isIsoDateValid(sameOrAfter)
-        const isRuleValid = isParamValid && sameOrAfter <= data
-
-        if (!isRuleValid) {
-          errors.push({
-            instancePath: ctx?.instancePath ?? '',
-            message: `is not the same or after ${sameOrAfter}`,
-          })
-        }
-      }
-
-      if (errors.length === 0) return true
-      ;(validate as any).errors = errors
-      return false
+            const params = { rule, limit }
+            if (!isIsoDateValid(limit)) {
+              // An invalid limit rejects every date
+              cxt.error(false, params)
+              continue
+            }
+            gen.if(isoDateRuleFails(rule, data, limit), () => cxt.error(false, params))
+          }
+        },
+      )
     },
   })
 
   ajv.addKeyword({
     keyword: 'IsoDateTime',
     type: 'string',
-    modifying: false,
-    errors: true,
     schemaType: 'boolean',
-    validate: function validate(_opt: JsonSchemaIsoMonthOptions, data: string, _schema, ctx) {
-      const isValid = isIsoDateTimeValid(data)
-      if (isValid) return true
-      ;(validate as any).errors = [
-        {
-          instancePath: ctx?.instancePath ?? '',
-          message: `is an invalid IsoDateTime`,
-        },
-      ]
-      return false
+    error: { message: 'is an invalid IsoDateTime' },
+    code(cxt: KeywordCxt) {
+      const isValid = cxt.gen.scopeValue('func', { ref: isIsoDateTimeValid })
+      cxt.fail(_`!${isValid}(${cxt.data})`)
     },
   })
 
   ajv.addKeyword({
     keyword: 'IsoMonth',
     type: 'string',
-    modifying: false,
-    errors: true,
     schemaType: 'object',
-    validate: function validate(_opt: true, data: string, _schema, ctx) {
-      const isValid = isIsoMonthValid(data)
-      if (isValid) return true
-      ;(validate as any).errors = [
-        {
-          instancePath: ctx?.instancePath ?? '',
-          message: `is an invalid IsoMonth`,
-        },
-      ]
-      return false
+    error: { message: 'is an invalid IsoMonth' },
+    code(cxt: KeywordCxt) {
+      const isValid = cxt.gen.scopeValue('func', { ref: isIsoMonthValid })
+      cxt.fail(_`!${isValid}(${cxt.data})`)
     },
   })
 
   ajv.addKeyword({
     keyword: 'UtcOffset',
     type: 'string',
-    modifying: false,
-    errors: true,
     schemaType: 'object',
-    validate: function validate(opt: JsonSchemaUtcOffsetOptions, data: string, _schema, ctx) {
-      const isValid = data === 'Z' ? opt.allowZ : data !== '' && isIsoTimezoneValid(data)
-      if (isValid) return true
-      ;(validate as any).errors = [
-        {
-          instancePath: ctx?.instancePath ?? '',
-          message: `is an invalid UtcOffset`,
-        },
-      ]
-      return false
+    error: { message: 'is an invalid UtcOffset' },
+    code(cxt: KeywordCxt) {
+      const opt: JsonSchemaUtcOffsetOptions = cxt.schema
+      const isValid = cxt.gen.scopeValue('func', {
+        ref: opt.allowZ ? isUtcOffsetOrZValid : isUtcOffsetValid,
+      })
+      cxt.fail(_`!${isValid}(${cxt.data})`)
     },
   })
 
@@ -496,39 +434,69 @@ export function createAjv(opt?: Options): Ajv2020 {
     },
   })
 
+  // Strips the keys that don't match the key schema; the values are validated by `additionalProperties`.
+  // The key schema is inlined per key with error reporting off, and the error count is reset after
+  // a mismatch, so a stripped key never surfaces as an error. Keys listed in `properties` are skipped.
   ajv.addKeyword({
     keyword: 'keySchema',
     type: 'object',
-    modifying: true,
-    errors: false,
     schemaType: 'object',
-    compile(innerSchema, _parentSchema, _it) {
-      const isValidKeyFn: ValidateFunction = ajv.compile(innerSchema)
+    trackErrors: true,
+    code(cxt: KeywordCxt) {
+      const { gen, data, parentSchema } = cxt
+      const propertyNames = Object.keys(parentSchema['properties'] || {})
+      const valid = gen.name('valid')
 
-      function validate(data: AnyObject, _ctx: any): boolean {
-        if (typeof data !== 'object' || data === null) return true
-
-        for (const key of Object.keys(data)) {
-          if (!isValidKeyFn(key)) {
-            delete data[key]
-          }
+      gen.forIn('key', data, key => {
+        const checkKey = (): void => {
+          cxt.subschema(
+            {
+              keyword: 'keySchema',
+              data: key,
+              dataTypes: ['string'],
+              compositeRule: true,
+              createErrors: false,
+              allErrors: false,
+            },
+            valid,
+          )
+          gen.if(_`!${valid}`, () => {
+            cxt.reset()
+            gen.code(_`delete ${data}[${key}]`)
+          })
         }
 
-        return true
-      }
+        if (!propertyNames.length) return checkKey()
 
-      return validate
+        let isNotProperty: Code = _`${key} !== ${propertyNames[0]}`
+        for (const name of propertyNames.slice(1)) {
+          isNotProperty = _`${isNotProperty} && ${key} !== ${name}`
+        }
+        gen.if(isNotProperty, checkKey)
+      })
     },
   })
 
-  // Validates that the value is undefined. Used in record/stringMap with optional value schemas
-  // to allow undefined values in patternProperties via anyOf.
+  // Validates the inner schema only when the value is defined. Used for the optional values of
+  // `stringMap`/`record`, whose `additionalProperties` loop visits the keys with undefined values too.
+  ajv.addKeyword({
+    keyword: 'ifDefined',
+    schemaType: ['object', 'boolean'],
+    code(cxt: KeywordCxt) {
+      const { gen, data } = cxt
+      gen.if(_`${data} !== undefined`, () => {
+        cxt.subschema({ keyword: 'ifDefined' }, gen.name('valid'))
+      })
+    },
+  })
+
+  // Validates that the value is undefined. Superseded by `ifDefined`, kept for raw JSON schemas.
   ajv.addKeyword({
     keyword: 'isUndefined',
-    modifying: false,
-    errors: false,
     schemaType: 'boolean',
-    validate: (_schema: boolean, data: unknown) => data === undefined,
+    code(cxt: KeywordCxt) {
+      cxt.fail(_`${cxt.data} !== undefined`)
+    },
   })
 
   // This is added because Ajv validates the `min/maxProperties` before validating the properties.
@@ -777,6 +745,27 @@ export function createAjv(opt?: Options): Ajv2020 {
   return ajv
 }
 
+type IsoDateRule = keyof JsonSchemaIsoDateOptions
+
+const isoDateRules: IsoDateRule[] = ['before', 'sameOrBefore', 'after', 'sameOrAfter']
+
+const isoDateRuleLabels: Record<IsoDateRule, string> = {
+  before: 'before',
+  sameOrBefore: 'the same or before',
+  after: 'after',
+  sameOrAfter: 'the same or after',
+}
+
+/**
+ * IsoDate strings compare chronologically as plain strings.
+ */
+function isoDateRuleFails(rule: IsoDateRule, data: Code, limit: string): Code {
+  if (rule === 'before') return _`${data} >= ${limit}`
+  if (rule === 'sameOrBefore') return _`${data} > ${limit}`
+  if (rule === 'after') return _`${data} <= ${limit}`
+  return _`${data} < ${limit}`
+}
+
 const monthLengths = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
 const DASH_CODE = '-'.charCodeAt(0)
@@ -902,6 +891,14 @@ function isIsoTimezoneValid(s: string): boolean {
   if (isWestern && hour === 12 && minute > 0) return false // min is -12:00
 
   return true
+}
+
+function isUtcOffsetValid(s: string): boolean {
+  return s !== 'Z' && s !== '' && isIsoTimezoneValid(s)
+}
+
+function isUtcOffsetOrZValid(s: string): boolean {
+  return s === 'Z' || (s !== '' && isIsoTimezoneValid(s))
 }
 
 /**
