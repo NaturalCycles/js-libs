@@ -13,3 +13,45 @@ it('should not mutate the input rows array when sorting', () => {
   expect(queryInMemory(q, rows).map(r => r.id)).toEqual(['a', 'b', 'c'])
   expect(rows.map(r => r.id)).toEqual(['b', 'a', 'c'])
 })
+
+it('should match an array-valued property with == when it contains the value', () => {
+  const rows = [
+    { id: 'a', tags: ['x', 'y'] },
+    { id: 'b', tags: ['z'] },
+    { id: 'c', tags: [] },
+  ]
+  const q = DBQuery.create<(typeof rows)[number]>('t').filterEq('tags', 'y')
+
+  expect(queryInMemory(q, rows).map(r => r.id)).toEqual(['a'])
+})
+
+it('should match an array-valued property with in when it contains any of the values', () => {
+  const rows = [
+    { id: 'a', tags: ['x', 'y'] },
+    { id: 'b', tags: ['z'] },
+    { id: 'c', tags: [] },
+  ]
+  const q = DBQuery.create<(typeof rows)[number]>('t').filterIn('tags', ['y', 'z'])
+
+  expect(queryInMemory(q, rows).map(r => r.id)).toEqual(['a', 'b'])
+})
+
+it('should keep scalar semantics for == and in', () => {
+  const rows = [
+    { id: 'a', lang: 'en' },
+    { id: 'b', lang: 'sv' },
+    { id: 'c', lang: 'de' },
+  ]
+
+  expect(
+    queryInMemory(DBQuery.create<(typeof rows)[number]>('t').filterEq('lang', 'sv'), rows).map(
+      r => r.id,
+    ),
+  ).toEqual(['b'])
+  expect(
+    queryInMemory(
+      DBQuery.create<(typeof rows)[number]>('t').filterIn('lang', ['en', 'de']),
+      rows,
+    ).map(r => r.id),
+  ).toEqual(['a', 'c'])
+})

@@ -4,14 +4,17 @@ import type { ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { DBQuery, DBQueryFilterOperator } from '../query/dbQuery.js'
 
 type FilterFn = (v: any, val: any) => boolean
+// Datastore (and Firestore) treat an array-valued property as multi-valued:
+// `==` matches when any element equals the value, `in` when any element is among the values.
 const FILTER_FNS: Record<DBQueryFilterOperator, FilterFn> = {
-  '==': (v, val) => v === val,
+  '==': (v, val) => (Array.isArray(v) ? v.includes(val) : v === val),
   '!=': (v, val) => v !== val,
   '<': (v, val) => v < val,
   '<=': (v, val) => v <= val,
   '>': (v, val) => v > val,
   '>=': (v, val) => v >= val,
-  in: (v, val?: readonly any[]) => (val || []).includes(v),
+  in: (v, val?: readonly any[]) =>
+    Array.isArray(v) ? v.some(item => (val || []).includes(item)) : (val || []).includes(v),
   'not-in': (v, val?: readonly any[]) => !(val || []).includes(v),
   'array-contains': (v?: readonly any[], val?: any) => (v || []).includes(val),
   'array-contains-any': (v?: readonly any[], val?: readonly any[]) =>
