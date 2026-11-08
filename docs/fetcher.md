@@ -5,7 +5,9 @@ Convenient wrapper around [fetch](https://developer.mozilla.org/en-US/docs/Web/A
 ## Features
 
 - Works in the Browser and on the Server (Node.js)
-- Convenient API, e.g `fetcher.get()`, `fetcher.post()`, etc.
+- Convenient API, e.g `fetcher.get()`, `fetcher.post()`, etc. Supports the
+  [QUERY](https://datatracker.ietf.org/doc/draft-ietf-httpbis-safe-method-w-body/) method
+  (`fetcher.query()`): like GET, but with a request body.
 - Throws HttpError automatically, no need to check `if (res.ok)`
 - Allows to set `timeout`
 - Conveniently retries on retry-able errors

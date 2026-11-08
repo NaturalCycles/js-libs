@@ -175,6 +175,11 @@ export class Fetcher {
   put!: <T = unknown>(url: string, opt?: FetcherOptions) => Promise<T>
   patch!: <T = unknown>(url: string, opt?: FetcherOptions) => Promise<T>
   delete!: <T = unknown>(url: string, opt?: FetcherOptions) => Promise<T>
+  /**
+   * HTTP QUERY method: like GET (safe and idempotent, hence retried by default),
+   * but with a request body (e.g `json`).
+   */
+  query!: <T = unknown>(url: string, opt?: FetcherOptions) => Promise<T>
 
   // responseType=text
   getText!: (url: string, opt?: FetcherOptions) => Promise<string>
@@ -182,6 +187,7 @@ export class Fetcher {
   putText!: (url: string, opt?: FetcherOptions) => Promise<string>
   patchText!: (url: string, opt?: FetcherOptions) => Promise<string>
   deleteText!: (url: string, opt?: FetcherOptions) => Promise<string>
+  queryText!: (url: string, opt?: FetcherOptions) => Promise<string>
 
   // responseType=void (no body fetching/parsing)
   getVoid!: (url: string, opt?: FetcherOptions) => Promise<void>
@@ -190,6 +196,7 @@ export class Fetcher {
   patchVoid!: (url: string, opt?: FetcherOptions) => Promise<void>
   deleteVoid!: (url: string, opt?: FetcherOptions) => Promise<void>
   headVoid!: (url: string, opt?: FetcherOptions) => Promise<void>
+  queryVoid!: (url: string, opt?: FetcherOptions) => Promise<void>
 
   /**
    * Small convenience wrapper that allows to issue GraphQL queries.

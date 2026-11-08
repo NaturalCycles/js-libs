@@ -65,6 +65,8 @@ export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendAppli
       origin: true,
       credentials: true,
       // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // default
+      // Default + QUERY (like GET, but with a request body), which needs a preflight in browsers
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,QUERY',
       maxAge: 86400,
       ...cfg.corsOptions,
     }),

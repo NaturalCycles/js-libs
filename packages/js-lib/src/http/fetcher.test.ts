@@ -962,6 +962,29 @@ it('should keep an explicitly set content-type when the json option is used', as
   expect(headers['content-type']).toBe('application/vnd.api+json')
 })
 
+it('should send a QUERY request with a json body and retry it like GET', async () => {
+  const randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0)
+  const inits: RequestInit[] = []
+  const fetcher = getFetcher({
+    logger: commonLoggerNoop,
+    retry: { count: 1, timeout: 1 },
+    fetchFn: async (_url, init) => {
+      inits.push(init)
+      if (inits.length === 1) return new Response('', { status: 500 })
+      return Response.json({ ok: 1 })
+    },
+  })
+
+  const r = await fetcher.query<{ ok: number }>('someUrl', { json: { a: 1 } })
+  expectTypeOf(r).toEqualTypeOf<{ ok: number }>()
+  expect(r).toEqual({ ok: 1 })
+  expect(inits).toHaveLength(2)
+  expect(inits[1]!.method).toBe('QUERY')
+  expect(inits[1]!.body).toBe('{"a":1}')
+  expect((inits[1]!.headers as Record<string, string>)['content-type']).toBe('application/json')
+  randomSpy.mockRestore()
+})
+
 it('should run init hooks lazily, once per instance', async () => {
   let inits = 0
   const seenTokens: any[] = []
