@@ -1,3 +1,12 @@
+# Language
+
+Use standard technical English in all outputs. Write in plain, literal English with direct sentence
+structure. Each sentence should be understandable linearly on the first reading. Put the main
+subject and claim early, and place qualifications close to what they modify. Avoid metaphors,
+similes, figurative language, rhetorical devices, conversational word order, parenthetical detours,
+delayed qualifications, and ambiguous sentence structure. Prefer ordinary technical vocabulary over
+clever or expressive phrasing. Do not simplify established technical terms.
+
 # Development Guide
 
 ## Build & Test Commands
