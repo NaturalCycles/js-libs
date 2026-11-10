@@ -2,6 +2,7 @@ import type { Writable } from 'node:stream'
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
+import { zip2 } from '@naturalcycles/nodejs-lib/zip'
 import type {
   CommonStorage,
   CommonStorageGetOptions,
@@ -46,6 +47,12 @@ export class CommonStorageBucket {
     return JSON.parse(buf.toString())
   }
 
+  async getFileAsAutoDecompressedJson<T = any>(filePath: string): Promise<T | null> {
+    const buf = await this.cfg.storage.getFile(this.cfg.bucketName, filePath)
+    if (!buf) return null
+    return JSON.parse(zip2.autoDecompressToStringSync(buf))
+  }
+
   async requireFile(filePath: string): Promise<Buffer> {
     const buf = await this.cfg.storage.getFile(this.cfg.bucketName, filePath)
     if (!buf) this.throwRequiredError(filePath)
@@ -59,6 +66,11 @@ export class CommonStorageBucket {
 
   async requireFileAsJson<T = any>(filePath: string): Promise<T> {
     const v = await this.getFileAsJson<T>(filePath)
+    return v ?? this.throwRequiredError(filePath)
+  }
+
+  async requireFileAsAutoDecompressedJson<T = any>(filePath: string): Promise<T> {
+    const v = await this.getFileAsAutoDecompressedJson<T>(filePath)
     return v ?? this.throwRequiredError(filePath)
   }
 
@@ -138,6 +150,15 @@ export class CommonStorageBucket {
       filePath,
       Buffer.from(JSON.stringify(content)),
     )
+  }
+
+  async saveZstdJsonFile(
+    filePath: string,
+    content: any,
+    opt?: CommonStorageSaveOptions,
+  ): Promise<void> {
+    const payload = await zip2.zstdCompress(JSON.stringify(content))
+    await this.cfg.storage.saveFile(this.cfg.bucketName, filePath, payload, opt)
   }
 
   async saveFiles(entries: readonly FileEntry[]): Promise<void> {
