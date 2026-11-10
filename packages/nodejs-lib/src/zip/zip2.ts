@@ -42,6 +42,16 @@ class Zip2 {
     return zlib.inflateSync(buf)
   }
 
+  autoDecompressToStringSync(buf: Uint8Array): string {
+    return this.autoDecompressSync(buf).toString()
+  }
+
+  autoDecompressSync(buf: Uint8Array): Buffer {
+    if (this.isZstdBuffer(buf)) return zlib.zstdDecompressSync(buf)
+    if (this.isGzipBuffer(buf)) return zlib.gunzipSync(buf)
+    return Buffer.from(buf.buffer, buf.byteOffset, buf.byteLength)
+  }
+
   /**
    * deflateBuffer uses `deflate`.
    * It's 9 bytes shorter than `gzip`.

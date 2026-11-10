@@ -81,6 +81,40 @@ it('should detect zstd and gzip buffers and decompress zstd or deflate', async (
   expect(await zip2.decompressZstdOrInflateToString(zsted)).toBe(s)
 })
 
+it('should auto-decompress zstd, gzip and plain buffers', async () => {
+  const s = '{"a":"abcd1234$%^"}'
+  const plain = Buffer.from(s)
+
+  expect(zip2.autoDecompressToStringSync(await zip2.zstdCompress(s))).toBe(s)
+  expect(zip2.autoDecompressToStringSync(await zip2.gzip(s))).toBe(s)
+  expect(zip2.autoDecompressToStringSync(plain)).toBe(s)
+  expect(zip2.autoDecompressToStringSync(new Uint8Array(zip2.zstdCompressSync(s)))).toBe(s)
+  expect(zip2.autoDecompressToStringSync(new Uint8Array(0))).toBe('')
+  expect(zip2.autoDecompressSync(plain).buffer).toBe(plain.buffer)
+})
+
+it('should auto-decompress only the bytes of a plain Uint8Array view', () => {
+  const s = '{"a":1}'
+  const view = new Uint8Array(Buffer.from(`xx${s}yy`)).subarray(2, 2 + s.length)
+
+  expect(zip2.autoDecompressToStringSync(view)).toBe(s)
+})
+
+it('should not inflate deflated buffers when auto-decompressing', async () => {
+  const deflated = await zip2.deflate('abcd1234$%^')
+
+  expect(zip2.autoDecompressSync(deflated)).toEqual(deflated)
+})
+
+it('should throw when auto-decompressing corrupted zstd or gzip buffers', () => {
+  const zsted = zip2.zstdCompressSync('abcd1234$%^')
+  const truncatedZstd = zsted.subarray(0, zsted.length - 4)
+  const corruptedGzip = Buffer.from([0x1f, 0x8b, 1, 2, 3])
+
+  expect(() => zip2.autoDecompressSync(truncatedZstd)).toThrow('unexpected end of file')
+  expect(() => zip2.autoDecompressSync(corruptedGzip)).toThrow('unknown compression method')
+})
+
 it('should deflate to the same bytes as the Java implementation', async () => {
   const s = 'aa'
   const zippedBuf = await zip2.deflate(s)
