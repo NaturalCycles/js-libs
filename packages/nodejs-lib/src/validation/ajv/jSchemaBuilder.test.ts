@@ -785,11 +785,18 @@ describe('object', () => {
       )
     })
 
+    it('should accept an empty key list', () => {
+      const schema = j.object.withEnumKeys([] as const, j.string())
+
+      expectTypeOf(schema).not.toBeNever()
+      expect(schema.build().properties).toEqual({})
+    })
+
     it('should reject an enum schema with values that cannot be keys', () => {
-      expect(() => {
-        const schema = j.object.withEnumKeys(j.enum([true, null]), j.string())
-        expectTypeOf(schema).toBeNever()
-      }).toThrow('Every item in the key list should be string, number or symbol')
+      expect(() =>
+        // @ts-expect-error an enum schema with values that are not strings or numbers
+        j.object.withEnumKeys(j.enum([true, null]), j.string()),
+      ).toThrow('Every item in the key list should be string, number or symbol')
     })
   })
 

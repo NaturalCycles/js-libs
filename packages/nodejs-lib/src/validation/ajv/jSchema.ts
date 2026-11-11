@@ -1536,16 +1536,29 @@ function withRegexKeys<S extends JSchema<any, any>>(
  * Builds the object schema with the indicated `keys` and uses the `schema` for their validation.
  */
 function withEnumKeys<
-  const T extends readonly (string | number)[] | StringEnum | NumberEnum | JEnum<any, any>,
+  const T extends readonly (string | number)[] | StringEnum | NumberEnum,
   S extends JSchema<any, any>,
   K extends string | number = EnumKeyUnion<T>,
   Opt extends boolean = SchemaOpt<S>,
 >(
   keys: T,
   schema: S,
-): [K] extends [never]
-  ? never
-  : JObject<Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> }, false> {
+): JObject<Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> }, false>
+function withEnumKeys<
+  K extends string | number,
+  S extends JSchema<any, any>,
+  Opt extends boolean = SchemaOpt<S>,
+>(
+  keys: JEnum<K, any>,
+  schema: S,
+): JObject<
+  Opt extends true ? { [P in `${K}`]?: SchemaOut<S> } : { [P in `${K}`]: SchemaOut<S> },
+  false
+>
+function withEnumKeys(
+  keys: readonly (string | number)[] | StringEnum | NumberEnum | JEnum<any, any>,
+  schema: JSchema<any, any>,
+): JObject<any, false> {
   let keyEnum: JEnum<any, any> | undefined
   if (keys instanceof JEnum) {
     keyEnum = keys
@@ -1557,7 +1570,7 @@ function withEnumKeys<
       enumType === 'NumberEnum' || enumType === 'StringEnum',
       'The key list should be StringEnum or NumberEnum',
     )
-    keyEnum = j.enum(keys as StringEnum | NumberEnum)
+    keyEnum = j.enum(keys)
   }
 
   _assert(keyEnum, 'The key list should be an array of values, NumberEnum or a StringEnum')
@@ -1571,10 +1584,7 @@ function withEnumKeys<
 
   const props = Object.fromEntries(keyValues.map(key => [key, schema]))
 
-  return new JObject<
-    Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> },
-    false
-  >(props, { hasIsOfTypeCheck: false, enumKeys }) as any
+  return new JObject(props, { hasIsOfTypeCheck: false, enumKeys })
 }
 
 // ==== AjvSchema compat wrapper ====
@@ -2288,18 +2298,13 @@ export interface JsonBuilderRuleOpt {
 }
 
 type EnumKeyUnion<T> =
-  // enum schema -> union of its values (stringified), or never when a value cannot be a key
-  T extends JEnum<infer U, any>
-    ? [U] extends [string | number]
-      ? `${U}`
+  // array of literals -> union of its elements (stringified)
+  T extends readonly (infer U)[]
+    ? `${U & (string | number)}`
+    : // enum object -> union of its values (stringified)
+      T extends StringEnum | NumberEnum
+      ? `${T[keyof T] & (string | number)}`
       : never
-    : // array of literals -> union of its elements (stringified)
-      T extends readonly (infer U)[]
-      ? `${U & (string | number)}`
-      : // enum object -> union of its values (stringified)
-        T extends StringEnum | NumberEnum
-        ? `${T[keyof T] & (string | number)}`
-        : never
 
 type SchemaOut<S> = S extends JSchema<infer OUT, any> ? OUT : never
 type SchemaOpt<S> = S extends JSchema<any, infer Opt> ? (Opt extends true ? true : false) : false
