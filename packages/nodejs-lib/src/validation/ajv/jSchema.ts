@@ -1,11 +1,5 @@
 import type { ValidationFunction, ValidationFunctionResult } from '@naturalcycles/js-lib'
-import {
-  _isObject,
-  _isUndefined,
-  _numberEnumValues,
-  _stringEnumValues,
-  getEnumType,
-} from '@naturalcycles/js-lib'
+import { _isObject, _isUndefined, _stringEnumValues, getEnumType } from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
 import { _assert, _try } from '@naturalcycles/js-lib/error'
 import type { Set2 } from '@naturalcycles/js-lib/object'
@@ -1111,6 +1105,7 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
       hasIsOfTypeCheck: opt?.hasIsOfTypeCheck ?? true,
       patternProperties: opt?.patternProperties ?? undefined,
       keySchema: opt?.keySchema ?? undefined,
+      enumKeys: opt?.enumKeys ?? undefined,
     })
 
     if (props) addPropertiesToSchema(this.schema, props)
@@ -1214,6 +1209,7 @@ interface JObjectOpts {
   additionalProperties?: JsonSchema<any>
   patternProperties?: StringMap<JsonSchema<any>>
   keySchema?: JsonSchema
+  enumKeys?: JsonSchema
 }
 
 export class JObjectInfer<
@@ -1387,6 +1383,28 @@ export class JEnum<
     if (opt?.msg) this.setErrorMessage('enum', opt.msg)
   }
 
+  /**
+   * Keeps only the listed values of the enum.
+   *
+   * ```
+   * const schema = j.enum(Color).only([Color.RED, Color.BLUE])
+   * ```
+   */
+  only<const U extends OUT>(values: readonly U[]): JEnum<U, Opt> {
+    const enumValues: readonly OUT[] = this.schema.enum
+    const listedValues: readonly OUT[] = values
+
+    const unknownValues = listedValues.filter(value => !enumValues.includes(value))
+    _assert(!unknownValues.length, `Values are not in the enum: ${unknownValues.join(', ')}`)
+
+    const isListed = enumValues.map(value => listedValues.includes(value))
+
+    return this.cloneAndUpdateSchema({
+      enum: enumValues.filter((_, index) => isListed[index]),
+      enumNames: this.schema.enumNames?.filter((_, index) => isListed[index]),
+    }) as any
+  }
+
   branded<B extends OUT>(): JEnum<B, Opt> {
     return this as any as JEnum<B, Opt>
   }
@@ -1518,43 +1536,45 @@ function withRegexKeys<S extends JSchema<any, any>>(
  * Builds the object schema with the indicated `keys` and uses the `schema` for their validation.
  */
 function withEnumKeys<
-  const T extends readonly (string | number)[] | StringEnum | NumberEnum,
+  const T extends readonly (string | number)[] | StringEnum | NumberEnum | JEnum<any, any>,
   S extends JSchema<any, any>,
   K extends string | number = EnumKeyUnion<T>,
   Opt extends boolean = SchemaOpt<S>,
 >(
   keys: T,
   schema: S,
-): JObject<Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> }, false> {
-  let enumValues: readonly (string | number)[] | undefined
-  if (Array.isArray(keys)) {
-    _assert(
-      isEveryItemPrimitive(keys),
-      'Every item in the key list should be string, number or symbol',
-    )
-    enumValues = keys
+): [K] extends [never]
+  ? never
+  : JObject<Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> }, false> {
+  let keyEnum: JEnum<any, any> | undefined
+  if (keys instanceof JEnum) {
+    keyEnum = keys
+  } else if (Array.isArray(keys)) {
+    keyEnum = j.enum(keys)
   } else if (typeof keys === 'object') {
     const enumType = getEnumType(keys)
     _assert(
       enumType === 'NumberEnum' || enumType === 'StringEnum',
       'The key list should be StringEnum or NumberEnum',
     )
-    if (enumType === 'NumberEnum') {
-      enumValues = _numberEnumValues(keys as NumberEnum)
-    } else if (enumType === 'StringEnum') {
-      enumValues = _stringEnumValues(keys as StringEnum)
-    }
+    keyEnum = j.enum(keys as StringEnum | NumberEnum)
   }
 
-  _assert(enumValues, 'The key list should be an array of values, NumberEnum or a StringEnum')
+  _assert(keyEnum, 'The key list should be an array of values, NumberEnum or a StringEnum')
 
-  const typedValues = enumValues as readonly K[]
-  const props = Object.fromEntries(typedValues.map(key => [key, schema])) as any
+  const enumKeys = keyEnum.build()
+  const keyValues: readonly unknown[] = enumKeys.enum
+  _assert(
+    isEveryItemPrimitive(keyValues),
+    'Every item in the key list should be string, number or symbol',
+  )
+
+  const props = Object.fromEntries(keyValues.map(key => [key, schema]))
 
   return new JObject<
     Opt extends true ? { [P in K]?: SchemaOut<S> } : { [P in K]: SchemaOut<S> },
     false
-  >(props, { hasIsOfTypeCheck: false })
+  >(props, { hasIsOfTypeCheck: false, enumKeys }) as any
 }
 
 // ==== AjvSchema compat wrapper ====
@@ -2131,6 +2151,11 @@ export interface JsonSchema<OUT = unknown> {
    * Annotation only (not validated), lets consumers render `1` as e.g `PREVENT`.
    */
   enumNames?: readonly string[]
+  /**
+   * The enum whose values are the keys of the object, as `j.enum` builds it. Set by `j.object.withEnumKeys`.
+   * Annotation only (not validated), lets consumers render the key `1` as e.g `PREVENT`.
+   */
+  enumKeys?: JsonSchema
 
   hasIsOfTypeCheck?: boolean
 
@@ -2263,13 +2288,18 @@ export interface JsonBuilderRuleOpt {
 }
 
 type EnumKeyUnion<T> =
-  // array of literals -> union of its elements (stringified)
-  T extends readonly (infer U)[]
-    ? `${U & (string | number)}`
-    : // enum object -> union of its values (stringified)
-      T extends StringEnum | NumberEnum
-      ? `${T[keyof T] & (string | number)}`
+  // enum schema -> union of its values (stringified), or never when a value cannot be a key
+  T extends JEnum<infer U, any>
+    ? [U] extends [string | number]
+      ? `${U}`
       : never
+    : // array of literals -> union of its elements (stringified)
+      T extends readonly (infer U)[]
+      ? `${U & (string | number)}`
+      : // enum object -> union of its values (stringified)
+        T extends StringEnum | NumberEnum
+        ? `${T[keyof T] & (string | number)}`
+        : never
 
 type SchemaOut<S> = S extends JSchema<infer OUT, any> ? OUT : never
 type SchemaOpt<S> = S extends JSchema<any, infer Opt> ? (Opt extends true ? true : false) : false
