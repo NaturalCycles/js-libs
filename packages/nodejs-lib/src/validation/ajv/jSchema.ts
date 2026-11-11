@@ -1105,7 +1105,6 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
       hasIsOfTypeCheck: opt?.hasIsOfTypeCheck ?? true,
       patternProperties: opt?.patternProperties ?? undefined,
       keySchema: opt?.keySchema ?? undefined,
-      enumKeys: opt?.enumKeys ?? undefined,
     })
 
     if (props) addPropertiesToSchema(this.schema, props)
@@ -1199,6 +1198,30 @@ export class JObject<OUT extends AnyObject, Opt extends boolean = false> extends
     const exclusiveProperties = this.schema.exclusiveProperties ?? []
     return this.cloneAndUpdateSchema({ exclusiveProperties: [...exclusiveProperties, propNames] })
   }
+
+  /**
+   * For an object that uses values of an enum as keys, with a different schema per key.
+   * Keeps the names of those keys in the built schema.
+   *
+   * ```
+   * const schema = j
+   *   .object<Settings>({
+   *     [Color.RED]: j.boolean(),
+   *     [Color.BLUE]: j.array(j.string()),
+   *   })
+   *   .enumKeys(Color)
+   * ```
+   *
+   * When every key has the same schema, prefer `j.object.withEnumKeys`!
+   */
+  enumKeys(keyEnum: StringEnum | NumberEnum | JEnum<any, any>): this {
+    const properties = this.schema.properties ?? {}
+    const keyEnumSchema: JEnum<any, any> = keyEnum instanceof JEnum ? keyEnum : j.enum(keyEnum)
+    const enumValues: readonly (string | number)[] = keyEnumSchema.build().enum
+    const keys = enumValues.filter(value => Object.hasOwn(properties, String(value)))
+
+    return this.cloneAndUpdateSchema({ enumKeys: keyEnumSchema.only(keys).build() })
+  }
 }
 
 interface JObjectOpts {
@@ -1209,7 +1232,6 @@ interface JObjectOpts {
   additionalProperties?: JsonSchema<any>
   patternProperties?: StringMap<JsonSchema<any>>
   keySchema?: JsonSchema
-  enumKeys?: JsonSchema
 }
 
 export class JObjectInfer<
@@ -1575,8 +1597,7 @@ function withEnumKeys(
 
   _assert(keyEnum, 'The key list should be an array of values, NumberEnum or a StringEnum')
 
-  const enumKeys = keyEnum.build()
-  const keyValues: readonly unknown[] = enumKeys.enum
+  const keyValues: readonly unknown[] = keyEnum.build().enum
   _assert(
     isEveryItemPrimitive(keyValues),
     'Every item in the key list should be string, number or symbol',
@@ -1584,7 +1605,7 @@ function withEnumKeys(
 
   const props = Object.fromEntries(keyValues.map(key => [key, schema]))
 
-  return new JObject(props, { hasIsOfTypeCheck: false, enumKeys })
+  return new JObject(props, { hasIsOfTypeCheck: false }).enumKeys(keyEnum)
 }
 
 // ==== AjvSchema compat wrapper ====

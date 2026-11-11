@@ -459,6 +459,61 @@ describe('object', () => {
     })
   })
 
+  describe('enumKeys', () => {
+    enum Color {
+      RED = 1,
+      GREEN = 2,
+      BLUE = 3,
+    }
+    interface Settings {
+      [Color.RED]: boolean
+      [Color.BLUE]: string[]
+      name: string
+    }
+
+    it('should keep the inferred type', () => {
+      const schema = j
+        .object<Settings>({
+          [Color.RED]: j.boolean(),
+          [Color.BLUE]: j.array(j.string()),
+          name: j.string(),
+        })
+        .enumKeys(Color)
+
+      expectTypeOf(schema).not.toBeNever()
+      expectTypeOf(schema.out).toEqualTypeOf<Settings>()
+    })
+
+    it('should annotate the object with the enum values that are its keys', () => {
+      const schema = j
+        .object<Settings>({
+          [Color.RED]: j.boolean(),
+          [Color.BLUE]: j.array(j.string()),
+          name: j.string(),
+        })
+        .enumKeys(Color)
+
+      expect(schema.build().enumKeys).toEqual({
+        type: 'number',
+        enum: [1, 3],
+        enumNames: ['RED', 'BLUE'],
+      })
+    })
+
+    it('should validate a schema carrying enumKeys', () => {
+      const schema = j
+        .object<Settings>({
+          [Color.RED]: j.boolean(),
+          [Color.BLUE]: j.array(j.string()),
+          name: j.string(),
+        })
+        .enumKeys(Color)
+
+      expect(schema.isValid({ 1: true, 3: ['a'], name: 'foo' })).toBe(true)
+      expect(schema.isValid({ 1: 'true', 3: ['a'], name: 'foo' })).toBe(false)
+    })
+  })
+
   describe('.dbEntity', () => {
     it('should correctly infer the type', () => {
       type Id = Branded<string, 'Id'>
