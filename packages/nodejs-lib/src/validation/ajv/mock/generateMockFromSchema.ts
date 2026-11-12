@@ -4,6 +4,7 @@ import { _mapValues, Set2 } from '@naturalcycles/js-lib/object'
 import type { AnyObject, IsoDate, StringMap, UnixTimestamp } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { JSchema, JsonSchema, JsonSchemaIsoDateOptions } from '../jSchema.js'
+import { j } from '../jSchema.js'
 
 /**
  * Generates a value that passes the schema, e.g for a mock in a test.
@@ -20,14 +21,12 @@ export function generateMockFromSchema<OUT>(
   schema: JSchema<OUT, any>,
   opt: GenerateMockFromSchemaOptions = {},
 ): OUT {
-  const ctx: GenerationContext = {
+  const value = generateValue(getBuiltSchema(schema), '', {
     opt,
     choices: new Map(),
     reachedChoices: [],
-    uncheckedPaths: new Set(),
-  }
-  const value = generateValue(schema.build(), '', ctx)
-  return validateMock(schema, value, ctx.uncheckedPaths)
+  })
+  return schema.validate(value)
 }
 
 /**
@@ -46,24 +45,16 @@ export function generateMockFromSchema<OUT>(
  * @experimental
  */
 export function generateMockVariantsFromSchema<OUT>(schema: JSchema<OUT, any>): MockVariant<OUT>[] {
-  // Built once, so a choice is the same object in every run
-  const root = schema.build()
+  // The same tree in every run, so a choice is the same object
+  const root = getBuiltSchema(schema)
   const queue: QueuedVariant[] = [{ choices: new Map() }]
   const seenChoices = new Set<ChoicePoint>()
   const variants: MockVariant<OUT>[] = []
 
   for (const { choices, choice } of queue) {
-    const ctx: GenerationContext = {
-      opt: { allFields: true },
-      choices,
-      reachedChoices: [],
-      uncheckedPaths: new Set(),
-    }
+    const ctx: GenerationContext = { opt: { allFields: true }, choices, reachedChoices: [] }
     const value = generateValue(root, '', ctx)
-    variants.push({
-      value: validateMock(schema, value, ctx.uncheckedPaths),
-      ...(choice && { choice }),
-    })
+    variants.push({ value: schema.validate(value), ...(choice && { choice }) })
 
     for (const { point, path, options } of ctx.reachedChoices) {
       if (seenChoices.has(point)) continue
@@ -81,57 +72,19 @@ export function generateMockVariantsFromSchema<OUT>(schema: JSchema<OUT, any>): 
   return variants
 }
 
+const builtSchemas = new WeakMap<JSchema<any, any>, JsonSchema>()
+
 /**
- * Validates the generated value, and throws when validation removed a part of it,
- * so a field never disappears from a mock without notice.
- * Values below a conversion are not compared, as a conversion may change their shape,
- * and neither are values below an example or a default.
+ * Builds each schema once, so the checks compile its parts once instead of on every call,
+ * which would grow Ajv's cache. The generator only reads the built schema.
  */
-function validateMock<OUT>(
-  schema: JSchema<OUT, any>,
-  value: unknown,
-  uncheckedPaths: Set<string>,
-): OUT {
-  const generated = copyPlainValue(value)
-  const validated = schema.validate(value)
-  assertNothingRemoved(generated, validated, '', uncheckedPaths)
-  return validated
-}
-
-function assertNothingRemoved(
-  generated: unknown,
-  validated: unknown,
-  path: string,
-  uncheckedPaths: Set<string>,
-): void {
-  if (uncheckedPaths.has(path)) return
-  if (generated instanceof Set) {
-    const validatedItems = validated instanceof Set ? Array.from(validated) : validated
-    assertNothingRemoved(Array.from(generated), validatedItems, path, uncheckedPaths)
-    return
+function getBuiltSchema(schema: JSchema<any, any>): JsonSchema {
+  let built = builtSchemas.get(schema)
+  if (!built) {
+    built = schema.build()
+    builtSchemas.set(schema, built)
   }
-  if (Array.isArray(generated)) {
-    // An array, e.g an example, validates into a Set2 for a set schema
-    const validatedItems = validated instanceof Set ? Array.from(validated) : validated
-    for (const [index, item] of generated.entries()) {
-      const validatedItem = (validatedItems as unknown[] | undefined)?.[index]
-      assertNothingRemoved(item, validatedItem, path, uncheckedPaths)
-    }
-    return
-  }
-  if (!_isPlainObject(generated)) return
-
-  for (const [key, item] of Object.entries(generated)) {
-    const itemPath = joinPath(path, key)
-    const validatedItem = (validated as AnyObject | undefined)?.[key]
-    if (validatedItem === undefined) {
-      throw cannotGenerate(
-        itemPath,
-        'validation removed the generated value: an earlier `anyOfThese` branch matched without this field (put the wider branch first), or the key fails the key schema',
-      )
-    }
-    assertNothingRemoved(item, validatedItem, itemPath, uncheckedPaths)
-  }
+  return built
 }
 
 const MOCK_UNIX_TIMESTAMP = 1_655_287_200 as UnixTimestamp // 2022-06-15T10:00:00Z
@@ -139,7 +92,6 @@ const MOCK_ISO_DATE = '2022-06-15'
 
 function generateValue(node: JsonSchema, path: string, ctx: GenerationContext): any {
   assertSupportedKeywords(node, path)
-  if (node.customConversions?.length || node.postValidation) ctx.uncheckedPaths.add(path)
   const value = generateValueFromKeywords(node, path, ctx)
   if (node.optionalValues?.includes(value)) {
     throw cannotGenerate(
@@ -151,15 +103,8 @@ function generateValue(node: JsonSchema, path: string, ctx: GenerationContext): 
 }
 
 function generateValueFromKeywords(node: JsonSchema, path: string, ctx: GenerationContext): any {
-  // The removal check skips examples and defaults: they are written by the schema's author, not generated
-  if (node.examples?.length) {
-    ctx.uncheckedPaths.add(path)
-    return copyPlainValue(node.examples[0])
-  }
-  if (node.default !== undefined) {
-    ctx.uncheckedPaths.add(path)
-    return copyPlainValue(node.default)
-  }
+  if (node.examples?.length) return copyPlainValue(node.examples[0])
+  if (node.default !== undefined) return copyPlainValue(node.default)
   if (node.isUndefined) return undefined
   if (node.enum) return node.enum[0]
   if (node.ifDefined) return generateValue(node.ifDefined, path, ctx)
@@ -214,13 +159,45 @@ function generateFieldUnion(node: JsonSchema, path: string, ctx: GenerationConte
   if (!branches.length) throw cannotGenerate(path, 'the union has no branch that is not null')
   ctx.reachedChoices.push({ point: node, path, options: branches })
 
-  const { key, schema } = branches[ctx.choices.get(node) ?? 0]!
+  const index = ctx.choices.get(node) ?? 0
+  const { key, schema } = branches[index]!
   const value = generateValue(schema, path, ctx)
-  if (!node.anyOfBy) return value
+  if (!node.anyOfBy) {
+    assertNotShadowed(branches, index, value, path)
+    return value
+  }
 
   const { propertyName } = node.anyOfBy
   const properties: StringMap<JsonSchema> = schema.properties || {}
   return { ...value, [propertyName]: toPropertyValue(key!, properties[propertyName]) }
+}
+
+/**
+ * Throws when an earlier branch of the `j.anyOfThese` union would match the value first
+ * and drop fields of the chosen branch.
+ */
+function assertNotShadowed(
+  branches: UnionBranch[],
+  index: number,
+  value: unknown,
+  path: string,
+): void {
+  const [chosenError, kept] = getValidator(branches[index]!.schema).getValidationResult(
+    copyPlainValue(value),
+  )
+  if (chosenError || !_isPlainObject(kept)) return
+
+  for (const [earlierIndex, earlier] of branches.slice(0, index).entries()) {
+    const [error, result] = getValidator(earlier.schema).getValidationResult(copyPlainValue(value))
+    if (error) continue
+    const lostKeys = Object.keys(kept).filter(key => !Object.hasOwn(result as AnyObject, key))
+    if (lostKeys.length) {
+      throw cannotGenerate(
+        path,
+        `branch ${earlierIndex} of the anyOfThese union accepts the value of branch ${index} and removes ${lostKeys.join(', ')}: put the wider branch first`,
+      )
+    }
+  }
 }
 
 function getUnionBranches(node: JsonSchema): UnionBranch[] {
@@ -506,7 +483,31 @@ function chooseExclusiveKey(
 
 function generateKey(node: JsonSchema, path: string, ctx: GenerationContext): string | undefined {
   if (!node.keySchema) return
-  return String(generateValue(node.keySchema, joinPath(path, '<key>'), ctx))
+  const keyPath = joinPath(path, '<key>')
+  const key = String(generateValue(node.keySchema, keyPath, ctx))
+  // Validation deletes a map key that fails the key schema, without an error, so check it here
+  const [error] = getValidator(node.keySchema).getValidationResult(key)
+  if (error) {
+    throw cannotGenerate(
+      keyPath,
+      `the key ${JSON.stringify(key)} fails the key schema, give the key schema a matching example`,
+    )
+  }
+  return key
+}
+
+const validators = new WeakMap<JsonSchema, JSchema<unknown, any>>()
+
+/**
+ * A validator for a part of the built schema, compiled once per part (see `getBuiltSchema`).
+ */
+function getValidator(schema: JsonSchema): JSchema<unknown, any> {
+  let validator = validators.get(schema)
+  if (!validator) {
+    validator = j.fromSchema(schema)
+    validators.set(schema, validator)
+  }
+  return validator
 }
 
 function cannotGenerate(path: string, reason: string): Error {
@@ -647,12 +648,6 @@ interface GenerationContext {
    * Filled while generating: the choices, in the order they are reached.
    */
   reachedChoices: ReachedChoice[]
-  /**
-   * Filled while generating: the paths of values that the removal check does not compare below,
-   * because a conversion or `postValidation` may change them, or because they come from an example
-   * or a default.
-   */
-  uncheckedPaths: Set<string>
 }
 
 /**

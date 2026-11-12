@@ -504,33 +504,75 @@ it('should throw when the generated value does not pass the schema', () => {
   expect(() => generateMockFromSchema(schema)).toThrow('is a placeholder')
 })
 
-it.each<{ label: string; schema: JSchema<any, any>; path: string }>([
+it.each<{ label: string; schema: JSchema<any, any>; path: string; removed: string }>([
   {
-    label: 'an earlier anyOfThese branch accepts the value without a field',
+    label: 'with the same values in both branches',
     schema: j.object<{ shape: { id: string } | { id: string; extra: number } }>({
       shape: j.anyOfThese([
         j.object<{ id: string }>({ id: j.string() }),
         j.object<{ id: string; extra: number }>({ id: j.string(), extra: j.number() }),
       ]),
     }),
-    path: 'shape.extra',
+    path: 'shape',
+    removed: 'extra',
   },
   {
-    label: 'the key example does not match the key schema',
-    schema: j.object<{ scores: Record<string, number> }>({
-      scores: j.object.record(
-        j
-          .string()
-          .regex(/^[a-z]+$/)
-          .example('KEY'),
-        j.number(),
+    label: 'with other values in the wider branch',
+    schema: j.object<{ shape: { id: string } | { id: string; extra: number } }>({
+      shape: j.anyOfThese([
+        j.object<{ id: string }>({ id: j.string() }),
+        j.object<{ id: string; extra: number }>({ id: j.string().minLength(6), extra: j.number() }),
+      ]),
+    }),
+    path: 'shape',
+    removed: 'extra',
+  },
+  {
+    label: 'inside a set',
+    schema: j.object<{ shapes: Set2<{ id: string } | { id: string; extra: number }> }>({
+      shapes: j.set(
+        j.anyOfThese([
+          j.object<{ id: string }>({ id: j.string() }),
+          j.object<{ id: string; extra: number }>({ id: j.string(), extra: j.number() }),
+        ]),
       ),
     }),
-    path: 'scores.KEY',
+    path: 'shapes',
+    removed: 'extra',
   },
-])('should throw when validation removes a generated value: $label', ({ schema, path }) => {
-  expect(() => generateMockVariantsFromSchema(schema)).toThrow(
-    `Cannot generate a value at ${path}: validation removed the generated value`,
+])(
+  'should throw when an earlier anyOfThese branch removes fields of a later one, $label',
+  ({ schema, path, removed }) => {
+    expect(() => generateMockVariantsFromSchema(schema)).toThrow(
+      `Cannot generate a value at ${path}: branch 0 of the anyOfThese union accepts the value of branch 1 and removes ${removed}: put the wider branch first`,
+    )
+  },
+)
+
+it('should not throw when anyOfThese branches accept each other without removing fields', () => {
+  const schema = j.object<{ pair: { a: string; b?: string } | { a?: string; b: string } }>({
+    pair: j.anyOfThese([
+      j.object<{ a: string; b?: string }>({ a: j.string(), b: j.string().optional() }),
+      j.object<{ a?: string; b: string }>({ a: j.string().optional(), b: j.string() }),
+    ]),
+  })
+
+  expect(generateMockVariantsFromSchema(schema)).toHaveLength(2)
+})
+
+it('should throw when a key example fails the key schema, naming the field', () => {
+  const schema = j.object<{ scores: Record<string, number> }>({
+    scores: j.object.record(
+      j
+        .string()
+        .regex(/^[a-z]+$/)
+        .example('KEY'),
+      j.number(),
+    ),
+  })
+
+  expect(() => generateMockFromSchema(schema, { allFields: true })).toThrow(
+    'Cannot generate a value at scores.<key>: the key "KEY" fails the key schema, give the key schema a matching example',
   )
 })
 
@@ -604,27 +646,12 @@ it('should find an integer for an integer schema with a fractional step', () => 
   expect(generateMockFromSchema(schema)).toEqual({ count: 2 })
 })
 
-it('should not compare a value that postValidation changed with the generated one', () => {
+it('should return the value that postValidation changes', () => {
   const schema = j
     .object<{ n: number }>({ n: j.number() })
     .postValidation(value => ({ renamed: value.n }))
 
   expect(generateMockFromSchema(schema)).toEqual({ renamed: 1 })
-})
-
-it('should throw when validation removes a field from an item of a set, naming the field', () => {
-  const schema = j.object<{ shapes: Set2<{ id: string } | { id: string; extra: number }> }>({
-    shapes: j.set(
-      j.anyOfThese([
-        j.object<{ id: string }>({ id: j.string() }),
-        j.object<{ id: string; extra: number }>({ id: j.string(), extra: j.number() }),
-      ]),
-    ),
-  })
-
-  expect(() => generateMockVariantsFromSchema(schema)).toThrow(
-    'Cannot generate a value at shapes.extra: validation removed the generated value',
-  )
 })
 
 it('should pick the next free key for a map in an object with a field named key', () => {
@@ -669,7 +696,7 @@ const dropsM = j
   .object<{ n: number; m?: number }>({ n: j.number(), m: j.number().optional() })
   .convert(value => ({ n: value.n }))
 
-it('should not compare a converted tuple position with the generated one', () => {
+it('should return the converted value of a tuple position', () => {
   const schema = j.object<{ pair: [string, any] }>({
     pair: j.tuple([j.string(), dropsM as any]),
   })
@@ -677,7 +704,7 @@ it('should not compare a converted tuple position with the generated one', () =>
   expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ pair: ['mock', { n: 1 }] })
 })
 
-it('should not compare the fields below an example with the validated ones', () => {
+it('should return the converted value of a field in an example', () => {
   const schema = j.object<{ wrapper: { item: { n: number } } }>({
     wrapper: j
       .object<{ item: { n: number } }>({ item: dropsM as any })
