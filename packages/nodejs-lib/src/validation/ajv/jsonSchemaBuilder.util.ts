@@ -13,6 +13,7 @@ export const JSON_SCHEMA_ORDER: readonly string[] = [
   'writeOnly',
   'type',
   'default',
+  'examples',
   // Object,
   'properties',
   'required',

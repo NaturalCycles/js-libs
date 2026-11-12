@@ -8,6 +8,7 @@ Basics
 - `j.object.infer(...)` is for composition only; do not validate with it directly.
 - Strict type matching: optional/required mismatches are compile-time errors.
 - `j.enum(Enum)` supports both numeric and string enums; `j.enum([...])` for literal unions.
+- `j.enum(Enum).only([...])` keeps only the listed values (and their member names).
 - `.isOfType<T>()` forces a schema/type check; mismatch yields `never`.
 - `.castAs<T>()` overrides inferred input/output types without changing validation.
 
@@ -21,6 +22,16 @@ Objects
 - `.extend(...)` and `.concat(...)` preserve/merge types; use `.isOfType<T>()` to confirm final
   shape.
 - `j.object.withEnumKeys(...)` creates an object with keys from an enum/array and value schema.
+- `.enumKeys(Enum)` marks the keys of a `j.object` as values of an enum, when the properties have
+  different schemas.
+
+Annotations
+
+- Annotations are not validated. They let consumers render or generate values.
+- `j.enum(NumberEnum)` emits the member names as `enumNames`.
+- `j.object.withEnumKeys(...)` and `.enumKeys(...)` emit the key enum as `enumKeys`.
+- `.example(value)` emits a valid input value as `examples`. The built-in regex formats (`uuid()`,
+  `semVer()`, `url()`, ...) carry one.
 
 Optional and nullable
 

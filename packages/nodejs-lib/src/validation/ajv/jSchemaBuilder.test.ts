@@ -56,6 +56,26 @@ describe('string', () => {
     expectTypeOf(schema2).toBeNever()
   })
 
+  it.each([
+    ['jwt', j.string().jwt()],
+    ['url', j.string().url()],
+    ['ipv4', j.string().ipv4()],
+    ['ipv6', j.string().ipv6()],
+    ['slug', j.string().slug()],
+    ['semVer', j.string().semVer()],
+    ['semVer4', j.string().semVer4()],
+    ['languageTag', j.string().languageTag()],
+    ['countryCode', j.string().countryCode()],
+    ['currency', j.string().currency()],
+    ['base64Url', j.string().base64Url()],
+    ['uuid', j.string().uuid()],
+  ])('should carry a valid example for %s', (_, schema) => {
+    const [example] = schema.build().examples || []
+
+    expect(example).toBeDefined()
+    expect(schema.isValid(example)).toBe(true)
+  })
+
   describe('ianaTimezone', () => {
     it('should correctly infer the type', () => {
       const schema1 = j.string().ianaTimezone()
@@ -1269,6 +1289,26 @@ describe('schema metadata methods', () => {
   it('should emit deprecated in the build output', () => {
     const schema = j.string().deprecated().build()
     expect(schema.deprecated).toBe(true)
+  })
+
+  it('should emit the example in the build output', () => {
+    const schema = j.string().example('abc').build()
+    expect(schema.examples).toEqual(['abc'])
+  })
+
+  it('should validate with a schema that carries an example', () => {
+    const schema = j
+      .string()
+      .regex(/^[a-z]{3}$/)
+      .example('abc')
+    expect(schema.validate('xyz')).toBe('xyz')
+  })
+
+  it('should take an input value as the example of a converted schema', () => {
+    const count = j.string().convert(Number).example('5')
+    const schema = j.object<{ count: number }>({ count })
+    expect(count.build().examples).toEqual(['5'])
+    expect(schema.isValid({ count: '5' })).toBe(true)
   })
 })
 
