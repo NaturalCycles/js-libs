@@ -68,6 +68,7 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
 
   s1.propertyNames = s2.propertyNames || s1.propertyNames
   s1.keySchema = s2.keySchema || s1.keySchema
+  s1.enumKeys = s2.enumKeys || s1.enumKeys
   s1.minProperties = s2.minProperties ?? s1.minProperties
   s1.maxProperties = s2.maxProperties ?? s1.maxProperties
 

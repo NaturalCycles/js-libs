@@ -459,6 +459,61 @@ describe('object', () => {
     })
   })
 
+  describe('enumKeys', () => {
+    enum Color {
+      RED = 1,
+      GREEN = 2,
+      BLUE = 3,
+    }
+    interface Settings {
+      [Color.RED]: boolean
+      [Color.BLUE]: string[]
+      name: string
+    }
+
+    it('should keep the inferred type', () => {
+      const schema = j
+        .object<Settings>({
+          [Color.RED]: j.boolean(),
+          [Color.BLUE]: j.array(j.string()),
+          name: j.string(),
+        })
+        .enumKeys(Color)
+
+      expectTypeOf(schema).not.toBeNever()
+      expectTypeOf(schema.out).toEqualTypeOf<Settings>()
+    })
+
+    it('should annotate the object with the enum values that are its keys', () => {
+      const schema = j
+        .object<Settings>({
+          [Color.RED]: j.boolean(),
+          [Color.BLUE]: j.array(j.string()),
+          name: j.string(),
+        })
+        .enumKeys(Color)
+
+      expect(schema.build().enumKeys).toEqual({
+        type: 'number',
+        enum: [1, 3],
+        enumNames: ['RED', 'BLUE'],
+      })
+    })
+
+    it('should validate a schema carrying enumKeys', () => {
+      const schema = j
+        .object<Settings>({
+          [Color.RED]: j.boolean(),
+          [Color.BLUE]: j.array(j.string()),
+          name: j.string(),
+        })
+        .enumKeys(Color)
+
+      expect(schema.isValid({ 1: true, 3: ['a'], name: 'foo' })).toBe(true)
+      expect(schema.isValid({ 1: 'true', 3: ['a'], name: 'foo' })).toBe(false)
+    })
+  })
+
   describe('.dbEntity', () => {
     it('should correctly infer the type', () => {
       type Id = Branded<string, 'Id'>
@@ -698,6 +753,106 @@ describe('object', () => {
       expectTypeOf(schema4.out).toEqualTypeOf<Partial<{ a: string; b: string; c: string }>>()
       expectTypeOf(schema4.isOfType<Partial<{ a: string; b: string; c: string }>>()).not.toBeNever()
     })
+
+    it('should annotate the object with its keys, as the schema j.enum builds for them', () => {
+      enum N {
+        B = 2,
+        A = 1,
+      }
+      expect(j.object.withEnumKeys(N, j.string()).build().enumKeys).toEqual({
+        type: 'number',
+        enum: [2, 1],
+        enumNames: ['B', 'A'],
+      })
+
+      enum S {
+        A = 'a',
+        B = 'b',
+      }
+      expect(j.object.withEnumKeys(S, j.string()).build().enumKeys).toEqual({
+        type: 'string',
+        enum: ['a', 'b'],
+      })
+
+      expect(j.object.withEnumKeys(['a', 1], j.string()).build().enumKeys).toEqual({
+        enum: ['a', 1],
+      })
+    })
+
+    it('should validate a schema carrying enumKeys', () => {
+      enum N {
+        A = 1,
+        B = 2,
+      }
+      const schema = j.object.withEnumKeys(N, j.string()).isOfType<Record<N, string>>()
+      expect(schema.isValid({ 1: 'a', 2: 'b' })).toBe(true)
+      expect(schema.isValid({ 1: 'a', 2: 3 })).toBe(false)
+    })
+
+    it('should accept an enum schema as the key list', () => {
+      enum N {
+        A = 1,
+        B = 2,
+        C = 3,
+      }
+      const schema = j.object.withEnumKeys(j.enum(N).only([N.A, N.B]), j.string())
+
+      expectTypeOf(schema).not.toBeNever()
+      expectTypeOf(schema.out).toEqualTypeOf<{ '1': string; '2': string }>()
+
+      const builtSchema = schema.build()
+      expect(Object.keys(builtSchema.properties!)).toEqual(['1', '2'])
+      expect(builtSchema.enumKeys).toEqual({
+        type: 'number',
+        enum: [1, 2],
+        enumNames: ['A', 'B'],
+      })
+
+      const typedSchema = schema.isOfType<{ '1': string; '2': string }>()
+      expect(typedSchema.isValid({ 1: 'a', 2: 'b' })).toBe(true)
+      expect(typedSchema.isValid({ 1: 'a' })).toBe(false)
+    })
+
+    it('should build one required property per key of a NumberEnum declared out of order', () => {
+      enum N {
+        B = 2,
+        A = 1,
+      }
+      expect(j.object.withEnumKeys(N, j.string()).build()).toEqual({
+        type: 'object',
+        properties: { 1: { type: 'string' }, 2: { type: 'string' } },
+        required: ['1', '2'],
+        additionalProperties: false,
+        hasIsOfTypeCheck: false,
+        enumKeys: { type: 'number', enum: [2, 1], enumNames: ['B', 'A'] },
+      })
+    })
+
+    it('should reject a key list of the wrong kind', () => {
+      expect(() => j.object.withEnumKeys([{}] as any, j.string())).toThrow(
+        'Every item in the key list should be string, number or symbol',
+      )
+      expect(() => j.object.withEnumKeys({ a: {} } as any, j.string())).toThrow(
+        'The key list should be StringEnum or NumberEnum',
+      )
+      expect(() => j.object.withEnumKeys('a' as any, j.string())).toThrow(
+        'The key list should be an array of values, NumberEnum or a StringEnum',
+      )
+    })
+
+    it('should accept an empty key list', () => {
+      const schema = j.object.withEnumKeys([] as const, j.string())
+
+      expectTypeOf(schema).not.toBeNever()
+      expect(schema.build().properties).toEqual({})
+    })
+
+    it('should reject an enum schema with values that cannot be keys', () => {
+      expect(() =>
+        // @ts-expect-error an enum schema with values that are not strings or numbers
+        j.object.withEnumKeys(j.enum([true, null]), j.string()),
+      ).toThrow('Every item in the key list should be string, number or symbol')
+    })
   })
 
   describe('.record', () => {
@@ -836,6 +991,64 @@ describe('enum', () => {
     })
     expect(schema.isValid({ foo: 1, date: '2026-10-22', ts: 1_790_000_000 })).toBe(true)
     expect(schema.isValid({ foo: 2, date: '2026-10-22', ts: 1_790_000_000 })).toBe(false)
+  })
+
+  describe('.only', () => {
+    it('should correctly infer the type', () => {
+      enum Foo {
+        BAR = 1,
+        SHU = 2,
+        BAZ = 3,
+      }
+      const schema1 = j.enum(Foo).only([Foo.BAR, Foo.SHU])
+      expectTypeOf(schema1).not.toBeNever()
+      expectTypeOf(schema1.out).toEqualTypeOf<Foo.BAR | Foo.SHU>()
+
+      const values: Foo[] = [Foo.BAR, Foo.SHU]
+      const schema2 = j.enum(Foo).only(values)
+      expectTypeOf(schema2.out).toEqualTypeOf<Foo>()
+    })
+
+    it('should keep the listed NumberEnum members with their names, in the order of the enum', () => {
+      enum Foo {
+        SHU = 2,
+        BAR = 1,
+        BAZ = 3,
+      }
+      expect(j.enum(Foo).only([Foo.BAR, Foo.SHU]).build()).toEqual({
+        type: 'number',
+        enum: [2, 1],
+        enumNames: ['SHU', 'BAR'],
+      })
+    })
+
+    it('should keep the listed StringEnum members and listed values', () => {
+      enum Foo {
+        BAR = 'bar',
+        SHU = 'shu',
+      }
+      expect(j.enum(Foo).only([Foo.BAR]).build()).toEqual({ type: 'string', enum: ['bar'] })
+      expect(j.enum([1, 2, 3]).only([1, 3]).build()).toEqual({ type: 'number', enum: [1, 3] })
+    })
+
+    it('should throw on a value that is not in the enum', () => {
+      enum Foo {
+        BAR = 1,
+      }
+      expect(() => j.enum(Foo).only([2 as Foo, 3 as Foo])).toThrowErrorMatchingInlineSnapshot(
+        `[AssertionError: Values are not in the enum: 2, 3]`,
+      )
+    })
+
+    it('should validate only the listed members', () => {
+      enum Foo {
+        BAR = 1,
+        SHU = 2,
+      }
+      const schema = j.enum(Foo).only([Foo.BAR])
+      expect(schema.isValid(Foo.BAR)).toBe(true)
+      expect(schema.isValid(Foo.SHU)).toBe(false)
+    })
   })
 })
 

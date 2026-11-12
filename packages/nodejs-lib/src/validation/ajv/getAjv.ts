@@ -391,6 +391,12 @@ export function createAjv(opt?: Options): Ajv2020 {
     schemaType: 'array',
   })
 
+  // Annotation only (the keys are validated by `properties`), registered so strict mode doesn't reject it
+  ajv.addKeyword({
+    keyword: 'enumKeys',
+    schemaType: 'object',
+  })
+
   // Annotation only (validated by the custom keywords, e.g `IsoDate`).
   // `true` makes Ajv skip the format check, while unknown formats would throw in strict mode.
   for (const format of jFormats) {
