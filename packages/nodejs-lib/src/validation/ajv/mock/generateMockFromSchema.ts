@@ -585,21 +585,26 @@ export interface MockVariant<OUT> {
    * The choice this variant changes: a branch of a union, or a property of a group of exclusive
    * properties. Absent for the first variant.
    */
-  choice?: {
-    /**
-     * Path of the union, or of the object with the group, e.g `address.taxId`, empty at the root.
-     * Two unions can share a path when one is directly inside a branch of the other.
-     */
-    path: string
-    /**
-     * Index of the branch, counting only branches that are not `null`, or of the property in the group.
-     */
-    option: number
-    /**
-     * Key of the branch in a `j.anyOfBy` union, or the property of the group.
-     */
-    key?: string
-  }
+  choice?: MockChoice
+}
+
+/**
+ * @experimental
+ */
+export interface MockChoice {
+  /**
+   * Path of the union, or of the object with the group, e.g `address.taxId`, empty at the root.
+   * Two unions can share a path when one is directly inside a branch of the other.
+   */
+  path: string
+  /**
+   * Index of the branch, counting only branches that are not `null`, or of the property in the group.
+   */
+  option: number
+  /**
+   * Key of the branch in a `j.anyOfBy` union, or the property of the group.
+   */
+  key?: string
 }
 
 interface GenerationContext {
@@ -641,5 +646,5 @@ interface UnionBranch extends ChoiceOption {
 
 interface QueuedVariant {
   choices: Map<ChoicePoint, number>
-  choice?: MockVariant<unknown>['choice']
+  choice?: MockChoice
 }
