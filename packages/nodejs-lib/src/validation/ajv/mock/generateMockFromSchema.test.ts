@@ -1,10 +1,9 @@
-import { localTime } from '@naturalcycles/js-lib/datetime'
 import { Set2 } from '@naturalcycles/js-lib/object'
-import type { BaseDBEntity, StringMap, UnixTimestamp } from '@naturalcycles/js-lib/types'
+import type { BaseDBEntity, StringMap } from '@naturalcycles/js-lib/types'
 import { expect, it } from 'vitest'
 import type { JSchema } from '../jSchema.js'
 import { j } from '../jSchema.js'
-import { generateMockFromSchema } from './generateMockFromSchema.js'
+import { generateMockFromSchema, generateMockVariantsFromSchema } from './generateMockFromSchema.js'
 
 enum Color {
   RED = 1,
@@ -286,56 +285,6 @@ it('should add optional fields until the minimum number of properties is reached
   expect(generateMockFromSchema(schema)).toEqual({ a: 'mock', b: 'mock' })
 })
 
-it('should fill only the first field of a group of exclusive properties', () => {
-  const schema = j
-    .object<{ a?: string; b?: string }>({
-      a: j.string().optional(),
-      b: j.string().optional(),
-    })
-    .exclusiveProperties(['a', 'b'])
-
-  expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ a: 'mock' })
-})
-
-it('should throw for a string pattern without an example, naming the field', () => {
-  const schema = j.object<{ inner: { code: string } }>({
-    inner: j.object<{ code: string }>({ code: j.string().regex(/^\d{4}$/) }),
-  })
-
-  expect(() => generateMockFromSchema(schema)).toThrow(
-    'The string at inner.code has a pattern and needs an example: .example(...)',
-  )
-})
-
-it('should throw for a keyword it does not know, naming the field', () => {
-  const schema = j.object<{ data: string }>({
-    data: j.string().cloneAndUpdateSchema({ contentEncoding: 'base64' }),
-  })
-
-  expect(() => generateMockFromSchema(schema)).toThrow(
-    'Cannot generate a value for the keyword contentEncoding at data',
-  )
-})
-
-it('should throw when the generated value does not pass the schema', () => {
-  const schema = j.object<{ name: string }>({
-    name: j.string().custom(value => (value === 'mock' ? 'is a placeholder' : undefined)),
-  })
-
-  expect(() => generateMockFromSchema(schema)).toThrow('is a placeholder')
-})
-
-it('should keep the required field of a group of exclusive properties', () => {
-  const schema = j
-    .object<{ a?: string; b: string }>({
-      a: j.string().optional(),
-      b: j.string(),
-    })
-    .exclusiveProperties(['a', 'b'])
-
-  expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ b: 'mock' })
-})
-
 it('should fill no more fields than the maximum number of properties', () => {
   const schema = j
     .object<{ a?: string; b?: string }>({
@@ -355,24 +304,177 @@ it('should fill a map when the minimum number of properties needs it', () => {
   expect(generateMockFromSchema(schema)).toEqual({ scores: { key: 1 } })
 })
 
+it('should fill only the first field of a group of exclusive properties', () => {
+  const schema = j
+    .object<{ a?: string; b?: string }>({
+      a: j.string().optional(),
+      b: j.string().optional(),
+    })
+    .exclusiveProperties(['a', 'b'])
+
+  expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ a: 'mock' })
+})
+
+it('should keep the required field of a group of exclusive properties', () => {
+  const schema = j
+    .object<{ a?: string; b: string }>({
+      a: j.string().optional(),
+      b: j.string(),
+    })
+    .exclusiveProperties(['a', 'b'])
+
+  expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ b: 'mock' })
+})
+
+it('should not take a null literal as the branch of a union', () => {
+  const schema = j.object<{ value: string | null }>({
+    value: j.anyOf([j.literal(null), j.string()]),
+  })
+
+  expect(generateMockFromSchema(schema)).toEqual({ value: 'mock' })
+})
+
 it('should generate a set at the root', () => {
   const schema = j.set(j.string()).min(1)
 
   expect(generateMockFromSchema(schema)).toStrictEqual(new Set2(['mock']))
 })
 
-it('should use a class instance given as an example', () => {
-  const date = localTime.fromUnix(1_000_000_000 as UnixTimestamp).toDate()
-  const schema = j.object<{ value: any }>({ value: j.any().instanceof('Date').example(date) })
+const shape = j.anyOfThese([
+  j.object<{ a: string }>({ a: j.string() }),
+  j.object<{ b: number }>({ b: j.number() }),
+])
+const shapeSchema = j.object<{ shape: { a: string } | { b: number } }>({ shape })
 
-  expect(generateMockFromSchema(schema).value).toBe(date)
+it('should return the generated mock, then one variant for each other branch of a union', () => {
+  const variants = generateMockVariantsFromSchema(shapeSchema)
+
+  expect(variants).toStrictEqual([
+    { value: { shape: { a: 'mock' } } },
+    { value: { shape: { b: 1 } }, choice: { path: 'shape', option: 1 } },
+  ])
+  expect(variants[0]!.value).toStrictEqual(generateMockFromSchema(shapeSchema, { allFields: true }))
+})
+
+it('should return variants for a union inside a branch of another union', () => {
+  type Inner = { x: string } | { y: string } | { z: string }
+  const inner = j.anyOfThese([
+    j.object<{ x: string }>({ x: j.string() }),
+    j.object<{ y: string }>({ y: j.string() }),
+    j.object<{ z: string }>({ z: j.string() }),
+  ])
+  const schema = j.object<{ outer: { inner: Inner } | { b: string } }>({
+    outer: j.anyOfThese([
+      j.object<{ inner: Inner }>({ inner }),
+      j.object<{ b: string }>({ b: j.string() }),
+    ]),
+  })
+
+  expect(generateMockVariantsFromSchema(schema)).toStrictEqual([
+    { value: { outer: { inner: { x: 'mock' } } } },
+    { value: { outer: { b: 'mock' } }, choice: { path: 'outer', option: 1 } },
+    { value: { outer: { inner: { y: 'mock' } } }, choice: { path: 'outer.inner', option: 1 } },
+    { value: { outer: { inner: { z: 'mock' } } }, choice: { path: 'outer.inner', option: 2 } },
+  ])
+})
+
+it('should set the anyOfBy property to the key of its branch', () => {
+  const kindSchema = j.enum(Color)
+  const schema = j.object<{ device: { kind: Color; name: string } }>({
+    device: j.anyOfBy('kind', {
+      [Color.RED]: j.object<{ kind: Color; name: string }>({ kind: kindSchema, name: j.string() }),
+      [Color.BLUE]: j.object<{ kind: Color; name: string }>({ kind: kindSchema, name: j.string() }),
+    }),
+  })
+
+  expect(generateMockVariantsFromSchema(schema)).toStrictEqual([
+    { value: { device: { kind: Color.RED, name: 'mock' } } },
+    {
+      value: { device: { kind: Color.BLUE, name: 'mock' } },
+      choice: { path: 'device', option: 1, key: '2' },
+    },
+  ])
+})
+
+it('should return variants for a union inside an anyOfBy branch', () => {
+  type Detail = { x: string } | { y: string }
+  const detail = j.anyOfThese([
+    j.object<{ x: string }>({ x: j.string() }),
+    j.object<{ y: string }>({ y: j.string() }),
+  ])
+  const schema = j.object<{ device: { kind: Mode; detail: Detail } }>({
+    device: j.anyOfBy('kind', {
+      [Mode.A]: j.object<{ kind: Mode; detail: Detail }>({ kind: j.enum(Mode), detail }),
+    }),
+  })
+
+  expect(generateMockVariantsFromSchema(schema).map(variant => variant.value)).toStrictEqual([
+    { device: { kind: Mode.A, detail: { x: 'mock' } } },
+    { device: { kind: Mode.A, detail: { y: 'mock' } } },
+  ])
+})
+
+it('should label a union inside list items with the path of the list', () => {
+  const schema = j.object<{ shapes: ({ a: string } | { b: number })[] }>({
+    shapes: j.array(shape),
+  })
+
+  expect(generateMockVariantsFromSchema(schema)).toStrictEqual([
+    { value: { shapes: [{ a: 'mock' }] } },
+    { value: { shapes: [{ b: 1 }] }, choice: { path: 'shapes', option: 1 } },
+  ])
+})
+
+it('should not return variants for a union of value types', () => {
+  const schema = j.object<{ value: string | number }>({ value: j.anyOf([j.string(), j.number()]) })
+
+  expect(generateMockVariantsFromSchema(schema)).toStrictEqual([{ value: { value: 'mock' } }])
+})
+
+it('should not share an example object between variants', () => {
+  const schema = j.object<{ meta: { tag: string }; shape: { a: string } | { b: number } }>({
+    meta: j.object<{ tag: string }>({ tag: j.string() }).example({ tag: 'x' }),
+    shape,
+  })
+
+  const [first, second] = generateMockVariantsFromSchema(schema)
+
+  expect(first!.value.meta).not.toBe(second!.value.meta)
+})
+
+it('should throw for a keyword it does not support, naming the field', () => {
+  const schema = j.object<{ data: string }>({
+    data: j.string().cloneAndUpdateSchema({ contentEncoding: 'base64' }),
+  })
+
+  expect(() => generateMockFromSchema(schema)).toThrow(
+    'Cannot generate a value at data: the keyword contentEncoding is not supported',
+  )
+})
+
+it('should throw for a string pattern without an example, naming the field', () => {
+  const schema = j.object<{ inner: { code: string } }>({
+    inner: j.object<{ code: string }>({ code: j.string().regex(/^\d{4}$/) }),
+  })
+
+  expect(() => generateMockFromSchema(schema)).toThrow(
+    'Cannot generate a value at inner.code: a string with a pattern needs an example, .example(...)',
+  )
+})
+
+it('should name the root in an error for a schema at the root', () => {
+  const schema = j.string().regex(/^\d{4}$/)
+
+  expect(() => generateMockFromSchema(schema)).toThrow(
+    'Cannot generate a value at (root): a string with a pattern needs an example, .example(...)',
+  )
 })
 
 it('should throw for a set that needs more than one item, naming the field', () => {
   const schema = j.object<{ tags: Set2<string> }>({ tags: j.set(j.string()).min(2) })
 
   expect(() => generateMockFromSchema(schema)).toThrow(
-    'The list at tags needs 2 distinct items and needs an example: .example(...)',
+    'Cannot generate a value at tags: a list of 2 distinct items needs an example, .example([...])',
   )
 })
 
@@ -380,7 +482,7 @@ it('should throw when no number satisfies the bounds, naming the field', () => {
   const schema = j.object<{ count: number }>({ count: j.number().integer().min(1.2).max(1.8) })
 
   expect(() => generateMockFromSchema(schema)).toThrow(
-    'No number at count satisfies the bounds of the schema',
+    'Cannot generate a value at count: no number satisfies the bounds of the schema',
   )
 })
 
@@ -390,14 +492,97 @@ it('should throw for a map with a key pattern, naming the field', () => {
   })
 
   expect(() => generateMockFromSchema(schema, { allFields: true })).toThrow(
-    String.raw`The map at readings has keys with the pattern ^k\d$ and needs an example: .example({...})`,
+    String.raw`Cannot generate a value at readings: a map with keys matching ^k\d$ needs an example, .example({...})`,
   )
 })
 
-it('should name the root in an error for a schema at the root', () => {
-  const schema = j.string().regex(/^\d{4}$/)
+it('should throw when the generated value does not pass the schema', () => {
+  const schema = j.object<{ name: string }>({
+    name: j.string().custom(value => (value === 'mock' ? 'is a placeholder' : undefined)),
+  })
+
+  expect(() => generateMockFromSchema(schema)).toThrow('is a placeholder')
+})
+
+it.each<{ label: string; schema: JSchema<any, any>; path: string }>([
+  {
+    label: 'an earlier anyOfThese branch accepts the value without a field',
+    schema: j.object<{ shape: { id: string } | { id: string; extra: number } }>({
+      shape: j.anyOfThese([
+        j.object<{ id: string }>({ id: j.string() }),
+        j.object<{ id: string; extra: number }>({ id: j.string(), extra: j.number() }),
+      ]),
+    }),
+    path: 'shape.extra',
+  },
+  {
+    label: 'the key example does not match the key schema',
+    schema: j.object<{ scores: Record<string, number> }>({
+      scores: j.object.record(
+        j
+          .string()
+          .regex(/^[a-z]+$/)
+          .example('KEY'),
+        j.number(),
+      ),
+    }),
+    path: 'scores.KEY',
+  },
+])('should throw when validation removes a generated value: $label', ({ schema, path }) => {
+  expect(() => generateMockVariantsFromSchema(schema)).toThrow(
+    `Cannot generate a value at ${path}: validation removed the generated value`,
+  )
+})
+
+it('should throw when optionalValues would remove the generated value, naming the field', () => {
+  const schema = j.object<{ count?: number }>({ count: j.number().optional([1]) })
+
+  expect(() => generateMockFromSchema(schema, { allFields: true })).toThrow(
+    'Cannot generate a value at count: the generated value 1 would be removed by optionalValues, give the field an example',
+  )
+})
+
+it('should throw for a union with no branch that is not null, naming the field', () => {
+  const schema = j.object<{ value: null }>({ value: j.anyOfThese([j.literal(null)]) })
 
   expect(() => generateMockFromSchema(schema)).toThrow(
-    'The string at (root) has a pattern and needs an example: .example(...)',
+    'Cannot generate a value at value: the union has no branch that is not null',
   )
+})
+
+it('should throw for a map that needs more than one key, naming the field', () => {
+  const schema = j.object<{ scores: StringMap<number> }>({
+    scores: j.object.stringMap(j.number()).minProperties(2),
+  })
+
+  expect(() => generateMockFromSchema(schema)).toThrow(
+    'Cannot generate a value at scores: a map of 2 keys needs an example, .example({...})',
+  )
+})
+
+it('should return a variant for each other property of a group of exclusive properties', () => {
+  const schema = j.object<{ session: { sessionId?: string; pSessionId?: string } }>({
+    session: j
+      .object<{ sessionId?: string; pSessionId?: string }>({
+        sessionId: j.string().optional(),
+        pSessionId: j.string().optional(),
+      })
+      .exclusiveProperties(['sessionId', 'pSessionId']),
+  })
+
+  expect(generateMockVariantsFromSchema(schema)).toStrictEqual([
+    { value: { session: { sessionId: 'mock' } } },
+    {
+      value: { session: { pSessionId: 'mock' } },
+      choice: { path: 'session', option: 1, key: 'pSessionId' },
+    },
+  ])
+})
+
+it('should not return variants for a group of exclusive properties with a required property', () => {
+  const schema = j
+    .object<{ a?: string; b: string }>({ a: j.string().optional(), b: j.string() })
+    .exclusiveProperties(['a', 'b'])
+
+  expect(generateMockVariantsFromSchema(schema)).toStrictEqual([{ value: { b: 'mock' } }])
 })
