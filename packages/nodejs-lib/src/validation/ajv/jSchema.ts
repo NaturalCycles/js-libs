@@ -1,5 +1,11 @@
 import type { ValidationFunction, ValidationFunctionResult } from '@naturalcycles/js-lib'
-import { _isObject, _isUndefined, _stringEnumValues, getEnumType } from '@naturalcycles/js-lib'
+import {
+  _isObject,
+  _isPlainObject,
+  _isUndefined,
+  _stringEnumValues,
+  getEnumType,
+} from '@naturalcycles/js-lib'
 import { _uniq } from '@naturalcycles/js-lib/array'
 import { _assert, _try } from '@naturalcycles/js-lib/error'
 import type { Set2 } from '@naturalcycles/js-lib/object'
@@ -2071,10 +2077,11 @@ type EnumBaseType = 'string' | 'number' | 'other'
 /**
  * Deep copy that preserves functions in customValidations/customConversions.
  * Unlike structuredClone, this handles function references (which only exist in those two properties).
+ * Class instances, e.g a Date given as an example or a default, are kept as they are.
  */
 function deepCopyPreservingFunctions<T>(obj: T): T {
-  if (obj === null || typeof obj !== 'object') return obj
   if (Array.isArray(obj)) return obj.map(deepCopyPreservingFunctions) as T
+  if (!_isPlainObject(obj)) return obj
   const copy = {} as T
   for (const key of Object.keys(obj)) {
     const value = (obj as any)[key]

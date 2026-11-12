@@ -4,6 +4,7 @@ export * from './ajvValidationError.js'
 export * from './from-data/generateJsonSchemaFromData.js'
 export * from './getAjv.js'
 export * from './jSchema.js'
+export * from './mock/generateMockFromSchema.js'
 export { jFormats, type JFormat } from './jsonSchemaBuilder.util.js'
 
 export { Ajv }
