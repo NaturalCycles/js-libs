@@ -7,7 +7,7 @@ import type { JSchema, JsonSchema, JsonSchemaIsoDateOptions } from '../jSchema.j
 
 /**
  * Generates a value that passes the schema, e.g for a mock in a test.
- * Uses the example or default of a field when it has one.
+ * Uses the example or default of a field when it has one, except an empty list or object as default.
  * A string with a pattern needs an example or a default.
  *
  * ```
@@ -87,7 +87,10 @@ function generateValue(node: JsonSchema, path: string, ctx: GenerationContext): 
 
 function generateValueFromKeywords(node: JsonSchema, path: string, ctx: GenerationContext): any {
   if (node.examples?.length) return copyPlainValue(node.examples[0])
-  if (node.default !== undefined) return copyPlainValue(node.default)
+  // An empty list or object as the default would leave nothing to show, e.g with `allFields`
+  if (node.default !== undefined && !isEmptyCollection(node.default)) {
+    return copyPlainValue(node.default)
+  }
   if (node.isUndefined) return undefined
   if (node.enum) return node.enum[0]
   if (node.ifDefined) return generateValue(node.ifDefined, path, ctx)
@@ -121,6 +124,11 @@ function assertSupportedKeywords(node: JsonSchema, path: string): void {
       throw cannotGenerate(path, `the keyword ${keyword} is not supported`)
     }
   }
+}
+
+function isEmptyCollection(value: unknown): boolean {
+  if (Array.isArray(value)) return !value.length
+  return _isPlainObject(value) && !Object.keys(value).length
 }
 
 /**
@@ -389,6 +397,10 @@ function generateObject(node: JsonSchema, path: string, ctx: GenerationContext):
     assertKeyIsFree(node, result, key, path)
     result[key] = generateValue(node.additionalProperties, joinPath(path, key), ctx)
   }
+  // An object of any shape, e.g `j.object.any()`, gets one entry like a map
+  if (node.additionalProperties === true && !Object.keys(properties).length) {
+    result['key'] = 'mock'
+  }
 
   return result
 }
@@ -573,21 +585,26 @@ export interface MockVariant<OUT> {
    * The choice this variant changes: a branch of a union, or a property of a group of exclusive
    * properties. Absent for the first variant.
    */
-  choice?: {
-    /**
-     * Path of the union, or of the object with the group, e.g `address.taxId`, empty at the root.
-     * Two unions can share a path when one is directly inside a branch of the other.
-     */
-    path: string
-    /**
-     * Index of the branch, counting only branches that are not `null`, or of the property in the group.
-     */
-    option: number
-    /**
-     * Key of the branch in a `j.anyOfBy` union, or the property of the group.
-     */
-    key?: string
-  }
+  choice?: MockChoice
+}
+
+/**
+ * @experimental
+ */
+export interface MockChoice {
+  /**
+   * Path of the union, or of the object with the group, e.g `address.taxId`, empty at the root.
+   * Two unions can share a path when one is directly inside a branch of the other.
+   */
+  path: string
+  /**
+   * Index of the branch, counting only branches that are not `null`, or of the property in the group.
+   */
+  option: number
+  /**
+   * Key of the branch in a `j.anyOfBy` union, or the property of the group.
+   */
+  key?: string
 }
 
 interface GenerationContext {
@@ -629,5 +646,5 @@ interface UnionBranch extends ChoiceOption {
 
 interface QueuedVariant {
   choices: Map<ChoicePoint, number>
-  choice?: MockVariant<unknown>['choice']
+  choice?: MockChoice
 }
