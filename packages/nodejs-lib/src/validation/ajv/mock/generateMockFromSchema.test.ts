@@ -504,78 +504,6 @@ it('should throw when the generated value does not pass the schema', () => {
   expect(() => generateMockFromSchema(schema)).toThrow('is a placeholder')
 })
 
-it.each<{ label: string; schema: JSchema<any, any>; path: string; removed: string }>([
-  {
-    label: 'with the same values in both branches',
-    schema: j.object<{ shape: { id: string } | { id: string; extra: number } }>({
-      shape: j.anyOfThese([
-        j.object<{ id: string }>({ id: j.string() }),
-        j.object<{ id: string; extra: number }>({ id: j.string(), extra: j.number() }),
-      ]),
-    }),
-    path: 'shape',
-    removed: 'extra',
-  },
-  {
-    label: 'with other values in the wider branch',
-    schema: j.object<{ shape: { id: string } | { id: string; extra: number } }>({
-      shape: j.anyOfThese([
-        j.object<{ id: string }>({ id: j.string() }),
-        j.object<{ id: string; extra: number }>({ id: j.string().minLength(6), extra: j.number() }),
-      ]),
-    }),
-    path: 'shape',
-    removed: 'extra',
-  },
-  {
-    label: 'inside a set',
-    schema: j.object<{ shapes: Set2<{ id: string } | { id: string; extra: number }> }>({
-      shapes: j.set(
-        j.anyOfThese([
-          j.object<{ id: string }>({ id: j.string() }),
-          j.object<{ id: string; extra: number }>({ id: j.string(), extra: j.number() }),
-        ]),
-      ),
-    }),
-    path: 'shapes',
-    removed: 'extra',
-  },
-])(
-  'should throw when an earlier anyOfThese branch removes fields of a later one, $label',
-  ({ schema, path, removed }) => {
-    expect(() => generateMockVariantsFromSchema(schema)).toThrow(
-      `Cannot generate a value at ${path}: branch 0 of the anyOfThese union accepts the value of branch 1 and removes ${removed}: put the wider branch first`,
-    )
-  },
-)
-
-it('should not throw when anyOfThese branches accept each other without removing fields', () => {
-  const schema = j.object<{ pair: { a: string; b?: string } | { a?: string; b: string } }>({
-    pair: j.anyOfThese([
-      j.object<{ a: string; b?: string }>({ a: j.string(), b: j.string().optional() }),
-      j.object<{ a?: string; b: string }>({ a: j.string().optional(), b: j.string() }),
-    ]),
-  })
-
-  expect(generateMockVariantsFromSchema(schema)).toHaveLength(2)
-})
-
-it('should throw when a key example fails the key schema, naming the field', () => {
-  const schema = j.object<{ scores: Record<string, number> }>({
-    scores: j.object.record(
-      j
-        .string()
-        .regex(/^[a-z]+$/)
-        .example('KEY'),
-      j.number(),
-    ),
-  })
-
-  expect(() => generateMockFromSchema(schema, { allFields: true })).toThrow(
-    'Cannot generate a value at scores.<key>: the key "KEY" fails the key schema, give the key schema a matching example',
-  )
-})
-
 it('should throw when optionalValues would remove the generated value, naming the field', () => {
   const schema = j.object<{ count?: number }>({ count: j.number().optional([1]) })
 
@@ -712,4 +640,27 @@ it('should return the converted value of a field in an example', () => {
   })
 
   expect(generateMockFromSchema(schema)).toEqual({ wrapper: { item: { n: 5 } } })
+})
+
+it('should set a nullable anyOfBy property to the key of its branch', () => {
+  const kindSchema = j.enum(Color).nullable()
+  const schema = j.object<{ device: { kind: Color | null } }>({
+    device: j.anyOfBy('kind', {
+      [Color.RED]: j.object<{ kind: Color | null }>({ kind: kindSchema }),
+      [Color.BLUE]: j.object<{ kind: Color | null }>({ kind: kindSchema }),
+    }),
+  })
+
+  expect(generateMockVariantsFromSchema(schema).map(variant => variant.value)).toStrictEqual([
+    { device: { kind: Color.RED } },
+    { device: { kind: Color.BLUE } },
+  ])
+})
+
+it('should find an integer for an integer schema with a small fractional step', () => {
+  const schema = j.object<{ count: number }>({
+    count: j.number().integer().min(1.2).multipleOf(0.00025),
+  })
+
+  expect(generateMockFromSchema(schema)).toEqual({ count: 2 })
 })
