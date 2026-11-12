@@ -292,6 +292,17 @@ it('should give an object of any shape one entry when allFields is set', () => {
   expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ data: { key: 'mock' } })
 })
 
+it('should throw for an empty default of a list whose items need an example, naming the field', () => {
+  const schema = j.object<{ codes: string[] }>({
+    codes: j.array(j.string().regex(/^[A-Z]{3}$/)).default([]),
+  })
+
+  expect(generateMockFromSchema(schema)).toEqual({ codes: [] })
+  expect(() => generateMockFromSchema(schema, { allFields: true })).toThrow(
+    'Cannot generate a value at codes: a string with a pattern needs an example, .example(...)',
+  )
+})
+
 it('should add optional fields until the minimum number of properties is reached', () => {
   const schema = j
     .object<{ a?: string; b?: string; c?: string }>({

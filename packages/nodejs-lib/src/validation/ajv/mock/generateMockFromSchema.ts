@@ -126,15 +126,15 @@ function assertSupportedKeywords(node: JsonSchema, path: string): void {
   }
 }
 
-/**
- * Copies plain objects, arrays and sets, so a variant does not share them with the schema
- * or with other variants.
- */
 function isEmptyCollection(value: unknown): boolean {
   if (Array.isArray(value)) return !value.length
   return _isPlainObject(value) && !Object.keys(value).length
 }
 
+/**
+ * Copies plain objects, arrays and sets, so a variant does not share them with the schema
+ * or with other variants.
+ */
 function copyPlainValue(value: any): any {
   if (Array.isArray(value)) return value.map(copyPlainValue)
   if (value instanceof Set2) return new Set2(Array.from(value, copyPlainValue))
