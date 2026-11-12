@@ -1,5 +1,5 @@
 import { Set2 } from '@naturalcycles/js-lib/object'
-import type { BaseDBEntity, StringMap } from '@naturalcycles/js-lib/types'
+import type { AnyObject, BaseDBEntity, StringMap } from '@naturalcycles/js-lib/types'
 import { expect, it } from 'vitest'
 import type { JSchema } from '../jSchema.js'
 import { j } from '../jSchema.js'
@@ -271,6 +271,25 @@ it('should fill every field, with one item in each list and map, when allFields 
     tags: ['mock'],
     scores: { key: 1 },
   })
+})
+
+it('should fill a list or object with an empty default, instead of using the default', () => {
+  const schema = j.object<{ tags: string[]; extra: AnyObject }>({
+    tags: j.array(j.string()).default([]),
+    extra: j.object.any().default({}),
+  })
+
+  expect(generateMockFromSchema(schema)).toEqual({ tags: [], extra: {} })
+  expect(generateMockFromSchema(schema, { allFields: true })).toEqual({
+    tags: ['mock'],
+    extra: { key: 'mock' },
+  })
+})
+
+it('should give an object of any shape one entry when allFields is set', () => {
+  const schema = j.object<{ data: AnyObject }>({ data: j.object.any() })
+
+  expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ data: { key: 'mock' } })
 })
 
 it('should add optional fields until the minimum number of properties is reached', () => {

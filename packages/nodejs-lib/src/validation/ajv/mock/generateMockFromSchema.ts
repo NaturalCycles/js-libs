@@ -7,7 +7,7 @@ import type { JSchema, JsonSchema, JsonSchemaIsoDateOptions } from '../jSchema.j
 
 /**
  * Generates a value that passes the schema, e.g for a mock in a test.
- * Uses the example or default of a field when it has one.
+ * Uses the example or default of a field when it has one, except an empty list or object as default.
  * A string with a pattern needs an example or a default.
  *
  * ```
@@ -87,7 +87,10 @@ function generateValue(node: JsonSchema, path: string, ctx: GenerationContext): 
 
 function generateValueFromKeywords(node: JsonSchema, path: string, ctx: GenerationContext): any {
   if (node.examples?.length) return copyPlainValue(node.examples[0])
-  if (node.default !== undefined) return copyPlainValue(node.default)
+  // An empty list or object as the default would leave nothing to show, e.g with `allFields`
+  if (node.default !== undefined && !isEmptyCollection(node.default)) {
+    return copyPlainValue(node.default)
+  }
   if (node.isUndefined) return undefined
   if (node.enum) return node.enum[0]
   if (node.ifDefined) return generateValue(node.ifDefined, path, ctx)
@@ -127,6 +130,11 @@ function assertSupportedKeywords(node: JsonSchema, path: string): void {
  * Copies plain objects, arrays and sets, so a variant does not share them with the schema
  * or with other variants.
  */
+function isEmptyCollection(value: unknown): boolean {
+  if (Array.isArray(value)) return !value.length
+  return _isPlainObject(value) && !Object.keys(value).length
+}
+
 function copyPlainValue(value: any): any {
   if (Array.isArray(value)) return value.map(copyPlainValue)
   if (value instanceof Set2) return new Set2(Array.from(value, copyPlainValue))
@@ -388,6 +396,10 @@ function generateObject(node: JsonSchema, path: string, ctx: GenerationContext):
     const key = generateKey(node, path, ctx) ?? findFreeKey(node, result)
     assertKeyIsFree(node, result, key, path)
     result[key] = generateValue(node.additionalProperties, joinPath(path, key), ctx)
+  }
+  // An object of any shape, e.g `j.object.any()`, gets one entry like a map
+  if (node.additionalProperties === true && !Object.keys(properties).length) {
+    result['key'] = 'mock'
   }
 
   return result
