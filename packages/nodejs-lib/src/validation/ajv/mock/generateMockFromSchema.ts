@@ -13,6 +13,8 @@ import type { JSchema, JsonSchema, JsonSchemaIsoDateOptions } from '../jSchema.j
  * ```
  * const account = generateMockFromSchema(accountSchema, { allFields: true })
  * ```
+ *
+ * @experimental
  */
 export function generateMockFromSchema<OUT>(
   schema: JSchema<OUT, any>,
@@ -22,10 +24,10 @@ export function generateMockFromSchema<OUT>(
     opt,
     choices: new Map(),
     reachedChoices: [],
-    convertedPaths: new Set(),
+    uncheckedPaths: new Set(),
   }
   const value = generateValue(schema.build(), '', ctx)
-  return validateMock(schema, value, ctx.convertedPaths)
+  return validateMock(schema, value, ctx.uncheckedPaths)
 }
 
 /**
@@ -40,6 +42,8 @@ export function generateMockFromSchema<OUT>(
  * const variants = generateMockVariantsFromSchema(accountSchema)
  * // [{ value }, { value, choice: { path: 'address.taxId', option: 1, key: 'mx_rfc' } }]
  * ```
+ *
+ * @experimental
  */
 export function generateMockVariantsFromSchema<OUT>(schema: JSchema<OUT, any>): MockVariant<OUT>[] {
   // Built once, so a choice is the same object in every run
@@ -53,11 +57,11 @@ export function generateMockVariantsFromSchema<OUT>(schema: JSchema<OUT, any>): 
       opt: { allFields: true },
       choices,
       reachedChoices: [],
-      convertedPaths: new Set(),
+      uncheckedPaths: new Set(),
     }
     const value = generateValue(root, '', ctx)
     variants.push({
-      value: validateMock(schema, value, ctx.convertedPaths),
+      value: validateMock(schema, value, ctx.uncheckedPaths),
       ...(choice && { choice }),
     })
 
@@ -80,16 +84,17 @@ export function generateMockVariantsFromSchema<OUT>(schema: JSchema<OUT, any>): 
 /**
  * Validates the generated value, and throws when validation removed a part of it,
  * so a field never disappears from a mock without notice.
- * Values below a conversion are not compared, as a conversion may change their shape.
+ * Values below a conversion are not compared, as a conversion may change their shape,
+ * and neither are values below an example or a default.
  */
 function validateMock<OUT>(
   schema: JSchema<OUT, any>,
   value: unknown,
-  convertedPaths: Set<string>,
+  uncheckedPaths: Set<string>,
 ): OUT {
   const generated = copyPlainValue(value)
   const validated = schema.validate(value)
-  assertNothingRemoved(generated, validated, '', convertedPaths)
+  assertNothingRemoved(generated, validated, '', uncheckedPaths)
   return validated
 }
 
@@ -97,18 +102,20 @@ function assertNothingRemoved(
   generated: unknown,
   validated: unknown,
   path: string,
-  convertedPaths: Set<string>,
+  uncheckedPaths: Set<string>,
 ): void {
-  if (convertedPaths.has(path)) return
+  if (uncheckedPaths.has(path)) return
   if (generated instanceof Set) {
     const validatedItems = validated instanceof Set ? Array.from(validated) : validated
-    assertNothingRemoved(Array.from(generated), validatedItems, path, convertedPaths)
+    assertNothingRemoved(Array.from(generated), validatedItems, path, uncheckedPaths)
     return
   }
   if (Array.isArray(generated)) {
+    // An array, e.g an example, validates into a Set2 for a set schema
+    const validatedItems = validated instanceof Set ? Array.from(validated) : validated
     for (const [index, item] of generated.entries()) {
-      const validatedItem = (validated as unknown[] | undefined)?.[index]
-      assertNothingRemoved(item, validatedItem, path, convertedPaths)
+      const validatedItem = (validatedItems as unknown[] | undefined)?.[index]
+      assertNothingRemoved(item, validatedItem, path, uncheckedPaths)
     }
     return
   }
@@ -120,10 +127,10 @@ function assertNothingRemoved(
     if (validatedItem === undefined) {
       throw cannotGenerate(
         itemPath,
-        'validation removed the generated value: an earlier `anyOfThese` branch matched without this field (put the wider branch first), or the schema does not allow the key, e.g a key from an example or one that fails the key schema',
+        'validation removed the generated value: an earlier `anyOfThese` branch matched without this field (put the wider branch first), or the key fails the key schema',
       )
     }
-    assertNothingRemoved(item, validatedItem, itemPath, convertedPaths)
+    assertNothingRemoved(item, validatedItem, itemPath, uncheckedPaths)
   }
 }
 
@@ -132,7 +139,7 @@ const MOCK_ISO_DATE = '2022-06-15'
 
 function generateValue(node: JsonSchema, path: string, ctx: GenerationContext): any {
   assertSupportedKeywords(node, path)
-  if (node.customConversions?.length || node.postValidation) ctx.convertedPaths.add(path)
+  if (node.customConversions?.length || node.postValidation) ctx.uncheckedPaths.add(path)
   const value = generateValueFromKeywords(node, path, ctx)
   if (node.optionalValues?.includes(value)) {
     throw cannotGenerate(
@@ -144,8 +151,15 @@ function generateValue(node: JsonSchema, path: string, ctx: GenerationContext): 
 }
 
 function generateValueFromKeywords(node: JsonSchema, path: string, ctx: GenerationContext): any {
-  if (node.examples?.length) return copyPlainValue(node.examples[0])
-  if (node.default !== undefined) return copyPlainValue(node.default)
+  // The removal check skips examples and defaults: they are written by the schema's author, not generated
+  if (node.examples?.length) {
+    ctx.uncheckedPaths.add(path)
+    return copyPlainValue(node.examples[0])
+  }
+  if (node.default !== undefined) {
+    ctx.uncheckedPaths.add(path)
+    return copyPlainValue(node.default)
+  }
   if (node.isUndefined) return undefined
   if (node.enum) return node.enum[0]
   if (node.ifDefined) return generateValue(node.ifDefined, path, ctx)
@@ -272,34 +286,33 @@ function generateIsoDate(bounds: JsonSchemaIsoDateOptions): string {
 }
 
 /**
- * Tries the preferred number, then numbers at and between the bounds, rounded to the step
- * (`multipleOf`, or 1 for an integer) in both directions.
+ * The preferred number if it fits the schema, else the preferred number rounded to the step,
+ * else the first number that fits from the lower bound up, or from the upper bound down.
  */
 function generateNumber(node: JsonSchema, path: string): number {
-  const step = node.multipleOf ?? (node.type === 'integer' ? 1 : undefined)
-  const candidates = [
-    getPreferredNumber(node),
-    node.minimum,
-    node.exclusiveMinimum,
-    node.maximum,
-    node.exclusiveMaximum,
-    getMidpoint(node),
-  ].filter(candidate => candidate !== undefined)
-
-  const roundedCandidates = candidates.flatMap(candidate => {
-    // One step inside a bound, e.g 3 for `exclusiveMin(2)`
-    if (!step) return [candidate, candidate + 1, candidate - 1]
-    const below = Math.floor(candidate / step) * step
-    const above = Math.ceil(candidate / step) * step
-    return [above, below, above + step, below - step]
-  })
-
-  const value = roundedCandidates.find(candidate => isWithinBounds(node, candidate, step))
+  const step = getStep(node)
+  const preferred = getPreferredNumber(node)
+  const candidates = [preferred, ...roundToStep(preferred, step), ...getBoundCandidates(node, step)]
+  const value = candidates.find(candidate => fitsNumberSchema(node, candidate, step))
   if (value === undefined) {
     throw cannotGenerate(path, 'no number satisfies the bounds of the schema')
   }
   // Turns -0 into 0
   return value + 0
+}
+
+/**
+ * `multipleOf`, or 1 for an integer. For an integer with a fractional `multipleOf`,
+ * the smallest whole multiple of it, e.g 2 for 0.4.
+ */
+function getStep(node: JsonSchema): number | undefined {
+  const { multipleOf } = node
+  if (node.type !== 'integer') return multipleOf
+  if (!multipleOf) return 1
+  for (let factor = 1; factor <= 1000; factor++) {
+    if (Number.isInteger(multipleOf * factor)) return multipleOf * factor
+  }
+  return multipleOf
 }
 
 function getPreferredNumber(node: JsonSchema): number {
@@ -308,18 +321,50 @@ function getPreferredNumber(node: JsonSchema): number {
   return 1
 }
 
-function getMidpoint(node: JsonSchema): number | undefined {
-  const lower = node.minimum ?? node.exclusiveMinimum
-  const upper = node.maximum ?? node.exclusiveMaximum
-  if (lower === undefined || upper === undefined) return
-  return lower + (upper - lower) / 2
+function roundToStep(value: number, step: number | undefined): number[] {
+  if (!step) return []
+  return [Math.ceil(value / step) * step, Math.floor(value / step) * step]
 }
 
-function isWithinBounds(node: JsonSchema, value: number, step: number | undefined): boolean {
+/**
+ * The first numbers at or inside the lower bound, or else the upper bound: with a step, the first
+ * two multiples, without one the bound itself, the midpoint between the bounds, and the bound + 1.
+ */
+function getBoundCandidates(node: JsonSchema, step: number | undefined): number[] {
+  const lower = getTightestBound([node.minimum, node.exclusiveMinimum], Math.max)
+  const upper = getTightestBound([node.maximum, node.exclusiveMaximum], Math.min)
+
+  if (lower !== undefined && step) {
+    const first = Math.ceil(lower / step) * step
+    return [first, first + step]
+  }
+  if (lower !== undefined) {
+    const midpoint = upper === undefined ? lower : lower + (upper - lower) / 2
+    return [lower, midpoint, lower + 1]
+  }
+  if (upper !== undefined && step) {
+    const last = Math.floor(upper / step) * step
+    return [last, last - step]
+  }
+  if (upper !== undefined) return [upper, upper - 1]
+  return []
+}
+
+function getTightestBound(
+  bounds: (number | undefined)[],
+  pick: (...values: number[]) => number,
+): number | undefined {
+  const definedBounds = bounds.filter(bound => bound !== undefined)
+  if (!definedBounds.length) return
+  return pick(...definedBounds)
+}
+
+function fitsNumberSchema(node: JsonSchema, value: number, step: number | undefined): boolean {
   if (node.minimum !== undefined && value < node.minimum) return false
   if (node.exclusiveMinimum !== undefined && value <= node.exclusiveMinimum) return false
   if (node.maximum !== undefined && value > node.maximum) return false
   if (node.exclusiveMaximum !== undefined && value >= node.exclusiveMaximum) return false
+  if (node.multipleOf && !Number.isInteger(value / node.multipleOf)) return false
   if (step && !Number.isInteger(value / step)) return false
   if (node.type === 'integer' && !Number.isInteger(value)) return false
   return true
@@ -327,7 +372,7 @@ function isWithinBounds(node: JsonSchema, value: number, step: number | undefine
 
 function generateArray(node: JsonSchema, path: string, ctx: GenerationContext): any[] {
   if (node.prefixItems) {
-    return node.prefixItems.map((item, index) => generateValue(item, `${path}[${index}]`, ctx))
+    return node.prefixItems.map(item => generateValue(item, path, ctx))
   }
   if (!node.items) return []
   return generateList(node, node.items, path, ctx)
@@ -555,6 +600,9 @@ const SUPPORTED_KEYWORDS: Record<keyof JsonSchema, boolean> = {
   optionalField: false,
 }
 
+/**
+ * @experimental
+ */
 export interface GenerateMockFromSchemaOptions {
   /**
    * Fills every optional field, and puts one item in each list and one key in each map.
@@ -563,6 +611,9 @@ export interface GenerateMockFromSchemaOptions {
   allFields?: boolean
 }
 
+/**
+ * @experimental
+ */
 export interface MockVariant<OUT> {
   value: OUT
   /**
@@ -597,9 +648,11 @@ interface GenerationContext {
    */
   reachedChoices: ReachedChoice[]
   /**
-   * Filled while generating: the paths of values that a conversion or `postValidation` may change.
+   * Filled while generating: the paths of values that the removal check does not compare below,
+   * because a conversion or `postValidation` may change them, or because they come from an example
+   * or a default.
    */
-  convertedPaths: Set<string>
+  uncheckedPaths: Set<string>
 }
 
 /**

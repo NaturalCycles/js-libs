@@ -647,3 +647,42 @@ it('should throw when a key from the key schema is also a field of the object, n
     'Cannot generate a value at key: the key schema gives the key "key", which is also a field of the object: give the key schema another example, or the map an example, .example({...})',
   )
 })
+
+it('should find an integer for an integer schema with a step that is a quarter', () => {
+  const schema = j.object<{ count: number }>({
+    count: j.number().integer().min(1.2).multipleOf(0.25),
+  })
+
+  expect(generateMockFromSchema(schema)).toEqual({ count: 2 })
+})
+
+it('should accept an array example for a set of objects', () => {
+  const schema = j.object<{ items: Set2<{ id: string }> }>({
+    items: j.set(j.object<{ id: string }>({ id: j.string() })).example([{ id: 'a' }, { id: 'b' }]),
+  })
+
+  expect(generateMockFromSchema(schema).items).toStrictEqual(new Set2([{ id: 'a' }, { id: 'b' }]))
+})
+
+// A conversion that drops the optional `m`, which validation accepts
+const dropsM = j
+  .object<{ n: number; m?: number }>({ n: j.number(), m: j.number().optional() })
+  .convert(value => ({ n: value.n }))
+
+it('should not compare a converted tuple position with the generated one', () => {
+  const schema = j.object<{ pair: [string, any] }>({
+    pair: j.tuple([j.string(), dropsM as any]),
+  })
+
+  expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ pair: ['mock', { n: 1 }] })
+})
+
+it('should not compare the fields below an example with the validated ones', () => {
+  const schema = j.object<{ wrapper: { item: { n: number } } }>({
+    wrapper: j
+      .object<{ item: { n: number } }>({ item: dropsM as any })
+      .example({ item: { n: 5, m: 6 } }),
+  })
+
+  expect(generateMockFromSchema(schema)).toEqual({ wrapper: { item: { n: 5 } } })
+})
