@@ -18,8 +18,14 @@ export function generateMockFromSchema<OUT>(
   schema: JSchema<OUT, any>,
   opt: GenerateMockFromSchemaOptions = {},
 ): OUT {
-  const value = generateValue(schema.build(), '', { opt, choices: new Map(), reachedChoices: [] })
-  return validateMock(schema, value)
+  const ctx: GenerationContext = {
+    opt,
+    choices: new Map(),
+    reachedChoices: [],
+    convertedPaths: new Set(),
+  }
+  const value = generateValue(schema.build(), '', ctx)
+  return validateMock(schema, value, ctx.convertedPaths)
 }
 
 /**
@@ -43,11 +49,19 @@ export function generateMockVariantsFromSchema<OUT>(schema: JSchema<OUT, any>): 
   const variants: MockVariant<OUT>[] = []
 
   for (const { choices, choice } of queue) {
-    const reachedChoices: ReachedChoice[] = []
-    const value = generateValue(root, '', { opt: { allFields: true }, choices, reachedChoices })
-    variants.push({ value: validateMock(schema, value), ...(choice && { choice }) })
+    const ctx: GenerationContext = {
+      opt: { allFields: true },
+      choices,
+      reachedChoices: [],
+      convertedPaths: new Set(),
+    }
+    const value = generateValue(root, '', ctx)
+    variants.push({
+      value: validateMock(schema, value, ctx.convertedPaths),
+      ...(choice && { choice }),
+    })
 
-    for (const { point, path, options } of reachedChoices) {
+    for (const { point, path, options } of ctx.reachedChoices) {
       if (seenChoices.has(point)) continue
       seenChoices.add(point)
       for (let option = 1; option < options.length; option++) {
@@ -66,18 +80,35 @@ export function generateMockVariantsFromSchema<OUT>(schema: JSchema<OUT, any>): 
 /**
  * Validates the generated value, and throws when validation removed a part of it,
  * so a field never disappears from a mock without notice.
+ * Values below a conversion are not compared, as a conversion may change their shape.
  */
-function validateMock<OUT>(schema: JSchema<OUT, any>, value: unknown): OUT {
+function validateMock<OUT>(
+  schema: JSchema<OUT, any>,
+  value: unknown,
+  convertedPaths: Set<string>,
+): OUT {
   const generated = copyPlainValue(value)
   const validated = schema.validate(value)
-  assertNothingRemoved(generated, validated, '')
+  assertNothingRemoved(generated, validated, '', convertedPaths)
   return validated
 }
 
-function assertNothingRemoved(generated: unknown, validated: unknown, path: string): void {
+function assertNothingRemoved(
+  generated: unknown,
+  validated: unknown,
+  path: string,
+  convertedPaths: Set<string>,
+): void {
+  if (convertedPaths.has(path)) return
+  if (generated instanceof Set) {
+    const validatedItems = validated instanceof Set ? Array.from(validated) : validated
+    assertNothingRemoved(Array.from(generated), validatedItems, path, convertedPaths)
+    return
+  }
   if (Array.isArray(generated)) {
     for (const [index, item] of generated.entries()) {
-      assertNothingRemoved(item, (validated as unknown[] | undefined)?.[index], path)
+      const validatedItem = (validated as unknown[] | undefined)?.[index]
+      assertNothingRemoved(item, validatedItem, path, convertedPaths)
     }
     return
   }
@@ -92,7 +123,7 @@ function assertNothingRemoved(generated: unknown, validated: unknown, path: stri
         'validation removed the generated value: an earlier `anyOfThese` branch matched without this field (put the wider branch first), or the schema does not allow the key, e.g a key from an example or one that fails the key schema',
       )
     }
-    assertNothingRemoved(item, validatedItem, itemPath)
+    assertNothingRemoved(item, validatedItem, itemPath, convertedPaths)
   }
 }
 
@@ -101,6 +132,7 @@ const MOCK_ISO_DATE = '2022-06-15'
 
 function generateValue(node: JsonSchema, path: string, ctx: GenerationContext): any {
   assertSupportedKeywords(node, path)
+  if (node.customConversions?.length || node.postValidation) ctx.convertedPaths.add(path)
   const value = generateValueFromKeywords(node, path, ctx)
   if (node.optionalValues?.includes(value)) {
     throw cannotGenerate(
@@ -150,11 +182,12 @@ function assertSupportedKeywords(node: JsonSchema, path: string): void {
 }
 
 /**
- * Copies plain objects and arrays, so a variant does not share them with the schema
+ * Copies plain objects, arrays and sets, so a variant does not share them with the schema
  * or with other variants.
  */
 function copyPlainValue(value: any): any {
   if (Array.isArray(value)) return value.map(copyPlainValue)
+  if (value instanceof Set2) return new Set2(Array.from(value, copyPlainValue))
   if (!_isPlainObject(value)) return value
   return _mapValues(value, (_, item) => copyPlainValue(item))
 }
@@ -254,7 +287,8 @@ function generateNumber(node: JsonSchema, path: string): number {
   ].filter(candidate => candidate !== undefined)
 
   const roundedCandidates = candidates.flatMap(candidate => {
-    if (!step) return [candidate]
+    // One step inside a bound, e.g 3 for `exclusiveMin(2)`
+    if (!step) return [candidate, candidate + 1, candidate - 1]
     const below = Math.floor(candidate / step) * step
     const above = Math.ceil(candidate / step) * step
     return [above, below, above + step, below - step]
@@ -287,6 +321,7 @@ function isWithinBounds(node: JsonSchema, value: number, step: number | undefine
   if (node.maximum !== undefined && value > node.maximum) return false
   if (node.exclusiveMaximum !== undefined && value >= node.exclusiveMaximum) return false
   if (step && !Number.isInteger(value / step)) return false
+  if (node.type === 'integer' && !Number.isInteger(value)) return false
   return true
 }
 
@@ -348,14 +383,38 @@ function generateObject(node: JsonSchema, path: string, ctx: GenerationContext):
         `a map with keys matching ${pattern} needs an example, .example({...})`,
       )
     }
+    assertKeyIsFree(node, result, key, path)
     result[key] = generateValue(valueSchema, joinPath(path, key), ctx)
   }
   if (typeof node.additionalProperties === 'object') {
-    const key = generateKey(node, path, ctx) ?? 'key'
+    const key = generateKey(node, path, ctx) ?? findFreeKey(node, result)
+    assertKeyIsFree(node, result, key, path)
     result[key] = generateValue(node.additionalProperties, joinPath(path, key), ctx)
   }
 
   return result
+}
+
+/**
+ * `key`, or else `key1`, `key2` and so on, whichever the object does not have yet.
+ */
+function findFreeKey(node: JsonSchema, result: AnyObject): string {
+  let key = 'key'
+  for (let index = 1; isKeyTaken(node, result, key); index++) key = `key${index}`
+  return key
+}
+
+function assertKeyIsFree(node: JsonSchema, result: AnyObject, key: string, path: string): void {
+  if (isKeyTaken(node, result, key)) {
+    throw cannotGenerate(
+      joinPath(path, key),
+      `the key schema gives the key ${JSON.stringify(key)}, which is also a field of the object: give the key schema another example, or the map an example, .example({...})`,
+    )
+  }
+}
+
+function isKeyTaken(node: JsonSchema, result: AnyObject, key: string): boolean {
+  return Object.hasOwn(node.properties || {}, key) || Object.hasOwn(result, key)
 }
 
 /**
@@ -537,6 +596,10 @@ interface GenerationContext {
    * Filled while generating: the choices, in the order they are reached.
    */
   reachedChoices: ReachedChoice[]
+  /**
+   * Filled while generating: the paths of values that a conversion or `postValidation` may change.
+   */
+  convertedPaths: Set<string>
 }
 
 /**

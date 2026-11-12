@@ -586,3 +586,64 @@ it('should not return variants for a group of exclusive properties with a requir
 
   expect(generateMockVariantsFromSchema(schema)).toStrictEqual([{ value: { b: 'mock' } }])
 })
+
+it('should find a number one step inside a one-sided exclusive bound', () => {
+  const schema = j.object<{ above: number; below: number }>({
+    above: j.number().exclusiveMin(2),
+    below: j.number().exclusiveMax(0),
+  })
+
+  expect(generateMockFromSchema(schema)).toEqual({ above: 3, below: -1 })
+})
+
+it('should find an integer for an integer schema with a fractional step', () => {
+  const schema = j.object<{ count: number }>({
+    count: j.number().integer().min(1.2).multipleOf(0.5),
+  })
+
+  expect(generateMockFromSchema(schema)).toEqual({ count: 2 })
+})
+
+it('should not compare a value that postValidation changed with the generated one', () => {
+  const schema = j
+    .object<{ n: number }>({ n: j.number() })
+    .postValidation(value => ({ renamed: value.n }))
+
+  expect(generateMockFromSchema(schema)).toEqual({ renamed: 1 })
+})
+
+it('should throw when validation removes a field from an item of a set, naming the field', () => {
+  const schema = j.object<{ shapes: Set2<{ id: string } | { id: string; extra: number }> }>({
+    shapes: j.set(
+      j.anyOfThese([
+        j.object<{ id: string }>({ id: j.string() }),
+        j.object<{ id: string; extra: number }>({ id: j.string(), extra: j.number() }),
+      ]),
+    ),
+  })
+
+  expect(() => generateMockVariantsFromSchema(schema)).toThrow(
+    'Cannot generate a value at shapes.extra: validation removed the generated value',
+  )
+})
+
+it('should pick the next free key for a map in an object with a field named key', () => {
+  const schema = j
+    .object<{ key: string; [name: string]: string }>({ key: j.string() })
+    .cloneAndUpdateSchema({ additionalProperties: { type: 'string' } })
+
+  expect(generateMockFromSchema(schema, { allFields: true })).toEqual({ key: 'mock', key1: 'mock' })
+})
+
+it('should throw when a key from the key schema is also a field of the object, naming the field', () => {
+  const schema = j
+    .object<{ key: string; [name: string]: string }>({ key: j.string() })
+    .cloneAndUpdateSchema({
+      keySchema: { type: 'string', examples: ['key'] },
+      additionalProperties: { type: 'string' },
+    })
+
+  expect(() => generateMockFromSchema(schema, { allFields: true })).toThrow(
+    'Cannot generate a value at key: the key schema gives the key "key", which is also a field of the object: give the key schema another example, or the map an example, .example({...})',
+  )
+})
