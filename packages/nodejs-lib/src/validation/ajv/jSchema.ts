@@ -590,6 +590,18 @@ export class JBuilder<OUT, Opt> extends JSchema<OUT, Opt> {
     return this.cloneAndUpdateSchema({ default: v })
   }
 
+  /**
+   * Gives an example of a valid input value. It is not validated.
+   * The example must be a plain value: `build()` does not keep class instances.
+   *
+   * ```
+   * const schema = j.string().regex(/^[A-Z]{3}-\d{4}$/).example('ABC-1234')
+   * ```
+   */
+  example(example: any): this {
+    return this.cloneAndUpdateSchema({ examples: [example] })
+  }
+
   instanceof(of: string): this {
     return this.cloneAndUpdateSchema({ type: 'object', instanceof: of })
   }
@@ -828,30 +840,34 @@ export class JString<
    * Expects the JWT to be signed!
    */
   jwt(): this {
-    return this.regex(JWT_REGEX, { msg: 'is not a valid JWT format' })
+    return this.regex(JWT_REGEX, { msg: 'is not a valid JWT format' }).example(
+      'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.c2lnbmF0dXJl',
+    )
   }
 
   url(): this {
-    return this.regex(URL_REGEX, { msg: 'is not a valid URL format' })
+    return this.regex(URL_REGEX, { msg: 'is not a valid URL format' }).example(
+      'https://example.com',
+    )
   }
 
   ipv4(): this {
-    return this.regex(IPV4_REGEX, { msg: 'is not a valid IPv4 format' })
+    return this.regex(IPV4_REGEX, { msg: 'is not a valid IPv4 format' }).example('192.0.2.1')
   }
 
   ipv6(): this {
-    return this.regex(IPV6_REGEX, { msg: 'is not a valid IPv6 format' })
+    return this.regex(IPV6_REGEX, { msg: 'is not a valid IPv6 format' }).example('2001:db8::1')
   }
 
   slug(): this {
-    return this.regex(SLUG_REGEX, { msg: 'is not a valid slug format' })
+    return this.regex(SLUG_REGEX, { msg: 'is not a valid slug format' }).example('my-slug')
   }
 
   /**
    * Validates the 3-part semver format: `major.minor.patch`, e.g `1.2.3`.
    */
   semVer(): this {
-    return this.regex(SEMVER_REGEX, { msg: 'is not a valid semver format' })
+    return this.regex(SEMVER_REGEX, { msg: 'is not a valid semver format' }).example('1.2.3')
   }
 
   /**
@@ -860,19 +876,27 @@ export class JString<
    * Not a semver by the spec, but is used by e.g .NET and some mobile app versions.
    */
   semVer4(): this {
-    return this.regex(SEMVER4_REGEX, { msg: 'is not a valid 4-part semver format' })
+    return this.regex(SEMVER4_REGEX, {
+      msg: 'is not a valid 4-part semver format',
+    }).example('1.2.3.4')
   }
 
   languageTag(): this {
-    return this.regex(LANGUAGE_TAG_REGEX, { msg: 'is not a valid language format' })
+    return this.regex(LANGUAGE_TAG_REGEX, {
+      msg: 'is not a valid language format',
+    }).example('en-US')
   }
 
   countryCode(): this {
-    return this.regex(COUNTRY_CODE_REGEX, { msg: 'is not a valid country code format' })
+    return this.regex(COUNTRY_CODE_REGEX, {
+      msg: 'is not a valid country code format',
+    }).example('US')
   }
 
   currency(): this {
-    return this.regex(CURRENCY_REGEX, { msg: 'is not a valid currency format' })
+    return this.regex(CURRENCY_REGEX, {
+      msg: 'is not a valid currency format',
+    }).example('USD')
   }
 
   /**
@@ -889,11 +913,13 @@ export class JString<
   base64Url(): this {
     return this.regex(BASE64URL_REGEX, {
       msg: 'contains characters not allowed in Base64 URL characterset',
-    })
+    }).example('abc-DEF_123')
   }
 
   uuid(): this {
-    return this.regex(UUID_REGEX, { msg: 'is an invalid UUID' })
+    return this.regex(UUID_REGEX, { msg: 'is an invalid UUID' }).example(
+      '123e4567-e89b-12d3-a456-426614174000',
+    )
   }
 }
 
@@ -2143,7 +2169,12 @@ export interface JsonSchema<OUT = unknown> {
   minProperties?: number
   maxProperties?: number
 
-  default?: OUT
+  default?: unknown
+  /**
+   * Examples of a valid input value.
+   * Annotation only (not validated), lets consumers generate e.g a mock value.
+   */
+  examples?: unknown[]
 
   // https://json-schema.org/understanding-json-schema/reference/conditionals.html#id6
   if?: JsonSchema
