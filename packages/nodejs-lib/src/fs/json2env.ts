@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 import { dimGrey } from '../colors/colors.js'
 import { fs2 } from './fs2.js'
@@ -47,9 +48,7 @@ export function json2env(opt: Json2EnvOptions): void {
   }
 
   if (!fs2.pathExists(jsonPath)) {
-    if (fail) {
-      throw new Error(`Path doesn't exist: ${jsonPath}`)
-    }
+    _assert(!fail, `Path doesn't exist: ${jsonPath}`)
 
     if (!silent) {
       console.log(`json2env input file doesn't exist, skipping without error (${jsonPath})`)

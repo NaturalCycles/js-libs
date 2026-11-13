@@ -1,3 +1,5 @@
+import { _last } from '@naturalcycles/js-lib/array/array.util.js'
+
 export class CollectReporter {
   constructor(cfg = {}) {
     this.cfg = cfg
@@ -5,7 +7,7 @@ export class CollectReporter {
 
   onTestModuleEnd(testModule) {
     const { threshold = 0 } = this.cfg
-    const shortModuleId = testModule.moduleId.split('/').at(-1)
+    const shortModuleId = _last(testModule.moduleId.split('/'))
 
     const selfTimeMap = {}
     const totalTimeMap = {}
@@ -15,7 +17,7 @@ export class CollectReporter {
     Object.entries(testModule.diagnostic().importDurations).forEach(([k, v]) => {
       moduleCount++
       selfSum += v.selfTime
-      const short = k.split('/').at(-3) + '/' + k.split('/').at(-2) + '/' + k.split('/').at(-1)
+      const short = k.split('/').slice(-3).join('/')
       if (Math.round(v.totalTime) < threshold) return // skip < ${threshold} ms imports
       selfTimeMap[short] = Math.round(v.selfTime)
       totalTimeMap[short] = Math.round(v.totalTime)

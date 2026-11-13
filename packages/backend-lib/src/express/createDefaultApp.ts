@@ -16,9 +16,10 @@ import type {
 import { simpleRequestLoggerMiddleware } from '../server/simpleRequestLoggerMiddleware.js'
 import { isCloudRun } from '../util.js'
 
-const isTest = process.env['APP_ENV'] === 'test'
-const isDev = process.env['APP_ENV'] === 'dev'
-const isGAE = !!process.env['GAE_INSTANCE']
+const { APP_ENV, GAE_INSTANCE } = process.env
+const isTest = APP_ENV === 'test'
+const isDev = APP_ENV === 'dev'
+const isGAE = !!GAE_INSTANCE
 
 export async function createDefaultApp(cfg: DefaultAppCfg): Promise<BackendApplication> {
   const { sentryService } = cfg

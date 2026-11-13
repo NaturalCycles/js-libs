@@ -20,15 +20,15 @@ it('should parse, compare and serialize intervals, throwing on invalid strings',
   expect(int1.isBefore(int2)).toBe(false)
 
   expect(() => TimeInterval.parse('')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: Cannot parse "" into TimeInterval]`,
+    `[AssertionError: Cannot parse "" into TimeInterval]`,
   )
   expect(() => TimeInterval.parse('abcd')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: Cannot parse "abcd" into TimeInterval]`,
+    `[AssertionError: Cannot parse "abcd" into TimeInterval]`,
   )
   expect(() => TimeInterval.parse('2022-02-24')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: Cannot parse "2022-02-24" into TimeInterval]`,
+    `[AssertionError: Cannot parse "2022-02-24" into TimeInterval]`,
   )
   expect(() => TimeInterval.parse('2022-02-24/abcd')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: Cannot parse "2022-02-24/abcd" into TimeInterval]`,
+    `[AssertionError: Cannot parse "2022-02-24/abcd" into TimeInterval]`,
   )
 })

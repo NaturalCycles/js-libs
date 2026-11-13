@@ -59,7 +59,8 @@ export async function releaseCommand(): Promise<void> {
     return
   }
 
-  const token = process.env['GITHUB_TOKEN'] || process.env['GH_TOKEN']
+  const { GITHUB_TOKEN, GH_TOKEN } = process.env
+  const token = GITHUB_TOKEN || GH_TOKEN
   if (!dryRun) {
     _assert(token, 'GITHUB_TOKEN (or GH_TOKEN) is required to release, or use --dry-run')
   }

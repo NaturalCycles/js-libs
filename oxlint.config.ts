@@ -19,6 +19,8 @@ export default defineOxlintConfig({
     {
       files: ['packages/js-lib/src/**'],
       rules: {
+        // js-lib implements _last and friends, and its modules avoid importing each other
+        'nc/prefer-last': 0,
         'no-restricted-imports': [
           2,
           {

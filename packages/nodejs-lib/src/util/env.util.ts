@@ -1,3 +1,4 @@
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { ValuesOf } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
 
@@ -15,7 +16,7 @@ export function requireEnvKeys<T extends readonly string[]>(
   return keys.reduce(
     (r, k) => {
       const v = process.env[k]
-      if (!v) throw new Error(`${k} env variable is required, but missing`)
+      _assert(v, `${k} env variable is required, but missing`)
       r[k as ValuesOf<T>] = v
       return r
     },

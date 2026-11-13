@@ -10,7 +10,7 @@ afterAll(() => {
 
 it('should return required env keys and throw on missing or empty ones', () => {
   expect(() => requireEnvKeys('NON_EXISTING')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: NON_EXISTING env variable is required, but missing]`,
+    `[AssertionError: NON_EXISTING env variable is required, but missing]`,
   )
 
   vi.stubEnv('AAAA', 'aaaa')
@@ -20,7 +20,7 @@ it('should return required env keys and throw on missing or empty ones', () => {
 
   vi.stubEnv('BBBB', '') // not allowed
   expect(() => requireEnvKeys('BBBB')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: BBBB env variable is required, but missing]`,
+    `[AssertionError: BBBB env variable is required, but missing]`,
   )
 
   vi.stubEnv('CCCC', 'cccc')

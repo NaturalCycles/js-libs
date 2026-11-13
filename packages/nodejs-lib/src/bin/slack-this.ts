@@ -3,6 +3,7 @@ import { runScript } from '../script/runScript.js'
 import { SlackService } from '../slack/index.js'
 
 runScript(async () => {
+  const { SLACK_WEBHOOK_URL } = process.env
   const {
     channel,
     msg,
@@ -28,7 +29,7 @@ runScript(async () => {
     },
     webhook: {
       type: 'string',
-      default: process.env.SLACK_WEBHOOK_URL,
+      default: SLACK_WEBHOOK_URL,
     },
   })
 

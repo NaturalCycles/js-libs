@@ -11,7 +11,8 @@ const runsInIDE = doesItRunInIDE()
 const testType = getTestType(runsInIDE)
 const silent = getSilent(runsInIDE)
 const { include, exclude } = getIncludeAndExclude(testType)
-const isCI = !!process.env.CI
+const { CI } = process.env
+const isCI = !!CI
 const coverageEnabled = false // disabled by default
 const junitReporterEnabled = isCI && testType !== 'manual'
 const maxWorkers = getMaxWorkers()
@@ -306,7 +307,8 @@ function getTestType(runsInIDE) {
     }
   }
 
-  return process.env.TEST_TYPE || 'unit'
+  const { TEST_TYPE } = process.env
+  return TEST_TYPE || 'unit'
 }
 
 /**
@@ -355,6 +357,6 @@ function getIncludeAndExclude(testType) {
 }
 
 function getMaxWorkers() {
-  const cpuLimit = Number(process.env.CPU_LIMIT)
-  return cpuLimit || undefined
+  const { CPU_LIMIT } = process.env
+  return Number(CPU_LIMIT) || undefined
 }

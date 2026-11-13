@@ -1,5 +1,6 @@
 // Inspired by: https://gist.github.com/Jezternz/c8e9fafc2c114e079829974e3764db75
 
+import { _last } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { AnyObject } from '@naturalcycles/js-lib/types'
 
@@ -65,7 +66,7 @@ export function csvStringToArray(str: string): string[][] {
     if (matches[1]!.length && matches[1] !== ',') {
       arr.push([])
     }
-    arr[arr.length - 1]!.push(matches[2] ? matches[2].replaceAll('""', '"') : matches[3])
+    _last(arr).push(matches[2] ? matches[2].replaceAll('""', '"') : matches[3])
   }
   return arr
 }

@@ -1,3 +1,5 @@
+// oxlint-disable nc/prefer-assert -- no runtime imports here, and the lookups run in hot paths: the message is only built on failure
+
 import type { AnyObject, Enum, NumberEnum, StringEnum } from './types.js'
 
 /**
