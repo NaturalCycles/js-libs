@@ -1,3 +1,4 @@
+import { _last } from '@naturalcycles/js-lib/array/array.util.js'
 import { _ms } from '@naturalcycles/js-lib/datetime'
 
 export class SummaryReporter {
@@ -14,7 +15,7 @@ export class SummaryReporter {
       // In the monorepo root run testModules span all projects, so prefix with the
       // (short) package name to disambiguate identically-named files across packages.
       const pkg = mod.project?.name?.split('/').at(-1)
-      const file = mod.moduleId.split('/').at(-1)
+      const file = _last(mod.moduleId.split('/'))
       const name = pkg ? `${pkg} ${file}` : file
       const diag = mod.diagnostic()
       stats.push({ name, ms: diag.duration })

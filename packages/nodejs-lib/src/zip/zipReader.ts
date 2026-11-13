@@ -477,9 +477,10 @@ function decodeBuffer(buf: Buffer, hasUtf8Flag: boolean): string {
 
 function assertPathInside(root: string, fileName: string): string {
   const targetPath = path.resolve(root, fileName)
-  if (targetPath !== root && !targetPath.startsWith(root + path.sep)) {
-    throw new Error(`zip entry escapes destination directory: ${fileName}`)
-  }
+  _assert(
+    targetPath === root || targetPath.startsWith(root + path.sep),
+    `zip entry escapes destination directory: ${fileName}`,
+  )
   return targetPath
 }
 
@@ -510,9 +511,7 @@ class FileSource implements ZipSource {
     let read = 0
     while (read < length) {
       const { bytesRead } = await this.fileHandle.read(buf, read, length - read, position + read)
-      if (bytesRead === 0) {
-        throw new Error(`unexpected EOF: read ${read} of ${length} bytes at offset ${position}`)
-      }
+      _assert(bytesRead, `unexpected EOF: read ${read} of ${length} bytes at offset ${position}`)
       read += bytesRead
     }
     return buf

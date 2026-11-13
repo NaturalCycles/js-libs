@@ -120,16 +120,14 @@ export class DatastoreDB extends BaseCommonDB implements CommonDB {
   // @memo() // not used to be able to connect to many DBs in the same server instance
   ds(): Datastore {
     if (!this.cachedDatastore) {
-      _assert(
-        process.env['APP_ENV'] !== 'test',
-        'DatastoreDB cannot be used in Test env, please use InMemoryDB',
-      )
+      const { APP_ENV, GOOGLE_CLOUD_PROJECT, GOOGLE_APPLICATION_CREDENTIALS } = process.env
+      _assert(APP_ENV !== 'test', 'DatastoreDB cannot be used in Test env, please use InMemoryDB')
 
-      this.cfg.projectId ||= this.cfg.credentials?.project_id || process.env['GOOGLE_CLOUD_PROJECT']
+      this.cfg.projectId ||= this.cfg.credentials?.project_id || GOOGLE_CLOUD_PROJECT
 
       if (this.cfg.projectId) {
         this.cfg.logger.log(`DatastoreDB connected to ${boldWhite(this.cfg.projectId)}`)
-      } else if (process.env['GOOGLE_APPLICATION_CREDENTIALS']) {
+      } else if (GOOGLE_APPLICATION_CREDENTIALS) {
         this.cfg.logger.log(`DatastoreDB connected via GOOGLE_APPLICATION_CREDENTIALS`)
       }
 

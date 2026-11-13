@@ -200,9 +200,7 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
 
   async requireById<T extends AirtableRecord>(table: string, id: string): Promise<T | undefined> {
     const r = (await this.getTableIdIndex())[table]?.[id] as T
-    if (!r) {
-      throw new Error(`requireById ${this.cfg.baseName}.${table}.${id} not found`)
-    }
+    _assert(r, `requireById ${this.cfg.baseName}.${table}.${id} not found`)
     return r
   }
 
@@ -214,9 +212,7 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
 
     return ids.map(id => {
       const r = index?.[id] as T
-      if (!r) {
-        throw new Error(`requireByIds ${this.cfg.baseName}.${table}.${id} not found`)
-      }
+      _assert(r, `requireByIds ${this.cfg.baseName}.${table}.${id} not found`)
       return r
     })
   }
@@ -227,9 +223,7 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
 
   async requireByAirtableId<T extends AirtableRecord>(airtableId: string): Promise<T> {
     const r = (await this.getAirtableIndex())[airtableId] as T | undefined
-    if (!r) {
-      throw new Error(`requireByAirtableId ${this.cfg.baseName}.${airtableId} not found`)
-    }
+    _assert(r, `requireByAirtableId ${this.cfg.baseName}.${airtableId} not found`)
     return r
   }
 
@@ -247,9 +241,7 @@ export class AirtableBaseDao<BASE extends AnyObject = any> implements InstanceId
 
     return airtableIds.map(id => {
       const r = index[id]
-      if (!r) {
-        throw new Error(`requireByAirtableIds ${this.cfg.baseName}.${id} not found`)
-      }
+      _assert(r, `requireByAirtableIds ${this.cfg.baseName}.${id} not found`)
       return r
     }) as T[]
   }

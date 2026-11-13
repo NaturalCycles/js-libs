@@ -166,7 +166,8 @@ export function createAndPushTag(tag: string, repo: RepoInfo): void {
  * NEVER log commands containing this url, and sanitize their errors - they carry the token.
  */
 function getAuthenticatedRemote(repo: RepoInfo): string {
-  const token = process.env['GITHUB_TOKEN'] || process.env['GH_TOKEN']
+  const { GITHUB_TOKEN, GH_TOKEN } = process.env
+  const token = GITHUB_TOKEN || GH_TOKEN
   return token
     ? `https://x-access-token:${token}@github.com/${repo.owner}/${repo.repo}.git`
     : 'origin'

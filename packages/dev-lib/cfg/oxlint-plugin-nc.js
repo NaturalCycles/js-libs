@@ -1,17 +1,16 @@
 const ASSERTABLE_ERRORS = new Set(['Error', 'AppError', 'AssertionError'])
 const EQUALITY_OPERATORS = new Set(['===', '!==', '==', '!='])
-// A condition that stays readable once negated; `!(a instanceof B && c)` does not
+// A condition that stays readable once negated; `!(a ? b : c)` does not
 const UNASSERTABLE_TESTS = new Set([
-  'LogicalExpression',
   'ConditionalExpression',
   'AssignmentExpression',
   'SequenceExpression',
 ])
 // An inline callback in the condition (`items.some(item => ...)`) does not read as an assertion once negated
 const FUNCTION_NODES = new Set(['ArrowFunctionExpression', 'FunctionExpression'])
-// `_assert` builds its message and data before checking, so a call, await or interpolated message there
-// would run on the happy path too (keep ids in the data bag), and a value the condition narrows
-// (`if (!res.ok) throw new Error(res.error)`) no longer typechecks
+// `_assert` builds its message and data before checking, so a call or await there would run on the
+// happy path too, and a value the condition narrows (`if (!res.ok) throw new Error(res.error)`) no
+// longer typechecks. Interpolating plain values into the message is cheap enough to allow
 const EVALUATED_ARGUMENTS = new Set([
   'CallExpression',
   'NewExpression',
@@ -33,7 +32,7 @@ const preferAssertRule = {
     type: 'suggestion',
     docs: {
       description:
-        'Prefer _assert over an if whose only statement throws an Error or AppError with a static message',
+        'Prefer _assert over an if whose only statement throws an Error or AppError with a message that is cheap to build',
     },
     messages: {
       preferAssert:
@@ -80,9 +79,19 @@ function maxArguments(errorName) {
 }
 
 function isAssertableTest(test) {
+  return isAssertableCondition(test) && !containsFunction(test)
+}
+
+// `a && b && c` negates to a readable `!a || !b || !c`; mixing `&&` with `||` (or `??`) does not
+function isAssertableCondition(test, operator) {
   if (UNASSERTABLE_TESTS.has(test.type)) return false
-  if (test.type === 'BinaryExpression' && !EQUALITY_OPERATORS.has(test.operator)) return false
-  return !containsFunction(test)
+  if (test.type === 'BinaryExpression') return EQUALITY_OPERATORS.has(test.operator)
+  if (test.type !== 'LogicalExpression') return true
+  if (test.operator === '??' || (operator && test.operator !== operator)) return false
+  return (
+    isAssertableCondition(test.left, test.operator) &&
+    isAssertableCondition(test.right, test.operator)
+  )
 }
 
 function containsFunction(node) {
@@ -90,12 +99,7 @@ function containsFunction(node) {
 }
 
 function containsEvaluation(node) {
-  return visit(
-    node,
-    child =>
-      EVALUATED_ARGUMENTS.has(child.type) ||
-      (child.type === 'TemplateLiteral' && child.expressions.length > 0),
-  )
+  return visit(node, child => EVALUATED_ARGUMENTS.has(child.type))
 }
 
 function referencedNames(node) {
@@ -136,12 +140,188 @@ function visit(node, fn) {
   return false
 }
 
+const preferLastRule = {
+  meta: {
+    type: 'suggestion',
+    docs: {
+      description:
+        'Prefer _last / _lastOrUndefined over array.at(-1), array[array.length - 1] and array.slice(-1)[0]',
+    },
+    messages: {
+      preferLast:
+        'Use _last(array), or _lastOrUndefined(array) when it can be empty, from @naturalcycles/js-lib/array',
+    },
+  },
+  create(context) {
+    return {
+      // `array.at(-1)`
+      CallExpression(node) {
+        if (!isMethodCall(node, 'at') || !isMinusOne(node.arguments[0])) return
+        if (isStringLiteral(node.callee.object) || containsOptional(node)) return
+        context.report({ node, messageId: 'preferLast' })
+      },
+      MemberExpression(node) {
+        if (!node.computed || isWriteTarget(node) || containsOptional(node)) return
+        const { object, property } = node
+        // `array[array.length - 1]`
+        const lastIndex =
+          property.type === 'BinaryExpression' &&
+          property.operator === '-' &&
+          isNumber(property.right, 1) &&
+          isLengthOf(property.left, object)
+        // `array.slice(-1)[0]`
+        const lastSlice =
+          isNumber(property, 0) &&
+          isMethodCall(object, 'slice') &&
+          isMinusOne(object.arguments[0]) &&
+          !isStringLiteral(object.callee.object)
+        if (lastIndex || lastSlice) context.report({ node, messageId: 'preferLast' })
+      },
+    }
+  },
+}
+
+const preferEnvDestructuringRule = {
+  meta: {
+    type: 'suggestion',
+    docs: {
+      description:
+        'Prefer `const { MY_VAR } = process.env` over `const myVar = process.env.MY_VAR`; a read used directly in an expression is left alone',
+    },
+    messages: {
+      preferEnvDestructuring: 'Destructure instead: const { {{name}} } = process.env',
+    },
+  },
+  create(context) {
+    // Tests set, restore and assert on single variables, where the member access reads better
+    if (TEST_FILE_PATTERN.test(context.filename)) return {}
+
+    return {
+      MemberExpression(node) {
+        if (!isProcessEnv(node.object) || node.optional) return
+        // Only a plain alias, `const myVar = process.env.MY_VAR`. `if (process.env.CI)` or
+        // `process.env.PORT || 8080` would need a single-use variable, which is no improvement
+        const { parent } = node
+        if (parent.type !== 'VariableDeclarator' || parent.init !== node) return
+        if (parent.id.type !== 'Identifier') return
+        const name = staticKey(node)
+        // Only a name that can be destructured as is; `process.env[key]`, `npm_config_user-agent`
+        // and a reserved word like `default` stay
+        if (!name || !IDENTIFIER_PATTERN.test(name) || RESERVED_WORDS.has(name)) return
+        context.report({ node, messageId: 'preferEnvDestructuring', data: { name } })
+      },
+    }
+  },
+}
+
+const IDENTIFIER_PATTERN = /^[A-Za-z_$][\w$]*$/
+// Not valid as `const { name } = process.env`
+const RESERVED_WORDS = new Set(
+  'arguments await break case catch class const continue debugger default delete do else enum eval export extends false finally for function if implements import in instanceof interface let new null package private protected public return static super switch this throw true try typeof var void while with yield'.split(
+    ' ',
+  ),
+)
+
+// Not `process?.env` (nor `process.env?.X`): an optional chain guards code that also runs where
+// `process` does not exist, and a destructuring would throw there
+function isProcessEnv(node) {
+  return (
+    node.type === 'MemberExpression' &&
+    !node.computed &&
+    !node.optional &&
+    node.object.type === 'Identifier' &&
+    node.object.name === 'process' &&
+    node.property.name === 'env'
+  )
+}
+
+function staticKey(node) {
+  if (!node.computed) return node.property.name
+  return typeof node.property.value === 'string' ? node.property.value : undefined
+}
+
+// Assigned to, updated or deleted: `x[i] = 1`, `x[i]++`, `delete x[i]`, and a target inside a
+// destructuring assignment or a loop head: `[x[i]] = values`, `for (x[i] of values)`
+function isWriteTarget(node) {
+  const { parent } = node
+  return (
+    (WRITE_PARENTS.has(parent.type) && parent.left === node) ||
+    parent.type === 'UpdateExpression' ||
+    (parent.type === 'UnaryExpression' && parent.operator === 'delete') ||
+    parent.type === 'ArrayPattern' ||
+    parent.type === 'RestElement' ||
+    (parent.type === 'Property' && parent.value === node && parent.parent.type === 'ObjectPattern')
+  )
+}
+
+// `left` is what gets written; a default value (`AssignmentPattern.right`) is still a read
+const WRITE_PARENTS = new Set([
+  'AssignmentExpression',
+  'AssignmentPattern',
+  'ForInStatement',
+  'ForOfStatement',
+])
+
+function isMethodCall(node, name) {
+  return (
+    node.type === 'CallExpression' &&
+    node.callee.type === 'MemberExpression' &&
+    !node.callee.computed &&
+    node.callee.property.name === name &&
+    node.arguments.length === 1
+  )
+}
+
+function isNumber(node, value) {
+  return node?.type === 'Literal' && node.value === value
+}
+
+function isMinusOne(node) {
+  return node?.type === 'UnaryExpression' && node.operator === '-' && isNumber(node.argument, 1)
+}
+
+function isStringLiteral(node) {
+  return (
+    node.type === 'TemplateLiteral' || (node.type === 'Literal' && typeof node.value === 'string')
+  )
+}
+
+// `a?.b.at(-1)` is undefined when `a` is, which `_lastOrUndefined(a?.b)` does not accept
+function containsOptional(node) {
+  return visit(node, child => child.optional === true)
+}
+
+function isLengthOf(node, array) {
+  return (
+    node.type === 'MemberExpression' &&
+    !node.computed &&
+    node.property.name === 'length' &&
+    isSameReference(node.object, array)
+  )
+}
+
+// The same variable or property path (`a`, `this.a`, `a.b.c`) on both sides, nothing that is evaluated
+function isSameReference(a, b) {
+  if (a.type !== b.type) return false
+  if (a.type === 'Identifier') return a.name === b.name
+  if (a.type === 'ThisExpression') return true
+  return (
+    a.type === 'MemberExpression' &&
+    !a.computed &&
+    !b.computed &&
+    a.property.name === b.property.name &&
+    isSameReference(a.object, b.object)
+  )
+}
+
 const ncPlugin = {
   meta: {
     name: 'nc',
   },
   rules: {
     'prefer-assert': preferAssertRule,
+    'prefer-env-destructuring': preferEnvDestructuringRule,
+    'prefer-last': preferLastRule,
   },
 }
 

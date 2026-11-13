@@ -1,3 +1,4 @@
+import { _assert } from '../error/assert.js'
 import type { UnixTimestamp } from '../types.js'
 import type { LocalTime, LocalTimeInput } from './localTime.js'
 import { localTime } from './localTime.js'
@@ -45,9 +46,7 @@ export class TimeInterval {
 
     const [start, end] = d.split('/').map(Number) as UnixTimestamp[]
 
-    if (!end || !start) {
-      throw new Error(`Cannot parse "${d}" into TimeInterval`)
-    }
+    _assert(end && start, `Cannot parse "${d}" into TimeInterval`)
 
     return new TimeInterval(start, end)
   }

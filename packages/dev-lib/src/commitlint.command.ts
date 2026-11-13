@@ -1,3 +1,4 @@
+import { _lastOrUndefined } from '@naturalcycles/js-lib/array/array.util.js'
 import { _assert } from '@naturalcycles/js-lib/error'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { validateCommitMessage } from './commitlint.util.js'
@@ -9,7 +10,7 @@ import { readDevLibConfigIfPresent } from './config.js'
  */
 export async function runCommitlint(): Promise<void> {
   //  || '.git/COMMIT_EDITMSG' // fallback is unnecessary, first argument should be always present
-  const arg1 = process.argv.at(-1)
+  const arg1 = _lastOrUndefined(process.argv)
   _assert(arg1, 'dev-lib commitlint2 is called with $1 (first argument) missing')
   console.log({ arg1 })
 

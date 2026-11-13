@@ -15,6 +15,7 @@
 
 // oxlint-disable no-bitwise, prefer-math-trunc -- QR encoding (Galois field, BCH, bit packing) is
 // inherently bitwise; `(1 << 0)` terms mirror the spec's generator polynomials
+// oxlint-disable nc/prefer-assert -- this module has no imports, to stay small when bundled on its own
 
 /// <reference lib="dom" preserve="true" />
 

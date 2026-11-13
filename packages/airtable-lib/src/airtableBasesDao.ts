@@ -1,4 +1,5 @@
 import { _LogMethod } from '@naturalcycles/js-lib/decorators/logMethod.decorator.js'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import { pMap } from '@naturalcycles/js-lib/promise/pMap.js'
 import type { AnyObject, StringMap } from '@naturalcycles/js-lib/types'
 import type { AirtableDaoOptions, AirtableDaoSaveOptions } from './airtable.model.js'
@@ -12,7 +13,7 @@ export class AirtableBasesDao<BASE_MAP extends AnyObject = any> {
 
   getDao<BASE extends AnyObject = any>(baseName: string): AirtableBaseDao<BASE> {
     const dao = this.baseDaos.find(dao => dao.cfg.baseName === baseName)
-    if (!dao) throw new Error(`AirtableBaseDao not found for base: ${baseName}`)
+    _assert(dao, `AirtableBaseDao not found for base: ${baseName}`)
     return dao
   }
 

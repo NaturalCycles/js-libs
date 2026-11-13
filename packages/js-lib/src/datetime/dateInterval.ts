@@ -1,3 +1,4 @@
+import { _assert } from '../error/assert.js'
 import type { IsoDate } from '../types.js'
 import type { LocalDate, LocalDateInput, LocalDateUnit } from './localDate.js'
 import { localDate } from './localDate.js'
@@ -28,9 +29,7 @@ export class DateInterval {
 
     const [start, end] = d.split('/') as IsoDate[]
 
-    if (!end || !start) {
-      throw new Error(`Cannot parse "${d}" into DateInterval`)
-    }
+    _assert(end && start, `Cannot parse "${d}" into DateInterval`)
 
     return new DateInterval(localDate(start), localDate(end))
   }

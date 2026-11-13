@@ -73,6 +73,8 @@ export const sharedConfig = {
     ],
     '@stylistic/lines-between-class-members': [2, 'always', { exceptAfterSingleLine: true }],
     'nc/prefer-assert': 2,
+    'nc/prefer-env-destructuring': 2,
+    'nc/prefer-last': 2,
     complexity: [2, { max: 40 }],
     'logical-assignment-operators': [
       2,

@@ -26,13 +26,13 @@ it('should parse, compare and serialize intervals, throwing on invalid strings',
   expect(int1.isSame(int3)).toBe(true)
 
   expect(() => DateInterval.parse('')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: Cannot parse "" into DateInterval]`,
+    `[AssertionError: Cannot parse "" into DateInterval]`,
   )
   expect(() => DateInterval.parse('abcd')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: Cannot parse "abcd" into DateInterval]`,
+    `[AssertionError: Cannot parse "abcd" into DateInterval]`,
   )
   expect(() => DateInterval.parse('2022-02-24')).toThrowErrorMatchingInlineSnapshot(
-    `[Error: Cannot parse "2022-02-24" into DateInterval]`,
+    `[AssertionError: Cannot parse "2022-02-24" into DateInterval]`,
   )
   expect(() => DateInterval.parse('2022-02-24/abcd')).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: Cannot parse "abcd" into LocalDate]`,
