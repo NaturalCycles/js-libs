@@ -207,10 +207,13 @@ const preferEnvDestructuringRule = {
 
 const IDENTIFIER_PATTERN = /^[A-Za-z_$][\w$]*$/
 
+// Not `process?.env`: that guards code that also runs where `process` does not exist, and a
+// destructuring would throw there
 function isProcessEnv(node) {
   return (
     node.type === 'MemberExpression' &&
     !node.computed &&
+    !node.optional &&
     node.object.type === 'Identifier' &&
     node.object.name === 'process' &&
     node.property.name === 'env'
