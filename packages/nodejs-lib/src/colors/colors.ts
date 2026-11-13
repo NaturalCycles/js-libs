@@ -6,8 +6,7 @@ import ansis from 'ansis'
  *
  * @experimental
  */
-const { NO_COLOR } = process.env
-export const hasColors = !NO_COLOR && tty.WriteStream.prototype.hasColors()
+export const hasColors = !process.env['NO_COLOR'] && tty.WriteStream.prototype.hasColors()
 
 // The point of re-exporting is:
 // 1. Fix typings to allow to pass `number` (very common case)

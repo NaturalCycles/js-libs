@@ -186,10 +186,10 @@ const preferEnvDestructuringRule = {
     type: 'suggestion',
     docs: {
       description:
-        'Prefer `const { MY_VAR } = process.env` over reading process.env.MY_VAR or process.env["MY_VAR"]',
+        'Prefer `const { MY_VAR } = process.env` over `const myVar = process.env.MY_VAR`; a read used directly in an expression is left alone',
     },
     messages: {
-      preferEnvDestructuring: 'Destructure the variable instead: const { {{name}} } = process.env',
+      preferEnvDestructuring: 'Destructure instead: const { {{name}} } = process.env',
     },
   },
   create(context) {
@@ -198,7 +198,12 @@ const preferEnvDestructuringRule = {
 
     return {
       MemberExpression(node) {
-        if (!isProcessEnv(node.object) || node.optional || isWriteTarget(node)) return
+        if (!isProcessEnv(node.object) || node.optional) return
+        // Only a plain alias, `const myVar = process.env.MY_VAR`. `if (process.env.CI)` or
+        // `process.env.PORT || 8080` would need a single-use variable, which is no improvement
+        const { parent } = node
+        if (parent.type !== 'VariableDeclarator' || parent.init !== node) return
+        if (parent.id.type !== 'Identifier') return
         const name = staticKey(node)
         // Only a name that can be destructured as is; `process.env[key]`, `npm_config_user-agent`
         // and a reserved word like `default` stay
