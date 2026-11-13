@@ -128,6 +128,7 @@ new RuleTester({ languageOptions: { parserOptions: { lang: 'ts' } } }).run(
       `import.meta.env.APP_ENV`,
       // shared browser/server code: a destructuring would throw where `process` does not exist
       `import.meta.env?.['VITE_ENV'] || process?.env['VITE_ENV']`,
+      `typeof process !== 'undefined' && process.env?.['NODE_ENV']`,
       `config.env.APP_ENV`,
       { code: `expect(process.env['APP_ENV']).toBe('test')`, filename: 'src/env.test.ts' },
       { code: `const prev = process.env['APP_ENV']`, filename: 'src/test/mockEnv.ts' },

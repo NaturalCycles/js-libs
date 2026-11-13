@@ -195,7 +195,7 @@ const preferEnvDestructuringRule = {
 
     return {
       MemberExpression(node) {
-        if (!isProcessEnv(node.object) || isWriteTarget(node)) return
+        if (!isProcessEnv(node.object) || node.optional || isWriteTarget(node)) return
         const name = staticKey(node)
         // Only a name that can be destructured as is; `process.env[key]` and `npm_config_user-agent` stay
         if (!name || !IDENTIFIER_PATTERN.test(name)) return
@@ -207,8 +207,8 @@ const preferEnvDestructuringRule = {
 
 const IDENTIFIER_PATTERN = /^[A-Za-z_$][\w$]*$/
 
-// Not `process?.env`: that guards code that also runs where `process` does not exist, and a
-// destructuring would throw there
+// Not `process?.env` (nor `process.env?.X`): an optional chain guards code that also runs where
+// `process` does not exist, and a destructuring would throw there
 function isProcessEnv(node) {
   return (
     node.type === 'MemberExpression' &&
