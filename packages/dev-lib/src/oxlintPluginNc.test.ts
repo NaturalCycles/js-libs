@@ -95,6 +95,10 @@ new RuleTester({ languageOptions: { parserOptions: { lang: 'ts' } } }).run(
       `getItems()[getItems().length - 1]`,
       `items.slice(-2)[0]`,
       `items.slice(-1)[1]`,
+      `'abc'.slice(-1)[0]`,
+      `[items[items.length - 1]] = values`,
+      `({ last: items[items.length - 1] } = values)`,
+      `for (items[items.length - 1] of values) run()`,
     ],
     invalid: [
       { code: `items.at(-1)`, errors: 1 },
@@ -107,6 +111,9 @@ new RuleTester({ languageOptions: { parserOptions: { lang: 'ts' } } }).run(
       // only the inner call: the outer one is undefined when there is no last item
       { code: `items.at(-1)?.children.at(-1)`, errors: 1 },
       { code: `items.at(-1)`, filename: 'src/items.test.ts', errors: 1 },
+      // a read in a computed key or a default value of a destructuring assignment
+      { code: `({ [items[items.length - 1]]: last } = values)`, errors: 1 },
+      { code: `[last = items[items.length - 1]] = values`, errors: 1 },
     ],
   },
 )
@@ -125,6 +132,11 @@ new RuleTester({ languageOptions: { parserOptions: { lang: 'ts' } } }).run(
       `process.env['APP_ENV'] = 'test'`,
       `process.env['APP_ENV'] ||= 'test'`,
       `delete process.env['APP_ENV']`,
+      `[process.env.APP_ENV] = values`,
+      `({ appEnv: process.env.APP_ENV = 'test' } = values)`,
+      `for (process.env.APP_ENV of values) run()`,
+      `process.env.default`,
+      `process.env['class']`,
       `import.meta.env.APP_ENV`,
       // shared browser/server code: a destructuring would throw where `process` does not exist
       `import.meta.env?.['VITE_ENV'] || process?.env['VITE_ENV']`,

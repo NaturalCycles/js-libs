@@ -171,7 +171,10 @@ const preferLastRule = {
           isLengthOf(property.left, object)
         // `array.slice(-1)[0]`
         const lastSlice =
-          isNumber(property, 0) && isMethodCall(object, 'slice') && isMinusOne(object.arguments[0])
+          isNumber(property, 0) &&
+          isMethodCall(object, 'slice') &&
+          isMinusOne(object.arguments[0]) &&
+          !isStringLiteral(object.callee.object)
         if (lastIndex || lastSlice) context.report({ node, messageId: 'preferLast' })
       },
     }
@@ -197,8 +200,9 @@ const preferEnvDestructuringRule = {
       MemberExpression(node) {
         if (!isProcessEnv(node.object) || node.optional || isWriteTarget(node)) return
         const name = staticKey(node)
-        // Only a name that can be destructured as is; `process.env[key]` and `npm_config_user-agent` stay
-        if (!name || !IDENTIFIER_PATTERN.test(name)) return
+        // Only a name that can be destructured as is; `process.env[key]`, `npm_config_user-agent`
+        // and a reserved word like `default` stay
+        if (!name || !IDENTIFIER_PATTERN.test(name) || RESERVED_WORDS.has(name)) return
         context.report({ node, messageId: 'preferEnvDestructuring', data: { name } })
       },
     }
@@ -206,6 +210,12 @@ const preferEnvDestructuringRule = {
 }
 
 const IDENTIFIER_PATTERN = /^[A-Za-z_$][\w$]*$/
+// Not valid as `const { name } = process.env`
+const RESERVED_WORDS = new Set(
+  'arguments await break case catch class const continue debugger default delete do else enum eval export extends false finally for function if implements import in instanceof interface let new null package private protected public return static super switch this throw true try typeof var void while with yield'.split(
+    ' ',
+  ),
+)
 
 // Not `process?.env` (nor `process.env?.X`): an optional chain guards code that also runs where
 // `process` does not exist, and a destructuring would throw there
@@ -225,15 +235,27 @@ function staticKey(node) {
   return typeof node.property.value === 'string' ? node.property.value : undefined
 }
 
-// Assigned to, updated or deleted: `x[i] = 1`, `x[i]++`, `delete x[i]`
+// Assigned to, updated or deleted: `x[i] = 1`, `x[i]++`, `delete x[i]`, and a target inside a
+// destructuring assignment or a loop head: `[x[i]] = values`, `for (x[i] of values)`
 function isWriteTarget(node) {
   const { parent } = node
   return (
-    (parent.type === 'AssignmentExpression' && parent.left === node) ||
+    (WRITE_PARENTS.has(parent.type) && parent.left === node) ||
     parent.type === 'UpdateExpression' ||
-    (parent.type === 'UnaryExpression' && parent.operator === 'delete')
+    (parent.type === 'UnaryExpression' && parent.operator === 'delete') ||
+    parent.type === 'ArrayPattern' ||
+    parent.type === 'RestElement' ||
+    (parent.type === 'Property' && parent.value === node && parent.parent.type === 'ObjectPattern')
   )
 }
+
+// `left` is what gets written; a default value (`AssignmentPattern.right`) is still a read
+const WRITE_PARENTS = new Set([
+  'AssignmentExpression',
+  'AssignmentPattern',
+  'ForInStatement',
+  'ForOfStatement',
+])
 
 function isMethodCall(node, name) {
   return (
