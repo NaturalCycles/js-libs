@@ -41,8 +41,8 @@
     "typescript": "^7",
     "eslint": "^10",
     "husky": "^9",
-    "stylelint": "^17",
-    "stylelint-config-standard-scss": "^17",
+    "stylelint": "^18",
+    "stylelint-config-standard-scss": "^18",
     "typescript-eslint": "^8"
   },
   "peerDependenciesMeta": {
