@@ -1,3 +1,4 @@
+import { _try, AppError } from '@naturalcycles/js-lib/error'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _inspect } from '@naturalcycles/nodejs-lib'
 import { j } from '@naturalcycles/nodejs-lib/ajv'
@@ -173,6 +174,7 @@ describe('ajvValidateRequest', () => {
     })
 
     it('should redact sensitive data', async () => {
+      const sessionid = 'abc123secretSession'
       const err = await app.expectError({
         url: '',
         method: 'GET',
@@ -180,13 +182,13 @@ describe('ajvValidateRequest', () => {
           shortstring: 'short',
           numeric: '127',
           bool: '1',
-          sessionid: 'sessionid',
+          sessionid,
         },
       })
 
       expect(err.data.responseStatusCode).toBe(400)
-      expect(err.cause.message).toContain("REDACTED: 'REDACTED'")
-      expect(err.cause.message).not.toContain('sessionid')
+      expect(err.cause.message).toContain(`sessionid: 'REDACTED'`)
+      expect(err.cause.message).not.toContain(sessionid)
     })
 
     it('should return the validated headers without mutating req.headers', async () => {
@@ -221,6 +223,46 @@ describe('ajvValidateRequest', () => {
         foo: 'bar',
         'user-agent': expect.any(String),
       })
+    })
+  })
+
+  describe('redactPaths', () => {
+    const loginSchema = j.object<{ email: string; pw: string }>({
+      email: j.string().email(),
+      pw: j.string().minLength(8),
+    })
+    const opt = { redactPaths: ['pw'] }
+
+    it('should redact a secret that is printed escaped', () => {
+      const pw = String.raw`hunter\2secret`
+      const [err] = _try(
+        () => validateRequest.body({ body: { email: 'nope', pw } } as any, loginSchema, opt),
+        AppError,
+      )
+
+      expect(err!.message).toContain(`pw: 'REDACTED'`)
+      expect(err!.message).not.toContain('hunter')
+    })
+
+    it('should not mangle the message when the secret is very short', () => {
+      const [err] = _try(
+        () => validateRequest.body({ body: { email: 'a@b.se', pw: 'e' } } as any, loginSchema, opt),
+        AppError,
+      )
+
+      expect(err!.message).toMatchInlineSnapshot(`
+        "request.body.pw must NOT have fewer than 8 characters
+        Got: REDACTED
+        Input: { email: 'a@b.se', pw: 'REDACTED' }"
+      `)
+    })
+
+    it('should not mutate req.headers when redacting', () => {
+      const req = { headers: { email: 'nope', pw: 'hunter2secret' } } as any
+      const [err] = _try(() => validateRequest.headers(req, loginSchema, opt), AppError)
+
+      expect(err!.message).toContain(`pw: 'REDACTED'`)
+      expect(req.headers.pw).toBe('hunter2secret')
     })
   })
 

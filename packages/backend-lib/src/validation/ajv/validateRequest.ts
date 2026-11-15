@@ -1,7 +1,8 @@
+import { _deepCopy, _has, _set } from '@naturalcycles/js-lib/object'
 import { AjvSchema, getCoercingAjv, JSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { AjvValidationError, SchemaHandledByAjv } from '@naturalcycles/nodejs-lib/ajv'
 import type { BackendRequest } from '../../server/server.model.js'
-import { handleValidationError } from '../validateRequest.util.js'
+import { handleValidationError, REDACTED } from '../validateRequest.util.js'
 import type { ReqValidationOptions } from '../validateRequest.util.js'
 
 class AjvValidateRequest {
@@ -83,8 +84,22 @@ class AjvValidateRequest {
   ): OUT {
     const input = req[reqProperty] || {}
 
-    const { coerceTypes, mutateInput } = opt
+    const { coerceTypes, mutateInput, redactPaths } = opt
     const ajv = coerceTypes ? getCoercingAjv() : undefined
+
+    if (redactPaths) {
+      const getInput = getOriginalInput
+      // The error message (Got: and Input: lines) is printed from this object,
+      // so secrets are redacted in the data before printing, not in the printed text.
+      // Only called when validation fails, so the happy path pays nothing.
+      getOriginalInput = () => {
+        const copy: any = getInput?.() || _deepCopy(input) // copy, so req.headers is not mutated
+        for (const path of redactPaths) {
+          if (_has(copy, path)) _set(copy, path, REDACTED)
+        }
+        return copy
+      }
+    }
 
     const validatable =
       schema instanceof JSchema || schema instanceof AjvSchema
@@ -99,7 +114,7 @@ class AjvValidateRequest {
     })
 
     if (error) {
-      handleValidationError(error, input, opt)
+      handleValidationError(error, opt)
     }
 
     return output

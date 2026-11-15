@@ -1,9 +1,7 @@
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
-import { _get } from '@naturalcycles/js-lib/object/object.util.js'
 
-export function handleValidationError<T, ERR extends AppError>(
+export function handleValidationError<ERR extends AppError>(
   error: ERR,
-  originalProperty: T,
   opt: ReqValidationOptions<ERR> = {},
 ): never {
   let report: boolean | undefined
@@ -11,10 +9,6 @@ export function handleValidationError<T, ERR extends AppError>(
     report = opt.report
   } else if (typeof opt.report === 'function') {
     report = opt.report(error)
-  }
-
-  if (opt.redactPaths) {
-    redact(opt.redactPaths, originalProperty, error)
   }
 
   makeErrorUserReadable(error)
@@ -26,19 +20,7 @@ export function handleValidationError<T, ERR extends AppError>(
   })
 }
 
-const REDACTED = 'REDACTED'
-
-/**
- * Mutates error
- */
-function redact(redactPaths: readonly string[], obj: any, error: Error): void {
-  redactPaths
-    .map(path => _get(obj, path) as string)
-    .filter(Boolean)
-    .forEach(secret => {
-      error.message = error.message.replaceAll(secret, REDACTED)
-    })
-}
+export const REDACTED = 'REDACTED'
 
 /**
  * Mutates error
