@@ -51,6 +51,9 @@ export const sharedConfig = {
     typeAware: true,
     typeCheck: true,
   },
+  categories: {
+    correctness: 'error',
+  },
   rules: {
     'no-unused-vars': [
       'error',

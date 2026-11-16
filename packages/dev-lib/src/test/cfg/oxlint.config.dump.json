@@ -1,213 +1,221 @@
 {
   "plugins": ["unicorn", "typescript", "oxc", "import", "jsdoc", "vitest", "promise", "node"],
   "jsPlugins": ["cfg/oxlint-plugin-nc.js", "cfg/oxlint-plugin-stylistic.js"],
-  "categories": {},
+  "categories": {
+    "correctness": "deny"
+  },
   "rules": {
+    "@stylistic/lines-between-class-members": [
+      "deny",
+      "always",
+      {
+        "exceptAfterSingleLine": true
+      }
+    ],
+    "@stylistic/padding-line-between-statements": [
+      "deny",
+      {
+        "blankLine": "always",
+        "prev": "function",
+        "next": "*"
+      },
+      {
+        "blankLine": "always",
+        "prev": "*",
+        "next": "function"
+      },
+      {
+        "blankLine": "always",
+        "prev": "class",
+        "next": "*"
+      },
+      {
+        "blankLine": "always",
+        "prev": "*",
+        "next": "class"
+      }
+    ],
     "complexity": [
       "deny",
-      [
-        {
-          "max": 40
-        }
-      ]
+      {
+        "max": 40
+      }
     ],
-    "constructor-super": "warn",
-    "curly": ["deny", ["multi-line"]],
+    "constructor-super": "deny",
+    "curly": ["deny", "multi-line"],
     "eqeqeq": [
       "deny",
-      [
-        "always",
-        {
-          "null": "ignore"
-        }
-      ]
+      "always",
+      {
+        "null": "ignore"
+      }
     ],
-    "for-direction": "warn",
-    "getter-return": "warn",
+    "for-direction": "deny",
+    "getter-return": "deny",
     "guard-for-in": "deny",
-    "id-denylist": ["deny", ["opts"]],
+    "id-denylist": ["deny", "opts"],
     "id-match": [
       "deny",
-      [
-        "^.+$",
-        {
-          "classFields": false,
-          "ignoreDestructuring": false,
-          "onlyDeclarations": false,
-          "properties": false
-        }
-      ]
+      "^.+$",
+      {
+        "classFields": false,
+        "ignoreDestructuring": false,
+        "onlyDeclarations": false,
+        "properties": false
+      }
     ],
     "logical-assignment-operators": [
       "deny",
-      [
-        "always",
-        {
-          "enforceForIfStatements": true
-        }
-      ]
+      "always",
+      {
+        "enforceForIfStatements": true
+      }
     ],
     "max-params": [
       "deny",
-      [
-        {
-          "max": 5
-        }
-      ]
+      {
+        "max": 5
+      }
     ],
     "no-array-constructor": "deny",
     "no-async-promise-executor": "allow",
     "no-bitwise": "deny",
-    "no-caller": "warn",
-    "no-class-assign": "warn",
-    "no-compare-neg-zero": "warn",
-    "no-cond-assign": "warn",
-    "no-const-assign": "warn",
-    "no-constant-binary-expression": "warn",
-    "no-constant-condition": "warn",
-    "no-control-regex": "warn",
-    "no-debugger": "warn",
-    "no-delete-var": "warn",
-    "no-dupe-class-members": "warn",
-    "no-dupe-else-if": "warn",
-    "no-dupe-keys": "warn",
-    "no-duplicate-case": "warn",
+    "no-caller": "deny",
+    "no-class-assign": "deny",
+    "no-compare-neg-zero": "deny",
+    "no-cond-assign": "deny",
+    "no-const-assign": "deny",
+    "no-constant-binary-expression": "deny",
+    "no-constant-condition": "deny",
+    "no-control-regex": "deny",
+    "no-debugger": "deny",
+    "no-delete-var": "deny",
+    "no-dupe-class-members": "deny",
+    "no-dupe-else-if": "deny",
+    "no-dupe-keys": "deny",
+    "no-duplicate-case": "deny",
     "no-duplicate-imports": [
       "allow",
-      [
-        {
-          "allowSeparateTypeImports": true
-        }
-      ]
+      {
+        "allowSeparateTypeImports": true
+      }
     ],
     "no-empty": [
       "deny",
-      [
-        {
-          "allowEmptyCatch": true
-        }
-      ]
+      {
+        "allowEmptyCatch": true
+      }
     ],
-    "no-empty-character-class": "warn",
-    "no-empty-pattern": "warn",
-    "no-empty-static-block": "warn",
-    "no-eval": "warn",
-    "no-ex-assign": "warn",
+    "no-empty-character-class": "deny",
+    "no-empty-pattern": "deny",
+    "no-empty-static-block": "deny",
+    "no-eval": "deny",
+    "no-ex-assign": "deny",
     "no-extend-native": "deny",
     "no-extra-bind": "deny",
-    "no-extra-boolean-cast": "warn",
-    "no-func-assign": "warn",
-    "no-global-assign": "warn",
+    "no-extra-boolean-cast": "deny",
+    "no-func-assign": "deny",
+    "no-global-assign": "deny",
     "no-implicit-coercion": [
       "deny",
-      [
-        {
-          "allow": ["!!"]
-        }
-      ]
+      {
+        "allow": ["!!"]
+      }
     ],
     "no-implied-eval": "deny",
-    "no-import-assign": "warn",
-    "no-invalid-regexp": "warn",
-    "no-irregular-whitespace": "warn",
-    "no-iterator": "warn",
-    "no-loss-of-precision": "warn",
-    "no-misleading-character-class": "warn",
+    "no-import-assign": "deny",
+    "no-invalid-regexp": "deny",
+    "no-irregular-whitespace": "deny",
+    "no-iterator": "deny",
+    "no-loss-of-precision": "deny",
+    "no-misleading-character-class": "deny",
     "no-nested-ternary": "deny",
     "no-new": "deny",
-    "no-new-native-nonconstructor": "warn",
+    "no-new-native-nonconstructor": "deny",
     "no-new-wrappers": "deny",
-    "no-nonoctal-decimal-escape": "warn",
-    "no-obj-calls": "warn",
+    "no-nonoctal-decimal-escape": "deny",
+    "no-obj-calls": "deny",
     "no-prototype-builtins": "deny",
     "no-regex-spaces": "deny",
     "no-restricted-globals": [
       "deny",
-      [
-        "event",
-        "__dirname",
-        "__filename",
-        {
-          "name": "Intl",
-          "message": "Use Intl2 instead."
-        },
-        {
-          "name": "Date",
-          "message": "Use localTime / localDate from @naturalcycles/js-lib/datetime."
-        }
-      ]
+      "event",
+      "__dirname",
+      "__filename",
+      {
+        "name": "Intl",
+        "message": "Use Intl2 instead."
+      },
+      {
+        "name": "Date",
+        "message": "Use localTime / localDate from @naturalcycles/js-lib/datetime."
+      }
     ],
-    "no-self-assign": "warn",
+    "no-self-assign": "deny",
     "no-sequences": "deny",
-    "no-setter-return": "warn",
+    "no-setter-return": "deny",
     "no-shadow": "allow",
-    "no-shadow-restricted-names": "warn",
-    "no-sparse-arrays": "warn",
-    "no-this-before-super": "warn",
-    "no-unassigned-vars": "warn",
+    "no-shadow-restricted-names": "deny",
+    "no-sparse-arrays": "deny",
+    "no-this-before-super": "deny",
+    "no-unassigned-vars": "deny",
     "no-unexpected-multiline": "deny",
     "no-unneeded-ternary": "deny",
-    "no-unreachable": "warn",
-    "no-unsafe-finally": "warn",
-    "no-unsafe-negation": "warn",
-    "no-unsafe-optional-chaining": "warn",
+    "no-unreachable": "deny",
+    "no-unsafe-finally": "deny",
+    "no-unsafe-negation": "deny",
+    "no-unsafe-optional-chaining": "deny",
     "no-unused-expressions": "deny",
-    "no-unused-labels": "warn",
-    "no-unused-private-class-members": "warn",
+    "no-unused-labels": "deny",
+    "no-unused-private-class-members": "deny",
     "no-unused-vars": [
       "deny",
-      [
-        {
-          "fix": {
-            "imports": "safe-fix",
-            "variables": "suggestion"
-          },
-          "varsIgnorePattern": "^(_$|__)",
-          "argsIgnorePattern": "^_",
-          "destructuredArrayIgnorePattern": "^_"
-        }
-      ]
+      {
+        "fix": {
+          "imports": "safe-fix",
+          "variables": "suggestion"
+        },
+        "varsIgnorePattern": "^(_$|__)",
+        "argsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_"
+      }
     ],
     "no-useless-assignment": "allow",
-    "no-useless-backreference": "warn",
+    "no-useless-backreference": "deny",
     "no-useless-call": "deny",
-    "no-useless-catch": "warn",
+    "no-useless-catch": "deny",
     "no-useless-concat": "deny",
     "no-useless-constructor": "deny",
-    "no-useless-escape": "warn",
-    "no-useless-rename": "warn",
+    "no-useless-escape": "deny",
+    "no-useless-rename": "deny",
     "no-useless-return": "allow",
     "no-var": "deny",
-    "no-with": "warn",
+    "no-with": "deny",
     "object-shorthand": "deny",
     "prefer-const": [
       "deny",
-      [
-        {
-          "destructuring": "all"
-        }
-      ]
+      {
+        "destructuring": "all"
+      }
     ],
     "prefer-object-has-own": "deny",
     "prefer-spread": "deny",
     "preserve-caught-error": "deny",
-    "require-yield": "warn",
+    "require-yield": "deny",
     "unicode-bom": "deny",
-    "use-isnan": "warn",
-    "valid-typeof": "warn",
+    "use-isnan": "deny",
+    "valid-typeof": "deny",
     "import/consistent-type-specifier-style": "deny",
-    "import/default": "warn",
+    "import/default": "deny",
     "import/extensions": [
       "deny",
-      [
-        "always",
-        {
-          "ignorePackages": true,
-          "checkTypeImports": true
-        }
-      ]
+      "always",
+      {
+        "ignorePackages": true,
+        "checkTypeImports": true
+      }
     ],
-    "import/namespace": "warn",
+    "import/namespace": "deny",
     "import/newline-after-import": "deny",
     "import/no-absolute-path": "deny",
     "import/no-amd": "deny",
@@ -216,11 +224,9 @@
     "import/no-default-export": "deny",
     "import/no-duplicates": [
       "deny",
-      [
-        {
-          "prefer-inline": false
-        }
-      ]
+      {
+        "prefer-inline": false
+      }
     ],
     "import/no-empty-named-blocks": "deny",
     "import/no-named-as-default": "deny",
@@ -229,165 +235,152 @@
     "import/no-self-import": "deny",
     "import/no-unassigned-import": "allow",
     "import/no-webpack-loader-syntax": "deny",
-    "jsdoc/check-property-names": "warn",
-    "jsdoc/check-tag-names": "warn",
-    "jsdoc/implements-on-classes": "warn",
-    "jsdoc/no-defaults": "warn",
-    "jsdoc/require-property": "warn",
-    "jsdoc/require-property-description": "warn",
-    "jsdoc/require-property-name": "warn",
-    "jsdoc/require-property-type": "warn",
+    "jsdoc/check-property-names": "deny",
+    "jsdoc/check-tag-names": "deny",
+    "jsdoc/implements-on-classes": "deny",
+    "jsdoc/no-defaults": "deny",
+    "jsdoc/require-property": "deny",
+    "jsdoc/require-property-description": "deny",
+    "jsdoc/require-property-name": "deny",
+    "jsdoc/require-property-type": "deny",
     "jsdoc/require-yields": "allow",
+    "nc/prefer-assert": "deny",
+    "nc/prefer-env-destructuring": "deny",
+    "nc/prefer-last": "deny",
     "oxc/approx-constant": "deny",
-    "oxc/bad-array-method-on-arguments": "warn",
+    "oxc/bad-array-method-on-arguments": "deny",
     "oxc/bad-bitwise-operator": "deny",
-    "oxc/bad-char-at-comparison": "warn",
-    "oxc/bad-comparison-sequence": "warn",
-    "oxc/bad-match-all-arg": "warn",
-    "oxc/bad-min-max-func": "warn",
-    "oxc/bad-object-literal-comparison": "warn",
-    "oxc/bad-replace-all-arg": "warn",
+    "oxc/bad-char-at-comparison": "deny",
+    "oxc/bad-comparison-sequence": "deny",
+    "oxc/bad-match-all-arg": "deny",
+    "oxc/bad-min-max-func": "deny",
+    "oxc/bad-object-literal-comparison": "deny",
+    "oxc/bad-replace-all-arg": "deny",
     "oxc/branches-sharing-code": "allow",
-    "oxc/const-comparisons": "warn",
-    "oxc/double-comparisons": "warn",
-    "oxc/erasing-op": "warn",
+    "oxc/const-comparisons": "deny",
+    "oxc/double-comparisons": "deny",
+    "oxc/erasing-op": "deny",
     "oxc/misrefactored-assign-op": "deny",
-    "oxc/missing-throw": "warn",
+    "oxc/missing-throw": "deny",
     "oxc/no-accumulating-spread": "deny",
     "oxc/no-const-enum": "deny",
     "oxc/no-map-spread": "allow",
-    "oxc/number-arg-out-of-range": "warn",
-    "oxc/only-used-in-recursion": "warn",
-    "oxc/uninvoked-array-callback": "warn",
-    "promise/no-callback-in-promise": "warn",
-    "promise/no-new-statics": "warn",
+    "oxc/number-arg-out-of-range": "deny",
+    "oxc/only-used-in-recursion": "deny",
+    "oxc/uninvoked-array-callback": "deny",
+    "promise/no-callback-in-promise": "deny",
+    "promise/no-new-statics": "deny",
     "promise/spec-only": "deny",
-    "promise/valid-params": "warn",
+    "promise/valid-params": "deny",
     "typescript/adjacent-overload-signatures": "deny",
     "typescript/array-type": "deny",
-    "typescript/await-thenable": "warn",
+    "typescript/await-thenable": "deny",
     "typescript/ban-ts-comment": [
       "deny",
-      [
-        {
-          "minimumDescriptionLength": 2,
-          "ts-expect-error": "allow-with-description",
-          "ts-nocheck": "allow-with-description",
-          "ts-check": false,
-          "ts-ignore": true
-        }
-      ]
+      {
+        "minimumDescriptionLength": 2,
+        "ts-expect-error": "allow-with-description",
+        "ts-nocheck": "allow-with-description",
+        "ts-check": false,
+        "ts-ignore": true
+      }
     ],
     "typescript/ban-tslint-comment": "deny",
     "typescript/class-literal-property-style": "deny",
-    "typescript/consistent-generic-constructors": ["deny", ["constructor"]],
+    "typescript/consistent-generic-constructors": ["deny", "constructor"],
     "typescript/consistent-type-assertions": [
       "deny",
-      [
-        {
-          "assertionStyle": "as"
-        }
-      ]
+      {
+        "assertionStyle": "as"
+      }
     ],
-    "typescript/consistent-type-definitions": ["deny", ["interface"]],
+    "typescript/consistent-type-definitions": ["deny", "interface"],
     "typescript/consistent-type-exports": "deny",
     "typescript/consistent-type-imports": "deny",
     "typescript/dot-notation": "allow",
     "typescript/explicit-function-return-type": [
       "deny",
-      [
-        {
-          "allowExpressions": true
-        }
-      ]
+      {
+        "allowExpressions": true
+      }
     ],
     "typescript/explicit-member-accessibility": [
       "deny",
-      [
-        {
-          "accessibility": "no-public",
-          "overrides": {
-            "parameterProperties": "off"
-          }
+      {
+        "accessibility": "no-public",
+        "overrides": {
+          "parameterProperties": "off"
         }
-      ]
+      }
     ],
     "typescript/method-signature-style": "deny",
-    "typescript/no-array-delete": "warn",
+    "typescript/no-array-delete": "deny",
     "typescript/no-base-to-string": "deny",
     "typescript/no-confusing-non-null-assertion": "deny",
-    "typescript/no-duplicate-enum-values": "warn",
-    "typescript/no-duplicate-type-constituents": "warn",
+    "typescript/no-duplicate-enum-values": "deny",
+    "typescript/no-duplicate-type-constituents": "deny",
     "typescript/no-empty-object-type": [
       "deny",
-      [
-        {
-          "allowInterfaces": "always"
-        }
-      ]
+      {
+        "allowInterfaces": "always"
+      }
     ],
-    "typescript/no-extra-non-null-assertion": "warn",
-    "typescript/no-floating-promises": "warn",
-    "typescript/no-for-in-array": "warn",
-    "typescript/no-implied-eval": "warn",
+    "typescript/no-extra-non-null-assertion": "deny",
+    "typescript/no-floating-promises": "deny",
+    "typescript/no-for-in-array": "deny",
+    "typescript/no-implied-eval": "deny",
     "typescript/no-import-type-side-effects": "deny",
     "typescript/no-inferrable-types": [
       "deny",
-      [
-        {
-          "ignoreParameters": true
-        }
-      ]
+      {
+        "ignoreParameters": true
+      }
     ],
-    "typescript/no-meaningless-void-operator": "warn",
-    "typescript/no-misused-new": "warn",
+    "typescript/no-meaningless-void-operator": "deny",
+    "typescript/no-misused-new": "deny",
     "typescript/no-misused-promises": [
       "deny",
-      [
-        {
-          "checksVoidReturn": {
-            "arguments": false,
-            "properties": false
-          }
+      {
+        "checksVoidReturn": {
+          "arguments": false,
+          "properties": false
         }
-      ]
+      }
     ],
-    "typescript/no-misused-spread": "warn",
+    "typescript/no-misused-spread": "deny",
     "typescript/no-mixed-enums": "deny",
     "typescript/no-non-null-asserted-nullish-coalescing": "deny",
-    "typescript/no-non-null-asserted-optional-chain": "warn",
+    "typescript/no-non-null-asserted-optional-chain": "deny",
     "typescript/no-redundant-type-constituents": "allow",
     "typescript/no-require-imports": "deny",
     "typescript/no-restricted-types": [
       "deny",
-      [
-        {
-          "types": {
-            "Boolean": {
-              "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
-            },
-            "Number": {
-              "message": "Avoid using the `Number` type. Did you mean `number`?"
-            },
-            "object": {
-              "message": "The `object` type is currently hard to use ([see this issue](https://github.com/microsoft/TypeScript/issues/21732)).\nConsider using `Record<string, any>` instead, as it allows you to more easily inspect and use the keys."
-            },
-            "Object": {
-              "message": "Avoid using the `Object` type. Did you mean `object`? Consider using Record<string, any> instead"
-            },
-            "String": {
-              "message": "Avoid using the `String` type. Did you mean `string`?"
-            },
-            "Symbol": {
-              "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
-            }
+      {
+        "types": {
+          "Boolean": {
+            "message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
+          },
+          "Number": {
+            "message": "Avoid using the `Number` type. Did you mean `number`?"
+          },
+          "object": {
+            "message": "The `object` type is currently hard to use ([see this issue](https://github.com/microsoft/TypeScript/issues/21732)).\nConsider using `Record<string, any>` instead, as it allows you to more easily inspect and use the keys."
+          },
+          "Object": {
+            "message": "Avoid using the `Object` type. Did you mean `object`? Consider using Record<string, any> instead"
+          },
+          "String": {
+            "message": "Avoid using the `String` type. Did you mean `string`?"
+          },
+          "Symbol": {
+            "message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
           }
         }
-      ]
+      }
     ],
     "typescript/no-this-alias": "allow",
     "typescript/no-unnecessary-boolean-literal-compare": "deny",
-    "typescript/no-unnecessary-parameter-property-assignment": "warn",
+    "typescript/no-unnecessary-parameter-property-assignment": "deny",
     "typescript/no-unnecessary-qualifier": "deny",
     "typescript/no-unnecessary-template-expression": "deny",
     "typescript/no-unnecessary-type-arguments": "allow",
@@ -395,16 +388,16 @@
     "typescript/no-unnecessary-type-constraint": "deny",
     "typescript/no-unnecessary-type-conversion": "deny",
     "typescript/no-unnecessary-type-parameters": "allow",
-    "typescript/no-unsafe-declaration-merging": "warn",
+    "typescript/no-unsafe-declaration-merging": "deny",
     "typescript/no-unsafe-function-type": "deny",
-    "typescript/no-unsafe-unary-minus": "warn",
-    "typescript/no-useless-default-assignment": "warn",
-    "typescript/no-useless-empty-export": "warn",
+    "typescript/no-unsafe-unary-minus": "deny",
+    "typescript/no-useless-default-assignment": "deny",
+    "typescript/no-useless-empty-export": "deny",
     "typescript/no-var-requires": "deny",
-    "typescript/no-wrapper-object-types": "warn",
+    "typescript/no-wrapper-object-types": "deny",
     "typescript/non-nullable-type-assertion-style": "deny",
     "typescript/only-throw-error": "deny",
-    "typescript/prefer-as-const": "warn",
+    "typescript/prefer-as-const": "deny",
     "typescript/prefer-enum-initializers": "deny",
     "typescript/prefer-find": "deny",
     "typescript/prefer-for-of": "deny",
@@ -416,47 +409,39 @@
     "typescript/prefer-reduce-type-parameter": "deny",
     "typescript/prefer-string-starts-ends-with": [
       "deny",
-      [
-        {
-          "allowSingleElementEquality": "always"
-        }
-      ]
+      {
+        "allowSingleElementEquality": "always"
+      }
     ],
     "typescript/prefer-ts-expect-error": "deny",
     "typescript/promise-function-async": [
       "deny",
-      [
-        {
-          "checkArrowFunctions": false,
-          "checkFunctionDeclarations": true,
-          "checkFunctionExpressions": true,
-          "checkMethodDeclarations": true
-        }
-      ]
+      {
+        "checkArrowFunctions": false,
+        "checkFunctionDeclarations": true,
+        "checkFunctionExpressions": true,
+        "checkMethodDeclarations": true
+      }
     ],
     "typescript/require-array-sort-compare": "allow",
     "typescript/require-await": "allow",
     "typescript/restrict-plus-operands": "deny",
     "typescript/restrict-template-expressions": "allow",
-    "typescript/return-await": ["deny", ["error-handling-correctness-only"]],
+    "typescript/return-await": ["deny", "error-handling-correctness-only"],
     "typescript/switch-exhaustiveness-check": "allow",
-    "typescript/triple-slash-reference": "warn",
+    "typescript/triple-slash-reference": "deny",
     "typescript/unbound-method": [
       "allow",
-      [
-        {
-          "ignoreStatic": true
-        }
-      ]
+      {
+        "ignoreStatic": true
+      }
     ],
     "unicorn/catch-error-name": [
       "deny",
-      [
-        {
-          "name": "err",
-          "ignore": ["^err\\d*$", "^_"]
-        }
-      ]
+      {
+        "name": "err",
+        "ignore": ["^err\\d*$", "^_"]
+      }
     ],
     "unicorn/consistent-assert": "deny",
     "unicorn/consistent-date-clone": "deny",
@@ -467,60 +452,58 @@
     "unicorn/no-accessor-recursion": "deny",
     "unicorn/no-anonymous-default-export": "deny",
     "unicorn/no-array-reduce": "deny",
-    "unicorn/no-await-in-promise-methods": "warn",
+    "unicorn/no-await-in-promise-methods": "deny",
     "unicorn/no-console-spaces": "deny",
     "unicorn/no-document-cookie": "deny",
-    "unicorn/no-empty-file": "warn",
+    "unicorn/no-empty-file": "deny",
     "unicorn/no-hex-escape": "deny",
     "unicorn/no-immediate-mutation": "deny",
     "unicorn/no-instanceof-builtins": "deny",
-    "unicorn/no-invalid-fetch-options": "warn",
-    "unicorn/no-invalid-remove-event-listener": "warn",
+    "unicorn/no-invalid-fetch-options": "deny",
+    "unicorn/no-invalid-remove-event-listener": "deny",
     "unicorn/no-length-as-slice-end": "deny",
     "unicorn/no-lonely-if": "deny",
     "unicorn/no-magic-array-flat-depth": "deny",
     "unicorn/no-negation-in-equality-check": "deny",
     "unicorn/no-new-array": "allow",
     "unicorn/no-new-buffer": "deny",
-    "unicorn/no-single-promise-in-promise-methods": "warn",
-    "unicorn/no-thenable": "warn",
+    "unicorn/no-single-promise-in-promise-methods": "deny",
+    "unicorn/no-thenable": "deny",
     "unicorn/no-unnecessary-array-flat-depth": "deny",
     "unicorn/no-unnecessary-array-splice-count": "deny",
-    "unicorn/no-unnecessary-await": "warn",
+    "unicorn/no-unnecessary-await": "deny",
     "unicorn/no-unnecessary-slice-end": "deny",
     "unicorn/no-unreadable-array-destructuring": "deny",
     "unicorn/no-unreadable-iife": "deny",
     "unicorn/no-useless-collection-argument": "deny",
     "unicorn/no-useless-error-capture-stack-trace": "deny",
-    "unicorn/no-useless-fallback-in-spread": "warn",
+    "unicorn/no-useless-fallback-in-spread": "deny",
     "unicorn/no-useless-iterator-to-array": "deny",
-    "unicorn/no-useless-length-check": "warn",
+    "unicorn/no-useless-length-check": "deny",
     "unicorn/no-useless-promise-resolve-reject": "deny",
-    "unicorn/no-useless-spread": "warn",
+    "unicorn/no-useless-spread": "deny",
     "unicorn/no-zero-fractions": "deny",
     "unicorn/numeric-separators-style": [
       "deny",
-      [
-        {
-          "binary": {
-            "groupLength": 4,
-            "minimumDigits": 0
-          },
-          "hexadecimal": {
-            "groupLength": 2,
-            "minimumDigits": 0
-          },
-          "number": {
-            "groupLength": 3,
-            "minimumDigits": 5
-          },
-          "octal": {
-            "groupLength": 4,
-            "minimumDigits": 0
-          },
-          "onlyIfContainsSeparator": true
-        }
-      ]
+      {
+        "binary": {
+          "groupLength": 4,
+          "minimumDigits": 0
+        },
+        "hexadecimal": {
+          "groupLength": 2,
+          "minimumDigits": 0
+        },
+        "number": {
+          "groupLength": 3,
+          "minimumDigits": 5
+        },
+        "octal": {
+          "groupLength": 4,
+          "minimumDigits": 0
+        },
+        "onlyIfContainsSeparator": true
+      }
     ],
     "unicorn/prefer-add-event-listener": "deny",
     "unicorn/prefer-array-find": "deny",
@@ -554,52 +537,46 @@
     "unicorn/prefer-reflect-apply": "deny",
     "unicorn/prefer-response-static-json": "deny",
     "unicorn/prefer-set-has": "deny",
-    "unicorn/prefer-set-size": "warn",
+    "unicorn/prefer-set-size": "deny",
     "unicorn/prefer-string-raw": "deny",
     "unicorn/prefer-string-replace-all": "deny",
     "unicorn/prefer-string-slice": "deny",
-    "unicorn/prefer-string-starts-ends-with": "warn",
+    "unicorn/prefer-string-starts-ends-with": "deny",
     "unicorn/prefer-string-trim-start-end": "deny",
     "unicorn/prefer-top-level-await": "deny",
     "unicorn/prefer-type-error": "deny",
     "unicorn/require-array-join-separator": "deny",
     "unicorn/require-module-attributes": "deny",
     "unicorn/require-module-specifiers": "deny",
-    "unicorn/switch-case-braces": ["deny", ["always"]],
+    "unicorn/switch-case-braces": ["deny", "always"],
     "unicorn/switch-case-break-position": "deny",
     "unicorn/text-encoding-identifier-case": [
       "deny",
-      [
-        {
-          "withDash": false
-        }
-      ]
+      {
+        "withDash": false
+      }
     ],
     "vitest/consistent-each-for": "deny",
     "vitest/consistent-test-filename": "deny",
     "vitest/consistent-test-it": [
       "deny",
-      [
-        {
-          "fn": "it",
-          "withinDescribe": "it"
-        }
-      ]
+      {
+        "fn": "it",
+        "withinDescribe": "it"
+      }
     ],
     "vitest/consistent-vitest-vi": "deny",
     "vitest/expect-expect": "allow",
-    "vitest/hoisted-apis-on-top": "warn",
+    "vitest/hoisted-apis-on-top": "deny",
     "vitest/max-nested-describe": [
       "allow",
-      [
-        {
-          "max": 4
-        }
-      ]
+      {
+        "max": 4
+      }
     ],
     "vitest/no-alias-methods": "deny",
     "vitest/no-conditional-expect": "allow",
-    "vitest/no-conditional-tests": "warn",
+    "vitest/no-conditional-tests": "deny",
     "vitest/no-disabled-tests": "allow",
     "vitest/no-duplicate-hooks": "deny",
     "vitest/no-focused-tests": "deny",
@@ -608,16 +585,14 @@
     "vitest/no-mocks-import": "deny",
     "vitest/no-restricted-vi-methods": [
       "deny",
-      [
-        {
-          "mock": "vi.mock() is never cleared (isolate: false) and leaks into other test files on the same worker. Spy on the module namespace instead: vi.spyOn(ns, \"fn\") or vi.spyOn(ns, \"constName\", \"get\").",
-          "doMock": "vi.doMock() is never cleared (isolate: false) and leaks into other test files on the same worker. Use vi.spyOn() on the module namespace instead.",
-          "hoisted": "vi.hoisted() only exists to feed vi.mock() factories, which are banned. Use vi.spyOn() instead.",
-          "resetModules": "vi.resetModules() clears the shared module cache for every later test file on this worker (isolate: false)."
-        }
-      ]
+      {
+        "mock": "vi.mock() is never cleared (isolate: false) and leaks into other test files on the same worker. Spy on the module namespace instead: vi.spyOn(ns, \"fn\") or vi.spyOn(ns, \"constName\", \"get\").",
+        "doMock": "vi.doMock() is never cleared (isolate: false) and leaks into other test files on the same worker. Use vi.spyOn() on the module namespace instead.",
+        "hoisted": "vi.hoisted() only exists to feed vi.mock() factories, which are banned. Use vi.spyOn() instead.",
+        "resetModules": "vi.resetModules() clears the shared module cache for every later test file on this worker (isolate: false)."
+      }
     ],
-    "vitest/no-standalone-expect": "warn",
+    "vitest/no-standalone-expect": "deny",
     "vitest/no-test-return-statement": "deny",
     "vitest/padding-around-after-all-blocks": "deny",
     "vitest/prefer-called-exactly-once-with": "deny",
@@ -630,26 +605,36 @@
     "vitest/prefer-to-be": "deny",
     "vitest/prefer-to-contain": "deny",
     "vitest/prefer-to-have-length": "deny",
-    "vitest/require-awaited-expect-poll": "warn",
-    "vitest/require-local-test-context-for-concurrent-snapshots": "warn",
-    "vitest/require-mock-type-parameters": "warn",
+    "vitest/require-awaited-expect-poll": "deny",
+    "vitest/require-local-test-context-for-concurrent-snapshots": "deny",
+    "vitest/require-mock-type-parameters": "deny",
     "vitest/require-to-throw-message": "deny",
     "vitest/valid-describe-callback": "allow",
     "vitest/valid-expect": "allow",
-    "vitest/valid-expect-in-promise": "warn",
+    "vitest/valid-expect-in-promise": "deny",
     "vitest/valid-title": [
       "deny",
-      [
-        {
-          "mustMatch": {
-            "it": "^should "
-          }
+      {
+        "mustMatch": {
+          "it": "^should "
         }
-      ]
+      }
     ],
     "vitest/warn-todo": "allow"
   },
   "settings": {
+    "jsdoc": {
+      "tagNamePreference": {
+        "experimental": "experimental"
+      },
+      "ignorePrivate": false,
+      "ignoreInternal": false,
+      "ignoreReplacesDocs": true,
+      "overrideReplacesDocs": true,
+      "augmentsExtendsReplacesDocs": false,
+      "implementsReplacesDocs": false,
+      "exemptDestructuredRootsFromChecks": false
+    },
     "jsx-a11y": {
       "polymorphicPropName": null,
       "components": {},
@@ -663,18 +648,6 @@
       "linkComponents": [],
       "version": null,
       "componentWrapperFunctions": []
-    },
-    "jsdoc": {
-      "ignorePrivate": false,
-      "ignoreInternal": false,
-      "ignoreReplacesDocs": true,
-      "overrideReplacesDocs": true,
-      "augmentsExtendsReplacesDocs": false,
-      "implementsReplacesDocs": false,
-      "exemptDestructuredRootsFromChecks": false,
-      "tagNamePreference": {
-        "experimental": "experimental"
-      }
     },
     "vitest": {
       "typecheck": false
