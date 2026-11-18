@@ -88,6 +88,7 @@
     "oxfmt": "^0",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
+    "tsrs": "catalog:",
     "tsx": "^4",
     "vite": "^8",
     "vitest": "^5"

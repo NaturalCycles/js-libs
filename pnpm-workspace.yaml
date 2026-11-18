@@ -7,6 +7,7 @@ catalog:
   'typescript': ^7
   oxlint: ^1
   'oxlint-tsgolint': ^7
+  tsrs: ^7.1.0-beta.tsrs2
 allowBuilds:
   esbuild: true
   '@firebase/util': false
@@ -23,3 +24,5 @@ ignoreWorkspaceCycles: true
 trustLockfile: true
 trustPolicyExcludePrune: true
 trustPolicy: no-downgrade
+trustPolicyExclude:
+  - tsrs@7.1.0-beta.tsrs2

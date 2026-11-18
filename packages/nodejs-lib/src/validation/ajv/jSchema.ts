@@ -1306,16 +1306,7 @@ export class JObjectInfer<
 
   extend<NEW_PROPS extends Record<string, JSchema<any, any>>>(
     props: NEW_PROPS,
-  ): JObjectInfer<
-    {
-      [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
-        ? NEW_PROPS[K]
-        : K extends keyof PROPS
-          ? PROPS[K]
-          : never
-    },
-    Opt
-  > {
+  ): JObjectInfer<ExtendedProps<PROPS, NEW_PROPS>, Opt> {
     const newBuilder = new JObjectInfer<PROPS, Opt>()
     _objectAssign(newBuilder.schema, deepCopyPreservingFunctions(this.schema))
 
@@ -1327,16 +1318,7 @@ export class JObjectInfer<
     // the new schema loses that quality.
     _objectAssign(newBuilder.schema, { hasIsOfTypeCheck: false })
 
-    return newBuilder as any as JObjectInfer<
-      {
-        [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
-          ? NEW_PROPS[K]
-          : K extends keyof PROPS
-            ? PROPS[K]
-            : never
-      },
-      Opt
-    >
+    return newBuilder as any as JObjectInfer<ExtendedProps<PROPS, NEW_PROPS>, Opt>
   }
 
   /**
@@ -2282,6 +2264,20 @@ type RelaxIndexSignature<T> = T extends readonly unknown[]
     : T
 
 type Override<T, U> = Omit<T, keyof U> & U
+
+/**
+ * Props of `JObjectInfer.extend()`: NEW_PROPS override PROPS with the same key.
+ *
+ * A named alias keeps the return type annotation and the cast in `extend()` identical.
+ * TypeScript 7.1 reports two separately written copies of this mapped type as unrelated (TS2719).
+ */
+type ExtendedProps<PROPS, NEW_PROPS> = {
+  [K in keyof PROPS | keyof NEW_PROPS]: K extends keyof NEW_PROPS
+    ? NEW_PROPS[K]
+    : K extends keyof PROPS
+      ? PROPS[K]
+      : never
+}
 
 declare const allowExtraKeysSymbol: unique symbol
 
