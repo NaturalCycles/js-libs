@@ -1,7 +1,7 @@
 const prettierDirs = ['src,scripts,e2e,docs,cfg,resources,.github,public,static']
 // everything that prettier supports:
 const prettierExtensionsAll =
-  'ts,tsx,cts,mts,css,scss,js,jsx,cjs,mjs,json,md,graphql,yml,yaml,html,vue'
+  'ts,tsx,cts,mts,css,scss,js,jsx,cjs,mjs,json,jsonc,md,graphql,yml,yaml,html,vue'
 const eslintExtensions = 'ts,tsx,html'
 const stylelintExtensions = 'css,scss'
 const lintExclude = ['**/__exclude/**']
