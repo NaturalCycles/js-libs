@@ -516,14 +516,6 @@ export class CacheDB implements CommonDB {
   ): Promise<StringMap<ROW[]>> {
     const cacheDB = this.getCacheDB()
     const rowsByTable: StringMap<ROW[]> = {}
-    if (cacheDB.support.multiTableOperations) {
-      const cachedRowsByTable = await cacheDB.multiGet<ROW>(idsByTable)
-      for (const [table, rows] of _stringMapEntries(cachedRowsByTable)) {
-        rowsByTable[table] = rows.map(copyRow)
-      }
-      return rowsByTable
-    }
-
     await Promise.all(
       _stringMapEntries(idsByTable).map(async ([table, ids]) => {
         const rows = await cacheDB.getByIds<ROW>(table, ids)
@@ -537,10 +529,6 @@ export class CacheDB implements CommonDB {
     cacheDB: CommonDB,
     idsByTable: StringMap<string[]>,
   ): Promise<number> {
-    if (cacheDB.support.multiTableOperations) {
-      return await cacheDB.multiDelete(idsByTable)
-    }
-
     const entries = _stringMapEntries(idsByTable)
     const counts = await Promise.all(entries.map(([table, ids]) => cacheDB.deleteByIds(table, ids)))
     return _sum(counts)

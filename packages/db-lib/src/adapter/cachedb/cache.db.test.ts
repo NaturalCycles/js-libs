@@ -219,55 +219,6 @@ it('should throw in multiSave', async () => {
   await expect(multiSave).rejects.toThrow('CacheDB: multiSave is not implemented')
 })
 
-describe('multi-table operations on the cacheDB', () => {
-  it('should call the cacheDB multi-table methods once for all tables', async () => {
-    const { db, cacheDB } = await setup({
-      downstream: [{ id: 'a', v: 'downstream' }],
-      cache: [{ id: 'b', v: 'cache' }],
-    })
-    const multiGet = vi.spyOn(cacheDB, 'multiGet')
-    const multiDelete = vi.spyOn(cacheDB, 'multiDelete')
-
-    const rowsByTable = await db.multiGet({ Table: ['a', 'b'], OtherTable: ['x'] })
-    await db.multiDelete({ Table: ['b'], OtherTable: ['x'] })
-
-    expect(rowsByTable).toEqual({
-      Table: [
-        { id: 'a', v: 'downstream' },
-        { id: 'b', v: 'cache' },
-      ],
-      OtherTable: [],
-    })
-    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'downstream' } })
-    expect(multiGet).toHaveBeenCalledExactlyOnceWith({ Table: ['a', 'b'], OtherTable: ['x'] })
-    expect(multiDelete).toHaveBeenCalledExactlyOnceWith({ Table: ['b'], OtherTable: ['x'] })
-  })
-
-  it('should call the cacheDB single-table methods when the cacheDB has no multiTableOperations', async () => {
-    const { db, cacheDB } = await setup({
-      downstream: [{ id: 'a', v: 'downstream' }],
-      cache: [{ id: 'b', v: 'cache' }],
-    })
-    cacheDB.support = { ...cacheDB.support, multiTableOperations: false }
-    const multiGet = vi.spyOn(cacheDB, 'multiGet')
-    const multiDelete = vi.spyOn(cacheDB, 'multiDelete')
-
-    const rowsByTable = await db.multiGet({ Table: ['a', 'b'], OtherTable: ['x'] })
-    await db.multiDelete({ Table: ['b'], OtherTable: ['x'] })
-
-    expect(rowsByTable).toEqual({
-      Table: [
-        { id: 'a', v: 'downstream' },
-        { id: 'b', v: 'cache' },
-      ],
-      OtherTable: [],
-    })
-    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'downstream' } })
-    expect(multiGet).not.toHaveBeenCalled()
-    expect(multiDelete).not.toHaveBeenCalled()
-  })
-})
-
 it('should remove the cached rows on patchById and incrementBatch', async () => {
   const { db, downstreamDB, cacheDB } = await setup({
     downstream: [
@@ -704,7 +655,7 @@ describe('cache fill', () => {
     await db.multiGet({ Table: ['a'], OtherTable: ['x'] })
 
     expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
-    expect(cacheDB.data['OtherTable']).toBeUndefined()
+    expect(cacheDB.data['OtherTable']).toEqual({})
   })
 })
 
