@@ -268,6 +268,13 @@ export class CacheDB implements CommonDB {
   }
 
   async multiDelete(idsByTable: StringMap<string[]>, opt: CacheDBOptions = {}): Promise<number> {
+    if (this.isInTransaction(opt)) {
+      const { tx } = opt
+      const entries = _stringMapEntries(idsByTable)
+      const counts = await Promise.all(entries.map(([t, ids]) => tx.deleteByIds(t, ids, opt)))
+      return _sum(counts)
+    }
+
     if (this.isOnlyCache(opt)) {
       return await this.changeCache(_objectKeys(idsByTable), cacheDB =>
         this.multiDeleteCache(cacheDB, idsByTable),
