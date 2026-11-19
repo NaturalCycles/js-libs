@@ -129,7 +129,11 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     }
 
     if (this.useDownstream(opt)) {
-      await this.cfg.downstreamDB.saveBatch(table, rows, this.downstreamOpt(opt))
+      const ids = rows.map(r => r.id)
+      await this.writeDownstream(
+        () => this.cfg.downstreamDB.saveBatch(table, rows, this.downstreamOpt(opt)),
+        () => this.invalidateCache(table, ids, opt),
+      )
       this.getDownstreamLogger()?.log(formatRows(`${table}.saveBatch`, rows, 'to downstream'))
     }
 
@@ -146,7 +150,10 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       return await this.changeCache([table], cacheDB => cacheDB.patchById(table, id, patch))
     }
 
-    await this.cfg.downstreamDB.patchById(table, id, patch, this.downstreamOpt(opt))
+    await this.writeDownstream(
+      () => this.cfg.downstreamDB.patchById(table, id, patch, this.downstreamOpt(opt)),
+      () => this.invalidateCache(table, [id], opt),
+    )
 
     // We only have the patch, not the full row, so we remove the row from the cache
     await this.invalidateCache(table, [id], opt)
@@ -164,15 +171,15 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       )
     }
 
-    const result = await this.cfg.downstreamDB.incrementBatch(
-      table,
-      prop,
-      incrementMap,
-      this.downstreamOpt(opt),
+    const ids = _objectKeys(incrementMap)
+    const result = await this.writeDownstream(
+      () =>
+        this.cfg.downstreamDB.incrementBatch(table, prop, incrementMap, this.downstreamOpt(opt)),
+      () => this.invalidateCache(table, ids, opt),
     )
 
     // We only have the new values of `prop`, not the full rows, so we remove the rows from the cache
-    await this.invalidateCache(table, _objectKeys(incrementMap), opt)
+    await this.invalidateCache(table, ids, opt)
 
     return result
   }
@@ -190,7 +197,10 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       return await this.changeCache([table], cacheDB => cacheDB.deleteByIds(table, ids))
     }
 
-    const deleted = await this.cfg.downstreamDB.deleteByIds(table, ids, this.downstreamOpt(opt))
+    const deleted = await this.writeDownstream(
+      () => this.cfg.downstreamDB.deleteByIds(table, ids, this.downstreamOpt(opt)),
+      () => this.invalidateCache(table, ids, opt),
+    )
     this.getDownstreamLogger()?.log(`${table}.deleteByIds ${deleted} rows from downstream`)
 
     await this.invalidateCache(table, ids, opt)
@@ -257,7 +267,10 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     const entries = _stringMapEntries(rowsByTable)
 
     if (this.useDownstream(opt)) {
-      await this.cfg.downstreamDB.multiSave(rowsByTable, this.downstreamOpt(opt))
+      await this.writeDownstream(
+        () => this.cfg.downstreamDB.multiSave(rowsByTable, this.downstreamOpt(opt)),
+        () => this.multiInvalidateCache(getIdsByTable(rowsByTable), opt),
+      )
       const logger = this.getDownstreamLogger()
       for (const [table, rows] of entries) {
         logger?.log(formatRows(`${table}.multiSave`, rows, 'to downstream'))
@@ -277,7 +290,10 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       )
     }
 
-    const deleted = await this.cfg.downstreamDB.multiDelete(idsByTable, this.downstreamOpt(opt))
+    const deleted = await this.writeDownstream(
+      () => this.cfg.downstreamDB.multiDelete(idsByTable, this.downstreamOpt(opt)),
+      () => this.multiInvalidateCache(idsByTable, opt),
+    )
     this.getDownstreamLogger()?.log(`multiDelete ${deleted} rows from downstream`)
 
     await this.multiInvalidateCache(idsByTable, opt)
@@ -337,7 +353,10 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       return deleted
     }
 
-    const deleted = await this.cfg.downstreamDB.deleteByQuery(q, this.downstreamOpt(opt))
+    const deleted = await this.writeDownstream(
+      () => this.cfg.downstreamDB.deleteByQuery(q, this.downstreamOpt(opt)),
+      () => this.invalidateCacheTable(q.table, opt),
+    )
     this.getDownstreamLogger()?.log(
       `${q.table}.deleteByQuery ${deleted} rows from downstream and cache`,
     )
@@ -355,7 +374,10 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       return await this.changeCache([q.table], cacheDB => cacheDB.patchByQuery(q, patch))
     }
 
-    const updated = await this.cfg.downstreamDB.patchByQuery(q, patch, this.downstreamOpt(opt))
+    const updated = await this.writeDownstream(
+      () => this.cfg.downstreamDB.patchByQuery(q, patch, this.downstreamOpt(opt)),
+      () => this.invalidateCacheTable(q.table, opt),
+    )
     // We do not know which rows the query changed, so remove all rows of the table from the cache
     await this.invalidateCacheTable(q.table, opt)
     return updated
@@ -439,10 +461,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
   ): Promise<void> {
     if (this.isSkipCache(opt) || this.isInTransaction(opt)) {
       // We must not cache the new rows here, so we just remove the outdated rows from the cache
-      const idsByTable = _mapValues<StringMap<string[]>>(rowsByTable, (_, rows: ROW[]) =>
-        rows.map(r => r.id),
-      )
-      await this.multiInvalidateCache(idsByTable, opt)
+      await this.multiInvalidateCache(getIdsByTable(rowsByTable), opt)
       return
     }
 
@@ -600,6 +619,22 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     void promise.catch(err => this.cfg.logger.error('CacheDB: cache write failed', err))
   }
 
+  private async writeDownstream<T>(
+    write: () => Promise<T>,
+    invalidate: () => Promise<void>,
+  ): Promise<T> {
+    try {
+      return await write()
+    } catch (err) {
+      try {
+        await invalidate()
+      } catch (cacheErr) {
+        this.cfg.logger.error('CacheDB: cache invalidation failed', { err: cacheErr })
+      }
+      throw err
+    }
+  }
+
   private downstreamOpt<OPT extends CommonDBOptions>(opt: OPT): OPT {
     if (this.isInTransaction(opt)) {
       return { ...opt, tx: opt.tx.downstreamTx }
@@ -732,6 +767,12 @@ export class CacheDBTransaction implements DBTransaction {
     const tableInvalidations = [...this.writtenTables].map(t => this.db.invalidateCacheTable(t))
     await Promise.all([this.db.multiInvalidateCache(idsByTable), ...tableInvalidations])
   }
+}
+
+function getIdsByTable(rowsByTable: StringMap<ObjectWithId[]>): StringMap<string[]> {
+  return _mapValues<StringMap<string[]>>(rowsByTable, (_, rows: ObjectWithId[]) =>
+    rows.map(r => r.id),
+  )
 }
 
 function formatRows(prefix: string, rows: readonly ObjectWithId[], source: string): string {

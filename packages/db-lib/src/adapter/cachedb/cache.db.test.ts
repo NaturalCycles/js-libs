@@ -322,6 +322,45 @@ it.each([
   expect(cacheDB.data['Table']).toEqual({})
 })
 
+describe('failed downstream writes', () => {
+  const q = DBQuery.create<Row>('Table').filterEq('id', 'a')
+
+  it.each([
+    { method: 'saveBatch', write: (db: CacheDB) => db.saveBatch('Table', [{ id: 'a', v: 'new' }]) },
+    {
+      method: 'multiSave',
+      write: (db: CacheDB) => db.multiSave({ Table: [{ id: 'a', v: 'new' }] }),
+    },
+    { method: 'patchById', write: (db: CacheDB) => db.patchById<Row>('Table', 'a', { v: 'new' }) },
+    { method: 'incrementBatch', write: (db: CacheDB) => db.incrementBatch('Table', 'n', { a: 1 }) },
+    { method: 'deleteByIds', write: (db: CacheDB) => db.deleteByIds('Table', ['a']) },
+    { method: 'multiDelete', write: (db: CacheDB) => db.multiDelete({ Table: ['a'] }) },
+    { method: 'deleteByQuery', write: (db: CacheDB) => db.deleteByQuery(q) },
+    { method: 'patchByQuery', write: (db: CacheDB) => db.patchByQuery(q, { v: 'new' }) },
+  ] as const)(
+    'should remove the rows from the cache when the downstream $method throws',
+    async ({ method, write }) => {
+      const { db, downstreamDB, cacheDB } = await setup({ cache: [{ id: 'a', v: 'old' }] })
+      vi.spyOn(downstreamDB, method).mockRejectedValueOnce(new Error('timeout'))
+
+      await expect(write(db)).rejects.toThrow('timeout')
+
+      expect(cacheDB.data['Table']).toEqual({})
+    },
+  )
+
+  it('should throw the downstream error when the cache invalidation also fails', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      cache: [{ id: 'a', v: 'old' }],
+      cfg: { logger: commonLoggerNoop },
+    })
+    vi.spyOn(downstreamDB, 'saveBatch').mockRejectedValueOnce(new Error('timeout'))
+    vi.spyOn(cacheDB, 'deleteByIds').mockRejectedValueOnce(new Error('cache failed'))
+
+    await expect(db.saveBatch('Table', [{ id: 'a', v: 'new' }])).rejects.toThrow('timeout')
+  })
+})
+
 it('should throw when onlyCache and skipCache are both set in cfg', () => {
   const cfg = {
     downstreamDB: new InMemoryDB(),
