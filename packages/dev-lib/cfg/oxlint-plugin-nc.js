@@ -153,44 +153,139 @@ const noSingletonSelfReferenceRule = {
       useThis: 'Use `this` instead of {{name}} inside {{className}}',
     },
   },
+  // Bindings are resolved with a small shadowing check instead of the scope manager: building
+  // scopes for every file with a class made this rule cost ~0.35 s on NCBackend3
   create(context) {
     const { sourceCode } = context
     const classes = []
+    const instantiations = []
 
     return {
       ClassDeclaration(node) {
         if (isModuleLevel(node)) classes.push(node)
       },
+      NewExpression(node) {
+        if (node.callee.type === 'Identifier') instantiations.push(node)
+      },
       'Program:exit'() {
         for (const classNode of classes) {
-          // Every `new ClassName()` that resolves to this class, wherever it is in the file
-          const instantiations = sourceCode
-            .getDeclaredVariables(classNode)
-            .flatMap(variable => variable.references)
-            .filter(({ identifier }) => {
-              const { parent } = identifier
-              return parent.type === 'NewExpression' && parent.callee === identifier
-            })
-            .map(({ identifier }) => identifier.parent)
+          const className = classNode.id.name
+          // Every `new ClassName()` that refers to this class, wherever it is in the file
+          const ownInstantiations = instantiations.filter(
+            node => node.callee.name === className && !isShadowed(node, className, null),
+          )
           // With several instances in the file, the one named is not necessarily `this`
-          if (instantiations.length !== 1) continue
-          const [instantiation] = instantiations
+          if (ownInstantiations.length !== 1) continue
+          const [instantiation] = ownInstantiations
           const declarator = instantiation.parent
           if (!isModuleLevelConst(declarator, instantiation)) continue
 
-          const [variable] = sourceCode.getDeclaredVariables(declarator)
-          for (const { identifier } of variable?.references || []) {
-            if (!isInstanceCodeOf(identifier, classNode)) continue
-            context.report({
-              node: identifier,
-              messageId: 'useThis',
-              data: { name: identifier.name, className: classNode.id.name },
-            })
+          const name = declarator.id.name
+          const classSource = sourceCode.text.slice(classNode.start, classNode.end)
+          if (!new RegExp(String.raw`(?<![\w$])${escapeRegExp(name)}(?![\w$])`).test(classSource)) {
+            continue
           }
+          visit(classNode.body, node => {
+            if (node.type !== 'Identifier' || node.name !== name) return false
+            if (isInstanceCodeOf(node, classNode) && !isShadowed(node, name, classNode)) {
+              context.report({ node, messageId: 'useThis', data: { name, className } })
+            }
+            return false
+          })
         }
       },
     }
   },
+}
+
+function escapeRegExp(text) {
+  return text.replaceAll('$', String.raw`\$`)
+}
+
+// Whether a declaration between `node` and `boundary` (or the file, when null) binds `name`
+function isShadowed(node, name, boundary) {
+  for (let { parent } = node; parent && parent !== boundary; parent = parent.parent) {
+    if (parent.type === 'Program') return false
+    if (declaresName(parent, name)) return true
+  }
+  return false
+}
+
+function declaresName(node, name) {
+  switch (node.type) {
+    case 'FunctionDeclaration':
+    case 'FunctionExpression':
+    case 'ArrowFunctionExpression': {
+      if (node.type === 'FunctionExpression' && node.id?.name === name) return true
+      return node.params.some(param => bindsName(param, name))
+    }
+    // A class declaration's own name binds in the enclosing block (checked there); a named class
+    // expression binds it inside itself
+    case 'ClassExpression': {
+      return node.id?.name === name
+    }
+    case 'CatchClause': {
+      return !!node.param && bindsName(node.param, name)
+    }
+    case 'ForStatement':
+    case 'ForInStatement':
+    case 'ForOfStatement': {
+      const head = node.type === 'ForStatement' ? node.init : node.left
+      return head?.type === 'VariableDeclaration' && statementBindsName(head, name)
+    }
+    case 'BlockStatement':
+    case 'StaticBlock': {
+      return node.body.some(statement => statementBindsName(statement, name))
+    }
+    case 'SwitchCase': {
+      return node.consequent.some(statement => statementBindsName(statement, name))
+    }
+    default: {
+      return false
+    }
+  }
+}
+
+function statementBindsName(statement, name) {
+  const declaration =
+    statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement
+  if (!declaration) return false
+  if (declaration.type === 'VariableDeclaration') {
+    return declaration.declarations.some(declarator => bindsName(declarator.id, name))
+  }
+  return (
+    (declaration.type === 'FunctionDeclaration' || declaration.type === 'ClassDeclaration') &&
+    declaration.id?.name === name
+  )
+}
+
+// Whether a parameter or destructuring pattern introduces `name`
+function bindsName(pattern, name) {
+  switch (pattern?.type) {
+    case 'Identifier': {
+      return pattern.name === name
+    }
+    case 'AssignmentPattern': {
+      return bindsName(pattern.left, name)
+    }
+    case 'RestElement': {
+      return bindsName(pattern.argument, name)
+    }
+    case 'TSParameterProperty': {
+      return bindsName(pattern.parameter, name)
+    }
+    case 'ArrayPattern': {
+      return pattern.elements.some(element => bindsName(element, name))
+    }
+    case 'ObjectPattern': {
+      return pattern.properties.some(property =>
+        bindsName(property.type === 'RestElement' ? property : property.value, name),
+      )
+    }
+    default: {
+      return false
+    }
+  }
 }
 
 // `const service = new Service()` or `export const service = new Service()`, not nested in a function

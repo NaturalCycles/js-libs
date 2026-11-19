@@ -41,6 +41,21 @@ export const crmService = new CrmService()
 export const otherCrmService = new CrmService()`,
       `class CrmService { static create() { return new CrmService() } track() { crmService.send() } send() {} }
 export const crmService = new CrmService()`,
+      // the singleton's name declared again inside the class
+      `class CrmService { track() { const crmService = other; crmService.send() } }
+export const crmService = new CrmService()`,
+      `class CrmService { track({ crmService }: Deps) { crmService.send() } }
+export const crmService = new CrmService()`,
+      `class CrmService { track(items: Deps[]) { for (const { crmService } of items) crmService.send() } }
+export const crmService = new CrmService()`,
+      `class CrmService { track() { try { run() } catch (crmService) { log(crmService) } } }
+export const crmService = new CrmService()`,
+      `class CrmService { track() { if (a) { const crmService = other; crmService.send() } } }
+export const crmService = new CrmService()`,
+      // a second instance created from inside a block
+      `class CrmService { track() { crmService.send() } send() {} }
+export const crmService = new CrmService()
+if (debug) { createDebugService(new CrmService()) }`,
       // a local variable that shadows the singleton
       `class CrmService { track(crmService: Other) { crmService.send() } }
 export const crmService = new CrmService()`,
@@ -88,6 +103,25 @@ export const crmService = new CrmService()`,
         code: `class CrmService { track(name = crmService.title) { const { send } = crmService; crmService.count++ } }
 export const crmService = new CrmService()`,
         errors: 3,
+      },
+      // a shadowing declaration in another block does not hide this reference
+      {
+        code: `class CrmService { track() { if (a) { const crmService = other } crmService.send() } send() {} }
+export const crmService = new CrmService()`,
+        errors: 1,
+      },
+      {
+        code: `class $Service { track() { $service.send() } send() {} }
+export const $service = new $Service()`,
+        errors: 1,
+      },
+      // a class expression of the same name is a different constructor
+      {
+        code: `class CrmService { track() { crmService.send() } send() {} }
+export const crmService = new CrmService()
+const make = () => new (class CrmService {})()
+export const other = new (class CrmService { make() { return new CrmService() } })()`,
+        errors: 1,
       },
       // a parameter that shadows the class is a different constructor
       {
