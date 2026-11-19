@@ -8,9 +8,9 @@ minimumReleaseAgeExclude:
   - '@oxfmt/*'
   - eslint-plugin-oxlint
   - oxlint
-  - oxlint-tsgolint
   - '@oxlint/*'
-  - '@oxlint-tsgolint/*'
+  - tsrs
+  - '@tsrs/*'
 # Below settings are one-liners and are not "worth" to be shared (-1 line, +1 line in the target config)
 # trustLockfile: true
 # trustPolicyExcludePrune: true
