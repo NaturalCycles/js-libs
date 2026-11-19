@@ -11,6 +11,7 @@ import { CommonDao } from '../../commondao/common.dao.js'
 import { InMemoryDB } from '../../inmemory/inMemory.db.js'
 import { DBQuery } from '../../query/dbQuery.js'
 import { runCommonDaoTest, runCommonDBTest } from '../../testing/index.js'
+import type { CacheDBTransaction } from './cache.db.js'
 import { CacheDB } from './cache.db.js'
 import type { CacheDBCfg } from './cache.db.model.js'
 
@@ -418,6 +419,67 @@ describe('transactions', () => {
       { id: 'b', v: 'downstream' },
     ])
     expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'cache' } })
+  })
+
+  it('should read through the downstream transaction and not populate the cache in multiGet', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'downstream' },
+        { id: 'b', v: 'downstream' },
+      ],
+      cache: [{ id: 'a', v: 'cache' }],
+    })
+    const tx = (await db.createTransaction()) as CacheDBTransaction
+    const downstreamMultiGet = vi.spyOn(downstreamDB, 'multiGet')
+    const downstreamTxGetByIds = vi.spyOn(tx.downstreamTx, 'getByIds')
+
+    const rowsByTable = await db.multiGet({ Table: ['a', 'b'], OtherTable: ['x'] }, { tx })
+
+    expect(rowsByTable).toEqual({
+      Table: [
+        { id: 'a', v: 'downstream' },
+        { id: 'b', v: 'downstream' },
+      ],
+      OtherTable: [],
+    })
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'cache' } })
+    expect(downstreamMultiGet).not.toHaveBeenCalled()
+    const reads = downstreamTxGetByIds.mock.calls.map(([table, ids, opt]) => [table, ids, opt?.tx])
+    expect(reads).toEqual([
+      ['Table', ['a', 'b'], tx.downstreamTx],
+      ['OtherTable', ['x'], tx.downstreamTx],
+    ])
+  })
+
+  it('should delete through the downstream transaction and remove the rows from the cache in multiDelete', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+      cache: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+    })
+    await downstreamDB.saveBatch('OtherTable', [{ id: 'x', v: 'old' }])
+    const tx = await db.createTransaction()
+
+    const deleted = await db.multiDelete({ Table: ['a'], OtherTable: ['x'] }, { tx })
+
+    expect(deleted).toBe(2)
+    expect(downstreamDB.data['Table']).toEqual({
+      a: { id: 'a', v: 'old' },
+      b: { id: 'b', v: 'old' },
+    })
+    expect(downstreamDB.data['OtherTable']).toEqual({ x: { id: 'x', v: 'old' } })
+    expect(cacheDB.data['Table']).toEqual({ b: { id: 'b', v: 'old' } })
+
+    await tx.commit()
+
+    expect(downstreamDB.data['Table']).toEqual({ b: { id: 'b', v: 'old' } })
+    expect(downstreamDB.data['OtherTable']).toEqual({})
+    expect(cacheDB.data['Table']).toEqual({ b: { id: 'b', v: 'old' } })
   })
 
   it('should remove written rows from the cache and commit in runInTransaction', async () => {

@@ -215,6 +215,17 @@ export class CacheDB implements CommonDB {
     idsByTable: StringMap<string[]>,
     opt: CacheDBReadOptions = {},
   ): Promise<StringMap<ROW[]>> {
+    if (this.isInTransaction(opt)) {
+      const { tx } = opt
+      const rowsByTable: StringMap<ROW[]> = {}
+      await Promise.all(
+        _stringMapEntries(idsByTable).map(async ([table, ids]) => {
+          rowsByTable[table] = await tx.getByIds<ROW>(table, ids, opt)
+        }),
+      )
+      return rowsByTable
+    }
+
     const rowByIdByTable: StringMap<Map<string, ROW>> = {}
     let missingIdsByTable = { ...idsByTable }
 
