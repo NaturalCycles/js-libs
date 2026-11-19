@@ -11,7 +11,6 @@ import { CommonDao } from '../../commondao/common.dao.js'
 import { InMemoryDB } from '../../inmemory/inMemory.db.js'
 import { DBQuery } from '../../query/dbQuery.js'
 import { runCommonDaoTest, runCommonDBTest } from '../../testing/index.js'
-import type { CacheDBTransaction } from './cache.db.js'
 import { CacheDB } from './cache.db.js'
 import type { CacheDBCfg } from './cache.db.model.js'
 
@@ -47,7 +46,13 @@ describe('without createCacheDB (NoopDB)', async () => {
 it('should take dbType and support from downstreamDB', () => {
   const downstreamDB = new InMemoryDB()
   const db = new CacheDB({ downstreamDB })
-  expect(db.support).toEqual(downstreamDB.support)
+  expect(db.support).toEqual({
+    ...downstreamDB.support,
+    createTable: false,
+    increment: false,
+    patchById: false,
+    patchByQuery: false,
+  })
   expect(db.dbType).toBe(downstreamDB.dbType)
 })
 
@@ -85,14 +90,11 @@ it.each([{ cfgSkipCache: true }, { optSkipCache: true }])(
     })
 
     const rows = await db.getByIds('Table', ['a', 'b'], { skipCache: optSkipCache })
-    const rowsByTable = await db.multiGet({ ['Table']: ['a', 'b'] }, { skipCache: optSkipCache })
 
-    const expected = [
+    expect(rows).toEqual([
       { id: 'a', v: 'downstream' },
       { id: 'b', v: 'downstream' },
-    ]
-    expect(rows).toEqual(expected)
-    expect(rowsByTable).toEqual({ ['Table']: expected })
+    ])
     expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'cache' } })
   },
 )
@@ -169,30 +171,6 @@ it('should log and not throw when a not-awaited cache write fails', async () => 
   })
 })
 
-it('should merge cache and downstream rows in multiGet', async () => {
-  const { db, cacheDB } = await setup({
-    downstream: [
-      { id: 'a', v: 'downstream' },
-      { id: 'b', v: 'downstream' },
-    ],
-    cache: [{ id: 'a', v: 'cache' }],
-  })
-
-  const rowsByTable = await db.multiGet({ ['Table']: ['a', 'b'], OtherTable: ['x'] })
-
-  expect(rowsByTable).toEqual({
-    ['Table']: [
-      { id: 'a', v: 'cache' },
-      { id: 'b', v: 'downstream' },
-    ],
-    OtherTable: [],
-  })
-  expect(cacheDB.data['Table']).toEqual({
-    a: { id: 'a', v: 'cache' },
-    b: { id: 'b', v: 'downstream' },
-  })
-})
-
 it('should remove the deleted rows from the cache in multiDelete', async () => {
   const { db, downstreamDB, cacheDB } = await setup({
     downstream: [
@@ -211,43 +189,23 @@ it('should remove the deleted rows from the cache in multiDelete', async () => {
   expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
 })
 
-it('should throw in multiSave', async () => {
+it.each([
+  { method: 'createTable', call: (db: CacheDB) => db.createTable('Table', {} as any) },
+  { method: 'patchById', call: (db: CacheDB) => db.patchById<Row>('Table', 'a', { v: 'new' }) },
+  { method: 'incrementBatch', call: (db: CacheDB) => db.incrementBatch('Table', 'n', { a: 1 }) },
+  { method: 'multiGet', call: (db: CacheDB) => db.multiGet({ Table: ['a'] }) },
+  { method: 'multiSave', call: (db: CacheDB) => db.multiSave({ Table: [{ id: 'a' }] }) },
+  {
+    method: 'patchByQuery',
+    call: (db: CacheDB) => db.patchByQuery(DBQuery.create<Row>('Table'), { v: 'new' }),
+  },
+])('should throw in $method', async ({ method, call }) => {
   const { db } = await setup()
 
-  const multiSave = db.multiSave({ Table: [{ id: 'a', v: 'new' }] })
-
-  await expect(multiSave).rejects.toThrow('CacheDB: multiSave is not implemented')
+  await expect(call(db)).rejects.toThrow(`CacheDB: ${method} is not implemented`)
 })
 
-it('should remove the cached rows on patchById and incrementBatch', async () => {
-  const { db, downstreamDB, cacheDB } = await setup({
-    downstream: [
-      { id: 'a', v: 'old' },
-      { id: 'b', v: 'old', n: 1 },
-      { id: 'c', v: 'old' },
-    ],
-    cache: [
-      { id: 'a', v: 'old' },
-      { id: 'b', v: 'old', n: 1 },
-      { id: 'c', v: 'old' },
-    ],
-  })
-
-  await db.patchById<Row>('Table', 'a', { v: 'patched' })
-  await db.incrementBatch('Table', 'n', { b: 1 })
-
-  expect(downstreamDB.data['Table']).toEqual({
-    a: { id: 'a', v: 'patched' },
-    b: { id: 'b', v: 'old', n: 2 },
-    c: { id: 'c', v: 'old' },
-  })
-  expect(cacheDB.data['Table']).toEqual({ c: { id: 'c', v: 'old' } })
-})
-
-it.each([
-  { op: 'patchByQuery', write: (db: CacheDB, q: DBQuery<Row>) => db.patchByQuery(q, { v: 'x' }) },
-  { op: 'deleteByQuery', write: (db: CacheDB, q: DBQuery<Row>) => db.deleteByQuery(q) },
-])('should remove all rows of the table from the cache on $op', async ({ write }) => {
+it('should remove all rows of the table from the cache on deleteByQuery', async () => {
   const { db, cacheDB } = await setup({
     downstream: [
       { id: 'a', v: 'new' },
@@ -259,7 +217,7 @@ it.each([
     ],
   })
 
-  await write(db, DBQuery.create<Row>('Table').filterEq('v', 'new'))
+  await db.deleteByQuery(DBQuery.create<Row>('Table').filterEq('v', 'new'))
 
   expect(cacheDB.data['Table']).toEqual({})
 })
@@ -269,12 +227,9 @@ describe('failed downstream writes', () => {
 
   it.each([
     { method: 'saveBatch', write: (db: CacheDB) => db.saveBatch('Table', [{ id: 'a', v: 'new' }]) },
-    { method: 'patchById', write: (db: CacheDB) => db.patchById<Row>('Table', 'a', { v: 'new' }) },
-    { method: 'incrementBatch', write: (db: CacheDB) => db.incrementBatch('Table', 'n', { a: 1 }) },
     { method: 'deleteByIds', write: (db: CacheDB) => db.deleteByIds('Table', ['a']) },
     { method: 'multiDelete', write: (db: CacheDB) => db.multiDelete({ Table: ['a'] }) },
     { method: 'deleteByQuery', write: (db: CacheDB) => db.deleteByQuery(q) },
-    { method: 'patchByQuery', write: (db: CacheDB) => db.patchByQuery(q, { v: 'new' }) },
   ] as const)(
     'should remove the rows from the cache when the downstream $method throws',
     async ({ method, write }) => {
@@ -334,7 +289,6 @@ describe('transactions', () => {
       await expect(db.getByIds('Table', ['a'], opt)).rejects.toThrow(error)
       await expect(db.saveBatch('Table', [{ id: 'a', v: 'new' }], opt)).rejects.toThrow(error)
       await expect(db.deleteByIds('Table', ['a'], opt)).rejects.toThrow(error)
-      await expect(db.patchById<Row>('Table', 'a', { v: 'new' }, opt)).rejects.toThrow(error)
       await expect(db.multiDelete({ Table: ['a'] }, opt)).rejects.toThrow(error)
     })
   })
@@ -370,36 +324,6 @@ describe('transactions', () => {
       { id: 'b', v: 'downstream' },
     ])
     expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'cache' } })
-  })
-
-  it('should read through the downstream transaction and not populate the cache in multiGet', async () => {
-    const { db, downstreamDB, cacheDB } = await setup({
-      downstream: [
-        { id: 'a', v: 'downstream' },
-        { id: 'b', v: 'downstream' },
-      ],
-      cache: [{ id: 'a', v: 'cache' }],
-    })
-    const tx = (await db.createTransaction()) as CacheDBTransaction
-    const downstreamMultiGet = vi.spyOn(downstreamDB, 'multiGet')
-    const downstreamTxGetByIds = vi.spyOn(tx.downstreamTx, 'getByIds')
-
-    const rowsByTable = await db.multiGet({ Table: ['a', 'b'], OtherTable: ['x'] }, { tx })
-
-    expect(rowsByTable).toEqual({
-      Table: [
-        { id: 'a', v: 'downstream' },
-        { id: 'b', v: 'downstream' },
-      ],
-      OtherTable: [],
-    })
-    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'cache' } })
-    expect(downstreamMultiGet).not.toHaveBeenCalled()
-    const reads = downstreamTxGetByIds.mock.calls.map(([table, ids, opt]) => [table, ids, opt?.tx])
-    expect(reads).toEqual([
-      ['Table', ['a', 'b'], tx.downstreamTx],
-      ['OtherTable', ['x'], tx.downstreamTx],
-    ])
   })
 
   it('should delete through the downstream transaction and remove the rows from the cache in multiDelete', async () => {
@@ -606,7 +530,7 @@ describe('cache fill', () => {
     expect(cacheDB.data['Table']).toEqual({})
   })
 
-  it('should not cache rows when a query patched the table while the downstream read was running', async () => {
+  it('should not cache rows when a query deleted rows of the table while the downstream read was running', async () => {
     const { db, downstreamDB, cacheDB } = await setup({
       downstream: [
         { id: 'a', v: 'old' },
@@ -616,7 +540,7 @@ describe('cache fill', () => {
     const getByIds = downstreamDB.getByIds.bind(downstreamDB)
     vi.spyOn(downstreamDB, 'getByIds').mockImplementationOnce(async (table, ids) => {
       const rows = await getByIds(table, ids)
-      await db.patchByQuery(DBQuery.create<Row>(table).filterEq('id', 'b'), { v: 'patched' })
+      await db.deleteByQuery(DBQuery.create<Row>(table).filterEq('id', 'b'))
       return rows
     })
 
@@ -640,22 +564,6 @@ describe('cache fill', () => {
 
     expect(downstreamDB.data['Table']).toEqual({ a: { id: 'a', v: 'tx' } })
     expect(cacheDB.data['Table']).toEqual({})
-  })
-
-  it('should skip the fill only for the tables that changed while the downstream multiGet was running', async () => {
-    const { db, downstreamDB, cacheDB } = await setup({ downstream: [{ id: 'a', v: 'old' }] })
-    await downstreamDB.saveBatch('OtherTable', [{ id: 'x', v: 'old' }])
-    const multiGet = downstreamDB.multiGet.bind(downstreamDB)
-    vi.spyOn(downstreamDB, 'multiGet').mockImplementationOnce(async idsByTable => {
-      const rowsByTable = await multiGet(idsByTable)
-      await db.deleteByIds('OtherTable', ['x'])
-      return rowsByTable
-    })
-
-    await db.multiGet({ Table: ['a'], OtherTable: ['x'] })
-
-    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
-    expect(cacheDB.data['OtherTable']).toEqual({})
   })
 })
 

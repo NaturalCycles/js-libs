@@ -1,9 +1,9 @@
 import { _isEmptyObject, _isTruthy } from '@naturalcycles/js-lib'
-import { _mapBy, _sum } from '@naturalcycles/js-lib/array'
+import { _sum } from '@naturalcycles/js-lib/array'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { consoleLogger } from '@naturalcycles/js-lib/log'
-import { _filterObject, _mapValues } from '@naturalcycles/js-lib/object'
+import { _mapValues } from '@naturalcycles/js-lib/object'
 import type { AnyObject, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
 import { _objectKeys, _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
@@ -21,7 +21,6 @@ import type {
 import { DBQuery } from '../../query/dbQuery.js'
 import type {
   CacheDBCfg,
-  CacheDBCreateOptions,
   CacheDBOptions,
   CacheDBReadOptions,
   CacheDBSaveOptions,
@@ -48,7 +47,13 @@ export class CacheDB implements CommonDB {
       logger: cfg.logger || consoleLogger,
     }
     this.dbType = cfg.downstreamDB.dbType
-    this.support = { ...cfg.downstreamDB.support }
+    this.support = {
+      ...cfg.downstreamDB.support,
+      createTable: false,
+      increment: false,
+      patchById: false,
+      patchByQuery: false,
+    }
   }
 
   cfg: CacheDBCfg & { logger: CommonLogger }
@@ -73,17 +78,10 @@ export class CacheDB implements CommonDB {
   }
 
   async createTable<ROW extends ObjectWithId>(
-    table: string,
-    schema: JsonSchema<ROW>,
-    opt: CacheDBCreateOptions = {},
+    _table: string,
+    _schema: JsonSchema<ROW>,
   ): Promise<void> {
-    if (this.useDownstream(opt)) {
-      await this.cfg.downstreamDB.createTable(table, schema, this.downstreamOpt(opt))
-    }
-
-    if (this.useCache(opt)) {
-      await this.getCacheDB().createTable(table, schema, { dropIfExists: opt.dropIfExists })
-    }
+    throw new Error('CacheDB: createTable is not implemented')
   }
 
   async getByIds<ROW extends ObjectWithId>(
@@ -145,47 +143,19 @@ export class CacheDB implements CommonDB {
   }
 
   async patchById<ROW extends ObjectWithId>(
-    table: string,
-    id: string,
-    patch: Partial<ROW>,
-    opt: CacheDBOptions = {},
+    _table: string,
+    _id: string,
+    _patch: Partial<ROW>,
   ): Promise<void> {
-    if (this.isOnlyCache(opt)) {
-      return await this.changeCache([table], cacheDB => cacheDB.patchById(table, id, patch))
-    }
-
-    await this.writeDownstream(
-      () => this.cfg.downstreamDB.patchById(table, id, patch, this.downstreamOpt(opt)),
-      () => this.invalidateCache(table, [id], opt),
-    )
-
-    // We only have the patch, not the full row, so we remove the row from the cache
-    await this.invalidateCache(table, [id], opt)
+    throw new Error('CacheDB: patchById is not implemented')
   }
 
   async incrementBatch(
-    table: string,
-    prop: string,
-    incrementMap: StringMap<number>,
-    opt: CacheDBOptions = {},
+    _table: string,
+    _prop: string,
+    _incrementMap: StringMap<number>,
   ): Promise<StringMap<number>> {
-    if (this.isOnlyCache(opt)) {
-      return await this.changeCache([table], cacheDB =>
-        cacheDB.incrementBatch(table, prop, incrementMap),
-      )
-    }
-
-    const ids = _objectKeys(incrementMap)
-    const result = await this.writeDownstream(
-      () =>
-        this.cfg.downstreamDB.incrementBatch(table, prop, incrementMap, this.downstreamOpt(opt)),
-      () => this.invalidateCache(table, ids, opt),
-    )
-
-    // We only have the new values of `prop`, not the full rows, so we remove the rows from the cache
-    await this.invalidateCache(table, ids, opt)
-
-    return result
+    throw new Error('CacheDB: incrementBatch is not implemented')
   }
 
   async deleteByIds(
@@ -213,66 +183,9 @@ export class CacheDB implements CommonDB {
   }
 
   async multiGet<ROW extends ObjectWithId>(
-    idsByTable: StringMap<string[]>,
-    opt: CacheDBReadOptions = {},
+    _idsByTable: StringMap<string[]>,
   ): Promise<StringMap<ROW[]>> {
-    if (this.isInTransaction(opt)) {
-      const { tx } = opt
-      const rowsByTable: StringMap<ROW[]> = {}
-      await Promise.all(
-        _stringMapEntries(idsByTable).map(async ([table, ids]) => {
-          rowsByTable[table] = await tx.getByIds<ROW>(table, ids, opt)
-        }),
-      )
-      return rowsByTable
-    }
-
-    const rowByIdByTable: StringMap<Map<string, ROW>> = {}
-    let missingIdsByTable = { ...idsByTable }
-
-    const shouldReadCache = this.isCacheReadable(opt)
-    if (shouldReadCache) {
-      const cachedRowsByTable = await this.multiGetCache<ROW>(idsByTable)
-      missingIdsByTable = {}
-      for (const [table, ids] of _stringMapEntries(idsByTable)) {
-        const rows = cachedRowsByTable[table] || []
-        const rowById = _mapBy(rows, r => r.id)
-        rowByIdByTable[table] = rowById
-        const missingIds = ids.filter(id => !rowById.has(id))
-        if (missingIds.length) {
-          missingIdsByTable[table] = missingIds
-        }
-        this.getCacheLogger()?.log(formatRows(`${table}.multiGet`, rows, 'from cache'))
-      }
-    }
-
-    if (this.useDownstream(opt) && !_isEmptyObject(missingIdsByTable)) {
-      const downstreamOpt = this.downstreamOpt(opt)
-      const missingTables = _objectKeys(missingIdsByTable)
-      const token = shouldReadCache ? this.getSaveAfterReadToken(missingTables) : undefined
-      const rowsByTable = await this.cfg.downstreamDB.multiGet<ROW>(
-        missingIdsByTable,
-        downstreamOpt,
-      )
-      const foundRowsByTable = _filterObject(rowsByTable, (_, rows) => rows.length > 0)
-
-      for (const [table, rows] of _stringMapEntries(foundRowsByTable)) {
-        const rowById = (rowByIdByTable[table] ||= new Map())
-        for (const r of rows) rowById.set(r.id, r)
-        this.getDownstreamLogger()?.log(formatRows(`${table}.multiGet`, rows, 'from downstream'))
-      }
-
-      if (shouldReadCache && !_isEmptyObject(foundRowsByTable)) {
-        await this.saveCacheAfterRead(foundRowsByTable, token)
-      }
-    }
-
-    const result: StringMap<ROW[]> = {}
-    for (const [table, ids] of _stringMapEntries(idsByTable)) {
-      const rowById = rowByIdByTable[table]
-      result[table] = rowById ? ids.map(id => rowById.get(id)).filter(_isTruthy) : []
-    }
-    return result
+    throw new Error('CacheDB: multiGet is not implemented')
   }
 
   async multiSave<ROW extends ObjectWithId>(_rowsByTable: StringMap<ROW[]>): Promise<void> {
@@ -369,21 +282,10 @@ export class CacheDB implements CommonDB {
   }
 
   async patchByQuery<ROW extends ObjectWithId>(
-    q: DBQuery<ROW>,
-    patch: Partial<ROW>,
-    opt: CacheDBOptions = {},
+    _q: DBQuery<ROW>,
+    _patch: Partial<ROW>,
   ): Promise<number> {
-    if (this.isOnlyCache(opt)) {
-      return await this.changeCache([q.table], cacheDB => cacheDB.patchByQuery(q, patch))
-    }
-
-    const updated = await this.writeDownstream(
-      () => this.cfg.downstreamDB.patchByQuery(q, patch, this.downstreamOpt(opt)),
-      () => this.invalidateCacheTable(q.table, opt),
-    )
-    // We do not know which rows the query changed, so remove all rows of the table from the cache
-    await this.invalidateCacheTable(q.table, opt)
-    return updated
+    throw new Error('CacheDB: patchByQuery is not implemented')
   }
 
   async runInTransaction(fn: DBTransactionFn, opt?: CommonDBTransactionOptions): Promise<void> {
@@ -510,20 +412,6 @@ export class CacheDB implements CommonDB {
     }
     const allRows = DBQuery.create(table)
     await this.writeCache(this.changeCache([table], cacheDB => cacheDB.deleteByQuery(allRows)))
-  }
-
-  private async multiGetCache<ROW extends ObjectWithId>(
-    idsByTable: StringMap<string[]>,
-  ): Promise<StringMap<ROW[]>> {
-    const cacheDB = this.getCacheDB()
-    const rowsByTable: StringMap<ROW[]> = {}
-    await Promise.all(
-      _stringMapEntries(idsByTable).map(async ([table, ids]) => {
-        const rows = await cacheDB.getByIds<ROW>(table, ids)
-        rowsByTable[table] = rows.map(copyRow)
-      }),
-    )
-    return rowsByTable
   }
 
   private async multiDeleteCache(
