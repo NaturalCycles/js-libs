@@ -39,6 +39,8 @@ export const crmService = new CrmService()`,
       `class CrmService { track() { crmService.send() } send() {} }
 export const crmService = new CrmService()
 export const otherCrmService = new CrmService()`,
+      `class CrmService { static create() { return new CrmService() } track() { crmService.send() } send() {} }
+export const crmService = new CrmService()`,
       // a local variable that shadows the singleton
       `class CrmService { track(crmService: Other) { crmService.send() } }
 export const crmService = new CrmService()`,
@@ -86,6 +88,13 @@ export const crmService = new CrmService()`,
         code: `class CrmService { track(name = crmService.title) { const { send } = crmService; crmService.count++ } }
 export const crmService = new CrmService()`,
         errors: 3,
+      },
+      // a parameter that shadows the class is a different constructor
+      {
+        code: `class CrmService { track() { crmService.send() } send() {} }
+export const crmService = new CrmService()
+function make(CrmService: new () => unknown) { return new CrmService() }`,
+        errors: 1,
       },
       {
         code: `export class CrmService { track() { crmService.send() } send() {} }

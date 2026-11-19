@@ -154,29 +154,37 @@ const noSingletonSelfReferenceRule = {
     },
   },
   create(context) {
-    const instanceCountByClass = new Map()
-    const singletons = []
+    const { sourceCode } = context
+    const classes = []
 
     return {
-      NewExpression(node) {
-        if (node.callee.type !== 'Identifier') return
-        const className = node.callee.name
-        instanceCountByClass.set(className, (instanceCountByClass.get(className) || 0) + 1)
-        if (isModuleLevelConst(node.parent, node)) {
-          singletons.push({ declarator: node.parent, className })
-        }
+      ClassDeclaration(node) {
+        if (isModuleLevel(node)) classes.push(node)
       },
       'Program:exit'() {
-        for (const { declarator, className } of singletons) {
+        for (const classNode of classes) {
+          // Every `new ClassName()` that resolves to this class, wherever it is in the file
+          const instantiations = sourceCode
+            .getDeclaredVariables(classNode)
+            .flatMap(variable => variable.references)
+            .filter(({ identifier }) => {
+              const { parent } = identifier
+              return parent.type === 'NewExpression' && parent.callee === identifier
+            })
+            .map(({ identifier }) => identifier.parent)
           // With several instances in the file, the one named is not necessarily `this`
-          if (instanceCountByClass.get(className) !== 1) continue
-          const [variable] = context.sourceCode.getDeclaredVariables(declarator)
+          if (instantiations.length !== 1) continue
+          const [instantiation] = instantiations
+          const declarator = instantiation.parent
+          if (!isModuleLevelConst(declarator, instantiation)) continue
+
+          const [variable] = sourceCode.getDeclaredVariables(declarator)
           for (const { identifier } of variable?.references || []) {
-            if (!isInstanceCodeOf(identifier, className)) continue
+            if (!isInstanceCodeOf(identifier, classNode)) continue
             context.report({
               node: identifier,
               messageId: 'useThis',
-              data: { name: identifier.name, className },
+              data: { name: identifier.name, className: classNode.id.name },
             })
           }
         }
@@ -190,17 +198,11 @@ function isModuleLevelConst(declarator, init) {
   if (declarator.type !== 'VariableDeclarator' || declarator.init !== init) return false
   if (declarator.id.type !== 'Identifier') return false
   const declaration = declarator.parent
-  if (declaration.kind !== 'const') return false
-  const { parent } = declaration
-  return (
-    parent.type === 'Program' ||
-    (parent.type === 'ExportNamedDeclaration' && parent.parent.type === 'Program')
-  )
+  return declaration.kind === 'const' && isModuleLevel(declaration)
 }
 
-// The class a module-level `new ClassName()` refers to, not a nested class of the same name
-function isModuleLevelClass(node, className) {
-  if (node.type !== 'ClassDeclaration' || node.id?.name !== className) return false
+// Directly in the file, exported or not
+function isModuleLevel(node) {
   const { parent } = node
   return (
     parent.type === 'Program' ||
@@ -210,7 +212,7 @@ function isModuleLevelClass(node, className) {
 
 // Whether `this` at `node` is an instance of the class: in an instance method, accessor, constructor
 // or field initializer, with nothing in between that has a `this` of its own
-function isInstanceCodeOf(node, className) {
+function isInstanceCodeOf(node, classNode) {
   let child = node
   for (let { parent } = node; parent; child = parent, { parent } = parent) {
     switch (parent.type) {
@@ -234,7 +236,7 @@ function isInstanceCodeOf(node, className) {
         break
       }
       case 'ClassBody': {
-        return isModuleLevelClass(parent.parent, className)
+        return parent.parent === classNode
       }
     }
   }
