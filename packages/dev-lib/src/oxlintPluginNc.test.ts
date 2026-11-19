@@ -52,6 +52,17 @@ export const crmService = new CrmService()`,
 export const crmService = new CrmService()`,
       `class CrmService { track() { if (a) { const crmService = other; crmService.send() } } }
 export const crmService = new CrmService()`,
+      // an anonymous default-exported class
+      `export default class { track() {} }
+export const crmService = new CrmService()`,
+      // type-only and label uses of the name
+      `class CrmService { track(value: { crmService: boolean }): { crmService: number } { return { crmService: 1 } } }
+export const crmService = new CrmService()`,
+      `class CrmService { track() { type Deps = { crmService: Other }; interface Opt { crmService: 1 } crmService: for (;;) break crmService } }
+export const crmService = new CrmService()`,
+      // a declaration in one switch case is visible in the next
+      `class CrmService { track(mode: number) { switch (mode) { case 0: const crmService = other; case 1: crmService.send() } } }
+export const crmService = new CrmService()`,
       // a second instance created from inside a block
       `class CrmService { track() { crmService.send() } send() {} }
 export const crmService = new CrmService()
@@ -121,6 +132,18 @@ export const $service = new $Service()`,
 export const crmService = new CrmService()
 const make = () => new (class CrmService {})()
 export const other = new (class CrmService { make() { return new CrmService() } })()`,
+        errors: 1,
+      },
+      // the switch discriminant is outside the cases' scope
+      {
+        code: `class CrmService { track() { switch (crmService.mode) { case 0: const crmService = other } } }
+export const crmService = new CrmService()`,
+        errors: 1,
+      },
+      // a runtime value inside a type assertion is still a reference
+      {
+        code: `class CrmService { track() { return (crmService as CrmService).send() } send() {} }
+export const crmService = new CrmService()`,
         errors: 1,
       },
       // a parameter that shadows the class is a different constructor

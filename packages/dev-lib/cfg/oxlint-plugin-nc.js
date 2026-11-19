@@ -162,7 +162,8 @@ const noSingletonSelfReferenceRule = {
 
     return {
       ClassDeclaration(node) {
-        if (isModuleLevel(node)) classes.push(node)
+        // `export default class {}` has no name to be instantiated by
+        if (node.id && isModuleLevel(node)) classes.push(node)
       },
       NewExpression(node) {
         if (node.callee.type === 'Identifier') instantiations.push(node)
@@ -185,12 +186,10 @@ const noSingletonSelfReferenceRule = {
           if (!new RegExp(String.raw`(?<![\w$])${escapeRegExp(name)}(?![\w$])`).test(classSource)) {
             continue
           }
-          visit(classNode.body, node => {
-            if (node.type !== 'Identifier' || node.name !== name) return false
+          forEachValueIdentifier(classNode.body, name, node => {
             if (isInstanceCodeOf(node, classNode) && !isShadowed(node, name, classNode)) {
               context.report({ node, messageId: 'useThis', data: { name, className } })
             }
-            return false
           })
         }
       },
@@ -202,10 +201,59 @@ function escapeRegExp(text) {
   return text.replaceAll('$', String.raw`\$`)
 }
 
+// Type annotations, type declarations and labels hold no runtime reference
+const TYPE_ONLY_KEYS = new Set([
+  'typeAnnotation',
+  'returnType',
+  'typeParameters',
+  'typeArguments',
+  'superTypeArguments',
+  'implements',
+  'label',
+])
+const TYPE_ONLY_NODES = new Set(['TSInterfaceDeclaration', 'TSTypeAliasDeclaration'])
+
+// Calls `fn` for each identifier named `name` below `node` that is a value, not a type or a key
+function forEachValueIdentifier(node, name, fn) {
+  visit(node, child => {
+    if (TYPE_ONLY_NODES.has(child.type)) return false
+    if (child.type === 'Identifier' && child.name === name && !isTypeOnly(child, node)) fn(child)
+    return false
+  })
+}
+
+function isTypeOnly(identifier, root) {
+  let child = identifier
+  for (
+    let { parent } = identifier;
+    parent && child !== root;
+    child = parent, parent = parent.parent
+  ) {
+    if (TYPE_ONLY_NODES.has(parent.type)) return true
+    for (const key of TYPE_ONLY_KEYS) {
+      if (parent[key] === child) return true
+      if (Array.isArray(parent[key]) && parent[key].includes(child)) return true
+    }
+  }
+  return false
+}
+
 // Whether a declaration between `node` and `boundary` (or the file, when null) binds `name`
 function isShadowed(node, name, boundary) {
-  for (let { parent } = node; parent && parent !== boundary; parent = parent.parent) {
+  let child = node
+  for (
+    let { parent } = node;
+    parent && parent !== boundary;
+    child = parent, parent = parent.parent
+  ) {
     if (parent.type === 'Program') return false
+    // All cases of a switch share one scope; the discriminant is outside it
+    if (parent.type === 'SwitchStatement') {
+      if (child === parent.discriminant) continue
+      const cases = parent.cases.flatMap(switchCase => switchCase.consequent)
+      if (cases.some(statement => statementBindsName(statement, name))) return true
+      continue
+    }
     if (declaresName(parent, name)) return true
   }
   return false
@@ -236,9 +284,6 @@ function declaresName(node, name) {
     case 'BlockStatement':
     case 'StaticBlock': {
       return node.body.some(statement => statementBindsName(statement, name))
-    }
-    case 'SwitchCase': {
-      return node.consequent.some(statement => statementBindsName(statement, name))
     }
     default: {
       return false
