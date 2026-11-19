@@ -6,6 +6,91 @@ RuleTester.describe = describe
 RuleTester.it = it
 
 new RuleTester({ languageOptions: { parserOptions: { lang: 'ts' } } }).run(
+  'no-singleton-self-reference',
+  ncPlugin.rules['no-singleton-self-reference'],
+  {
+    valid: [
+      `class CrmService { track() { this.send() } send() {} }
+export const crmService = new CrmService()`,
+      // another class's singleton
+      `class CrmService { track() { mailService.send() } }
+export const crmService = new CrmService()
+export const mailService = new MailService()`,
+      // outside the class
+      `class CrmService { send() {} }
+export const crmService = new CrmService()
+export function track() { crmService.send() }`,
+      // `this` is the class in a static member
+      `class CrmService { static create() { return crmService.send() } send() {} }
+export const crmService = new CrmService()`,
+      `class CrmService { static { crmService.send() } send() {} }
+export const crmService = new CrmService()`,
+      `class CrmService { static handler = () => crmService.send(); send() {} }
+export const crmService = new CrmService()`,
+      // a function with its own `this`
+      `class CrmService { track() { return function () { crmService.send() } } send() {} }
+export const crmService = new CrmService()`,
+      `class CrmService { track() { return { run() { crmService.send() } } } send() {} }
+export const crmService = new CrmService()`,
+      // a nested class
+      `class CrmService { track() { return class { run() { crmService.send() } } } send() {} }
+export const crmService = new CrmService()`,
+      // two instances: the one named is not necessarily `this`
+      `class CrmService { track() { crmService.send() } send() {} }
+export const crmService = new CrmService()
+export const otherCrmService = new CrmService()`,
+      // a local variable that shadows the singleton
+      `class CrmService { track(crmService: Other) { crmService.send() } }
+export const crmService = new CrmService()`,
+      // not a module-level const
+      `class CrmService { track() { getCrmService().send() } send() {} }
+function getCrmService() { const crmService = new CrmService(); return crmService }`,
+      `class CrmService { clone(): typeof crmService { return this } }
+export const crmService = new CrmService()`,
+      `class CrmService { @Memo(crmService) track() {} }
+export const crmService = new CrmService()`,
+    ],
+    invalid: [
+      {
+        code: `class CrmService { track() { crmService.send() } send() {} }
+export const crmService = new CrmService()`,
+        errors: 1,
+      },
+      {
+        code: `class CrmService { track() { crmService.send() } send() {} }
+const crmService = new CrmService()`,
+        errors: 1,
+      },
+      {
+        code: `export const crmService = new CrmService()
+class CrmService { async track() { await pMap(items, async item => await crmService.send(item)) } async send(item) {} }`,
+        errors: 1,
+      },
+      {
+        code: `class CrmService { handler = () => crmService.send(); send() {} }
+export const crmService = new CrmService()`,
+        errors: 1,
+      },
+      {
+        code: `class CrmService { get name() { return crmService.title } constructor() { register(crmService) } }
+export const crmService = new CrmService()`,
+        errors: 2,
+      },
+      {
+        code: `class CrmService { track(name = crmService.title) { const { send } = crmService; crmService.count++ } }
+export const crmService = new CrmService()`,
+        errors: 3,
+      },
+      {
+        code: `class CrmService extends BaseService { track() { crmService.send() } }
+export const crmService = new CrmService({ retries: 2 })`,
+        errors: 1,
+      },
+    ],
+  },
+)
+
+new RuleTester({ languageOptions: { parserOptions: { lang: 'ts' } } }).run(
   'prefer-assert',
   ncPlugin.rules['prefer-assert'],
   {

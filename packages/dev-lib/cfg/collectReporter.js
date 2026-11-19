@@ -1,5 +1,3 @@
-import { _last } from '@naturalcycles/js-lib/array/array.util.js'
-
 export class CollectReporter {
   constructor(cfg = {}) {
     this.cfg = cfg
@@ -7,7 +5,8 @@ export class CollectReporter {
 
   onTestModuleEnd(testModule) {
     const { threshold = 0 } = this.cfg
-    const shortModuleId = _last(testModule.moduleId.split('/'))
+    // oxlint-disable-next-line nc/prefer-last -- no js-lib import in this reporter, for performance
+    const shortModuleId = testModule.moduleId.split('/').at(-1)
 
     const selfTimeMap = {}
     const totalTimeMap = {}

@@ -75,6 +75,7 @@ export const sharedConfig = {
       { blankLine: 'always', prev: '*', next: 'class' },
     ],
     '@stylistic/lines-between-class-members': [2, 'always', { exceptAfterSingleLine: true }],
+    'nc/no-singleton-self-reference': 2,
     'nc/prefer-assert': 2,
     'nc/prefer-env-destructuring': 2,
     'nc/prefer-last': 2,
@@ -103,8 +104,9 @@ export const sharedConfig = {
     'valid-title': 0,
     'vitest/valid-title': [2, { mustMatch: { it: '^should ' } }],
     'valid-describe-callback': 0,
-    // Options arguments and variables are `opt`, never `opts`
-    'id-denylist': [2, 'opts'],
+    // Options arguments and variables are `opt`, never `opts`.
+    // `acc` and `pa` are spelled out: `account`, `pAccount` (and `sum` or `result` in a reducer)
+    'id-denylist': [2, 'opts', 'acc', 'pa'],
     // 'id-denylist': [
     //   0, // actually not useful
     //   'any',

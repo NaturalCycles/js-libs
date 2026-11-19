@@ -53,7 +53,7 @@
     "for-direction": "deny",
     "getter-return": "deny",
     "guard-for-in": "deny",
-    "id-denylist": ["deny", "opts"],
+    "id-denylist": ["deny", "opts", "acc", "pa"],
     "id-match": [
       "deny",
       "^.+$",
@@ -244,6 +244,7 @@
     "jsdoc/require-property-name": "deny",
     "jsdoc/require-property-type": "deny",
     "jsdoc/require-yields": "allow",
+    "nc/no-singleton-self-reference": "deny",
     "nc/prefer-assert": "deny",
     "nc/prefer-env-destructuring": "deny",
     "nc/prefer-last": "deny",

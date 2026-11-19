@@ -140,6 +140,95 @@ function visit(node, fn) {
   return false
 }
 
+// Report-only, like the rules above: `this` is only the same object while the method is called on
+// the instance, so a method handed over unbound (`router.get(path, service.handle)`) needs a look
+const noSingletonSelfReferenceRule = {
+  meta: {
+    type: 'suggestion',
+    docs: {
+      description:
+        'Inside a class, use `this` rather than the single instance of that class declared in the same file',
+    },
+    messages: {
+      useThis: 'Use `this` instead of {{name}} inside {{className}}',
+    },
+  },
+  create(context) {
+    const instanceCountByClass = new Map()
+    const singletons = []
+
+    return {
+      NewExpression(node) {
+        if (node.callee.type !== 'Identifier') return
+        const className = node.callee.name
+        instanceCountByClass.set(className, (instanceCountByClass.get(className) || 0) + 1)
+        if (isModuleLevelConst(node.parent, node)) {
+          singletons.push({ declarator: node.parent, className })
+        }
+      },
+      'Program:exit'() {
+        for (const { declarator, className } of singletons) {
+          // With several instances in the file, the one named is not necessarily `this`
+          if (instanceCountByClass.get(className) !== 1) continue
+          const [variable] = context.sourceCode.getDeclaredVariables(declarator)
+          for (const { identifier } of variable?.references || []) {
+            if (!isInstanceCodeOf(identifier, className)) continue
+            context.report({
+              node: identifier,
+              messageId: 'useThis',
+              data: { name: identifier.name, className },
+            })
+          }
+        }
+      },
+    }
+  },
+}
+
+// `const service = new Service()` or `export const service = new Service()`, not nested in a function
+function isModuleLevelConst(declarator, init) {
+  if (declarator.type !== 'VariableDeclarator' || declarator.init !== init) return false
+  if (declarator.id.type !== 'Identifier') return false
+  const declaration = declarator.parent
+  if (declaration.kind !== 'const') return false
+  const { parent } = declaration
+  return (
+    parent.type === 'Program' ||
+    (parent.type === 'ExportNamedDeclaration' && parent.parent.type === 'Program')
+  )
+}
+
+// Whether `this` at `node` is an instance of the class: in an instance method, accessor, constructor
+// or field initializer, with nothing in between that has a `this` of its own
+function isInstanceCodeOf(node, className) {
+  let child = node
+  for (let { parent } = node; parent; child = parent, { parent } = parent) {
+    switch (parent.type) {
+      // `typeof service` in a type
+      case 'TSTypeQuery':
+      case 'FunctionDeclaration':
+      case 'StaticBlock': {
+        return false
+      }
+      case 'FunctionExpression': {
+        if (parent.parent.type !== 'MethodDefinition') return false
+        break
+      }
+      case 'MethodDefinition':
+      case 'PropertyDefinition':
+      case 'AccessorProperty': {
+        // Not a static member, and not its decorator or computed key
+        if (parent.static || parent.value !== child) return false
+        break
+      }
+      case 'ClassBody': {
+        return parent.parent.type === 'ClassDeclaration' && parent.parent.id?.name === className
+      }
+    }
+  }
+  return false
+}
+
 const preferLastRule = {
   meta: {
     type: 'suggestion',
@@ -319,6 +408,7 @@ const ncPlugin = {
     name: 'nc',
   },
   rules: {
+    'no-singleton-self-reference': noSingletonSelfReferenceRule,
     'prefer-assert': preferAssertRule,
     'prefer-env-destructuring': preferEnvDestructuringRule,
     'prefer-last': preferLastRule,
