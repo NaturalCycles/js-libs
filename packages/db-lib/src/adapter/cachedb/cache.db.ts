@@ -375,6 +375,7 @@ export class CacheDB implements CommonDB {
   }
 
   async runInTransaction(fn: DBTransactionFn, opt?: CommonDBTransactionOptions): Promise<void> {
+    this.assertTransactionSupported()
     const txs: CacheDBTransaction[] = []
 
     try {
@@ -391,11 +392,16 @@ export class CacheDB implements CommonDB {
   }
 
   async createTransaction(opt?: CommonDBTransactionOptions): Promise<DBTransaction> {
+    this.assertTransactionSupported()
     const downstreamTx = await this.cfg.downstreamDB.createTransaction(opt)
     return new CacheDBTransaction(this, downstreamTx)
   }
 
   //#endregion
+
+  private assertTransactionSupported(): void {
+    _assert(!this.cfg.onlyCache, 'CacheDB: transactions are not supported with cfg.onlyCache')
+  }
 
   getSaveAfterReadToken(tables: string[]): CacheFillToken {
     const versionByTable = this.getScopeCache()?.versionByTable || {}
@@ -610,6 +616,7 @@ export class CacheDB implements CommonDB {
       opt.tx instanceof CacheDBTransaction && opt.tx.db === this,
       'CacheDB: opt.tx is not a transaction of this CacheDB',
     )
+    _assert(!(opt as CacheDBOptions).onlyCache, 'CacheDB: opt.tx and opt.onlyCache are both set')
     return true
   }
 
@@ -624,6 +631,7 @@ export class CacheDB implements CommonDB {
   private isOnlyCache(opt: CacheDBOptions): boolean {
     const onlyCache = !!(opt.onlyCache || this.cfg.onlyCache)
     _assert(!onlyCache || !this.isSkipCache(opt), 'CacheDB: onlyCache and skipCache are both set')
+    _assert(!opt.onlyCache || !opt.tx, 'CacheDB: opt.tx and opt.onlyCache are both set')
     return onlyCache
   }
 

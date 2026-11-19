@@ -373,6 +373,32 @@ it.each([
 })
 
 describe('transactions', () => {
+  it('should throw when tx and onlyCache are both set in opt', async () => {
+    const { db } = await setup({})
+    const error = 'CacheDB: opt.tx and opt.onlyCache are both set'
+
+    await db.runInTransaction(async tx => {
+      const opt = { tx, onlyCache: true }
+      await expect(db.getByIds('Table', ['a'], opt)).rejects.toThrow(error)
+      await expect(db.saveBatch('Table', [{ id: 'a', v: 'new' }], opt)).rejects.toThrow(error)
+      await expect(db.deleteByIds('Table', ['a'], opt)).rejects.toThrow(error)
+      await expect(db.patchById<Row>('Table', 'a', { v: 'new' }, opt)).rejects.toThrow(error)
+      await expect(db.multiDelete({ Table: ['a'] }, opt)).rejects.toThrow(error)
+    })
+  })
+
+  it('should throw on creating a transaction when onlyCache is set in cfg', async () => {
+    const { db, downstreamDB } = await setup({ cfg: { onlyCache: true } })
+    const runInTransactionSpy = vi.spyOn(downstreamDB, 'runInTransaction')
+    const createTransactionSpy = vi.spyOn(downstreamDB, 'createTransaction')
+    const error = 'CacheDB: transactions are not supported with cfg.onlyCache'
+
+    await expect(db.runInTransaction(async () => {})).rejects.toThrow(error)
+    await expect(db.createTransaction()).rejects.toThrow(error)
+    expect(runInTransactionSpy).not.toHaveBeenCalled()
+    expect(createTransactionSpy).not.toHaveBeenCalled()
+  })
+
   it('should read from downstream and not populate the cache in a transaction', async () => {
     const { db, cacheDB } = await setup({
       downstream: [
