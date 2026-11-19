@@ -11,15 +11,20 @@ import type {
 
 export interface CacheDBCfg {
   /**
+   * Expects an "identifier" for the current scope of the cache.
+   * For each distinct identifier a new cache is created via `createCacheDB`.
+   * By returning the same scope object you effectively use a single cache.
+   * By returning a request-bound object you achieve request-bound caching.
+   * By returning `undefined` no cache will be used.
+   */
+  getCacheScope?: () => AnyObject | undefined
+
+  /**
    * Creates the cacheDB of one cache scope.
-   * CacheDB returns copies of the cache hits.
-   * Exception: the `__compressed` Buffer (see CommonDao `compress`) is shared, not copied.
-   *
-   * `undefined` means NoopDB: reads return nothing and writes are ignored.
+   * CacheDB returns copies of the cache hits so the DB implementation does not need to.
+   * Exception: `__compressed` - the Buffer in `__compressed` is shared between copies.
    */
   createCacheDB?: () => CommonDB
-
-  getCacheScope?: () => AnyObject | undefined
 
   downstreamDB: CommonDB
 

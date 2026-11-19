@@ -32,16 +32,17 @@ import { NoopDB } from './noop.db.js'
 
 /**
  * CommonDB implementation that proxies requests to downstream CommonDB
- * and caches rows in the cacheDB of the current cache scope (NoopDB by default).
+ * and caches rows in the CommonDB implementation of a cache.
  *
- * It allows the cache to be scoped by the user, typically to the request.
+ * It allows the cache to be scoped - typically to the request.
  *
- * Does not extend BaseCommonDB so when a new function is added to it,
- * we get a type error here and we are forced to think about how it should work with.
+ * Does not extend BaseCommonDB so when a new function is added to BaseCommonDB,
+ * we get a type error here and we are forced to think about how it should work with caching.
  */
 export class CacheDB implements CommonDB {
   constructor(cfg: CacheDBCfg) {
     _assert(!cfg.onlyCache || !cfg.skipCache, 'CacheDB: onlyCache and skipCache are both set')
+
     this.cfg = {
       ...cfg,
       logger: cfg.logger || consoleLogger,
@@ -114,7 +115,7 @@ export class CacheDB implements CommonDB {
       this.getDownstreamLogger()?.log(formatRows(`${table}.getByIds`, rows, 'from downstream'))
 
       if (shouldReadCache && rows.length) {
-        await this.saveAfterRead({ [table]: rows }, token)
+        await this.saveCacheAfterRead({ [table]: rows }, token)
       }
     }
 
@@ -140,7 +141,7 @@ export class CacheDB implements CommonDB {
       this.getDownstreamLogger()?.log(formatRows(`${table}.saveBatch`, rows, 'to downstream'))
     }
 
-    await this.saveAfterWrite(table, rows, opt)
+    await this.saveCacheAfterWrite(table, rows, opt)
   }
 
   async patchById<ROW extends ObjectWithId>(
@@ -262,7 +263,7 @@ export class CacheDB implements CommonDB {
       }
 
       if (shouldReadCache && !_isEmptyObject(foundRowsByTable)) {
-        await this.saveAfterRead(foundRowsByTable, token)
+        await this.saveCacheAfterRead(foundRowsByTable, token)
       }
     }
 
@@ -419,7 +420,7 @@ export class CacheDB implements CommonDB {
     return Object.fromEntries(tables.map(table => [table, versionByTable[table] || 0]))
   }
 
-  async saveAfterRead<ROW extends ObjectWithId>(
+  async saveCacheAfterRead<ROW extends ObjectWithId>(
     rowsByTable: StringMap<ROW[]>,
     token: CacheFillToken,
   ): Promise<void> {
@@ -434,7 +435,7 @@ export class CacheDB implements CommonDB {
     await this.writeCache(Promise.all(saves))
   }
 
-  private async saveAfterWrite<ROW extends ObjectWithId>(
+  private async saveCacheAfterWrite<ROW extends ObjectWithId>(
     table: string,
     rows: readonly ROW[],
     opt: CacheDBSaveOptions<ROW>,

@@ -697,7 +697,7 @@ describe('cache scope', () => {
     scope = {}
     await db.saveBatch('Table', [{ id: 'b', v: 'other' }])
     scope = firstScope
-    await db.saveAfterRead({ Table: [{ id: 'a', v: 'old' }] }, token)
+    await db.saveCacheAfterRead({ Table: [{ id: 'a', v: 'old' }] }, token)
 
     const rows = await db.getByIds('Table', ['a'], { onlyCache: true })
     expect(rows).toEqual([{ id: 'a', v: 'old' }])
