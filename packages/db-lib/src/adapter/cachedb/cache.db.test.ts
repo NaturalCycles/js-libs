@@ -192,7 +192,7 @@ it('should merge cache and downstream rows in multiGet', async () => {
   })
 })
 
-it('should update the cache in multiSave and multiDelete', async () => {
+it('should remove the deleted rows from the cache in multiDelete', async () => {
   const { db, downstreamDB, cacheDB } = await setup({
     downstream: [
       { id: 'a', v: 'old' },
@@ -204,11 +204,18 @@ it('should update the cache in multiSave and multiDelete', async () => {
     ],
   })
 
-  await db.multiSave({ ['Table']: [{ id: 'a', v: 'new' }] })
   await db.multiDelete({ ['Table']: ['b'] })
 
-  expect(downstreamDB.data['Table']).toEqual({ a: { id: 'a', v: 'new' } })
-  expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'new' } })
+  expect(downstreamDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
+  expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
+})
+
+it('should throw in multiSave', async () => {
+  const { db } = await setup()
+
+  const multiSave = db.multiSave({ Table: [{ id: 'a', v: 'new' }] })
+
+  await expect(multiSave).rejects.toThrow('CacheDB: multiSave is not implemented')
 })
 
 describe('multi-table operations on the cacheDB', () => {
@@ -218,11 +225,9 @@ describe('multi-table operations on the cacheDB', () => {
       cache: [{ id: 'b', v: 'cache' }],
     })
     const multiGet = vi.spyOn(cacheDB, 'multiGet')
-    const multiSave = vi.spyOn(cacheDB, 'multiSave')
     const multiDelete = vi.spyOn(cacheDB, 'multiDelete')
 
     const rowsByTable = await db.multiGet({ Table: ['a', 'b'], OtherTable: ['x'] })
-    await db.multiSave({ Table: [{ id: 'c', v: 'new' }], OtherTable: [{ id: 'x', v: 'new' }] })
     await db.multiDelete({ Table: ['b'], OtherTable: ['x'] })
 
     expect(rowsByTable).toEqual({
@@ -232,15 +237,7 @@ describe('multi-table operations on the cacheDB', () => {
       ],
       OtherTable: [],
     })
-    expect(cacheDB.data['Table']).toEqual({
-      a: { id: 'a', v: 'downstream' },
-      c: { id: 'c', v: 'new' },
-    })
-    expect(cacheDB.data['OtherTable']).toEqual({})
-    const savedRowsByTable = multiSave.mock.calls.map(([rowsByTable]) => rowsByTable)
-    expect(savedRowsByTable).toEqual([
-      { Table: [{ id: 'c', v: 'new' }], OtherTable: [{ id: 'x', v: 'new' }] },
-    ])
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'downstream' } })
     expect(multiGet).toHaveBeenCalledExactlyOnceWith({ Table: ['a', 'b'], OtherTable: ['x'] })
     expect(multiDelete).toHaveBeenCalledExactlyOnceWith({ Table: ['b'], OtherTable: ['x'] })
   })
@@ -252,11 +249,9 @@ describe('multi-table operations on the cacheDB', () => {
     })
     cacheDB.support = { ...cacheDB.support, multiTableOperations: false }
     const multiGet = vi.spyOn(cacheDB, 'multiGet')
-    const multiSave = vi.spyOn(cacheDB, 'multiSave')
     const multiDelete = vi.spyOn(cacheDB, 'multiDelete')
 
     const rowsByTable = await db.multiGet({ Table: ['a', 'b'], OtherTable: ['x'] })
-    await db.multiSave({ Table: [{ id: 'c', v: 'new' }], OtherTable: [{ id: 'x', v: 'new' }] })
     await db.multiDelete({ Table: ['b'], OtherTable: ['x'] })
 
     expect(rowsByTable).toEqual({
@@ -266,13 +261,8 @@ describe('multi-table operations on the cacheDB', () => {
       ],
       OtherTable: [],
     })
-    expect(cacheDB.data['Table']).toEqual({
-      a: { id: 'a', v: 'downstream' },
-      c: { id: 'c', v: 'new' },
-    })
-    expect(cacheDB.data['OtherTable']).toEqual({})
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'downstream' } })
     expect(multiGet).not.toHaveBeenCalled()
-    expect(multiSave).not.toHaveBeenCalled()
     expect(multiDelete).not.toHaveBeenCalled()
   })
 })
@@ -327,10 +317,6 @@ describe('failed downstream writes', () => {
 
   it.each([
     { method: 'saveBatch', write: (db: CacheDB) => db.saveBatch('Table', [{ id: 'a', v: 'new' }]) },
-    {
-      method: 'multiSave',
-      write: (db: CacheDB) => db.multiSave({ Table: [{ id: 'a', v: 'new' }] }),
-    },
     { method: 'patchById', write: (db: CacheDB) => db.patchById<Row>('Table', 'a', { v: 'new' }) },
     { method: 'incrementBatch', write: (db: CacheDB) => db.incrementBatch('Table', 'n', { a: 1 }) },
     { method: 'deleteByIds', write: (db: CacheDB) => db.deleteByIds('Table', ['a']) },

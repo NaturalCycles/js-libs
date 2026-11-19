@@ -263,24 +263,8 @@ export class CacheDB implements CommonDB {
     return result
   }
 
-  async multiSave<ROW extends ObjectWithId>(
-    rowsByTable: StringMap<ROW[]>,
-    opt: CacheDBSaveOptions<ROW> = {},
-  ): Promise<void> {
-    const entries = _stringMapEntries(rowsByTable)
-
-    if (this.useDownstream(opt)) {
-      await this.writeDownstream(
-        () => this.cfg.downstreamDB.multiSave(rowsByTable, this.downstreamOpt(opt)),
-        () => this.multiInvalidateCache(getIdsByTable(rowsByTable), opt),
-      )
-      const logger = this.getDownstreamLogger()
-      for (const [table, rows] of entries) {
-        logger?.log(formatRows(`${table}.multiSave`, rows, 'to downstream'))
-      }
-    }
-
-    await this.multiSaveAfterWrite(rowsByTable, opt)
+  async multiSave<ROW extends ObjectWithId>(_rowsByTable: StringMap<ROW[]>): Promise<void> {
+    throw new Error('CacheDB: multiSave is not implemented')
   }
 
   async multiDelete(idsByTable: StringMap<string[]>, opt: CacheDBOptions = {}): Promise<number> {
@@ -452,30 +436,6 @@ export class CacheDB implements CommonDB {
     )
   }
 
-  private async multiSaveAfterWrite<ROW extends ObjectWithId>(
-    rowsByTable: StringMap<ROW[]>,
-    opt: CacheDBSaveOptions<ROW>,
-  ): Promise<void> {
-    if (this.isSkipCache(opt) || this.isInTransaction(opt)) {
-      // We must not cache the new rows here, so we just remove the outdated rows from the cache
-      await this.multiInvalidateCache(getIdsByTable(rowsByTable), opt)
-      return
-    }
-
-    const { excludeFromIndexes } = opt
-    const save = this.changeCache(_objectKeys(rowsByTable), cacheDB =>
-      this.multiSaveCache(cacheDB, rowsByTable, { excludeFromIndexes }),
-    )
-    await this.writeCache(
-      save.then(() => {
-        const logger = this.getCacheLogger()
-        for (const [table, rows] of _stringMapEntries(rowsByTable)) {
-          logger?.log(formatRows(`${table}.multiSave`, rows, 'to cache'))
-        }
-      }),
-    )
-  }
-
   async invalidateCache(
     table: string,
     ids: readonly string[],
@@ -547,19 +507,6 @@ export class CacheDB implements CommonDB {
       }),
     )
     return rowsByTable
-  }
-
-  private async multiSaveCache<ROW extends ObjectWithId>(
-    cacheDB: CommonDB,
-    rowsByTable: StringMap<ROW[]>,
-    opt?: CommonDBSaveOptions<ROW>,
-  ): Promise<void> {
-    if (cacheDB.support.multiTableOperations) {
-      return await cacheDB.multiSave(rowsByTable, opt)
-    }
-
-    const entries = _stringMapEntries(rowsByTable)
-    await Promise.all(entries.map(([table, rows]) => cacheDB.saveBatch(table, rows, opt)))
   }
 
   private async multiDeleteCache(
@@ -764,12 +711,6 @@ export class CacheDBTransaction implements DBTransaction {
     const tableInvalidations = [...this.writtenTables].map(t => this.db.invalidateCacheTable(t))
     await Promise.all([this.db.multiInvalidateCache(idsByTable), ...tableInvalidations])
   }
-}
-
-function getIdsByTable(rowsByTable: StringMap<ObjectWithId[]>): StringMap<string[]> {
-  return _mapValues<StringMap<string[]>>(rowsByTable, (_, rows: ObjectWithId[]) =>
-    rows.map(r => r.id),
-  )
 }
 
 function formatRows(prefix: string, rows: readonly ObjectWithId[], source: string): string {
