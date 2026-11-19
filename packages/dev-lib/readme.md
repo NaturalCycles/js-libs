@@ -143,9 +143,6 @@ Pass `--no-fix` (or `--fix=false`) to disable the default `--fix` flag on linter
 linter, or when linter behaves badly and corrupts your files (just happened to me with
 `eslint-plugin-vue`).
 
-Pass `--ext` (e.g `--ext ts,html`) to override the list of ESLint extensions (default is
-`ts,tsx,vue` right now).
-
 For Stylelint to be run, you need to manually install it in the target project:
 
 `yarn add -D stylelint stylelint-config-standard-scss`

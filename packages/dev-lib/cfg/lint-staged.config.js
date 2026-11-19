@@ -3,6 +3,21 @@
   Extendable.
 */
 
+import { execSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import { _assert } from '@naturalcycles/js-lib/error/assert.js'
+import { semver2 } from '@naturalcycles/js-lib/semver'
+import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
+import picomatch from 'picomatch'
+import {
+  eslintDirs,
+  lintExclude,
+  minActionlintVersion,
+  stylelintDirs,
+  stylelintExtensions,
+} from './_cnst.js'
+
 const {
   platform,
   arch,
@@ -11,13 +26,7 @@ const {
 
 console.log(`lint-staged.config.js runs on node ${node} ${platform} ${arch}`)
 
-import { execSync } from 'node:child_process'
-import fs from 'node:fs'
-import { _assert } from '@naturalcycles/js-lib/error/assert.js'
-import { semver2 } from '@naturalcycles/js-lib/semver'
-import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
-import picomatch from 'picomatch'
-import { prettierExtensionsAll, lintExclude, minActionlintVersion } from './_cnst.js'
+const cwd = process.cwd()
 
 const oxfmtConfigPath = ['oxfmt.config.ts'].find(fs.existsSync)
 
@@ -42,6 +51,7 @@ if (eslintConfigPath) {
     `--config ${eslintConfigPath}`,
     '--cache',
     '--cache-location node_modules/.cache/eslint',
+    '--no-warn-ignored',
   ]
     .filter(Boolean)
     .join(' ')
@@ -68,39 +78,36 @@ const stylelintExists =
   fs.existsSync('node_modules/stylelint-config-standard-scss')
 const stylelintCmd = stylelintExists ? `stylelint --fix --config ${stylelintConfigPath}` : undefined
 
+// Same dirs as `dev-lib check` passes to eslint. ESLint config decides the file types.
+const isEslintFile = picomatch(eslintDirs.map(dir => `${dir}/**`))
+// Same files as `dev-lib check` passes to stylelint
+const isStylelintFile = picomatch(`{${stylelintDirs.join(',')}}/**/*.{${stylelintExtensions}}`, {
+  dot: true,
+  ignore: lintExclude,
+})
+const isActionlintFile = picomatch('.github/**/*.{yml,yaml}')
+
+// actionlint, oxlint, eslint, stylelint, oxfmt
+// Run sequentially, in this order: eslint can remove code (e.g unused imports), oxfmt formats last.
+// actionlint runs first, same as in `dev-lib check`. It fails fast, and its error line numbers
+// match the files, which lint-staged restores to the original state on failure (before oxfmt).
+// Sequential order also means actionlint doesn't read a workflow file while oxfmt rewrites it.
+// oxlint and oxfmt receive all staged files. They skip the file types they don't support,
+// and apply ignorePatterns from their own config, same as `dev-lib check` does.
+// This way, lint-staged doesn't need its own list of file extensions, which can get out of sync.
+// Don't run them without a file list (on the whole repo): lint-staged stages every tracked file
+// that tasks have modified, so unstaged changes in other files would end up in the commit.
 const linters = {
-  // oxlint, eslint, stylelint, oxfmt
-  [`./**/*.{${prettierExtensionsAll}}`]: match => runOxlintEslintStylelintOxfmt(match),
+  '*': [
+    runActionlint,
+    oxlintCmd,
+    eslintCmd && runEslint,
+    stylelintCmd && runStylelint,
+    oxfmtCmd,
+  ].filter(Boolean),
 
   // ktlint
   '**/*.{kt,kts}': runKtlint,
-
-  './.github/**/*.{yml,yaml}': runActionlint,
-}
-
-export function runOxlintEslintStylelintOxfmt(match) {
-  const filesList = getFilesList(match)
-  if (!filesList) return []
-  const eslintFilesList = eslintCmd && getEslintFilesList(match)
-
-  return [
-    oxlintCmd && `${oxlintCmd} ${filesList}`,
-    eslintFilesList && `${eslintCmd} ${eslintFilesList}`,
-    stylelintCmd && `${stylelintCmd} ${filesList}`,
-    oxfmtCmd && `${oxfmtCmd} ${filesList}`,
-  ].filter(Boolean)
-}
-
-export function runOxlintOxfmt(match) {
-  const filesList = getFilesList(match)
-  if (!filesList) return []
-  return [oxlintCmd, oxfmtCmd].filter(Boolean).map(s => `${s} ${filesList}`)
-}
-
-export function runOxfmt(match) {
-  const filesList = getFilesList(match)
-  if (!filesList || !oxfmtCmd) return []
-  return [oxfmtCmd].map(s => `${s} ${filesList}`)
 }
 
 export function runKtlint(match) {
@@ -116,8 +123,12 @@ export function runKtlint(match) {
   return [`${dir}/resources/ktlint -F ${filesList}`]
 }
 
+/**
+ * Runs only if a file under .github is staged.
+ * actionlint runs without a file list: it checks all workflows, and it never modifies files.
+ */
 export function runActionlint(match) {
-  if (!match.length) return []
+  if (!filterFiles(match, isActionlintFile).length) return []
 
   if (!canRunBinary('actionlint')) {
     console.log(
@@ -130,36 +141,28 @@ export function runActionlint(match) {
   return ['actionlint']
 }
 
-export function runActionlintOxfmt(match) {
-  if (!match.length) return []
+function runEslint(match) {
+  const files = filterFiles(match, isEslintFile)
+  if (!files.length) return []
+  return [`${eslintCmd} ${files.join(' ')}`]
+}
 
-  const tools = []
+function runStylelint(match) {
+  const files = filterFiles(match, isStylelintFile)
+  if (!files.length) return []
+  return [`${stylelintCmd} ${files.join(' ')}`]
+}
 
-  if (canRunBinary('actionlint')) {
-    requireActionlintVersion()
-    // run actionlint on all files at once, as it's fast anyway
-    tools.push('actionlint')
-  } else {
-    console.log(
-      `actionlint is not installed and won't be run.\nThis is how to install it: https://github.com/rhysd/actionlint/blob/main/docs/install.md`,
-    )
-  }
-
-  if (oxfmtCmd) {
-    tools.push(oxfmtCmd)
-  }
-
-  return tools
+/**
+ * lint-staged passes absolute paths, the matcher expects paths relative to cwd.
+ */
+function filterFiles(match, isMatch) {
+  return match.filter(f => isMatch(path.relative(cwd, f)))
 }
 
 function getFilesList(match) {
   const isExcluded = picomatch(lintExclude)
   return match.filter(f => !isExcluded(f)).join(' ')
-}
-
-function getEslintFilesList(match) {
-  const isIncluded = picomatch('./{src,scripts,e2e}/**/*.{ts,tsx,html}')
-  return match.filter(f => isIncluded(f)).join(' ')
 }
 
 function canRunBinary(name) {

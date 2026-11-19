@@ -21,10 +21,10 @@ import { exec2 } from '@naturalcycles/nodejs-lib/exec2'
 import { fs2 } from '@naturalcycles/nodejs-lib/fs2'
 import { kpySync } from '@naturalcycles/nodejs-lib/kpy'
 import {
-  eslintExtensions,
+  eslintDirs,
   lintExclude,
   minActionlintVersion,
-  prettierDirs,
+  stylelintDirs,
   stylelintExtensions,
 } from '../cfg/_cnst.js'
 import { cfgDir } from './paths.js'
@@ -176,41 +176,35 @@ export async function runCheck(opt: CheckOptions = {}): Promise<void> {
 }
 
 interface EslintAllOptions {
-  ext?: string
   fix?: boolean
 }
 
 /**
  * Runs `eslint` command for all predefined paths (e.g /src, /scripts, etc).
+ * File types are decided by the `files` patterns in the ESLint config.
  *
  * Returns true if it ran
  */
 export function eslintAll(opt?: EslintAllOptions): boolean {
   const argv = _parseArgs({
-    ext: {
-      type: 'string',
-      default: eslintExtensions,
-    },
     fix: {
       type: 'boolean',
       default: !CI, // defaults to false in CI, true otherwise
     },
   })
 
-  const { ext, fix } = {
+  const { fix } = {
     ...argv,
     ...opt,
   }
 
-  const extensions = ext.split(',')
-
-  return runESLint(extensions, fix)
+  return runESLint(fix)
 }
 
 /**
  * Returns true if it ran.
  */
-function runESLint(extensions = eslintExtensions.split(','), fix = true): boolean {
+function runESLint(fix = true): boolean {
   const eslintConfigPath = `eslint.config.js`
   if (!existsSync(eslintConfigPath)) {
     // faster to bail-out like this
@@ -228,7 +222,7 @@ function runESLint(extensions = eslintExtensions.split(','), fix = true): boolea
     args: [
       '--config',
       eslintConfigPath,
-      `{src,scripts,e2e}/**/*.{${extensions.join(',')}}`,
+      ...eslintDirs,
       // `--parser-options=project:${tsconfigPath}`,
       // The next line fixes the `typescript-eslint` 8.37 bug of resolving tsconfig.json
       // `--parser-options=tsconfigRootDir:${tsconfigRootDir}`,
@@ -308,7 +302,7 @@ export function hasOxfmtConfig(): boolean {
 
 const stylelintPaths = [
   // Everything inside these folders
-  `./{${prettierDirs.join(',')}}/**/*.{${stylelintExtensions}}`,
+  `./{${stylelintDirs.join(',')}}/**/*.{${stylelintExtensions}}`,
 
   // Exclude
   ...lintExclude.map((s: string) => `!${s}`),
