@@ -342,7 +342,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       `${q.table}.deleteByQuery ${deleted} rows from downstream and cache`,
     )
 
-    await this.invalidateCacheByQuery(q)
+    await this.invalidateCacheTable(q.table, opt)
     return deleted
   }
 
@@ -356,8 +356,8 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     }
 
     const updated = await this.cfg.downstreamDB.patchByQuery(q, patch, this.downstreamOpt(opt))
-    // We do not know how the query changed the rows, so remove all matching rows from the cache
-    await this.invalidateCacheByQuery(q)
+    // We do not know which rows the query changed, so remove all rows of the table from the cache
+    await this.invalidateCacheTable(q.table, opt)
     return updated
   }
 
@@ -376,7 +376,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     } finally {
       // A read outside the transaction can cache the old rows before commit, so remove them again
       // With transactions that did not commit, the cost is only some extra cache deletes.
-      await Promise.all(txs.map(tx => tx.invalidateWrittenIds()))
+      await Promise.all(txs.map(tx => tx.invalidateWrittenRows()))
     }
   }
 
@@ -503,11 +503,12 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     await this.writeCache(deletion)
   }
 
-  private async invalidateCacheByQuery<ROW extends ObjectWithId>(q: DBQuery<ROW>): Promise<void> {
-    const cacheQuery = DBQuery.create<ROW>(q.table)
-    // Use only the filters: limit and offset would select other rows in the cache than in the DB
-    cacheQuery._filters = q._filters
-    await this.writeCache(this.changeCache([q.table], cacheDB => cacheDB.deleteByQuery(cacheQuery)))
+  async invalidateCacheTable(table: string, opt: CommonDBOptions = {}): Promise<void> {
+    if (this.isInTransaction(opt)) {
+      opt.tx.addWrittenTable(table)
+    }
+    const allRows = DBQuery.create(table)
+    await this.writeCache(this.changeCache([table], cacheDB => cacheDB.deleteByQuery(allRows)))
   }
 
   private async multiGetCache<ROW extends ObjectWithId>(
@@ -669,6 +670,7 @@ export class CacheDBTransaction implements DBTransaction {
   ) {}
 
   writtenIdsByTable: StringMap<Set<string>> = {}
+  writtenTables = new Set<string>()
 
   async getByIds<ROW extends ObjectWithId>(
     table: string,
@@ -705,7 +707,7 @@ export class CacheDBTransaction implements DBTransaction {
       await this.downstreamTx.commit()
     } finally {
       // A read outside the transaction can cache the old rows before commit, so remove them again
-      await this.invalidateWrittenIds()
+      await this.invalidateWrittenRows()
     }
   }
 
@@ -718,12 +720,17 @@ export class CacheDBTransaction implements DBTransaction {
     for (const id of ids) writtenIds.add(id)
   }
 
-  async invalidateWrittenIds(): Promise<void> {
+  addWrittenTable(table: string): void {
+    this.writtenTables.add(table)
+  }
+
+  async invalidateWrittenRows(): Promise<void> {
     const idsByTable = _mapValues<StringMap<string[]>>(
       this.writtenIdsByTable,
       (_, ids: Set<string>) => Array.from(ids),
     )
-    await this.db.multiInvalidateCache(idsByTable)
+    const tableInvalidations = [...this.writtenTables].map(t => this.db.invalidateCacheTable(t))
+    await Promise.all([this.db.multiInvalidateCache(idsByTable), ...tableInvalidations])
   }
 }
 

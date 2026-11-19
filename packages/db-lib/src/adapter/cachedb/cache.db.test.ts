@@ -277,33 +277,49 @@ describe('multi-table operations on the cacheDB', () => {
   })
 })
 
-it('should remove the cached rows on patchByQuery, patchById and incrementBatch', async () => {
+it('should remove the cached rows on patchById and incrementBatch', async () => {
   const { db, downstreamDB, cacheDB } = await setup({
     downstream: [
       { id: 'a', v: 'old' },
+      { id: 'b', v: 'old', n: 1 },
+      { id: 'c', v: 'old' },
+    ],
+    cache: [
+      { id: 'a', v: 'old' },
+      { id: 'b', v: 'old', n: 1 },
+      { id: 'c', v: 'old' },
+    ],
+  })
+
+  await db.patchById<Row>('Table', 'a', { v: 'patched' })
+  await db.incrementBatch('Table', 'n', { b: 1 })
+
+  expect(downstreamDB.data['Table']).toEqual({
+    a: { id: 'a', v: 'patched' },
+    b: { id: 'b', v: 'old', n: 2 },
+    c: { id: 'c', v: 'old' },
+  })
+  expect(cacheDB.data['Table']).toEqual({ c: { id: 'c', v: 'old' } })
+})
+
+it.each([
+  { op: 'patchByQuery', write: (db: CacheDB, q: DBQuery<Row>) => db.patchByQuery(q, { v: 'x' }) },
+  { op: 'deleteByQuery', write: (db: CacheDB, q: DBQuery<Row>) => db.deleteByQuery(q) },
+])('should remove all rows of the table from the cache on $op', async ({ write }) => {
+  const { db, cacheDB } = await setup({
+    downstream: [
+      { id: 'a', v: 'new' },
       { id: 'b', v: 'old' },
-      { id: 'c', v: 'old', n: 1 },
-      { id: 'd', v: 'old' },
     ],
     cache: [
       { id: 'a', v: 'old' },
       { id: 'b', v: 'old' },
-      { id: 'c', v: 'old', n: 1 },
-      { id: 'd', v: 'old' },
     ],
   })
 
-  await db.patchByQuery(DBQuery.create<Row>('Table').filterEq('id', 'a'), { v: 'patched' })
-  await db.patchById<Row>('Table', 'b', { v: 'patched' })
-  await db.incrementBatch('Table', 'n', { c: 1 })
+  await write(db, DBQuery.create<Row>('Table').filterEq('v', 'new'))
 
-  expect(downstreamDB.data['Table']).toEqual({
-    a: { id: 'a', v: 'patched' },
-    b: { id: 'b', v: 'patched' },
-    c: { id: 'c', v: 'old', n: 2 },
-    d: { id: 'd', v: 'old' },
-  })
-  expect(cacheDB.data['Table']).toEqual({ d: { id: 'd', v: 'old' } })
+  expect(cacheDB.data['Table']).toEqual({})
 })
 
 it('should throw when onlyCache and skipCache are both set in cfg', () => {
@@ -422,6 +438,25 @@ describe('transactions', () => {
     const rowsAfterCommit = await db.getByIds('Table', ['a'])
 
     expect(rowsAfterCommit).toEqual([{ id: 'a', v: 'tx' }])
+  })
+
+  it('should remove the whole table from the cache after commit when a query wrote in the transaction', async () => {
+    const { db, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+    })
+
+    const tx = await db.createTransaction()
+    await db.deleteByQuery(DBQuery.create<Row>('Table').filterEq('id', 'b'), { tx })
+    await db.getByIds('Table', ['a'])
+
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
+
+    await tx.commit()
+
+    expect(cacheDB.data['Table']).toEqual({})
   })
 
   it('should route CommonDao transaction operations through the downstream transaction', async () => {
