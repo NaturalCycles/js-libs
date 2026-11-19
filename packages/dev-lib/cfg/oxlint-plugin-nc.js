@@ -198,6 +198,16 @@ function isModuleLevelConst(declarator, init) {
   )
 }
 
+// The class a module-level `new ClassName()` refers to, not a nested class of the same name
+function isModuleLevelClass(node, className) {
+  if (node.type !== 'ClassDeclaration' || node.id?.name !== className) return false
+  const { parent } = node
+  return (
+    parent.type === 'Program' ||
+    (parent.type.startsWith('Export') && parent.parent.type === 'Program')
+  )
+}
+
 // Whether `this` at `node` is an instance of the class: in an instance method, accessor, constructor
 // or field initializer, with nothing in between that has a `this` of its own
 function isInstanceCodeOf(node, className) {
@@ -206,6 +216,8 @@ function isInstanceCodeOf(node, className) {
     switch (parent.type) {
       // `typeof service` in a type
       case 'TSTypeQuery':
+      // A decorator runs when the class is defined, also one on a parameter
+      case 'Decorator':
       case 'FunctionDeclaration':
       case 'StaticBlock': {
         return false
@@ -222,7 +234,7 @@ function isInstanceCodeOf(node, className) {
         break
       }
       case 'ClassBody': {
-        return parent.parent.type === 'ClassDeclaration' && parent.parent.id?.name === className
+        return isModuleLevelClass(parent.parent, className)
       }
     }
   }

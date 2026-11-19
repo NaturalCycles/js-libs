@@ -49,6 +49,12 @@ function getCrmService() { const crmService = new CrmService(); return crmServic
 export const crmService = new CrmService()`,
       `class CrmService { @Memo(crmService) track() {} }
 export const crmService = new CrmService()`,
+      // a parameter decorator's callback has no instance `this`
+      `class CrmService { track(@Inject(forwardRef(() => crmService)) dependency: unknown) {} }
+export const crmService = new CrmService()`,
+      // a nested class of the same name is not the singleton's class
+      `class CrmService { track() { class CrmService { run() { crmService.send() } } return CrmService } send() {} }
+export const crmService = new CrmService()`,
     ],
     invalid: [
       {
@@ -80,6 +86,11 @@ export const crmService = new CrmService()`,
         code: `class CrmService { track(name = crmService.title) { const { send } = crmService; crmService.count++ } }
 export const crmService = new CrmService()`,
         errors: 3,
+      },
+      {
+        code: `export class CrmService { track() { crmService.send() } send() {} }
+export const crmService = new CrmService()`,
+        errors: 1,
       },
       {
         code: `class CrmService extends BaseService { track() { crmService.send() } }
