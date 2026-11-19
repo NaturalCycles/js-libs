@@ -104,9 +104,8 @@ export const sharedConfig = {
     'valid-title': 0,
     'vitest/valid-title': [2, { mustMatch: { it: '^should ' } }],
     'valid-describe-callback': 0,
-    // Options arguments and variables are `opt`, never `opts`.
-    // `acc` and `pa` are spelled out: `account`, `pAccount` (and `sum` or `result` in a reducer)
-    'id-denylist': [2, 'opts', 'acc', 'pa'],
+    // Options arguments and variables are `opt`, never `opts`
+    'id-denylist': [2, 'opts'],
     // 'id-denylist': [
     //   0, // actually not useful
     //   'any',

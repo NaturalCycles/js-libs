@@ -53,7 +53,7 @@
     "for-direction": "deny",
     "getter-return": "deny",
     "guard-for-in": "deny",
-    "id-denylist": ["deny", "opts", "acc", "pa"],
+    "id-denylist": ["deny", "opts"],
     "id-match": [
       "deny",
       "^.+$",
