@@ -6,6 +6,7 @@ import type {
   CacheDBReadOptions,
   CacheDBSaveOptions,
   CacheDBStreamOptions,
+  CacheFillToken,
 } from './cache.db.model.js'
 import { NoopDB } from './noop.db.js'
 
@@ -16,6 +17,7 @@ export type {
   CacheDBReadOptions,
   CacheDBSaveOptions,
   CacheDBStreamOptions,
+  CacheFillToken,
 }
 
 export { CacheDB, CacheDBTransaction, NoopDB }

@@ -1,5 +1,5 @@
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
-import type { ObjectWithId } from '@naturalcycles/js-lib/types'
+import type { AnyObject, ObjectWithId } from '@naturalcycles/js-lib/types'
 import type { CommonDB } from '../../commondb/common.db.js'
 import type {
   CommonDBCreateOptions,
@@ -11,14 +11,15 @@ import type {
 
 export interface CacheDBCfg {
   /**
-   * CacheDB returns cache hits as the cacheDB returns them, without a copy.
-   * The cacheDB must return new objects on every read (a remote store does this),
-   * otherwise a caller that mutates a returned row changes the row for all later readers.
-   * InMemoryDB returns its stored objects, so use it as cacheDB only in tests.
+   * Creates the cacheDB of one cache scope.
+   * CacheDB returns copies of the cache hits.
+   * Exception: the `__compressed` Buffer (see CommonDao `compress`) is shared, not copied.
    *
    * `undefined` means NoopDB: reads return nothing and writes are ignored.
    */
-  cacheDB: CommonDB | undefined
+  createCacheDB?: () => CommonDB
+
+  getCacheScope?: () => AnyObject | undefined
 
   downstreamDB: CommonDB
 
@@ -59,6 +60,8 @@ export interface CacheDBCfg {
    */
   logger?: CommonLogger
 }
+
+export type CacheFillToken = unknown
 
 export interface CacheDBOptions extends CommonDBOptions {
   /**

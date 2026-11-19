@@ -4,8 +4,8 @@ import { _assert } from '@naturalcycles/js-lib/error/assert.js'
 import type { CommonLogger } from '@naturalcycles/js-lib/log'
 import { consoleLogger } from '@naturalcycles/js-lib/log'
 import { _filterObject, _mapValues } from '@naturalcycles/js-lib/object'
-import type { ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
-import { _stringMapEntries } from '@naturalcycles/js-lib/types'
+import type { AnyObject, ObjectWithId, StringMap } from '@naturalcycles/js-lib/types'
+import { _objectKeys, _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { BaseCommonDB } from '../../commondb/base.common.db.js'
@@ -27,14 +27,15 @@ import type {
   CacheDBReadOptions,
   CacheDBSaveOptions,
   CacheDBStreamOptions,
+  CacheFillToken,
 } from './cache.db.model.js'
 import { NoopDB } from './noop.db.js'
 
 /**
  * CommonDB implementation that proxies requests to downstream CommonDB
- * and caches rows in `cacheDB` (NoopDB by default).
+ * and caches rows in the cacheDB of the current cache scope (NoopDB by default).
  *
- * Queries always hit downstream (unless `onlyCache` is passed)
+ * It allows the cache to be scoped by the user, typically to the request.
  */
 export class CacheDB extends BaseCommonDB implements CommonDB {
   constructor(cfg: CacheDBCfg) {
@@ -42,19 +43,21 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     _assert(!cfg.onlyCache || !cfg.skipCache, 'CacheDB: onlyCache and skipCache are both set')
     this.cfg = {
       ...cfg,
-      cacheDB: cfg.cacheDB || new NoopDB(),
       logger: cfg.logger || consoleLogger,
     }
     this.dbType = cfg.downstreamDB.dbType
     this.support = { ...cfg.downstreamDB.support }
   }
 
-  cfg: CacheDBCfg & { cacheDB: CommonDB; logger: CommonLogger }
+  cfg: CacheDBCfg & { logger: CommonLogger }
+
+  private scopeCacheByScope = new WeakMap<AnyObject, ScopeCache>()
+  private noopDB = new NoopDB()
 
   //#region Overridden CommonDB methods
 
   override async ping(): Promise<void> {
-    await Promise.all([this.cfg.cacheDB.ping(), this.cfg.downstreamDB.ping()])
+    await Promise.all([this.getCacheDB().ping(), this.cfg.downstreamDB.ping()])
   }
 
   override async getTables(): Promise<string[]> {
@@ -75,7 +78,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     }
 
     if (this.useCache(opt)) {
-      await this.cfg.cacheDB.createTable(table, schema, { dropIfExists: opt.dropIfExists })
+      await this.getCacheDB().createTable(table, schema, { dropIfExists: opt.dropIfExists })
     }
   }
 
@@ -93,7 +96,8 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     let missingIds = ids
 
     if (shouldReadCache) {
-      const rows = await this.cfg.cacheDB.getByIds<ROW>(table, ids)
+      const cachedRows = await this.getCacheDB().getByIds<ROW>(table, ids)
+      const rows = cachedRows.map(copyRow)
       for (const r of rows) rowById.set(r.id, r)
       missingIds = ids.filter(id => !rowById.has(id))
       this.getCacheLogger()?.log(formatRows(`${table}.getByIds`, rows, 'from cache'))
@@ -101,12 +105,13 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
 
     if (this.useDownstream(opt) && missingIds.length) {
       const downstreamOpt = this.downstreamOpt(opt)
+      const token = shouldReadCache ? this.getSaveAfterReadToken([table]) : undefined
       const rows = await this.cfg.downstreamDB.getByIds<ROW>(table, missingIds, downstreamOpt)
       for (const r of rows) rowById.set(r.id, r)
       this.getDownstreamLogger()?.log(formatRows(`${table}.getByIds`, rows, 'from downstream'))
 
       if (shouldReadCache && rows.length) {
-        await this.writeCache(this.cfg.cacheDB.saveBatch(table, rows))
+        await this.saveAfterRead({ [table]: rows }, token)
       }
     }
 
@@ -128,7 +133,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       this.getDownstreamLogger()?.log(formatRows(`${table}.saveBatch`, rows, 'to downstream'))
     }
 
-    await this.saveToCache(table, rows, opt)
+    await this.saveAfterWrite(table, rows, opt)
   }
 
   override async patchById<ROW extends ObjectWithId>(
@@ -138,7 +143,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     opt: CacheDBOptions = {},
   ): Promise<void> {
     if (this.isOnlyCache(opt)) {
-      return await this.cfg.cacheDB.patchById(table, id, patch)
+      return await this.changeCache([table], cacheDB => cacheDB.patchById(table, id, patch))
     }
 
     await this.cfg.downstreamDB.patchById(table, id, patch, this.downstreamOpt(opt))
@@ -154,7 +159,9 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     opt: CacheDBOptions = {},
   ): Promise<StringMap<number>> {
     if (this.isOnlyCache(opt)) {
-      return await this.cfg.cacheDB.incrementBatch(table, prop, incrementMap)
+      return await this.changeCache([table], cacheDB =>
+        cacheDB.incrementBatch(table, prop, incrementMap),
+      )
     }
 
     const result = await this.cfg.downstreamDB.incrementBatch(
@@ -165,7 +172,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     )
 
     // We only have the new values of `prop`, not the full rows, so we remove the rows from the cache
-    await this.invalidateCache(table, Object.keys(incrementMap), opt)
+    await this.invalidateCache(table, _objectKeys(incrementMap), opt)
 
     return result
   }
@@ -180,7 +187,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     }
 
     if (this.isOnlyCache(opt)) {
-      return await this.cfg.cacheDB.deleteByIds(table, ids)
+      return await this.changeCache([table], cacheDB => cacheDB.deleteByIds(table, ids))
     }
 
     const deleted = await this.cfg.downstreamDB.deleteByIds(table, ids, this.downstreamOpt(opt))
@@ -216,6 +223,8 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
 
     if (this.useDownstream(opt) && !_isEmptyObject(missingIdsByTable)) {
       const downstreamOpt = this.downstreamOpt(opt)
+      const missingTables = _objectKeys(missingIdsByTable)
+      const token = shouldReadCache ? this.getSaveAfterReadToken(missingTables) : undefined
       const rowsByTable = await this.cfg.downstreamDB.multiGet<ROW>(
         missingIdsByTable,
         downstreamOpt,
@@ -229,7 +238,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       }
 
       if (shouldReadCache && !_isEmptyObject(foundRowsByTable)) {
-        await this.writeCache(this.multiSaveCache(foundRowsByTable))
+        await this.saveAfterRead(foundRowsByTable, token)
       }
     }
 
@@ -255,7 +264,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       }
     }
 
-    await this.multiSaveToCache(rowsByTable, opt)
+    await this.multiSaveAfterWrite(rowsByTable, opt)
   }
 
   override async multiDelete(
@@ -263,7 +272,9 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     opt: CacheDBOptions = {},
   ): Promise<number> {
     if (this.isOnlyCache(opt)) {
-      return await this.multiDeleteCache(idsByTable)
+      return await this.changeCache(_objectKeys(idsByTable), cacheDB =>
+        this.multiDeleteCache(cacheDB, idsByTable),
+      )
     }
 
     const deleted = await this.cfg.downstreamDB.multiDelete(idsByTable, this.downstreamOpt(opt))
@@ -278,20 +289,15 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     opt: CacheDBReadOptions = {},
   ): Promise<RunQueryResult<ROW>> {
     if (this.isOnlyCache(opt)) {
-      const result = await this.cfg.cacheDB.runQuery(q)
+      const result = await this.getCacheDB().runQuery(q)
       this.getCacheLogger()?.log(`${q.table}.runQuery ${result.rows.length} rows from cache`)
-      return result
+      return { ...result, rows: result.rows.map(copyRow) }
     }
 
     const result = await this.cfg.downstreamDB.runQuery(q, this.downstreamOpt(opt))
     this.getDownstreamLogger()?.log(
       `${q.table}.runQuery ${result.rows.length} rows from downstream`,
     )
-
-    // Don't save to cache if it was a projection query
-    if (this.isCacheReadable(opt) && !q._selectedFieldNames && result.rows.length) {
-      await this.writeCache(this.cfg.cacheDB.saveBatch(q.table, result.rows))
-    }
     return result
   }
 
@@ -300,7 +306,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     opt: CacheDBReadOptions = {},
   ): Promise<number> {
     if (this.isOnlyCache(opt)) {
-      const count = await this.cfg.cacheDB.runQueryCount(q)
+      const count = await this.getCacheDB().runQueryCount(q)
       this.getCacheLogger()?.log(`${q.table}.runQueryCount ${count} rows from cache`)
       return count
     }
@@ -313,7 +319,9 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     opt: CacheDBStreamOptions = {},
   ): Pipeline<ROW> {
     if (this.isOnlyCache(opt)) {
-      return this.cfg.cacheDB.streamQuery<ROW>(q)
+      return this.getCacheDB()
+        .streamQuery<ROW>(q)
+        .mapSimple(row => copyRow(row))
     }
 
     return this.cfg.downstreamDB.streamQuery<ROW>(q, this.downstreamOpt(opt))
@@ -324,7 +332,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     opt: CacheDBOptions = {},
   ): Promise<number> {
     if (this.isOnlyCache(opt)) {
-      const deleted = await this.cfg.cacheDB.deleteByQuery(q)
+      const deleted = await this.changeCache([q.table], cacheDB => cacheDB.deleteByQuery(q))
       this.getCacheLogger()?.log(`${q.table}.deleteByQuery ${deleted} rows from cache`)
       return deleted
     }
@@ -344,7 +352,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     opt: CacheDBOptions = {},
   ): Promise<number> {
     if (this.isOnlyCache(opt)) {
-      return await this.cfg.cacheDB.patchByQuery(q, patch)
+      return await this.changeCache([q.table], cacheDB => cacheDB.patchByQuery(q, patch))
     }
 
     const updated = await this.cfg.downstreamDB.patchByQuery(q, patch, this.downstreamOpt(opt))
@@ -379,7 +387,27 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
 
   //#endregion
 
-  private async saveToCache<ROW extends ObjectWithId>(
+  getSaveAfterReadToken(tables: string[]): CacheFillToken {
+    const versionByTable = this.getScopeCache()?.versionByTable || {}
+    return Object.fromEntries(tables.map(table => [table, versionByTable[table] || 0]))
+  }
+
+  async saveAfterRead<ROW extends ObjectWithId>(
+    rowsByTable: StringMap<ROW[]>,
+    token: CacheFillToken,
+  ): Promise<void> {
+    const scopeCache = this.getScopeCache()
+    if (!scopeCache) return
+
+    const { db, versionByTable } = scopeCache
+    const tokenVersionByTable = token as StringMap<number>
+    const saves = _stringMapEntries(rowsByTable)
+      .filter(([table]) => (versionByTable[table] || 0) === tokenVersionByTable[table])
+      .map(([table, rows]) => db.saveBatch(table, rows))
+    await this.writeCache(Promise.all(saves))
+  }
+
+  private async saveAfterWrite<ROW extends ObjectWithId>(
     table: string,
     rows: readonly ROW[],
     opt: CacheDBSaveOptions<ROW>,
@@ -395,14 +423,17 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     }
 
     const { excludeFromIndexes } = opt
+    const save = this.changeCache([table], cacheDB =>
+      cacheDB.saveBatch(table, rows, { excludeFromIndexes }),
+    )
     await this.writeCache(
-      this.cfg.cacheDB.saveBatch(table, rows, { excludeFromIndexes }).then(() => {
+      save.then(() => {
         this.getCacheLogger()?.log(formatRows(`${table}.saveBatch`, rows, 'to cache'))
       }),
     )
   }
 
-  private async multiSaveToCache<ROW extends ObjectWithId>(
+  private async multiSaveAfterWrite<ROW extends ObjectWithId>(
     rowsByTable: StringMap<ROW[]>,
     opt: CacheDBSaveOptions<ROW>,
   ): Promise<void> {
@@ -416,8 +447,11 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     }
 
     const { excludeFromIndexes } = opt
+    const save = this.changeCache(_objectKeys(rowsByTable), cacheDB =>
+      this.multiSaveCache(cacheDB, rowsByTable, { excludeFromIndexes }),
+    )
     await this.writeCache(
-      this.multiSaveCache(rowsByTable, { excludeFromIndexes }).then(() => {
+      save.then(() => {
         const logger = this.getCacheLogger()
         for (const [table, rows] of _stringMapEntries(rowsByTable)) {
           logger?.log(formatRows(`${table}.multiSave`, rows, 'to cache'))
@@ -438,7 +472,8 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     if (this.isInTransaction(opt)) {
       opt.tx.addWrittenIds(table, validIds)
     }
-    await this.writeCache(this.cfg.cacheDB.deleteByIds(table, validIds))
+    const deletion = this.changeCache([table], cacheDB => cacheDB.deleteByIds(table, validIds))
+    await this.writeCache(deletion)
   }
 
   async multiInvalidateCache(
@@ -461,54 +496,98 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
       }
     }
 
-    await this.writeCache(this.multiDeleteCache(validIdsByTable))
+    const tables = _objectKeys(validIdsByTable)
+    const deletion = this.changeCache(tables, cacheDB =>
+      this.multiDeleteCache(cacheDB, validIdsByTable),
+    )
+    await this.writeCache(deletion)
   }
 
   private async invalidateCacheByQuery<ROW extends ObjectWithId>(q: DBQuery<ROW>): Promise<void> {
     const cacheQuery = DBQuery.create<ROW>(q.table)
     // Use only the filters: limit and offset would select other rows in the cache than in the DB
     cacheQuery._filters = q._filters
-    await this.writeCache(this.cfg.cacheDB.deleteByQuery(cacheQuery))
+    await this.writeCache(this.changeCache([q.table], cacheDB => cacheDB.deleteByQuery(cacheQuery)))
   }
 
   private async multiGetCache<ROW extends ObjectWithId>(
     idsByTable: StringMap<string[]>,
   ): Promise<StringMap<ROW[]>> {
-    if (this.cfg.cacheDB.support.multiTableOperations) {
-      return await this.cfg.cacheDB.multiGet<ROW>(idsByTable)
+    const cacheDB = this.getCacheDB()
+    const rowsByTable: StringMap<ROW[]> = {}
+    if (cacheDB.support.multiTableOperations) {
+      const cachedRowsByTable = await cacheDB.multiGet<ROW>(idsByTable)
+      for (const [table, rows] of _stringMapEntries(cachedRowsByTable)) {
+        rowsByTable[table] = rows.map(copyRow)
+      }
+      return rowsByTable
     }
 
-    const rowsByTable: StringMap<ROW[]> = {}
     await Promise.all(
       _stringMapEntries(idsByTable).map(async ([table, ids]) => {
-        rowsByTable[table] = await this.cfg.cacheDB.getByIds<ROW>(table, ids)
+        const rows = await cacheDB.getByIds<ROW>(table, ids)
+        rowsByTable[table] = rows.map(copyRow)
       }),
     )
     return rowsByTable
   }
 
   private async multiSaveCache<ROW extends ObjectWithId>(
+    cacheDB: CommonDB,
     rowsByTable: StringMap<ROW[]>,
     opt?: CommonDBSaveOptions<ROW>,
   ): Promise<void> {
-    if (this.cfg.cacheDB.support.multiTableOperations) {
-      return await this.cfg.cacheDB.multiSave(rowsByTable, opt)
+    if (cacheDB.support.multiTableOperations) {
+      return await cacheDB.multiSave(rowsByTable, opt)
     }
 
     const entries = _stringMapEntries(rowsByTable)
-    await Promise.all(entries.map(([table, rows]) => this.cfg.cacheDB.saveBatch(table, rows, opt)))
+    await Promise.all(entries.map(([table, rows]) => cacheDB.saveBatch(table, rows, opt)))
   }
 
-  private async multiDeleteCache(idsByTable: StringMap<string[]>): Promise<number> {
-    if (this.cfg.cacheDB.support.multiTableOperations) {
-      return await this.cfg.cacheDB.multiDelete(idsByTable)
+  private async multiDeleteCache(
+    cacheDB: CommonDB,
+    idsByTable: StringMap<string[]>,
+  ): Promise<number> {
+    if (cacheDB.support.multiTableOperations) {
+      return await cacheDB.multiDelete(idsByTable)
     }
 
     const entries = _stringMapEntries(idsByTable)
-    const counts = await Promise.all(
-      entries.map(([table, ids]) => this.cfg.cacheDB.deleteByIds(table, ids)),
-    )
+    const counts = await Promise.all(entries.map(([table, ids]) => cacheDB.deleteByIds(table, ids)))
     return _sum(counts)
+  }
+
+  private async changeCache<T>(
+    tables: string[],
+    change: (cacheDB: CommonDB) => Promise<T>,
+  ): Promise<T> {
+    const scopeCache = this.getScopeCache()
+    if (!scopeCache) return await change(this.noopDB)
+
+    for (const table of tables) {
+      scopeCache.versionByTable[table] = (scopeCache.versionByTable[table] || 0) + 1
+    }
+
+    return await change(scopeCache.db)
+  }
+
+  private getCacheDB(): CommonDB {
+    return this.getScopeCache()?.db || this.noopDB
+  }
+
+  private getScopeCache(): ScopeCache | undefined {
+    const scope = this.cfg.getCacheScope ? this.cfg.getCacheScope() : this
+    if (!scope) return
+
+    let scopeCache = this.scopeCacheByScope.get(scope)
+    if (!scopeCache) {
+      const db = this.cfg.createCacheDB?.() || this.noopDB
+      scopeCache = { db, versionByTable: {} }
+      this.scopeCacheByScope.set(scope, scopeCache)
+    }
+
+    return scopeCache
   }
 
   private async writeCache(promise: Promise<unknown>): Promise<void> {
@@ -650,4 +729,48 @@ export class CacheDBTransaction implements DBTransaction {
 
 function formatRows(prefix: string, rows: readonly ObjectWithId[], source: string): string {
   return `${prefix} ${rows.length} rows ${source}: [${rows.map(r => r.id).join(', ')}]`
+}
+
+function copyRow<ROW extends AnyObject>(row: ROW): ROW {
+  const copy: AnyObject = {}
+  for (const key of _objectKeys(row)) {
+    const value = row[key]
+    // Copying Buffers is costly and `__compressed` is never mutated so we share it between copied rows
+    const copiedValue = key === '__compressed' && Buffer.isBuffer(value) ? value : copyValue(value)
+    if (copiedValue !== undefined) copy[key] = copiedValue
+  }
+  return copy as ROW
+}
+
+function copyValue(value: unknown): unknown {
+  if (typeof value === 'string' || typeof value === 'boolean') return value
+  if (typeof value === 'number') return Number.isFinite(value) ? value + 0 : null
+  if (value === undefined || typeof value === 'function' || typeof value === 'symbol') {
+    return undefined
+  }
+  if (value === null) return null
+  if (Array.isArray(value)) return copyArray(value)
+  if (Object.getPrototypeOf(value) === Object.prototype) return copyObject(value)
+  if (Buffer.isBuffer(value)) return Buffer.from(value)
+  return JSON.parse(JSON.stringify(value))
+}
+
+function copyObject(obj: AnyObject): AnyObject {
+  const copy: AnyObject = {}
+  for (const key of _objectKeys(obj)) {
+    const value = copyValue(obj[key])
+    if (value !== undefined) copy[key] = value
+  }
+  return copy
+}
+
+function copyArray(arr: unknown[]): unknown[] {
+  const copy: unknown[] = []
+  for (const item of arr) copy.push(copyValue(item) ?? null)
+  return copy
+}
+
+interface ScopeCache {
+  db: CommonDB
+  versionByTable: StringMap<number>
 }
