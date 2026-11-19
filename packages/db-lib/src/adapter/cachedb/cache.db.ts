@@ -8,8 +8,7 @@ import type { AnyObject, ObjectWithId, StringMap } from '@naturalcycles/js-lib/t
 import { _objectKeys, _stringMapEntries } from '@naturalcycles/js-lib/types'
 import type { JsonSchema } from '@naturalcycles/nodejs-lib/ajv'
 import type { Pipeline } from '@naturalcycles/nodejs-lib/stream'
-import { BaseCommonDB } from '../../commondb/base.common.db.js'
-import type { CommonDB } from '../../commondb/common.db.js'
+import type { CommonDB, CommonDBSupport, CommonDBType } from '../../commondb/common.db.js'
 import type {
   CommonDBOptions,
   CommonDBReadOptions,
@@ -36,10 +35,12 @@ import { NoopDB } from './noop.db.js'
  * and caches rows in the cacheDB of the current cache scope (NoopDB by default).
  *
  * It allows the cache to be scoped by the user, typically to the request.
+ *
+ * Does not extend BaseCommonDB so when a new function is added to it,
+ * we get a type error here and we are forced to think about how it should work with.
  */
-export class CacheDB extends BaseCommonDB implements CommonDB {
+export class CacheDB implements CommonDB {
   constructor(cfg: CacheDBCfg) {
-    super()
     _assert(!cfg.onlyCache || !cfg.skipCache, 'CacheDB: onlyCache and skipCache are both set')
     this.cfg = {
       ...cfg,
@@ -50,25 +51,27 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
   }
 
   cfg: CacheDBCfg & { logger: CommonLogger }
+  dbType: CommonDBType
+  support: CommonDBSupport
 
   private scopeCacheByScope = new WeakMap<AnyObject, ScopeCache>()
   private noopDB = new NoopDB()
 
-  //#region Overridden CommonDB methods
+  //#region CommonDB methods
 
-  override async ping(): Promise<void> {
+  async ping(): Promise<void> {
     await Promise.all([this.getCacheDB().ping(), this.cfg.downstreamDB.ping()])
   }
 
-  override async getTables(): Promise<string[]> {
+  async getTables(): Promise<string[]> {
     return await this.cfg.downstreamDB.getTables()
   }
 
-  override async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<JsonSchema<ROW>> {
+  async getTableSchema<ROW extends ObjectWithId>(table: string): Promise<JsonSchema<ROW>> {
     return await this.cfg.downstreamDB.getTableSchema<ROW>(table)
   }
 
-  override async createTable<ROW extends ObjectWithId>(
+  async createTable<ROW extends ObjectWithId>(
     table: string,
     schema: JsonSchema<ROW>,
     opt: CacheDBCreateOptions = {},
@@ -82,7 +85,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     }
   }
 
-  override async getByIds<ROW extends ObjectWithId>(
+  async getByIds<ROW extends ObjectWithId>(
     table: string,
     ids: readonly string[],
     opt: CacheDBReadOptions = {},
@@ -119,7 +122,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return ids.map(id => rowById.get(id)).filter(_isTruthy)
   }
 
-  override async saveBatch<ROW extends ObjectWithId>(
+  async saveBatch<ROW extends ObjectWithId>(
     table: string,
     rows: readonly ROW[],
     opt: CacheDBSaveOptions<ROW> = {},
@@ -140,7 +143,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     await this.saveAfterWrite(table, rows, opt)
   }
 
-  override async patchById<ROW extends ObjectWithId>(
+  async patchById<ROW extends ObjectWithId>(
     table: string,
     id: string,
     patch: Partial<ROW>,
@@ -159,7 +162,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     await this.invalidateCache(table, [id], opt)
   }
 
-  override async incrementBatch(
+  async incrementBatch(
     table: string,
     prop: string,
     incrementMap: StringMap<number>,
@@ -184,7 +187,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return result
   }
 
-  override async deleteByIds(
+  async deleteByIds(
     table: string,
     ids: readonly string[],
     opt: CacheDBOptions = {},
@@ -208,7 +211,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return deleted
   }
 
-  override async multiGet<ROW extends ObjectWithId>(
+  async multiGet<ROW extends ObjectWithId>(
     idsByTable: StringMap<string[]>,
     opt: CacheDBReadOptions = {},
   ): Promise<StringMap<ROW[]>> {
@@ -260,7 +263,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return result
   }
 
-  override async multiSave<ROW extends ObjectWithId>(
+  async multiSave<ROW extends ObjectWithId>(
     rowsByTable: StringMap<ROW[]>,
     opt: CacheDBSaveOptions<ROW> = {},
   ): Promise<void> {
@@ -280,10 +283,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     await this.multiSaveAfterWrite(rowsByTable, opt)
   }
 
-  override async multiDelete(
-    idsByTable: StringMap<string[]>,
-    opt: CacheDBOptions = {},
-  ): Promise<number> {
+  async multiDelete(idsByTable: StringMap<string[]>, opt: CacheDBOptions = {}): Promise<number> {
     if (this.isOnlyCache(opt)) {
       return await this.changeCache(_objectKeys(idsByTable), cacheDB =>
         this.multiDeleteCache(cacheDB, idsByTable),
@@ -300,7 +300,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return deleted
   }
 
-  override async runQuery<ROW extends ObjectWithId>(
+  async runQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt: CacheDBReadOptions = {},
   ): Promise<RunQueryResult<ROW>> {
@@ -317,7 +317,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return result
   }
 
-  override async runQueryCount<ROW extends ObjectWithId>(
+  async runQueryCount<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt: CacheDBReadOptions = {},
   ): Promise<number> {
@@ -330,7 +330,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return await this.cfg.downstreamDB.runQueryCount(q, this.downstreamOpt(opt))
   }
 
-  override streamQuery<ROW extends ObjectWithId>(
+  streamQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt: CacheDBStreamOptions = {},
   ): Pipeline<ROW> {
@@ -343,7 +343,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return this.cfg.downstreamDB.streamQuery<ROW>(q, this.downstreamOpt(opt))
   }
 
-  override async deleteByQuery<ROW extends ObjectWithId>(
+  async deleteByQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     opt: CacheDBOptions = {},
   ): Promise<number> {
@@ -365,7 +365,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return deleted
   }
 
-  override async patchByQuery<ROW extends ObjectWithId>(
+  async patchByQuery<ROW extends ObjectWithId>(
     q: DBQuery<ROW>,
     patch: Partial<ROW>,
     opt: CacheDBOptions = {},
@@ -383,10 +383,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     return updated
   }
 
-  override async runInTransaction(
-    fn: DBTransactionFn,
-    opt?: CommonDBTransactionOptions,
-  ): Promise<void> {
+  async runInTransaction(fn: DBTransactionFn, opt?: CommonDBTransactionOptions): Promise<void> {
     const txs: CacheDBTransaction[] = []
 
     try {
@@ -402,7 +399,7 @@ export class CacheDB extends BaseCommonDB implements CommonDB {
     }
   }
 
-  override async createTransaction(opt?: CommonDBTransactionOptions): Promise<DBTransaction> {
+  async createTransaction(opt?: CommonDBTransactionOptions): Promise<DBTransaction> {
     const downstreamTx = await this.cfg.downstreamDB.createTransaction(opt)
     return new CacheDBTransaction(this, downstreamTx)
   }
