@@ -190,7 +190,7 @@ export class Abba {
     const experiments = await this.experimentDao.getAll()
 
     const requiresUpdating: Experiment[] = []
-    experiments.map(experiment => {
+    for (const experiment of experiments) {
       // Make sure it's mutual
       if (
         updatedExclusions.includes(experiment.id) &&
@@ -208,7 +208,7 @@ export class Abba {
         experiment.exclusions = experiment.exclusions.filter(id => id !== experimentId)
         requiresUpdating.push(experiment)
       }
-    })
+    }
 
     await this.experimentDao.saveBatch(requiresUpdating, { saveMethod: 'update' })
   }

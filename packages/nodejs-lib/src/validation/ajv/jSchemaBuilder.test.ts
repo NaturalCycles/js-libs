@@ -1133,6 +1133,7 @@ describe('anyOfBy', () => {
   })
 })
 
+/* oxlint-disable typescript/no-deprecated -- tests castAs */
 describe('castAs', () => {
   it('should correctly infer the new type', () => {
     const schema1 = j.string().castAs<number>()
@@ -1142,6 +1143,7 @@ describe('castAs', () => {
     expectTypeOf(schema2.out).toEqualTypeOf<{ foo: string }>()
   })
 })
+/* oxlint-enable typescript/no-deprecated */
 
 describe('final', () => {
   it('should correctly infer the type', () => {

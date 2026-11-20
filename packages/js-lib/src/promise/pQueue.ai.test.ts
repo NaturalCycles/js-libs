@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest'
+import { comparators } from '../array/sort.js'
 import { nowUnixMillis } from '../datetime/time.util.js'
 import { ErrorMode } from '../error/errorMode.js'
 import { commonLoggerCreate } from '../log/commonLogger.js'
@@ -303,7 +304,7 @@ it('should resolve every onIdle listener', async () => {
   const p3 = queue.onIdle().then(() => resolved.push(3))
 
   await Promise.all([p1, p2, p3])
-  expect(resolved.sort()).toEqual([1, 2, 3])
+  expect(resolved.sort(comparators.numericAsc)).toEqual([1, 2, 3])
 })
 
 it('should run all 100 jobs with concurrency 5', async () => {

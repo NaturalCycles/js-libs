@@ -73,7 +73,7 @@ it('should never run more than 4 mappers at once with concurrency 4', async () =
     _range(100).map(() => 0),
     async () => {
       running++
-      expect(running <= concurrency).toBe(true)
+      expect(running).toBeLessThanOrEqual(concurrency)
       await pDelay(_randomInt(3, 20))
       running--
     },

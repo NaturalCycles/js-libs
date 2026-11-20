@@ -83,10 +83,12 @@ export interface AirtableRecord {
 export const airtableIdSchema = j.string()
 
 export function airtableMultipleLinkSchema<T = any>(): JSchema<T[], false> {
+  // oxlint-disable-next-line typescript/no-deprecated -- T is the linked id type
   return j.array(j.string()).default([]).castAs<T[]>()
 }
 
 export function airtableSingleLinkSchema<T = any>(): JSchema<T[], false> {
+  // oxlint-disable-next-line typescript/no-deprecated -- T is the linked id type
   return j.array(j.string()).maxLength(1).default([]).castAs<T[]>()
 }
 

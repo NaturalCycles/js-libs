@@ -5,7 +5,7 @@ const base64urlAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0
 
 it('should return a base64url id of the requested length, 21 by default', () => {
   const id = nanoidBrowser()
-  expect(typeof id).toBe('string')
+  expect(id).toBeTypeOf('string')
   expect(id).toHaveLength(21)
   expectToMatchAlphabet(id, base64urlAlphabet)
 

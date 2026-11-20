@@ -79,7 +79,12 @@ export class CloudStorage implements CommonStorage {
     const { Storage } = await import('@google-cloud/storage')
 
     const storage = new Storage({
-      credentials,
+      // The recommended `authClient: new JWT(...)` breaks getSignedUrl: GoogleAuth then cannot
+      // return client_email from getCredentials(). The deprecation is about loading untrusted
+      // credential configs. Forcing the type to service_account means only a JWT client can be
+      // created (never an external_account config that runs commands or fetches URLs).
+      // oxlint-disable-next-line typescript/no-deprecated
+      credentials: credentials && { ...credentials, type: 'service_account' },
       // Explicitly passing it here to fix this error:
       // Error: Unable to detect a Project Id in the current environment.
       // To learn more about authentication and Google APIs, visit:

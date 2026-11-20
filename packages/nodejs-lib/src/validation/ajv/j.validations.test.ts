@@ -4619,6 +4619,7 @@ describe('castAs', () => {
   it('should correctly infer the new type', () => {
     const schema = j.object
       .infer({ foo: j.string() })
+      // oxlint-disable-next-line typescript/no-deprecated -- tests castAs
       .castAs<{ bar: number }>()
       .isOfType<{ bar: number }>()
 
@@ -4631,6 +4632,7 @@ describe('castAs', () => {
 
   it('should cast the type of a JSchema (non-JBuilder) instance', () => {
     // .optional(['']) returns a JSchema, not a JBuilder
+    // oxlint-disable-next-line typescript/no-deprecated -- tests castAs
     const schema = j.string().optional(['']).castAs<string | undefined>()
     expectTypeOf(schema).toEqualTypeOf<JSchema<string | undefined, true>>()
   })

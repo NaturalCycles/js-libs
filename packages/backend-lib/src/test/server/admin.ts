@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-deprecated -- the dev server still uses the legacy admin API
 import { loadEnvFileIfExists, requireEnvKeys } from '@naturalcycles/nodejs-lib'
 import { createAdminMiddleware } from '../../admin/adminMiddleware.js'
 import { BaseAdminService } from '../../admin/base.admin.service.js'

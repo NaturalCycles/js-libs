@@ -1,10 +1,10 @@
-const started = nowUnixMillis()
-
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { _since, nowUnixMillis } from '@naturalcycles/js-lib/datetime/time.util.js'
 import { createDefaultApp } from '../express/createDefaultApp.js'
 import { debugResource } from './debug.resource.js'
+
+const started = nowUnixMillis()
 
 declare global {
   namespace NodeJS {

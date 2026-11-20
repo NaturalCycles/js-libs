@@ -57,7 +57,7 @@ it('should parse an ISO date-time and expose its parts, formats, setters and com
   const lt2 = lt.clone()
   expect(lt2).not.toBe(lt)
 
-  expect(lt2 === lt).toBe(false)
+  expect(lt2).not.toBe(lt)
   expect(lt.isSame(lt2)).toBe(true)
   expect(lt.isAfter(lt2)).toBe(false)
   expect(lt.isBefore(lt2)).toBe(false)
@@ -617,7 +617,7 @@ it('should keep the unix time when converting between UTC and local', () => {
   const lt = localTime(s).toUTC()
   const ltUtc = lt.toUTC()
 
-  expect(lt !== ltUtc).toBe(true) // not the same instance
+  expect(lt).not.toBe(ltUtc) // not the same instance
   expect(lt.unix).toBe(ltUtc.unix)
   expect(ltUtc.toPretty()).toBe(`1984-06-21 05:00:00`)
   expect(ltUtc.toISODate()).toBe(`1984-06-21`)
@@ -628,7 +628,7 @@ it('should keep the unix time when converting between UTC and local', () => {
 
   const ltLocal = ltUtc.toLocal()
 
-  expect(ltLocal !== ltUtc).toBe(true)
+  expect(ltLocal).not.toBe(ltUtc)
   expect(ltLocal.unix).toBe(ltUtc.unix)
   expect(ltLocal.toPretty()).toBe(lt.toPretty())
   // todo: figure out what to assert in non-utc mode

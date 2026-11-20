@@ -5,7 +5,7 @@ import { j } from './jSchema.js'
 
 it('should implement the StandardSchemaV1 type', () => {
   const schema = j.string()
-  expectTypeOf(schema).toMatchTypeOf<StandardSchemaV1<unknown, string>>()
+  expectTypeOf(schema).toExtend<StandardSchemaV1<unknown, string>>()
 })
 
 it('should expose version 1 and vendor j on ~standard', () => {
@@ -39,7 +39,7 @@ it('should validate an object schema through ~standard.validate', () => {
     name: j.string(),
     age: j.number(),
   })
-  expectTypeOf(schema).toMatchTypeOf<StandardSchemaV1<unknown, TestObj>>()
+  expectTypeOf(schema).toExtend<StandardSchemaV1<unknown, TestObj>>()
 
   const valid = schema['~standard'].validate({ name: 'Alice', age: 30 })
   expect(valid).toEqual({ value: { name: 'Alice', age: 30 } })
@@ -59,7 +59,7 @@ it('should strip unknown properties in ~standard.validate', () => {
 
 it('should implement the StandardJSONSchemaV1 type', () => {
   const schema = j.string()
-  expectTypeOf(schema).toMatchTypeOf<StandardJSONSchemaV1<unknown, string>>()
+  expectTypeOf(schema).toExtend<StandardJSONSchemaV1<unknown, string>>()
 })
 
 it('should return the built schema from jsonSchema.input and output', () => {
@@ -102,8 +102,8 @@ it('should validate a nested object and report invalid or missing nested values'
     tags: j.array(j.string()),
   })
 
-  expectTypeOf(schema).toMatchTypeOf<StandardSchemaV1<unknown, User>>()
-  expectTypeOf(schema).toMatchTypeOf<StandardJSONSchemaV1<unknown, User>>()
+  expectTypeOf(schema).toExtend<StandardSchemaV1<unknown, User>>()
+  expectTypeOf(schema).toExtend<StandardJSONSchemaV1<unknown, User>>()
 
   const valid = schema['~standard'].validate({
     name: 'Alice',
@@ -167,7 +167,7 @@ it('should accept an order and reject an invalid item in its array', () => {
     metadata: j.object.any(),
   })
 
-  expectTypeOf(schema).toMatchTypeOf<StandardSchemaV1<unknown, Order>>()
+  expectTypeOf(schema).toExtend<StandardSchemaV1<unknown, Order>>()
 
   const valid = schema['~standard'].validate({
     id: '550e8400-e29b-41d4-a716-446655440000',
@@ -210,7 +210,7 @@ it('should accept a valid config and reject an unknown enum value, an invalid is
     label: j.oneOf([j.literal('a'), j.literal('b')]),
   })
 
-  expectTypeOf(schema).toMatchTypeOf<StandardSchemaV1<unknown, Config>>()
+  expectTypeOf(schema).toExtend<StandardSchemaV1<unknown, Config>>()
 
   const valid = schema['~standard'].validate({
     status: 'active',
@@ -270,7 +270,7 @@ it('should accept nullable and missing optional fields and reject null for a req
     optional: j.number().optional(),
   })
 
-  expectTypeOf(schema).toMatchTypeOf<StandardSchemaV1<unknown, WithNullable>>()
+  expectTypeOf(schema).toExtend<StandardSchemaV1<unknown, WithNullable>>()
 
   const withAll = schema['~standard'].validate({
     required: 'yes',

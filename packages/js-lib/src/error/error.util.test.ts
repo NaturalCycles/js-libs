@@ -226,7 +226,7 @@ it('should merge data into the error data, keeping the existing data object', ()
 `)
   // Should not re-assign err.data to a new object, should keep the same reference instead
 
-  expect(err2.data === err2Data).toBe(true)
+  expect(err2.data).toBe(err2Data)
 
   _errorDataAppend(err2, { code: 'B' })
   expect((err2 as any).data).toMatchInlineSnapshot(`

@@ -1,4 +1,4 @@
-import { _range, _sortBy } from '@naturalcycles/js-lib/array'
+import { _range, _sortBy, comparators } from '@naturalcycles/js-lib/array'
 import type { KeyValueTuple } from '@naturalcycles/js-lib/types'
 import type { CommonKeyValueDB } from '../kv/commonKeyValueDB.js'
 import { TEST_TABLE } from './test.model.js'
@@ -82,7 +82,7 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
 
   it('should stream all values', async () => {
     const values = await db.streamValues(TEST_TABLE).toArray()
-    values.sort()
+    values.sort(Buffer.compare)
     expect(values).toEqual(testEntries.map(e => e[1]))
   })
 
@@ -95,7 +95,7 @@ export async function runCommonKeyValueDBTest(db: CommonKeyValueDB): Promise<voi
 
   it('should stream all entries', async () => {
     const entries = await db.streamEntries(TEST_TABLE).toArray()
-    entries.sort()
+    entries.sort(comparators.by(e => e[0]))
     expect(entries).toEqual(testEntries)
   })
 

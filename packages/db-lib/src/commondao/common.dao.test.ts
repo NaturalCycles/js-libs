@@ -550,7 +550,7 @@ it('should return the input object from save, with created set on it', async () 
   const saved = await dao.save(obj)
 
   // Should return the original object
-  expect(obj === saved).toBe(true)
+  expect(obj).toBe(saved)
 
   // But `created`, `updated` should be "mutated" on the original object
   expect((obj as any).created).toBe(MOCK_TS_2018_06_21)
@@ -561,7 +561,7 @@ it('should return a new object from validateAndConvert without mutating the inpu
   _deepFreeze(bm)
 
   const bm2 = (dao as any).validateAndConvert(bm)
-  expect(bm === bm2).toBe(false)
+  expect(bm).not.toBe(bm2)
 })
 
 it('should pass `mutateInput` option to the validateBM method', async () => {

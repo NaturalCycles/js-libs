@@ -1,8 +1,7 @@
-import type { BinaryToTextEncoding } from 'node:crypto'
 import { hash as cryptoHash } from 'node:crypto'
 import type { Base64String, Base64UrlString } from '@naturalcycles/js-lib/types'
 
-export function md5(s: string | Uint8Array, outputEncoding: BinaryToTextEncoding = 'hex'): string {
+export function md5(s: string | Uint8Array, outputEncoding: BufferEncoding = 'hex'): string {
   return hash(s, 'md5', outputEncoding)
 }
 
@@ -10,10 +9,7 @@ export function md5AsBuffer(s: string | Uint8Array): Buffer<ArrayBuffer> {
   return hashAsBuffer(s, 'md5')
 }
 
-export function sha256(
-  s: string | Uint8Array,
-  outputEncoding: BinaryToTextEncoding = 'hex',
-): string {
+export function sha256(s: string | Uint8Array, outputEncoding: BufferEncoding = 'hex'): string {
   return hash(s, 'sha256', outputEncoding)
 }
 
@@ -24,7 +20,7 @@ export function sha256AsBuffer(s: string | Uint8Array): Buffer<ArrayBuffer> {
 export function hash(
   s: string | Uint8Array,
   algorithm: string,
-  outputEncoding: BinaryToTextEncoding = 'hex',
+  outputEncoding: BufferEncoding = 'hex',
 ): string {
   return cryptoHash(algorithm, s, outputEncoding)
 }

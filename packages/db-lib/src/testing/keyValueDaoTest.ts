@@ -1,4 +1,4 @@
-import { _sortBy } from '@naturalcycles/js-lib/array/sort.js'
+import { _sortBy, comparators } from '@naturalcycles/js-lib/array/sort.js'
 import { CommonKeyValueDao } from '../kv/commonKeyValueDao.js'
 import type { CommonKeyValueDB, KeyValueDBTuple } from '../kv/commonKeyValueDB.js'
 import { createTestItemsBM, TEST_TABLE } from './test.model.js'
@@ -76,7 +76,7 @@ export async function runCommonKeyValueDaoTest(db: CommonKeyValueDB): Promise<vo
 
   it('should stream all values', async () => {
     const values = await dao.streamValues().toArray()
-    values.sort()
+    values.sort(Buffer.compare)
     expect(values).toEqual(testEntries.map(e => e[1]))
   })
 
@@ -89,7 +89,7 @@ export async function runCommonKeyValueDaoTest(db: CommonKeyValueDB): Promise<vo
 
   it('should stream all entries', async () => {
     const entries = await dao.streamEntries().toArray()
-    entries.sort()
+    entries.sort(comparators.by(e => e[0]))
     expect(entries).toEqual(testEntries)
   })
 

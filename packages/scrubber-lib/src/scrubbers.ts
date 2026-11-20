@@ -233,13 +233,13 @@ export const charsFromRightScrubber: CharsFromRightScrubberFn = (
 
   const { count, replacement, replaceFull } = params
 
+  // Math.max: a negative end would make slice() count from the end of the string
+  const kept = value.slice(0, Math.max(0, value.length - count))
   if (replaceFull) {
-    // oxlint-disable-next-line unicorn/prefer-string-slice
-    return value.substr(0, value.length - count) + replacement
+    return kept + replacement
   }
   const lengthToReplace = Math.min(count, value.length)
-  // oxlint-disable-next-line unicorn/prefer-string-slice
-  return value.substr(0, value.length - count) + replacement.repeat(lengthToReplace)
+  return kept + replacement.repeat(lengthToReplace)
 }
 
 export const charsFromRightScrubberSQL: CharsFromRightScrubberSQLFn = (

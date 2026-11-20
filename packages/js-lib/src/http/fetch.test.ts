@@ -171,5 +171,5 @@ async function expectCallsAfter(
   calls: number,
 ): Promise<void> {
   await vi.advanceTimersByTimeAsync(millis)
-  expect(fetchSpy.mock.calls).toHaveLength(calls)
+  expect(fetchSpy).toHaveBeenCalledTimes(calls)
 }

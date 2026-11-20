@@ -74,9 +74,7 @@ export function determineBucket(buckets: readonly Bucket[]): Bucket {
       range = [range[1], range[1] + b.ratio]
     }
 
-    if (bucketRoll > range[0] && bucketRoll <= range[1]) {
-      return b
-    }
+    return bucketRoll > range[0] && bucketRoll <= range[1]
   })
 
   _assert(bucket, 'Could not determine bucket from ratios', {

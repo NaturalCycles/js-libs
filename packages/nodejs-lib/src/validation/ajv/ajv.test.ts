@@ -89,7 +89,7 @@ it('should mutate input by default', () => {
   const input = { s: 's', extra: 'abc' } as Simple
   const result = schema.validate(input)
   expect(input).toEqual({ s: 's' }) // input is mutated
-  expect(result === input).toBe(true) // reference to the same object is returned
+  expect(result).toBe(input) // reference to the same object is returned
 })
 
 it('should not mutate the input when mutateInput is false', () => {
@@ -98,7 +98,7 @@ it('should not mutate the input when mutateInput is false', () => {
   const result = schema.validate(input, { mutateInput: false })
   expect(result).toEqual({ s: 's' }) // extra removed
   expect(input).toEqual({ s: 's', extra: 'abc' }) // input is not mutated
-  expect(result !== input).toBe(true) // different object is returned
+  expect(result).not.toBe(input) // different object is returned
 })
 
 it('should accept null-typed properties and report every missing required property', () => {

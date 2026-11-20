@@ -67,7 +67,7 @@ it('should type the BaseDBEntity fields of Saved, Unsaved and UnsavedId entities
     updated: undefined,
   } as Unsaved<Item>
 
-  expectTypeOf(item).toMatchTypeOf<{
+  expectTypeOf(item).toExtend<{
     a?: number
     id?: string
     created?: number
@@ -89,7 +89,7 @@ it('should type the BaseDBEntity fields of Saved, Unsaved and UnsavedId entities
   }>()
 
   const savedItemDBM = itemDBM as Saved<ItemDBM>
-  expectTypeOf(savedItemDBM).toMatchTypeOf<{
+  expectTypeOf(savedItemDBM).toExtend<{
     id: string
     created: number
     updated: number
@@ -103,7 +103,7 @@ it('should type the BaseDBEntity fields of Saved, Unsaved and UnsavedId entities
     a: undefined,
   }
 
-  expectTypeOf(unsavedItem).toMatchTypeOf<{
+  expectTypeOf(unsavedItem).toExtend<{
     id?: string
     created?: number
     updated?: number
@@ -118,7 +118,7 @@ it('should type the BaseDBEntity fields of Saved, Unsaved and UnsavedId entities
     a: undefined,
   }
 
-  expectTypeOf(unsavedItemDBM).toMatchTypeOf<{
+  expectTypeOf(unsavedItemDBM).toExtend<{
     a?: number
     id?: string
     created?: number
@@ -128,7 +128,7 @@ it('should type the BaseDBEntity fields of Saved, Unsaved and UnsavedId entities
   const unsavedItemId: UnsavedId<ItemDBM> = itemDBM
   unsavedItemId.id = undefined
 
-  expectTypeOf(unsavedItemId).toMatchTypeOf<{
+  expectTypeOf(unsavedItemId).toExtend<{
     id?: string
     created: number
     updated: number
@@ -177,7 +177,7 @@ it('should return typed values, entries and keys of a string map', () => {
   expect(entries2).toEqual(entries)
 
   const keys = _objectKeys(o)
-  expectTypeOf(keys).toMatchTypeOf<string[]>()
+  expectTypeOf(keys).toExtend<string[]>()
   expect(keys).toEqual(['b', 'c', 'd'])
 
   expect(_stringMapValuesSorted(o, v => v)).toEqual([2, 3, 4])

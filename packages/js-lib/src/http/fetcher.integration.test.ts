@@ -73,10 +73,10 @@ it('should return a 404 HttpRequestError with request data and cause on a failed
 
   if (r.ok) {
     expectTypeOf(r.err).toBeUndefined()
-    expectTypeOf(r.body).toMatchTypeOf<number>()
+    expectTypeOf(r.body).toExtend<number>()
   } else {
-    expectTypeOf(r.err).toMatchTypeOf<Error>()
-    expectTypeOf(r.body).toMatchTypeOf<number | undefined>()
+    expectTypeOf(r.err).toExtend<Error>()
+    expectTypeOf(r.body).toExtend<number | undefined>()
   }
 })
 

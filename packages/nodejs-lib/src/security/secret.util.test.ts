@@ -1,6 +1,23 @@
 import { afterAll, expect, it } from 'vitest'
+import {
+  secrets2JsonPath,
+  secretsJsonEncPath,
+  secretsJsonPath,
+  TEST_ENC_KEY,
+} from '../test/test.cnst.js'
+import {
+  getSecretMap,
+  loadSecretsFromEncryptedJsonFile,
+  loadSecretsFromEncryptedJsonFileValues,
+  loadSecretsFromEnv,
+  secret,
+  secretOptional,
+  setSecretMap,
+} from './secret.util.js'
 
 // todo: mock properly
+// Imports are evaluated before this code runs. The mock still works, because secret.util reads
+// process.env only when its functions are called.
 const originalProcessEnv = process.env
 process.env = {
   A: 'AAA',
@@ -11,23 +28,6 @@ process.env = {
     hello: 'secret world',
   } as any,
 }
-
-import {
-  secrets2JsonPath,
-  secretsJsonEncPath,
-  secretsJsonPath,
-  TEST_ENC_KEY,
-} from '../test/test.cnst.js'
-// order is important, secret.util should be loaded after the mocks
-import {
-  getSecretMap,
-  loadSecretsFromEncryptedJsonFile,
-  loadSecretsFromEncryptedJsonFileValues,
-  loadSecretsFromEnv,
-  secret,
-  secretOptional,
-  setSecretMap,
-} from './secret.util.js'
 
 afterAll(() => {
   process.env = originalProcessEnv

@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-deprecated -- legacy admin API (replaced by AuthService), kept for backward compatibility
 import { AppError } from '@naturalcycles/js-lib/error/error.util.js'
 import { timingSafeStringEqual } from '@naturalcycles/nodejs-lib'
 import type { BackendRequestHandler } from '../server/server.model.js'

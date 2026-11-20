@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-deprecated -- tests the legacy admin API
 import { MOCK_TS_2018_06_21 } from '@naturalcycles/dev-lib/testing/time'
 import { _expectedError, AssertionError } from '@naturalcycles/js-lib/error'
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'

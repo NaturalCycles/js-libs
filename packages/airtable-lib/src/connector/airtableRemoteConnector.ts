@@ -91,13 +91,10 @@ export class AirtableRemoteConnector<
               existingRecord = rows[0]
             }
 
-            if (existingRecord) {
-              const newRecord = await dao.updateRecord(existingRecord.airtableId, r, opt)
-              idMap[oldId] = newRecord.airtableId
-            } else {
-              const newRecord = await dao.createRecord(r, opt)
-              idMap[oldId] = newRecord.airtableId
-            }
+            const newRecord = existingRecord
+              ? await dao.updateRecord(existingRecord.airtableId, r, opt)
+              : await dao.createRecord(r, opt)
+            idMap[oldId] = newRecord.airtableId
           },
           { concurrency: opt.skipPreservingOrder ? concurrency : 1 },
         )

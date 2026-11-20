@@ -75,7 +75,7 @@ export function mergeJsonSchemaObjects<T1 extends AnyObject, T2 extends AnyObjec
 
   // Merge `required`
   s1.required.push(...s2.required)
-  s1.required = _uniq(s1.required).sort()
+  s1.required = _uniq(s1.required as string[]).sort()
 
   // `additionalProperties` remains the same, unless s2 is a string map (schema-valued)
   if (typeof s2.additionalProperties === 'object') {

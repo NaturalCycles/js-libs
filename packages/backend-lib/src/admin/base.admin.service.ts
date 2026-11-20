@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-deprecated -- legacy admin API (replaced by AuthService), kept for backward compatibility
 import { _Memo } from '@naturalcycles/js-lib/decorators'
 import { _assert } from '@naturalcycles/js-lib/error'
 import type { AnyObject } from '@naturalcycles/js-lib/types'

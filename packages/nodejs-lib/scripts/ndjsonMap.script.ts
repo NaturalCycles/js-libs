@@ -21,6 +21,7 @@ runScript(async () => {
     ).toNDJsonFile(inputFilePath)
   }
 
+  // oxlint-disable-next-line typescript/no-deprecated -- the script exercises ndjsonMap
   await ndjsonMap(mapper, { inputFilePath, outputFilePath })
 })
 

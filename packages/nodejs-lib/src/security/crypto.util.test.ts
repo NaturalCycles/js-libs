@@ -53,7 +53,7 @@ it('should encrypt object values deterministically and decrypt them to an equal 
   const enc = encryptObject(obj1, encKeyBuffer)
   const obj2 = decryptObject(enc, encKeyBuffer)
   expect(obj2).toEqual(obj1)
-  expect(obj2 === obj1).toBe(false)
+  expect(obj2).not.toBe(obj1)
 
   expect(enc).toMatchInlineSnapshot(`
     {

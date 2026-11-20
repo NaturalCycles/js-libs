@@ -147,12 +147,8 @@ export function objectToShellExport(obj: AnyObject, prefix = ''): string {
 
   return (
     Object.entries(obj)
-      .map(([k, v]) => {
-        if (v !== undefined && v !== null) {
-          return `export ${prefix}${k}="${v}"`
-        }
-      })
-      .filter(Boolean)
+      .filter(([_k, v]) => v !== undefined && v !== null)
+      .map(([k, v]) => `export ${prefix}${k}="${v}"`)
       .join('\n') + '\n'
   ) // trailing \n is important
 }
@@ -178,12 +174,8 @@ export function objectToGithubActionsEnv(obj: AnyObject, prefix = ''): string {
 
   return (
     Object.entries(obj)
-      .map(([k, v]) => {
-        if (v !== undefined && v !== null) {
-          return `${prefix}${k}=${v}`
-        }
-      })
-      .filter(Boolean)
+      .filter(([_k, v]) => v !== undefined && v !== null)
+      .map(([k, v]) => `${prefix}${k}=${v}`)
       .join('\n') + '\n'
   ) // trailing \n is important
 }

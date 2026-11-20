@@ -55,8 +55,8 @@ it('should return the keys of a number enum without the reverse mappings', () =>
 
 it('should return the values of a number enum without the reverse mappings', () => {
   expect(_numberEnumValues(MyNumberEnum)).toEqual([1, 2, 3])
-  expectTypeOf(_numberEnumValues(MyNumberEnum)).toMatchTypeOf<MyNumberEnum[]>()
-  expectTypeOf(_numberEnumValues(MyNumberEnum)).toMatchTypeOf<number[]>()
+  expectTypeOf(_numberEnumValues(MyNumberEnum)).toExtend<MyNumberEnum[]>()
+  expectTypeOf(_numberEnumValues(MyNumberEnum)).toExtend<number[]>()
   const values = _numberEnumValues(MyNumberEnum)
   expect(values).toContain(MyNumberEnum.K1)
 })
@@ -81,7 +81,7 @@ it('should return the values of a string enum', () => {
     ]
   `)
 
-  expectTypeOf(_stringEnumValues(MyStringEnum)).toMatchTypeOf<MyStringEnum[]>()
+  expectTypeOf(_stringEnumValues(MyStringEnum)).toExtend<MyStringEnum[]>()
 })
 
 it('should return the entries and maps of a number enum, also reversed', () => {
@@ -92,7 +92,7 @@ it('should return the entries and maps of a number enum, also reversed', () => {
       "K3": 3,
     }
   `)
-  expectTypeOf(_numberEnumEntries(MyNumberEnum)).toMatchTypeOf<
+  expectTypeOf(_numberEnumEntries(MyNumberEnum)).toExtend<
     [keyof typeof MyNumberEnum, MyNumberEnum][]
   >()
 

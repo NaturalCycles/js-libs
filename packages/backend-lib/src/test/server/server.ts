@@ -10,8 +10,6 @@ autocannon -c 100 -d 40 -p 10 localhost:8080
 
  */
 
-console.log('startServer... ')
-
 import { _errorLikeToErrorObject, AppError } from '@naturalcycles/js-lib/error'
 import { pDelay } from '@naturalcycles/js-lib/promise/pDelay.js'
 import { loginHtml } from '../../admin/adminMiddleware.js'
@@ -35,12 +33,15 @@ import {
 import { adminService, firebaseService, reqAdmin } from './admin.js'
 import { sentry } from './instrument.js'
 
+console.log('startServer... ')
+
 const router = getDefaultRouter()
 export const rootResource = router
 
 router.get('/', okMiddleware())
 router.get('/status', serverStatusMiddleware())
 router.get('/stats', serverStatsHTMLHandler)
+// oxlint-disable-next-line typescript/no-deprecated -- the dev server still uses the legacy admin API
 router.get('/login.html', loginHtml(firebaseService.cfg))
 
 router.get('/admin/info', async (req, res) => {

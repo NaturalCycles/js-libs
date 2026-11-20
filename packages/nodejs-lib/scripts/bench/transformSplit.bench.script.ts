@@ -254,12 +254,12 @@ function legacyTransformSplitOnNewline(): Transform {
         const idx = legacyFirstNewlineMatch(buf, offset)
         if (idx !== -1 && idx < buf.length) {
           if (lastMatch !== idx) {
-            this.push(buf.slice(lastMatch, idx))
+            this.push(buf.subarray(lastMatch, idx))
           }
           offset = idx + 1
           lastMatch = offset
         } else {
-          buffered = buf.slice(lastMatch)
+          buffered = buf.subarray(lastMatch)
           break
         }
       }
@@ -295,12 +295,12 @@ function legacyTransformSplit(separator = '\n'): Transform {
         const idx = legacyFirstMatch(buf, offset - matcher.length + 1, matcher)
         if (idx !== -1 && idx < buf.length) {
           if (lastMatch !== idx) {
-            this.push(buf.slice(lastMatch, idx))
+            this.push(buf.subarray(lastMatch, idx))
           }
           offset = idx + matcher.length
           lastMatch = offset
         } else {
-          buffered = buf.slice(lastMatch)
+          buffered = buf.subarray(lastMatch)
           break
         }
       }

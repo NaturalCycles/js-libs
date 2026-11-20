@@ -5,6 +5,7 @@ import type { DBQueryFilter, DBQueryOrder } from '../query/dbQuery.js'
 import { dbQueryFilterOperatorValues } from '../query/dbQuery.js'
 
 // oxlint-disable typescript/explicit-function-return-type
+// oxlint-disable typescript/no-deprecated -- castAs narrows string to keyof ROW, which a schema cannot check
 
 // DBTransaction schema - validates presence without deep validation
 const dbTransactionSchema = j.object.any().castAs<DBTransaction>()

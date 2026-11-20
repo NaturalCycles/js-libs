@@ -130,7 +130,6 @@ export function transformThrottleByRSS<T>(
             `transformThrottleByRSS pollTimeout of ${_ms(pollTimeout)} reached, RSS ${_mb(rss)} still > ${maxRSS} MB`,
           ),
         )
-        lock = undefined
       } else {
         // open-the-floodgates
         logger.error(
@@ -138,8 +137,8 @@ export function transformThrottleByRSS<T>(
         )
         disabled = true
         lock!.resolve()
-        lock = undefined
       }
+      lock = undefined
     } else {
       logger.log(
         `${localTime.now().toPretty()} transformThrottleByRSS still paused: RSS ${_mb(rss)} > ${maxRSS} MB, rechecking in ${_ms(pollInterval)}`,
