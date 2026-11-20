@@ -23,4 +23,5 @@ export class SummaryOnlyReporter {
   }
 }
 
+// oxlint-disable-next-line typescript/no-deprecated -- kept for backward compatibility
 export default SummaryOnlyReporter

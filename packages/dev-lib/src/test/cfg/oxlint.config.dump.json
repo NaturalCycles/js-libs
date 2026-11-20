@@ -35,6 +35,12 @@
         "next": "class"
       }
     ],
+    "array-callback-return": [
+      "deny",
+      {
+        "allowImplicit": true
+      }
+    ],
     "complexity": [
       "deny",
       {
@@ -43,6 +49,7 @@
     ],
     "constructor-super": "deny",
     "curly": ["deny", "multi-line"],
+    "default-param-last": "deny",
     "eqeqeq": [
       "deny",
       "always",
@@ -87,6 +94,7 @@
     "no-const-assign": "deny",
     "no-constant-binary-expression": "deny",
     "no-constant-condition": "deny",
+    "no-constructor-return": "deny",
     "no-control-regex": "deny",
     "no-debugger": "deny",
     "no-delete-var": "deny",
@@ -131,10 +139,12 @@
     "no-misleading-character-class": "deny",
     "no-nested-ternary": "deny",
     "no-new": "deny",
+    "no-new-func": "deny",
     "no-new-native-nonconstructor": "deny",
     "no-new-wrappers": "deny",
     "no-nonoctal-decimal-escape": "deny",
     "no-obj-calls": "deny",
+    "no-proto": "deny",
     "no-prototype-builtins": "deny",
     "no-regex-spaces": "deny",
     "no-restricted-globals": [
@@ -151,6 +161,7 @@
         "message": "Use localTime / localDate from @naturalcycles/js-lib/datetime."
       }
     ],
+    "no-return-assign": "deny",
     "no-self-assign": "deny",
     "no-sequences": "deny",
     "no-setter-return": "deny",
@@ -207,6 +218,7 @@
     "valid-typeof": "deny",
     "import/consistent-type-specifier-style": "deny",
     "import/default": "deny",
+    "import/export": "deny",
     "import/extensions": [
       "deny",
       "always",
@@ -215,6 +227,7 @@
         "checkTypeImports": true
       }
     ],
+    "import/first": "deny",
     "import/namespace": "deny",
     "import/newline-after-import": "deny",
     "import/no-absolute-path": "deny",
@@ -257,7 +270,7 @@
     "oxc/bad-min-max-func": "deny",
     "oxc/bad-object-literal-comparison": "deny",
     "oxc/bad-replace-all-arg": "deny",
-    "oxc/branches-sharing-code": "allow",
+    "oxc/branches-sharing-code": "deny",
     "oxc/const-comparisons": "deny",
     "oxc/double-comparisons": "deny",
     "oxc/erasing-op": "deny",
@@ -266,11 +279,14 @@
     "oxc/no-accumulating-spread": "deny",
     "oxc/no-const-enum": "deny",
     "oxc/no-map-spread": "allow",
+    "oxc/no-this-in-exported-function": "deny",
     "oxc/number-arg-out-of-range": "deny",
     "oxc/only-used-in-recursion": "deny",
     "oxc/uninvoked-array-callback": "deny",
     "promise/no-callback-in-promise": "deny",
+    "promise/no-multiple-resolved": "deny",
     "promise/no-new-statics": "deny",
+    "promise/no-return-in-finally": "deny",
     "promise/spec-only": "deny",
     "promise/valid-params": "deny",
     "typescript/adjacent-overload-signatures": "deny",
@@ -407,6 +423,7 @@
     "typescript/prefer-namespace-keyword": "deny",
     "typescript/prefer-optional-chain": "deny",
     "typescript/prefer-promise-reject-errors": "deny",
+    "typescript/prefer-readonly": "allow",
     "typescript/prefer-reduce-type-parameter": "deny",
     "typescript/prefer-string-starts-ends-with": [
       "deny",
@@ -424,12 +441,18 @@
         "checkMethodDeclarations": true
       }
     ],
-    "typescript/require-array-sort-compare": "allow",
+    "typescript/related-getter-setter-pairs": "deny",
+    "typescript/require-array-sort-compare": "deny",
     "typescript/require-await": "allow",
     "typescript/restrict-plus-operands": "deny",
     "typescript/restrict-template-expressions": "allow",
     "typescript/return-await": ["deny", "error-handling-correctness-only"],
-    "typescript/switch-exhaustiveness-check": "allow",
+    "typescript/switch-exhaustiveness-check": [
+      "deny",
+      {
+        "considerDefaultExhaustiveForUnions": true
+      }
+    ],
     "typescript/triple-slash-reference": "deny",
     "typescript/unbound-method": [
       "allow",
@@ -450,9 +473,13 @@
     "unicorn/consistent-existence-index-check": "deny",
     "unicorn/error-message": "deny",
     "unicorn/escape-case": "deny",
+    "unicorn/no-abusive-eslint-disable": "allow",
     "unicorn/no-accessor-recursion": "deny",
     "unicorn/no-anonymous-default-export": "deny",
+    "unicorn/no-array-fill-with-reference-type": "deny",
     "unicorn/no-array-reduce": "deny",
+    "unicorn/no-array-reverse": "allow",
+    "unicorn/no-array-sort": "allow",
     "unicorn/no-await-in-promise-methods": "deny",
     "unicorn/no-console-spaces": "deny",
     "unicorn/no-document-cookie": "deny",
@@ -483,7 +510,9 @@
     "unicorn/no-useless-length-check": "deny",
     "unicorn/no-useless-promise-resolve-reject": "deny",
     "unicorn/no-useless-spread": "deny",
+    "unicorn/no-useless-switch-case": "deny",
     "unicorn/no-zero-fractions": "deny",
+    "unicorn/number-literal-case": "allow",
     "unicorn/numeric-separators-style": [
       "deny",
       {
@@ -508,6 +537,7 @@
     ],
     "unicorn/prefer-add-event-listener": "deny",
     "unicorn/prefer-array-find": "deny",
+    "unicorn/prefer-array-flat": "deny",
     "unicorn/prefer-array-flat-map": "deny",
     "unicorn/prefer-array-index-of": "deny",
     "unicorn/prefer-array-some": "deny",
@@ -536,6 +566,7 @@
     "unicorn/prefer-object-from-entries": "deny",
     "unicorn/prefer-optional-catch-binding": "deny",
     "unicorn/prefer-reflect-apply": "deny",
+    "unicorn/prefer-regexp-test": "allow",
     "unicorn/prefer-response-static-json": "deny",
     "unicorn/prefer-set-has": "deny",
     "unicorn/prefer-set-size": "deny",
@@ -557,6 +588,7 @@
         "withDash": false
       }
     ],
+    "unicorn/throw-new-error": "deny",
     "vitest/consistent-each-for": "deny",
     "vitest/consistent-test-filename": "deny",
     "vitest/consistent-test-it": [
@@ -594,9 +626,14 @@
       }
     ],
     "vitest/no-standalone-expect": "deny",
+    "vitest/no-test-prefixes": "deny",
     "vitest/no-test-return-statement": "deny",
+    "vitest/no-unneeded-async-expect-function": "deny",
     "vitest/padding-around-after-all-blocks": "deny",
     "vitest/prefer-called-exactly-once-with": "deny",
+    "vitest/prefer-comparison-matcher": "allow",
+    "vitest/prefer-equality-matcher": "deny",
+    "vitest/prefer-expect-type-of": "deny",
     "vitest/prefer-hooks-in-order": "deny",
     "vitest/prefer-hooks-on-top": "deny",
     "vitest/prefer-mock-promise-shorthand": "deny",
@@ -604,13 +641,15 @@
     "vitest/prefer-snapshot-hint": "allow",
     "vitest/prefer-spy-on": "deny",
     "vitest/prefer-to-be": "deny",
+    "vitest/prefer-to-be-object": "deny",
     "vitest/prefer-to-contain": "deny",
+    "vitest/prefer-to-have-been-called-times": "deny",
     "vitest/prefer-to-have-length": "deny",
     "vitest/require-awaited-expect-poll": "deny",
     "vitest/require-local-test-context-for-concurrent-snapshots": "deny",
     "vitest/require-mock-type-parameters": "deny",
     "vitest/require-to-throw-message": "deny",
-    "vitest/valid-describe-callback": "allow",
+    "vitest/valid-describe-callback": "deny",
     "vitest/valid-expect": "allow",
     "vitest/valid-expect-in-promise": "deny",
     "vitest/valid-title": [

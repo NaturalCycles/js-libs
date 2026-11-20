@@ -4,10 +4,9 @@ export default defineOxlintConfig({
   ignorePatterns: ['docs'],
   rules: {
     'import/no-default-export': 0,
-    'no-duplicate-imports': [
-      2, // experimental, no auto-fix yet
-      { allowSeparateTypeImports: true },
-    ],
+    // Libraries introduce deprecations, so they should not use deprecated APIs themselves.
+    // Not in the shared config: consumers keep using their own deprecated domain fields.
+    'typescript/no-deprecated': 2,
   },
   overrides: [
     {

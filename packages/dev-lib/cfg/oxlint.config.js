@@ -90,20 +90,20 @@ export const sharedConfig = {
     'no-this-alias': 0,
     'no-shadow': 0, // too many shadows in the codebase already
     'no-async-promise-executor': 0,
-    'no-standalone-expect': 0,
-    'no-conditional-expect': 0,
     'vitest/no-conditional-expect': 0,
-    'expect-expect': 0,
     'vitest/expect-expect': 0,
-    'no-disabled-tests': 0,
     'vitest/no-disabled-tests': 0,
-    'no-useless-assignment': 0, // buggy, gives false positives
+    'no-useless-assignment': 0, // flags intentional dead stores, e.g. `arr = []` to release memory
     'no-nested-ternary': 2,
     'object-shorthand': 2,
-    'valid-expect': 0,
-    'valid-title': 0,
     'vitest/valid-title': [2, { mustMatch: { it: '^should ' } }],
-    'valid-describe-callback': 0,
+    // Allows a bare `return` in map/filter/find callbacks, but not falling off the end
+    'array-callback-return': [2, { allowImplicit: true }],
+    'default-param-last': 2,
+    'no-constructor-return': 2,
+    'no-new-func': 2,
+    'no-proto': 2,
+    'no-return-assign': 2,
     // Options arguments and variables are `opt`, never `opts`
     'id-denylist': [2, 'opts'],
     // 'id-denylist': [
@@ -133,7 +133,7 @@ export const sharedConfig = {
     'no-useless-call': 2,
     'no-implied-eval': 2,
     'no-accumulating-spread': 2,
-    'no-map-spread': 0, // todo: consider, check the effect
+    'no-map-spread': 0, // its fix mutates the mapped objects, and we never mutate arguments
     'prefer-array-find': 2,
     'prefer-array-flat-map': 2,
     'prefer-set-has': 2,
@@ -164,7 +164,7 @@ export const sharedConfig = {
     'prefer-object-has-own': 2,
     'no-extra-bind': 2,
     'no-duplicate-imports': [
-      0, // disabled until auto-fix is there
+      0, // redundant with import/no-duplicates, which can autofix
       {
         allowSeparateTypeImports: true,
       },
@@ -188,7 +188,9 @@ export const sharedConfig = {
     'import/no-default-export': 2,
     'import/no-webpack-loader-syntax': 2,
     'import/no-duplicates': [2, { 'prefer-inline': false }],
-    // "import/export": 2, // todo: adopt when it graduates
+    'import/export': 2,
+    // In ESM, code between imports runs after all imports are evaluated
+    'import/first': 2,
     'import/no-empty-named-blocks': 2,
     'import/no-absolute-path': 2,
     'import/no-named-as-default': 2,
@@ -199,7 +201,10 @@ export const sharedConfig = {
     'oxc/no-const-enum': 2,
     'oxc/approx-constant': 2,
     'oxc/misrefactored-assign-op': 2,
-    'oxc/branches-sharing-code': 0, // todo: consider later
+    'oxc/branches-sharing-code': 2,
+    'oxc/no-this-in-exported-function': 2,
+    'promise/no-multiple-resolved': 2,
+    'promise/no-return-in-finally': 2,
     'promise/spec-only': 2,
     'typescript/class-literal-property-style': 2,
     'typescript/consistent-type-exports': 2,
@@ -276,7 +281,7 @@ export const sharedConfig = {
         allowSingleElementEquality: 'always',
       },
     ],
-    'typescript/require-await': 0, // not good yet
+    'typescript/require-await': 0, // conflicts with promise-function-async (async without await)
     'typescript/restrict-plus-operands': 2,
     'typescript/return-await': [2, 'error-handling-correctness-only'],
     'typescript/only-throw-error': 2,
@@ -304,9 +309,14 @@ export const sharedConfig = {
         ignoreStatic: true,
       },
     ],
-    'typescript/switch-exhaustiveness-check': 0, // not good
-    'typescript/require-array-sort-compare': 0, // not good
-    'typescript/restrict-template-expressions': 0, // not good
+    // A `default` case counts as exhaustive, so the rule only flags switches without one
+    'typescript/switch-exhaustiveness-check': [2, { considerDefaultExhaustiveForUnions: true }],
+    // String arrays are allowed; numbers, booleans and numeric enums sort lexicographically
+    'typescript/require-array-sort-compare': 2,
+    // Mostly flags `${err}`; no-base-to-string already catches "[object Object]"
+    'typescript/restrict-template-expressions': 0,
+    'typescript/related-getter-setter-pairs': 2,
+    'typescript/prefer-readonly': 0, // adds `readonly` to every private member that is never reassigned
     'typescript/no-redundant-type-constituents': 0, // `'a' | string` is still useful for DX
     '@typescript-eslint/explicit-member-accessibility': [
       2,
@@ -384,6 +394,21 @@ export const sharedConfig = {
     'import/no-named-default': 2,
     'import/consistent-type-specifier-style': 2,
     'unicorn/no-new-array': 0, // it's actually ok
+    // These force a copy (toSorted/toReversed) even for arrays the function owns, e.g. fresh
+    // from slice/filter/Array.from. In-place sort/reverse of an owned array is fine and faster.
+    'unicorn/no-array-sort': 0,
+    'unicorn/no-array-reverse': 0,
+    'unicorn/number-literal-case': 0, // conflicts with oxfmt, which lowercases hex digits
+    // A file-level blanket `oxlint-disable` keeps new rules and --fix away from benchmarks,
+    // third-party snippets (pixels) and vendored code
+    'unicorn/no-abusive-eslint-disable': 0,
+    'unicorn/no-array-fill-with-reference-type': 2,
+    'unicorn/no-useless-switch-case': 2,
+    'unicorn/prefer-array-flat': 2,
+    // Its fix (applied by --fix-suggestions) is not equivalent: `re.test()` is stateful for /g
+    // and /y regexes, and `str.match(pattern)` with a string pattern becomes `pattern.test()`
+    'unicorn/prefer-regexp-test': 0,
+    'unicorn/throw-new-error': 2,
     'unicorn/catch-error-name': [
       2,
       {
@@ -463,7 +488,9 @@ export const sharedConfig = {
     'vitest/prefer-snapshot-hint': 0, // annoying
     'vitest/prefer-to-have-length': 2,
     'vitest/require-to-throw-message': 2,
-    'vitest/valid-describe-callback': 0,
+    'vitest/valid-describe-callback': 2,
+    // `expect(value, message)` is valid in vitest; unawaited async assertions are caught by
+    // no-floating-promises
     'vitest/valid-expect': 0,
     'vitest/no-import-node-test': 2,
     'vitest/no-mocks-import': 2,
@@ -471,6 +498,15 @@ export const sharedConfig = {
     'vitest/prefer-to-be': 2,
     'vitest/prefer-to-contain': 2,
     'vitest/prefer-called-exactly-once-with': 2,
+    // Not type-aware: it also rewrites string and valueOf-object comparisons (dates, LocalDate),
+    // but toBeLessThan and friends accept only number | bigint
+    'vitest/prefer-comparison-matcher': 0,
+    'vitest/prefer-equality-matcher': 2,
+    'vitest/prefer-expect-type-of': 2,
+    'vitest/prefer-to-have-been-called-times': 2,
+    'vitest/prefer-to-be-object': 2,
+    'vitest/no-test-prefixes': 2,
+    'vitest/no-unneeded-async-expect-function': 2,
     'vitest/consistent-test-filename': 2,
     'vitest/warn-todo': 0,
     'vitest/consistent-test-it': [2, { fn: 'it', withinDescribe: 'it' }],
