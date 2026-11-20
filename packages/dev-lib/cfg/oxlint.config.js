@@ -402,7 +402,7 @@ export const sharedConfig = {
     // A file-level blanket `oxlint-disable` keeps new rules and --fix away from benchmarks,
     // third-party snippets (pixels) and vendored code
     'unicorn/no-abusive-eslint-disable': 0,
-    'unicorn/no-array-fill-with-reference-type': 2,
+    'unicorn/no-array-fill-with-reference-type': 0, // flags `fill([])` even when the shared value is never mutated
     'unicorn/no-useless-switch-case': 2,
     'unicorn/prefer-array-flat': 2,
     // Its fix (applied by --fix-suggestions) is not equivalent: `re.test()` is stateful for /g

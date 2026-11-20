@@ -476,7 +476,7 @@
     "unicorn/no-abusive-eslint-disable": "allow",
     "unicorn/no-accessor-recursion": "deny",
     "unicorn/no-anonymous-default-export": "deny",
-    "unicorn/no-array-fill-with-reference-type": "deny",
+    "unicorn/no-array-fill-with-reference-type": "allow",
     "unicorn/no-array-reduce": "deny",
     "unicorn/no-array-reverse": "allow",
     "unicorn/no-array-sort": "allow",
