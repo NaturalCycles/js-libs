@@ -45,7 +45,6 @@ const preferAssertRule = {
     return {
       IfStatement(node) {
         if (node.alternate || node.parent.type === 'IfStatement') return
-        if (!isAssertableTest(node.test)) return
 
         const { consequent } = node
         const statement =
@@ -59,11 +58,14 @@ const preferAssertRule = {
           error.type !== 'NewExpression' ||
           error.callee.type !== 'Identifier' ||
           !ASSERTABLE_ERRORS.has(error.callee.name) ||
-          error.arguments.length > maxArguments(error.callee.name) ||
-          error.arguments.some(argument => containsEvaluation(argument))
+          error.arguments.length > maxArguments(error.callee.name)
         ) {
           return
         }
+        // The checks below walk subtrees, so they run after the cheap shape checks above: most `if`
+        // statements do not throw and never reach them
+        if (!isAssertableTest(node.test)) return
+        if (error.arguments.some(argument => containsEvaluation(argument))) return
         const narrowed = referencedNames(node.test)
         if (error.arguments.some(argument => referencesAny(argument, narrowed))) return
 
