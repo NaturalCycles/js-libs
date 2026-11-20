@@ -153,8 +153,6 @@ const noSingletonSelfReferenceRule = {
       useThis: 'Use `this` instead of {{name}} inside {{className}}',
     },
   },
-  // Bindings are resolved with a small shadowing check instead of the scope manager: building
-  // scopes for every file with a class made this rule cost ~0.35 s on NCBackend3
   create(context) {
     const { sourceCode } = context
     const classes = []
