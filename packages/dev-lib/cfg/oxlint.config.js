@@ -75,6 +75,7 @@ export const sharedConfig = {
       { blankLine: 'always', prev: '*', next: 'class' },
     ],
     '@stylistic/lines-between-class-members': [2, 'always', { exceptAfterSingleLine: true }],
+    'nc/no-singleton-self-reference': 2,
     'nc/prefer-assert': 2,
     'nc/prefer-env-destructuring': 2,
     'nc/prefer-last': 2,

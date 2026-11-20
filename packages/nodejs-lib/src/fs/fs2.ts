@@ -312,11 +312,9 @@ class FS2 {
    */
   isDirectory(filePath: string): boolean {
     return (
-      fs2
-        .stat(filePath, {
-          throwIfNoEntry: false,
-        })
-        ?.isDirectory() || false
+      this.stat(filePath, {
+        throwIfNoEntry: false,
+      })?.isDirectory() || false
     )
   }
 

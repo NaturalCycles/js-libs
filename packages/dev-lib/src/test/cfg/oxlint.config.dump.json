@@ -244,6 +244,7 @@
     "jsdoc/require-property-name": "deny",
     "jsdoc/require-property-type": "deny",
     "jsdoc/require-yields": "allow",
+    "nc/no-singleton-self-reference": "deny",
     "nc/prefer-assert": "deny",
     "nc/prefer-env-destructuring": "deny",
     "nc/prefer-last": "deny",

@@ -140,6 +140,247 @@ function visit(node, fn) {
   return false
 }
 
+// Report-only, like the rules above: `this` is only the same object while the method is called on
+// the instance, so a method handed over unbound (`router.get(path, service.handle)`) needs a look
+const noSingletonSelfReferenceRule = {
+  meta: {
+    type: 'suggestion',
+    docs: {
+      description:
+        'Inside a class, use `this` rather than the single instance of that class declared in the same file',
+    },
+    messages: {
+      useThis: 'Use `this` instead of {{name}} inside {{className}}',
+    },
+  },
+  create(context) {
+    const { sourceCode } = context
+    const classes = []
+    const instantiations = []
+
+    return {
+      ClassDeclaration(node) {
+        // `export default class {}` has no name to be instantiated by
+        if (node.id && isModuleLevel(node)) classes.push(node)
+      },
+      NewExpression(node) {
+        if (node.callee.type === 'Identifier') instantiations.push(node)
+      },
+      'Program:exit'() {
+        for (const classNode of classes) {
+          const className = classNode.id.name
+          // Every `new ClassName()` that refers to this class, wherever it is in the file
+          const ownInstantiations = instantiations.filter(
+            node => node.callee.name === className && !isShadowed(node, className, null),
+          )
+          // With several instances in the file, the one named is not necessarily `this`
+          if (ownInstantiations.length !== 1) continue
+          const [instantiation] = ownInstantiations
+          const declarator = instantiation.parent
+          if (!isModuleLevelConst(declarator, instantiation)) continue
+
+          const name = declarator.id.name
+          const classSource = sourceCode.text.slice(classNode.start, classNode.end)
+          if (!new RegExp(String.raw`(?<![\w$])${escapeRegExp(name)}(?![\w$])`).test(classSource)) {
+            continue
+          }
+          forEachValueIdentifier(classNode.body, name, node => {
+            if (isInstanceCodeOf(node, classNode) && !isShadowed(node, name, classNode)) {
+              context.report({ node, messageId: 'useThis', data: { name, className } })
+            }
+          })
+        }
+      },
+    }
+  },
+}
+
+function escapeRegExp(text) {
+  return text.replaceAll('$', String.raw`\$`)
+}
+
+// Type annotations, type declarations and labels hold no runtime reference
+const TYPE_ONLY_KEYS = new Set([
+  'typeAnnotation',
+  'returnType',
+  'typeParameters',
+  'typeArguments',
+  'superTypeArguments',
+  'implements',
+  'label',
+])
+const TYPE_ONLY_NODES = new Set(['TSInterfaceDeclaration', 'TSTypeAliasDeclaration'])
+
+// Calls `fn` for each identifier named `name` below `node` that is a value, not a type or a key
+function forEachValueIdentifier(node, name, fn) {
+  visit(node, child => {
+    if (TYPE_ONLY_NODES.has(child.type)) return false
+    if (child.type === 'Identifier' && child.name === name && !isTypeOnly(child, node)) fn(child)
+    return false
+  })
+}
+
+function isTypeOnly(identifier, root) {
+  let child = identifier
+  for (
+    let { parent } = identifier;
+    parent && child !== root;
+    child = parent, parent = parent.parent
+  ) {
+    if (TYPE_ONLY_NODES.has(parent.type)) return true
+    for (const key of TYPE_ONLY_KEYS) {
+      if (parent[key] === child) return true
+      if (Array.isArray(parent[key]) && parent[key].includes(child)) return true
+    }
+  }
+  return false
+}
+
+// Whether a declaration between `node` and `boundary` (or the file, when null) binds `name`
+function isShadowed(node, name, boundary) {
+  let child = node
+  for (
+    let { parent } = node;
+    parent && parent !== boundary;
+    child = parent, parent = parent.parent
+  ) {
+    if (parent.type === 'Program') return false
+    // All cases of a switch share one scope; the discriminant is outside it
+    if (parent.type === 'SwitchStatement') {
+      if (child === parent.discriminant) continue
+      const cases = parent.cases.flatMap(switchCase => switchCase.consequent)
+      if (cases.some(statement => statementBindsName(statement, name))) return true
+      continue
+    }
+    if (declaresName(parent, name)) return true
+  }
+  return false
+}
+
+function declaresName(node, name) {
+  switch (node.type) {
+    case 'FunctionDeclaration':
+    case 'FunctionExpression':
+    case 'ArrowFunctionExpression': {
+      if (node.type === 'FunctionExpression' && node.id?.name === name) return true
+      return node.params.some(param => bindsName(param, name))
+    }
+    // A class declaration's own name binds in the enclosing block (checked there); a named class
+    // expression binds it inside itself
+    case 'ClassExpression': {
+      return node.id?.name === name
+    }
+    case 'CatchClause': {
+      return !!node.param && bindsName(node.param, name)
+    }
+    case 'ForStatement':
+    case 'ForInStatement':
+    case 'ForOfStatement': {
+      const head = node.type === 'ForStatement' ? node.init : node.left
+      return head?.type === 'VariableDeclaration' && statementBindsName(head, name)
+    }
+    case 'BlockStatement':
+    case 'StaticBlock': {
+      return node.body.some(statement => statementBindsName(statement, name))
+    }
+    default: {
+      return false
+    }
+  }
+}
+
+function statementBindsName(statement, name) {
+  const declaration =
+    statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement
+  if (!declaration) return false
+  if (declaration.type === 'VariableDeclaration') {
+    return declaration.declarations.some(declarator => bindsName(declarator.id, name))
+  }
+  return (
+    (declaration.type === 'FunctionDeclaration' || declaration.type === 'ClassDeclaration') &&
+    declaration.id?.name === name
+  )
+}
+
+// Whether a parameter or destructuring pattern introduces `name`
+function bindsName(pattern, name) {
+  switch (pattern?.type) {
+    case 'Identifier': {
+      return pattern.name === name
+    }
+    case 'AssignmentPattern': {
+      return bindsName(pattern.left, name)
+    }
+    case 'RestElement': {
+      return bindsName(pattern.argument, name)
+    }
+    case 'TSParameterProperty': {
+      return bindsName(pattern.parameter, name)
+    }
+    case 'ArrayPattern': {
+      return pattern.elements.some(element => bindsName(element, name))
+    }
+    case 'ObjectPattern': {
+      return pattern.properties.some(property =>
+        bindsName(property.type === 'RestElement' ? property : property.value, name),
+      )
+    }
+    default: {
+      return false
+    }
+  }
+}
+
+// `const service = new Service()` or `export const service = new Service()`, not nested in a function
+function isModuleLevelConst(declarator, init) {
+  if (declarator.type !== 'VariableDeclarator' || declarator.init !== init) return false
+  if (declarator.id.type !== 'Identifier') return false
+  const declaration = declarator.parent
+  return declaration.kind === 'const' && isModuleLevel(declaration)
+}
+
+// Directly in the file, exported or not
+function isModuleLevel(node) {
+  const { parent } = node
+  return (
+    parent.type === 'Program' ||
+    (parent.type.startsWith('Export') && parent.parent.type === 'Program')
+  )
+}
+
+// Whether `this` at `node` is an instance of the class: in an instance method, accessor, constructor
+// or field initializer, with nothing in between that has a `this` of its own
+function isInstanceCodeOf(node, classNode) {
+  let child = node
+  for (let { parent } = node; parent; child = parent, { parent } = parent) {
+    switch (parent.type) {
+      // `typeof service` in a type
+      case 'TSTypeQuery':
+      // A decorator runs when the class is defined, also one on a parameter
+      case 'Decorator':
+      case 'FunctionDeclaration':
+      case 'StaticBlock': {
+        return false
+      }
+      case 'FunctionExpression': {
+        if (parent.parent.type !== 'MethodDefinition') return false
+        break
+      }
+      case 'MethodDefinition':
+      case 'PropertyDefinition':
+      case 'AccessorProperty': {
+        // Not a static member, and not its decorator or computed key
+        if (parent.static || parent.value !== child) return false
+        break
+      }
+      case 'ClassBody': {
+        return parent.parent === classNode
+      }
+    }
+  }
+  return false
+}
+
 const preferLastRule = {
   meta: {
     type: 'suggestion',
@@ -319,6 +560,7 @@ const ncPlugin = {
     name: 'nc',
   },
   rules: {
+    'no-singleton-self-reference': noSingletonSelfReferenceRule,
     'prefer-assert': preferAssertRule,
     'prefer-env-destructuring': preferEnvDestructuringRule,
     'prefer-last': preferLastRule,
