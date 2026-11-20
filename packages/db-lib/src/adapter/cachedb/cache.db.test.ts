@@ -1,13 +1,23 @@
-import { describe } from 'vitest'
+import type { CommonLogFunction } from '@naturalcycles/js-lib/log'
+import { commonLoggerNoop } from '@naturalcycles/js-lib/log'
+import type {
+  AnyObject,
+  AnyObjectWithId,
+  BaseDBEntity,
+  ObjectWithId,
+} from '@naturalcycles/js-lib/types'
+import { describe, expect, it, vi } from 'vitest'
+import { CommonDao } from '../../commondao/common.dao.js'
 import { InMemoryDB } from '../../inmemory/inMemory.db.js'
+import { DBQuery } from '../../query/dbQuery.js'
 import { runCommonDaoTest, runCommonDBTest } from '../../testing/index.js'
 import { CacheDB } from './cache.db.js'
+import type { CacheDBCfg } from './cache.db.model.js'
 
 const downstreamDB = new InMemoryDB()
 const cacheDB = new InMemoryDB()
 const db = new CacheDB({
-  name: 'cache-db',
-  cacheDB,
+  createCacheDB: () => cacheDB,
   downstreamDB,
   logCached: true,
   logDownstream: true,
@@ -20,3 +30,627 @@ describe('runCommonDBTest', async () => {
 describe('runCommonDaoTest', async () => {
   await runCommonDaoTest(db)
 })
+
+describe('without createCacheDB (NoopDB)', async () => {
+  const noopCacheDB = new CacheDB({ downstreamDB: new InMemoryDB() })
+
+  describe('runCommonDBTest', async () => {
+    await runCommonDBTest(noopCacheDB)
+  })
+
+  describe('runCommonDaoTest', async () => {
+    await runCommonDaoTest(noopCacheDB)
+  })
+})
+
+it('should take dbType and support from downstreamDB', () => {
+  const downstreamDB = new InMemoryDB()
+  const db = new CacheDB({ downstreamDB })
+  expect(db.support).toEqual({
+    ...downstreamDB.support,
+    createTable: false,
+    increment: false,
+    patchById: false,
+    patchByQuery: false,
+  })
+  expect(db.dbType).toBe(downstreamDB.dbType)
+})
+
+it('should serve cached rows and read only the missing ids from downstream', async () => {
+  const { db, cacheDB } = await setup({
+    downstream: [
+      { id: 'a', v: 'downstream' },
+      { id: 'b', v: 'downstream' },
+    ],
+    cache: [{ id: 'a', v: 'cache' }],
+  })
+
+  const rows = await db.getByIds('Table', ['a', 'b'])
+
+  expect(rows).toEqual([
+    { id: 'a', v: 'cache' },
+    { id: 'b', v: 'downstream' },
+  ])
+  expect(cacheDB.data['Table']).toEqual({
+    a: { id: 'a', v: 'cache' },
+    b: { id: 'b', v: 'downstream' },
+  })
+})
+
+it.each([{ cfgSkipCache: true }, { optSkipCache: true }])(
+  'should read from downstream and not populate the cache with skipCache: %o',
+  async ({ cfgSkipCache, optSkipCache }) => {
+    const { db, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'downstream' },
+        { id: 'b', v: 'downstream' },
+      ],
+      cache: [{ id: 'a', v: 'cache' }],
+      cfg: { skipCache: cfgSkipCache },
+    })
+
+    const rows = await db.getByIds('Table', ['a', 'b'], { skipCache: optSkipCache })
+
+    expect(rows).toEqual([
+      { id: 'a', v: 'downstream' },
+      { id: 'b', v: 'downstream' },
+    ])
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'cache' } })
+  },
+)
+
+it('should read from downstream and not populate the cache when readAt is passed', async () => {
+  const { db, cacheDB } = await setup({
+    downstream: [
+      { id: 'a', v: 'downstream' },
+      { id: 'b', v: 'downstream' },
+    ],
+    cache: [{ id: 'a', v: 'cache' }],
+  })
+
+  const rows = await db.getByIds('Table', ['a', 'b'], { readAt: 1 as any })
+
+  expect(rows).toEqual([
+    { id: 'a', v: 'downstream' },
+    { id: 'b', v: 'downstream' },
+  ])
+  expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'cache' } })
+})
+
+it('should remove the row from the cache when saving with skipCache', async () => {
+  const { db, downstreamDB, cacheDB } = await setup({
+    downstream: [
+      { id: 'a', v: 'old' },
+      { id: 'b', v: 'old' },
+    ],
+    cache: [
+      { id: 'a', v: 'old' },
+      { id: 'b', v: 'old' },
+    ],
+  })
+
+  await db.saveBatch('Table', [{ id: 'a', v: 'new' }], { skipCache: true })
+
+  expect(downstreamDB.data['Table']).toEqual({
+    a: { id: 'a', v: 'new' },
+    b: { id: 'b', v: 'old' },
+  })
+  expect(cacheDB.data['Table']).toEqual({ b: { id: 'b', v: 'old' } })
+})
+
+it('should save to the cache as upsert regardless of saveMethod', async () => {
+  const { db, cacheDB } = await setup({
+    downstream: [{ id: 'a', v: 'old' }],
+    cache: [{ id: 'b', v: 'old' }],
+  })
+
+  await db.saveBatch('Table', [{ id: 'a', v: 'new' }], { saveMethod: 'update' })
+  await db.saveBatch('Table', [{ id: 'b', v: 'new' }], { saveMethod: 'insert' })
+
+  expect(cacheDB.data['Table']).toEqual({
+    a: { id: 'a', v: 'new' },
+    b: { id: 'b', v: 'new' },
+  })
+})
+
+it('should log and not throw when a not-awaited cache write fails', async () => {
+  const logger = { ...commonLoggerNoop, error: vi.fn<CommonLogFunction>() }
+  const { db, downstreamDB, cacheDB } = await setup({ cfg: { awaitCache: false, logger } })
+  cacheDB.saveBatch = async () => {
+    throw new Error('cache down')
+  }
+
+  await db.saveBatch('Table', [{ id: 'a', v: 'new' }])
+
+  expect(downstreamDB.data['Table']).toEqual({ a: { id: 'a', v: 'new' } })
+  await vi.waitFor(() => {
+    expect(logger.error).toHaveBeenCalledWith(
+      'CacheDB: cache write failed',
+      new Error('cache down'),
+    )
+  })
+})
+
+it('should remove the deleted rows from the cache in multiDelete', async () => {
+  const { db, downstreamDB, cacheDB } = await setup({
+    downstream: [
+      { id: 'a', v: 'old' },
+      { id: 'b', v: 'old' },
+    ],
+    cache: [
+      { id: 'a', v: 'old' },
+      { id: 'b', v: 'old' },
+    ],
+  })
+
+  await db.multiDelete({ ['Table']: ['b'] })
+
+  expect(downstreamDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
+  expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
+})
+
+it.each([
+  { method: 'createTable', call: (db: CacheDB) => db.createTable('Table', {} as any) },
+  { method: 'patchById', call: (db: CacheDB) => db.patchById<Row>('Table', 'a', { v: 'new' }) },
+  { method: 'incrementBatch', call: (db: CacheDB) => db.incrementBatch('Table', 'n', { a: 1 }) },
+  { method: 'multiGet', call: (db: CacheDB) => db.multiGet({ Table: ['a'] }) },
+  { method: 'multiSave', call: (db: CacheDB) => db.multiSave({ Table: [{ id: 'a' }] }) },
+  {
+    method: 'patchByQuery',
+    call: (db: CacheDB) => db.patchByQuery(DBQuery.create<Row>('Table'), { v: 'new' }),
+  },
+])('should throw in $method', async ({ method, call }) => {
+  const { db } = await setup()
+
+  await expect(call(db)).rejects.toThrow(`CacheDB: ${method} is not implemented`)
+})
+
+it('should remove all rows of the table from the cache on deleteByQuery', async () => {
+  const { db, cacheDB } = await setup({
+    downstream: [
+      { id: 'a', v: 'new' },
+      { id: 'b', v: 'old' },
+    ],
+    cache: [
+      { id: 'a', v: 'old' },
+      { id: 'b', v: 'old' },
+    ],
+  })
+
+  await db.deleteByQuery(DBQuery.create<Row>('Table').filterEq('v', 'new'))
+
+  expect(cacheDB.data['Table']).toEqual({})
+})
+
+describe('failed downstream writes', () => {
+  const q = DBQuery.create<Row>('Table').filterEq('id', 'a')
+
+  it.each([
+    { method: 'saveBatch', write: (db: CacheDB) => db.saveBatch('Table', [{ id: 'a', v: 'new' }]) },
+    { method: 'deleteByIds', write: (db: CacheDB) => db.deleteByIds('Table', ['a']) },
+    { method: 'multiDelete', write: (db: CacheDB) => db.multiDelete({ Table: ['a'] }) },
+    { method: 'deleteByQuery', write: (db: CacheDB) => db.deleteByQuery(q) },
+  ] as const)(
+    'should remove the rows from the cache when the downstream $method throws',
+    async ({ method, write }) => {
+      const { db, downstreamDB, cacheDB } = await setup({ cache: [{ id: 'a', v: 'old' }] })
+      vi.spyOn(downstreamDB, method).mockRejectedValueOnce(new Error('timeout'))
+
+      await expect(write(db)).rejects.toThrow('timeout')
+
+      expect(cacheDB.data['Table']).toEqual({})
+    },
+  )
+
+  it('should throw the downstream error when the cache invalidation also fails', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      cache: [{ id: 'a', v: 'old' }],
+      cfg: { logger: commonLoggerNoop },
+    })
+    vi.spyOn(downstreamDB, 'saveBatch').mockRejectedValueOnce(new Error('timeout'))
+    vi.spyOn(cacheDB, 'deleteByIds').mockRejectedValueOnce(new Error('cache failed'))
+
+    await expect(db.saveBatch('Table', [{ id: 'a', v: 'new' }])).rejects.toThrow('timeout')
+  })
+})
+
+it('should throw when onlyCache and skipCache are both set in cfg', () => {
+  const cfg = {
+    downstreamDB: new InMemoryDB(),
+    onlyCache: true,
+    skipCache: true,
+  }
+
+  expect(() => new CacheDB(cfg)).toThrow('CacheDB: onlyCache and skipCache are both set')
+})
+
+it.each([
+  { cfg: {}, opt: { onlyCache: true, skipCache: true } },
+  { cfg: { onlyCache: true }, opt: { skipCache: true } },
+  { cfg: { skipCache: true }, opt: { onlyCache: true } },
+])('should throw when onlyCache and skipCache are both set with cfg: %o', async ({ cfg, opt }) => {
+  const { db } = await setup({ cfg })
+  const error = 'CacheDB: onlyCache and skipCache are both set'
+
+  const getByIds = db.getByIds('Table', ['a'], opt)
+  await expect(getByIds).rejects.toThrow(error)
+
+  const saveBatch = db.saveBatch('Table', [{ id: 'a', v: 'new' }], opt)
+  await expect(saveBatch).rejects.toThrow(error)
+})
+
+describe('transactions', () => {
+  it('should throw when tx and onlyCache are both set in opt', async () => {
+    const { db } = await setup({})
+    const error = 'CacheDB: opt.tx and opt.onlyCache are both set'
+
+    await db.runInTransaction(async tx => {
+      const opt = { tx, onlyCache: true }
+      await expect(db.getByIds('Table', ['a'], opt)).rejects.toThrow(error)
+      await expect(db.saveBatch('Table', [{ id: 'a', v: 'new' }], opt)).rejects.toThrow(error)
+      await expect(db.deleteByIds('Table', ['a'], opt)).rejects.toThrow(error)
+      await expect(db.multiDelete({ Table: ['a'] }, opt)).rejects.toThrow(error)
+    })
+  })
+
+  it('should throw on creating a transaction when onlyCache is set in cfg', async () => {
+    const { db, downstreamDB } = await setup({ cfg: { onlyCache: true } })
+    const runInTransactionSpy = vi.spyOn(downstreamDB, 'runInTransaction')
+    const createTransactionSpy = vi.spyOn(downstreamDB, 'createTransaction')
+    const error = 'CacheDB: transactions are not supported with cfg.onlyCache'
+
+    await expect(db.runInTransaction(async () => {})).rejects.toThrow(error)
+    await expect(db.createTransaction()).rejects.toThrow(error)
+    expect(runInTransactionSpy).not.toHaveBeenCalled()
+    expect(createTransactionSpy).not.toHaveBeenCalled()
+  })
+
+  it('should read from downstream and not populate the cache in a transaction', async () => {
+    const { db, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'downstream' },
+        { id: 'b', v: 'downstream' },
+      ],
+      cache: [{ id: 'a', v: 'cache' }],
+    })
+
+    let rows: Row[] = []
+    await db.runInTransaction(async tx => {
+      rows = await tx.getByIds<Row>('Table', ['a', 'b'])
+    })
+
+    expect(rows).toEqual([
+      { id: 'a', v: 'downstream' },
+      { id: 'b', v: 'downstream' },
+    ])
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'cache' } })
+  })
+
+  it('should delete through the downstream transaction and remove the rows from the cache in multiDelete', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+      cache: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+    })
+    await downstreamDB.saveBatch('OtherTable', [{ id: 'x', v: 'old' }])
+    const tx = await db.createTransaction()
+
+    const deleted = await db.multiDelete({ Table: ['a'], OtherTable: ['x'] }, { tx })
+
+    expect(deleted).toBe(2)
+    expect(downstreamDB.data['Table']).toEqual({
+      a: { id: 'a', v: 'old' },
+      b: { id: 'b', v: 'old' },
+    })
+    expect(downstreamDB.data['OtherTable']).toEqual({ x: { id: 'x', v: 'old' } })
+    expect(cacheDB.data['Table']).toEqual({ b: { id: 'b', v: 'old' } })
+
+    await tx.commit()
+
+    expect(downstreamDB.data['Table']).toEqual({ b: { id: 'b', v: 'old' } })
+    expect(downstreamDB.data['OtherTable']).toEqual({})
+    expect(cacheDB.data['Table']).toEqual({ b: { id: 'b', v: 'old' } })
+  })
+
+  it('should remove written rows from the cache and commit in runInTransaction', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+        { id: 'c', v: 'old' },
+      ],
+      cache: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+        { id: 'c', v: 'old' },
+      ],
+    })
+
+    await db.runInTransaction(async tx => {
+      await tx.saveBatch('Table', [{ id: 'a', v: 'tx' }])
+      await tx.deleteByIds('Table', ['b'])
+      expect(cacheDB.data['Table']).toEqual({ c: { id: 'c', v: 'old' } })
+    })
+
+    expect(downstreamDB.data['Table']).toEqual({
+      a: { id: 'a', v: 'tx' },
+      c: { id: 'c', v: 'old' },
+    })
+    expect(cacheDB.data['Table']).toEqual({ c: { id: 'c', v: 'old' } })
+  })
+
+  it('should remove written rows from the cache and keep downstream on rollback', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+      cache: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+    })
+
+    const transaction = db.runInTransaction(async tx => {
+      await tx.saveBatch('Table', [{ id: 'a', v: 'tx' }])
+      throw new Error('fail')
+    })
+
+    await expect(transaction).rejects.toThrow('fail')
+    expect(downstreamDB.data['Table']).toEqual({
+      a: { id: 'a', v: 'old' },
+      b: { id: 'b', v: 'old' },
+    })
+    expect(cacheDB.data['Table']).toEqual({ b: { id: 'b', v: 'old' } })
+  })
+
+  it('should remove rows that were cached during the transaction after commit', async () => {
+    const { db, cacheDB } = await setup({ downstream: [{ id: 'a', v: 'old' }] })
+
+    const tx = await db.createTransaction()
+    await tx.saveBatch('Table', [{ id: 'a', v: 'tx' }])
+    const rowsBeforeCommit = await db.getByIds('Table', ['a'])
+
+    expect(rowsBeforeCommit).toEqual([{ id: 'a', v: 'old' }])
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
+
+    await tx.commit()
+
+    expect(cacheDB.data['Table']).toEqual({})
+
+    const rowsAfterCommit = await db.getByIds('Table', ['a'])
+
+    expect(rowsAfterCommit).toEqual([{ id: 'a', v: 'tx' }])
+  })
+
+  it('should remove the whole table from the cache after commit when a query wrote in the transaction', async () => {
+    const { db, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+    })
+
+    const tx = await db.createTransaction()
+    await db.deleteByQuery(DBQuery.create<Row>('Table').filterEq('id', 'b'), { tx })
+    await db.getByIds('Table', ['a'])
+
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'old' } })
+
+    await tx.commit()
+
+    expect(cacheDB.data['Table']).toEqual({})
+  })
+
+  it('should route CommonDao transaction operations through the downstream transaction', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+        { id: 'c', v: 'old' },
+      ],
+      cache: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+        { id: 'c', v: 'old' },
+      ],
+    })
+    const dao = new CommonDao<Row & BaseDBEntity>({ table: 'Table', db })
+
+    await dao.runInTransaction(async tx => {
+      const a = await tx.getById(dao, 'a')
+      await tx.save(dao, { ...a!, v: 'tx' })
+      await tx.deleteById(dao, 'b')
+    })
+
+    expect(downstreamDB.data['Table']).toEqual({
+      a: expect.objectContaining({ id: 'a', v: 'tx' }),
+      c: { id: 'c', v: 'old' },
+    })
+    expect(cacheDB.data['Table']).toEqual({ c: { id: 'c', v: 'old' } })
+  })
+
+  it('should throw when opt.tx is not a transaction of this CacheDB', async () => {
+    const { db, downstreamDB } = await setup()
+    const downstreamTx = await downstreamDB.createTransaction()
+    const otherCacheDBTx = await new CacheDB({
+      downstreamDB,
+    }).createTransaction()
+    const error = 'opt.tx is not a transaction of this CacheDB'
+
+    for (const tx of [downstreamTx, otherCacheDBTx]) {
+      await expect(db.getByIds('Table', ['a'], { tx })).rejects.toThrow(error)
+      await expect(db.saveBatch('Table', [{ id: 'a', v: 'tx' }], { tx })).rejects.toThrow(error)
+      await expect(db.runQuery(DBQuery.create('Table'), { tx })).rejects.toThrow(error)
+    }
+  })
+})
+
+describe('cache fill', () => {
+  it('should not cache the rows of runQuery', async () => {
+    const { db, cacheDB } = await setup({ downstream: [{ id: 'a', v: 'downstream' }] })
+
+    const { rows } = await db.runQuery(DBQuery.create<Row>('Table'))
+
+    expect(rows).toEqual([{ id: 'a', v: 'downstream' }])
+    expect(cacheDB.data['Table']).toEqual({})
+  })
+
+  it('should not overwrite a row that was saved while the downstream read was running', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({ downstream: [{ id: 'a', v: 'old' }] })
+    const getByIds = downstreamDB.getByIds.bind(downstreamDB)
+    vi.spyOn(downstreamDB, 'getByIds').mockImplementationOnce(async (table, ids) => {
+      const rows = await getByIds(table, ids)
+      await db.saveBatch(table, [{ id: 'a', v: 'new' }])
+      return rows
+    })
+
+    const rows = await db.getByIds('Table', ['a'])
+
+    expect(rows).toEqual([{ id: 'a', v: 'old' }])
+    expect(cacheDB.data['Table']).toEqual({ a: { id: 'a', v: 'new' } })
+  })
+
+  it('should not cache a row that was deleted while the downstream read was running', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({ downstream: [{ id: 'a', v: 'old' }] })
+    const getByIds = downstreamDB.getByIds.bind(downstreamDB)
+    vi.spyOn(downstreamDB, 'getByIds').mockImplementationOnce(async (table, ids) => {
+      const rows = await getByIds(table, ids)
+      await db.deleteByIds(table, ['a'])
+      return rows
+    })
+
+    await db.getByIds('Table', ['a'])
+
+    expect(cacheDB.data['Table']).toEqual({})
+  })
+
+  it('should not cache rows when a query deleted rows of the table while the downstream read was running', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({
+      downstream: [
+        { id: 'a', v: 'old' },
+        { id: 'b', v: 'old' },
+      ],
+    })
+    const getByIds = downstreamDB.getByIds.bind(downstreamDB)
+    vi.spyOn(downstreamDB, 'getByIds').mockImplementationOnce(async (table, ids) => {
+      const rows = await getByIds(table, ids)
+      await db.deleteByQuery(DBQuery.create<Row>(table).filterEq('id', 'b'))
+      return rows
+    })
+
+    await db.getByIds('Table', ['a'])
+
+    expect(cacheDB.data['Table']).toEqual({})
+  })
+
+  it('should not cache a row that a transaction wrote while the downstream read was running', async () => {
+    const { db, downstreamDB, cacheDB } = await setup({ downstream: [{ id: 'a', v: 'old' }] })
+    const getByIds = downstreamDB.getByIds.bind(downstreamDB)
+    vi.spyOn(downstreamDB, 'getByIds').mockImplementationOnce(async (table, ids) => {
+      const rows = await getByIds(table, ids)
+      await db.runInTransaction(async tx => {
+        await tx.saveBatch(table, [{ id: 'a', v: 'tx' }])
+      })
+      return rows
+    })
+
+    await db.getByIds('Table', ['a'])
+
+    expect(downstreamDB.data['Table']).toEqual({ a: { id: 'a', v: 'tx' } })
+    expect(cacheDB.data['Table']).toEqual({})
+  })
+})
+
+describe('cache scope', () => {
+  it('should keep a separate cache for each scope and no cache without a scope', async () => {
+    const downstreamDB = new InMemoryDB()
+    await downstreamDB.saveBatch('Table', [{ id: 'a', v: 'downstream' }])
+    let scope: AnyObject | undefined = {}
+    const db = new CacheDB({
+      downstreamDB,
+      createCacheDB: () => new InMemoryDB(),
+      getCacheScope: () => scope,
+      awaitCache: true,
+    })
+    const downstreamGetByIds = vi.spyOn(downstreamDB, 'getByIds')
+
+    await db.getByIds('Table', ['a'])
+    await db.getByIds('Table', ['a'])
+    scope = {}
+    await db.getByIds('Table', ['a'])
+    scope = undefined
+    await db.getByIds('Table', ['a'])
+    await db.getByIds('Table', ['a'])
+
+    expect(downstreamGetByIds).toHaveBeenCalledTimes(4)
+  })
+
+  it('should not skip the save after read because of a write in another scope', async () => {
+    const firstScope = {}
+    let scope = firstScope
+    const db = new CacheDB({
+      downstreamDB: new InMemoryDB(),
+      createCacheDB: () => new InMemoryDB(),
+      getCacheScope: () => scope,
+      awaitCache: true,
+    })
+
+    const token = db.getSaveAfterReadToken(['Table'])
+    scope = {}
+    await db.saveBatch('Table', [{ id: 'b', v: 'other' }])
+    scope = firstScope
+    await db.saveCacheAfterRead({ Table: [{ id: 'a', v: 'old' }] }, token)
+
+    const rows = await db.getByIds('Table', ['a'], { onlyCache: true })
+    expect(rows).toEqual([{ id: 'a', v: 'old' }])
+  })
+
+  it('should return copies of the cached rows', async () => {
+    const { db } = await setup({ cache: [{ id: 'a', v: 'cache' }] })
+
+    const [first] = await db.getByIds<Row>('Table', ['a'])
+    first!.v = 'changed'
+    const rows = await db.getByIds('Table', ['a'])
+
+    expect(rows).toEqual([{ id: 'a', v: 'cache' }])
+  })
+
+  it('should share the __compressed Buffer and copy the other Buffers of the cached rows', async () => {
+    const cachedRow = { id: 'a', v: 'cache', __compressed: Buffer.from('c'), b: Buffer.from('b') }
+    const { db, cacheDB } = await setup({ cache: [cachedRow] })
+    const storedRow = cacheDB.data['Table']!['a']!
+
+    const [row] = await db.getByIds<AnyObjectWithId>('Table', ['a'])
+
+    expect(row!['__compressed']).toBe(storedRow['__compressed'])
+    expect(row!['b']).not.toBe(storedRow['b'])
+    expect(row!['b']).toEqual(Buffer.from('b'))
+  })
+})
+
+interface Row extends ObjectWithId {
+  v: string
+  n?: number
+}
+
+async function setup(
+  input: { downstream?: Row[]; cache?: Row[]; cfg?: Partial<CacheDBCfg> } = {},
+): Promise<{ db: CacheDB; downstreamDB: InMemoryDB; cacheDB: InMemoryDB }> {
+  const downstreamDB = new InMemoryDB()
+  const cacheDB = new InMemoryDB()
+  await downstreamDB.saveBatch('Table', input.downstream || [])
+  await cacheDB.saveBatch('Table', input.cache || [])
+  const db = new CacheDB({
+    downstreamDB,
+    createCacheDB: () => cacheDB,
+    awaitCache: true,
+    ...input.cfg,
+  })
+  return { db, downstreamDB, cacheDB }
+}
