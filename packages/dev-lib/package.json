@@ -33,7 +33,7 @@
     "oxfmt": "^0",
     "oxlint": "catalog:",
     "semver": "^7",
-    "tsrs": "catalog:",
+    "tsrs": "^7.1.0-beta.tsrs4",
     "std-env": "^4"
   },
   "peerDependencies": {

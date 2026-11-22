@@ -6,7 +6,6 @@ catalog:
   '@types/node': ^26
   'typescript': ^7
   oxlint: ^1
-  tsrs: ^7.1.0-beta.tsrs3
 allowBuilds:
   esbuild: true
   '@firebase/util': false
@@ -20,6 +19,8 @@ auditConfig:
     - GHSA-h755-8qp9-cq85
     - GHSA-67mh-4wv8-2f99
 ignoreWorkspaceCycles: true
+publicHoistPattern:
+  - tsrs
 trustLockfile: true
 trustPolicyExcludePrune: true
 trustPolicy: no-downgrade
