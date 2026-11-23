@@ -432,12 +432,12 @@ export function _shuffle<T>(array: T[], opt: MutateOptions = {}): T[] {
   return a
 }
 
-export function _firstLast<T>(array: readonly T[]): [first: T, last: T] {
+export function _firstLast<T>(array: ArrayLike<T>): [first: T, last: T] {
   _assert(array.length, '_firstLast called on empty array')
   return [array[0]!, array[array.length - 1]!]
 }
 
-export function _firstLastOrUndefined<T>(array: readonly T[]): [first: T, last: T] | undefined {
+export function _firstLastOrUndefined<T>(array: ArrayLike<T>): [first: T, last: T] | undefined {
   if (!array.length) return
   return [array[0]!, array[array.length - 1]!]
 }
@@ -445,8 +445,9 @@ export function _firstLastOrUndefined<T>(array: readonly T[]): [first: T, last: 
 /**
  * Returns last item of non-empty array.
  * Throws if array is empty.
+ * Accepts any array-like value, e.g. a Uint8Array, a NodeList or a string.
  */
-export function _last<T>(array: readonly T[]): T {
+export function _last<T>(array: ArrayLike<T>): T {
   _assert(array.length, '_last called on empty array')
   return array[array.length - 1]!
 }
@@ -454,15 +455,16 @@ export function _last<T>(array: readonly T[]): T {
 /**
  * Returns last item of the array (or undefined if array is empty).
  */
-export function _lastOrUndefined<T>(array: readonly T[]): T | undefined {
+export function _lastOrUndefined<T>(array: ArrayLike<T>): T | undefined {
   return array[array.length - 1]
 }
 
 /**
  * Returns the first item of non-empty array.
  * Throws if array is empty.
+ * Accepts any array-like value, e.g. a Uint8Array, a NodeList or a string.
  */
-export function _first<T>(array: readonly T[]): T {
+export function _first<T>(array: ArrayLike<T>): T {
   _assert(array.length, '_first called on empty array')
   return array[0]!
 }
@@ -470,7 +472,7 @@ export function _first<T>(array: readonly T[]): T {
 /**
  * Returns first item of the array (or undefined if array is empty).
  */
-export function _firstOrUndefined<T>(array: readonly T[]): T | undefined {
+export function _firstOrUndefined<T>(array: ArrayLike<T>): T | undefined {
   return array[0]
 }
 

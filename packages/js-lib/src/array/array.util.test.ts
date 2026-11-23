@@ -435,6 +435,13 @@ it('should return the last item, with _last throwing on an empty array', () => {
   // Should support passing readonly array
   const ro = [1, 2, 3] as readonly number[]
   expect(_last(ro)).toBe(3)
+
+  // Should support array-like values
+  expect(_last(new Uint8Array([1, 2, 3]))).toBe(3)
+  expect(_lastOrUndefined(new Uint8Array())).toBeUndefined()
+  expect(_last('abc')).toBe('c')
+  expect(_first(new Uint8Array([1, 2, 3]))).toBe(1)
+  expect(_firstLast(new Uint8Array([1, 2, 3]))).toEqual([1, 3])
 })
 
 it('should return the first and last items, with _firstLast throwing on an empty array', () => {
