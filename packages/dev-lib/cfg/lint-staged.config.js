@@ -60,14 +60,7 @@ if (eslintConfigPath) {
 let oxlintCmd = undefined
 
 if (oxlintConfigPath) {
-  oxlintCmd = [
-    'oxlint',
-    '--fix',
-    '--fix-suggestions',
-    '--fix-dangerously',
-    '--no-error-on-unmatched-pattern',
-    '--disable-nested-config',
-  ]
+  oxlintCmd = ['oxlint', '--fix', '--no-error-on-unmatched-pattern', '--disable-nested-config']
     .filter(Boolean)
     .join(' ')
 }

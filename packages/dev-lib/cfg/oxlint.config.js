@@ -405,7 +405,7 @@ export const sharedConfig = {
     'unicorn/no-array-fill-with-reference-type': 0, // flags `fill([])` even when the shared value is never mutated
     'unicorn/no-useless-switch-case': 2,
     'unicorn/prefer-array-flat': 2,
-    // Its fix (applied by --fix-suggestions) is not equivalent: `re.test()` is stateful for /g
+    // Its suggested fix is not equivalent: `re.test()` is stateful for /g
     // and /y regexes, and `str.match(pattern)` with a string pattern becomes `pattern.test()`
     'unicorn/prefer-regexp-test': 0,
     'unicorn/throw-new-error': 2,

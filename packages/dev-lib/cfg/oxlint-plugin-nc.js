@@ -25,8 +25,7 @@ const EVALUATED_ARGUMENTS = new Set([
 // a shared `overrides` entry, because `defineOxlintConfig` lets a consumer's `overrides` replace it
 const TEST_FILE_PATTERN = /\.(?:test|spec)\.[cm]?[jt]sx?$|\/(?:test|testing)\//
 
-// No `fix`/`suggest`: dev-lib runs oxlint with --fix-dangerously, which would apply them and leave
-// `_assert` unimported
+// No `fix`: dev-lib runs oxlint with --fix, which would apply it and leave `_assert` unimported
 const preferAssertRule = {
   meta: {
     type: 'suggestion',

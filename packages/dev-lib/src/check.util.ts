@@ -254,13 +254,9 @@ export function runOxlint(fix = true): boolean {
 
   exec2.spawn(oxlintPath, {
     name: ['oxlint', !fix && '--no-fix'].filter(Boolean).join(' '),
-    args: [
-      '--no-error-on-unmatched-pattern',
-      '--disable-nested-config',
-      fix && '--fix',
-      fix && '--fix-suggestions',
-      fix && '--fix-dangerously',
-    ].filter(_isTruthy),
+    args: ['--no-error-on-unmatched-pattern', '--disable-nested-config', fix && '--fix'].filter(
+      _isTruthy,
+    ),
     shell: false,
   })
   return true

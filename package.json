@@ -16,7 +16,7 @@
     "quick-check": "pnpm build && pnpm lint && pnpm test",
     "qc": "pnpm quick-check",
     "typecheck": "pnpm --filter '@naturalcycles/*' run typecheck",
-    "lint": "oxlint --fix --fix-suggestions && oxfmt",
+    "lint": "oxlint --fix && oxfmt",
     "lint:ci": "oxlint && oxfmt --check",
     "test": "vitest run",
     "test:each": "pnpm --filter '@naturalcycles/*' run test",
