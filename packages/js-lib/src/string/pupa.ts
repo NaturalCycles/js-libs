@@ -33,8 +33,17 @@ export interface PupaOptions {
   transform?: (data: { value: any; key: string }) => unknown
 }
 
+// The regex tries to match either a number inside `{{ }}` or a valid JS identifier or key path.
+// Group 1 is the key of `{{key}}`, group 2 is the key of `{key}`.
+const PLACEHOLDER_REGEX =
+  /{{(\d+|[a-z$_][\w\-$]*?(?:\.[\w\-$]*?)*?)}}|{(\d+|[a-z$_][\w\-$]*?(?:\.[\w\-$]*?)*?)}/gi
+
 /**
  * API: https://github.com/sindresorhus/pupa
+ *
+ * Differs from upstream: both brace styles are substituted in a single pass, so a substituted value
+ * is never scanned for placeholders. Upstream runs the `{key}` pass over the output of the
+ * `{{key}}` pass, which inserts a value unescaped when a double-braced value contains `{key}`.
  */
 export function pupa(
   template: string,
@@ -53,37 +62,26 @@ export function pupa(
 
   const { ignoreMissing = false, transform = ({ value }) => value } = opt
 
-  const replace = (placeholder: string, key: string): string => {
-    let value = data
-    for (const property of key.split('.')) {
-      value = value ? (value as AnyObject)[property] : undefined
-    }
-
-    const transformedValue = transform({ value, key })
-    if (transformedValue === undefined) {
-      if (ignoreMissing) {
-        return placeholder
+  return template.replaceAll(
+    PLACEHOLDER_REGEX,
+    (placeholder: string, escapedKey: string | undefined, rawKey: string | undefined) => {
+      const key = escapedKey ?? rawKey!
+      let value = data
+      for (const property of key.split('.')) {
+        value = value ? (value as AnyObject)[property] : undefined
       }
 
-      throw new MissingValueError(key)
-    }
+      const transformedValue = transform({ value, key })
+      if (transformedValue === undefined) {
+        if (ignoreMissing) {
+          return placeholder
+        }
 
-    return String(transformedValue)
-  }
+        throw new MissingValueError(key)
+      }
 
-  const composeHtmlEscape =
-    (replacer: any) =>
-    (...args: any[]) =>
-      htmlEscape(replacer(...args))
-
-  // The regex tries to match either a number inside `{{ }}` or a valid JS identifier or key path.
-  const doubleBraceRegex = /{{(\d+|[a-z$_][\w\-$]*?(?:\.[\w\-$]*?)*?)}}/gi
-
-  if (doubleBraceRegex.test(template)) {
-    template = template.replaceAll(doubleBraceRegex, composeHtmlEscape(replace))
-  }
-
-  const braceRegex = /{(\d+|[a-z$_][\w\-$]*?(?:\.[\w\-$]*?)*?)}/gi
-
-  return template.replaceAll(braceRegex, replace)
+      const stringValue = String(transformedValue)
+      return escapedKey === undefined ? stringValue : htmlEscape(stringValue)
+    },
+  )
 }

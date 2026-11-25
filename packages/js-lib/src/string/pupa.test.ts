@@ -79,6 +79,40 @@ it('should keep a placeholder the transform maps to undefined with ignoreMissing
   expect(pupa('{0} {1} {2}', ['0', null, 3.14], options)).toBe('0 {1} 3.14')
 })
 
+it('should not substitute a placeholder inside a double-braced value', () => {
+  expect(pupa('{{foo}}', { foo: '<b>{foo}' })).toBe('&lt;b&gt;{foo}')
+  expect(pupa('{{foo}}', { foo: '{bar}', bar: '<b>' })).toBe('{bar}')
+  expect(pupa('{{foo}}', { foo: '{bar}' })).toBe('{bar}')
+  expect(pupa('{{foo}}', { foo: '{{bar}}', bar: '<b>' })).toBe('{{bar}}')
+})
+
+it('should not substitute a placeholder inside a single-braced value', () => {
+  expect(pupa('{foo}', { foo: '{bar}{{bar}}', bar: '!' })).toBe('{bar}{{bar}}')
+})
+
+it('should not build a placeholder from template braces and a substituted value', () => {
+  expect(pupa('{{{foo}}}', { foo: 'bar', bar: '!' })).toBe('{bar}')
+  expect(pupa('{deeply.{{foo}}}', { foo: 'nested', deeply: { nested: '!' } })).toBe(
+    '{deeply.nested}',
+  )
+})
+
+it('should throw on the leftmost missing value', () => {
+  expect(() => {
+    pupa('{foo}{{bar}}', {})
+  }).toThrowErrorMatchingInlineSnapshot(
+    `[MissingValueError: Missing a value for the placeholder: foo]`,
+  )
+})
+
+it('should support a transform that calls pupa', () => {
+  const data = { greeting: 'Hello {{name}}', name: '<Sofia>', end: '!' }
+  const options: PupaOptions = {
+    transform: ({ value }) => pupa(value, data),
+  }
+  expect(pupa('{greeting}{end}{{end}}', data, options)).toBe('Hello &lt;Sofia&gt;!!')
+})
+
 it('should throw when the transform maps a value to undefined', () => {
   const options: PupaOptions = {
     transform: ({ value }) => (Number.isNaN(Number.parseInt(value, 10)) ? undefined : value),
