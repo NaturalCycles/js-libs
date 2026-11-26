@@ -18,7 +18,7 @@
     "@naturalcycles/db-lib": "workspace:^10",
     "@naturalcycles/js-lib": "workspace:^15",
     "@naturalcycles/nodejs-lib": "workspace:^15",
-    "@types/body-parser": "^1",
+    "@types/body-parser": "^2",
     "@types/cookie-parser": "^1",
     "@types/cors": "^2",
     "@types/express": "^5",
