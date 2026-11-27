@@ -1,4 +1,4 @@
-import { Readable } from 'node:stream'
+import { Readable, Writable } from 'node:stream'
 import { _isTruthy } from '@naturalcycles/js-lib'
 import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
@@ -130,11 +130,29 @@ export class InMemoryCommonStorage implements CommonStorage {
   }
 
   getFileReadStream(bucketName: string, filePath: string): Pipeline<Uint8Array> {
-    return Pipeline.from(Readable.from(this.data[bucketName]![filePath]!))
+    const content = this.data[bucketName]?.[filePath]
+    _assert(content, `getFileReadStream file not found: ${bucketName}/${filePath}`)
+    return Pipeline.from(Readable.from(content))
   }
 
-  getFileWriteStream(_bucketName: string, _filePath: string): WritableTyped<Uint8Array> {
-    throw new Error('Method not implemented.')
+  /**
+   * The file is saved when the Writable finishes, same as in Cloud Storage.
+   */
+  getFileWriteStream(bucketName: string, filePath: string): WritableTyped<Uint8Array> {
+    const chunks: Uint8Array[] = []
+
+    return new Writable({
+      write: (chunk: Uint8Array, _encoding, cb) => {
+        chunks.push(chunk)
+        cb()
+      },
+      final: cb => {
+        this.data[bucketName] ||= {}
+        this.data[bucketName][filePath] = Buffer.concat(chunks)
+        this.setFileMetadata(bucketName, filePath, undefined)
+        cb()
+      },
+    })
   }
 
   async uploadFile(

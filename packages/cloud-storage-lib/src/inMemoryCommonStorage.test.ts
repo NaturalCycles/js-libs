@@ -1,3 +1,4 @@
+import { Pipeline } from '@naturalcycles/nodejs-lib/stream'
 import { describe, expect, it } from 'vitest'
 import { InMemoryCommonStorage } from './inMemoryCommonStorage.js'
 import { runCommonStorageTest } from './testing/commonStorageTest.js'
@@ -99,4 +100,33 @@ it('should remove files, metadata and visibility on clear', async () => {
   expect(s.metadata).toEqual({})
   expect(s.publicMap).toEqual({})
   expect(await s.getFileVisibility(bucket, 'a/1')).toBe(false)
+})
+
+it('should save a file written via getFileWriteStream once the stream finishes', async () => {
+  const s = new InMemoryCommonStorage()
+  await s.saveFile(bucket, 'a/1', content, { metadata })
+
+  await Pipeline.fromArray([Buffer.from('con'), Buffer.from('tent2')])
+    .setObjectMode(false)
+    .to(s.getFileWriteStream(bucket, 'a/1'))
+
+  expect(await s.getFile(bucket, 'a/1')).toEqual(Buffer.from('content2'))
+  expect((await s.getFileMetadata(bucket, 'a/1'))!.metadata).toEqual({})
+})
+
+it('should read a file back via getFileReadStream', async () => {
+  const s = new InMemoryCommonStorage()
+  await s.saveFile(bucket, 'a/1', content)
+
+  const chunks = await s.getFileReadStream(bucket, 'a/1').toArray()
+
+  expect(Buffer.concat(chunks)).toEqual(content)
+})
+
+it('should throw from getFileReadStream when the file does not exist', () => {
+  const s = new InMemoryCommonStorage()
+
+  expect(() => s.getFileReadStream(bucket, 'missing')).toThrowErrorMatchingInlineSnapshot(
+    `[AssertionError: getFileReadStream file not found: b/missing]`,
+  )
 })

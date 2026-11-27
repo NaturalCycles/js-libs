@@ -50,6 +50,15 @@ export interface CloudStorageCfg {
    * Pass true for extra debugging
    */
   debug?: boolean
+
+  /**
+   * Chunk size, in bytes, of the uploads made by `getFileWriteStream`.
+   * Should be a multiple of 256 KiB.
+   *
+   * If set - the file is uploaded with a separate request per chunk, so a failed chunk can be retried.
+   * By default the whole file goes in a single request, which cannot be retried mid-upload.
+   */
+  writeStreamChunkSize?: number
 }
 
 /**
@@ -70,6 +79,15 @@ export class CloudStorage implements CommonStorage {
 
   cfg: CloudStorageCfg & {
     logger: CommonLogger
+  }
+
+  static async create(
+    storageOptions?: StorageOptions,
+    cfg?: CloudStorageCfg,
+  ): Promise<CloudStorage> {
+    const { Storage } = await import('@google-cloud/storage')
+    const storage = new Storage(storageOptions)
+    return new CloudStorage(storage, cfg)
   }
 
   static async createFromGCPServiceAccount(
@@ -93,15 +111,6 @@ export class CloudStorage implements CommonStorage {
       projectId: credentials?.project_id,
     })
 
-    return new CloudStorage(storage, cfg)
-  }
-
-  static async createFromStorageOptions(
-    storageOptions?: StorageOptions,
-    cfg?: CloudStorageCfg,
-  ): Promise<CloudStorage> {
-    const { Storage } = await import('@google-cloud/storage')
-    const storage = new Storage(storageOptions)
     return new CloudStorage(storage, cfg)
   }
 
@@ -246,7 +255,9 @@ export class CloudStorage implements CommonStorage {
   }
 
   getFileWriteStream(bucketName: string, filePath: string): WritableTyped<Uint8Array> {
-    return this.storage.bucket(bucketName).file(filePath).createWriteStream()
+    return this.storage.bucket(bucketName).file(filePath).createWriteStream({
+      chunkSize: this.cfg.writeStreamChunkSize,
+    })
   }
 
   async uploadFile(
