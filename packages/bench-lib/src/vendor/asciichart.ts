@@ -55,10 +55,10 @@ export function asciiPlot(seriesInput: number[][], cfg: AsciiPlotOptions = {}): 
   //   series = [seriesInput as number[]]
   // }
 
-  cfg = typeof cfg !== 'undefined' ? cfg : {}
+  cfg = typeof cfg === 'undefined' ? {} : cfg
 
-  let min = typeof cfg.min !== 'undefined' ? cfg.min : series[0]![0]!
-  let max = typeof cfg.max !== 'undefined' ? cfg.max : series[0]![0]!
+  let min = typeof cfg.min === 'undefined' ? series[0]![0]! : cfg.min
+  let max = typeof cfg.max === 'undefined' ? series[0]![0]! : cfg.max
 
   for (const element of series) {
     for (const element_ of element) {
@@ -69,11 +69,11 @@ export function asciiPlot(seriesInput: number[][], cfg: AsciiPlotOptions = {}): 
 
   const defaultSymbols = ['┼', '┤', '╶', '╴', '─', '╰', '╭', '╮', '╯', '│']
   const range = Math.abs(max - min)
-  const offset = typeof cfg.offset !== 'undefined' ? cfg.offset : 3
-  const padding = typeof cfg.padding !== 'undefined' ? cfg.padding : '           '
-  const height = typeof cfg.height !== 'undefined' ? cfg.height : range
-  const colors = typeof cfg.colors !== 'undefined' ? cfg.colors : []
-  const ratio = range !== 0 ? height / range : 1
+  const offset = typeof cfg.offset === 'undefined' ? 3 : cfg.offset
+  const padding = typeof cfg.padding === 'undefined' ? '           ' : cfg.padding
+  const height = typeof cfg.height === 'undefined' ? range : cfg.height
+  const colors = typeof cfg.colors === 'undefined' ? [] : cfg.colors
+  const ratio = range === 0 ? 1 : height / range
   const min2 = Math.round(min * ratio)
   const max2 = Math.round(max * ratio)
   const rows = Math.abs(max2 - min2)
@@ -82,11 +82,11 @@ export function asciiPlot(seriesInput: number[][], cfg: AsciiPlotOptions = {}): 
     width = Math.max(width, element.length)
   }
   width += offset
-  const symbols = typeof cfg.symbols !== 'undefined' ? cfg.symbols : defaultSymbols
+  const symbols = typeof cfg.symbols === 'undefined' ? defaultSymbols : cfg.symbols
   const format =
-    typeof cfg.format !== 'undefined'
-      ? cfg.format
-      : (x: number) => (padding + x.toFixed(2)).slice(-padding.length)
+    typeof cfg.format === 'undefined'
+      ? (x: number) => (padding + x.toFixed(2)).slice(-padding.length)
+      : cfg.format
 
   const result = new Array(rows + 1) // empty space
   for (let i = 0; i <= rows; i++) {

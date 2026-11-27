@@ -68,10 +68,10 @@ export function determineBucket(buckets: readonly Bucket[]): Bucket {
   const bucketRoll = randomService.rollDie()
   let range: [number, number] | undefined
   const bucket = buckets.find(b => {
-    if (!range) {
-      range = [0, b.ratio]
-    } else {
+    if (range) {
       range = [range[1], range[1] + b.ratio]
+    } else {
+      range = [0, b.ratio]
     }
 
     return bucketRoll > range[0] && bucketRoll <= range[1]

@@ -439,7 +439,7 @@ function toBuffer(chunk: any, encoding?: BufferEncoding): Buffer {
 }
 
 function headersSent(res: any): boolean {
-  return typeof res.headersSent !== 'boolean' ? Boolean(res._header) : res.headersSent
+  return typeof res.headersSent === 'boolean' ? res.headersSent : Boolean(res._header)
 }
 
 function parseBytes(value: string | number | undefined): number | undefined {

@@ -70,22 +70,22 @@ export function _truncateMiddle(s: string, maxLen: number, omission = '...'): st
 
 export function _substringBefore(s: string, delimiter: string): string {
   const pos = s.indexOf(delimiter)
-  return s.slice(0, pos !== -1 ? pos : undefined)
+  return s.slice(0, pos === -1 ? undefined : pos)
 }
 
 export function _substringBeforeLast(s: string, delimiter: string): string {
   const pos = s.lastIndexOf(delimiter)
-  return s.slice(0, pos !== -1 ? pos : undefined)
+  return s.slice(0, pos === -1 ? undefined : pos)
 }
 
 export function _substringAfter(s: string, delimiter: string): string {
   const pos = s.indexOf(delimiter)
-  return pos !== -1 ? s.slice(pos + delimiter.length) : s
+  return pos === -1 ? s : s.slice(pos + delimiter.length)
 }
 
 export function _substringAfterLast(s: string, delimiter: string): string {
   const pos = s.lastIndexOf(delimiter)
-  return pos !== -1 ? s.slice(pos + delimiter.length) : s
+  return pos === -1 ? s : s.slice(pos + delimiter.length)
 }
 
 /**

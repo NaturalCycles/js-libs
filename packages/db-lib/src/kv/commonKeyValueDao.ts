@@ -177,10 +177,10 @@ export class CommonKeyValueDao<K extends string = string, V = Buffer> {
     const { transformer } = this.cfg
     let rawEntries: KeyValueDBTuple[]
 
-    if (!transformer) {
-      rawEntries = entries as any
-    } else {
+    if (transformer) {
       rawEntries = entries.map(([id, v]) => [id, transformer.valueToBuffer(v)])
+    } else {
+      rawEntries = entries as any
     }
 
     await this.cfg.db.saveBatch(this.cfg.table, rawEntries, opt)

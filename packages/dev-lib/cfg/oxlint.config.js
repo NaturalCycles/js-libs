@@ -378,6 +378,8 @@ export const sharedConfig = {
     'unicorn/no-hex-escape': 2,
     'unicorn/no-instanceof-builtins': 2,
     'unicorn/no-lonely-if': 2,
+    // `if (!a) {} else {}` and `a !== b ? x : y` read better the other way round; autofixable
+    'unicorn/no-negated-condition': 2,
     'unicorn/no-negation-in-equality-check': 2,
     'unicorn/no-new-buffer': 2,
     'unicorn/prefer-string-replace-all': 2,

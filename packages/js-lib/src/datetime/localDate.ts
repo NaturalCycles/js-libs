@@ -373,12 +373,7 @@ export class LocalDate {
     } else {
       let monLen = localDate.getMonthLength(year, month)
 
-      if (unit !== 'day') {
-        if (day > monLen) {
-          // Case of 2022-05-31 plus 1 month should be 2022-06-30, not 31
-          day = monLen
-        }
-      } else {
+      if (unit === 'day') {
         while (day > monLen) {
           day -= monLen
           month += 1
@@ -388,6 +383,11 @@ export class LocalDate {
           }
 
           monLen = localDate.getMonthLength(year, month)
+        }
+      } else {
+        if (day > monLen) {
+          // Case of 2022-05-31 plus 1 month should be 2022-06-30, not 31
+          day = monLen
         }
       }
     }
