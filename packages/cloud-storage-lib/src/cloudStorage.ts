@@ -81,22 +81,26 @@ export class CloudStorage implements CommonStorage {
     logger: CommonLogger
   }
 
+  /**
+   * The client retries failed requests (uploads included) up to 10 times by default.
+   * Pass `storageOptions.retryOptions` to override these defaults.
+   */
   static async create(
     storageOptions?: StorageOptions,
     cfg?: CloudStorageCfg,
   ): Promise<CloudStorage> {
-    const { Storage } = await import('@google-cloud/storage')
-    const storage = new Storage(storageOptions)
+    const storage = await CloudStorage.createStorage(storageOptions)
     return new CloudStorage(storage, cfg)
   }
 
+  /**
+   * The client has the same default retry options as in `create`.
+   */
   static async createFromGCPServiceAccount(
     credentials?: GCPServiceAccount,
     cfg?: CloudStorageCfg,
   ): Promise<CloudStorage> {
-    const { Storage } = await import('@google-cloud/storage')
-
-    const storage = new Storage({
+    const storage = await CloudStorage.createStorage({
       // The recommended `authClient: new JWT(...)` breaks getSignedUrl: GoogleAuth then cannot
       // return client_email from getCredentials(). The deprecation is about loading untrusted
       // credential configs. Forcing the type to service_account means only a JWT client can be
@@ -120,6 +124,24 @@ export class CloudStorage implements CommonStorage {
    */
   static createFromStorage(storage: Storage, cfg?: CloudStorageCfg): CloudStorage {
     return new CloudStorage(storage, cfg)
+  }
+
+  private static async createStorage(storageOptions: StorageOptions = {}): Promise<Storage> {
+    const { Storage, IdempotencyStrategy } = await import('@google-cloud/storage')
+
+    return new Storage({
+      ...storageOptions,
+      retryOptions: {
+        maxRetries: 10, // default is 3
+        // By default (RetryConditional) the SDK does NOT retry object writes unless an
+        // `ifGenerationMatch` precondition is set — so `save()` silently disables retries and
+        // a single ECONNRESET throws "Retry limit exceeded" immediately. Our writes are
+        // last-write-wins to unique paths, so retrying is always safe. RetryAlways also
+        // enables retries (with `maxRetries` above) for these uploads.
+        idempotencyStrategy: IdempotencyStrategy.RetryAlways,
+        ...storageOptions.retryOptions,
+      },
+    })
   }
 
   async ping(bucketName?: string): Promise<void> {

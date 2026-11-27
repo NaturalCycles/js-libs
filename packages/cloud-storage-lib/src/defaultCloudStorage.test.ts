@@ -34,7 +34,7 @@ it('should create a CloudStorage with retried and chunked uploads when APP_ENV i
   expect(storage).toBeInstanceOf(CloudStorage)
   expect(storage.cfg.writeStreamChunkSize).toBe(64 * 1024 * 1024)
   expect(storage.storage.retryOptions).toMatchObject({
-    maxRetries: 10,
+    maxRetries: 15,
     idempotencyStrategy: IdempotencyStrategy.RetryAlways,
   })
 })

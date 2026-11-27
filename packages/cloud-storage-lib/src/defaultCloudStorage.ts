@@ -22,7 +22,7 @@ const defaultCloudStorage = _lazyValue(createDefaultCloudStorage)
  * Creates a new storage with the default configuration.
  *
  * It is a CloudStorage that authenticates with Application Default Credentials (ADC),
- * retries failed requests (uploads included) up to 10 times,
+ * retries failed requests (uploads included) up to 15 times, for up to 10 minutes in total,
  * and uploads `getFileWriteStream` files in chunks of 64 MB.
  *
  * With APP_ENV=test it is an InMemoryCommonStorage instead, so tests never reach the real Cloud Storage.
@@ -31,16 +31,12 @@ export async function createDefaultCloudStorage(): Promise<CommonStorage> {
   const { APP_ENV } = process.env
   if (APP_ENV === 'test') return new InMemoryCommonStorage()
 
-  const { IdempotencyStrategy } = await import('@google-cloud/storage')
-
   return await CloudStorage.create(
     {
       retryOptions: {
-        maxRetries: 10, // default is 3
-        // By default (RetryConditional) the SDK does NOT retry object writes unless an
-        // `ifGenerationMatch` precondition is set. Files are written as a whole, and the last write wins,
-        // so retrying is always safe.
-        idempotencyStrategy: IdempotencyStrategy.RetryAlways,
+        // More than the default of CloudStorage.create (10): the waits between the attempts grow
+        // up to 64 seconds, so 15 retries last until the total timeout of the SDK, which is 10 minutes
+        maxRetries: 15,
       },
     },
     {
