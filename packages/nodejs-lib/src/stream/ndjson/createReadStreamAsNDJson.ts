@@ -3,6 +3,7 @@ import { pipeline } from 'node:stream'
 import { createUnzip, createZstdDecompress } from 'node:zlib'
 import { _noop } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../../fs/fs2.js'
+import { createCloudStorageReadStream, isCloudStorageUrl } from '../cloudStorageStream.js'
 import type { ReadableTyped } from '../stream.model.js'
 import { transformSplitOnNewline } from '../transform/transformSplit.js'
 import { transformJsonParse } from './transformJsonParse.js'
@@ -20,16 +21,14 @@ import { transformJsonParse } from './transformJsonParse.js'
  To add a Limit or Offset: just add .take() or .drop(), example:
 
  createReadStreamAsNDJson().take(100)
+
+ inputPath can also be a Cloud Storage url (`gs://bucket/path/to/file`), see `Pipeline.fromCloudStorage`.
+ A Cloud Storage file with `Content-Encoding: gzip` metadata is already decompressed by the storage client.
+ Such a file should not have a `.gz` name, otherwise it is decompressed twice, which fails.
  */
 
 export function createReadStreamAsNDJson<ROW = any>(inputPath: string): ReadableTyped<ROW> {
-  fs2.requireFileToExist(inputPath)
-
-  const streams: Readable[] = [
-    fs2.createReadStream(inputPath, {
-      highWaterMark: 256 * 1024, // 64KB had no observed speedup over the default; 256KB is +6-12% end-to-end on ~9KB rows, neutral on ~180B rows, 1MB brings nothing more
-    }),
-  ]
+  const streams: Readable[] = [createFileReadStream(inputPath)]
 
   if (inputPath.endsWith('.gz')) {
     streams.push(
@@ -58,4 +57,15 @@ export function createReadStreamAsNDJson<ROW = any>(inputPath: string): Readable
   // It used to be `.map(line => JSON.parse(line))`, because "for some crazy reason .map is much faster than transformJsonParse!
   // ~5000 vs ~4000 rps !!!". Measured again on Node 24, it's the opposite: Readable.map costs ~1µs per row in promise machinery,
   // transformJsonParse() is 1.5x (consumed via pipeline) to 1.75x (consumed via for-await) faster on ~180B rows.
+}
+
+function createFileReadStream(inputPath: string): Readable {
+  // A Cloud Storage file is not checked for existence upfront: if it is missing - the stream fails
+  if (isCloudStorageUrl(inputPath)) return createCloudStorageReadStream(inputPath)
+
+  fs2.requireFileToExist(inputPath)
+
+  return fs2.createReadStream(inputPath, {
+    highWaterMark: 256 * 1024, // 64KB had no observed speedup over the default; 256KB is +6-12% end-to-end on ~9KB rows, neutral on ~180B rows, 1MB brings nothing more
+  })
 }

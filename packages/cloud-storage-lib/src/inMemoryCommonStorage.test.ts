@@ -123,10 +123,13 @@ it('should read a file back via getFileReadStream', async () => {
   expect(Buffer.concat(chunks)).toEqual(content)
 })
 
-it('should throw from getFileReadStream when the file does not exist', () => {
+it('should fail the stream of getFileReadStream, and not throw, when the file does not exist', async () => {
   const s = new InMemoryCommonStorage()
 
-  expect(() => s.getFileReadStream(bucket, 'missing')).toThrowErrorMatchingInlineSnapshot(
+  // Same as in Cloud Storage: the call itself succeeds
+  const pipeline = s.getFileReadStream(bucket, 'missing')
+
+  await expect(pipeline.toArray()).rejects.toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: getFileReadStream file not found: b/missing]`,
   )
 })

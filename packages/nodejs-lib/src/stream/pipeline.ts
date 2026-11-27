@@ -22,6 +22,11 @@ import type {
 } from '@naturalcycles/js-lib/types'
 import { fs2 } from '../fs/fs2.js'
 import { zip2 } from '../zip/zip2.js'
+import {
+  createCloudStorageReadStream,
+  createCloudStorageWriteStream,
+  isCloudStorageUrl,
+} from './cloudStorageStream.js'
 import { createReadStreamAsNDJson } from './ndjson/createReadStreamAsNDJson.js'
 import { transformJsonParse } from './ndjson/transformJsonParse.js'
 import { transformToNDJson } from './ndjson/transformToNDJson.js'
@@ -101,6 +106,10 @@ export class Pipeline<T = unknown> {
     return new Pipeline(Readable.from(input))
   }
 
+  /**
+   * sourceFilePath can be a local file path, or a Cloud Storage url (`gs://bucket/path/to/file`),
+   * see `fromCloudStorage`.
+   */
   static fromNDJsonFile<T>(sourceFilePath: string): Pipeline<T> {
     // Important that createReadStreamAsNDJson function is used
     // (and not Pipeline set of individual transforms),
@@ -110,13 +119,30 @@ export class Pipeline<T = unknown> {
     return new Pipeline<T>(createReadStreamAsNDJson(sourceFilePath))
   }
 
+  /**
+   * sourceFilePath can be a local file path, or a Cloud Storage url (`gs://bucket/path/to/file`),
+   * see `fromCloudStorage`.
+   */
   static fromFile(sourceFilePath: string): Pipeline<Uint8Array> {
+    if (isCloudStorageUrl(sourceFilePath)) return Pipeline.fromCloudStorage(sourceFilePath)
+
     return new Pipeline(
       fs2.createReadStream(sourceFilePath, {
         highWaterMark: 256 * 1024, // 64KB had no observed speedup over the default; 256KB is +6-12% end-to-end on ~9KB rows, neutral on ~180B rows, 1MB brings nothing more
       }),
       false,
     )
+  }
+
+  /**
+   * Reads the Cloud Storage file at the given url (`gs://bucket/path/to/file`) as a binary stream.
+   *
+   * Requires `@naturalcycles/cloud-storage-lib` to be installed, it is an optional peer dependency.
+   * Its default storage is used (see `getDefaultCloudStorage` there):
+   * it authenticates with Application Default Credentials, and it is in-memory when APP_ENV=test.
+   */
+  static fromCloudStorage(url: string): Pipeline<Uint8Array> {
+    return new Pipeline(createCloudStorageReadStream(url), false)
   }
 
   /**
@@ -374,9 +400,12 @@ export class Pipeline<T = unknown> {
     return arr
   }
 
+  /**
+   * outputFilePath can be a local file path, or a Cloud Storage url (`gs://bucket/path/to/file`),
+   * see `fromCloudStorage` for the requirements.
+   */
   async toFile(outputFilePath: string): Promise<void> {
-    fs2.ensureFile(outputFilePath)
-    this.destination = fs2.createWriteStream(outputFilePath)
+    this.destination = await this.createFileWriteStream(outputFilePath)
     await this.run()
   }
 
@@ -386,9 +415,11 @@ export class Pipeline<T = unknown> {
    * Default levels are:
    * gzip: 6
    * zlib: 3 (optimized for throughput, not size, may be larger than gzip at its default level)
+   *
+   * outputFilePath can be a local file path, or a Cloud Storage url (`gs://bucket/path/to/file`),
+   * see `fromCloudStorage` for the requirements.
    */
   async toNDJsonFile(outputFilePath: string, level?: Integer): Promise<void> {
-    fs2.ensureFile(outputFilePath)
     this.transforms.push(transformToNDJson())
     if (outputFilePath.endsWith('.gz')) {
       this.transforms.push(
@@ -400,9 +431,7 @@ export class Pipeline<T = unknown> {
     } else if (outputFilePath.endsWith('.zst')) {
       this.transforms.push(createZstdCompress(zip2.zstdLevelToOptions(level)))
     }
-    this.destination = fs2.createWriteStream(outputFilePath, {
-      // highWaterMark: 64 * 1024, // no observed speedup
-    })
+    this.destination = await this.createFileWriteStream(outputFilePath)
     await this.run()
   }
 
@@ -471,5 +500,27 @@ export class Pipeline<T = unknown> {
   private isGracefullyAborted(): boolean {
     const { aborted, reason } = this.abortableSignal
     return aborted && reason instanceof Error && reason.message === PIPELINE_GRACEFUL_ABORT
+  }
+
+  /**
+   * Returns a Writable for a local file, or for a Cloud Storage file if outputFilePath is a `gs://` url.
+   */
+  private async createFileWriteStream(outputFilePath: string): Promise<NodeJS.WritableStream> {
+    try {
+      if (isCloudStorageUrl(outputFilePath)) {
+        return await createCloudStorageWriteStream(outputFilePath)
+      }
+
+      fs2.ensureFile(outputFilePath)
+
+      return fs2.createWriteStream(outputFilePath, {
+        // highWaterMark: 64 * 1024, // no observed speedup
+      })
+    } catch (err) {
+      // The pipeline does not run, so nothing else closes the source, which can hold an open file
+      // or connection. It is destroyed without the error: nothing listens to its 'error' event here.
+      this.source.destroy()
+      throw err
+    }
   }
 }

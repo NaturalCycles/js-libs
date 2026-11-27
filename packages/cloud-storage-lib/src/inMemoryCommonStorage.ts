@@ -3,6 +3,7 @@ import { _isTruthy } from '@naturalcycles/js-lib'
 import type { LocalTimeInput } from '@naturalcycles/js-lib/datetime'
 import { localTime } from '@naturalcycles/js-lib/datetime/localTime.js'
 import { _assert } from '@naturalcycles/js-lib/error/assert.js'
+import { AssertionError } from '@naturalcycles/js-lib/error/error.util.js'
 import { _substringAfterLast } from '@naturalcycles/js-lib/string'
 import type { StringMap } from '@naturalcycles/js-lib/types'
 import { _stringMapEntries } from '@naturalcycles/js-lib/types'
@@ -129,10 +130,22 @@ export class InMemoryCommonStorage implements CommonStorage {
     )
   }
 
+  /**
+   * A missing file does not throw here: the stream fails when it is read, same as in Cloud Storage.
+   */
   getFileReadStream(bucketName: string, filePath: string): Pipeline<Uint8Array> {
     const content = this.data[bucketName]?.[filePath]
-    _assert(content, `getFileReadStream file not found: ${bucketName}/${filePath}`)
-    return Pipeline.from(Readable.from(content))
+    if (content) return Pipeline.from(Readable.from(content))
+
+    const err = new AssertionError(`getFileReadStream file not found: ${bucketName}/${filePath}`)
+
+    return Pipeline.from(
+      new Readable({
+        read() {
+          this.destroy(err)
+        },
+      }),
+    )
   }
 
   /**

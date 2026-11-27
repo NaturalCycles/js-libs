@@ -1,5 +1,6 @@
 import { Readable, Transform } from 'node:stream'
 import type { ReadableOptions } from 'node:stream'
+import { _noop } from '@naturalcycles/js-lib/types'
 import type { ReadableTyped } from '../stream.model.js'
 
 /**
@@ -55,6 +56,11 @@ export function createReadableFromAsync<T>(fn: () => Promise<ReadableTyped<T>>):
       cb(null, chunk)
     },
   })
+
+  // `fn` or the source Readable can fail before any consumer is attached, and an 'error' event
+  // without a listener crashes the process. With this listener the error is kept in the stream instead,
+  // and the consumer gets it when it attaches.
+  transform.on('error', _noop)
 
   void fn()
     .then(readable => {

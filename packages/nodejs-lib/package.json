@@ -30,7 +30,16 @@
     "tslib": "^2",
     "yaml": "^2"
   },
+  "peerDependencies": {
+    "@naturalcycles/cloud-storage-lib": "workspace:^2"
+  },
+  "peerDependenciesMeta": {
+    "@naturalcycles/cloud-storage-lib": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@naturalcycles/cloud-storage-lib": "workspace:*",
     "@naturalcycles/dev-lib": "workspace:*",
     "typescript": "catalog:"
   },
