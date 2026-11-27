@@ -50,7 +50,7 @@ export async function createCloudStorageWriteStream(
 }
 
 function parseCloudStorageUrl(url: string): CloudStorageUrl {
-  _assert(isCloudStorageUrl(url), `Cloud Storage url should start with gs:// but got: ${url}`)
+  assertCloudStorageUrl(url)
 
   const [bucketName, ...pathParts] = url.slice(CLOUD_STORAGE_URL_PREFIX.length).split('/')
   const filePath = pathParts.join('/')
@@ -61,6 +61,13 @@ function parseCloudStorageUrl(url: string): CloudStorageUrl {
   )
 
   return { bucketName, filePath }
+}
+
+/**
+ * Throws if the given url is not a Cloud Storage url.
+ */
+export function assertCloudStorageUrl(url: string): void {
+  _assert(isCloudStorageUrl(url), `Cloud Storage url should start with gs:// but got: ${url}`)
 }
 
 /**

@@ -22,7 +22,7 @@ import { transformJsonParse } from './transformJsonParse.js'
 
  createReadStreamAsNDJson().take(100)
 
- inputPath can also be a Cloud Storage url (`gs://bucket/path/to/file`), see `Pipeline.fromCloudStorage`.
+ inputPath can also be a Cloud Storage url (`gs://bucket/path/to/file`), see `Pipeline.fromCloudStorageFile`.
  A Cloud Storage file with `Content-Encoding: gzip` metadata is already decompressed by the storage client.
  Such a file should not have a `.gz` name, otherwise it is decompressed twice, which fails.
  */

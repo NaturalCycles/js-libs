@@ -23,6 +23,7 @@ import type {
 import { fs2 } from '../fs/fs2.js'
 import { zip2 } from '../zip/zip2.js'
 import {
+  assertCloudStorageUrl,
   createCloudStorageReadStream,
   createCloudStorageWriteStream,
   isCloudStorageUrl,
@@ -108,7 +109,7 @@ export class Pipeline<T = unknown> {
 
   /**
    * sourceFilePath can be a local file path, or a Cloud Storage url (`gs://bucket/path/to/file`),
-   * see `fromCloudStorage`.
+   * see `fromCloudStorageFile`.
    */
   static fromNDJsonFile<T>(sourceFilePath: string): Pipeline<T> {
     // Important that createReadStreamAsNDJson function is used
@@ -121,10 +122,10 @@ export class Pipeline<T = unknown> {
 
   /**
    * sourceFilePath can be a local file path, or a Cloud Storage url (`gs://bucket/path/to/file`),
-   * see `fromCloudStorage`.
+   * see `fromCloudStorageFile`.
    */
   static fromFile(sourceFilePath: string): Pipeline<Uint8Array> {
-    if (isCloudStorageUrl(sourceFilePath)) return Pipeline.fromCloudStorage(sourceFilePath)
+    if (isCloudStorageUrl(sourceFilePath)) return Pipeline.fromCloudStorageFile(sourceFilePath)
 
     return new Pipeline(
       fs2.createReadStream(sourceFilePath, {
@@ -136,13 +137,24 @@ export class Pipeline<T = unknown> {
 
   /**
    * Reads the Cloud Storage file at the given url (`gs://bucket/path/to/file`) as a binary stream.
+   * Same as `fromFile`, but it throws if the url does not start with `gs://`.
    *
    * Requires `@naturalcycles/cloud-storage-lib` to be installed, it is an optional peer dependency.
    * Its default storage is used (see `getDefaultCloudStorage` there):
    * it authenticates with Application Default Credentials, and it is in-memory when APP_ENV=test.
    */
-  static fromCloudStorage(url: string): Pipeline<Uint8Array> {
+  static fromCloudStorageFile(url: string): Pipeline<Uint8Array> {
     return new Pipeline(createCloudStorageReadStream(url), false)
+  }
+
+  /**
+   * Same as `fromNDJsonFile`, but it throws if the url does not start with `gs://`.
+   * See `fromCloudStorageFile` for the requirements.
+   */
+  static fromCloudStorageNDJsonFile<T>(url: string): Pipeline<T> {
+    assertCloudStorageUrl(url)
+    // createReadStreamAsNDJson is used for the same reason as in fromNDJsonFile
+    return new Pipeline<T>(createReadStreamAsNDJson(url))
   }
 
   /**
@@ -401,12 +413,30 @@ export class Pipeline<T = unknown> {
   }
 
   /**
+   * Same as `toFile`, but it rejects if the url does not start with `gs://`.
+   * See `fromCloudStorageFile` for the requirements.
+   */
+  async toCloudStorageFile(url: string): Promise<void> {
+    this.requireCloudStorageUrl(url)
+    await this.toFile(url)
+  }
+
+  /**
    * outputFilePath can be a local file path, or a Cloud Storage url (`gs://bucket/path/to/file`),
-   * see `fromCloudStorage` for the requirements.
+   * see `fromCloudStorageFile` for the requirements.
    */
   async toFile(outputFilePath: string): Promise<void> {
     this.destination = await this.createFileWriteStream(outputFilePath)
     await this.run()
+  }
+
+  /**
+   * Same as `toNDJsonFile`, but it rejects if the url does not start with `gs://`.
+   * See `fromCloudStorageFile` for the requirements.
+   */
+  async toCloudStorageNDJsonFile(url: string, level?: Integer): Promise<void> {
+    this.requireCloudStorageUrl(url)
+    await this.toNDJsonFile(url, level)
   }
 
   /**
@@ -417,7 +447,7 @@ export class Pipeline<T = unknown> {
    * zlib: 3 (optimized for throughput, not size, may be larger than gzip at its default level)
    *
    * outputFilePath can be a local file path, or a Cloud Storage url (`gs://bucket/path/to/file`),
-   * see `fromCloudStorage` for the requirements.
+   * see `fromCloudStorageFile` for the requirements.
    */
   async toNDJsonFile(outputFilePath: string, level?: Integer): Promise<void> {
     this.transforms.push(transformToNDJson())
@@ -519,6 +549,16 @@ export class Pipeline<T = unknown> {
     } catch (err) {
       // The pipeline does not run, so nothing else closes the source, which can hold an open file
       // or connection. It is destroyed without the error: nothing listens to its 'error' event here.
+      this.source.destroy()
+      throw err
+    }
+  }
+
+  private requireCloudStorageUrl(url: string): void {
+    try {
+      assertCloudStorageUrl(url)
+    } catch (err) {
+      // Same as in createFileWriteStream: the pipeline does not run, so the source is closed here
       this.source.destroy()
       throw err
     }

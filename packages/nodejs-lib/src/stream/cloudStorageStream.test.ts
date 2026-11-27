@@ -4,6 +4,8 @@ import { getDefaultCloudStorage } from '@naturalcycles/cloud-storage-lib'
 import { _range } from '@naturalcycles/js-lib/array/range.js'
 import { pDelay } from '@naturalcycles/js-lib/promise'
 import { expect, it, vi } from 'vitest'
+import { fs2 } from '../fs/fs2.js'
+import { tmpDir } from '../test/paths.cnst.js'
 import { zip2 } from '../zip/zip2.js'
 import { createReadStreamAsNDJson } from './ndjson/createReadStreamAsNDJson.js'
 import { Pipeline } from './pipeline.js'
@@ -80,10 +82,10 @@ it('should copy a binary file between gs:// urls with fromFile and toFile', asyn
   expect(await storage.getFile('bucket2', 'binary/b.bin')).toEqual(content)
 })
 
-it('should read a binary file with fromCloudStorage', async () => {
+it('should read a binary file with fromCloudStorageFile', async () => {
   await storage.saveFile('bucket1', 'binary/c.bin', content)
 
-  const chunks = await Pipeline.fromCloudStorage('gs://bucket1/binary/c.bin').toArray()
+  const chunks = await Pipeline.fromCloudStorageFile('gs://bucket1/binary/c.bin').toArray()
 
   expect(Buffer.concat(chunks)).toEqual(content)
 })
@@ -154,10 +156,58 @@ it('should close the source when toNDJsonFile cannot create the gs:// destinatio
   expect(source.destroyed).toBe(true)
 })
 
-it('should throw from fromCloudStorage on a local path', () => {
-  expect(() => Pipeline.fromCloudStorage('/tmp/a.bin')).toThrowErrorMatchingInlineSnapshot(
+it('should write and read back ndjson with the Cloud Storage only methods', async () => {
+  const url = 'gs://bucket1/explicit/rows.ndjson.zst'
+
+  await Pipeline.fromArray(rows).toCloudStorageNDJsonFile(url)
+
+  expect(await Pipeline.fromCloudStorageNDJsonFile(url).toArray()).toEqual(rows)
+  const file = await storage.getFile('bucket1', 'explicit/rows.ndjson.zst')
+  expect(zip2.zstdDecompressToStringSync(file!)).toBe(ndjson)
+})
+
+it('should write and read back a binary file with the Cloud Storage only methods', async () => {
+  const url = 'gs://bucket1/explicit/a.bin'
+
+  await Pipeline.fromArray([content]).setObjectMode(false).toCloudStorageFile(url)
+
+  const chunks = await Pipeline.fromCloudStorageFile(url).toArray()
+  expect(Buffer.concat(chunks)).toEqual(content)
+})
+
+it('should throw from fromCloudStorageFile and fromCloudStorageNDJsonFile on a local path', () => {
+  expect(() => Pipeline.fromCloudStorageFile('/tmp/a.bin')).toThrowErrorMatchingInlineSnapshot(
     `[AssertionError: Cloud Storage url should start with gs:// but got: /tmp/a.bin]`,
   )
+  expect(() =>
+    Pipeline.fromCloudStorageNDJsonFile('/tmp/rows.ndjson'),
+  ).toThrowErrorMatchingInlineSnapshot(
+    `[AssertionError: Cloud Storage url should start with gs:// but got: /tmp/rows.ndjson]`,
+  )
+})
+
+it('should reject toCloudStorageFile on a local path, write nothing, and close the source', async () => {
+  const source = Readable.from([content], { objectMode: false })
+  const path = `${tmpDir}/toCloudStorageFile.bin`
+
+  await expect(Pipeline.from(source).toCloudStorageFile(path)).rejects.toThrow(
+    'Cloud Storage url should start with gs://',
+  )
+
+  expect(source.destroyed).toBe(true)
+  expect(fs2.pathExists(path)).toBe(false)
+})
+
+it('should reject toCloudStorageNDJsonFile on a local path, write nothing, and close the source', async () => {
+  const source = Readable.from(rows)
+  const path = `${tmpDir}/toCloudStorageNDJsonFile.ndjson`
+
+  await expect(Pipeline.from(source).toCloudStorageNDJsonFile(path)).rejects.toThrow(
+    'Cloud Storage url should start with gs://',
+  )
+
+  expect(source.destroyed).toBe(true)
+  expect(fs2.pathExists(path)).toBe(false)
 })
 
 /**
