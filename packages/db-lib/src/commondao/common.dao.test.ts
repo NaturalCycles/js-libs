@@ -745,7 +745,7 @@ it('should throw a validation error whose stack reaches the caller of the query'
   Error.stackTraceLimit = Infinity
   try {
     const err = await pExpectedError(getEven(), AjvValidationError)
-    expect(err.stack).toContain('at getEven (')
+    expect(err.stack).toContain('at async getEven (')
   } finally {
     Error.stackTraceLimit = stackTraceLimit
   }

@@ -62,9 +62,9 @@ it('should preserve stack', async () => {
     "AppError: failing msg
         at failingFn pProps.test.ts
         at async Promise.all (index 1)
-        at pProps pProps.ts
-        at wrappingFn pProps.test.ts
-        at pExpectedError try.ts"
+        at async pProps pProps.ts
+        at async wrappingFn pProps.test.ts
+        at async pExpectedError try.ts"
   `)
 })
 

@@ -243,9 +243,9 @@ it('should preserve stack', async () => {
   // UPD: works for selected cases: infinite/limited/no concurrency
   // console.log(err)
   // console.log(err.stack)
-  expect(err.stack).toContain('at pMap')
-  expect(err.stack).toContain('at wrappingFn')
-  expect(err.stack).toContain('at pExpectedError')
+  expect(err.stack).toContain('at async pMap')
+  expect(err.stack).toContain('at async wrappingFn')
+  expect(err.stack).toContain('at async pExpectedError')
 })
 
 it('should keep the input order with unlimited concurrency and reversed delays', async () => {

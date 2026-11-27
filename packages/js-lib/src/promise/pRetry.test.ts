@@ -96,7 +96,7 @@ it('should throw the last error with the caller stack after the max attempts', a
 
   expect(err).toMatchInlineSnapshot('[Error: fail]')
   expect(err.stack).not.toContain('TimeoutError')
-  expect(err.stack).toContain('at myFunction')
+  expect(err.stack).toContain('at async myFunction')
 })
 
 it('should resolve when the function finishes within the timeout', async () => {

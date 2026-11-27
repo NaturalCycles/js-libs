@@ -38,7 +38,7 @@ export function normalizeStack(s: string): string {
     s
       .replaceAll(/\(\/.*\/(.*):.*:.*\)/gm, '$1')
       // .replaceAll(/file:\/\/(.*)\/node_modules\/(.*):.*:.*$/gm, '$2')
-      .replaceAll(/.*at \/.*/gm, '')
+      .replaceAll(/.*at (?:async )?\/.*/gm, '')
       .replaceAll(/.*\/node_modules\/.*/gm, '')
       .split('\n')
       .filter(Boolean)
