@@ -119,7 +119,7 @@ it('should measure a synchronous stall and the CPU it consumed', async () => {
   const onStats = vi.fn<(stats: EventLoopStats) => void>()
   monitor = new EventLoopMonitor({ measureInterval: 100, watchdogInterval: 10, onStats })
 
-  await stallInTimerCallback(50) // busy wait: the stall is CPU work
+  await burnCpuInTimerCallback(50) // the stall is CPU work
   await vi.advanceTimersByTimeAsync(100)
 
   const stats = onStats.mock.calls[0]![0]
@@ -207,6 +207,28 @@ async function blockWithoutCpuInTimerCallback(ms: number): Promise<void> {
       resolve()
     }, 1)
   })
+}
+
+/**
+ * Blocks the event loop inside a (real) setTimeout callback until its thread has consumed `cpuMs` of CPU.
+ * A busy wait that is bounded by wall-clock time consumes less CPU than that on a loaded machine,
+ * where the thread is descheduled for a part of the wait.
+ */
+async function burnCpuInTimerCallback(cpuMs: number): Promise<void> {
+  await new Promise<void>(resolve => {
+    setTimeout(() => {
+      const start = getThreadCpuMs()
+      while (getThreadCpuMs() - start < cpuMs) {
+        // busy wait
+      }
+      resolve()
+    }, 1)
+  })
+}
+
+function getThreadCpuMs(): number {
+  const { user, system } = process.threadCpuUsage()
+  return (user + system) / 1000
 }
 
 /**
