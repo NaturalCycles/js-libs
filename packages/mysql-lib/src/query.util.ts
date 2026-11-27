@@ -90,15 +90,15 @@ export function insertSQL(
   let sql: string | undefined
 
   for (const vrow of valueRows) {
-    if (!sql) {
-      sql = start + vrow
-    } else {
+    if (sql) {
       if (sql.length + vrow.length >= MAX_ROW_SIZE) {
         sqls.push(sql)
         sql = start + vrow // reset
       } else {
         sql += ',\n ' + vrow // add
       }
+    } else {
+      sql = start + vrow
     }
   }
 

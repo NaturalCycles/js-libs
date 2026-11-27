@@ -304,9 +304,9 @@ const linesBetweenClassMembersRule = {
     const sourceCode = context.sourceCode
     const mode = context.options?.[0] || 'always'
     const exceptAfterSingleLine =
-      context.options?.[1]?.exceptAfterSingleLine !== undefined
-        ? Boolean(context.options[1].exceptAfterSingleLine)
-        : true
+      context.options?.[1]?.exceptAfterSingleLine === undefined
+        ? true
+        : Boolean(context.options[1].exceptAfterSingleLine)
     const exceptAfterOverload = true
 
     if (mode !== 'always') {

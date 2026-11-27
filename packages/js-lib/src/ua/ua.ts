@@ -180,7 +180,7 @@ export function uaParser(userAgent?: string, extensions?: UAParserExtensions): U
  */
 export class UAParser {
   constructor(ua?: string, extensions?: UAParserExtensions) {
-    this.nav = typeof globalThis.window !== 'undefined' ? globalThis.navigator : undefined
+    this.nav = typeof globalThis.window === 'undefined' ? undefined : globalThis.navigator
     this.rgxMap = extensions ? extend(regexes, extensions) : regexes
     const initialUa = ua || this.nav?.userAgent || ''
     // Whether we're parsing the environment's own UA - only then the

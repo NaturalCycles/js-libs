@@ -492,6 +492,7 @@
     "unicorn/no-length-as-slice-end": "deny",
     "unicorn/no-lonely-if": "deny",
     "unicorn/no-magic-array-flat-depth": "deny",
+    "unicorn/no-negated-condition": "deny",
     "unicorn/no-negation-in-equality-check": "deny",
     "unicorn/no-new-array": "allow",
     "unicorn/no-new-buffer": "deny",

@@ -441,7 +441,7 @@ export async function runCommonDBTest(
 
     if (quirks.allowBooleansAsUndefined) {
       expected = expected.map(r => {
-        return typeof r !== 'object' ? r : _filterObject(r, (_k, v) => v !== false)
+        return typeof r === 'object' ? _filterObject(r, (_k, v) => v !== false) : r
       })
     }
 
