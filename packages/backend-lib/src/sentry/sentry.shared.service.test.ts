@@ -1,7 +1,8 @@
 import { AppError } from '@naturalcycles/js-lib/error'
-import type * as SentryLib from '@sentry/node-core/light'
-import { expect, it, vi } from 'vitest'
+import type * as SentryNode from '@sentry/node'
+import { expect, expectTypeOf, it, vi } from 'vitest'
 import { SentrySharedService } from './sentry.shared.service.js'
+import type { SentryLike } from './sentry.shared.service.js'
 
 it('should report an error to sentry, with the inspected error as a breadcrumb', () => {
   const sentry = createSentryMock()
@@ -28,9 +29,19 @@ it('should not report an error whose data has report: false', () => {
   expect(sentry.captureException).not.toHaveBeenCalled()
 })
 
-function createSentryMock(): typeof SentryLib {
+it('should accept the @sentry/node module and keep its full type', () => {
+  expectTypeOf<typeof SentryNode>().toExtend<SentryLike>()
+  expectTypeOf<SentrySharedService<typeof SentryNode>['sentry']>().toEqualTypeOf<
+    typeof SentryNode
+  >()
+})
+
+function createSentryMock(): SentryLike {
   return {
-    addBreadcrumb: vi.fn<typeof SentryLib.addBreadcrumb>(),
-    captureException: vi.fn<typeof SentryLib.captureException>(() => 'eventId1'),
-  } as unknown as typeof SentryLib
+    setUser: vi.fn<SentryLike['setUser']>(),
+    setTags: vi.fn<SentryLike['setTags']>(),
+    captureException: vi.fn<SentryLike['captureException']>(() => 'eventId1'),
+    captureMessage: vi.fn<SentryLike['captureMessage']>(() => 'eventId2'),
+    addBreadcrumb: vi.fn<SentryLike['addBreadcrumb']>(),
+  }
 }

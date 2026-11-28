@@ -2,18 +2,50 @@ import { _anyToError, _isErrorObject } from '@naturalcycles/js-lib/error'
 import { commonLoggerCreate } from '@naturalcycles/js-lib/log'
 import type { CommonLogger, CommonLogLevel } from '@naturalcycles/js-lib/log'
 import { _omit } from '@naturalcycles/js-lib/object/object.util.js'
-import type { Primitive, StringMap } from '@naturalcycles/js-lib/types'
+import type { AnyObject, Primitive, StringMap } from '@naturalcycles/js-lib/types'
 import type { InspectAnyOptions } from '@naturalcycles/nodejs-lib'
 import { _inspect, logEntryToString } from '@naturalcycles/nodejs-lib'
-import type { Breadcrumb, SeverityLevel } from '@sentry/node-core/light'
-import type * as SentryLib from '@sentry/node-core/light'
 import { getRequestLogger } from '../server/asyncLocalStorageMiddleware.js'
 
-export interface SentrySharedServiceCfg {
-  sentry: typeof SentryLib
+export interface SentrySharedServiceCfg<SDK extends SentryLike = SentryLike> {
+  /**
+   * The Sentry SDK module, e.g `import * as sentry from '@sentry/node'`.
+   */
+  sentry: SDK
 }
 
-const sentrySeverityMap: Record<SeverityLevel, CommonLogLevel> = {
+/**
+ * The functions of a Sentry SDK that SentrySharedService calls.
+ * Typed structurally, so backend-lib does not depend on a Sentry package or version:
+ * `@sentry/node` and `@sentry/node-core` both match it.
+ */
+export interface SentryLike {
+  setUser: (user: { id: string } | null) => void
+  setTags: (tags: StringMap<Primitive>) => void
+  captureException: (exception: unknown) => string
+  captureMessage: (message: string, level?: SentrySeverityLevel) => string
+  addBreadcrumb: (breadcrumb: SentryBreadcrumb) => void
+}
+
+/**
+ * Same as Sentry's `SeverityLevel`.
+ */
+export type SentrySeverityLevel = 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug'
+
+/**
+ * Same as Sentry's `Breadcrumb`.
+ */
+export interface SentryBreadcrumb {
+  type?: string
+  level?: SentrySeverityLevel
+  event_id?: string
+  category?: string
+  message?: string
+  data?: AnyObject
+  timestamp?: number
+}
+
+const sentrySeverityMap: Record<SentrySeverityLevel, CommonLogLevel> = {
   debug: 'log',
   info: 'log',
   log: 'log',
@@ -32,15 +64,21 @@ const INSPECT_OPT: InspectAnyOptions = {
  *
  * {
  *   maxValueLength: 2000, // default is 250 characters
+ *   // @sentry/node 11+: otherwise its express integration captures every route error itself,
+ *   // ignoring ErrorData.report and reportRate
+ *   enableRuntimeChannelInjection: false,
  * }
  *
  */
-export class SentrySharedService {
-  constructor(sentryServiceCfg: SentrySharedServiceCfg) {
+export class SentrySharedService<SDK extends SentryLike = SentryLike> {
+  constructor(sentryServiceCfg: SentrySharedServiceCfg<SDK>) {
     this.sentry = sentryServiceCfg.sentry
   }
 
-  sentry: typeof SentryLib
+  /**
+   * The SDK passed in the cfg, with its full type, for the functions that this service does not wrap.
+   */
+  sentry: SDK
 
   /**
    * For GDPR reasons we never send more information than just User ID.
@@ -107,12 +145,12 @@ export class SentrySharedService {
   /**
    * Returns "eventId"
    */
-  captureMessage(msg: string, level?: SeverityLevel): string {
+  captureMessage(msg: string, level?: SentrySeverityLevel): string {
     getRequestLogger()[sentrySeverityMap[level!] || 'log'](`captureMessage: ${msg}`)
     return this.sentry.captureMessage(msg, level)
   }
 
-  addBreadcrumb(breadcrumb: Breadcrumb): void {
+  addBreadcrumb(breadcrumb: SentryBreadcrumb): void {
     this.sentry.addBreadcrumb(breadcrumb)
   }
 

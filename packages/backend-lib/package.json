@@ -31,20 +31,16 @@
     "tslib": "^2"
   },
   "peerDependencies": {
-    "@sentry/node-core": "^10",
     "firebase-admin": "^14"
   },
   "peerDependenciesMeta": {
-    "@sentry/node-core": {
-      "optional": true
-    },
     "firebase-admin": {
       "optional": true
     }
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "workspace:*",
-    "@sentry/node-core": "^10",
+    "@sentry/node": "^11",
     "@types/busboy": "^1",
     "typescript": "catalog:",
     "fastify": "^5"
