@@ -124,7 +124,7 @@ export function getSharedConfig(cwd) {
     unstubEnvs: true,
     unstubGlobals: true,
     setupFiles: getSetupFiles(testType, cwd),
-    logHeapUsage: true,
+    // logHeapUsage: true,
     testTimeout: 60_000,
     hookTimeout: 60_000,
     injectCjsGlobals: false,
